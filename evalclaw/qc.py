@@ -165,29 +165,40 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
         }
         for item in dataset.items[:50]
     ]
-    raw = call_llm(
-        [
-            Message(
-                role="user",
-                content=json.dumps(
-                    {
-                        "objective": dataset.spec.objective,
-                        "dimensions": [d.model_dump(mode="json") for d in dataset.spec.dimensions],
-                        "items": sample,
-                    },
-                    ensure_ascii=False,
-                    indent=2,
-                ),
+    try:
+        raw = call_llm(
+            [
+                Message(
+                    role="user",
+                    content=json.dumps(
+                        {
+                            "objective": dataset.spec.objective,
+                            "dimensions": [d.model_dump(mode="json") for d in dataset.spec.dimensions],
+                            "items": sample,
+                        },
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                )
+            ],
+            system=_SYSTEM,
+            model=config.orchestrator_model,
+            api_key=config.orchestrator_api_key,
+            base_url=config.orchestrator_base_url,
+            backend=config.llm_backend,
+            max_tokens=4096,
+        )
+        data = extract_json(raw)
+    except Exception as exc:
+        return [
+            _issue(
+                None,
+                QcSeverity.warning,
+                QcCategory.clarity,
+                f"LLM QC failed; static QC was used as fallback: {str(exc)[:240]}",
+                "Retry with a smaller dataset, a different QC model, or local/static-only QC.",
             )
-        ],
-        system=_SYSTEM,
-        model=config.orchestrator_model,
-        api_key=config.orchestrator_api_key,
-        base_url=config.orchestrator_base_url,
-        backend=config.llm_backend,
-        max_tokens=4096,
-    )
-    data = extract_json(raw)
+        ]
     issues: list[QcIssue] = []
     for raw_issue in data.get("issues", []):
         try:

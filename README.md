@@ -84,7 +84,8 @@ DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw
   --llm-backend litellm \
   --single-pass-judge \
   --improve-iterations 1 \
-  --loop3-diagnosis local
+  --loop3-diagnosis local \
+  --loop3-max-actions 3
 ```
 
 ## Outputs
