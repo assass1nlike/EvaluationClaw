@@ -104,7 +104,7 @@ def run_pipeline(
     improvements = []
     for iteration in range(1, max(0, config.improve_iterations) + 1):
         log(f"\n[Loop 3] Running self-improvement iteration {iteration}...")
-        improved = run_loop3_improvement(dataset, qc_report, run, config, iteration=iteration)
+        improved = run_loop3_improvement(dataset, qc_report, run, config, iteration=iteration, log=log)
         improvements.append(improved)
         log(f"  Actions: {len(improved.actions)}")
         if improved.qc_report:

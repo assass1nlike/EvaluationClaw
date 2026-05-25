@@ -141,6 +141,8 @@ def generate(
     runner: str = typer.Option("direct", "--runner", help="Runner mode: direct, lm-eval, or auto."),
     improve_iterations: int = typer.Option(0, "--improve-iterations", help="Loop 3 self-improvement iterations after the first run."),
     loop3_diagnosis: str = typer.Option("llm", "--loop3-diagnosis", help="Loop 3 diagnosis mode: llm or local."),
+    loop3_timeout: int = typer.Option(90, "--loop3-timeout", help="Loop 3 LLM diagnosis timeout in seconds."),
+    loop3_max_actions: int = typer.Option(4, "--loop3-max-actions", help="Maximum Loop 3 actions per iteration."),
     json_output: bool = typer.Option(False, "--json", help="Print full package JSON to stdout."),
 ) -> None:
     """Generate an EvaluationClaw benchmark package."""
@@ -151,6 +153,12 @@ def generate(
         raise typer.Exit(1)
     if loop3_diagnosis not in {"llm", "local"}:
         console.print("[red]--loop3-diagnosis must be 'llm' or 'local'.[/red]")
+        raise typer.Exit(1)
+    if loop3_timeout < 1:
+        console.print("[red]--loop3-timeout must be at least 1 second.[/red]")
+        raise typer.Exit(1)
+    if loop3_max_actions < 0:
+        console.print("[red]--loop3-max-actions cannot be negative.[/red]")
         raise typer.Exit(1)
 
     effective_api_key, effective_orch_base = orchestrator_defaults(
@@ -183,6 +191,8 @@ def generate(
         runner=runner,
         improve_iterations=improve_iterations,
         loop3_diagnosis=loop3_diagnosis,
+        loop3_diagnosis_timeout_s=loop3_timeout,
+        loop3_max_actions=loop3_max_actions,
     )
 
     log_console = Console(stderr=json_output)

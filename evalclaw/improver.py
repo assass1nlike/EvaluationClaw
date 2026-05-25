@@ -4,6 +4,9 @@ from __future__ import annotations
 import json
 import uuid
 from collections import Counter, defaultdict
+from queue import Empty, Queue
+from threading import Thread
+from typing import Callable
 
 from .generator import generate_dimension_items
 from .llm import call_llm, extract_json
@@ -46,6 +49,15 @@ action_type 可选：
 """
 
 
+def _shorten(text: str | None, limit: int = 800) -> str:
+    if not text:
+        return ""
+    stripped = text.strip()
+    if len(stripped) <= limit:
+        return stripped
+    return stripped[:limit].rstrip() + "..."
+
+
 def _diagnose_locally(dataset: BenchmarkDataset, qc_report: QcReport, run: EvalRun) -> list[ImprovementAction]:
     actions: list[ImprovementAction] = []
     for issue in qc_report.issues:
@@ -80,6 +92,96 @@ def _diagnose_locally(dataset: BenchmarkDataset, qc_report: QcReport, run: EvalR
     return actions[:8]
 
 
+def _diagnosis_payload(dataset: BenchmarkDataset, qc_report: QcReport, run: EvalRun) -> dict:
+    item_by_id = {item.id: item for item in dataset.items}
+    interesting_item_ids = {issue.item_id for issue in qc_report.issues if issue.item_id}
+    low_or_error_results = []
+    for result in run.results:
+        if not result.error and result.score >= 0.4:
+            continue
+        item = item_by_id.get(result.item_id)
+        interesting_item_ids.add(result.item_id)
+        low_or_error_results.append(
+            {
+                "item_id": result.item_id,
+                "target_id": result.target_id,
+                "score": result.score,
+                "error": result.error,
+                "dimension_id": item.dimension_id if item else None,
+                "task_type": item.task_type.value if item else None,
+                "prompt_excerpt": _shorten(item.prompt if item else "", 700),
+                "response_excerpt": _shorten(result.raw_response, 700),
+                "judge_excerpt": _shorten(result.judge_reasoning, 500),
+            }
+        )
+
+    candidate_items = []
+    for item in dataset.items:
+        if item.id not in interesting_item_ids:
+            continue
+        candidate_items.append(
+            {
+                "id": item.id,
+                "dimension_id": item.dimension_id,
+                "task_type": item.task_type.value,
+                "difficulty": item.difficulty.value,
+                "prompt_excerpt": _shorten(item.prompt, 900),
+                "answer": item.answer,
+                "rubric_excerpt": _shorten(item.rubric, 600),
+            }
+        )
+
+    return {
+        "objective": dataset.spec.objective,
+        "task_types": [task_type.value for task_type in dataset.spec.task_types],
+        "dimensions": [
+            {
+                "id": dimension.id,
+                "name": dimension.name,
+                "description": _shorten(dimension.description, 500),
+                "approach": _shorten(dimension.approach, 500),
+            }
+            for dimension in dataset.spec.dimensions
+        ],
+        "qc_issues": [issue.model_dump(mode="json") for issue in qc_report.issues[:30]],
+        "summaries": [summary.model_dump(mode="json") for summary in run.summaries],
+        "low_or_error_results": low_or_error_results[:20],
+        "candidate_items": candidate_items[:30],
+    }
+
+
+def _call_loop3_llm_json(payload: dict, config: BenchmarkConfig) -> dict:
+    result_queue: Queue[tuple[dict | None, BaseException | None]] = Queue(maxsize=1)
+
+    def _worker() -> None:
+        try:
+            raw = call_llm(
+                [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
+                system=_SYSTEM,
+                model=config.orchestrator_model,
+                api_key=config.orchestrator_api_key,
+                base_url=config.orchestrator_base_url,
+                backend=config.llm_backend,
+                max_tokens=2048,
+            )
+            data = extract_json(raw)
+            result_queue.put_nowait((data, None))
+        except BaseException as exc:
+            result_queue.put_nowait((None, exc))
+
+    Thread(target=_worker, daemon=True).start()
+    timeout_s = max(1, int(config.loop3_diagnosis_timeout_s))
+    try:
+        data, error = result_queue.get(timeout=timeout_s)
+    except Empty as exc:
+        raise TimeoutError(f"Loop 3 LLM diagnosis timed out after {timeout_s}s.") from exc
+    if error is not None:
+        raise error
+    if data is None:
+        raise ValueError("Loop 3 LLM diagnosis returned no JSON.")
+    return data
+
+
 def _diagnose_with_llm(
     dataset: BenchmarkDataset,
     qc_report: QcReport,
@@ -88,24 +190,9 @@ def _diagnose_with_llm(
 ) -> tuple[list[ImprovementAction], str]:
     if config.loop3_diagnosis == "local" or not config.orchestrator_api_key:
         return _diagnose_locally(dataset, qc_report, run), "Local Loop 3 diagnosis."
-    payload = {
-        "spec": dataset.spec.model_dump(mode="json"),
-        "qc_report": qc_report.model_dump(mode="json"),
-        "summaries": [summary.model_dump(mode="json") for summary in run.summaries],
-        "results": [result.model_dump(mode="json") for result in run.results[:50]],
-        "items": [item.model_dump(mode="json") for item in dataset.items[:80]],
-    }
+    payload = _diagnosis_payload(dataset, qc_report, run)
     try:
-        raw = call_llm(
-            [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
-            system=_SYSTEM,
-            model=config.orchestrator_model,
-            api_key=config.orchestrator_api_key,
-            base_url=config.orchestrator_base_url,
-            backend=config.llm_backend,
-            max_tokens=2048,
-        )
-        data = extract_json(raw)
+        data = _call_loop3_llm_json(payload, config)
     except Exception as exc:
         return _diagnose_locally(dataset, qc_report, run), f"LLM Loop 3 diagnosis failed; used local fallback: {exc}"
     actions: list[ImprovementAction] = []
@@ -133,6 +220,7 @@ def _replace_or_expand_items(
     dataset: BenchmarkDataset,
     actions: list[ImprovementAction],
     config: BenchmarkConfig,
+    log: Callable[[str], None] | None = None,
 ) -> BenchmarkDataset:
     by_dimension = {dimension.id: dimension for dimension in dataset.spec.dimensions}
     replace_ids = {action.item_id for action in actions if action.action_type == "regenerate_item" and action.item_id}
@@ -141,12 +229,20 @@ def _replace_or_expand_items(
 
     for action in actions:
         if not action.dimension_id or action.dimension_id not in by_dimension:
+            if log:
+                log(f"  [Loop 3] Skipping action without known dimension: {action.action_type}")
             continue
         if action.action_type not in {"regenerate_item", "expand_weak_dimension"}:
+            if log:
+                log(f"  [Loop 3] Skipping unsupported action: {action.action_type}")
             continue
         if generated_by_dimension[action.dimension_id] >= 2:
+            if log:
+                log(f"  [Loop 3] Skipping {action.dimension_id}; per-dimension generation limit reached.")
             continue
         dimension = by_dimension[action.dimension_id]
+        if log:
+            log(f"  [Loop 3] Generating 1 improved item for {dimension.id} ({action.action_type})...")
         items, _, _ = generate_dimension_items(dataset.spec, dimension, 1, config)
         for item in items:
             item.id = f"{dimension.id}_loop3_{uuid.uuid4().hex[:8]}"
@@ -170,13 +266,28 @@ def run_loop3_improvement(
     config: BenchmarkConfig,
     *,
     iteration: int = 1,
+    log: Callable[[str], None] | None = None,
 ) -> ImprovementIteration:
     """Diagnose and apply one self-improvement iteration."""
+    if log:
+        log(
+            f"  [Loop 3] Diagnosing with mode={config.loop3_diagnosis}, "
+            f"timeout={config.loop3_diagnosis_timeout_s}s..."
+        )
     actions, notes = _diagnose_with_llm(dataset, qc_report, run, config)
+    max_actions = max(0, int(config.loop3_max_actions))
+    actions = actions[:max_actions]
+    if log:
+        log(f"  [Loop 3] Diagnosis produced {len(actions)} action(s).")
     if not actions:
         return ImprovementIteration(iteration=iteration, actions=[], notes=notes or "No improvements needed.")
-    improved_dataset = _replace_or_expand_items(dataset, actions, config)
+    improved_dataset = _replace_or_expand_items(dataset, actions, config, log=log)
+    if log:
+        log(f"  [Loop 3] Improved dataset has {len(improved_dataset.items)} item(s).")
+        log("  [Loop 3] Running improved QC...")
     improved_qc = run_qc_gate(improved_dataset, config)
+    if log:
+        log("  [Loop 3] Rerunning targets on improved dataset...")
     improved_run = run_eval(improved_dataset, improved_qc, config)
     return ImprovementIteration(
         iteration=iteration,

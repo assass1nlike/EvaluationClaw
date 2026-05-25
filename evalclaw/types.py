@@ -264,6 +264,8 @@ class BenchmarkConfig(BaseModel):
     runner: str = "direct"  # direct | lm-eval | auto
     improve_iterations: int = 0
     loop3_diagnosis: str = "llm"  # llm | local
+    loop3_diagnosis_timeout_s: int = 90
+    loop3_max_actions: int = 4
 
 
 # Backwards-compatible aliases for older scripts that import these names.
