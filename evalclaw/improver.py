@@ -86,7 +86,7 @@ def _diagnose_with_llm(
     run: EvalRun,
     config: BenchmarkConfig,
 ) -> tuple[list[ImprovementAction], str]:
-    if not config.orchestrator_api_key:
+    if config.loop3_diagnosis == "local" or not config.orchestrator_api_key:
         return _diagnose_locally(dataset, qc_report, run), "Local Loop 3 diagnosis."
     payload = {
         "spec": dataset.spec.model_dump(mode="json"),
@@ -95,16 +95,19 @@ def _diagnose_with_llm(
         "results": [result.model_dump(mode="json") for result in run.results[:50]],
         "items": [item.model_dump(mode="json") for item in dataset.items[:80]],
     }
-    raw = call_llm(
-        [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
-        system=_SYSTEM,
-        model=config.orchestrator_model,
-        api_key=config.orchestrator_api_key,
-        base_url=config.orchestrator_base_url,
-        backend=config.llm_backend,
-        max_tokens=4096,
-    )
-    data = extract_json(raw)
+    try:
+        raw = call_llm(
+            [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
+            system=_SYSTEM,
+            model=config.orchestrator_model,
+            api_key=config.orchestrator_api_key,
+            base_url=config.orchestrator_base_url,
+            backend=config.llm_backend,
+            max_tokens=2048,
+        )
+        data = extract_json(raw)
+    except Exception as exc:
+        return _diagnose_locally(dataset, qc_report, run), f"LLM Loop 3 diagnosis failed; used local fallback: {exc}"
     actions: list[ImprovementAction] = []
     for raw_action in data.get("actions", []):
         if not isinstance(raw_action, dict):
