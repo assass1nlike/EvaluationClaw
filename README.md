@@ -70,6 +70,23 @@ DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw
   --llm-backend litellm
 ```
 
+For faster smoke runs that still exercise Loop 3, use local diagnosis:
+
+```bash
+DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw_cli.py generate \
+  -g "Evaluate agent planning, noisy tool correction, code reasoning, and calibration" \
+  --orchestrator-model deepseek-v4-pro \
+  -m deepseek-v4-flash \
+  --no-interactive \
+  --no-research \
+  --qpd 1 \
+  --runner direct \
+  --llm-backend litellm \
+  --single-pass-judge \
+  --improve-iterations 1 \
+  --loop3-diagnosis local
+```
+
 ## Outputs
 
 Each run writes:

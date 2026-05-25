@@ -263,6 +263,7 @@ class BenchmarkConfig(BaseModel):
     llm_backend: str = "auto"  # auto | litellm | legacy
     runner: str = "direct"  # direct | lm-eval | auto
     improve_iterations: int = 0
+    loop3_diagnosis: str = "llm"  # llm | local
 
 
 # Backwards-compatible aliases for older scripts that import these names.

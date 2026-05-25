@@ -140,6 +140,7 @@ def generate(
     llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto, litellm, or legacy."),
     runner: str = typer.Option("direct", "--runner", help="Runner mode: direct, lm-eval, or auto."),
     improve_iterations: int = typer.Option(0, "--improve-iterations", help="Loop 3 self-improvement iterations after the first run."),
+    loop3_diagnosis: str = typer.Option("llm", "--loop3-diagnosis", help="Loop 3 diagnosis mode: llm or local."),
     json_output: bool = typer.Option(False, "--json", help="Print full package JSON to stdout."),
 ) -> None:
     """Generate an EvaluationClaw benchmark package."""
@@ -147,6 +148,9 @@ def generate(
         goal = typer.prompt("Evaluation goal").strip()
     if not goal:
         console.print("[red]Goal cannot be empty.[/red]")
+        raise typer.Exit(1)
+    if loop3_diagnosis not in {"llm", "local"}:
+        console.print("[red]--loop3-diagnosis must be 'llm' or 'local'.[/red]")
         raise typer.Exit(1)
 
     effective_api_key, effective_orch_base = orchestrator_defaults(
@@ -178,6 +182,7 @@ def generate(
         llm_backend=llm_backend,
         runner=runner,
         improve_iterations=improve_iterations,
+        loop3_diagnosis=loop3_diagnosis,
     )
 
     log_console = Console(stderr=json_output)
