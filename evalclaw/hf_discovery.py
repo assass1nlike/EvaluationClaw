@@ -3,6 +3,50 @@ from __future__ import annotations
 
 from .types import BenchmarkSource, EvalDimension, SourceKind
 
+MATH_HINTS = {
+    "math",
+    "mathematics",
+    "number theory",
+    "combinatorics",
+    "algebra",
+    "geometry",
+    "linear algebra",
+    "probability",
+    "discrete",
+    "proof",
+    "theorem",
+    "olympiad",
+    "数论",
+    "组合",
+    "代数",
+    "几何",
+    "概率",
+    "证明",
+}
+MATH_FALLBACK_QUERIES = [
+    "math reasoning",
+    "olympiad math",
+    "mathematical proof",
+]
+
+
+def _expanded_queries(dimension: EvalDimension) -> list[str]:
+    base = [*dimension.research_queries, dimension.name, dimension.description]
+    text = " ".join(base + [dimension.id]).lower()
+    queries: list[str] = []
+    seen: set[str] = set()
+    for query in base:
+        query = query.strip()
+        if query and query not in seen:
+            seen.add(query)
+            queries.append(query)
+    if any(hint in text for hint in MATH_HINTS):
+        for query in MATH_FALLBACK_QUERIES:
+            if query not in seen:
+                seen.add(query)
+                queries.append(query)
+    return queries
+
 
 def discover_hf_datasets(
     dimension: EvalDimension,
@@ -15,7 +59,7 @@ def discover_hf_datasets(
     except Exception:
         return []
     api = HfApi()
-    queries = dimension.research_queries or [dimension.name, dimension.description]
+    queries = _expanded_queries(dimension)
     results: list[BenchmarkSource] = []
     seen: set[str] = set()
     for query in queries:

@@ -36,6 +36,85 @@ ANSWER_KEYS = (
 )
 CHOICE_KEYS = ("choices", "options", "candidates")
 HF_DATASET_PREFIX = "hf://datasets/"
+DIMENSION_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "number_theory": (
+        "integer",
+        "prime",
+        "mod",
+        "congru",
+        "divisor",
+        "factor",
+        "diophantine",
+        "rational",
+        "factorial",
+        "数论",
+        "整数",
+        "素数",
+        "同余",
+    ),
+    "combinatorics": (
+        "graph",
+        "vertex",
+        "edge",
+        "count",
+        "subset",
+        "pigeonhole",
+        "permutation",
+        "combination",
+        "binomial",
+        "arrangement",
+        "steiner",
+        "组合",
+        "计数",
+        "图",
+    ),
+    "abstract_algebra": (
+        "group",
+        "ring",
+        "field",
+        "ideal",
+        "module",
+        "homomorphism",
+        "isomorphism",
+        "abelian",
+        "finite group",
+        "群",
+        "环",
+        "域",
+        "同态",
+    ),
+    "geometry_linear_algebra": (
+        "matrix",
+        "vector",
+        "eigen",
+        "linear",
+        "space",
+        "basis",
+        "cube",
+        "triangle",
+        "geometry",
+        "coordinate",
+        "矩阵",
+        "向量",
+        "特征值",
+        "几何",
+    ),
+    "probability_discrete": (
+        "probability",
+        "random",
+        "expected",
+        "expectation",
+        "markov",
+        "martingale",
+        "stopping time",
+        "walk",
+        "frog",
+        "概率",
+        "随机",
+        "期望",
+        "马尔可夫",
+    ),
+}
 
 
 def _stringify(value: Any) -> str:
@@ -55,6 +134,51 @@ def _compact(text: str, limit: int = 2000) -> str:
     if len(text) <= limit:
         return text
     return text[:limit].rstrip() + "..."
+
+
+def _reference_text(text: str, limit: int = 8000) -> str:
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= limit:
+        return text
+    half = max(1000, (limit - 20) // 2)
+    return text[:half].rstrip() + "\n...\n" + text[-half:].lstrip()
+
+
+def _sanitize_prompt(prompt: str) -> str:
+    prompt = re.sub(r"\s+", " ", prompt).strip()
+    return re.sub(r"^\s*\d+\s*[\).]\s*", "", prompt).strip()
+
+
+def _dominant_difficulty(dimension: EvalDimension) -> Difficulty:
+    if not dimension.difficulty_distribution:
+        return Difficulty.L4
+    return max(dimension.difficulty_distribution.items(), key=lambda item: item[1])[0]
+
+
+def _dimension_keywords(dimension: EvalDimension) -> tuple[str, ...]:
+    text = f"{dimension.id} {dimension.id.replace('_', ' ')} {dimension.name}".lower()
+    keywords: list[str] = []
+    for key, values in DIMENSION_KEYWORDS.items():
+        if key in text or any(value in text for value in values):
+            keywords.extend(values)
+    return tuple(dict.fromkeys(keyword.lower() for keyword in keywords))
+
+
+def _contains_keyword(text: str, keyword: str) -> bool:
+    if not keyword:
+        return False
+    if re.fullmatch(r"[a-z0-9][a-z0-9 ]*[a-z0-9]", keyword):
+        pattern = r"(?<![a-z0-9])" + re.escape(keyword) + r"(?![a-z0-9])"
+        return bool(re.search(pattern, text))
+    return keyword in text
+
+
+def _matches_dimension(item: BenchmarkItem, dimension: EvalDimension) -> bool:
+    keywords = _dimension_keywords(dimension)
+    if not keywords:
+        return True
+    text = f"{item.prompt} {item.answer or ''} {item.rubric or ''}".lower()
+    return any(_contains_keyword(text, keyword) for keyword in keywords)
 
 
 def _first_text(row: dict[str, Any], keys: tuple[str, ...]) -> str:
@@ -120,21 +244,25 @@ def item_from_hf_record(
     if not prompt:
         prompt, answer_from_messages = _conversation_text(row)
         answer = answer or answer_from_messages
-    if len(prompt) < 20:
+    prompt = _sanitize_prompt(prompt)
+    if len(prompt) < 40:
         return None
 
     choices = _choices(row)
     task_type = TaskType.multiple_choice if len(choices) >= 2 and answer else TaskType.open_generation
+    if task_type == TaskType.open_generation and len(answer.strip()) < 20:
+        return None
     dataset_id = _dataset_id(source)
     config_part = f"&config={config_name}" if config_name else ""
     record_uri = f"{source.uri}#split={split}{config_part}&row={row_index}"
+    reference_answer = _reference_text(answer, 8000)
     rubric = (
         "Score 5 for a mathematically correct, rigorous solution that reaches the reference answer "
         "or an equivalent conclusion; 3 for a partially correct solution with important gaps; "
         "1 for an incorrect, unsupported, or non-responsive solution."
     )
-    if answer:
-        rubric += f"\nReference answer or solution excerpt: {_compact(answer, 1200)}"
+    if reference_answer:
+        rubric += f"\nReference answer or solution: {reference_answer}"
 
     return BenchmarkItem(
         id=f"{dimension.id}_hf_{uuid.uuid4().hex[:8]}",
@@ -142,7 +270,7 @@ def item_from_hf_record(
         task_type=task_type,
         prompt=_compact(prompt, 4000),
         choices=choices,
-        answer=answer if task_type == TaskType.multiple_choice else None,
+        answer=reference_answer or None,
         rubric=rubric,
         difficulty=difficulty,
         source=BenchmarkSource(
@@ -207,12 +335,10 @@ def import_hf_dataset_items(
     """Import up to ``count`` benchmark items from discovered HF dataset sources."""
     if count <= 0:
         return []
-    difficulties = cycle(
-        sorted(dimension.difficulty_distribution.keys(), key=lambda difficulty: difficulty.value)
-        if dimension.difficulty_distribution
-        else [Difficulty.L4]
-    )
+    difficulties = cycle([_dominant_difficulty(dimension)])
     items: list[BenchmarkItem] = []
+    skip_viable_rows = sum(ord(ch) for ch in dimension.id) % 25
+    skipped_viable_rows = 0
     for source in sources:
         if source.kind != SourceKind.hf_dataset:
             continue
@@ -230,6 +356,11 @@ def import_hf_dataset_items(
                 row_index=row_index,
             )
             if item is None:
+                continue
+            if not _matches_dimension(item, dimension):
+                continue
+            if skipped_viable_rows < skip_viable_rows:
+                skipped_viable_rows += 1
                 continue
             items.append(item)
             if len(items) >= count:

@@ -1,3 +1,4 @@
+from evalclaw.hf_discovery import _expanded_queries
 from evalclaw.generator import _parse_items
 from evalclaw.hf_ingest import item_from_hf_record
 from evalclaw.reporter import build_report
@@ -89,7 +90,10 @@ def test_hf_record_ingestion_preserves_provenance() -> None:
     )
 
     item = item_from_hf_record(
-        {"problem": "Prove that there are infinitely many primes.", "solution": "Euclid's proof."},
+        {
+            "problem": "Prove that there are infinitely many primes.",
+            "solution": "Assume finitely many primes p1,...,pk. Then p1...pk+1 has a prime divisor not on the list.",
+        },
         source=source,
         dimension=dimension,
         difficulty=Difficulty.L4,
@@ -114,7 +118,10 @@ def test_report_shows_source_coverage() -> None:
     )
     spec = EvalSpec(objective="Evaluate math reasoning", dimensions=[dimension])
     item = item_from_hf_record(
-        {"problem": "Prove that there are infinitely many primes.", "solution": "Euclid's proof."},
+        {
+            "problem": "Prove that there are infinitely many primes.",
+            "solution": "Assume finitely many primes p1,...,pk. Then p1...pk+1 has a prime divisor not on the list.",
+        },
         source=BenchmarkSource(
             kind=SourceKind.hf_dataset,
             uri="hf://datasets/example/math",
@@ -132,3 +139,19 @@ def test_report_shows_source_coverage() -> None:
 
     assert "Source-backed items: 1/1" in report.markdown
     assert "item_source:hf_dataset" in report.markdown
+
+
+def test_hf_discovery_expands_math_queries() -> None:
+    dimension = EvalDimension(
+        id="number_theory",
+        name="数论",
+        description="高难数学证明题",
+        approach="Use rigorous proof",
+        research_queries=["challenging number theory proof problems with counterexample"],
+    )
+
+    queries = _expanded_queries(dimension)
+
+    assert "challenging number theory proof problems with counterexample" in queries
+    assert "math reasoning" in queries
+    assert "olympiad math" in queries
