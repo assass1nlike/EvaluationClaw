@@ -1,11 +1,16 @@
+import json
+
+from evalclaw.agent_envs import build_agent_environment
 from evalclaw.hf_discovery import _expanded_queries
 from evalclaw.generator import _parse_items
 from evalclaw.hf_ingest import item_from_hf_record
 from evalclaw.reporter import build_report
+from evalclaw.runner import run_question
 from evalclaw.sandbox import build_code_harness, run_python_sandbox
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkDataset,
+    BenchmarkItem,
     BenchmarkSource,
     Difficulty,
     EvalDimension,
@@ -13,6 +18,7 @@ from evalclaw.types import (
     EvalSpec,
     QcReport,
     SourceKind,
+    TaskType,
     TargetModelConfig,
 )
 
@@ -169,3 +175,69 @@ def test_hf_discovery_expands_known_benchmark_queries() -> None:
 
     assert "gpqa" in queries
     assert "mmlu pro" in queries
+
+
+def test_workspace_agent_environment_scores_goal_completion() -> None:
+    item = BenchmarkItem(
+        id="agent_item",
+        dimension_id="agent",
+        task_type=TaskType.agent_interaction,
+        prompt="Put the blue notebook in the outgoing bin.",
+        rubric="Use deterministic environment scoring.",
+        metadata={
+            "agent_env": {
+                "type": "workspace",
+                "start_room": "office",
+                "rooms": {"office": ["blue_notebook"], "mailroom": []},
+                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "max_steps": 4,
+            }
+        },
+    )
+    env = build_agent_environment(item)
+
+    env.step({"action": "take", "args": {"item": "blue_notebook"}})
+    env.step({"action": "move", "args": {"room": "mailroom"}})
+    env.step({"action": "place", "args": {"item": "blue_notebook"}})
+
+    assert env.score() == 1.0
+    assert env.state()["outgoing_bin"] == ["blue_notebook"]
+
+
+def test_agent_interaction_runner_uses_action_observation_loop(monkeypatch) -> None:
+    responses = iter(
+        [
+            '{"action":"take","args":{"item":"blue_notebook"}}',
+            '{"action":"move","args":{"room":"mailroom"}}',
+            '{"action":"place","args":{"item":"blue_notebook"}}',
+        ]
+    )
+
+    def fake_call_target_model(*args, **kwargs):
+        return next(responses)
+
+    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
+    item = BenchmarkItem(
+        id="agent_item",
+        dimension_id="agent",
+        task_type=TaskType.agent_interaction,
+        prompt="Put the blue notebook in the outgoing bin.",
+        rubric="Use deterministic environment scoring.",
+        metadata={
+            "agent_env": {
+                "type": "workspace",
+                "start_room": "office",
+                "rooms": {"office": ["blue_notebook"], "mailroom": []},
+                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "max_steps": 5,
+            }
+        },
+    )
+    config = BenchmarkConfig(targets=[TargetModelConfig(provider="mock", model="mock-agent")])
+
+    result = run_question(item, config)
+    trace = json.loads(result.raw_response)
+
+    assert result.score == 1.0
+    assert len(trace["trace"]) == 3
+    assert trace["final_state"]["outgoing_bin"] == ["blue_notebook"]

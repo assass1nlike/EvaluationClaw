@@ -45,6 +45,7 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
                 "task_type": item.task_type.value,
                 "source": item.source.model_dump(mode="json"),
                 "tags": item.tags,
+                "metadata": item.metadata,
             }
             handle.write(json.dumps(record, ensure_ascii=False) + "\n")
 
@@ -52,7 +53,7 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
         item.task_type == TaskType.multiple_choice for item in dataset.items
     ) else "generate_until"
     requires_custom_judge = any(
-        item.task_type in {TaskType.open_generation, TaskType.multi_turn}
+        item.task_type in {TaskType.open_generation, TaskType.multi_turn, TaskType.agent_interaction}
         for item in dataset.items
     )
     metric = "acc" if output_type == "multiple_choice" else "exact_match"

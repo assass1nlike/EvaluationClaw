@@ -25,6 +25,7 @@ class TaskType(str, Enum):
     open_generation = "open_generation"
     code_execution = "code_execution"
     multi_turn = "multi_turn"
+    agent_interaction = "agent_interaction"
 
 
 class Difficulty(str, Enum):

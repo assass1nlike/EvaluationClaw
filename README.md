@@ -10,7 +10,7 @@ It currently supports:
   and lightweight HuggingFace row ingestion.
 - Static and LLM-assisted QC gates.
 - Direct model execution with rule scoring, code execution sandboxing, multi-turn tasks,
-  and double-pass LLM judge audit.
+  simulated agent interaction tasks, and double-pass LLM judge audit.
 - Loop 3 self-improvement that diagnoses QC/run results and regenerates targeted items.
 - LiteLLM-backed provider calls with a legacy fallback.
 - lm-eval-harness interoperability via generated JSONL/YAML artifacts and optional runner.
@@ -107,3 +107,6 @@ Each run writes:
 The direct runner is the source of truth for rubric-based open-generation tasks.
 The lm-eval runner is currently an interoperability layer and works best for
 standard exact-match or multiple-choice tasks unless a custom metric is added.
+`agent_interaction` tasks run through the EvaluationClaw direct runner because
+they require a stateful action/observation environment and deterministic
+environment scoring.
