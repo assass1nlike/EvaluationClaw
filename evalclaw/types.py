@@ -104,8 +104,10 @@ class EvalDimension(BaseModel):
     description: str
     approach: str
     weight: float = 1.0
+    target_difficulty: Difficulty = Difficulty.L4
     needs_research: bool = False
     research_queries: list[str] = Field(default_factory=list)
+    # Deprecated compatibility field. New specs should use target_difficulty.
     difficulty_distribution: dict[Difficulty, float] = Field(default_factory=dict)
 
 

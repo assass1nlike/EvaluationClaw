@@ -115,17 +115,14 @@ def _normalize_source(source_uri: object, source_title: object = "") -> Benchmar
 
 
 def _difficulty_cycle(dimension: EvalDimension) -> cycle[Difficulty]:
-    distribution = dimension.difficulty_distribution or {
-        Difficulty.L1: 0.1,
-        Difficulty.L2: 0.2,
-        Difficulty.L3: 0.4,
-        Difficulty.L4: 0.2,
-        Difficulty.L5: 0.1,
-    }
+    if not dimension.difficulty_distribution:
+        return cycle([dimension.target_difficulty])
+    # Backward compatibility for old specs. New specs should use target_difficulty.
+    distribution = dimension.difficulty_distribution
     expanded: list[Difficulty] = []
     for difficulty, weight in sorted(distribution.items(), key=lambda item: item[0].value):
         expanded.extend([difficulty] * max(1, round(float(weight) * 10)))
-    return cycle(expanded or [Difficulty.L3])
+    return cycle(expanded or [dimension.target_difficulty])
 
 
 def _select_research_sources(

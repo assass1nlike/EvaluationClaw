@@ -26,7 +26,7 @@ _SYSTEM = """\
 1. objective: 评测什么能力或行为
 2. subjects: 要测哪些模型或模型族
 3. format: 题型/任务形式
-4. content: 维度、子领域、难度分布
+4. content: 维度、子领域、目标难度
 5. scale: 评测规模
 6. metrics: 指标，例如 accuracy、exact_match、judge_score、pass@1
 
@@ -49,9 +49,9 @@ _SYSTEM = """\
         "description": "...",
         "approach": "...",
         "weight": 1.0,
+        "target_difficulty": "L4",
         "needs_research": true,
-        "research_queries": ["..."],
-        "difficulty_distribution": {"L1": 0.1, "L2": 0.2, "L3": 0.4, "L4": 0.2, "L5": 0.1}
+        "research_queries": ["..."]
       }
     ]
   },
@@ -68,6 +68,8 @@ _SYSTEM = """\
 - 如果用户没有指定模型，subjects 写 ["user_supplied_targets"]。
 - 对知识密集型评测给出 research_queries；行为类评测可以 needs_research=false。
 - agent 或工具交互能力可以使用 task_type "agent_interaction"。
+- 不要设计难度梯度或为了凑难题改变评测内容；在内容与用户需求匹配的前提下，目标难度应尽量高。
+- target_difficulty 表示该维度的目标难度，通常用 L4；确实需要专家/长程/复杂交互时用 L5，基础 smoke 维度才用 L3。
 - scale_budget 是用户指定的全局相对预算，只能是 low/mid/high，不要擅自改变。
 - scale 是你结合 scale_budget 和评测内容估出的相对题量尺度；不要机械套固定数字。
 - low: 只覆盖最核心维度，维度/metrics/constraints 保持精简，适合 smoke test。
@@ -140,28 +142,11 @@ def _fallback_scale(scale_budget: ScaleBudget) -> int:
     return {ScaleBudget.low: 12, ScaleBudget.mid: 30, ScaleBudget.high: 60}[scale_budget]
 
 
-def _safe_distribution(raw: object) -> dict[Difficulty, float]:
-    if not isinstance(raw, dict):
-        return {
-            Difficulty.L1: 0.1,
-            Difficulty.L2: 0.2,
-            Difficulty.L3: 0.4,
-            Difficulty.L4: 0.2,
-            Difficulty.L5: 0.1,
-        }
-    result: dict[Difficulty, float] = {}
-    for key, value in raw.items():
-        try:
-            result[Difficulty(str(key))] = float(value)
-        except (ValueError, TypeError):
-            continue
-    return result or {
-        Difficulty.L1: 0.1,
-        Difficulty.L2: 0.2,
-        Difficulty.L3: 0.4,
-        Difficulty.L4: 0.2,
-        Difficulty.L5: 0.1,
-    }
+def _safe_difficulty(value: object, fallback: Difficulty = Difficulty.L4) -> Difficulty:
+    try:
+        return Difficulty(str(value))
+    except ValueError:
+        return fallback
 
 
 def _slug(text: str) -> str:
@@ -184,9 +169,9 @@ def _parse_spec(data: dict, goal: str, scale_budget: ScaleBudget) -> EvalSpec:
                 description=str(dim.get("description") or ""),
                 approach=str(dim.get("approach") or ""),
                 weight=float(dim.get("weight", 1.0) or 1.0),
+                target_difficulty=_safe_difficulty(dim.get("target_difficulty"), Difficulty.L4),
                 needs_research=bool(dim.get("needs_research", False)),
                 research_queries=[str(q) for q in dim.get("research_queries", []) if q],
-                difficulty_distribution=_safe_distribution(dim.get("difficulty_distribution")),
             )
         )
 
@@ -232,6 +217,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             description=f"Directly measure the central capability requested by: {goal}",
             approach="Create tasks that isolate the requested capability with explicit scoring criteria.",
             weight=1.0,
+            target_difficulty=Difficulty.L4,
             needs_research=False,
         ),
         EvalDimension(
@@ -240,6 +226,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             description="Measure whether performance holds under edge cases, ambiguity, and distractors.",
             approach="Create adversarial or boundary-condition tasks while keeping expected behavior clear.",
             weight=1.0,
+            target_difficulty=Difficulty.L4,
             needs_research=False,
         ),
         EvalDimension(
@@ -248,6 +235,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             description="Measure whether the model recognizes uncertainty and avoids unsupported claims.",
             approach="Include tasks where abstention, caveats, or concise uncertainty handling is expected.",
             weight=1.0,
+            target_difficulty=Difficulty.L4,
             needs_research=False,
         ),
     ]

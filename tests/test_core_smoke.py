@@ -58,6 +58,7 @@ def test_planner_fallback_preserves_scale_budget() -> None:
 
     assert spec.scale_budget == ScaleBudget.high
     assert spec.scale == 60
+    assert all(dimension.target_difficulty == Difficulty.L4 for dimension in spec.dimensions)
 
 
 def test_code_harness_injects_model_output_as_json_string() -> None:

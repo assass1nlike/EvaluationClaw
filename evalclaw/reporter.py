@@ -95,12 +95,13 @@ def build_report(run: EvalRun) -> EvalReport:
             dimension.id,
             dimension.name,
             f"{dimension.weight:.2f}",
+            dimension.target_difficulty.value,
             "yes" if dimension.needs_research else "no",
             dimension.description.replace("\n", " ")[:140],
         ]
         for dimension in dataset.spec.dimensions
     ]
-    lines.append(_markdown_table(["ID", "Name", "Weight", "Research", "Description"], dimension_rows))
+    lines.append(_markdown_table(["ID", "Name", "Weight", "Target Difficulty", "Research", "Description"], dimension_rows))
     lines.extend(
         [
             "",
