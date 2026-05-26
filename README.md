@@ -6,14 +6,15 @@ from natural-language goals.
 It currently supports:
 
 - Planner-driven `EvalSpec` generation from vague goals.
-- Self-generated benchmark items with optional web and HuggingFace dataset discovery.
+- Self-generated benchmark items with optional web research, HuggingFace dataset discovery,
+  and lightweight HuggingFace row ingestion.
 - Static and LLM-assisted QC gates.
 - Direct model execution with rule scoring, code execution sandboxing, multi-turn tasks,
   and double-pass LLM judge audit.
 - Loop 3 self-improvement that diagnoses QC/run results and regenerates targeted items.
 - LiteLLM-backed provider calls with a legacy fallback.
 - lm-eval-harness interoperability via generated JSONL/YAML artifacts and optional runner.
-- Markdown reports, canonical JSON packages, and artifact manifests.
+- Markdown reports with source coverage, canonical JSON packages, and artifact manifests.
 
 ## Environment
 
@@ -52,6 +53,7 @@ DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw
   --no-interactive \
   --no-research \
   --qpd 1 \
+  --max-hf-records 1 \
   --runner direct \
   --llm-backend litellm
 ```
