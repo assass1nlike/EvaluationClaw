@@ -198,7 +198,7 @@ def _sanitize_prompt(prompt: str) -> str:
 
 def _dominant_difficulty(dimension: EvalDimension) -> Difficulty:
     if not dimension.difficulty_distribution:
-        return Difficulty.L4
+        return dimension.target_difficulty
     return max(dimension.difficulty_distribution.items(), key=lambda item: item[1])[0]
 
 
