@@ -43,6 +43,12 @@ class Metric(str, Enum):
     pass_at_1 = "pass@1"
 
 
+class ScaleBudget(str, Enum):
+    low = "low"
+    mid = "mid"
+    high = "high"
+
+
 class SourceKind(str, Enum):
     self_generated = "self_generated"
     web = "web"
@@ -109,6 +115,7 @@ class EvalSpec(BaseModel):
     subjects: list[str] = Field(default_factory=list)
     task_types: list[TaskType] = Field(default_factory=lambda: [TaskType.open_generation])
     dimensions: list[EvalDimension] = Field(default_factory=list)
+    scale_budget: ScaleBudget = ScaleBudget.mid
     scale: int = 20
     metrics: list[Metric] = Field(default_factory=lambda: [Metric.judge_score])
     constraints: list[str] = Field(default_factory=list)
@@ -252,6 +259,7 @@ class BenchmarkConfig(BaseModel):
     orchestrator_api_key: Optional[str] = None
     orchestrator_base_url: Optional[str] = None
     targets: list[TargetModelConfig] = Field(default_factory=list)
+    scale_budget: ScaleBudget = ScaleBudget.mid
     questions_per_dimension: int = 5
     max_planner_iterations: int = 5
     max_qc_iterations: int = 3

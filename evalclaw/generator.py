@@ -180,6 +180,23 @@ def _source_context(sources: list[BenchmarkSource]) -> str:
     return "\n\n".join(parts)
 
 
+def _generation_scale_guidance(spec: EvalSpec) -> str:
+    guidance = {
+        "low": (
+            "LOW budget: generate lean, high-signal items. Prefer essential coverage over breadth; "
+            "avoid over-elaborate prompts unless required by the task type."
+        ),
+        "mid": (
+            "MID budget: generate balanced items covering the main dimension and important edge cases."
+        ),
+        "high": (
+            "HIGH budget: generate deeper items with richer rubrics, stronger edge cases, and more careful "
+            "source/agent/test metadata when the dimension supports it."
+        ),
+    }
+    return guidance.get(spec.scale_budget.value, guidance["mid"])
+
+
 def _parse_items(
     data: dict,
     *,
@@ -363,6 +380,7 @@ def generate_dimension_items(
         "spec": spec.model_dump(mode="json"),
         "dimension": dimension.model_dump(mode="json"),
         "requested_count": remaining_count,
+        "scale_budget_guidance": _generation_scale_guidance(spec),
         "research_context": _source_context(sources),
     }
     raw = call_llm(

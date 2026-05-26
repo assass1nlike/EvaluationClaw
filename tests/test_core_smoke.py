@@ -4,6 +4,7 @@ from evalclaw.agent_envs import build_agent_environment
 from evalclaw.hf_discovery import _expanded_queries
 from evalclaw.generator import _parse_items
 from evalclaw.hf_ingest import item_from_hf_record
+from evalclaw.planner import plan_eval_spec
 from evalclaw.reporter import build_report
 from evalclaw.runner import run_question
 from evalclaw.sandbox import build_code_harness, run_python_sandbox
@@ -17,6 +18,7 @@ from evalclaw.types import (
     EvalRun,
     EvalSpec,
     QcReport,
+    ScaleBudget,
     SourceKind,
     TaskType,
     TargetModelConfig,
@@ -44,6 +46,18 @@ def test_core_models_fill_defaults() -> None:
     assert target.id == "deepseek-v4-flash"
     assert config.targets[0].provider == "deepseek"
     assert dimension.weight == 1.0
+
+
+def test_planner_fallback_preserves_scale_budget() -> None:
+    config = BenchmarkConfig(
+        targets=[TargetModelConfig(provider="mock", model="mock-agent")],
+        scale_budget=ScaleBudget.high,
+    )
+
+    spec = plan_eval_spec("Evaluate iterative code agents", config)
+
+    assert spec.scale_budget == ScaleBudget.high
+    assert spec.scale == 60
 
 
 def test_code_harness_injects_model_output_as_json_string() -> None:
