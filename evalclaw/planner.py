@@ -65,6 +65,7 @@ _SYSTEM = """\
 - 维度通常 3-6 个，彼此测量点不要重叠。
 - 如果用户没有指定模型，subjects 写 ["user_supplied_targets"]。
 - 对知识密集型评测给出 research_queries；行为类评测可以 needs_research=false。
+- agent 或工具交互能力可以使用 task_type "agent_interaction"。
 - scale 应与用户需求匹配；未指定时给 20-60 的 MVP 规模。
 """
 
@@ -76,6 +77,8 @@ def _safe_task_type(value: object) -> TaskType:
         "open_ended": TaskType.open_generation,
         "mcq": TaskType.multiple_choice,
         "qa": TaskType.short_answer,
+        "agent": TaskType.agent_interaction,
+        "agent_interactive": TaskType.agent_interaction,
     }
     text = str(value)
     if text in aliases:

@@ -6,8 +6,9 @@ import os
 import re
 import time
 from collections import defaultdict
-from typing import Callable
+from typing import Any, Callable
 
+from .agent_envs import build_agent_environment
 from .llm import call_llm, call_target_model, extract_json
 from .sandbox import build_code_harness, run_python_sandbox
 from .types import (
@@ -207,6 +208,101 @@ def _run_multi_turn(item: BenchmarkItem, target: object, config: BenchmarkConfig
     return json.dumps([message.model_dump() for message in history], ensure_ascii=False), score, reasoning
 
 
+def _parse_agent_action(response: str) -> tuple[dict[str, Any] | None, str | None]:
+    try:
+        parsed = extract_json(response)
+        if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict):
+            parsed = parsed[0]
+        if isinstance(parsed, dict):
+            if "action" not in parsed and "tool" in parsed:
+                parsed["action"] = parsed["tool"]
+            if "args" not in parsed:
+                parsed["args"] = {
+                    key: value
+                    for key, value in parsed.items()
+                    if key not in {"action", "tool", "thought", "reasoning"}
+                }
+            return parsed, None
+    except Exception:
+        pass
+
+    stripped = response.strip()
+    simple = re.search(r"\b(look|move|inspect|take|place|final)\b\s*:?\s*([\w-]+)?", stripped, re.I)
+    if simple:
+        action = simple.group(1).lower()
+        value = simple.group(2) or ""
+        key = "room" if action == "move" else "item"
+        args = {} if action in {"look", "final"} or not value else {key: value}
+        if action == "final" and value:
+            args = {"answer": stripped}
+        return {"action": action, "args": args}, None
+    return None, "Could not parse an agent action. Expected a JSON object with action and args."
+
+
+def _run_agent_interaction(
+    item: BenchmarkItem,
+    target: object,
+    config: BenchmarkConfig,
+) -> tuple[str, float, str]:
+    env = build_agent_environment(item)
+    system_prompt = (
+        "You are an agent being evaluated in a deterministic simulated environment. "
+        "Choose one valid action per turn. Do not invent tools. Return JSON only."
+    )
+    history: list[Message] = []
+    trace: list[dict[str, Any]] = []
+    user_prompt = (
+        f"Task:\n{item.prompt}\n\n"
+        f"Initial observation:\n{env.observation()}\n\n"
+        f"{env.action_schema()}"
+    )
+
+    for step_index in range(env.max_steps):
+        response = call_target_model(
+            user_prompt,
+            target,
+            system_prompt=system_prompt,
+            history=history,
+            backend=config.llm_backend,
+        )
+        history.extend([Message(role="user", content=user_prompt), Message(role="assistant", content=response)])
+        action, parse_error = _parse_agent_action(response)
+        if action is None:
+            env.invalid_actions += 1
+            env.steps += 1
+            observation = f"Error: {parse_error}\n\n{env.observation()}"
+            done = env.steps >= env.max_steps
+            env.done = done
+            error = parse_error
+        else:
+            outcome = env.step(action)
+            observation = outcome.observation
+            done = outcome.done
+            error = outcome.error
+        trace.append(
+            {
+                "step": step_index + 1,
+                "model_output": response,
+                "parsed_action": action,
+                "observation": observation,
+                "error": error,
+                "score_after_step": env.score(),
+                "done": done,
+            }
+        )
+        if done:
+            break
+        user_prompt = f"Observation:\n{observation}\n\nContinue with one JSON action."
+
+    raw = {
+        "environment": "workspace",
+        "trace": trace,
+        "final_state": env.state(),
+        "history": [message.model_dump() for message in history],
+    }
+    return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
+
+
 def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> ItemResult:
     target = next(target for target in config.targets if target.id == target_id)
     has_credentials, env_name = _target_has_credentials(target_id, config)
@@ -219,6 +315,28 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
         )
     start = time.monotonic()
     try:
+        if item.task_type == TaskType.multi_turn:
+            raw, score, reasoning = _run_multi_turn(item, target, config)
+            latency_ms = round((time.monotonic() - start) * 1000)
+            return ItemResult(
+                item_id=item.id,
+                target_id=target.id,
+                raw_response=raw,
+                score=score,
+                judge_reasoning=reasoning,
+                latency_ms=latency_ms,
+            )
+        if item.task_type == TaskType.agent_interaction:
+            raw, score, reasoning = _run_agent_interaction(item, target, config)
+            latency_ms = round((time.monotonic() - start) * 1000)
+            return ItemResult(
+                item_id=item.id,
+                target_id=target.id,
+                raw_response=raw,
+                score=score,
+                judge_reasoning=reasoning,
+                latency_ms=latency_ms,
+            )
         response = call_target_model(item.prompt, target, backend=config.llm_backend)
         latency_ms = round((time.monotonic() - start) * 1000)
         if item.task_type == TaskType.yes_no:
@@ -238,16 +356,6 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 raw_response=response,
                 score=score,
                 judge_reasoning=error,
-                latency_ms=latency_ms,
-            )
-        if item.task_type == TaskType.multi_turn:
-            raw, score, reasoning = _run_multi_turn(item, target, config)
-            return ItemResult(
-                item_id=item.id,
-                target_id=target.id,
-                raw_response=raw,
-                score=score,
-                judge_reasoning=reasoning,
                 latency_ms=latency_ms,
             )
         score, reasoning = _judge_item(item, response, config)

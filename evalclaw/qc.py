@@ -88,14 +88,14 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
         issues.append(
             _issue(item.id, QcSeverity.error, QcCategory.scoring, "Yes/no item answer must be yes or no.")
         )
-    if item.task_type in {TaskType.open_generation, TaskType.multi_turn} and not item.rubric:
+    if item.task_type in {TaskType.open_generation, TaskType.multi_turn, TaskType.agent_interaction} and not item.rubric:
         issues.append(
             _issue(
                 item.id,
                 QcSeverity.error,
                 QcCategory.scoring,
-                "Open or multi-turn item lacks a rubric.",
-                "Add a concrete 1-5 scoring rubric.",
+                "Open, multi-turn, or agent item lacks a rubric.",
+                "Add a concrete scoring rubric or deterministic environment scoring note.",
             )
         )
     if item.task_type == TaskType.short_answer and not item.answer and not item.rubric:
@@ -111,6 +111,17 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
         issues.append(
             _issue(item.id, QcSeverity.error, QcCategory.scoring, "Code execution item lacks test_code.")
         )
+    if item.task_type == TaskType.agent_interaction:
+        env = item.metadata.get("agent_env")
+        if env is not None and not isinstance(env, dict):
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.schema,
+                    "Agent interaction item metadata.agent_env must be an object when provided.",
+                )
+            )
     return issues
 
 

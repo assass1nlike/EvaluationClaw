@@ -56,6 +56,7 @@ _SYSTEM = """\
 - code_execution 必须给 test_code，使用 {model_output} 作为模型输出占位符。
 - multi_turn 的 rubric 必须说明追问方向和全对话评分方式。
 - multi_turn 可在 metadata 中提供 turns，例如 {"turns": ["追问1", "追问2"]}；如果没有，runner 会让 judge 按 rubric 生成追问。
+- agent_interaction 用于模拟环境里的 action/observation 循环，metadata 可提供 agent_env；如果没有，runner 使用内置 workspace 环境。
 """
 
 
@@ -66,6 +67,8 @@ def _safe_task_type(value: object, fallback: TaskType) -> TaskType:
         "open-ended": TaskType.open_generation,
         "mcq": TaskType.multiple_choice,
         "qa": TaskType.short_answer,
+        "agent": TaskType.agent_interaction,
+        "agent_interactive": TaskType.agent_interaction,
     }
     text = str(value)
     if text in aliases:
@@ -245,6 +248,41 @@ def _fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> lis
                 ],
                 answer="A",
                 difficulty=difficulty,
+            )
+        elif task_type == TaskType.agent_interaction:
+            item = BenchmarkItem(
+                id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
+                dimension_id=dimension.id,
+                task_type=TaskType.agent_interaction,
+                prompt=(
+                    base
+                    + "Use the simulated workspace tools to place the blue_notebook and charged_tablet "
+                    "in the outgoing bin. Inspect items when needed and finish within the step limit."
+                ),
+                rubric=(
+                    "Deterministic environment score: 1.0 if all required items and no wrong items are "
+                    "placed in the outgoing bin, partial credit for required items placed, penalties for invalid actions."
+                ),
+                difficulty=difficulty,
+                metadata={
+                    "agent_env": {
+                        "type": "workspace",
+                        "start_room": "office",
+                        "rooms": {
+                            "office": ["blue_notebook", "red_notebook"],
+                            "lab": ["charged_tablet", "dead_tablet"],
+                            "mailroom": [],
+                        },
+                        "item_descriptions": {
+                            "blue_notebook": "A blue notebook labeled project plan.",
+                            "red_notebook": "A red notebook labeled old draft.",
+                            "charged_tablet": "A tablet showing 100% battery.",
+                            "dead_tablet": "A tablet with an empty battery icon.",
+                        },
+                        "goal": {"outgoing_bin": ["blue_notebook", "charged_tablet"]},
+                        "max_steps": 8,
+                    }
+                },
             )
         else:
             item = BenchmarkItem(
