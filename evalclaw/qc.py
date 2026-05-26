@@ -15,11 +15,17 @@ from .types import (
     QcIssue,
     QcReport,
     QcSeverity,
+    SourceKind,
     TaskType,
 )
 
 _SYSTEM = """\
-你是 EvaluationClaw 的 QC Gate。你要审查 benchmark item 的清晰度、答案可靠性、评分标准和覆盖面。
+你是 EvaluationClaw 的 QC Gate。你要审查 benchmark 是否能作为“对用户需求的好评估方案”。
+你不仅要检查单题清晰度、答案可靠性、评分标准和覆盖面，也要做元评估：
+- 这些维度是否真正对应 objective 和用户需求？
+- 题型、source 策略、评分方式是否适合该需求？
+- 是否有明显遗漏、偏题、过浅、过度依赖 judge、或为了难度/source 而引入偏差？
+- 如果需要已有 benchmark/source，是否使用了适当且偏难的来源？
 只返回纯 JSON，不要 markdown。格式：
 {
   "issues": [
@@ -38,6 +44,9 @@ severity 只能是 info/warning/error。
 category 只能是 schema/duplicate/scoring/clarity/coverage/difficulty。
 只有会导致题目不可执行或答案明显不可靠的问题才标 error。
 """
+
+
+DIFFICULTY_RANK = {"L1": 1, "L2": 2, "L3": 3, "L4": 4, "L5": 5}
 
 
 def _issue(
@@ -168,8 +177,10 @@ def _duplicate_issues(items: list[BenchmarkItem]) -> list[QcIssue]:
 def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
     issues: list[QcIssue] = []
     counts = Counter(item.dimension_id for item in dataset.items)
+    task_counts = Counter(item.task_type for item in dataset.items)
     for dimension in dataset.spec.dimensions:
-        if counts[dimension.id] == 0:
+        dim_items = [item for item in dataset.items if item.dimension_id == dimension.id]
+        if not dim_items:
             issues.append(
                 _issue(
                     None,
@@ -177,6 +188,60 @@ def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
                     QcCategory.coverage,
                     f"Dimension {dimension.id} has no generated items.",
                     "Generate at least one item for every planned dimension.",
+                )
+            )
+            continue
+        if dataset.spec.scale_budget.value == "high" and len(dim_items) < 2:
+            issues.append(
+                _issue(
+                    None,
+                    QcSeverity.warning,
+                    QcCategory.coverage,
+                    f"High-budget dimension {dimension.id} has only {len(dim_items)} item(s).",
+                    "Add more targeted items or Loop 3 expansion before treating this as a deep evaluation.",
+                )
+            )
+        target_rank = DIFFICULTY_RANK.get(dimension.target_difficulty.value, 4)
+        low_items = [
+            item.id
+            for item in dim_items
+            if DIFFICULTY_RANK.get(item.difficulty.value, 3) < target_rank
+        ]
+        if low_items:
+            issues.append(
+                _issue(
+                    None,
+                    QcSeverity.warning,
+                    QcCategory.difficulty,
+                    f"Dimension {dimension.id} has {len(low_items)} item(s) below target difficulty {dimension.target_difficulty.value}.",
+                    "Increase item difficulty without drifting from the user's requested content.",
+                )
+            )
+        if dimension.needs_research:
+            backed = [
+                item
+                for item in dim_items
+                if item.source.kind in {SourceKind.web, SourceKind.hf_dataset, SourceKind.lm_eval, SourceKind.imported}
+            ]
+            if not backed:
+                issues.append(
+                    _issue(
+                        None,
+                        QcSeverity.warning,
+                        QcCategory.coverage,
+                        f"Dimension {dimension.id} requested research but has no source-backed items.",
+                        "Use high-quality external sources or explicitly document why generation is preferable.",
+                    )
+                )
+    for task_type in dataset.spec.task_types:
+        if task_counts[task_type] == 0:
+            issues.append(
+                _issue(
+                    None,
+                    QcSeverity.warning,
+                    QcCategory.coverage,
+                    f"Planned task type {task_type.value} has no generated items.",
+                    "Generate at least one item for each planned task type or remove it from the spec.",
                 )
             )
     return issues
@@ -206,6 +271,9 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
                     content=json.dumps(
                         {
                             "objective": dataset.spec.objective,
+                            "scale_budget": dataset.spec.scale_budget.value,
+                            "constraints": dataset.spec.constraints,
+                            "planner_notes": dataset.spec.planner_notes,
                             "dimensions": [d.model_dump(mode="json") for d in dataset.spec.dimensions],
                             "items": sample,
                         },

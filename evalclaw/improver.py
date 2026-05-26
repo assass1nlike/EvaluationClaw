@@ -46,6 +46,11 @@ action_type 可选：
 - regenerate_item: 题目本身有问题或评分不稳定，重写同维度题目
 - expand_weak_dimension: 某维度模型低分，补充更细粒度题
 - keep: 无需改动
+
+scale_budget 会影响改进深度：
+- low: 只修阻塞问题，少量动作，避免扩张。
+- mid: 修明显弱项，补关键边界题。
+- high: 深挖模型弱项；优先选择能确认失败边界、区分偶然失误和系统弱点的动作，允许更细粒度扩展。
 """
 
 
@@ -92,7 +97,41 @@ def _diagnose_locally(dataset: BenchmarkDataset, qc_report: QcReport, run: EvalR
     return actions[:8]
 
 
-def _diagnosis_payload(dataset: BenchmarkDataset, qc_report: QcReport, run: EvalRun) -> dict:
+def _loop3_budget_guidance(config: BenchmarkConfig) -> str:
+    guidance = {
+        "low": "LOW budget: repair only blocking QC/runtime issues and the clearest low-score failures.",
+        "mid": "MID budget: repair issues and add targeted boundary items for clear weak dimensions.",
+        "high": (
+            "HIGH budget: dig deeper into weak dimensions. Prefer multiple targeted actions that isolate failure "
+            "patterns, confirm persistent weaknesses, and increase difficulty without drifting from the user goal."
+        ),
+    }
+    return guidance.get(config.scale_budget.value, guidance["mid"])
+
+
+def _loop3_action_limit(config: BenchmarkConfig) -> int:
+    configured = max(0, int(config.loop3_max_actions))
+    if config.scale_budget.value == "low":
+        return min(configured, 2)
+    if config.scale_budget.value == "high" and configured == 4:
+        return 8
+    return configured
+
+
+def _loop3_per_dimension_limit(config: BenchmarkConfig) -> int:
+    if config.scale_budget.value == "low":
+        return 1
+    if config.scale_budget.value == "high":
+        return 4
+    return 2
+
+
+def _diagnosis_payload(
+    dataset: BenchmarkDataset,
+    qc_report: QcReport,
+    run: EvalRun,
+    config: BenchmarkConfig,
+) -> dict:
     item_by_id = {item.id: item for item in dataset.items}
     interesting_item_ids = {issue.item_id for issue in qc_report.issues if issue.item_id}
     low_or_error_results = []
@@ -133,6 +172,8 @@ def _diagnosis_payload(dataset: BenchmarkDataset, qc_report: QcReport, run: Eval
 
     return {
         "objective": dataset.spec.objective,
+        "scale_budget": dataset.spec.scale_budget.value,
+        "scale_budget_guidance": _loop3_budget_guidance(config),
         "task_types": [task_type.value for task_type in dataset.spec.task_types],
         "dimensions": [
             {
@@ -140,6 +181,7 @@ def _diagnosis_payload(dataset: BenchmarkDataset, qc_report: QcReport, run: Eval
                 "name": dimension.name,
                 "description": _shorten(dimension.description, 500),
                 "approach": _shorten(dimension.approach, 500),
+                "target_difficulty": dimension.target_difficulty.value,
             }
             for dimension in dataset.spec.dimensions
         ],
@@ -190,7 +232,7 @@ def _diagnose_with_llm(
 ) -> tuple[list[ImprovementAction], str]:
     if config.loop3_diagnosis == "local" or not config.orchestrator_api_key:
         return _diagnose_locally(dataset, qc_report, run), "Local Loop 3 diagnosis."
-    payload = _diagnosis_payload(dataset, qc_report, run)
+    payload = _diagnosis_payload(dataset, qc_report, run, config)
     try:
         data = _call_loop3_llm_json(payload, config)
     except Exception as exc:
@@ -213,7 +255,7 @@ def _diagnose_with_llm(
         )
     if not actions:
         actions = _diagnose_locally(dataset, qc_report, run)
-    return actions[:8], str(data.get("notes", ""))
+    return actions[: max(8, _loop3_action_limit(config))], str(data.get("notes", ""))
 
 
 def _replace_or_expand_items(
@@ -226,6 +268,7 @@ def _replace_or_expand_items(
     replace_ids = {action.item_id for action in actions if action.action_type == "regenerate_item" and action.item_id}
     new_items: list[BenchmarkItem] = [item for item in dataset.items if item.id not in replace_ids]
     generated_by_dimension: defaultdict[str, int] = defaultdict(int)
+    per_dimension_limit = _loop3_per_dimension_limit(config)
 
     for action in actions:
         if not action.dimension_id or action.dimension_id not in by_dimension:
@@ -236,7 +279,7 @@ def _replace_or_expand_items(
             if log:
                 log(f"  [Loop 3] Skipping unsupported action: {action.action_type}")
             continue
-        if generated_by_dimension[action.dimension_id] >= 2:
+        if generated_by_dimension[action.dimension_id] >= per_dimension_limit:
             if log:
                 log(f"  [Loop 3] Skipping {action.dimension_id}; per-dimension generation limit reached.")
             continue
@@ -275,7 +318,7 @@ def run_loop3_improvement(
             f"timeout={config.loop3_diagnosis_timeout_s}s..."
         )
     actions, notes = _diagnose_with_llm(dataset, qc_report, run, config)
-    max_actions = max(0, int(config.loop3_max_actions))
+    max_actions = _loop3_action_limit(config)
     actions = actions[:max_actions]
     if log:
         log(f"  [Loop 3] Diagnosis produced {len(actions)} action(s).")
