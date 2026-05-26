@@ -241,3 +241,67 @@ def test_agent_interaction_runner_uses_action_observation_loop(monkeypatch) -> N
     assert result.score == 1.0
     assert len(trace["trace"]) == 3
     assert trace["final_state"]["outgoing_bin"] == ["blue_notebook"]
+
+
+def test_code_sandbox_agent_can_revise_after_test_failure(monkeypatch) -> None:
+    responses = iter(
+        [
+            json.dumps(
+                {
+                    "action": "write_file",
+                    "args": {
+                        "path": "solution.py",
+                        "content": "def max_pair_sum(nums):\n    return max(nums)\n",
+                    },
+                }
+            ),
+            '{"action":"run_tests","args":{}}',
+            json.dumps(
+                {
+                    "action": "write_file",
+                    "args": {
+                        "path": "solution.py",
+                        "content": "def max_pair_sum(nums):\n    nums = sorted(nums)\n    return nums[-1] + nums[-2]\n",
+                    },
+                }
+            ),
+            '{"action":"run_tests","args":{}}',
+        ]
+    )
+
+    def fake_call_target_model(*args, **kwargs):
+        return next(responses)
+
+    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
+    item = BenchmarkItem(
+        id="code_agent_item",
+        dimension_id="code_agent",
+        task_type=TaskType.agent_interaction,
+        prompt="Implement max_pair_sum(nums) and run tests until they pass.",
+        rubric="Use deterministic hidden-test scoring.",
+        metadata={
+            "agent_env": {
+                "type": "code_sandbox",
+                "visible_files": {"solution.py": "def max_pair_sum(nums):\n    pass\n"},
+                "hidden_files": {
+                    "tests.py": (
+                        "from solution import max_pair_sum\n\n"
+                        "assert max_pair_sum([1, 2, 3, 4]) == 7\n"
+                        "assert max_pair_sum([-5, -2, -3]) == -5\n"
+                    )
+                },
+                "test_command": "python3 tests.py",
+                "max_steps": 6,
+            }
+        },
+    )
+    config = BenchmarkConfig(targets=[TargetModelConfig(provider="mock", model="mock-agent")])
+
+    result = run_question(item, config)
+    trace = json.loads(result.raw_response)
+
+    assert result.score == 1.0
+    assert len(trace["trace"]) == 4
+    assert trace["trace"][1]["score_after_step"] == 0.25
+    assert trace["trace"][3]["score_after_step"] == 1.0
+    assert trace["final_state"]["last_test"]["passed"] is True

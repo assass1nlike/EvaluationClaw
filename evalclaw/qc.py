@@ -122,6 +122,28 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     "Agent interaction item metadata.agent_env must be an object when provided.",
                 )
             )
+        if isinstance(env, dict) and env.get("type") == "code_sandbox":
+            hidden_files = env.get("hidden_files")
+            visible_files = env.get("visible_files") or env.get("files")
+            if not isinstance(visible_files, dict):
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.error,
+                        QcCategory.schema,
+                        "Code sandbox agent item needs metadata.agent_env.visible_files or files.",
+                    )
+                )
+            if not isinstance(hidden_files, dict) and not env.get("test_command"):
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.warning,
+                        QcCategory.scoring,
+                        "Code sandbox item has no hidden_files and no explicit test_command.",
+                        "Add hidden tests or a deterministic test command.",
+                    )
+                )
     return issues
 
 

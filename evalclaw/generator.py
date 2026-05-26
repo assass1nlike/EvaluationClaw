@@ -56,7 +56,9 @@ _SYSTEM = """\
 - code_execution 必须给 test_code，使用 {model_output} 作为模型输出占位符。
 - multi_turn 的 rubric 必须说明追问方向和全对话评分方式。
 - multi_turn 可在 metadata 中提供 turns，例如 {"turns": ["追问1", "追问2"]}；如果没有，runner 会让 judge 按 rubric 生成追问。
-- agent_interaction 用于模拟环境里的 action/observation 循环，metadata 可提供 agent_env；如果没有，runner 使用内置 workspace 环境。
+- agent_interaction 用于模拟环境里的 action/observation 循环，metadata 可提供 agent_env。
+  - workspace 环境测试移动/整理/多步状态保持。
+  - code_sandbox 环境测试多轮写代码、运行测试、读错误、再修改。
 """
 
 
@@ -250,6 +252,43 @@ def _fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> lis
                 difficulty=difficulty,
             )
         elif task_type == TaskType.agent_interaction:
+            agent_text = f"{spec.objective} {dimension.name} {dimension.description} {dimension.approach}".lower()
+            if any(keyword in agent_text for keyword in ("code", "coding", "program", "debug", "python", "代码", "编程")):
+                item = BenchmarkItem(
+                    id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
+                    dimension_id=dimension.id,
+                    task_type=TaskType.agent_interaction,
+                    prompt=(
+                        base
+                        + "Use the code_sandbox tools to implement max_pair_sum(nums) in solution.py. "
+                        "Run tests, inspect failures, and revise until tests pass."
+                    ),
+                    rubric=(
+                        "Deterministic environment score: 1.0 when the hidden Python tests pass, "
+                        "0.25 after at least one failing test run, 0.0 if tests are never run."
+                    ),
+                    difficulty=difficulty,
+                    metadata={
+                        "agent_env": {
+                            "type": "code_sandbox",
+                            "visible_files": {
+                                "solution.py": "def max_pair_sum(nums):\n    pass\n"
+                            },
+                            "hidden_files": {
+                                "tests.py": (
+                                    "from solution import max_pair_sum\n\n"
+                                    "assert max_pair_sum([1, 2, 3, 4]) == 7\n"
+                                    "assert max_pair_sum([-5, -2, -3]) == -5\n"
+                                    "assert max_pair_sum([10, 10, 1]) == 20\n"
+                                )
+                            },
+                            "test_command": "python3 tests.py",
+                            "max_steps": 8,
+                        }
+                    },
+                )
+                items.append(item)
+                continue
             item = BenchmarkItem(
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
                 dimension_id=dimension.id,
