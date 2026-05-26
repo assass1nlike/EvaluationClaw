@@ -40,6 +40,7 @@ Generate a benchmark draft without running target models:
   --no-interactive \
   --no-run \
   --no-research \
+  --scale-budget low \
   --qpd 1
 ```
 
@@ -52,6 +53,7 @@ DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw
   -m deepseek-v4-flash \
   --no-interactive \
   --no-research \
+  --scale-budget mid \
   --qpd 1 \
   --max-hf-records 1 \
   --runner direct \

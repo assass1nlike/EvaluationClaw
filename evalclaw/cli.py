@@ -12,7 +12,7 @@ from rich.table import Table
 
 from .pipeline import run_pipeline
 from .providers import orchestrator_defaults, target_from_model
-from .types import BenchmarkConfig, BenchmarkPackage, TargetModelConfig
+from .types import BenchmarkConfig, BenchmarkPackage, ScaleBudget, TargetModelConfig
 
 app = typer.Typer(
     name="evalclaw",
@@ -64,6 +64,7 @@ def _print_summary(pkg: BenchmarkPackage) -> None:
     console.print(f"Goal: {pkg.goal}")
     console.print(f"Spec: {pkg.spec.id}")
     console.print(f"Dimensions: {len(pkg.spec.dimensions)}")
+    console.print(f"Scale budget: {pkg.spec.scale_budget.value}")
     console.print(f"Items: {len(pkg.dataset.items)}")
     console.print(f"QC quality: {pkg.qc_report.quality_score * 100:.1f}%")
     console.print(f"QC issues: {len(pkg.qc_report.issues)}")
@@ -132,6 +133,7 @@ def generate(
     max_planner_iterations: int = typer.Option(5, "--max-planner-iterations", help="Planner self-critique iterations."),
     max_qc_iterations: int = typer.Option(3, "--max-qc-iterations", help="Reserved for future QC regeneration loops."),
     max_hf_records: int = typer.Option(1, "--max-hf-records", help="Maximum imported HuggingFace dataset rows per dimension."),
+    scale_budget: str = typer.Option("mid", "--scale-budget", help="Relative eval budget: low, mid, or high."),
     output_dir: str = typer.Option("./benchmark-output", "-o", "--output-dir", help="Output directory."),
     no_interactive: bool = typer.Option(False, "--no-interactive", help="Skip confirmation prompts."),
     no_run: bool = typer.Option(False, "--no-run", help="Build and QC the benchmark without running targets."),
@@ -164,6 +166,11 @@ def generate(
     if max_hf_records < 0:
         console.print("[red]--max-hf-records cannot be negative.[/red]")
         raise typer.Exit(1)
+    try:
+        parsed_scale_budget = ScaleBudget(scale_budget.lower())
+    except ValueError:
+        console.print("[red]--scale-budget must be one of: low, mid, high.[/red]")
+        raise typer.Exit(1)
 
     effective_api_key, effective_orch_base = orchestrator_defaults(
         orchestrator_model,
@@ -183,6 +190,7 @@ def generate(
         orchestrator_api_key=effective_api_key,
         orchestrator_base_url=effective_orch_base,
         targets=targets,
+        scale_budget=parsed_scale_budget,
         questions_per_dimension=questions_per_dimension,
         max_planner_iterations=max_planner_iterations,
         max_qc_iterations=max_qc_iterations,

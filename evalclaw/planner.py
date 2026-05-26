@@ -15,6 +15,7 @@ from .types import (
     Metric,
     PlannerChecklist,
     PlannerCritique,
+    ScaleBudget,
     TaskType,
 )
 
@@ -36,6 +37,7 @@ _SYSTEM = """\
     "objective": "...",
     "subjects": ["..."],
     "task_types": ["multiple_choice", "open_generation"],
+    "scale_budget": "mid",
     "scale": 40,
     "metrics": ["accuracy", "judge_score"],
     "constraints": ["..."],
@@ -66,7 +68,11 @@ _SYSTEM = """\
 - 如果用户没有指定模型，subjects 写 ["user_supplied_targets"]。
 - 对知识密集型评测给出 research_queries；行为类评测可以 needs_research=false。
 - agent 或工具交互能力可以使用 task_type "agent_interaction"。
-- scale 应与用户需求匹配；未指定时给 20-60 的 MVP 规模。
+- scale_budget 是用户指定的全局相对预算，只能是 low/mid/high，不要擅自改变。
+- scale 是你结合 scale_budget 和评测内容估出的相对题量尺度；不要机械套固定数字。
+- low: 只覆盖最核心维度，维度/metrics/constraints 保持精简，适合 smoke test。
+- mid: 覆盖主要维度和关键边界情况，适合常规评测。
+- high: 更细地拆维度、覆盖来源/难度/交互细节，适合深度评测。
 """
 
 
@@ -100,6 +106,40 @@ def _safe_metric(value: object) -> Metric:
         return Metric.judge_score
 
 
+def _safe_scale_budget(value: object, fallback: ScaleBudget = ScaleBudget.mid) -> ScaleBudget:
+    if isinstance(value, ScaleBudget):
+        return value
+    try:
+        return ScaleBudget(str(value).lower())
+    except ValueError:
+        return fallback
+
+
+def _scale_budget_guidance(scale_budget: ScaleBudget) -> str:
+    guidance = {
+        ScaleBudget.low: (
+            "Use LOW budget: make a lean eval spec. Prefer 2-3 dimensions, minimal metrics, "
+            "and only essential constraints. The planned scale should reflect a smoke-test-sized run "
+            "unless the content truly requires more."
+        ),
+        ScaleBudget.mid: (
+            "Use MID budget: make a balanced eval spec. Prefer 3-5 dimensions, core metrics, "
+            "and enough constraints to make generation/execution reliable. The planned scale should "
+            "cover main capabilities and key edge cases."
+        ),
+        ScaleBudget.high: (
+            "Use HIGH budget: make a deeper eval spec. Prefer 4-7 dimensions when justified, "
+            "explicit source/execution/scoring constraints, richer difficulty coverage, and more detailed "
+            "approaches for complex or agentic tasks."
+        ),
+    }
+    return guidance[scale_budget]
+
+
+def _fallback_scale(scale_budget: ScaleBudget) -> int:
+    return {ScaleBudget.low: 12, ScaleBudget.mid: 30, ScaleBudget.high: 60}[scale_budget]
+
+
 def _safe_distribution(raw: object) -> dict[Difficulty, float]:
     if not isinstance(raw, dict):
         return {
@@ -129,8 +169,9 @@ def _slug(text: str) -> str:
     return slug[:48] or "evalclaw_spec"
 
 
-def _parse_spec(data: dict, goal: str) -> EvalSpec:
+def _parse_spec(data: dict, goal: str, scale_budget: ScaleBudget) -> EvalSpec:
     spec_data = data.get("spec", data)
+    parsed_budget = _safe_scale_budget(spec_data.get("scale_budget"), scale_budget)
     dims: list[EvalDimension] = []
     for idx, dim in enumerate(spec_data.get("dimensions", []) or [], 1):
         if not isinstance(dim, dict):
@@ -174,7 +215,8 @@ def _parse_spec(data: dict, goal: str) -> EvalSpec:
         subjects=[str(x) for x in spec_data.get("subjects", ["user_supplied_targets"])],
         task_types=[_safe_task_type(x) for x in spec_data.get("task_types", ["open_generation"])],
         dimensions=dims,
-        scale=int(spec_data.get("scale", 20) or 20),
+        scale_budget=parsed_budget,
+        scale=int(spec_data.get("scale", _fallback_scale(parsed_budget)) or _fallback_scale(parsed_budget)),
         metrics=[_safe_metric(x) for x in spec_data.get("metrics", ["judge_score"])],
         constraints=[str(x) for x in spec_data.get("constraints", [])],
         planner_notes=str(spec_data.get("planner_notes", "")),
@@ -211,7 +253,11 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
     ]
 
 
-def fallback_spec(goal: str, target_ids: Optional[list[str]] = None) -> EvalSpec:
+def fallback_spec(
+    goal: str,
+    target_ids: Optional[list[str]] = None,
+    scale_budget: ScaleBudget = ScaleBudget.mid,
+) -> EvalSpec:
     """Build a deterministic local spec when no orchestrator key is available."""
     critique = PlannerCritique(
         checklist=PlannerChecklist(
@@ -231,7 +277,8 @@ def fallback_spec(goal: str, target_ids: Optional[list[str]] = None) -> EvalSpec
         subjects=target_ids or ["user_supplied_targets"],
         task_types=[TaskType.open_generation, TaskType.multiple_choice],
         dimensions=_fallback_dimensions(goal),
-        scale=20,
+        scale_budget=scale_budget,
+        scale=_fallback_scale(scale_budget),
         metrics=[Metric.judge_score, Metric.accuracy],
         planner_notes="Local fallback planner output.",
         critique=critique,
@@ -247,13 +294,16 @@ def plan_eval_spec(
 ) -> EvalSpec:
     """Run the Planner self-critique loop and return the best eval spec."""
     target_ids = [target.id for target in config.targets] or ["user_supplied_targets"]
+    scale_budget = _safe_scale_budget(config.scale_budget)
     if not config.orchestrator_api_key:
-        return fallback_spec(goal, target_ids)
+        return fallback_spec(goal, target_ids, scale_budget)
 
     best: Optional[EvalSpec] = None
     context = {
         "goal": goal,
         "target_ids": target_ids,
+        "scale_budget": scale_budget.value,
+        "scale_budget_guidance": _scale_budget_guidance(scale_budget),
         "questions_per_dimension": config.questions_per_dimension,
         "feedback": feedback,
         "previous_spec": previous_spec.model_dump(mode="json") if previous_spec else None,
@@ -269,7 +319,7 @@ def plan_eval_spec(
             backend=config.llm_backend,
             max_tokens=8192,
         )
-        spec = _parse_spec(extract_json(raw), goal)
+        spec = _parse_spec(extract_json(raw), goal, scale_budget)
         best = spec
         if spec.critique.passed:
             break
@@ -279,4 +329,4 @@ def plan_eval_spec(
             f"Missing: {', '.join(spec.critique.missing_items) or 'unspecified'}"
         )
 
-    return best or fallback_spec(goal, target_ids)
+    return best or fallback_spec(goal, target_ids, scale_budget)
