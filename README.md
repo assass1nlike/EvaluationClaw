@@ -110,3 +110,6 @@ standard exact-match or multiple-choice tasks unless a custom metric is added.
 `agent_interaction` tasks run through the EvaluationClaw direct runner because
 they require a stateful action/observation environment and deterministic
 environment scoring.
+The built-in agent environments currently include `workspace` for toy
+state-manipulation tasks and `code_sandbox` for multi-step coding tasks where
+the model writes files, runs tests, reads failures, and revises code.

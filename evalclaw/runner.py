@@ -227,12 +227,19 @@ def _parse_agent_action(response: str) -> tuple[dict[str, Any] | None, str | Non
         pass
 
     stripped = response.strip()
-    simple = re.search(r"\b(look|move|inspect|take|place|final)\b\s*:?\s*([\w-]+)?", stripped, re.I)
+    simple = re.search(
+        r"\b(look|move|inspect|take|place|list_files|read_file|write_file|run_tests|run_test|final)\b"
+        r"\s*:?\s*([\w./-]+)?",
+        stripped,
+        re.I,
+    )
     if simple:
         action = simple.group(1).lower()
         value = simple.group(2) or ""
-        key = "room" if action == "move" else "item"
+        key = "room" if action == "move" else "path" if action in {"read_file", "write_file"} else "item"
         args = {} if action in {"look", "final"} or not value else {key: value}
+        if action in {"list_files", "run_tests", "run_test"}:
+            args = {}
         if action == "final" and value:
             args = {"answer": stripped}
         return {"action": action, "args": args}, None
@@ -245,62 +252,67 @@ def _run_agent_interaction(
     config: BenchmarkConfig,
 ) -> tuple[str, float, str]:
     env = build_agent_environment(item)
-    system_prompt = (
-        "You are an agent being evaluated in a deterministic simulated environment. "
-        "Choose one valid action per turn. Do not invent tools. Return JSON only."
-    )
-    history: list[Message] = []
-    trace: list[dict[str, Any]] = []
-    user_prompt = (
-        f"Task:\n{item.prompt}\n\n"
-        f"Initial observation:\n{env.observation()}\n\n"
-        f"{env.action_schema()}"
-    )
-
-    for step_index in range(env.max_steps):
-        response = call_target_model(
-            user_prompt,
-            target,
-            system_prompt=system_prompt,
-            history=history,
-            backend=config.llm_backend,
+    try:
+        system_prompt = (
+            "You are an agent being evaluated in a deterministic simulated environment. "
+            "Choose one valid action per turn. Do not invent tools. Return JSON only."
         )
-        history.extend([Message(role="user", content=user_prompt), Message(role="assistant", content=response)])
-        action, parse_error = _parse_agent_action(response)
-        if action is None:
-            env.invalid_actions += 1
-            env.steps += 1
-            observation = f"Error: {parse_error}\n\n{env.observation()}"
-            done = env.steps >= env.max_steps
-            env.done = done
-            error = parse_error
-        else:
-            outcome = env.step(action)
-            observation = outcome.observation
-            done = outcome.done
-            error = outcome.error
-        trace.append(
-            {
-                "step": step_index + 1,
-                "model_output": response,
-                "parsed_action": action,
-                "observation": observation,
-                "error": error,
-                "score_after_step": env.score(),
-                "done": done,
-            }
+        history: list[Message] = []
+        trace: list[dict[str, Any]] = []
+        user_prompt = (
+            f"Task:\n{item.prompt}\n\n"
+            f"Initial observation:\n{env.observation()}\n\n"
+            f"{env.action_schema()}"
         )
-        if done:
-            break
-        user_prompt = f"Observation:\n{observation}\n\nContinue with one JSON action."
 
-    raw = {
-        "environment": "workspace",
-        "trace": trace,
-        "final_state": env.state(),
-        "history": [message.model_dump() for message in history],
-    }
-    return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
+        for step_index in range(env.max_steps):
+            response = call_target_model(
+                user_prompt,
+                target,
+                system_prompt=system_prompt,
+                history=history,
+                backend=config.llm_backend,
+            )
+            history.extend([Message(role="user", content=user_prompt), Message(role="assistant", content=response)])
+            action, parse_error = _parse_agent_action(response)
+            if action is None:
+                env.invalid_actions += 1
+                env.steps += 1
+                observation = f"Error: {parse_error}\n\n{env.observation()}"
+                done = env.steps >= env.max_steps
+                env.done = done
+                error = parse_error
+            else:
+                outcome = env.step(action)
+                observation = outcome.observation
+                done = outcome.done
+                error = outcome.error
+            trace.append(
+                {
+                    "step": step_index + 1,
+                    "model_output": response,
+                    "parsed_action": action,
+                    "observation": observation,
+                    "error": error,
+                    "score_after_step": env.score(),
+                    "done": done,
+                }
+            )
+            if done:
+                break
+            user_prompt = f"Observation:\n{observation}\n\nContinue with one JSON action."
+
+        raw = {
+            "environment": env.state().get("environment", env.__class__.__name__),
+            "trace": trace,
+            "final_state": env.state(),
+            "history": [message.model_dump() for message in history],
+        }
+        return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
+    finally:
+        cleanup = getattr(env, "cleanup", None)
+        if callable(cleanup):
+            cleanup()
 
 
 def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> ItemResult:
