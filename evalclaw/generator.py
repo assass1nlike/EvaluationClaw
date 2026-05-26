@@ -128,7 +128,7 @@ def _select_research_sources(
     config: BenchmarkConfig,
 ) -> list[BenchmarkSource]:
     sources: list[BenchmarkSource] = []
-    if config.use_hf_discovery and dimension.needs_research:
+    if config.use_hf_discovery and (dimension.needs_research or config.max_hf_records_per_dimension > 0):
         sources.extend(discover_hf_datasets(dimension, limit=config.max_research_sources))
     if not config.use_web_research or not dimension.needs_research:
         return sources

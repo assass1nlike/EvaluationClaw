@@ -189,6 +189,16 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
             max_tokens=4096,
         )
         data = extract_json(raw)
+        if not isinstance(data, dict):
+            return [
+                _issue(
+                    None,
+                    QcSeverity.warning,
+                    QcCategory.clarity,
+                    f"LLM QC returned {type(data).__name__}; static QC was used as fallback.",
+                    "Retry with a QC model that returns the requested object schema.",
+                )
+            ]
     except Exception as exc:
         return [
             _issue(

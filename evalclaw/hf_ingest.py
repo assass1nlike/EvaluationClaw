@@ -20,21 +20,32 @@ QUESTION_KEYS = (
     "problem",
     "question",
     "prompt",
+    "ctx",
+    "context",
     "input",
+    "inputs",
     "query",
     "instruction",
     "statement",
+    "text",
 )
 ANSWER_KEYS = (
     "solution",
     "answer",
     "final_answer",
+    "best_answer",
+    "correct_answer",
+    "correct_answers",
+    "canonical_solution",
+    "reference",
     "target",
+    "label",
+    "labels",
     "output",
     "response",
     "completion",
 )
-CHOICE_KEYS = ("choices", "options", "candidates")
+CHOICE_KEYS = ("choices", "options", "candidates", "endings")
 HF_DATASET_PREFIX = "hf://datasets/"
 DIMENSION_KEYWORDS: dict[str, tuple[str, ...]] = {
     "number_theory": (
@@ -114,6 +125,42 @@ DIMENSION_KEYWORDS: dict[str, tuple[str, ...]] = {
         "期望",
         "马尔可夫",
     ),
+    "biology": (
+        "biology",
+        "biological",
+        "genetics",
+        "cell",
+        "protein",
+        "enzyme",
+        "organism",
+        "evolution",
+        "ecology",
+        "生物",
+    ),
+    "chemistry": (
+        "chemistry",
+        "chemical",
+        "molecule",
+        "reaction",
+        "organic",
+        "inorganic",
+        "enthalpy",
+        "bond",
+        "orbital",
+        "化学",
+    ),
+    "physics": (
+        "physics",
+        "quantum",
+        "mechanics",
+        "electromagnetic",
+        "wave",
+        "force",
+        "energy",
+        "field",
+        "relativity",
+        "物理",
+    ),
 }
 
 
@@ -177,7 +224,8 @@ def _matches_dimension(item: BenchmarkItem, dimension: EvalDimension) -> bool:
     keywords = _dimension_keywords(dimension)
     if not keywords:
         return True
-    text = f"{item.prompt} {item.answer or ''} {item.rubric or ''}".lower()
+    metadata_text = " ".join(_stringify(value) for key, value in item.metadata.items() if key.startswith("hf_"))
+    text = f"{item.prompt} {item.answer or ''} {item.rubric or ''} {metadata_text}".lower()
     return any(_contains_keyword(text, keyword) for keyword in keywords)
 
 
@@ -222,6 +270,24 @@ def _choices(row: dict[str, Any]) -> list[str]:
     return []
 
 
+def _normalize_choice_answer(answer: str, choices: list[str]) -> str:
+    if not choices:
+        return answer
+    stripped = answer.strip()
+    if stripped.isdigit():
+        index = int(stripped)
+        if 0 <= index < len(choices):
+            return choices[index]
+        if 1 <= index <= len(choices):
+            return choices[index - 1]
+    letter = stripped.upper()
+    if len(letter) == 1 and "A" <= letter <= "Z":
+        index = ord(letter) - ord("A")
+        if 0 <= index < len(choices):
+            return choices[index]
+    return answer
+
+
 def _dataset_id(source: BenchmarkSource) -> str:
     if not source.uri.startswith(HF_DATASET_PREFIX):
         return ""
@@ -249,6 +315,7 @@ def item_from_hf_record(
         return None
 
     choices = _choices(row)
+    answer = _normalize_choice_answer(answer, choices)
     task_type = TaskType.multiple_choice if len(choices) >= 2 and answer else TaskType.open_generation
     if task_type == TaskType.open_generation and len(answer.strip()) < 20:
         return None
@@ -288,6 +355,8 @@ def item_from_hf_record(
             "hf_config": config_name,
             "hf_split": split,
             "hf_row_index": row_index,
+            "hf_category": row.get("category") or row.get("subject") or row.get("topic") or row.get("domain"),
+            "hf_src": row.get("src") or row.get("source"),
             "hf_columns": sorted(map(str, row.keys())),
         },
     )
