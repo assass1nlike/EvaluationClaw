@@ -5,6 +5,7 @@ from evalclaw.hf_discovery import _expanded_queries
 from evalclaw.generator import _parse_items
 from evalclaw.hf_ingest import item_from_hf_record
 from evalclaw.planner import plan_eval_spec
+from evalclaw.qc import run_qc_gate
 from evalclaw.reporter import build_report
 from evalclaw.runner import run_question
 from evalclaw.sandbox import build_code_harness, run_python_sandbox
@@ -160,6 +161,35 @@ def test_report_shows_source_coverage() -> None:
 
     assert "Source-backed items: 1/1" in report.markdown
     assert "item_source:hf_dataset" in report.markdown
+
+
+def test_static_qc_checks_target_difficulty_coverage() -> None:
+    dimension = EvalDimension(
+        id="expert_reasoning",
+        name="Expert reasoning",
+        description="Difficult expert tasks",
+        approach="Use high-difficulty prompts",
+        target_difficulty=Difficulty.L5,
+    )
+    spec = EvalSpec(
+        objective="Evaluate expert reasoning",
+        dimensions=[dimension],
+        scale_budget=ScaleBudget.high,
+        task_types=[TaskType.open_generation],
+    )
+    item = BenchmarkItem(
+        id="low_difficulty_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.open_generation,
+        prompt="Explain a simple concept clearly.",
+        rubric="Score correctness and clarity.",
+        difficulty=Difficulty.L3,
+    )
+
+    qc = run_qc_gate(BenchmarkDataset(spec=spec, items=[item]), BenchmarkConfig())
+
+    assert any(issue.category.value == "difficulty" for issue in qc.issues)
+    assert any("High-budget dimension" in issue.message for issue in qc.issues)
 
 
 def test_hf_discovery_expands_math_queries() -> None:

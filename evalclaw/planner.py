@@ -66,7 +66,9 @@ _SYSTEM = """\
 要求：
 - 维度通常 3-6 个，彼此测量点不要重叠。
 - 如果用户没有指定模型，subjects 写 ["user_supplied_targets"]。
-- 对知识密集型评测给出 research_queries；行为类评测可以 needs_research=false。
+- needs_research/search 的选择要克制：只有当“自己生成不如已有资源”时才设 true，例如题目难合成、需要大规模/标准化覆盖、难度或专业性超过模型可靠出题能力、需要真实来源或既有 benchmark 校准。
+- 如果选择 search/research_queries，应优先寻找与用户需求匹配且更难、更权威、更可复现的 benchmark/source；不要为了找 source 引入偏离用户需求的内容。
+- 如果模型可可靠生成且已有资源会降低相关性或难度，needs_research=false。
 - agent 或工具交互能力可以使用 task_type "agent_interaction"。
 - 不要设计难度梯度或为了凑难题改变评测内容；在内容与用户需求匹配的前提下，目标难度应尽量高。
 - target_difficulty 表示该维度的目标难度，通常用 L4；确实需要专家/长程/复杂交互时用 L5，基础 smoke 维度才用 L3。
@@ -292,6 +294,11 @@ def plan_eval_spec(
         "target_ids": target_ids,
         "scale_budget": scale_budget.value,
         "scale_budget_guidance": _scale_budget_guidance(scale_budget),
+        "research_policy": (
+            "Set needs_research=true only when external resources are likely better than self-generation: "
+            "hard-to-synthesize tasks, large/standardized coverage, expert difficulty beyond reliable model generation, "
+            "or need for real benchmark/source calibration. Prefer the hardest suitable sources that match the user goal."
+        ),
         "questions_per_dimension": config.questions_per_dimension,
         "feedback": feedback,
         "previous_spec": previous_spec.model_dump(mode="json") if previous_spec else None,
