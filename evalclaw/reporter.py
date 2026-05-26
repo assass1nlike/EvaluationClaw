@@ -1,9 +1,9 @@
 """Reporter: produce human-readable benchmark reports."""
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 
-from .types import BenchmarkDataset, EvalReport, EvalRun, ItemResult, QcReport, TargetSummary
+from .types import BenchmarkDataset, EvalReport, EvalRun, ItemResult, QcReport, SourceKind, TargetSummary
 
 
 def _pct(value: float) -> str:
@@ -25,6 +25,13 @@ def _judge_instability_count(run: EvalRun) -> int:
         for result in run.results
         if result.judge_reasoning and "judge_instability=true" in result.judge_reasoning
     )
+
+
+def _is_source_backed(item: object) -> bool:
+    source = getattr(item, "source", None)
+    if source is None:
+        return False
+    return source.kind in {SourceKind.web, SourceKind.hf_dataset, SourceKind.lm_eval, SourceKind.imported} and bool(source.uri)
 
 
 def _recommendations(run: EvalRun) -> list[str]:
@@ -99,15 +106,22 @@ def build_report(run: EvalRun) -> EvalReport:
             "## Dataset",
             "",
             f"- Items generated: {len(dataset.items)}",
-            f"- Sources used: {len(dataset.sources)}",
+            f"- External source candidates: {len(dataset.sources)}",
+            f"- Source-backed items: {sum(1 for item in dataset.items if _is_source_backed(item))}/{len(dataset.items)}",
+            f"- Self-generated items: {sum(1 for item in dataset.items if item.source.kind == SourceKind.self_generated)}",
             "",
         ]
     )
     task_counts: dict[str, int] = defaultdict(int)
     difficulty_counts: dict[str, int] = defaultdict(int)
+    item_source_counts: Counter[str] = Counter()
+    candidate_source_counts: Counter[str] = Counter()
     for item in dataset.items:
         task_counts[item.task_type.value] += 1
         difficulty_counts[item.difficulty.value] += 1
+        item_source_counts[item.source.kind.value] += 1
+    for source in dataset.sources:
+        candidate_source_counts[source.kind.value] += 1
     lines.append(
         _markdown_table(
             ["Bucket", "Count"],
@@ -115,6 +129,21 @@ def build_report(run: EvalRun) -> EvalReport:
             + [[f"difficulty:{key}", str(value)] for key, value in sorted(difficulty_counts.items())],
         )
     )
+    lines.extend(["", "### Source Coverage", ""])
+    source_rows = [[f"item_source:{key}", str(value)] for key, value in sorted(item_source_counts.items())]
+    source_rows.extend(
+        [[f"candidate_source:{key}", str(value)] for key, value in sorted(candidate_source_counts.items())]
+    )
+    if source_rows:
+        lines.append(_markdown_table(["Bucket", "Count"], source_rows))
+        lines.append("")
+    if dataset.sources:
+        source_preview_rows = [
+            [source.kind.value, source.title or "-", source.uri[:140]]
+            for source in dataset.sources[:10]
+        ]
+        lines.append(_markdown_table(["Kind", "Title", "URI"], source_preview_rows))
+        lines.append("")
     lines.extend(
         [
             "",

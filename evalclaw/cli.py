@@ -131,6 +131,7 @@ def generate(
     questions_per_dimension: int = typer.Option(5, "--qpd", help="Items per dimension."),
     max_planner_iterations: int = typer.Option(5, "--max-planner-iterations", help="Planner self-critique iterations."),
     max_qc_iterations: int = typer.Option(3, "--max-qc-iterations", help="Reserved for future QC regeneration loops."),
+    max_hf_records: int = typer.Option(1, "--max-hf-records", help="Maximum imported HuggingFace dataset rows per dimension."),
     output_dir: str = typer.Option("./benchmark-output", "-o", "--output-dir", help="Output directory."),
     no_interactive: bool = typer.Option(False, "--no-interactive", help="Skip confirmation prompts."),
     no_run: bool = typer.Option(False, "--no-run", help="Build and QC the benchmark without running targets."),
@@ -160,6 +161,9 @@ def generate(
     if loop3_max_actions < 0:
         console.print("[red]--loop3-max-actions cannot be negative.[/red]")
         raise typer.Exit(1)
+    if max_hf_records < 0:
+        console.print("[red]--max-hf-records cannot be negative.[/red]")
+        raise typer.Exit(1)
 
     effective_api_key, effective_orch_base = orchestrator_defaults(
         orchestrator_model,
@@ -182,6 +186,7 @@ def generate(
         questions_per_dimension=questions_per_dimension,
         max_planner_iterations=max_planner_iterations,
         max_qc_iterations=max_qc_iterations,
+        max_hf_records_per_dimension=max_hf_records,
         output_dir=output_dir,
         run_targets=not no_run,
         use_web_research=not no_research,

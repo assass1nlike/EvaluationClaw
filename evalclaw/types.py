@@ -255,6 +255,7 @@ class BenchmarkConfig(BaseModel):
     max_planner_iterations: int = 5
     max_qc_iterations: int = 3
     max_research_sources: int = 3
+    max_hf_records_per_dimension: int = 1
     output_dir: str = "./benchmark-output"
     run_targets: bool = True
     use_web_research: bool = True

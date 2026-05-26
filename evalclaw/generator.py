@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from itertools import cycle
 from typing import Callable
 
 from .llm import call_llm, extract_json
 from .hf_discovery import discover_hf_datasets
+from .hf_ingest import import_hf_dataset_items
 from .search import fetch_url_text, format_search_result, web_search
 from .types import (
     BenchmarkConfig,
@@ -90,6 +92,21 @@ def _safe_difficulty(value: object, fallback: Difficulty = Difficulty.L3) -> Dif
         return Difficulty(text)
     except ValueError:
         return fallback
+
+
+def _normalize_source(source_uri: object, source_title: object = "") -> BenchmarkSource:
+    uri = str(source_uri or "").strip()
+    title = str(source_title or "").strip()
+    marker = re.sub(r"^https?://", "", uri.lower()).strip("/")
+    title_marker = title.lower().strip()
+    self_markers = {"", "self_generated", "self-generated", "generated", "n/a", "none", "null"}
+    if marker in self_markers or title_marker in self_markers:
+        return BenchmarkSource(kind=SourceKind.self_generated)
+    if uri.startswith("hf://datasets/"):
+        return BenchmarkSource(kind=SourceKind.hf_dataset, uri=uri, title=title)
+    if uri.startswith("lm-eval://"):
+        return BenchmarkSource(kind=SourceKind.lm_eval, uri=uri, title=title)
+    return BenchmarkSource(kind=SourceKind.web, uri=uri, title=title)
 
 
 def _difficulty_cycle(dimension: EvalDimension) -> cycle[Difficulty]:
@@ -177,13 +194,7 @@ def _parse_items(
         prompt = str(raw.get("prompt") or "").strip()
         if not prompt:
             continue
-        source_uri = str(raw.get("source_uri") or "")
-        source_title = str(raw.get("source_title") or "")
-        source = BenchmarkSource(
-            kind=SourceKind.web if source_uri else SourceKind.self_generated,
-            uri=source_uri,
-            title=source_title,
-        )
+        source = _normalize_source(raw.get("source_uri"), raw.get("source_title"))
         choices = raw.get("choices") or []
         if isinstance(choices, dict):
             choices = [f"{key}. {value}" for key, value in choices.items()]
@@ -259,13 +270,22 @@ def generate_dimension_items(
 ) -> tuple[list[BenchmarkItem], list[BenchmarkSource], str]:
     """Generate benchmark items for one dimension."""
     sources = _select_research_sources(dimension, config)
+    imported_items = import_hf_dataset_items(
+        sources,
+        dimension=dimension,
+        count=min(count, max(0, config.max_hf_records_per_dimension)),
+    )
+    remaining_count = max(0, count - len(imported_items))
+    if remaining_count == 0:
+        return imported_items[:count], sources, f"Imported {len(imported_items)} item(s) from HuggingFace datasets."
     if not config.orchestrator_api_key:
-        return _fallback_items(spec, dimension, count), sources, "Local fallback generation."
+        fallback_items = _fallback_items(spec, dimension, remaining_count)
+        return imported_items + fallback_items, sources, "Local fallback generation."
 
     payload = {
         "spec": spec.model_dump(mode="json"),
         "dimension": dimension.model_dump(mode="json"),
-        "requested_count": count,
+        "requested_count": remaining_count,
         "research_context": _source_context(sources),
     }
     raw = call_llm(
@@ -277,10 +297,13 @@ def generate_dimension_items(
         backend=config.llm_backend,
         max_tokens=8192,
     )
-    items, notes = _parse_items(extract_json(raw), spec=spec, dimension=dimension, requested_count=count)
-    if len(items) < count:
-        items.extend(_fallback_items(spec, dimension, count - len(items)))
-    return items[:count], sources, notes
+    items, notes = _parse_items(extract_json(raw), spec=spec, dimension=dimension, requested_count=remaining_count)
+    if len(items) < remaining_count:
+        items.extend(_fallback_items(spec, dimension, remaining_count - len(items)))
+    all_items = imported_items + items
+    if imported_items:
+        notes = f"Imported {len(imported_items)} HF item(s). {notes}".strip()
+    return all_items[:count], sources, notes
 
 
 def generate_dataset(spec: EvalSpec, config: BenchmarkConfig) -> BenchmarkDataset:
