@@ -155,3 +155,17 @@ def test_hf_discovery_expands_math_queries() -> None:
     assert "challenging number theory proof problems with counterexample" in queries
     assert "math reasoning" in queries
     assert "olympiad math" in queries
+
+
+def test_hf_discovery_expands_known_benchmark_queries() -> None:
+    dimension = EvalDimension(
+        id="graduate_science_reasoning",
+        name="Graduate science reasoning",
+        description="Expert biology chemistry and physics reasoning",
+        approach="Use published benchmarks",
+    )
+
+    queries = _expanded_queries(dimension)
+
+    assert "gpqa" in queries
+    assert "mmlu pro" in queries

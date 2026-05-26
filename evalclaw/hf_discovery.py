@@ -28,6 +28,32 @@ MATH_FALLBACK_QUERIES = [
     "olympiad math",
     "mathematical proof",
 ]
+BENCHMARK_HINT_QUERIES: list[tuple[set[str], list[str]]] = [
+    (
+        {"graduate", "expert", "science", "biology", "chemistry", "physics", "gpqa", "高等科学", "研究生"},
+        ["mmlu pro", "gpqa"],
+    ),
+    (
+        {"programming", "code", "coding", "python", "software", "算法", "编程", "代码"},
+        ["humaneval", "mbpp"],
+    ),
+    (
+        {"truthful", "truthfulness", "hallucination", "misconception", "factuality", "幻觉", "事实性"},
+        ["truthfulqa"],
+    ),
+    (
+        {"commonsense", "plausibility", "physical reasoning", "常识", "合理性"},
+        ["hellaswag", "winogrande"],
+    ),
+    (
+        {"multi-hop", "multihop", "reading comprehension", "retrieval qa", "问答", "阅读理解"},
+        ["hotpotqa", "squad"],
+    ),
+    (
+        {"school science", "arc", "science qa", "科学问答"},
+        ["ai2_arc", "arc challenge"],
+    ),
+]
 
 
 def _expanded_queries(dimension: EvalDimension) -> list[str]:
@@ -35,6 +61,12 @@ def _expanded_queries(dimension: EvalDimension) -> list[str]:
     text = " ".join(base + [dimension.id]).lower()
     queries: list[str] = []
     seen: set[str] = set()
+    for hints, fallback_queries in BENCHMARK_HINT_QUERIES:
+        if any(hint in text for hint in hints):
+            for query in fallback_queries:
+                if query not in seen:
+                    seen.add(query)
+                    queries.append(query)
     for query in base:
         query = query.strip()
         if query and query not in seen:
