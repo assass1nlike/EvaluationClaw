@@ -148,9 +148,9 @@ def fetch_url_text(url: str, max_chars: int = 4000, timeout: float = 10.0) -> st
 
 def format_search_result(result: SearchResult) -> str:
     """Format a SearchResult for injection into the generator context."""
-    lines = ["=== 网络搜索结果 ===", result.content]
+    lines = ["=== Web Search Results ===", result.content]
     if result.citations:
-        lines.append("\n来源：")
+        lines.append("\nSources:")
         for i, c in enumerate(result.citations[:10], 1):
             title = c.get("title") or c["url"]
             lines.append(f"  [{i}] {title}  {c['url']}")

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import difflib
 import json
+import re
 from collections import Counter
 
 from .llm import call_llm, extract_json
@@ -20,13 +21,30 @@ from .types import (
 )
 
 _SYSTEM = """\
-你是 EvaluationClaw 的 QC Gate。你要审查 benchmark 是否能作为“对用户需求的好评估方案”。
-你不仅要检查单题清晰度、答案可靠性、评分标准和覆盖面，也要做元评估：
-- 这些维度是否真正对应 objective 和用户需求？
-- 题型、source 策略、评分方式是否适合该需求？
-- 是否有明显遗漏、偏题、过浅、过度依赖 judge、或为了难度/source 而引入偏差？
-- 如果需要已有 benchmark/source，是否使用了适当且偏难的来源？
-只返回纯 JSON，不要 markdown。格式：
+You are the EvaluationClaw QC Gate. Review whether the benchmark is a good
+evaluation plan for the user's need.
+
+Use English in all issue messages and suggestions unless the issue must quote
+non-English benchmark content.
+
+Check individual item clarity, answer reliability, scoring criteria, and
+coverage. Also perform meta-evaluation:
+- Do the dimensions genuinely match the objective and user need?
+- Are the task types, source strategy, and scoring method appropriate?
+- Are there obvious omissions, content drift, shallow coverage, judge
+  overreliance, or bias introduced by difficulty/source choices?
+- If an existing benchmark/source is needed, did the dataset use appropriate,
+  hard, authoritative sources?
+
+For task_type=agent_interaction with metadata.agent_env.type=code_sandbox:
+- visible_files are available to the target through file tools.
+- hidden_files are intentionally not readable by the target but are available
+  to the EvaluationClaw execution environment through run_tests.
+- Do not mark the item unexecutable merely because hidden tests are hidden from
+  the target or summarized in metadata, as long as hidden file names/count and a
+  test_command are present.
+
+Return pure JSON only, with no markdown. Format:
 {
   "issues": [
     {
@@ -40,13 +58,64 @@ _SYSTEM = """\
   "summary": "..."
 }
 
-severity 只能是 info/warning/error。
-category 只能是 schema/duplicate/scoring/clarity/coverage/difficulty。
-只有会导致题目不可执行或答案明显不可靠的问题才标 error。
+severity must be one of info/warning/error.
+category must be one of schema/duplicate/scoring/clarity/coverage/difficulty.
+Mark error only for issues that make an item unexecutable or make the answer
+clearly unreliable.
 """
 
 
 DIFFICULTY_RANK = {"L1": 1, "L2": 2, "L3": 3, "L4": 4, "L5": 5}
+
+
+def _normalize_mc_text(text: str) -> str:
+    normalized = str(text).strip().lower()
+    normalized = re.sub(r"^\s*[a-z]\s*[\).:：]\s*", "", normalized)
+    normalized = re.sub(r"\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}", r"\1/\2", normalized)
+    normalized = re.sub(r"\\left|\\right|\\[()[\]{}$]", " ", normalized)
+    normalized = re.sub(r"\\+", "", normalized)
+    normalized = normalized.replace(",", "")
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized.strip(" .,:;，。；：")
+
+
+def _mc_answer_has_choice(answer: str | None, choices: list[str]) -> bool:
+    if not answer:
+        return False
+    stripped = answer.strip()
+    if len(stripped) == 1 and "A" <= stripped.upper() <= chr(ord("A") + len(choices) - 1):
+        return True
+    answer_text = _normalize_mc_text(stripped)
+    return any(answer_text == _normalize_mc_text(choice) for choice in choices)
+
+
+def _mc_answer_letter(answer: str | None, choices: list[str]) -> str | None:
+    if not answer:
+        return None
+    stripped = answer.strip()
+    if len(stripped) == 1 and "A" <= stripped.upper() <= chr(ord("A") + len(choices) - 1):
+        return stripped.upper()
+    match = re.match(r"^\s*([A-Z])\s*[\).:：]", stripped, flags=re.IGNORECASE)
+    if match:
+        return match.group(1).upper()
+    answer_text = _normalize_mc_text(stripped)
+    for index, choice in enumerate(choices):
+        if answer_text == _normalize_mc_text(choice):
+            return chr(ord("A") + index)
+    return None
+
+
+def _rubric_answer_letter(rubric: str | None) -> str | None:
+    if not rubric:
+        return None
+    for pattern in (
+        r"(?:correct\s+answer|answer)\s*(?:is)?\s*[:=]?\s*([A-Z])\b",
+        r"\b([A-Z])\s+is\s+the\s+correct\s+answer\b",
+    ):
+        match = re.search(pattern, rubric, flags=re.IGNORECASE)
+        if match:
+            return match.group(1).upper()
+    return None
 
 
 def _issue(
@@ -93,6 +162,39 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
             issues.append(
                 _issue(item.id, QcSeverity.error, QcCategory.scoring, "Multiple-choice item lacks answer.")
             )
+        elif not _mc_answer_has_choice(item.answer, item.choices):
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.scoring,
+                    "Multiple-choice answer does not identify one of the provided choices.",
+                    "Use a valid option letter or exact choice text.",
+                )
+            )
+        normalized_choices = [_normalize_mc_text(choice) for choice in item.choices]
+        if len(set(normalized_choices)) < len(normalized_choices):
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.scoring,
+                    "Multiple-choice item has duplicate or indistinguishable choices.",
+                    "Rewrite choices so exactly one answer is clearly correct.",
+                )
+            )
+        answer_letter = _mc_answer_letter(item.answer, item.choices)
+        rubric_letter = _rubric_answer_letter(item.rubric)
+        if answer_letter and rubric_letter and answer_letter != rubric_letter:
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.scoring,
+                    f"Multiple-choice answer ({answer_letter}) conflicts with rubric reference answer ({rubric_letter}).",
+                    "Fix the answer key or rewrite the rubric before running this item.",
+                )
+            )
     if item.task_type == TaskType.yes_no and (item.answer or "").lower() not in {"yes", "no"}:
         issues.append(
             _issue(item.id, QcSeverity.error, QcCategory.scoring, "Yes/no item answer must be yes or no.")
@@ -107,6 +209,19 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                 "Add a concrete scoring rubric or deterministic environment scoring note.",
             )
         )
+    if item.rubric:
+        rubric_lower = item.rubric.lower()
+        contradiction_markers = ("actually", "careful", "extraneous", "undefined", "not in domain", "however")
+        if "correct answer" in rubric_lower and any(marker in rubric_lower for marker in contradiction_markers):
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.scoring,
+                    "Rubric appears to contain a self-correction or contradictory reference answer.",
+                    "Rewrite the rubric so the reference answer is unambiguous and domain restrictions are explicit.",
+                )
+            )
     if item.task_type == TaskType.short_answer and not item.answer and not item.rubric:
         issues.append(
             _issue(
@@ -162,10 +277,11 @@ def _duplicate_issues(items: list[BenchmarkItem]) -> list[QcIssue]:
         for other in items[idx + 1 :]:
             ratio = difflib.SequenceMatcher(None, item.prompt.lower(), other.prompt.lower()).ratio()
             if ratio >= 0.92:
+                severity = QcSeverity.error if ratio >= 0.98 else QcSeverity.warning
                 issues.append(
                     _issue(
                         other.id,
-                        QcSeverity.warning,
+                        severity,
                         QcCategory.duplicate,
                         f"Prompt is very similar to {item.id} (similarity {ratio:.2f}).",
                         "Rewrite one item to test a distinct behavior.",
@@ -247,6 +363,73 @@ def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
     return issues
 
 
+def _compact_metadata_for_qc(metadata: dict) -> dict:
+    """Keep QC context small while preserving executable environment facts."""
+    if not metadata:
+        return {}
+    compact: dict = {}
+    env = metadata.get("agent_env")
+    if isinstance(env, dict):
+        env_summary: dict = {}
+        for key in ("type", "max_steps", "test_command", "start_room"):
+            if key in env:
+                env_summary[key] = env[key]
+        for key in ("visible_files", "files", "hidden_files"):
+            files = env.get(key)
+            if isinstance(files, dict):
+                env_summary[f"{key}_count"] = len(files)
+                env_summary[f"{key}_names"] = list(files.keys())[:20]
+                env_summary[f"{key}_preview"] = {
+                    name: str(content)[:500] for name, content in list(files.items())[:5]
+                }
+        for key in ("rooms", "goal"):
+            value = env.get(key)
+            if isinstance(value, dict):
+                env_summary[key] = value
+        compact["agent_env"] = env_summary
+
+    for key, value in metadata.items():
+        if key == "agent_env":
+            continue
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            compact[key] = value
+        elif isinstance(value, list):
+            compact[key] = value[:10]
+        elif isinstance(value, dict):
+            compact[key] = {str(k): v for k, v in list(value.items())[:10]}
+        else:
+            compact[key] = str(value)[:500]
+    return compact
+
+
+def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -> QcIssue:
+    """Prevent LLM QC from rejecting intentional sandbox hidden-test design."""
+    if issue.severity != QcSeverity.error or not issue.item_id:
+        return issue
+    item = item_by_id.get(issue.item_id)
+    if not item or item.task_type != TaskType.agent_interaction:
+        return issue
+    env = item.metadata.get("agent_env")
+    if not isinstance(env, dict) or env.get("type") != "code_sandbox":
+        return issue
+    if not isinstance(env.get("hidden_files"), dict) or not env.get("test_command"):
+        return issue
+    message = issue.message.lower()
+    false_positive_markers = ("hidden", "not visible", "unverifiable", "unexecutable")
+    if "hidden" in message and any(marker in message for marker in false_positive_markers):
+        return issue.model_copy(
+            update={
+                "severity": QcSeverity.warning,
+                "message": (
+                    issue.message
+                    + " Note: EvaluationClaw code_sandbox hidden files are executable by the "
+                    "runner via test_command; this was demoted from an LLM QC blocking error."
+                ),
+            }
+        )
+    return issue
+
+
 def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]:
     if not config.orchestrator_api_key:
         return []
@@ -260,6 +443,9 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
             "choices": item.choices,
             "answer": item.answer,
             "rubric": item.rubric,
+            "source": item.source.model_dump(mode="json"),
+            "tags": item.tags,
+            "metadata": _compact_metadata_for_qc(item.metadata),
         }
         for item in dataset.items[:50]
     ]
@@ -311,17 +497,17 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
             )
         ]
     issues: list[QcIssue] = []
+    item_by_id = {item.id: item for item in dataset.items}
     for raw_issue in data.get("issues", []):
         try:
-            issues.append(
-                QcIssue(
-                    item_id=raw_issue.get("item_id"),
-                    severity=QcSeverity(raw_issue.get("severity", "warning")),
-                    category=QcCategory(raw_issue.get("category", "clarity")),
-                    message=str(raw_issue.get("message", "")),
-                    suggested_action=str(raw_issue.get("suggested_action", "")),
-                )
+            issue = QcIssue(
+                item_id=raw_issue.get("item_id"),
+                severity=QcSeverity(raw_issue.get("severity", "warning")),
+                category=QcCategory(raw_issue.get("category", "clarity")),
+                message=str(raw_issue.get("message", "")),
+                suggested_action=str(raw_issue.get("suggested_action", "")),
             )
+            issues.append(_stabilize_llm_issue(issue, item_by_id))
         except ValueError:
             continue
     return issues

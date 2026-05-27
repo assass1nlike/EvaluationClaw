@@ -19,18 +19,36 @@ from .types import (
     TaskType,
 )
 
+_CJK_RE = re.compile(r"[\u3400-\u9fff]")
+
+_TRANSLATION_SYSTEM = """\
+You translate and normalize evaluation requests for EvaluationClaw.
+Return JSON only: {"english_goal": "..."}.
+
+Translate non-English user requests into concise, precise English before they
+are used by the planner. Preserve all technical intent, scope, constraints,
+model names, budget words, benchmark names, and domain terms. If the user is
+asking to evaluate a non-English capability, describe that requirement in
+English rather than replacing it with an English-only task.
+"""
+
 _SYSTEM = """\
-你是 EvaluationClaw 的 Planner。你的任务是把自然语言评测需求消歧为可执行 eval_spec。
+You are the EvaluationClaw Planner. Your job is to disambiguate a natural-language
+evaluation request into an executable eval_spec.
 
-你必须覆盖 6 项 checklist：
-1. objective: 评测什么能力或行为
-2. subjects: 要测哪些模型或模型族
-3. format: 题型/任务形式
-4. content: 维度、子领域、目标难度
-5. scale: 评测规模
-6. metrics: 指标，例如 accuracy、exact_match、judge_score、pass@1
+Use English for all generated JSON fields unless the evaluation explicitly tests
+non-English language ability. If the input request was originally non-English,
+assume it has been translated/normalized to English before planning.
 
-输出必须是纯 JSON，不要 markdown。格式：
+You must cover these 6 checklist items:
+1. objective: what capability or behavior is being evaluated
+2. subjects: which models or model families are being evaluated
+3. format: task types and task forms
+4. content: dimensions, subdomains, and target difficulty
+5. scale: evaluation size
+6. metrics: metrics such as accuracy, exact_match, judge_score, pass@1
+
+Return pure JSON only, with no markdown. Format:
 {
   "spec": {
     "id": "snake_case_id",
@@ -63,21 +81,61 @@ _SYSTEM = """\
   }
 }
 
-要求：
-- 维度通常 3-6 个，彼此测量点不要重叠。
-- 如果用户没有指定模型，subjects 写 ["user_supplied_targets"]。
-- needs_research/search 的选择要克制：只有当“自己生成不如已有资源”时才设 true，例如题目难合成、需要大规模/标准化覆盖、难度或专业性超过模型可靠出题能力、需要真实来源或既有 benchmark 校准。
-- 如果选择 search/research_queries，应优先寻找与用户需求匹配且更难、更权威、更可复现的 benchmark/source；不要为了找 source 引入偏离用户需求的内容。
-- 如果模型可可靠生成且已有资源会降低相关性或难度，needs_research=false。
-- agent 或工具交互能力可以使用 task_type "agent_interaction"。
-- 不要设计难度梯度或为了凑难题改变评测内容；在内容与用户需求匹配的前提下，目标难度应尽量高。
-- target_difficulty 表示该维度的目标难度，通常用 L4；确实需要专家/长程/复杂交互时用 L5，基础 smoke 维度才用 L3。
-- scale_budget 是用户指定的全局相对预算，只能是 low/mid/high，不要擅自改变。
-- scale 是你结合 scale_budget 和评测内容估出的相对题量尺度；不要机械套固定数字。
-- low: 只覆盖最核心维度，维度/metrics/constraints 保持精简，适合 smoke test。
-- mid: 覆盖主要维度和关键边界情况，适合常规评测。
-- high: 更细地拆维度、覆盖来源/难度/交互细节，适合深度评测。
+Requirements:
+- Usually create 3-6 dimensions with non-overlapping measurement targets.
+- If the user did not specify models, use subjects ["user_supplied_targets"].
+- Use needs_research/search sparingly. Set needs_research=true only when existing
+  resources are better than model-generated items, such as when tasks are hard to
+  synthesize, require large or standardized coverage, exceed reliable model item
+  generation, require real sources, or need calibration against existing benchmarks.
+- If you choose search/research_queries, prefer harder, authoritative,
+  reproducible benchmarks/sources that match the user need. Do not introduce
+  content drift merely to find a source.
+- If the model can reliably generate relevant high-difficulty items and existing
+  resources would reduce relevance or difficulty, set needs_research=false.
+- Agent or tool-interaction capabilities may use task_type "agent_interaction".
+- Do not design a difficulty ladder or drift away from the requested content just
+  to include hard tasks. Within content that matches the user need, target the
+  hardest suitable difficulty.
+- target_difficulty is the intended difficulty for the dimension. Usually use L4;
+  use L5 for expert, long-horizon, or complex interaction evaluations; use L3
+  only for basic smoke dimensions.
+- scale_budget is the global relative budget specified by the user and must be
+  one of low/mid/high. Do not change it.
+- scale is your estimate of the relative item count based on both scale_budget and
+  how much the content deserves to be evaluated. Do not mechanically apply fixed
+  item counts.
+- low: cover only core dimensions, keep dimensions/metrics/constraints lean, and
+  fit a smoke-test-sized run.
+- mid: cover main dimensions and key boundary cases for a regular evaluation.
+- high: split dimensions more finely and cover sources, difficulty, and
+  interaction details for a deeper evaluation.
 """
+
+
+def _contains_cjk(text: str) -> bool:
+    return bool(_CJK_RE.search(text))
+
+
+def translate_goal_to_english(goal: str, config: BenchmarkConfig) -> str:
+    """Translate non-English evaluation goals to English before planning."""
+    if not _contains_cjk(goal):
+        return goal
+    try:
+        raw = call_llm(
+            [Message(role="user", content=goal)],
+            system=_TRANSLATION_SYSTEM,
+            model=config.orchestrator_model,
+            api_key=config.orchestrator_api_key,
+            base_url=config.orchestrator_base_url,
+            backend=config.llm_backend,
+            max_tokens=1024,
+        )
+        data = extract_json(raw)
+        translated = str(data.get("english_goal") or "").strip()
+        return translated or goal
+    except Exception:
+        return goal
 
 
 def _safe_task_type(value: object) -> TaskType:

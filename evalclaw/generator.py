@@ -25,9 +25,13 @@ from .types import (
 )
 
 _SYSTEM = """\
-你是 EvaluationClaw 的 Generator。你要根据 eval_spec 和单个 dimension 生成高质量 benchmark items。
+You are the EvaluationClaw Generator. Generate high-quality benchmark items from
+the eval_spec and one dimension.
 
-输出纯 JSON，不要 markdown。格式：
+Use English for prompts, rubrics, answers, follow-up turns, tags, and generation
+notes unless the eval_spec explicitly evaluates non-English language ability.
+
+Return pure JSON only, with no markdown. Format:
 {
   "generation_notes": "...",
   "items": [
@@ -36,7 +40,7 @@ _SYSTEM = """\
       "prompt": "...",
       "choices": ["A. ...", "B. ...", "C. ...", "D. ..."],
       "answer": "A",
-      "rubric": "评分标准；开放题必须具体到 1-5 分描述",
+      "rubric": "Scoring rubric; open-generation rubrics must define concrete 1-5 score levels.",
       "test_code": null,
       "difficulty": "L3",
       "tags": ["..."],
@@ -46,19 +50,25 @@ _SYSTEM = """\
   ]
 }
 
-要求：
-- 每题独立可执行，不依赖其他题。
-- 如果考察的不是背景知识本身，题干必须提供必要背景。
-- multiple_choice 必须单选且 choices 至少 4 个，answer 是选项字母。
-- yes_no 的 answer 必须是 yes 或 no。
-- open_generation 必须提供 rubric。
-- short_answer 必须给 answer 或 rubric。
-- code_execution 必须给 test_code，使用 {model_output} 作为模型输出占位符。
-- multi_turn 的 rubric 必须说明追问方向和全对话评分方式。
-- multi_turn 可在 metadata 中提供 turns，例如 {"turns": ["追问1", "追问2"]}；如果没有，runner 会让 judge 按 rubric 生成追问。
-- agent_interaction 用于模拟环境里的 action/observation 循环，metadata 可提供 agent_env。
-  - workspace 环境测试移动/整理/多步状态保持。
-  - code_sandbox 环境测试多轮写代码、运行测试、读错误、再修改。
+Requirements:
+- Each item must be independently executable and must not depend on other items.
+- If the task is not testing background knowledge itself, the prompt must provide
+  all necessary context.
+- multiple_choice must be single-answer, include at least 4 choices, and use a
+  choice letter as answer.
+- yes_no answer must be yes or no.
+- open_generation must include a rubric.
+- short_answer must include either an answer or a rubric.
+- code_execution must include test_code and use {model_output} as the placeholder
+  for the model output.
+- multi_turn rubrics must explain follow-up direction and full-dialogue scoring.
+- multi_turn may provide metadata.turns, e.g. {"turns": ["follow-up 1", "follow-up 2"]};
+  otherwise the runner will ask the judge model to generate follow-ups from the rubric.
+- agent_interaction is for action/observation loops in simulated environments;
+  metadata may provide agent_env.
+  - workspace tests navigation, organization, and multi-step state tracking.
+  - code_sandbox tests iterative coding: write code, run tests, read failures,
+    and revise.
 """
 
 
@@ -267,7 +277,7 @@ def _fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> lis
             )
         elif task_type == TaskType.agent_interaction:
             agent_text = f"{spec.objective} {dimension.name} {dimension.description} {dimension.approach}".lower()
-            if any(keyword in agent_text for keyword in ("code", "coding", "program", "debug", "python", "代码", "编程")):
+            if any(keyword in agent_text for keyword in ("code", "coding", "program", "debug", "python")):
                 item = BenchmarkItem(
                     id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
                     dimension_id=dimension.id,
@@ -403,6 +413,18 @@ def generate_dataset(spec: EvalSpec, config: BenchmarkConfig) -> BenchmarkDatase
     return generate_dataset_with_progress(spec, config)
 
 
+def _dedupe_sources(sources: list[BenchmarkSource]) -> list[BenchmarkSource]:
+    deduped: list[BenchmarkSource] = []
+    seen: set[tuple[str, str, str]] = set()
+    for source in sources:
+        key = (source.kind.value, source.uri, source.title)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(source)
+    return deduped
+
+
 def generate_dataset_with_progress(
     spec: EvalSpec,
     config: BenchmarkConfig,
@@ -427,7 +449,7 @@ def generate_dataset_with_progress(
     return BenchmarkDataset(
         spec=spec,
         items=all_items,
-        sources=all_sources,
+        sources=_dedupe_sources(all_sources),
         generation_notes="\n".join(notes),
     )
 

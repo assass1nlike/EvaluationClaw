@@ -48,6 +48,83 @@ ANSWER_KEYS = (
 CHOICE_KEYS = ("choices", "options", "candidates", "endings")
 HF_DATASET_PREFIX = "hf://datasets/"
 DIMENSION_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "arithmetic_number_theory": (
+        "integer",
+        "positive integer",
+        "prime",
+        "mod",
+        "modulo",
+        "congru",
+        "divisor",
+        "divisible",
+        "remainder",
+        "gcd",
+        "lcm",
+        "factor",
+        "diophantine",
+        "totient",
+        "number theory",
+        "arithmetic",
+    ),
+    "algebra_functions": (
+        "algebra",
+        "function",
+        "polynomial",
+        "quadratic",
+        "equation",
+        "inequality",
+        "system of equations",
+        "roots",
+        "sequence",
+        "series",
+        "radical",
+        "simplify",
+        "expression",
+    ),
+    "geometry_trigonometry": (
+        "geometry",
+        "triangle",
+        "circle",
+        "trapezoid",
+        "angle",
+        "area",
+        "volume",
+        "coordinate",
+        "sin",
+        "cos",
+        "tan",
+        "trigonometry",
+        "vector",
+    ),
+    "probability_statistics": (
+        "probability",
+        "random",
+        "expected",
+        "expectation",
+        "variance",
+        "standard deviation",
+        "mean",
+        "distribution",
+        "conditional",
+        "bayes",
+        "combinatorics",
+        "statistics",
+    ),
+    "calculus_analysis": (
+        "limit",
+        "derivative",
+        "differentiate",
+        "integral",
+        "integration",
+        "series",
+        "converges",
+        "diverges",
+        "differential equation",
+        "taylor",
+        "maclaurin",
+        "calculus",
+        "analysis",
+    ),
     "number_theory": (
         "integer",
         "prime",
@@ -206,7 +283,7 @@ def _dimension_keywords(dimension: EvalDimension) -> tuple[str, ...]:
     text = f"{dimension.id} {dimension.id.replace('_', ' ')} {dimension.name}".lower()
     keywords: list[str] = []
     for key, values in DIMENSION_KEYWORDS.items():
-        if key in text or any(value in text for value in values):
+        if key in text or key.replace("_", " ") in text or any(value in text for value in values):
             keywords.extend(values)
     return tuple(dict.fromkeys(keyword.lower() for keyword in keywords))
 

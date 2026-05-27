@@ -1,6 +1,7 @@
 """Loop 3 self-improvement: diagnose run outcomes and regenerate targeted items."""
 from __future__ import annotations
 
+import difflib
 import json
 import uuid
 from collections import Counter, defaultdict
@@ -25,10 +26,14 @@ from .types import (
 )
 
 _SYSTEM = """\
-你是 EvaluationClaw 的 Loop 3 改进器。你会看到评测 spec、QC 问题、模型结果摘要。
-请提出少量有针对性的改进行动，不要泛泛而谈。
+You are the EvaluationClaw Loop 3 improver. You will see the eval spec, QC
+issues, and model result summaries. Propose a small number of targeted
+improvement actions. Do not give generic advice.
 
-只返回纯 JSON：
+Use English for reasons, guidance, and notes unless you must quote non-English
+benchmark content.
+
+Return pure JSON only:
 {
   "actions": [
     {
@@ -42,15 +47,19 @@ _SYSTEM = """\
   "notes": "..."
 }
 
-action_type 可选：
-- regenerate_item: 题目本身有问题或评分不稳定，重写同维度题目
-- expand_weak_dimension: 某维度模型低分，补充更细粒度题
-- keep: 无需改动
+Allowed action_type values:
+- regenerate_item: the item itself is flawed or scoring is unstable; rewrite an
+  item in the same dimension.
+- expand_weak_dimension: the model scored poorly in a dimension; add more
+  fine-grained targeted items.
+- keep: no change is needed.
 
-scale_budget 会影响改进深度：
-- low: 只修阻塞问题，少量动作，避免扩张。
-- mid: 修明显弱项，补关键边界题。
-- high: 深挖模型弱项；优先选择能确认失败边界、区分偶然失误和系统弱点的动作，允许更细粒度扩展。
+scale_budget controls improvement depth:
+- low: repair only blocking issues and use few actions; avoid expansion.
+- mid: fix clear weak points and add key boundary items.
+- high: dig into model weak points; prefer actions that confirm failure
+  boundaries and distinguish random mistakes from systematic weaknesses. More
+  fine-grained expansion is allowed.
 """
 
 
@@ -270,6 +279,12 @@ def _replace_or_expand_items(
     generated_by_dimension: defaultdict[str, int] = defaultdict(int)
     per_dimension_limit = _loop3_per_dimension_limit(config)
 
+    def is_duplicate(candidate: BenchmarkItem) -> bool:
+        return any(
+            difflib.SequenceMatcher(None, candidate.prompt.lower(), existing.prompt.lower()).ratio() >= 0.92
+            for existing in new_items
+        )
+
     for action in actions:
         if not action.dimension_id or action.dimension_id not in by_dimension:
             if log:
@@ -286,13 +301,23 @@ def _replace_or_expand_items(
         dimension = by_dimension[action.dimension_id]
         if log:
             log(f"  [Loop 3] Generating 1 improved item for {dimension.id} ({action.action_type})...")
-        items, _, _ = generate_dimension_items(dataset.spec, dimension, 1, config)
-        for item in items:
-            item.id = f"{dimension.id}_loop3_{uuid.uuid4().hex[:8]}"
-            item.metadata["loop3_reason"] = action.reason
-            item.metadata["loop3_guidance"] = action.guidance
-        new_items.extend(items)
-        generated_by_dimension[action.dimension_id] += len(items)
+        accepted: list[BenchmarkItem] = []
+        for _ in range(3):
+            items, _, _ = generate_dimension_items(dataset.spec, dimension, 1, config)
+            for item in items:
+                if is_duplicate(item):
+                    if log:
+                        log(f"  [Loop 3] Discarding duplicate generated item for {dimension.id}.")
+                    continue
+                item.id = f"{dimension.id}_loop3_{uuid.uuid4().hex[:8]}"
+                item.metadata["loop3_reason"] = action.reason
+                item.metadata["loop3_guidance"] = action.guidance
+                accepted.append(item)
+                break
+            if accepted:
+                break
+        new_items.extend(accepted)
+        generated_by_dimension[action.dimension_id] += len(accepted)
 
     return BenchmarkDataset(
         spec=dataset.spec,

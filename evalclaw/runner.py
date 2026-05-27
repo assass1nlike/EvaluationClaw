@@ -52,15 +52,138 @@ def _score_yes_no(response: str, answer: str | None) -> float:
     return 0.0
 
 
-def _score_choice(response: str, answer: str | None) -> float:
+def _parse_choice_options(choices: list[str]) -> dict[str, str]:
+    parsed: dict[str, str] = {}
+    for index, choice in enumerate(choices):
+        fallback_label = chr(ord("A") + index)
+        text = str(choice).strip()
+        match = re.match(r"^\s*([A-Z])\s*[\).:：]\s*(.+?)\s*$", text, flags=re.IGNORECASE)
+        if match:
+            parsed[match.group(1).upper()] = match.group(2).strip()
+        else:
+            parsed[fallback_label] = text
+    return parsed
+
+
+def _boxed_contents(text: str) -> list[str]:
+    contents: list[str] = []
+    marker = r"\boxed"
+    start = 0
+    while True:
+        marker_index = text.find(marker, start)
+        if marker_index < 0:
+            break
+        brace_index = text.find("{", marker_index + len(marker))
+        if brace_index < 0:
+            break
+        depth = 0
+        for index in range(brace_index, len(text)):
+            char = text[index]
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    contents.append(text[brace_index + 1 : index].strip())
+                    start = index + 1
+                    break
+        else:
+            break
+    return contents
+
+
+def _normalize_choice_text(text: str) -> str:
+    normalized = text.strip()
+    boxed = _boxed_contents(normalized)
+    if len(boxed) == 1 and normalized.startswith(r"\boxed"):
+        normalized = boxed[0]
+    else:
+        for content in boxed:
+            normalized = normalized.replace(r"\boxed{" + content + "}", f" {content} ")
+    normalized = re.sub(r"\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}", r"\1/\2", normalized)
+    normalized = re.sub(r"\\sqrt\s*\[([^]]+)\]\s*\{([^{}]+)\}", r"root\1(\2)", normalized)
+    normalized = re.sub(r"\\sqrt\s*\{([^{}]+)\}", r"sqrt(\1)", normalized)
+    normalized = re.sub(r"\\text\s*\{([^{}]+)\}", r"\1", normalized)
+    normalized = re.sub(r"\\left|\\right|\\[()[\\]{}$]", " ", normalized)
+    normalized = normalized.replace("√", "sqrt")
+    normalized = re.sub(r"\\+", "", normalized)
+    normalized = normalized.replace("*", "")
+    normalized = normalized.replace(",", "")
+    normalized = re.sub(r"\s+", " ", normalized)
+    normalized = normalized.strip(" .,:;，。；：")
+    if normalized.startswith("(") and normalized.endswith(")"):
+        normalized = normalized[1:-1].strip()
+    return normalized.lower()
+
+
+def _choice_answer_candidates(response: str) -> list[str]:
+    candidates: list[str] = []
+    boxed = _boxed_contents(response)
+    candidates.extend(boxed)
+    if len(boxed) > 1:
+        candidates.append(" ".join(boxed))
+    for pattern in (
+        r"(?:final\s+answer|answer|option|choice|答案|选项)\s*(?:is|为|是)?\s*[:=：]?\s*([A-Z]|\$?[-+]?[\d,]+(?:\.\d+)?%?|\\?[A-Za-z0-9_{}^./%+-]+)",
+        r"\*\*\s*([A-Z])\s*[\).:：]",
+        r"所以\s*(?:答案|结果)?\s*(?:是|为|=|:|：)?\s*([A-Z]|[-+]?\d+(?:\.\d+)?)",
+    ):
+        candidates.extend(match.group(1) for match in re.finditer(pattern, response, flags=re.IGNORECASE))
+    nonempty_lines = [line.strip() for line in response.splitlines() if line.strip()]
+    if nonempty_lines:
+        candidates.append(nonempty_lines[-1])
+    candidates.append(response)
+    return candidates
+
+
+def _choice_answer_letter(answer: str, choices: list[str] | None) -> tuple[str | None, str | None]:
+    stripped = (answer or "").strip()
+    options = _parse_choice_options(choices or [])
+    if not stripped:
+        return None, None
+    if len(stripped) == 1 and "A" <= stripped.upper() <= "Z":
+        letter = stripped.upper()
+        return letter, options.get(letter)
+    match = re.match(r"^\s*([A-Z])\s*[\).:：]\s*(.+?)\s*$", stripped, flags=re.IGNORECASE)
+    if match:
+        letter = match.group(1).upper()
+        return letter, options.get(letter) or match.group(2).strip()
+    normalized_answer = _normalize_choice_text(stripped)
+    for letter, text in options.items():
+        if normalized_answer == _normalize_choice_text(text) or normalized_answer == _normalize_choice_text(
+            f"{letter}. {text}"
+        ):
+            return letter, text
+    return None, None
+
+
+def _score_choice(response: str, answer: str | None, choices: list[str] | None = None) -> float:
     if not answer:
         return 0.0
-    letter = answer.strip().upper()[0]
-    pattern = re.compile(
-        rf"\b{letter}\b|\({letter}\)|answer\s*[:：]\s*{letter}|答案\s*[是为：:]\s*{letter}",
-        flags=re.IGNORECASE,
-    )
-    return 1.0 if pattern.search(response) else 0.0
+    letter, expected_text = _choice_answer_letter(answer, choices)
+    if not letter:
+        return 0.0
+
+    if not expected_text:
+        return 0.0
+    expected = _normalize_choice_text(expected_text)
+    if not expected:
+        return 0.0
+    expected_numbers = re.findall(r"[-+]?\d+(?:\.\d+)?", expected)
+    for candidate in _choice_answer_candidates(response):
+        normalized = _normalize_choice_text(candidate)
+        if normalized == letter.lower() or normalized == expected:
+            return 1.0
+        candidate_numbers = re.findall(r"[-+]?\d+(?:\.\d+)?", normalized)
+        if len(expected_numbers) >= 2 and all(number in candidate_numbers for number in expected_numbers):
+            return 1.0
+    return 0.0
+
+
+def _is_judge_failure(reasoning: str | None) -> bool:
+    if not reasoning:
+        return False
+    lowered = reasoning.lower()
+    return "judge returned invalid json" in lowered or "no orchestrator configured for llm judge" in lowered
 
 
 def _score_short_answer(response: str, answer: str | None) -> float:
@@ -73,6 +196,19 @@ def _score_short_answer(response: str, answer: str | None) -> float:
     if expected and expected in got:
         return 0.8
     return 0.0
+
+
+def _target_prompt(item: BenchmarkItem) -> str:
+    if item.task_type != TaskType.multiple_choice or not item.choices:
+        return item.prompt
+    choices_text = "\n".join(str(choice).strip() for choice in item.choices if str(choice).strip())
+    if not choices_text:
+        return item.prompt
+    return (
+        f"{item.prompt.rstrip()}\n\n"
+        f"Choices:\n{choices_text}\n\n"
+        "Answer with the best option. You may include brief reasoning, but make the final answer clear."
+    )
 
 
 def _call_judge_json(prompt: dict, config: BenchmarkConfig) -> dict | None:
@@ -214,6 +350,16 @@ def _parse_agent_action(response: str) -> tuple[dict[str, Any] | None, str | Non
         if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict):
             parsed = parsed[0]
         if isinstance(parsed, dict):
+            if "action" not in parsed and "tool" not in parsed:
+                if "path" in parsed and "content" in parsed:
+                    return {
+                        "action": "write_file",
+                        "args": {"path": parsed.get("path"), "content": parsed.get("content")},
+                    }, None
+                if "path" in parsed:
+                    return {"action": "read_file", "args": {"path": parsed.get("path")}}, None
+                if "answer" in parsed:
+                    return {"action": "final", "args": {"answer": parsed.get("answer")}}, None
             if "action" not in parsed and "tool" in parsed:
                 parsed["action"] = parsed["tool"]
             if "args" not in parsed:
@@ -336,6 +482,7 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 raw_response=raw,
                 score=score,
                 judge_reasoning=reasoning,
+                error=reasoning if _is_judge_failure(reasoning) else None,
                 latency_ms=latency_ms,
             )
         if item.task_type == TaskType.agent_interaction:
@@ -349,13 +496,13 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 judge_reasoning=reasoning,
                 latency_ms=latency_ms,
             )
-        response = call_target_model(item.prompt, target, backend=config.llm_backend)
+        response = call_target_model(_target_prompt(item), target, backend=config.llm_backend)
         latency_ms = round((time.monotonic() - start) * 1000)
         if item.task_type == TaskType.yes_no:
             score = _score_yes_no(response, item.answer)
             return ItemResult(item_id=item.id, target_id=target.id, raw_response=response, score=score, latency_ms=latency_ms)
         if item.task_type == TaskType.multiple_choice:
-            score = _score_choice(response, item.answer)
+            score = _score_choice(response, item.answer, item.choices)
             return ItemResult(item_id=item.id, target_id=target.id, raw_response=response, score=score, latency_ms=latency_ms)
         if item.task_type == TaskType.short_answer and item.answer:
             score = _score_short_answer(response, item.answer)
@@ -377,6 +524,7 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
             raw_response=response,
             score=score,
             judge_reasoning=reasoning,
+            error=reasoning if _is_judge_failure(reasoning) else None,
             latency_ms=latency_ms,
         )
     except Exception as exc:
@@ -397,12 +545,13 @@ def _summarize(
     for target in config.targets:
         target_results = results_by_target.get(target.id, [])
         total = len(target_results)
-        avg = sum(result.score for result in target_results) / total if total else 0.0
+        scored_results = [result for result in target_results if not result.error]
+        avg = sum(result.score for result in scored_results) / len(scored_results) if scored_results else 0.0
         by_dimension: dict[str, float] = {}
         for dimension in dataset.spec.dimensions:
             dim_results = [
                 result
-                for result in target_results
+                for result in scored_results
                 if item_by_id.get(result.item_id)
                 and item_by_id[result.item_id].dimension_id == dimension.id
             ]
@@ -412,7 +561,7 @@ def _summarize(
         for task_type in TaskType:
             type_results = [
                 result
-                for result in target_results
+                for result in scored_results
                 if item_by_id.get(result.item_id)
                 and item_by_id[result.item_id].task_type == task_type
             ]

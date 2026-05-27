@@ -9,9 +9,10 @@ from .artifacts import write_artifact_manifest, write_lm_eval_artifacts
 from .generator import generate_dataset_with_progress
 from .improver import run_loop3_improvement
 from .lm_eval_runner import run_lm_eval
-from .planner import plan_eval_spec
+from .planner import plan_eval_spec, translate_goal_to_english
 from .qc import run_qc_gate
-from .reporter import build_report
+from .report_viewer import build_report_viewer_html
+from .reporter import artifact_index_markdown, build_report
 from .runner import run_eval
 from .types import BenchmarkConfig, BenchmarkPackage, EvalSpec
 
@@ -22,17 +23,30 @@ def _persist_package(pkg: BenchmarkPackage, output_dir: str, log: Callable[[str]
     stem = pkg.created_at.replace(":", "").replace("+", "_").replace(".", "_")
     json_path = out_dir / f"evalclaw_{stem}.json"
     md_path = out_dir / f"evalclaw_{stem}.md"
+    html_path = out_dir / f"evalclaw_{stem}.html"
+    artifacts = write_lm_eval_artifacts(pkg.dataset, out_dir)
+    manifest_path = out_dir / "manifest.json"
+    artifact_section = artifact_index_markdown(
+        package_path=json_path,
+        report_path=md_path,
+        frontend_report_path=html_path,
+        manifest_path=manifest_path,
+        lm_eval_paths=artifacts,
+    )
+    pkg.report.markdown = pkg.report.markdown.rstrip() + "\n\n" + artifact_section
     json_path.write_text(json.dumps(pkg.model_dump(mode="json"), ensure_ascii=False, indent=2), encoding="utf-8")
     md_path.write_text(pkg.report.markdown, encoding="utf-8")
-    artifacts = write_lm_eval_artifacts(pkg.dataset, out_dir)
+    html_path.write_text(build_report_viewer_html(pkg), encoding="utf-8")
     manifest_path = write_artifact_manifest(
         out_dir,
         package_path=json_path,
         report_path=md_path,
+        frontend_report_path=html_path,
         lm_eval_paths=artifacts,
     )
     log(f"Saved package: {json_path}")
     log(f"Saved report: {md_path}")
+    log(f"Saved browser report: {html_path}")
     log(f"Saved lm-eval JSONL: {artifacts['jsonl']}")
     log(f"Saved lm-eval YAML: {artifacts['yaml']}")
     log(f"Saved manifest: {manifest_path}")
@@ -48,6 +62,12 @@ def run_pipeline(
     interactive: bool = True,
 ) -> BenchmarkPackage:
     """Run Planner -> Generator -> QC Gate -> Runner -> Reporter."""
+    original_goal = goal
+    goal = translate_goal_to_english(goal, config)
+    if goal != original_goal:
+        log("\n[Input] Translated non-English evaluation goal to English before planning.")
+        log(f"  English goal: {goal}")
+
     log("\n[Planner] Building eval_spec with self-critique...")
     spec: EvalSpec = plan_eval_spec(goal, config)
     log(f"  Objective: {spec.objective}")
