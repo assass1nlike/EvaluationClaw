@@ -108,25 +108,26 @@ def write_artifact_manifest(
     *,
     package_path: Path,
     report_path: Path,
+    frontend_report_path: Path | None = None,
     lm_eval_paths: dict[str, Path],
 ) -> Path:
     """Write a stable machine-readable index of generated artifacts."""
+    payload = {
+        "package": str(package_path),
+        "report": str(report_path),
+        "lm_eval": {key: str(value) for key, value in lm_eval_paths.items()},
+        "notes": [
+            "package is the canonical EvaluationClaw JSON payload.",
+            "report is a human-readable Markdown summary.",
+            "frontend_report is a self-contained browser report when present.",
+            "lm_eval artifacts are interoperability exports and may require custom judging for open-generation tasks.",
+        ],
+    }
+    if frontend_report_path is not None:
+        payload["frontend_report"] = str(frontend_report_path)
     manifest_path = out_dir / "manifest.json"
     manifest_path.write_text(
-        json.dumps(
-            {
-                "package": str(package_path),
-                "report": str(report_path),
-                "lm_eval": {key: str(value) for key, value in lm_eval_paths.items()},
-                "notes": [
-                    "package is the canonical EvaluationClaw JSON payload.",
-                    "report is a human-readable Markdown summary.",
-                    "lm_eval artifacts are interoperability exports and may require custom judging for open-generation tasks.",
-                ],
-            },
-            ensure_ascii=False,
-            indent=2,
-        ),
+        json.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
     return manifest_path

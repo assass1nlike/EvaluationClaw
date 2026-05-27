@@ -26,29 +26,29 @@ def main() -> None:
 
     dim = TestDimension(
         id="abstract_algebra_hard",
-        name="抽象代数难题",
-        description="考察群、环、域、模等抽象代数结构中的非平凡定理与推论",
-        approach="出具有一定深度的证明题、判断题和计算题，覆盖群论、环论、域论核心难点",
+        name="Hard abstract algebra",
+        description="Evaluate non-trivial theorems and consequences in groups, rings, fields, and modules.",
+        approach="Generate deep proof, judgment, and calculation tasks covering core difficult points in group theory, ring theory, and field theory.",
         needs_research=True,
     )
 
-    print("=== 正在搜索参考资料并生成题目 ===\n")
+    print("=== Searching references and generating items ===\n")
     questions = generate_questions(dim, count=3, config=config)
 
     for i, q in enumerate(questions, 1):
-        print(f"--- 题目 {i} [{q.task_type.value} / {q.difficulty.value}] ---")
-        print(f"题干: {q.prompt}")
+        print(f"--- Item {i} [{q.task_type.value} / {q.difficulty.value}] ---")
+        print(f"Prompt: {q.prompt}")
         if q.choices:
             for c in q.choices:
                 print(f"  {c}")
         if q.answer:
-            print(f"正确答案: {q.answer}")
+            print(f"Answer: {q.answer}")
         if q.rubric:
-            print(f"评分标准: {q.rubric[:200]}{'...' if len(q.rubric) > 200 else ''}")
+            print(f"Rubric: {q.rubric[:200]}{'...' if len(q.rubric) > 200 else ''}")
         if q.test_code:
-            print(f"测试代码: {q.test_code[:200]}")
+            print(f"Test code: {q.test_code[:200]}")
         if q.source.uri:
-            print(f"来源: {q.source.uri}")
+            print(f"Source: {q.source.uri}")
         print()
 
 
