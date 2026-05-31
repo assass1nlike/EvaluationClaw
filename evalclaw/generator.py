@@ -7,9 +7,21 @@ import uuid
 from itertools import cycle
 from typing import Callable
 
-from .llm import call_llm, extract_json
+from .generation.fallback import (
+    attach_multimodal_metadata_if_needed,
+    fallback_items,
+    has_programmatic_multimodal_fallback,
+)
 from .hf_discovery import discover_hf_datasets
 from .hf_ingest import import_hf_dataset_items
+from .llm import call_llm, extract_json
+from .prompts.generator import GENERATOR_MULTIMODAL_PROMPT, GENERATOR_SYSTEM_PROMPT
+from .protocols.multimodal import (
+    MULTIMODAL_GENERATION_GUIDANCE,
+    MULTIMODAL_SCHEMA,
+    text_requests_multimodal,
+)
+from .protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
 from .search import fetch_url_text, format_search_result, web_search
 from .types import (
     BenchmarkConfig,
@@ -24,53 +36,6 @@ from .types import (
     TaskType,
 )
 
-_SYSTEM = """\
-You are the EvaluationClaw Generator. Generate high-quality benchmark items from
-the eval_spec and one dimension.
-
-Use English for prompts, rubrics, answers, follow-up turns, tags, and generation
-notes unless the eval_spec explicitly evaluates non-English language ability.
-
-Return pure JSON only, with no markdown. Format:
-{
-  "generation_notes": "...",
-  "items": [
-    {
-      "task_type": "multiple_choice",
-      "prompt": "...",
-      "choices": ["A. ...", "B. ...", "C. ...", "D. ..."],
-      "answer": "A",
-      "rubric": "Scoring rubric; open-generation rubrics must define concrete 1-5 score levels.",
-      "test_code": null,
-      "difficulty": "L3",
-      "tags": ["..."],
-      "source_uri": "...",
-      "source_title": "..."
-    }
-  ]
-}
-
-Requirements:
-- Each item must be independently executable and must not depend on other items.
-- If the task is not testing background knowledge itself, the prompt must provide
-  all necessary context.
-- multiple_choice must be single-answer, include at least 4 choices, and use a
-  choice letter as answer.
-- yes_no answer must be yes or no.
-- open_generation must include a rubric.
-- short_answer must include either an answer or a rubric.
-- code_execution must include test_code and use {model_output} as the placeholder
-  for the model output.
-- multi_turn rubrics must explain follow-up direction and full-dialogue scoring.
-- multi_turn may provide metadata.turns, e.g. {"turns": ["follow-up 1", "follow-up 2"]};
-  otherwise the runner will ask the judge model to generate follow-ups from the rubric.
-- agent_interaction is for action/observation loops in simulated environments;
-  metadata may provide agent_env.
-  - workspace tests navigation, organization, and multi-step state tracking.
-  - code_sandbox tests iterative coding: write code, run tests, read failures,
-    and revise.
-"""
-
 
 def _safe_task_type(value: object, fallback: TaskType) -> TaskType:
     aliases = {
@@ -81,6 +46,9 @@ def _safe_task_type(value: object, fallback: TaskType) -> TaskType:
         "qa": TaskType.short_answer,
         "agent": TaskType.agent_interaction,
         "agent_interactive": TaskType.agent_interaction,
+        "pairwise": TaskType.pairwise_preference,
+        "preference": TaskType.pairwise_preference,
+        "arena": TaskType.pairwise_preference,
     }
     text = str(value)
     if text in aliases:
@@ -135,6 +103,20 @@ def _difficulty_cycle(dimension: EvalDimension) -> cycle[Difficulty]:
     return cycle(expanded or [dimension.target_difficulty])
 
 
+def target_count_for_dimension(dimension: EvalDimension, config: BenchmarkConfig) -> int:
+    return max(1, int(dimension.target_item_count or config.questions_per_dimension))
+
+
+def _source_backed_target_for_dimension(
+    dimension: EvalDimension,
+    count: int,
+    config: BenchmarkConfig,
+) -> int:
+    if dimension.target_source_backed_count > 0:
+        return min(count, dimension.target_source_backed_count)
+    return min(count, max(0, config.max_hf_records_per_dimension))
+
+
 def _select_research_sources(
     dimension: EvalDimension,
     config: BenchmarkConfig,
@@ -173,6 +155,46 @@ def _select_research_sources(
     return sources
 
 
+def _research_tokens(dimension: EvalDimension) -> set[str]:
+    text = " ".join([dimension.name, dimension.description, *dimension.research_queries]).lower()
+    return {
+        token
+        for token in re.findall(r"[a-z0-9_]{4,}", text)
+        if token
+        not in {
+            "evaluate",
+            "evaluation",
+            "model",
+            "models",
+            "ability",
+            "capability",
+            "tasks",
+            "benchmark",
+        }
+    }
+
+
+def _find_shared_research_sources(
+    dimension: EvalDimension,
+    config: BenchmarkConfig,
+    research_cache: list[tuple[set[str], list[BenchmarkSource]]],
+) -> list[BenchmarkSource] | None:
+    if not (config.use_hf_discovery or config.use_web_research):
+        return None
+    if not (dimension.needs_research or config.max_hf_records_per_dimension > 0):
+        return None
+    tokens = _research_tokens(dimension)
+    for cached_tokens, cached_sources in research_cache:
+        if not tokens or not cached_tokens:
+            continue
+        overlap = len(tokens & cached_tokens) / max(1, min(len(tokens), len(cached_tokens)))
+        if overlap >= 0.5:
+            return cached_sources
+    sources = _select_research_sources(dimension, config)
+    research_cache.append((tokens, sources))
+    return sources
+
+
 def _source_context(sources: list[BenchmarkSource]) -> str:
     if not sources:
         return "No external sources. Generate from the spec and clearly label source as self_generated."
@@ -190,31 +212,49 @@ def _source_context(sources: list[BenchmarkSource]) -> str:
 def _generation_scale_guidance(spec: EvalSpec) -> str:
     guidance = {
         "low": (
-            "LOW budget: generate lean, high-signal items. Prefer essential coverage over breadth; "
-            "avoid over-elaborate prompts unless required by the task type."
+            "LOW budget: generate lean, high-signal items. Treat the budget as a rough anchor for a small run, "
+            "not a hard quota. Prefer essential coverage over breadth; a few simple items can be enough, but a "
+            "single multi_turn, agent_interaction, or code_sandbox item may already carry more workload than "
+            "several simple items."
         ),
         "mid": (
-            "MID budget: generate balanced items covering the main dimension and important edge cases."
+            "MID budget: generate balanced items covering the main dimension and important edge cases. Adjust "
+            "the simple-versus-interactive mix to the objective instead of forcing the same count across task types."
         ),
         "high": (
             "HIGH budget: generate deeper items with richer rubrics, stronger edge cases, and more careful "
-            "source/agent/test metadata when the dimension supports it."
+            "source/agent/test metadata when the dimension supports it. Use a heavier interactive item mix when "
+            "the task naturally requires it, but keep the overall breadth/depth aligned to the objective rather "
+            "than to a fixed item count."
         ),
     }
     return guidance.get(spec.scale_budget.value, guidance["mid"])
 
 
+def _dimension_requests_multimodal(dimension: EvalDimension) -> bool:
+    text = " ".join([dimension.name, dimension.description, dimension.approach, *dimension.item_requirements])
+    return text_requests_multimodal(text)
+
+
 def _parse_items(
-    data: dict,
+    data: dict | list,
     *,
     spec: EvalSpec,
     dimension: EvalDimension,
     requested_count: int,
 ) -> tuple[list[BenchmarkItem], str]:
-    raw_items = data.get("items", [])
+    generation_notes = ""
+    if isinstance(data, list):
+        raw_items = data
+    elif isinstance(data, dict):
+        raw_items = data.get("items", [])
+        generation_notes = str(data.get("generation_notes", ""))
+    else:
+        raw_items = []
     if not isinstance(raw_items, list):
         raw_items = []
-    task_fallback = spec.task_types[0] if spec.task_types else TaskType.open_generation
+    task_plan = dimension.task_types or spec.task_types
+    task_fallback = task_plan[0] if task_plan else TaskType.open_generation
     difficulties = _difficulty_cycle(dimension)
     items: list[BenchmarkItem] = []
     for raw in raw_items:
@@ -229,138 +269,40 @@ def _parse_items(
             choices = [f"{key}. {value}" for key, value in choices.items()]
         if not isinstance(choices, list):
             choices = []
+        metadata = raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {}
+        rubric = raw.get("rubric")
+        if rubric is None and metadata.get("judge_rubric") is not None:
+            judge_rubric = metadata["judge_rubric"]
+            rubric = (
+                judge_rubric
+                if isinstance(judge_rubric, str)
+                else json.dumps(judge_rubric, ensure_ascii=False)
+            )
+        task_agent = metadata.get("task_agent")
+        if "agent_env" not in metadata and isinstance(task_agent, dict):
+            execution = task_agent.get("execution")
+            agent_env = execution.get("agent_env") if isinstance(execution, dict) else None
+            if isinstance(agent_env, dict):
+                metadata["agent_env"] = agent_env
+        task_type = _safe_task_type(raw.get("task_type"), task_fallback)
+        if task_plan and task_type not in task_plan:
+            task_type = task_fallback
         item = BenchmarkItem(
             id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
             dimension_id=dimension.id,
-            task_type=_safe_task_type(raw.get("task_type"), task_fallback),
+            task_type=task_type,
             prompt=prompt,
             choices=[str(choice) for choice in choices],
             answer=str(raw["answer"]) if raw.get("answer") is not None else None,
-            rubric=str(raw["rubric"]) if raw.get("rubric") is not None else None,
+            rubric=str(rubric) if rubric is not None else None,
             test_code=str(raw["test_code"]) if raw.get("test_code") is not None else None,
             difficulty=_safe_difficulty(raw.get("difficulty"), next(difficulties)),
             source=source,
             tags=[str(tag) for tag in raw.get("tags", []) if tag],
-            metadata=raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {},
+            metadata=metadata,
         )
-        items.append(item)
-    return items[:requested_count], str(data.get("generation_notes", ""))
-
-
-def _fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list[BenchmarkItem]:
-    tasks = cycle(spec.task_types or [TaskType.open_generation])
-    difficulties = _difficulty_cycle(dimension)
-    items: list[BenchmarkItem] = []
-    for idx in range(count):
-        task_type = next(tasks)
-        difficulty = next(difficulties)
-        base = (
-            f"Evaluation objective: {spec.objective}\n"
-            f"Dimension: {dimension.name}\n"
-            f"Task: {dimension.approach or dimension.description}\n"
-            f"Difficulty: {difficulty.value}\n"
-        )
-        if task_type == TaskType.multiple_choice:
-            item = BenchmarkItem(
-                id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
-                dimension_id=dimension.id,
-                task_type=task_type,
-                prompt=base + "Choose the best answer. This is a placeholder item for generator smoke tests.",
-                choices=[
-                    "A. The response fully satisfies the dimension",
-                    "B. The response partially satisfies the dimension",
-                    "C. The response avoids the requested behavior",
-                    "D. The response is irrelevant",
-                ],
-                answer="A",
-                difficulty=difficulty,
-            )
-        elif task_type == TaskType.agent_interaction:
-            agent_text = f"{spec.objective} {dimension.name} {dimension.description} {dimension.approach}".lower()
-            if any(keyword in agent_text for keyword in ("code", "coding", "program", "debug", "python")):
-                item = BenchmarkItem(
-                    id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
-                    dimension_id=dimension.id,
-                    task_type=TaskType.agent_interaction,
-                    prompt=(
-                        base
-                        + "Use the code_sandbox tools to implement max_pair_sum(nums) in solution.py. "
-                        "Run tests, inspect failures, and revise until tests pass."
-                    ),
-                    rubric=(
-                        "Deterministic environment score: 1.0 when the hidden Python tests pass, "
-                        "0.25 after at least one failing test run, 0.0 if tests are never run."
-                    ),
-                    difficulty=difficulty,
-                    metadata={
-                        "agent_env": {
-                            "type": "code_sandbox",
-                            "visible_files": {
-                                "solution.py": "def max_pair_sum(nums):\n    pass\n"
-                            },
-                            "hidden_files": {
-                                "tests.py": (
-                                    "from solution import max_pair_sum\n\n"
-                                    "assert max_pair_sum([1, 2, 3, 4]) == 7\n"
-                                    "assert max_pair_sum([-5, -2, -3]) == -5\n"
-                                    "assert max_pair_sum([10, 10, 1]) == 20\n"
-                                )
-                            },
-                            "test_command": "python3 tests.py",
-                            "max_steps": 8,
-                        }
-                    },
-                )
-                items.append(item)
-                continue
-            item = BenchmarkItem(
-                id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
-                dimension_id=dimension.id,
-                task_type=TaskType.agent_interaction,
-                prompt=(
-                    base
-                    + "Use the simulated workspace tools to place the blue_notebook and charged_tablet "
-                    "in the outgoing bin. Inspect items when needed and finish within the step limit."
-                ),
-                rubric=(
-                    "Deterministic environment score: 1.0 if all required items and no wrong items are "
-                    "placed in the outgoing bin, partial credit for required items placed, penalties for invalid actions."
-                ),
-                difficulty=difficulty,
-                metadata={
-                    "agent_env": {
-                        "type": "workspace",
-                        "start_room": "office",
-                        "rooms": {
-                            "office": ["blue_notebook", "red_notebook"],
-                            "lab": ["charged_tablet", "dead_tablet"],
-                            "mailroom": [],
-                        },
-                        "item_descriptions": {
-                            "blue_notebook": "A blue notebook labeled project plan.",
-                            "red_notebook": "A red notebook labeled old draft.",
-                            "charged_tablet": "A tablet showing 100% battery.",
-                            "dead_tablet": "A tablet with an empty battery icon.",
-                        },
-                        "goal": {"outgoing_bin": ["blue_notebook", "charged_tablet"]},
-                        "max_steps": 8,
-                    }
-                },
-            )
-        else:
-            item = BenchmarkItem(
-                id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
-                dimension_id=dimension.id,
-                task_type=TaskType.open_generation,
-                prompt=base + "Produce a concise answer that demonstrates the target capability.",
-                rubric=(
-                    "Score 5 for a complete, correct, well-calibrated answer; 3 for a partially "
-                    "correct answer with omissions; 1 for incorrect, evasive, or unsupported output."
-                ),
-                difficulty=difficulty,
-            )
-        items.append(item)
-    return items
+        items.append(attach_multimodal_metadata_if_needed(item, dimension, len(items)))
+    return items[:requested_count], generation_notes
 
 
 def generate_dimension_items(
@@ -368,40 +310,78 @@ def generate_dimension_items(
     dimension: EvalDimension,
     count: int,
     config: BenchmarkConfig,
+    *,
+    research_sources: list[BenchmarkSource] | None = None,
+    repair_guidance: list[str] | None = None,
+    avoid_prompts: list[str] | None = None,
 ) -> tuple[list[BenchmarkItem], list[BenchmarkSource], str]:
     """Generate benchmark items for one dimension."""
-    sources = _select_research_sources(dimension, config)
+    sources = research_sources if research_sources is not None else _select_research_sources(dimension, config)
+    source_backed_target = _source_backed_target_for_dimension(dimension, count, config)
     imported_items = import_hf_dataset_items(
         sources,
         dimension=dimension,
-        count=min(count, max(0, config.max_hf_records_per_dimension)),
+        count=source_backed_target,
     )
     remaining_count = max(0, count - len(imported_items))
     if remaining_count == 0:
         return imported_items[:count], sources, f"Imported {len(imported_items)} item(s) from HuggingFace datasets."
+    if not sources and has_programmatic_multimodal_fallback(dimension):
+        fallback = fallback_items(spec, dimension, remaining_count)
+        return imported_items + fallback, sources, "Programmatic multimodal fallback generation."
     if not config.orchestrator_api_key:
-        fallback_items = _fallback_items(spec, dimension, remaining_count)
-        return imported_items + fallback_items, sources, "Local fallback generation."
+        fallback = fallback_items(spec, dimension, remaining_count)
+        return imported_items + fallback, sources, "Local fallback generation."
 
     payload = {
         "spec": spec.model_dump(mode="json"),
         "dimension": dimension.model_dump(mode="json"),
         "requested_count": remaining_count,
+        "dimension_item_requirements": dimension.item_requirements,
+        "dimension_task_type_plan": [task_type.value for task_type in (dimension.task_types or spec.task_types)],
+        "reference_model": config.reference_model.model_dump(mode="json") if config.reference_model else None,
+        "dimension_source_allocation": {
+            "target_total": count,
+            "target_source_backed": source_backed_target,
+            "target_generated": dimension.target_generated_count or remaining_count,
+        },
+        "task_agent_schema": TASK_AGENT_SCHEMA,
+        "task_agent_generation_guidance": TASK_AGENT_GENERATION_GUIDANCE,
         "scale_budget_guidance": _generation_scale_guidance(spec),
         "research_context": _source_context(sources),
+        "repair_guidance": repair_guidance or [],
+        "avoid_prompts": (avoid_prompts or [])[:5],
     }
+    system_prompt = GENERATOR_SYSTEM_PROMPT
+    if _dimension_requests_multimodal(dimension):
+        payload["multimodal_schema"] = MULTIMODAL_SCHEMA
+        payload["multimodal_generation_guidance"] = MULTIMODAL_GENERATION_GUIDANCE
+        system_prompt += "\n\n" + GENERATOR_MULTIMODAL_PROMPT
     raw = call_llm(
         [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
-        system=_SYSTEM,
+        system=system_prompt,
         model=config.orchestrator_model,
         api_key=config.orchestrator_api_key,
         base_url=config.orchestrator_base_url,
         backend=config.llm_backend,
         max_tokens=8192,
     )
-    items, notes = _parse_items(extract_json(raw), spec=spec, dimension=dimension, requested_count=remaining_count)
+    try:
+        items, notes = _parse_items(
+            extract_json(raw),
+            spec=spec,
+            dimension=dimension,
+            requested_count=remaining_count,
+        )
+    except Exception as exc:
+        fallback = fallback_items(spec, dimension, remaining_count)
+        return (
+            imported_items + fallback,
+            sources,
+            f"LLM generation JSON parse failed; local fallback generation used: {exc}",
+        )
     if len(items) < remaining_count:
-        items.extend(_fallback_items(spec, dimension, remaining_count - len(items)))
+        items.extend(fallback_items(spec, dimension, remaining_count - len(items)))
     all_items = imported_items + items
     if imported_items:
         notes = f"Imported {len(imported_items)} HF item(s). {notes}".strip()
@@ -435,11 +415,19 @@ def generate_dataset_with_progress(
     all_items: list[BenchmarkItem] = []
     all_sources: list[BenchmarkSource] = []
     notes: list[str] = []
-    per_dimension = max(1, config.questions_per_dimension)
+    research_cache: list[tuple[set[str], list[BenchmarkSource]]] = []
     for index, dimension in enumerate(spec.dimensions, 1):
+        target_count = target_count_for_dimension(dimension, config)
         if log:
-            log(f"  [{index}/{len(spec.dimensions)}] {dimension.id}: generating {per_dimension} item(s)...")
-        items, sources, note = generate_dimension_items(spec, dimension, per_dimension, config)
+            log(f"  [{index}/{len(spec.dimensions)}] {dimension.id}: generating {target_count} item(s)...")
+        research_sources = _find_shared_research_sources(dimension, config, research_cache)
+        items, sources, note = generate_dimension_items(
+            spec,
+            dimension,
+            target_count,
+            config,
+            research_sources=research_sources,
+        )
         all_items.extend(items)
         all_sources.extend(sources)
         if log:
@@ -464,3 +452,4 @@ def generate_questions(dimension: EvalDimension, count: int, config: BenchmarkCo
     )
     items, _, _ = generate_dimension_items(spec, dimension, count, config)
     return items
+

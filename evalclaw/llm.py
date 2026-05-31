@@ -1,15 +1,14 @@
 """Evalclaw: LLM call utilities (Anthropic + OpenAI-compatible)."""
 from __future__ import annotations
 
-import json
 import os
-import re
 import time
-from typing import Optional
+from typing import Any, Optional
 
 import anthropic
 import httpx
 
+from .llm_json import extract_json
 from .types import Message, TargetModelConfig
 
 
@@ -178,9 +177,48 @@ def call_target_model(
     system_prompt: Optional[str] = None,
     history: Optional[list[Message]] = None,
     backend: str = "auto",
+    user_content: Any | None = None,
 ) -> str:
     """Call the target model under evaluation."""
     history = history or []
+
+    if user_content is not None:
+        if target.provider == "anthropic":
+            client = _get_anthropic_client(target.api_key)
+            response = client.messages.create(
+                model=target.model,
+                max_tokens=4096,
+                system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
+                messages=[
+                    {"role": m.role, "content": m.content}
+                    for m in history
+                ]
+                + [{"role": "user", "content": user_content}],
+            )
+            for block in response.content:
+                if block.type == "text":
+                    return block.text
+            raise ValueError("No text content in LLM response")
+
+        base_url = target.base_url or "https://api.openai.com/v1"
+        api_key = (
+            target.api_key
+            or (os.environ.get("DEEPSEEK_API_KEY") if target.model.startswith("deepseek-") else None)
+            or (os.environ.get("GEMINI_API_KEY") if target.model.startswith("gemini") else None)
+            or os.environ.get("OPENAI_API_KEY", "")
+        )
+        messages: list[dict[str, Any]] = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        for m in history:
+            messages.append({"role": m.role, "content": m.content})
+        messages.append({"role": "user", "content": user_content})
+        data = _post_with_retry(
+            f"{base_url.rstrip('/')}/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            body={"model": target.model, "messages": messages, "max_tokens": 4096},
+        )
+        return data["choices"][0]["message"]["content"]
 
     if target.provider == "anthropic":
         msgs = [*history, Message(role="user", content=prompt)]
@@ -229,69 +267,3 @@ def call_target_model(
     return data["choices"][0]["message"]["content"]
 
 
-def _json_candidates(text: str) -> list[str]:
-    """Return likely JSON snippets from a model response."""
-    candidates: list[str] = []
-    stripped = text.strip()
-    if stripped:
-        candidates.append(stripped)
-
-    for match in re.finditer(r"```(?:json)?[ \t]*\n?", text):
-        after_open = text[match.end():]
-        fence_close = after_open.find("```")
-        if fence_close != -1:
-            block = after_open[:fence_close].strip()
-            if block:
-                candidates.append(block)
-
-    decoder = json.JSONDecoder()
-    for idx, char in enumerate(text):
-        if char not in "{[":
-            continue
-        try:
-            _, end = decoder.raw_decode(text[idx:])
-        except json.JSONDecodeError:
-            continue
-        candidates.append(text[idx : idx + end])
-
-    return candidates
-
-
-def _normalize_json_candidate(candidate: str) -> str:
-    candidate = candidate.strip()
-    candidate = re.sub(r':\s*\n\s*(")', r': \1', candidate)
-    candidate = re.sub(r",\s*([}\]])", r"\1", candidate)
-    return candidate
-
-
-def extract_json(text: str) -> dict:
-    """Extract the first JSON object from an LLM response.
-
-    Handles:
-    - Markdown code fences (```json ... ```)
-    - Leading/trailing prose around the JSON
-    - Trailing commas before } or ] (common Gemini quirk)
-    """
-    last_candidate = ""
-    for candidate in _json_candidates(text):
-        last_candidate = _normalize_json_candidate(candidate)
-        try:
-            parsed = json.loads(last_candidate)
-            if isinstance(parsed, (dict, list)):
-                return parsed  # type: ignore[return-value]
-        except json.JSONDecodeError:
-            continue
-
-    # Fall back to json-repair for malformed JSON when the optional package exists
-    # (e.g. unescaped quotes inside strings, a common model output issue).
-    try:
-        from json_repair import repair_json  # type: ignore[import-untyped]
-        repaired = repair_json(last_candidate or text, return_objects=True)
-        if isinstance(repaired, (dict, list)):
-            return repaired  # type: ignore[return-value]
-        raise ValueError(f"json_repair returned unexpected type: {type(repaired)}")
-    except Exception as exc:
-        raise ValueError(
-            f"JSON parse failed after repair attempt: {exc}\n"
-            f"Candidate (first 800 chars):\n{(last_candidate or text)[:800]}"
-        ) from exc

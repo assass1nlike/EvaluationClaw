@@ -7,6 +7,9 @@ import re
 from collections import Counter
 
 from .llm import call_llm, extract_json
+from .prompts.qc import QC_SYSTEM_PROMPT
+from .protocols.multimodal import MULTIMODAL_METADATA_KEY, MULTIMODAL_SCHEMA_VERSION
+from .protocols.task_agent import TASK_AGENT_METADATA_KEY, compact_task_agent_for_qc
 from .types import (
     BenchmarkConfig,
     BenchmarkDataset,
@@ -19,51 +22,6 @@ from .types import (
     SourceKind,
     TaskType,
 )
-
-_SYSTEM = """\
-You are the EvaluationClaw QC Gate. Review whether the benchmark is a good
-evaluation plan for the user's need.
-
-Use English in all issue messages and suggestions unless the issue must quote
-non-English benchmark content.
-
-Check individual item clarity, answer reliability, scoring criteria, and
-coverage. Also perform meta-evaluation:
-- Do the dimensions genuinely match the objective and user need?
-- Are the task types, source strategy, and scoring method appropriate?
-- Are there obvious omissions, content drift, shallow coverage, judge
-  overreliance, or bias introduced by difficulty/source choices?
-- If an existing benchmark/source is needed, did the dataset use appropriate,
-  hard, authoritative sources?
-
-For task_type=agent_interaction with metadata.agent_env.type=code_sandbox:
-- visible_files are available to the target through file tools.
-- hidden_files are intentionally not readable by the target but are available
-  to the EvaluationClaw execution environment through run_tests.
-- Do not mark the item unexecutable merely because hidden tests are hidden from
-  the target or summarized in metadata, as long as hidden file names/count and a
-  test_command are present.
-
-Return pure JSON only, with no markdown. Format:
-{
-  "issues": [
-    {
-      "item_id": "...",
-      "severity": "warning",
-      "category": "clarity",
-      "message": "...",
-      "suggested_action": "..."
-    }
-  ],
-  "summary": "..."
-}
-
-severity must be one of info/warning/error.
-category must be one of schema/duplicate/scoring/clarity/coverage/difficulty.
-Mark error only for issues that make an item unexecutable or make the answer
-clearly unreliable.
-"""
-
 
 DIFFICULTY_RANK = {"L1": 1, "L2": 2, "L3": 3, "L4": 4, "L5": 5}
 
@@ -199,16 +157,110 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
         issues.append(
             _issue(item.id, QcSeverity.error, QcCategory.scoring, "Yes/no item answer must be yes or no.")
         )
-    if item.task_type in {TaskType.open_generation, TaskType.multi_turn, TaskType.agent_interaction} and not item.rubric:
+    if (
+        item.task_type
+        in {TaskType.open_generation, TaskType.multi_turn, TaskType.agent_interaction, TaskType.pairwise_preference}
+        and not item.rubric
+    ):
         issues.append(
             _issue(
                 item.id,
                 QcSeverity.error,
                 QcCategory.scoring,
-                "Open, multi-turn, or agent item lacks a rubric.",
+                "Open, multi-turn, agent, or pairwise item lacks a rubric.",
                 "Add a concrete scoring rubric or deterministic environment scoring note.",
             )
         )
+    if item.task_type in {TaskType.multi_turn, TaskType.agent_interaction}:
+        task_agent = item.metadata.get(TASK_AGENT_METADATA_KEY)
+        if not isinstance(task_agent, dict):
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.warning,
+                    QcCategory.schema,
+                    "Complex interactive item does not include metadata.task_agent.",
+                    "Add metadata.task_agent with schema_version, system_prompt, initial_content, interaction, and scoring.",
+                )
+            )
+        else:
+            if task_agent.get("schema_version") != "evalclaw.task_agent.v1":
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.warning,
+                        QcCategory.schema,
+                        "metadata.task_agent schema_version is missing or not evalclaw.task_agent.v1.",
+                        "Set metadata.task_agent.schema_version to evalclaw.task_agent.v1.",
+                    )
+                )
+            if not str(task_agent.get("system_prompt") or "").strip():
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.warning,
+                        QcCategory.clarity,
+                        "metadata.task_agent lacks a system_prompt.",
+                        "Define the task-specific agent role and behavior in metadata.task_agent.system_prompt.",
+                    )
+                )
+            scoring = task_agent.get("scoring")
+            if not isinstance(scoring, dict) or not str(scoring.get("instructions") or scoring.get("method") or "").strip():
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.warning,
+                        QcCategory.scoring,
+                        "metadata.task_agent lacks clear scoring guidance.",
+                        "Add scoring.method plus scoring.instructions, levels, or pass_fail standards.",
+                )
+            )
+    multimodal = item.metadata.get(MULTIMODAL_METADATA_KEY)
+    if isinstance(multimodal, dict):
+        schema_version = str(multimodal.get("schema_version") or "")
+        if schema_version != MULTIMODAL_SCHEMA_VERSION:
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.warning,
+                    QcCategory.schema,
+                    "metadata.multimodal schema_version is missing or not evalclaw.multimodal.v1.",
+                    "Set metadata.multimodal.schema_version to evalclaw.multimodal.v1.",
+                )
+            )
+        modalities = multimodal.get("modalities")
+        if not isinstance(modalities, list) or not modalities:
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.warning,
+                    QcCategory.schema,
+                    "metadata.multimodal.modalities must be a non-empty list.",
+                    "List the modalities used by this item, such as image, audio, or video.",
+                )
+            )
+        assets = multimodal.get("assets")
+        if not isinstance(assets, list) or not assets:
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.schema,
+                    "metadata.multimodal.assets must be a non-empty list.",
+                    "Add at least one media asset with an id and source information.",
+                )
+            )
+        content = multimodal.get("content")
+        if content is not None and not isinstance(content, list):
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.schema,
+                    "metadata.multimodal.content must be a list when provided.",
+                    "Use ordered multimodal content blocks with text and asset references.",
+                )
+            )
     if item.rubric:
         rubric_lower = item.rubric.lower()
         contradiction_markers = ("actually", "careful", "extraneous", "undefined", "not in domain", "however")
@@ -387,9 +439,12 @@ def _compact_metadata_for_qc(metadata: dict) -> dict:
             if isinstance(value, dict):
                 env_summary[key] = value
         compact["agent_env"] = env_summary
+    task_agent = metadata.get(TASK_AGENT_METADATA_KEY)
+    if isinstance(task_agent, dict):
+        compact[TASK_AGENT_METADATA_KEY] = compact_task_agent_for_qc(task_agent)
 
     for key, value in metadata.items():
-        if key == "agent_env":
+        if key in {"agent_env", TASK_AGENT_METADATA_KEY}:
             continue
         if isinstance(value, (str, int, float, bool)) or value is None:
             compact[key] = value
@@ -468,7 +523,7 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
                     ),
                 )
             ],
-            system=_SYSTEM,
+            system=QC_SYSTEM_PROMPT,
             model=config.orchestrator_model,
             api_key=config.orchestrator_api_key,
             base_url=config.orchestrator_base_url,
@@ -518,6 +573,16 @@ def run_qc_gate(dataset: BenchmarkDataset, config: BenchmarkConfig) -> QcReport:
     issues: list[QcIssue] = []
     for item in dataset.items:
         issues.extend(_static_item_issues(item))
+        if item.task_type == TaskType.pairwise_preference and config.reference_model is None:
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.schema,
+                    "Pairwise preference item requires BenchmarkConfig.reference_model.",
+                    "Pass --reference-model or regenerate without pairwise_preference items.",
+                )
+            )
     issues.extend(_duplicate_issues(dataset.items))
     issues.extend(_coverage_issues(dataset))
     issues.extend(_llm_qc(dataset, config))

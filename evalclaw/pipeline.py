@@ -2,19 +2,29 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Callable, Optional
 
 from .artifacts import write_artifact_manifest, write_lm_eval_artifacts
-from .generator import generate_dataset_with_progress
 from .improver import run_loop3_improvement
 from .lm_eval_runner import run_lm_eval
 from .planner import plan_eval_spec, translate_goal_to_english
-from .qc import run_qc_gate
+from .planning_loop import (
+    apply_human_review_feedback,
+    format_human_review_overview,
+    generate_dataset_with_qc_loop,
+)
 from .report_viewer import build_report_viewer_html
 from .reporter import artifact_index_markdown, build_report
 from .runner import run_eval
 from .types import BenchmarkConfig, BenchmarkPackage, EvalSpec
+
+_SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]+")
+
+
+def _redact_secrets(text: str) -> str:
+    return _SECRET_PATTERN.sub("[REDACTED]", text)
 
 
 def _persist_package(pkg: BenchmarkPackage, output_dir: str, log: Callable[[str], None]) -> None:
@@ -34,9 +44,10 @@ def _persist_package(pkg: BenchmarkPackage, output_dir: str, log: Callable[[str]
         lm_eval_paths=artifacts,
     )
     pkg.report.markdown = pkg.report.markdown.rstrip() + "\n\n" + artifact_section
-    json_path.write_text(json.dumps(pkg.model_dump(mode="json"), ensure_ascii=False, indent=2), encoding="utf-8")
-    md_path.write_text(pkg.report.markdown, encoding="utf-8")
-    html_path.write_text(build_report_viewer_html(pkg), encoding="utf-8")
+    json_payload = json.dumps(pkg.model_dump(mode="json"), ensure_ascii=False, indent=2)
+    json_path.write_text(_redact_secrets(json_payload), encoding="utf-8")
+    md_path.write_text(_redact_secrets(pkg.report.markdown), encoding="utf-8")
+    html_path.write_text(_redact_secrets(build_report_viewer_html(pkg)), encoding="utf-8")
     manifest_path = write_artifact_manifest(
         out_dir,
         package_path=json_path,
@@ -81,15 +92,30 @@ def run_pipeline(
             spec = plan_eval_spec(goal, config, feedback=feedback, previous_spec=spec)
             log(f"  Revised dimensions: {len(spec.dimensions)}")
 
-    log("\n[Generator] Generating and synthesizing benchmark dataset...")
-    dataset = generate_dataset_with_progress(spec, config, log=log)
-    log(f"  Items generated: {len(dataset.items)}")
+    log("\n[Planner/Generator/QC] Building benchmark dataset with pre-run self-check...")
+    spec, dataset, qc_report = generate_dataset_with_qc_loop(spec, config, log=log)
+    log(f"  Final dimensions: {len(spec.dimensions)}")
+    log(f"  Final items: {len(dataset.items)}")
     log(f"  Sources used: {len(dataset.sources)}")
-
-    log("\n[QC Gate] Running static and LLM quality checks...")
-    qc_report = run_qc_gate(dataset, config)
     log(f"  {qc_report.summary}")
     log(f"  Quality score: {qc_report.quality_score * 100:.1f}%")
+
+    if config.human_review and ask_user is not None:
+        for round_index in range(1, 4):
+            overview = format_human_review_overview(dataset, qc_report, config)
+            feedback = ask_user(
+                f"\n[Human Review] Round {round_index}/3\n{overview}\n"
+                "\nPress Enter, 'ok', or 'approve' to continue to runner.\n"
+                "Otherwise, enter requested changes:"
+            ).strip()
+            if not feedback or feedback.lower() in {"ok", "okay", "approve", "approved", "y", "yes"}:
+                log("\n[Human Review] Approved by user.")
+                break
+            log("\n[Human Review] Applying user feedback...")
+            spec, dataset, qc_report = apply_human_review_feedback(dataset, qc_report, config, feedback, log=log)
+            log(f"  Revised dimensions: {len(spec.dimensions)}")
+            log(f"  Revised items: {len(dataset.items)}")
+            log(f"  Revised QC quality: {qc_report.quality_score * 100:.1f}%")
 
     if interactive and ask_user is not None and not qc_report.is_acceptable:
         answer = ask_user("\nQC has blocking issues. Continue to runner anyway? [y/N]: ").strip().lower()

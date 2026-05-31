@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -18,7 +19,7 @@ def run_python_sandbox(code: str, *, timeout: int = 10) -> tuple[int, str, str]:
         script = Path(tmp) / "run.py"
         script.write_text(code, encoding="utf-8")
         proc = subprocess.run(
-            ["python3", str(script)],
+            [sys.executable, str(script)],
             cwd=tmp,
             input="",
             capture_output=True,

@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+import sysconfig
 from pathlib import Path
 
 from .artifacts import write_lm_eval_artifacts
@@ -32,6 +33,28 @@ def _target_api_key(target: TargetModelConfig) -> str | None:
     return os.environ.get("OPENAI_API_KEY")
 
 
+def _lm_eval_executable_candidates() -> list[Path]:
+    scripts_dir = Path(sysconfig.get_path("scripts"))
+    executable_dir = Path(sys.executable).parent
+    names = ["lm_eval", "lm-eval", "lm_eval.exe", "lm-eval.exe"]
+    candidates: list[Path] = []
+    for directory in (scripts_dir, executable_dir):
+        for name in names:
+            candidate = directory / name
+            if candidate not in candidates:
+                candidates.append(candidate)
+    return candidates
+
+
+def _resolve_lm_eval_executable(executable: str | None = None) -> str | None:
+    if executable:
+        return executable
+    for candidate in _lm_eval_executable_candidates():
+        if candidate.exists():
+            return str(candidate)
+    return shutil.which("lm_eval") or shutil.which("lm-eval")
+
+
 def run_lm_eval(
     dataset: BenchmarkDataset,
     target: TargetModelConfig,
@@ -46,8 +69,7 @@ def run_lm_eval(
     EvaluationClaw's direct runner remains the source of truth for rubric-based
     LLM judging.
     """
-    env_exe = Path(sys.executable).with_name("lm_eval")
-    exe = executable or (str(env_exe) if env_exe.exists() else None) or shutil.which("lm_eval") or shutil.which("lm-eval")
+    exe = _resolve_lm_eval_executable(executable)
     if not exe:
         raise RuntimeError("lm-eval-harness executable not found. Install lm-eval in the active environment.")
 
