@@ -1,0 +1,87 @@
+from evalclaw.generator import generate_dimension_items
+from evalclaw.runner import run_question
+from evalclaw.types import (
+    BenchmarkConfig,
+    BenchmarkItem,
+    EvalDimension,
+    EvalSpec,
+    TargetModelConfig,
+    TaskType,
+)
+
+
+def test_fallback_generation_attaches_multimodal_metadata() -> None:
+    dimension = EvalDimension(
+        id="vision_reasoning",
+        name="Vision reasoning",
+        description="Evaluate image understanding and visual reasoning.",
+        approach="Use attached images and ask questions grounded in the visual evidence.",
+        task_types=[TaskType.open_generation],
+        target_item_count=1,
+    )
+    spec = EvalSpec(
+        objective="Evaluate multimodal image reasoning.",
+        dimensions=[dimension],
+        task_types=[TaskType.open_generation],
+    )
+    config = BenchmarkConfig(use_hf_discovery=False, use_web_research=False)
+
+    items, _, _ = generate_dimension_items(spec, dimension, 1, config)
+
+    multimodal = items[0].metadata["multimodal"]
+    assert multimodal["schema_version"] == "evalclaw.multimodal.v1"
+    assert multimodal["modalities"] == ["image"]
+    assert multimodal["assets"][0]["kind"] == "image"
+    assert multimodal["content"][0]["type"] == "text"
+    assert multimodal["content"][1]["type"] == "asset"
+
+
+def test_runner_sends_multimodal_content_to_target(monkeypatch) -> None:
+    item = BenchmarkItem(
+        id="vision_item",
+        dimension_id="vision_reasoning",
+        task_type=TaskType.short_answer,
+        prompt="Look at the image and answer yes or no.",
+        answer="yes",
+        metadata={
+            "multimodal": {
+                "schema_version": "evalclaw.multimodal.v1",
+                "modalities": ["image"],
+                "assets": [
+                    {
+                        "id": "image_1",
+                        "kind": "image",
+                        "uri": "data:image/svg+xml;base64,PHN2Zy8+",
+                        "mime_type": "image/svg+xml",
+                    }
+                ],
+                "content": [
+                    {"type": "text", "text": "Look at the image and answer yes or no."},
+                    {"type": "asset", "asset_id": "image_1", "detail": "high"},
+                ],
+                "scoring": {"method": "accuracy"},
+            }
+        },
+    )
+    config = BenchmarkConfig(
+        targets=[TargetModelConfig(provider="openai", model="gpt-5", api_key="dummy")],
+        run_targets=True,
+    )
+    captured: dict[str, object] = {}
+
+    def fake_has_credentials(target_id, cfg):
+        return True, "OPENAI_API_KEY"
+
+    def fake_call_target_model(prompt, target, **kwargs):
+        captured.update(kwargs)
+        return "yes"
+
+    monkeypatch.setattr("evalclaw.runner._target_has_credentials", fake_has_credentials)
+    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
+
+    result = run_question(item, config)
+
+    assert result.score == 1.0
+    assert isinstance(captured["user_content"], list)
+    assert captured["user_content"][0]["type"] == "text"
+    assert captured["user_content"][1]["type"] == "image_url"

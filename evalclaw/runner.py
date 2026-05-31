@@ -2,42 +2,43 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import time
 from collections import defaultdict
 from typing import Any, Callable
 
-from .agent_envs import build_agent_environment
 from .llm import call_llm, call_target_model, extract_json
+from .protocols.multimodal import build_multimodal_user_content, get_multimodal_spec
+from .protocols.task_agent import (
+    get_task_agent_spec,
+    task_agent_available,
+    task_agent_initial_content_text,
+    task_agent_initial_user_message,
+    task_agent_max_turns,
+    task_agent_model_settings,
+    task_agent_scoring,
+    task_agent_scripted_turns,
+    task_agent_system_prompt,
+    transcript_text,
+)
+from .runners.agent import parse_agent_action as _parse_agent_action
+from .runners.agent import run_agent_interaction as _run_agent_interaction
+from .runners.credentials import target_has_credentials as _target_has_credentials
+from .runners.pairwise import run_pairwise_preference as _run_pairwise_preference
+from .runners.prompts import target_prompt as _target_prompt
 from .sandbox import build_code_harness, run_python_sandbox
 from .types import (
     BenchmarkConfig,
     BenchmarkDataset,
     BenchmarkItem,
-    EvalSpec,
     EvalRun,
+    EvalSpec,
     ItemResult,
     Message,
     QcReport,
     TargetSummary,
     TaskType,
 )
-
-
-def _target_has_credentials(target_id: str, config: BenchmarkConfig) -> tuple[bool, str | None]:
-    target = next(target for target in config.targets if target.id == target_id)
-    if target.api_key:
-        return True, None
-    if target.provider == "anthropic":
-        return bool(os.environ.get("ANTHROPIC_API_KEY")), "ANTHROPIC_API_KEY"
-    if target.model.startswith("deepseek-"):
-        return bool(os.environ.get("DEEPSEEK_API_KEY")), "DEEPSEEK_API_KEY"
-    if target.model.startswith("gemini"):
-        return bool(os.environ.get("GEMINI_API_KEY")), "GEMINI_API_KEY"
-    if target.provider in {"openai", "openai_compatible"}:
-        return bool(os.environ.get("OPENAI_API_KEY")), "OPENAI_API_KEY"
-    return True, None
 
 
 def _score_yes_no(response: str, answer: str | None) -> float:
@@ -198,19 +199,6 @@ def _score_short_answer(response: str, answer: str | None) -> float:
     return 0.0
 
 
-def _target_prompt(item: BenchmarkItem) -> str:
-    if item.task_type != TaskType.multiple_choice or not item.choices:
-        return item.prompt
-    choices_text = "\n".join(str(choice).strip() for choice in item.choices if str(choice).strip())
-    if not choices_text:
-        return item.prompt
-    return (
-        f"{item.prompt.rstrip()}\n\n"
-        f"Choices:\n{choices_text}\n\n"
-        "Answer with the best option. You may include brief reasoning, but make the final answer clear."
-    )
-
-
 def _call_judge_json(prompt: dict, config: BenchmarkConfig) -> dict | None:
     messages = [Message(role="user", content=json.dumps(prompt, ensure_ascii=False, indent=2))]
     data: dict | None = None
@@ -245,6 +233,12 @@ def _call_judge_json(prompt: dict, config: BenchmarkConfig) -> dict | None:
     return data
 
 
+def _target_user_content(item: BenchmarkItem, target: object) -> str | list[dict[str, Any]] | None:
+    if not get_multimodal_spec(item):
+        return None
+    return build_multimodal_user_content(item, _target_prompt(item), getattr(target, "provider", "openai"))
+
+
 def _score_from_judge_data(data: dict) -> tuple[float, str]:
     normalized = data.get("score_normalized")
     if normalized is None:
@@ -252,13 +246,68 @@ def _score_from_judge_data(data: dict) -> tuple[float, str]:
     return max(0.0, min(1.0, float(normalized))), str(data.get("reasoning", ""))
 
 
+def _call_task_agent_json(
+    item: BenchmarkItem,
+    payload: dict[str, Any],
+    config: BenchmarkConfig,
+    *,
+    system_fallback: str,
+    max_tokens: int = 1024,
+) -> dict[str, Any] | None:
+    if not task_agent_available(config):
+        return None
+    settings = task_agent_model_settings(config)
+    messages = [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))]
+    raw = call_llm(
+        messages,
+        system=task_agent_system_prompt(item, system_fallback),
+        model=settings["model"],
+        api_key=settings["api_key"],
+        base_url=settings["base_url"],
+        backend=config.llm_backend,
+        max_tokens=max_tokens,
+    )
+    try:
+        parsed = extract_json(raw)
+    except Exception:
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
 def _judge_item(item: BenchmarkItem, response: str, config: BenchmarkConfig) -> tuple[float, str]:
+    scoring = task_agent_scoring(item)
+    scoring_method = str(scoring.get("method") or "").strip().lower()
+    if scoring and scoring_method in {"agent_judge", "task_agent_judge"} and task_agent_available(config):
+        payload = {
+            "instruction": "Score the target model transcript/response from 1 to 5 using the task scoring guidance. Return JSON only.",
+            "item": item.model_dump(mode="json"),
+            "model_response": response,
+            "task_agent_scoring": scoring,
+            "initial_content": task_agent_initial_content_text(item),
+            "output_schema": {"score_raw": 3, "score_normalized": 0.6, "reasoning": "..."},
+        }
+        data = _call_task_agent_json(
+            item,
+            payload,
+            config,
+            system_fallback=(
+                "You are the task-specific evaluation judge for this item. "
+                "Apply only the provided scoring guidance and return JSON only."
+            ),
+        )
+        if data is None:
+            return 0.0, "Task agent judge returned invalid JSON."
+        score, reason = _score_from_judge_data(data)
+        return score, f"task_agent_judge: {reason}"
     if not config.orchestrator_api_key:
         return 0.0, "No orchestrator configured for LLM judge."
+
     base_prompt = {
         "instruction": "Score the model response from 1 to 5 using the rubric. Return JSON only.",
         "item": item.model_dump(mode="json"),
         "model_response": response,
+        "task_agent_scoring": scoring or None,
+        "initial_content": task_agent_initial_content_text(item) or None,
         "output_schema": {"score_raw": 3, "score_normalized": 0.6, "reasoning": "..."},
     }
     first = _call_judge_json(base_prompt, config)
@@ -307,9 +356,11 @@ def _run_code(item: BenchmarkItem, response: str) -> tuple[float, str | None]:
 
 
 def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[str]:
-    turns = item.metadata.get("turns")
-    if isinstance(turns, list) and all(isinstance(turn, str) for turn in turns):
-        return turns[:5]
+    scripted = task_agent_scripted_turns(item)
+    if scripted:
+        return scripted
+    if get_task_agent_spec(item):
+        return []
     if not config.orchestrator_api_key:
         return []
     prompt = {
@@ -332,133 +383,70 @@ def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[
     return []
 
 
+def _task_agent_next_turn(
+    item: BenchmarkItem,
+    history: list[Message],
+    config: BenchmarkConfig,
+    *,
+    step_index: int,
+) -> tuple[str | None, str | None]:
+    if not get_task_agent_spec(item) or not task_agent_available(config):
+        return None, "No task_agent metadata or task agent credentials configured."
+    payload = {
+        "instruction": (
+            "Generate the next short user turn for this multi-turn evaluation, or set done=true if the "
+            "dialogue should stop. Return JSON only."
+        ),
+        "item": item.model_dump(mode="json"),
+        "step_index": step_index,
+        "transcript": transcript_text(history),
+        "initial_content": task_agent_initial_content_text(item),
+        "output_schema": {"done": False, "turn": "next user message", "reasoning": "brief private rationale"},
+    }
+    data = _call_task_agent_json(
+        item,
+        payload,
+        config,
+        system_fallback=(
+            "You are a task-specific user simulator for a multi-turn model evaluation. "
+            "Follow the item instructions, keep turns concise, and return JSON only."
+        ),
+    )
+    if not isinstance(data, dict):
+        return None, "Task agent returned invalid JSON for next turn."
+    if bool(data.get("done")):
+        return None, None
+    turn = str(data.get("turn") or "").strip()
+    if not turn:
+        return None, "Task agent did not provide a follow-up turn."
+    return turn, None
+
+
 def _run_multi_turn(item: BenchmarkItem, target: object, config: BenchmarkConfig) -> tuple[str, float, str]:
     history: list[Message] = []
-    first = call_target_model(item.prompt, target, history=history, backend=config.llm_backend)
-    history.extend([Message(role="user", content=item.prompt), Message(role="assistant", content=first)])
-    for followup in _multi_turn_followups(item, config):
+    initial_prompt = task_agent_initial_user_message(item)
+    first = call_target_model(initial_prompt, target, history=history, backend=config.llm_backend)
+    history.extend([Message(role="user", content=initial_prompt), Message(role="assistant", content=first)])
+    scripted = _multi_turn_followups(item, config)
+    task_agent_errors: list[str] = []
+    for followup in scripted:
         answer = call_target_model(followup, target, history=history, backend=config.llm_backend)
         history.extend([Message(role="user", content=followup), Message(role="assistant", content=answer)])
-    transcript = "\n\n".join(f"[{message.role.upper()}] {message.content}" for message in history)
-    score, reasoning = _judge_item(item, transcript, config)
-    return json.dumps([message.model_dump() for message in history], ensure_ascii=False), score, reasoning
-
-
-def _parse_agent_action(response: str) -> tuple[dict[str, Any] | None, str | None]:
-    try:
-        parsed = extract_json(response)
-        if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict):
-            parsed = parsed[0]
-        if isinstance(parsed, dict):
-            if "action" not in parsed and "tool" not in parsed:
-                if "path" in parsed and "content" in parsed:
-                    return {
-                        "action": "write_file",
-                        "args": {"path": parsed.get("path"), "content": parsed.get("content")},
-                    }, None
-                if "path" in parsed:
-                    return {"action": "read_file", "args": {"path": parsed.get("path")}}, None
-                if "answer" in parsed:
-                    return {"action": "final", "args": {"answer": parsed.get("answer")}}, None
-            if "action" not in parsed and "tool" in parsed:
-                parsed["action"] = parsed["tool"]
-            if "args" not in parsed:
-                parsed["args"] = {
-                    key: value
-                    for key, value in parsed.items()
-                    if key not in {"action", "tool", "thought", "reasoning"}
-                }
-            return parsed, None
-    except Exception:
-        pass
-
-    stripped = response.strip()
-    simple = re.search(
-        r"\b(look|move|inspect|take|place|list_files|read_file|write_file|run_tests|run_test|final)\b"
-        r"\s*:?\s*([\w./-]+)?",
-        stripped,
-        re.I,
-    )
-    if simple:
-        action = simple.group(1).lower()
-        value = simple.group(2) or ""
-        key = "room" if action == "move" else "path" if action in {"read_file", "write_file"} else "item"
-        args = {} if action in {"look", "final"} or not value else {key: value}
-        if action in {"list_files", "run_tests", "run_test"}:
-            args = {}
-        if action == "final" and value:
-            args = {"answer": stripped}
-        return {"action": action, "args": args}, None
-    return None, "Could not parse an agent action. Expected a JSON object with action and args."
-
-
-def _run_agent_interaction(
-    item: BenchmarkItem,
-    target: object,
-    config: BenchmarkConfig,
-) -> tuple[str, float, str]:
-    env = build_agent_environment(item)
-    try:
-        system_prompt = (
-            "You are an agent being evaluated in a deterministic simulated environment. "
-            "Choose one valid action per turn. Do not invent tools. Return JSON only."
-        )
-        history: list[Message] = []
-        trace: list[dict[str, Any]] = []
-        user_prompt = (
-            f"Task:\n{item.prompt}\n\n"
-            f"Initial observation:\n{env.observation()}\n\n"
-            f"{env.action_schema()}"
-        )
-
-        for step_index in range(env.max_steps):
-            response = call_target_model(
-                user_prompt,
-                target,
-                system_prompt=system_prompt,
-                history=history,
-                backend=config.llm_backend,
-            )
-            history.extend([Message(role="user", content=user_prompt), Message(role="assistant", content=response)])
-            action, parse_error = _parse_agent_action(response)
-            if action is None:
-                env.invalid_actions += 1
-                env.steps += 1
-                observation = f"Error: {parse_error}\n\n{env.observation()}"
-                done = env.steps >= env.max_steps
-                env.done = done
-                error = parse_error
-            else:
-                outcome = env.step(action)
-                observation = outcome.observation
-                done = outcome.done
-                error = outcome.error
-            trace.append(
-                {
-                    "step": step_index + 1,
-                    "model_output": response,
-                    "parsed_action": action,
-                    "observation": observation,
-                    "error": error,
-                    "score_after_step": env.score(),
-                    "done": done,
-                }
-            )
-            if done:
+    if not scripted and get_task_agent_spec(item):
+        for step_index in range(task_agent_max_turns(item)):
+            followup, error = _task_agent_next_turn(item, history, config, step_index=step_index + 1)
+            if error:
+                task_agent_errors.append(error)
                 break
-            user_prompt = f"Observation:\n{observation}\n\nContinue with one JSON action."
-
-        raw = {
-            "environment": env.state().get("environment", env.__class__.__name__),
-            "trace": trace,
-            "final_state": env.state(),
-            "history": [message.model_dump() for message in history],
-        }
-        return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
-    finally:
-        cleanup = getattr(env, "cleanup", None)
-        if callable(cleanup):
-            cleanup()
+            if not followup:
+                break
+            answer = call_target_model(followup, target, history=history, backend=config.llm_backend)
+            history.extend([Message(role="user", content=followup), Message(role="assistant", content=answer)])
+    transcript = transcript_text(history)
+    score, reasoning = _judge_item(item, transcript, config)
+    if task_agent_errors:
+        reasoning = reasoning + "\n" + "\n".join(f"task_agent_error={error}" for error in task_agent_errors)
+    return json.dumps([message.model_dump() for message in history], ensure_ascii=False), score, reasoning
 
 
 def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> ItemResult:
@@ -496,7 +484,29 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 judge_reasoning=reasoning,
                 latency_ms=latency_ms,
             )
-        response = call_target_model(_target_prompt(item), target, backend=config.llm_backend)
+        if item.task_type == TaskType.pairwise_preference:
+            raw, score, reasoning, error = _run_pairwise_preference(item, target, config)
+            latency_ms = round((time.monotonic() - start) * 1000)
+            return ItemResult(
+                item_id=item.id,
+                target_id=target.id,
+                raw_response=raw,
+                score=score,
+                judge_reasoning=reasoning or error,
+                error=error,
+                latency_ms=latency_ms,
+            )
+        prompt_text = _target_prompt(item)
+        user_content = _target_user_content(item, target)
+        if user_content is None:
+            response = call_target_model(prompt_text, target, backend=config.llm_backend)
+        else:
+            response = call_target_model(
+                prompt_text,
+                target,
+                backend=config.llm_backend,
+                user_content=user_content,
+            )
         latency_ms = round((time.monotonic() - start) * 1000)
         if item.task_type == TaskType.yes_no:
             score = _score_yes_no(response, item.answer)

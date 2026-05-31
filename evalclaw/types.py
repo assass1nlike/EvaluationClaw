@@ -26,6 +26,7 @@ class TaskType(str, Enum):
     code_execution = "code_execution"
     multi_turn = "multi_turn"
     agent_interaction = "agent_interaction"
+    pairwise_preference = "pairwise_preference"
 
 
 class Difficulty(str, Enum):
@@ -41,6 +42,7 @@ class Metric(str, Enum):
     exact_match = "exact_match"
     judge_score = "judge_score"
     pass_at_1 = "pass@1"
+    win_rate = "win_rate"
 
 
 class ScaleBudget(str, Enum):
@@ -107,6 +109,11 @@ class EvalDimension(BaseModel):
     target_difficulty: Difficulty = Difficulty.L4
     needs_research: bool = False
     research_queries: list[str] = Field(default_factory=list)
+    target_item_count: Optional[int] = None
+    target_source_backed_count: int = 0
+    target_generated_count: Optional[int] = None
+    task_types: list[TaskType] = Field(default_factory=list)
+    item_requirements: list[str] = Field(default_factory=list)
     # Deprecated compatibility field. New specs should use target_difficulty.
     difficulty_distribution: dict[Difficulty, float] = Field(default_factory=dict)
 
@@ -260,7 +267,11 @@ class BenchmarkConfig(BaseModel):
     orchestrator_model: str = "claude-opus-4-6"
     orchestrator_api_key: Optional[str] = None
     orchestrator_base_url: Optional[str] = None
+    task_agent_model: Optional[str] = None
+    task_agent_api_key: Optional[str] = None
+    task_agent_base_url: Optional[str] = None
     targets: list[TargetModelConfig] = Field(default_factory=list)
+    reference_model: Optional[TargetModelConfig] = None
     scale_budget: ScaleBudget = ScaleBudget.mid
     questions_per_dimension: int = 5
     max_planner_iterations: int = 5
@@ -274,6 +285,7 @@ class BenchmarkConfig(BaseModel):
     judge_double_pass: bool = True
     llm_backend: str = "auto"  # auto | litellm | legacy
     runner: str = "direct"  # direct | lm-eval | auto
+    human_review: bool = False
     improve_iterations: int = 0
     loop3_diagnosis: str = "llm"  # llm | local
     loop3_diagnosis_timeout_s: int = 90

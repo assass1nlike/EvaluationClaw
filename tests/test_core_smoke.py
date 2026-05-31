@@ -1,21 +1,32 @@
 import json
+import subprocess
+import sys
+import types
+from pathlib import PureWindowsPath
 
-from evalclaw.agent_envs import build_agent_environment
+import pytest
+
+from evalclaw.agent_envs import _platform_test_command, build_agent_environment
+from evalclaw.artifacts import _portable_path, write_lm_eval_artifacts
+from evalclaw.generator import _parse_items, generate_dimension_items
 from evalclaw.hf_discovery import _expanded_queries
-from evalclaw.generator import _parse_items
-from evalclaw.hf_ingest import _matches_dimension
-from evalclaw.hf_ingest import item_from_hf_record
-from evalclaw.planner import plan_eval_spec
-from evalclaw.planner import translate_goal_to_english
+from evalclaw.hf_ingest import _matches_dimension, item_from_hf_record
+from evalclaw.llm_json import extract_json
+from evalclaw.lm_eval_runner import _resolve_lm_eval_executable
+from evalclaw.multimodal import MULTIMODAL_SCHEMA_VERSION
 from evalclaw.pipeline import _persist_package
+from evalclaw.planner import plan_eval_spec, translate_goal_to_english
+from evalclaw.planning_loop import (
+    apply_human_review_feedback,
+    format_human_review_overview,
+    generate_dataset_with_qc_loop,
+)
 from evalclaw.qc import run_qc_gate
 from evalclaw.report_viewer import build_report_viewer_html
 from evalclaw.reporter import build_report
-from evalclaw.runner import _parse_agent_action
-from evalclaw.runner import _score_choice
-from evalclaw.runner import _target_prompt
-from evalclaw.runner import run_question
+from evalclaw.runner import _parse_agent_action, _score_choice, _target_prompt, run_question
 from evalclaw.sandbox import build_code_harness, run_python_sandbox
+from evalclaw.tool_protocol import ToolCall, ToolSpec, object_schema, validate_tool_call
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkDataset,
@@ -27,11 +38,12 @@ from evalclaw.types import (
     EvalRun,
     EvalSpec,
     ItemResult,
+    Metric,
     QcReport,
     ScaleBudget,
     SourceKind,
-    TaskType,
     TargetModelConfig,
+    TaskType,
 )
 
 
@@ -41,6 +53,13 @@ def test_sandbox_runs_in_temp_directory() -> None:
     assert exit_code == 0
     assert stdout.strip() == "ok"
     assert stderr == ""
+
+
+def test_python3_test_commands_use_current_interpreter() -> None:
+    command = _platform_test_command("python3 tests.py")
+
+    assert command == subprocess.list2cmdline([sys.executable]) + " tests.py"
+    assert _platform_test_command("pytest -q") == "pytest -q"
 
 
 def test_core_models_fill_defaults() -> None:
@@ -71,6 +90,216 @@ def test_planner_fallback_preserves_scale_budget() -> None:
     assert all(dimension.target_difficulty == Difficulty.L4 for dimension in spec.dimensions)
 
 
+def test_planner_parses_dimension_item_allocation(monkeypatch) -> None:
+    def fake_call_llm(*args, **kwargs):
+        return json.dumps(
+            {
+                "spec": {
+                    "id": "format_eval",
+                    "objective": "Evaluate format following.",
+                    "subjects": ["target"],
+                    "task_types": ["multiple_choice", "open_generation"],
+                    "scale_budget": "mid",
+                    "scale": 6,
+                    "metrics": ["accuracy"],
+                    "dimensions": [
+                        {
+                            "id": "strict_json",
+                            "name": "Strict JSON",
+                            "description": "Valid JSON output under constraints.",
+                            "approach": "Use schema-constrained prompts.",
+                            "target_item_count": 3,
+                            "target_source_backed_count": 1,
+                            "target_generated_count": 2,
+                            "task_types": ["short_answer"],
+                            "item_requirements": ["Prompt must require parseable JSON."],
+                        }
+                    ],
+                },
+                "critique": {
+                    "checklist": {
+                        "objective": True,
+                        "subjects": True,
+                        "format": True,
+                        "content": True,
+                        "scale": True,
+                        "metrics": True,
+                    },
+                    "score": 4.5,
+                },
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+
+    spec = plan_eval_spec("Evaluate format following", BenchmarkConfig(orchestrator_api_key="dummy"))
+
+    dimension = spec.dimensions[0]
+    assert dimension.target_item_count == 3
+    assert dimension.target_source_backed_count == 1
+    assert dimension.target_generated_count == 2
+    assert dimension.task_types == [TaskType.short_answer]
+    assert dimension.item_requirements == ["Prompt must require parseable JSON."]
+
+
+def test_planner_accepts_pairwise_task_when_reference_is_configured(monkeypatch) -> None:
+    captured_payload = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        return json.dumps(
+            {
+                "spec": {
+                    "id": "preference_eval",
+                    "objective": "Compare response quality against a reference model.",
+                    "subjects": ["target"],
+                    "task_types": ["pairwise_preference"],
+                    "scale_budget": "mid",
+                    "scale": 3,
+                    "metrics": ["win_rate"],
+                    "dimensions": [
+                        {
+                            "id": "helpfulness_preference",
+                            "name": "Helpfulness preference",
+                            "description": "Prefer the more helpful answer.",
+                            "approach": "Use direct target-vs-reference comparison.",
+                            "target_item_count": 2,
+                            "task_types": ["pairwise"],
+                            "item_requirements": ["Prompt should be answered by both target and reference."],
+                        }
+                    ],
+                },
+                "critique": {
+                    "checklist": {
+                        "objective": True,
+                        "subjects": True,
+                        "format": True,
+                        "content": True,
+                        "scale": True,
+                        "metrics": True,
+                    },
+                    "score": 4.5,
+                },
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+
+    spec = plan_eval_spec(
+        "Compare helpfulness",
+        BenchmarkConfig(
+            orchestrator_api_key="dummy",
+            reference_model=TargetModelConfig(provider="mock", model="mock-reference"),
+        ),
+    )
+
+    assert captured_payload["reference_model"]["model"] == "mock-reference"
+    assert spec.task_types == [TaskType.pairwise_preference]
+    assert spec.metrics == [Metric.win_rate]
+    assert spec.dimensions[0].task_types == [TaskType.pairwise_preference]
+
+
+def test_planner_includes_multimodal_guidance_when_planning(monkeypatch) -> None:
+    captured_payload = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        return json.dumps(
+            {
+                "spec": {
+                    "id": "vision_eval",
+                    "objective": "Evaluate visual reasoning.",
+                    "subjects": ["target"],
+                    "task_types": ["open_generation"],
+                    "scale_budget": "mid",
+                    "scale": 3,
+                    "metrics": ["judge_score"],
+                    "dimensions": [
+                        {
+                            "id": "visual_reasoning",
+                            "name": "Visual reasoning",
+                            "description": "Interpret an image and answer questions about it.",
+                            "approach": "Use image-backed prompts.",
+                            "target_item_count": 2,
+                            "task_types": ["open_generation"],
+                            "item_requirements": [
+                                "Include metadata.multimodal using evalclaw.multimodal.v1.",
+                            ],
+                        }
+                    ],
+                },
+                "critique": {
+                    "checklist": {
+                        "objective": True,
+                        "subjects": True,
+                        "format": True,
+                        "content": True,
+                        "scale": True,
+                        "metrics": True,
+                    },
+                    "score": 4.5,
+                },
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+
+    spec = plan_eval_spec("Evaluate visual reasoning", BenchmarkConfig(orchestrator_api_key="dummy"))
+
+    assert "multimodal_policy" in captured_payload
+    assert "multimodal_schema" in captured_payload
+    assert spec.dimensions[0].item_requirements[0].startswith("Include metadata.multimodal")
+
+
+def test_planner_omits_multimodal_guidance_for_text_only_goals(monkeypatch) -> None:
+    captured_payload = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        return json.dumps(
+            {
+                "spec": {
+                    "id": "code_eval",
+                    "objective": "Evaluate code repair.",
+                    "subjects": ["target"],
+                    "task_types": ["open_generation"],
+                    "scale_budget": "low",
+                    "scale": 2,
+                    "metrics": ["judge_score"],
+                    "dimensions": [
+                        {
+                            "id": "code_repair",
+                            "name": "Code repair",
+                            "description": "Fix bugs in small code snippets.",
+                            "approach": "Use text-only code prompts.",
+                            "target_item_count": 1,
+                            "task_types": ["open_generation"],
+                            "item_requirements": ["Include a complete prompt and rubric."],
+                        }
+                    ],
+                },
+                "critique": {
+                    "checklist": {
+                        "objective": True,
+                        "subjects": True,
+                        "format": True,
+                        "content": True,
+                        "scale": True,
+                        "metrics": True,
+                    },
+                    "score": 4.5,
+                },
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+
+    plan_eval_spec("Evaluate code engineering ability", BenchmarkConfig(orchestrator_api_key="dummy"))
+
+    assert "multimodal_policy" not in captured_payload
+    assert "multimodal_schema" not in captured_payload
+
+
 def test_chinese_goal_translation_before_planning(monkeypatch) -> None:
     def fake_call_llm(*args, **kwargs):
         return '{"english_goal":"Evaluate complex mathematical reasoning."}'
@@ -80,6 +309,13 @@ def test_chinese_goal_translation_before_planning(monkeypatch) -> None:
     translated = translate_goal_to_english("评估复杂数学推理能力", BenchmarkConfig())
 
     assert translated == "Evaluate complex mathematical reasoning."
+
+
+def test_extract_json_parses_json_repair_string_return(monkeypatch) -> None:
+    fake_json_repair = types.SimpleNamespace(repair_json=lambda *args, **kwargs: '{"ok": true}')
+    monkeypatch.setitem(sys.modules, "json_repair", fake_json_repair)
+
+    assert extract_json("not valid json") == {"ok": True}
 
 
 def test_code_harness_injects_model_output_as_json_string() -> None:
@@ -164,6 +400,480 @@ def test_generator_treats_self_generated_source_markers_as_self_generated() -> N
 
     assert items[0].source.kind == SourceKind.self_generated
     assert items[0].source.uri == ""
+
+
+def test_generator_promotes_metadata_judge_rubric_to_top_level() -> None:
+    dimension = EvalDimension(
+        id="coding",
+        name="Coding",
+        description="Evaluate coding tasks.",
+        approach="Open coding repair.",
+    )
+    spec = EvalSpec(objective="Evaluate code repair", dimensions=[dimension])
+
+    items, _ = _parse_items(
+        {
+            "items": [
+                {
+                    "task_type": "open_generation",
+                    "prompt": "Fix the bug in this function.",
+                    "metadata": {
+                        "judge_rubric": {
+                            "5": "Correctly fixes the bug and explains the edge case.",
+                            "1": "Does not identify the bug.",
+                        }
+                    },
+                }
+            ]
+        },
+        spec=spec,
+        dimension=dimension,
+        requested_count=1,
+    )
+
+    assert items[0].rubric is not None
+    assert "Correctly fixes the bug" in items[0].rubric
+
+
+def test_generator_copies_task_agent_execution_agent_env_for_runner_compatibility() -> None:
+    dimension = EvalDimension(
+        id="coding_agent",
+        name="Coding agent",
+        description="Evaluate iterative code repair.",
+        approach="Use a code sandbox.",
+        task_types=[TaskType.agent_interaction],
+    )
+    spec = EvalSpec(objective="Evaluate code repair", dimensions=[dimension])
+
+    items, _ = _parse_items(
+        {
+            "items": [
+                {
+                    "task_type": "agent_interaction",
+                    "prompt": "Fix solution.py and run tests.",
+                    "rubric": "Pass when tests pass.",
+                    "metadata": {
+                        "task_agent": {
+                            "schema_version": "evalclaw.task_agent.v1",
+                            "agent_role": "environment_controller",
+                            "system_prompt": "Run the code sandbox without revealing hidden tests.",
+                            "execution": {
+                                "environment_type": "code_sandbox",
+                                "agent_env": {
+                                    "type": "code_sandbox",
+                                    "visible_files": {"solution.py": "def f():\n    pass\n"},
+                                    "hidden_files": {"tests.py": "from solution import f\nassert f() == 1\n"},
+                                    "test_command": "python3 tests.py",
+                                },
+                            },
+                        }
+                    },
+                }
+            ]
+        },
+        spec=spec,
+        dimension=dimension,
+        requested_count=1,
+    )
+
+    assert items[0].metadata["agent_env"]["type"] == "code_sandbox"
+    assert "solution.py" in items[0].metadata["agent_env"]["visible_files"]
+
+
+def test_generator_enforces_dimension_task_type_plan() -> None:
+    dimension = EvalDimension(
+        id="code_plan",
+        name="Code planning",
+        description="Evaluate code planning without tools.",
+        approach="Use open generation prompts.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate code planning", dimensions=[dimension])
+
+    items, _ = _parse_items(
+        {
+            "items": [
+                {
+                    "task_type": "agent_interaction",
+                    "prompt": "Read this small repo and write an implementation plan.",
+                    "rubric": "Score plan quality.",
+                    "metadata": {"task_agent": {"schema_version": "evalclaw.task_agent.v1"}},
+                }
+            ]
+        },
+        spec=spec,
+        dimension=dimension,
+        requested_count=1,
+    )
+
+    assert items[0].task_type == TaskType.open_generation
+
+
+def test_generator_accepts_top_level_item_list() -> None:
+    dimension = EvalDimension(
+        id="code_repair",
+        name="Code repair",
+        description="Evaluate code repair.",
+        approach="Use open prompts.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate code repair", dimensions=[dimension])
+
+    items, notes = _parse_items(
+        [
+            {
+                "task_type": "open_generation",
+                "prompt": "Fix the bug in this function.",
+                "rubric": "Score correctness.",
+            }
+        ],
+        spec=spec,
+        dimension=dimension,
+        requested_count=1,
+    )
+
+    assert notes == ""
+    assert len(items) == 1
+    assert items[0].rubric == "Score correctness."
+
+
+def test_local_generator_adds_task_agent_metadata_for_multi_turn() -> None:
+    dimension = EvalDimension(
+        id="dialogue",
+        name="Dialogue repair",
+        description="Evaluate whether the model can revise after a correction.",
+        approach="Use a multi-turn correction scenario.",
+        task_types=[TaskType.multi_turn],
+    )
+    spec = EvalSpec(objective="Evaluate multi-turn revision", dimensions=[dimension], task_types=[TaskType.multi_turn])
+
+    config = BenchmarkConfig(use_hf_discovery=False, use_web_research=False)
+
+    items, _, _ = generate_dimension_items(spec, dimension, 1, config)
+
+    item = items[0]
+    assert item.task_type == TaskType.multi_turn
+    assert item.metadata["task_agent"]["schema_version"] == "evalclaw.task_agent.v1"
+    assert item.metadata["task_agent"]["agent_role"] == "dialogue_simulator"
+    assert item.metadata["task_agent"]["scoring"]["method"] == "agent_judge"
+
+
+def test_local_generator_can_create_pairwise_preference_item() -> None:
+    dimension = EvalDimension(
+        id="helpfulness",
+        name="Helpfulness",
+        description="Compare helpfulness against a reference model.",
+        approach="Use target-vs-reference preference prompts.",
+        task_types=[TaskType.pairwise_preference],
+    )
+    spec = EvalSpec(
+        objective="Evaluate target helpfulness against a reference model.",
+        dimensions=[dimension],
+        task_types=[TaskType.pairwise_preference],
+        metrics=[Metric.win_rate],
+    )
+    config = BenchmarkConfig(
+        use_hf_discovery=False,
+        use_web_research=False,
+        reference_model=TargetModelConfig(provider="mock", model="mock-reference"),
+    )
+
+    items, _, _ = generate_dimension_items(spec, dimension, 1, config)
+
+    item = items[0]
+    assert item.task_type == TaskType.pairwise_preference
+    assert item.rubric
+    assert item.metadata["pairwise"]["score_mapping"]["target_win"] == 1.0
+
+
+def test_local_generator_attaches_multimodal_metadata_for_visual_dimensions() -> None:
+    dimension = EvalDimension(
+        id="visual_reasoning",
+        name="Visual reasoning",
+        description="Interpret an image and answer questions about it.",
+        approach="Use image-backed prompts.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate visual reasoning.", dimensions=[dimension], task_types=[TaskType.open_generation])
+
+    items, _, _ = generate_dimension_items(spec, dimension, 1, BenchmarkConfig(use_hf_discovery=False, use_web_research=False))
+
+    item = items[0]
+    assert item.metadata["multimodal"]["schema_version"] == MULTIMODAL_SCHEMA_VERSION
+    assert item.metadata["multimodal"]["modalities"] == ["image"]
+    assert item.metadata["multimodal"]["assets"]
+
+
+def test_local_generator_creates_meaningful_chart_asset_for_chart_dimensions() -> None:
+    dimension = EvalDimension(
+        id="chart_reasoning",
+        name="Bar chart reasoning",
+        description="Answer questions from a simple chart image.",
+        approach="Use chart-backed prompts.",
+        task_types=[TaskType.multiple_choice],
+    )
+    spec = EvalSpec(objective="Evaluate chart reasoning.", dimensions=[dimension], task_types=[TaskType.multiple_choice])
+
+    items, _, _ = generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(use_hf_discovery=False, use_web_research=False),
+    )
+
+    item = items[0]
+    asset = item.metadata["multimodal"]["assets"][0]
+    assert item.task_type == TaskType.multiple_choice
+    assert item.answer == "A"
+    assert "Evaluation objective" not in item.prompt
+    assert "Which quarter" in item.prompt
+    assert "Quarterly Support Tickets" in asset["alt_text"]
+    assert "Q2 18" in asset["alt_text"]
+    assert item.metadata["multimodal"]["scoring"]["rubric"] == item.rubric
+
+
+def test_chart_fallback_matches_element_extraction_dimensions() -> None:
+    dimension = EvalDimension(
+        id="chart_element_recognition",
+        name="Chart element recognition",
+        description="Extract one exact value from a chart image.",
+        approach="Ask for a single labeled value.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate chart value extraction.", dimensions=[dimension], task_types=[TaskType.open_generation])
+
+    items, _, _ = generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(use_hf_discovery=False, use_web_research=False),
+    )
+
+    item = items[0]
+    assert "What is the support ticket count for Q3" in item.prompt
+    assert item.answer == "Q3 9"
+    assert "Full credit" in item.rubric
+
+
+def test_chart_fallback_prioritizes_comparison_over_reading_terms() -> None:
+    dimension = EvalDimension(
+        id="chart_comparison",
+        name="Chart Comparison",
+        description="Compare chart values even if the task also involves chart reading.",
+        approach="Ask for a relative comparison with cited evidence.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate chart comparison.", dimensions=[dimension], task_types=[TaskType.open_generation])
+
+    items, _, _ = generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(use_hf_discovery=False, use_web_research=False),
+    )
+
+    prompt = items[0].prompt.lower()
+    assert "compare q2 and q4" in prompt
+    assert "by how many" in prompt
+    assert items[0].answer.lower().startswith("q2")
+
+
+def test_local_generator_respects_negative_multimodal_requirements() -> None:
+    dimension = EvalDimension(
+        id="code_repair",
+        name="Code repair",
+        description="Interpret code and fix a bug.",
+        approach="Use code-only prompts.",
+        task_types=[TaskType.open_generation],
+        item_requirements=["Do not include any multimodal assets. The task is code-only."],
+    )
+    spec = EvalSpec(objective="Evaluate code repair.", dimensions=[dimension], task_types=[TaskType.open_generation])
+
+    items, _, _ = generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(use_hf_discovery=False, use_web_research=False),
+    )
+
+    assert "multimodal" not in items[0].metadata
+
+
+def test_llm_generator_omits_multimodal_payload_for_text_only_dimension(monkeypatch) -> None:
+    captured_payload = {}
+    captured_system = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        captured_system["system"] = kwargs.get("system") or ""
+        return json.dumps(
+            {
+                "items": [
+                    {
+                        "task_type": "open_generation",
+                        "prompt": "Explain the bug in this complete function.",
+                        "rubric": "Score correctness and clarity.",
+                        "source_uri": "self_generated",
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    dimension = EvalDimension(
+        id="code_repair",
+        name="Code repair",
+        description="Evaluate text-only code repair.",
+        approach="Use complete code prompts.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate code repair.", dimensions=[dimension], task_types=[TaskType.open_generation])
+
+    items, _, _ = generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+    )
+
+    assert items[0].rubric == "Score correctness and clarity."
+    assert "multimodal_schema" not in captured_payload
+    assert "metadata.multimodal" not in captured_system["system"]
+
+
+def test_llm_generator_includes_multimodal_payload_only_when_required(monkeypatch) -> None:
+    captured_payload = {}
+    captured_system = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        captured_system["system"] = kwargs.get("system") or ""
+        return json.dumps(
+            {
+                "items": [
+                    {
+                        "task_type": "open_generation",
+                        "prompt": "Inspect the image and explain the key evidence.",
+                        "rubric": "Score use of visual evidence.",
+                        "source_uri": "self_generated",
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    dimension = EvalDimension(
+        id="visual_reasoning",
+        name="Visual reasoning",
+        description="Evaluate image understanding.",
+        approach="Use image-backed prompts.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate visual reasoning.", dimensions=[dimension], task_types=[TaskType.open_generation])
+
+    generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+    )
+
+    assert "multimodal_schema" in captured_payload
+    assert "metadata.multimodal" in captured_system["system"]
+
+
+def test_chart_dimensions_use_programmatic_fallback_without_external_sources(monkeypatch) -> None:
+    def fail_call_llm(*args, **kwargs):
+        raise AssertionError("chart fallback should avoid LLM media synthesis")
+
+    monkeypatch.setattr("evalclaw.generator.call_llm", fail_call_llm)
+    dimension = EvalDimension(
+        id="chart_reasoning",
+        name="Chart reasoning",
+        description="Answer questions grounded in a simple chart image.",
+        approach="Use chart-backed prompts.",
+        task_types=[TaskType.multiple_choice],
+    )
+    spec = EvalSpec(objective="Evaluate chart reasoning.", dimensions=[dimension], task_types=[TaskType.multiple_choice])
+
+    items, _, notes = generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+    )
+
+    assert "Programmatic multimodal fallback" in notes
+    assert items[0].metadata["multimodal"]["assets"][0]["mime_type"] == "image/svg+xml"
+
+
+def test_llm_generator_uses_fallback_when_json_parse_fails(monkeypatch) -> None:
+    monkeypatch.setattr("evalclaw.generator.call_llm", lambda *args, **kwargs: "")
+    dimension = EvalDimension(
+        id="visual_reasoning",
+        name="Visual reasoning",
+        description="Evaluate image understanding.",
+        approach="Use image-backed prompts.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate visual reasoning.", dimensions=[dimension], task_types=[TaskType.open_generation])
+
+    items, _, notes = generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+    )
+
+    assert len(items) == 1
+    assert "local fallback generation used" in notes
+    assert "multimodal" in items[0].metadata
+
+
+def test_runner_passes_multimodal_user_content_to_target(monkeypatch) -> None:
+    captured = {}
+
+    def fake_call_target_model(prompt, target, **kwargs):
+        captured.update(kwargs)
+        return "A"
+
+    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runner._target_has_credentials", lambda *args, **kwargs: (True, "OPENAI_API_KEY"))
+
+    item = BenchmarkItem(
+        id="vision_mc",
+        dimension_id="visual_reasoning",
+        task_type=TaskType.multiple_choice,
+        prompt="What is shown in the image?",
+        choices=["A. A blue square", "B. A red circle"],
+        answer="A",
+        metadata={
+            "multimodal": {
+                "schema_version": MULTIMODAL_SCHEMA_VERSION,
+                "modalities": ["image"],
+                "assets": [
+                    {
+                        "id": "image_1",
+                        "kind": "image",
+                        "uri": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iYmx1ZSIvPjwvc3ZnPg==",
+                        "mime_type": "image/svg+xml",
+                    }
+                ],
+                "content": [
+                    {"type": "text", "text": "Inspect the image and choose the correct answer."},
+                    {"type": "asset", "asset_id": "image_1", "detail": "high"},
+                ],
+            }
+        },
+    )
+    config = BenchmarkConfig(targets=[TargetModelConfig(provider="openai", model="gpt-5")])
+
+    result = run_question(item, config)
+
+    assert result.score == 1.0
+    assert isinstance(captured["user_content"], list)
+    assert captured["user_content"][0]["type"] == "text"
+    assert captured["user_content"][1]["type"] == "image_url"
 
 
 def test_hf_record_ingestion_preserves_provenance() -> None:
@@ -364,6 +1074,67 @@ def test_report_includes_item_level_audit_details() -> None:
     assert "### Response / Trace" in report.markdown
     assert "[1] USER: Answer politely" in report.markdown
     assert "## Failure Mode Summary" in report.markdown
+
+
+def test_multi_turn_runner_uses_task_agent_for_followups_and_scoring(monkeypatch) -> None:
+    target_prompts: list[str] = []
+    task_agent_models: list[str | None] = []
+    task_agent_systems: list[str | None] = []
+    task_agent_responses = iter(
+        [
+            json.dumps({"done": False, "turn": "Please revise it to be shorter."}),
+            json.dumps({"done": True}),
+            json.dumps({"score_raw": 4, "score_normalized": 0.8, "reasoning": "Good revision."}),
+        ]
+    )
+
+    def fake_call_target_model(prompt, *args, **kwargs):
+        target_prompts.append(prompt)
+        return f"target response to: {prompt}"
+
+    def fake_call_llm(messages, **kwargs):
+        task_agent_models.append(kwargs.get("model"))
+        task_agent_systems.append(kwargs.get("system"))
+        return next(task_agent_responses)
+
+    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runner.call_llm", fake_call_llm)
+    item = BenchmarkItem(
+        id="dialogue_task_agent",
+        dimension_id="dialogue",
+        task_type=TaskType.multi_turn,
+        prompt="Summarize this plan in two bullets.",
+        rubric="Score the full dialogue.",
+        metadata={
+            "task_agent": {
+                "schema_version": "evalclaw.task_agent.v1",
+                "agent_role": "dialogue_simulator",
+                "system_prompt": "You are the per-task user simulator. Return JSON only.",
+                "initial_content": {"scenario": "The user wants a concise project plan."},
+                "interaction": {"max_turns": 3, "followup_instruction": "Ask for a shorter revision."},
+                "scoring": {
+                    "method": "agent_judge",
+                    "instructions": "Score whether the target handled the revision request.",
+                    "levels": {"5": "complete", "3": "partial", "1": "failed"},
+                },
+            }
+        },
+    )
+    config = BenchmarkConfig(
+        task_agent_model="mock-task-agent",
+        task_agent_api_key="dummy",
+        targets=[TargetModelConfig(provider="mock", model="mock-target")],
+    )
+
+    result = run_question(item, config)
+    transcript = json.loads(result.raw_response)
+
+    assert target_prompts == ["Summarize this plan in two bullets.", "Please revise it to be shorter."]
+    assert [message["content"] for message in transcript if message["role"] == "user"] == target_prompts
+    assert result.score == 0.8
+    assert "task_agent_judge" in (result.judge_reasoning or "")
+    assert task_agent_models == ["mock-task-agent", "mock-task-agent", "mock-task-agent"]
+    assert all(system == "You are the per-task user simulator. Return JSON only." for system in task_agent_systems)
 
 
 def test_report_adds_safety_audit_summary_for_safety_evals() -> None:
@@ -584,6 +1355,25 @@ def test_workspace_agent_environment_scores_goal_completion() -> None:
     assert env.state()["outgoing_bin"] == ["blue_notebook"]
 
 
+def test_tool_protocol_validates_required_and_enum_arguments() -> None:
+    spec = ToolSpec(
+        name="move",
+        description="Move rooms.",
+        parameters=object_schema({"room": {"type": "string", "enum": ["office", "lab"]}}, required=["room"]),
+    )
+
+    assert validate_tool_call(ToolCall(id="call_1", name="move", arguments={"room": "office"}), [spec]) == []
+    assert validate_tool_call(ToolCall(id="call_2", name="move", arguments={}), [spec]) == [
+        "Missing required argument: room."
+    ]
+    assert validate_tool_call(ToolCall(id="call_3", name="move", arguments={"room": "kitchen"}), [spec]) == [
+        "Argument room must be one of: office, lab."
+    ]
+    assert validate_tool_call(ToolCall(id="call_4", name="fly", arguments={}), [spec]) == [
+        "Unknown tool/action: fly."
+    ]
+
+
 def test_agent_interaction_runner_uses_action_observation_loop(monkeypatch) -> None:
     responses = iter(
         [
@@ -596,7 +1386,7 @@ def test_agent_interaction_runner_uses_action_observation_loop(monkeypatch) -> N
     def fake_call_target_model(*args, **kwargs):
         return next(responses)
 
-    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runner_agent.call_target_model", fake_call_target_model)
     item = BenchmarkItem(
         id="agent_item",
         dimension_id="agent",
@@ -621,6 +1411,89 @@ def test_agent_interaction_runner_uses_action_observation_loop(monkeypatch) -> N
     assert result.score == 1.0
     assert len(trace["trace"]) == 3
     assert trace["final_state"]["outgoing_bin"] == ["blue_notebook"]
+    assert trace["tool_protocol_version"] == "evalclaw.tool_protocol.v1"
+    assert trace["tool_specs"][0]["name"] == "look"
+    assert trace["trace"][0]["tool_call"]["name"] == "take"
+    assert trace["trace"][0]["tool_result"]["name"] == "take"
+
+
+def test_agent_interaction_rejects_invalid_tool_arguments(monkeypatch) -> None:
+    responses = iter(['{"action":"move","args":{}}'])
+
+    def fake_call_target_model(*args, **kwargs):
+        return next(responses)
+
+    monkeypatch.setattr("evalclaw.runner_agent.call_target_model", fake_call_target_model)
+    item = BenchmarkItem(
+        id="agent_item",
+        dimension_id="agent",
+        task_type=TaskType.agent_interaction,
+        prompt="Move somewhere.",
+        rubric="Use deterministic environment scoring.",
+        metadata={
+            "agent_env": {
+                "type": "workspace",
+                "start_room": "office",
+                "rooms": {"office": [], "lab": []},
+                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "max_steps": 1,
+            }
+        },
+    )
+    config = BenchmarkConfig(targets=[TargetModelConfig(provider="mock", model="mock-agent")])
+
+    result = run_question(item, config)
+    trace = json.loads(result.raw_response)
+
+    assert result.score == 0.0
+    assert "Missing required argument: room" in trace["trace"][0]["error"]
+    assert trace["trace"][0]["tool_result"]["error"] == "Missing required argument: room."
+
+
+def test_agent_interaction_uses_task_agent_system_prompt(monkeypatch) -> None:
+    captured_systems: list[str | None] = []
+    responses = iter(
+        [
+            '{"action":"take","args":{"item":"blue_notebook"}}',
+            '{"action":"move","args":{"room":"mailroom"}}',
+            '{"action":"place","args":{"item":"blue_notebook"}}',
+        ]
+    )
+
+    def fake_call_target_model(*args, **kwargs):
+        captured_systems.append(kwargs.get("system_prompt"))
+        return next(responses)
+
+    monkeypatch.setattr("evalclaw.runner_agent.call_target_model", fake_call_target_model)
+    item = BenchmarkItem(
+        id="agent_item",
+        dimension_id="agent",
+        task_type=TaskType.agent_interaction,
+        prompt="Put the blue notebook in the outgoing bin.",
+        rubric="Use deterministic environment scoring.",
+        metadata={
+            "task_agent": {
+                "schema_version": "evalclaw.task_agent.v1",
+                "agent_role": "target_agent_executor",
+                "system_prompt": "Custom per-item agent system prompt. Return JSON only.",
+                "scoring": {"method": "deterministic", "pass_fail": {"pass": "done", "fail": "not done"}},
+            },
+            "agent_env": {
+                "type": "workspace",
+                "start_room": "office",
+                "rooms": {"office": ["blue_notebook"], "mailroom": []},
+                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "max_steps": 5,
+            },
+        },
+    )
+    config = BenchmarkConfig(targets=[TargetModelConfig(provider="mock", model="mock-agent")])
+
+    result = run_question(item, config)
+
+    assert result.score == 1.0
+    assert captured_systems
+    assert set(captured_systems) == {"Custom per-item agent system prompt. Return JSON only."}
 
 
 def test_judge_invalid_json_is_reported_as_evaluator_error(monkeypatch) -> None:
@@ -642,6 +1515,70 @@ def test_judge_invalid_json_is_reported_as_evaluator_error(monkeypatch) -> None:
 
     assert result.error == "Judge returned invalid JSON after retry."
     assert result.judge_reasoning == "Judge returned invalid JSON after retry."
+
+
+def test_pairwise_preference_runner_compares_target_to_reference(monkeypatch) -> None:
+    calls: list[tuple[str, str]] = []
+
+    def fake_call_target_model(prompt, target, **kwargs):
+        calls.append((target.model, prompt))
+        if target.model == "mock-reference":
+            return "Reference answer."
+        return "Target answer is more complete."
+
+    def fake_call_llm(messages, **kwargs):
+        payload = json.loads(messages[0].content)
+        assert payload["target_response"] == "Target answer is more complete."
+        assert payload["reference_response"] == "Reference answer."
+        return json.dumps({"winner": "target", "score_normalized": 1.0, "reasoning": "Target is more helpful."})
+
+    monkeypatch.setattr("evalclaw.runner_pairwise.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runner_pairwise.call_llm", fake_call_llm)
+    item = BenchmarkItem(
+        id="pairwise_item",
+        dimension_id="helpfulness",
+        task_type=TaskType.pairwise_preference,
+        prompt="Explain how to debug a failing unit test.",
+        rubric="Prefer the answer that gives more actionable debugging steps.",
+    )
+    config = BenchmarkConfig(
+        orchestrator_api_key="dummy",
+        targets=[TargetModelConfig(provider="mock", model="mock-target")],
+        reference_model=TargetModelConfig(provider="mock", model="mock-reference"),
+    )
+
+    result = run_question(item, config)
+    raw = json.loads(result.raw_response)
+
+    assert result.score == 1.0
+    assert result.error is None
+    assert "winner=target" in (result.judge_reasoning or "")
+    assert raw["reference_model"] == "mock-reference"
+    assert calls == [
+        ("mock-target", "Explain how to debug a failing unit test."),
+        ("mock-reference", "Explain how to debug a failing unit test."),
+    ]
+
+
+def test_qc_rejects_pairwise_item_without_reference_model() -> None:
+    dimension = EvalDimension(
+        id="helpfulness",
+        name="Helpfulness",
+        description="Compare helpfulness.",
+        approach="Use pairwise prompts.",
+    )
+    item = BenchmarkItem(
+        id="pairwise_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.pairwise_preference,
+        prompt="Explain how to debug a failing unit test.",
+        rubric="Prefer the more actionable answer.",
+    )
+
+    qc = run_qc_gate(BenchmarkDataset(spec=EvalSpec(objective="Compare models", dimensions=[dimension]), items=[item]), BenchmarkConfig())
+
+    assert "pairwise_item" in qc.rejected_item_ids
+    assert any("reference_model" in issue.message for issue in qc.issues)
 
 
 def test_code_sandbox_agent_can_revise_after_test_failure(monkeypatch) -> None:
@@ -673,7 +1610,7 @@ def test_code_sandbox_agent_can_revise_after_test_failure(monkeypatch) -> None:
     def fake_call_target_model(*args, **kwargs):
         return next(responses)
 
-    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runner_agent.call_target_model", fake_call_target_model)
     item = BenchmarkItem(
         id="code_agent_item",
         dimension_id="code_agent",
@@ -985,7 +1922,14 @@ def test_persist_package_writes_browser_report_and_manifest(tmp_path) -> None:
     run = EvalRun(
         dataset=BenchmarkDataset(spec=spec, items=[item]),
         qc_report=QcReport(passed_item_ids=[item.id]),
-        results=[ItemResult(item_id=item.id, target_id="mock", raw_response='{"ok": true}', score=1.0)],
+        results=[
+            ItemResult(
+                item_id=item.id,
+                target_id="mock",
+                raw_response='{"ok": true, "debug_key": "sk-testsecret123"}',
+                score=1.0,
+            )
+        ],
     )
     pkg = BenchmarkPackage(
         goal=spec.objective,
@@ -1005,3 +1949,341 @@ def test_persist_package_writes_browser_report_and_manifest(tmp_path) -> None:
     assert "EvaluationClaw Diagnostic Report" in html_files[0].read_text(encoding="utf-8")
     assert "frontend_report_html" in md_files[0].read_text(encoding="utf-8")
     assert manifest["frontend_report"] == str(html_files[0])
+    persisted_text = "\n".join(path.read_text(encoding="utf-8") for path in tmp_path.glob("evalclaw_*.*"))
+    assert "sk-testsecret123" not in persisted_text
+    assert "[REDACTED]" in persisted_text
+
+
+def test_lm_eval_artifacts_use_portable_data_file_paths(tmp_path) -> None:
+    dimension = EvalDimension(
+        id="format_following",
+        name="Format following",
+        description="Evaluate instruction and format constraints.",
+        approach="Use constrained prompts.",
+    )
+    spec = EvalSpec(id="portable_path_eval", objective="Evaluate format following.", dimensions=[dimension])
+    item = BenchmarkItem(
+        id="format_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.short_answer,
+        prompt="Return OK.",
+        answer="OK",
+    )
+
+    artifacts = write_lm_eval_artifacts(BenchmarkDataset(spec=spec, items=[item]), tmp_path)
+    yaml_text = artifacts["yaml"].read_text(encoding="utf-8")
+
+    assert _portable_path(PureWindowsPath("C:/tmp/evalclaw/task.jsonl")) == "C:/tmp/evalclaw/task.jsonl"
+    assert artifacts["jsonl"].as_posix() in yaml_text
+
+
+def test_lm_eval_executable_resolves_from_environment_scripts_dir(tmp_path, monkeypatch) -> None:
+    scripts_dir = tmp_path / "Scripts"
+    scripts_dir.mkdir()
+    executable = scripts_dir / "lm_eval.exe"
+    executable.write_text("", encoding="utf-8")
+
+    monkeypatch.setattr("evalclaw.lm_eval_runner.sysconfig.get_path", lambda name: str(scripts_dir))
+    monkeypatch.setattr("evalclaw.lm_eval_runner.shutil.which", lambda name: None)
+
+    assert _resolve_lm_eval_executable() == str(executable)
+
+
+def test_generation_qc_loop_refills_dimension_after_rejecting_bad_item(monkeypatch) -> None:
+    dimension = EvalDimension(
+        id="format_following",
+        name="Format following",
+        description="Evaluate strict format constraints.",
+        approach="Use answer-keyed multiple-choice checks.",
+        target_item_count=2,
+        task_types=[TaskType.multiple_choice],
+    )
+    spec = EvalSpec(
+        objective="Evaluate strict format following.",
+        dimensions=[dimension],
+        task_types=[TaskType.multiple_choice],
+    )
+    bad = BenchmarkItem(
+        id="bad_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.multiple_choice,
+        prompt="Which output follows the requested JSON-only format?",
+        choices=["A. {}", "B. explanatory prose", "C. markdown", "D. xml"],
+        answer="Z",
+    )
+    good = BenchmarkItem(
+        id="good_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.multiple_choice,
+        prompt="Which response is valid JSON and contains no prose?",
+        choices=["A. {\"ok\": true}", "B. ok: true", "C. Here is JSON: {}", "D. <ok>true</ok>"],
+        answer="A",
+    )
+    replacement = BenchmarkItem(
+        id="replacement_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.multiple_choice,
+        prompt="Which answer is a parseable JSON object with no surrounding text?",
+        choices=["A. {\"status\":\"ok\"}", "B. status ok", "C. ```json\n{}\n```", "D. Done"],
+        answer="A",
+    )
+    calls = iter(
+        [
+            ([bad, good], [], "initial"),
+            ([replacement], [], "repair"),
+        ]
+    )
+
+    def fake_generate_dimension_items(*args, **kwargs):
+        return next(calls)
+
+    monkeypatch.setattr("evalclaw.generator.generate_dimension_items", fake_generate_dimension_items)
+    monkeypatch.setattr("evalclaw.planning_loop.generate_dimension_items", fake_generate_dimension_items)
+
+    _, dataset, qc = generate_dataset_with_qc_loop(
+        spec,
+        BenchmarkConfig(
+            max_qc_iterations=2,
+            questions_per_dimension=2,
+            use_hf_discovery=False,
+            use_web_research=False,
+        ),
+    )
+
+    assert [item.id for item in dataset.items] == ["good_item", "replacement_item"]
+    assert qc.rejected_item_ids == []
+    assert sorted(qc.passed_item_ids) == ["good_item", "replacement_item"]
+
+
+def test_generation_qc_loop_passes_qc_feedback_to_repair_generation(monkeypatch) -> None:
+    dimension = EvalDimension(
+        id="format_following",
+        name="Format following",
+        description="Evaluate strict format constraints.",
+        approach="Use answer-keyed multiple-choice checks.",
+        target_item_count=1,
+        task_types=[TaskType.multiple_choice],
+    )
+    spec = EvalSpec(
+        objective="Evaluate strict format following.",
+        dimensions=[dimension],
+        task_types=[TaskType.multiple_choice],
+    )
+    bad = BenchmarkItem(
+        id="bad_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.multiple_choice,
+        prompt="Which output follows JSON-only format?",
+        choices=["A. {}", "B. prose", "C. markdown", "D. xml"],
+        answer="Z",
+    )
+    replacement = BenchmarkItem(
+        id="replacement_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.multiple_choice,
+        prompt="Which answer is valid JSON?",
+        choices=["A. {\"ok\": true}", "B. ok", "C. prose", "D. xml"],
+        answer="A",
+    )
+    calls: list[dict] = []
+
+    def fake_generate_dimension_items(*args, **kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            return [bad], [], "initial"
+        assert kwargs["repair_guidance"]
+        assert "answer" in " ".join(kwargs["repair_guidance"]).lower()
+        assert kwargs["avoid_prompts"]
+        return [replacement], [], "repair"
+
+    monkeypatch.setattr("evalclaw.generator.generate_dimension_items", fake_generate_dimension_items)
+    monkeypatch.setattr("evalclaw.planning_loop.generate_dimension_items", fake_generate_dimension_items)
+
+    _, dataset, qc = generate_dataset_with_qc_loop(
+        spec,
+        BenchmarkConfig(
+            max_qc_iterations=2,
+            questions_per_dimension=1,
+            use_hf_discovery=False,
+            use_web_research=False,
+        ),
+    )
+
+    assert [item.id for item in dataset.items] == ["replacement_item"]
+    assert qc.rejected_item_ids == []
+
+
+def test_generation_qc_loop_raises_when_repair_budget_exhausted(monkeypatch) -> None:
+    dimension = EvalDimension(
+        id="coding",
+        name="Coding",
+        description="Evaluate code repair.",
+        approach="Use open coding prompts.",
+        target_item_count=1,
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(
+        objective="Evaluate code repair.",
+        dimensions=[dimension],
+        task_types=[TaskType.open_generation],
+    )
+
+    def bad_item(item_id: str) -> BenchmarkItem:
+        return BenchmarkItem(
+            id=item_id,
+            dimension_id=dimension.id,
+            task_type=TaskType.open_generation,
+            prompt=f"Fix the bug in {item_id}.",
+        )
+
+    def fake_generate_dataset_with_progress(*args, **kwargs):
+        return BenchmarkDataset(spec=spec, items=[bad_item("bad_initial")])
+
+    def fake_generate_dimension_items(*args, **kwargs):
+        return [bad_item("bad_repair")], [], "still missing rubric"
+
+    monkeypatch.setattr("evalclaw.planning_loop.generate_dataset_with_progress", fake_generate_dataset_with_progress)
+    monkeypatch.setattr("evalclaw.planning_loop.generate_dimension_items", fake_generate_dimension_items)
+
+    with pytest.raises(RuntimeError, match="runner-ready dataset"):
+        generate_dataset_with_qc_loop(
+            spec,
+            BenchmarkConfig(
+                max_qc_iterations=1,
+                questions_per_dimension=1,
+                use_hf_discovery=False,
+                use_web_research=False,
+            ),
+        )
+
+
+def test_human_review_overview_mentions_dimensions_and_qc() -> None:
+    dimension = EvalDimension(
+        id="format_following",
+        name="Format following",
+        description="Evaluate strict format constraints.",
+        approach="Use answer-keyed checks.",
+        target_item_count=2,
+        task_types=[TaskType.multiple_choice],
+    )
+    item = BenchmarkItem(
+        id="item_1",
+        dimension_id=dimension.id,
+        task_type=TaskType.multiple_choice,
+        prompt="Which response is valid JSON?",
+        choices=["A. {}", "B. prose"],
+        answer="A",
+    )
+    qc = QcReport(passed_item_ids=[item.id], rejected_item_ids=[], issues=[], quality_score=0.9)
+    overview = format_human_review_overview(
+        BenchmarkDataset(spec=EvalSpec(objective="Evaluate format following", dimensions=[dimension]), items=[item]),
+        qc,
+        BenchmarkConfig(),
+    )
+
+    assert "EvaluationClaw benchmark is ready for human review." in overview
+    assert "format_following" in overview
+    assert "QC quality" in overview
+
+
+def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None:
+    base_dimension = EvalDimension(
+        id="core_capability",
+        name="Core capability",
+        description="Evaluate the main capability.",
+        approach="Use concise prompts.",
+        target_item_count=1,
+    )
+    dataset = BenchmarkDataset(
+        spec=EvalSpec(objective="Evaluate capability", dimensions=[base_dimension]),
+        items=[
+            BenchmarkItem(
+                id="base_item",
+                dimension_id=base_dimension.id,
+                task_type=TaskType.open_generation,
+                prompt="Explain the core capability.",
+                rubric="Score correctness.",
+            )
+        ],
+    )
+    qc = QcReport(passed_item_ids=["base_item"], rejected_item_ids=[], issues=[], quality_score=1.0)
+    new_dimension = EvalDimension(
+        id="agentic_escalation",
+        name="Agentic escalation",
+        description="Test multi-step escalation handling.",
+        approach="Use short agent-style probes.",
+        target_item_count=1,
+        task_types=[TaskType.open_generation],
+    )
+    generated_item = BenchmarkItem(
+        id="generated_item",
+        dimension_id=new_dimension.id,
+        task_type=TaskType.open_generation,
+        prompt="Describe escalation handling.",
+        rubric="Score clarity.",
+    )
+
+    def fake_planner_review(*args, **kwargs):
+        return {
+            "done": True,
+            "add_dimensions": [new_dimension.model_dump(mode="json")],
+            "needs_more_items": [{"dimension_id": new_dimension.id, "count": 1, "guidance": "Add one item."}],
+        }
+
+    def fake_generate_dimension_items(*args, **kwargs):
+        return [generated_item], [], "generated"
+
+    monkeypatch.setattr("evalclaw.planning_loop._planner_review", fake_planner_review)
+    monkeypatch.setattr("evalclaw.planning_loop.generate_dimension_items", fake_generate_dimension_items)
+
+    _, revised_dataset, revised_qc = apply_human_review_feedback(
+        dataset,
+        qc,
+        BenchmarkConfig(max_qc_iterations=1),
+        "Please add agentic escalation coverage.",
+    )
+
+    assert {dimension.id for dimension in revised_dataset.spec.dimensions} == {
+        "core_capability",
+        "agentic_escalation",
+    }
+    assert any(item.dimension_id == "agentic_escalation" for item in revised_dataset.items)
+    assert revised_qc.rejected_item_ids == []
+
+
+def test_human_review_ignores_destructive_delete_of_qc_passed_items(monkeypatch) -> None:
+    dimension = EvalDimension(
+        id="core_capability",
+        name="Core capability",
+        description="Evaluate the main capability.",
+        approach="Use concise prompts.",
+        target_item_count=1,
+        task_types=[TaskType.open_generation],
+    )
+    item = BenchmarkItem(
+        id="base_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.open_generation,
+        prompt="Explain the core capability.",
+        rubric="Score correctness.",
+    )
+    dataset = BenchmarkDataset(
+        spec=EvalSpec(objective="Evaluate capability", dimensions=[dimension]),
+        items=[item],
+    )
+    qc = QcReport(passed_item_ids=["base_item"], rejected_item_ids=[], issues=[], quality_score=1.0)
+
+    def fake_planner_review(*args, **kwargs):
+        return {"done": False, "delete_item_ids": ["base_item"], "notes": "Prefer another item."}
+
+    monkeypatch.setattr("evalclaw.planning_loop._planner_review", fake_planner_review)
+
+    _, revised_dataset, revised_qc = apply_human_review_feedback(
+        dataset,
+        qc,
+        BenchmarkConfig(max_qc_iterations=1),
+        "Review the item.",
+    )
+
+    assert [revised_item.id for revised_item in revised_dataset.items] == ["base_item"]
+    assert revised_qc.rejected_item_ids == []

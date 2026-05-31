@@ -58,6 +58,33 @@ def _parse_targets(
     return targets
 
 
+def _parse_reference_model(
+    reference_model: Optional[str],
+    reference_provider: Optional[str],
+    reference_api_key: Optional[str],
+    reference_base_url: Optional[str],
+    fallback_key: Optional[str],
+) -> Optional[TargetModelConfig]:
+    if not reference_model:
+        return None
+    reference_id = f"reference_{reference_model.replace('/', '_').replace(':', '_')}"
+    if reference_provider:
+        return TargetModelConfig(
+            id=reference_id,
+            provider=reference_provider,
+            model=reference_model,
+            api_key=reference_api_key or fallback_key,
+            base_url=reference_base_url,
+        )
+    return target_from_model(
+        reference_model,
+        target_id=reference_id,
+        api_key=reference_api_key,
+        base_url=reference_base_url,
+        fallback_key=fallback_key,
+    )
+
+
 def _print_summary(pkg: BenchmarkPackage) -> None:
     console.print()
     console.print(Panel("[bold]EvaluationClaw Summary[/bold]", expand=False))
@@ -104,30 +131,65 @@ def generate(
         "--compare",
         help="Additional target model to compare. May be repeated.",
     ),
+    reference_model: Optional[str] = typer.Option(
+        None,
+        "--reference-model",
+        help="Optional reference model for pairwise target-vs-reference evaluation items.",
+    ),
+    reference_provider: Optional[str] = typer.Option(
+        None,
+        "--reference-provider",
+        help="Optional provider/category for --reference-model, e.g. anthropic, openai, openai_compatible, or mock.",
+    ),
     orchestrator_model: str = typer.Option(
         "claude-opus-4-6",
         "--orchestrator-model",
         help="Model used for planner/generator/QC/judge.",
+    ),
+    task_agent_model: Optional[str] = typer.Option(
+        None,
+        "--task-agent-model",
+        help="Optional model for per-item task agents in complex interactive evaluations. Defaults to the orchestrator model.",
     ),
     api_key: Optional[str] = typer.Option(
         None,
         "--api-key",
         help="Orchestrator API key. Defaults to provider env vars such as ANTHROPIC_API_KEY, GEMINI_API_KEY, or DEEPSEEK_API_KEY.",
     ),
+    task_agent_api_key: Optional[str] = typer.Option(
+        None,
+        "--task-agent-api-key",
+        help="Optional API key for --task-agent-model. Defaults to provider env vars or the orchestrator key.",
+    ),
     target_api_key: Optional[str] = typer.Option(
         None,
         "--target-api-key",
         help="Primary target API key. Compare targets use provider environment defaults.",
+    ),
+    reference_api_key: Optional[str] = typer.Option(
+        None,
+        "--reference-api-key",
+        help="API key for --reference-model. Defaults to provider env vars or the orchestrator key.",
     ),
     base_url: Optional[str] = typer.Option(
         None,
         "--base-url",
         help="OpenAI-compatible base URL for the primary target.",
     ),
+    reference_base_url: Optional[str] = typer.Option(
+        None,
+        "--reference-base-url",
+        help="OpenAI-compatible base URL for --reference-model.",
+    ),
     orchestrator_base_url: Optional[str] = typer.Option(
         None,
         "--orchestrator-base-url",
         help="OpenAI-compatible base URL for the orchestrator.",
+    ),
+    task_agent_base_url: Optional[str] = typer.Option(
+        None,
+        "--task-agent-base-url",
+        help="OpenAI-compatible base URL for --task-agent-model.",
     ),
     questions_per_dimension: int = typer.Option(5, "--qpd", help="Items per dimension."),
     max_planner_iterations: int = typer.Option(5, "--max-planner-iterations", help="Planner self-critique iterations."),
@@ -142,6 +204,11 @@ def generate(
     single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one judge pass instead of the default double-pass audit."),
     llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto, litellm, or legacy."),
     runner: str = typer.Option("direct", "--runner", help="Runner mode: direct, lm-eval, or auto."),
+    human_review: bool = typer.Option(
+        False,
+        "--human-review",
+        help="Pause before running targets so a human can approve or request dimension/item revisions.",
+    ),
     improve_iterations: int = typer.Option(0, "--improve-iterations", help="Loop 3 self-improvement iterations after the first run."),
     loop3_diagnosis: str = typer.Option("llm", "--loop3-diagnosis", help="Loop 3 diagnosis mode: llm or local."),
     loop3_timeout: int = typer.Option(90, "--loop3-timeout", help="Loop 3 LLM diagnosis timeout in seconds."),
@@ -177,6 +244,14 @@ def generate(
         api_key=api_key,
         base_url=orchestrator_base_url,
     )
+    effective_task_agent_key = None
+    effective_task_agent_base = None
+    if task_agent_model:
+        effective_task_agent_key, effective_task_agent_base = orchestrator_defaults(
+            task_agent_model,
+            api_key=task_agent_api_key or effective_api_key,
+            base_url=task_agent_base_url,
+        )
 
     targets = _parse_targets(
         model,
@@ -185,11 +260,22 @@ def generate(
         base_url,
         fallback_key=effective_api_key,
     )
+    reference = _parse_reference_model(
+        reference_model,
+        reference_provider,
+        reference_api_key,
+        reference_base_url,
+        fallback_key=effective_api_key,
+    )
     config = BenchmarkConfig(
         orchestrator_model=orchestrator_model,
         orchestrator_api_key=effective_api_key,
         orchestrator_base_url=effective_orch_base,
+        task_agent_model=task_agent_model,
+        task_agent_api_key=effective_task_agent_key,
+        task_agent_base_url=effective_task_agent_base,
         targets=targets,
+        reference_model=reference,
         scale_budget=parsed_scale_budget,
         questions_per_dimension=questions_per_dimension,
         max_planner_iterations=max_planner_iterations,
@@ -202,6 +288,7 @@ def generate(
         judge_double_pass=not single_pass_judge,
         llm_backend=llm_backend,
         runner=runner,
+        human_review=human_review,
         improve_iterations=improve_iterations,
         loop3_diagnosis=loop3_diagnosis,
         loop3_diagnosis_timeout_s=loop3_timeout,

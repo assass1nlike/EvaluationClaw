@@ -6,6 +6,12 @@ import re
 from typing import Optional
 
 from .llm import call_llm, extract_json
+from .prompts.planner import PLANNER_SYSTEM_PROMPT, TRANSLATION_SYSTEM_PROMPT
+from .protocols.multimodal import (
+    MULTIMODAL_GENERATION_GUIDANCE,
+    MULTIMODAL_SCHEMA,
+    text_requests_multimodal,
+)
 from .types import (
     BenchmarkConfig,
     Difficulty,
@@ -21,98 +27,6 @@ from .types import (
 
 _CJK_RE = re.compile(r"[\u3400-\u9fff]")
 
-_TRANSLATION_SYSTEM = """\
-You translate and normalize evaluation requests for EvaluationClaw.
-Return JSON only: {"english_goal": "..."}.
-
-Translate non-English user requests into concise, precise English before they
-are used by the planner. Preserve all technical intent, scope, constraints,
-model names, budget words, benchmark names, and domain terms. If the user is
-asking to evaluate a non-English capability, describe that requirement in
-English rather than replacing it with an English-only task.
-"""
-
-_SYSTEM = """\
-You are the EvaluationClaw Planner. Your job is to disambiguate a natural-language
-evaluation request into an executable eval_spec.
-
-Use English for all generated JSON fields unless the evaluation explicitly tests
-non-English language ability. If the input request was originally non-English,
-assume it has been translated/normalized to English before planning.
-
-You must cover these 6 checklist items:
-1. objective: what capability or behavior is being evaluated
-2. subjects: which models or model families are being evaluated
-3. format: task types and task forms
-4. content: dimensions, subdomains, and target difficulty
-5. scale: evaluation size
-6. metrics: metrics such as accuracy, exact_match, judge_score, pass@1
-
-Return pure JSON only, with no markdown. Format:
-{
-  "spec": {
-    "id": "snake_case_id",
-    "objective": "...",
-    "subjects": ["..."],
-    "task_types": ["multiple_choice", "open_generation"],
-    "scale_budget": "mid",
-    "scale": 40,
-    "metrics": ["accuracy", "judge_score"],
-    "constraints": ["..."],
-    "planner_notes": "...",
-    "dimensions": [
-      {
-        "id": "snake_case",
-        "name": "...",
-        "description": "...",
-        "approach": "...",
-        "weight": 1.0,
-        "target_difficulty": "L4",
-        "needs_research": true,
-        "research_queries": ["..."]
-      }
-    ]
-  },
-  "critique": {
-    "checklist": {"objective": true, "subjects": true, "format": true, "content": true, "scale": true, "metrics": true},
-    "score": 4.5,
-    "missing_items": [],
-    "notes": "..."
-  }
-}
-
-Requirements:
-- Usually create 3-6 dimensions with non-overlapping measurement targets.
-- If the user did not specify models, use subjects ["user_supplied_targets"].
-- Use needs_research/search sparingly. Set needs_research=true only when existing
-  resources are better than model-generated items, such as when tasks are hard to
-  synthesize, require large or standardized coverage, exceed reliable model item
-  generation, require real sources, or need calibration against existing benchmarks.
-- If you choose search/research_queries, prefer harder, authoritative,
-  reproducible benchmarks/sources that match the user need. Do not introduce
-  content drift merely to find a source.
-- If the model can reliably generate relevant high-difficulty items and existing
-  resources would reduce relevance or difficulty, set needs_research=false.
-- Agent or tool-interaction capabilities may use task_type "agent_interaction".
-- Do not design a difficulty ladder or drift away from the requested content just
-  to include hard tasks. Within content that matches the user need, target the
-  hardest suitable difficulty.
-- target_difficulty is the intended difficulty for the dimension. Usually use L4;
-  use L5 for expert, long-horizon, or complex interaction evaluations; use L3
-  only for basic smoke dimensions.
-- scale_budget is the global relative budget specified by the user and must be
-  one of low/mid/high. Do not change it.
-- scale is your estimate of the relative item count based on both scale_budget and
-  how much the content deserves to be evaluated. Do not mechanically apply fixed
-  item counts.
-- low: cover only core dimensions, keep dimensions/metrics/constraints lean, and
-  fit a smoke-test-sized run.
-- mid: cover main dimensions and key boundary cases for a regular evaluation.
-- high: split dimensions more finely and cover sources, difficulty, and
-  interaction details for a deeper evaluation.
-"""
-
-
 def _contains_cjk(text: str) -> bool:
     return bool(_CJK_RE.search(text))
 
@@ -124,7 +38,7 @@ def translate_goal_to_english(goal: str, config: BenchmarkConfig) -> str:
     try:
         raw = call_llm(
             [Message(role="user", content=goal)],
-            system=_TRANSLATION_SYSTEM,
+            system=TRANSLATION_SYSTEM_PROMPT,
             model=config.orchestrator_model,
             api_key=config.orchestrator_api_key,
             base_url=config.orchestrator_base_url,
@@ -147,6 +61,9 @@ def _safe_task_type(value: object) -> TaskType:
         "qa": TaskType.short_answer,
         "agent": TaskType.agent_interaction,
         "agent_interactive": TaskType.agent_interaction,
+        "pairwise": TaskType.pairwise_preference,
+        "preference": TaskType.pairwise_preference,
+        "arena": TaskType.pairwise_preference,
     }
     text = str(value)
     if text in aliases:
@@ -158,7 +75,7 @@ def _safe_task_type(value: object) -> TaskType:
 
 
 def _safe_metric(value: object) -> Metric:
-    aliases = {"pass@1": Metric.pass_at_1, "pass_at_1": Metric.pass_at_1}
+    aliases = {"pass@1": Metric.pass_at_1, "pass_at_1": Metric.pass_at_1, "winrate": Metric.win_rate}
     text = str(value)
     if text in aliases:
         return aliases[text]
@@ -177,22 +94,36 @@ def _safe_scale_budget(value: object, fallback: ScaleBudget = ScaleBudget.mid) -
         return fallback
 
 
+def _safe_optional_int(value: object) -> int | None:
+    if value is None:
+        return None
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
+
+
 def _scale_budget_guidance(scale_budget: ScaleBudget) -> str:
     guidance = {
         ScaleBudget.low: (
-            "Use LOW budget: make a lean eval spec. Prefer 2-3 dimensions, minimal metrics, "
-            "and only essential constraints. The planned scale should reflect a smoke-test-sized run "
-            "unless the content truly requires more."
+            "Use LOW budget: make a lean eval spec. Treat this as a rough anchor for about 2-3 dimensions "
+            "and roughly 12 items, but adjust downward if the task requires heavier items or upward if the "
+            "objective needs a little more breadth. Simple multiple_choice/open_generation items are lighter; "
+            "multi_turn, agent_interaction, and code_sandbox items are heavier, so fewer of them may still "
+            "fit the budget. Keep only essential metrics and constraints."
         ),
         ScaleBudget.mid: (
-            "Use MID budget: make a balanced eval spec. Prefer 3-5 dimensions, core metrics, "
-            "and enough constraints to make generation/execution reliable. The planned scale should "
-            "cover main capabilities and key edge cases."
+            "Use MID budget: make a balanced eval spec. Treat this as a rough anchor for about 3-5 dimensions "
+            "and roughly 30 items, then adjust for the actual objective. Use a heavier item mix only when the "
+            "capability naturally requires it: one multi_turn or agent_interaction item can carry more workload "
+            "than several simple items. Cover main capabilities and key edge cases without forcing a fixed quota."
         ),
         ScaleBudget.high: (
-            "Use HIGH budget: make a deeper eval spec. Prefer 4-7 dimensions when justified, "
-            "explicit source/execution/scoring constraints, richer difficulty coverage, and more detailed "
-            "approaches for complex or agentic tasks."
+            "Use HIGH budget: make a deeper eval spec. Treat this as a rough anchor for about 4-7 dimensions "
+            "and roughly 60 items, but let the objective determine whether breadth or depth matters more. Split "
+            "dimensions more finely when needed, and use richer source/execution/scoring detail for complex or "
+            "agentic tasks. Heavier interactive items may count as more workload than many simple items."
         ),
     }
     return guidance[scale_budget]
@@ -215,6 +146,11 @@ def _slug(text: str) -> str:
 
 
 def _parse_spec(data: dict, goal: str, scale_budget: ScaleBudget) -> EvalSpec:
+    if isinstance(data, list):
+        for candidate in data:
+            if isinstance(candidate, dict):
+                return _parse_spec(candidate, goal, scale_budget)
+        data = {}
     spec_data = data.get("spec", data)
     parsed_budget = _safe_scale_budget(spec_data.get("scale_budget"), scale_budget)
     dims: list[EvalDimension] = []
@@ -232,6 +168,11 @@ def _parse_spec(data: dict, goal: str, scale_budget: ScaleBudget) -> EvalSpec:
                 target_difficulty=_safe_difficulty(dim.get("target_difficulty"), Difficulty.L4),
                 needs_research=bool(dim.get("needs_research", False)),
                 research_queries=[str(q) for q in dim.get("research_queries", []) if q],
+                target_item_count=_safe_optional_int(dim.get("target_item_count")),
+                target_source_backed_count=max(0, _safe_optional_int(dim.get("target_source_backed_count")) or 0),
+                target_generated_count=_safe_optional_int(dim.get("target_generated_count")),
+                task_types=[_safe_task_type(x) for x in dim.get("task_types", [])],
+                item_requirements=[str(x) for x in dim.get("item_requirements", []) if x],
             )
         )
 
@@ -279,6 +220,14 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             weight=1.0,
             target_difficulty=Difficulty.L4,
             needs_research=False,
+            target_item_count=None,
+            target_source_backed_count=0,
+            target_generated_count=None,
+            task_types=[TaskType.open_generation, TaskType.multiple_choice],
+            item_requirements=[
+                "Measure only the central capability requested by the user.",
+                "Provide clear scoring criteria and avoid generic trivia.",
+            ],
         ),
         EvalDimension(
             id="robustness",
@@ -288,6 +237,14 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             weight=1.0,
             target_difficulty=Difficulty.L4,
             needs_research=False,
+            target_item_count=None,
+            target_source_backed_count=0,
+            target_generated_count=None,
+            task_types=[TaskType.open_generation, TaskType.multiple_choice],
+            item_requirements=[
+                "Use edge cases, ambiguity, or distractors while staying aligned with the user goal.",
+                "Do not drift into unrelated robustness topics.",
+            ],
         ),
         EvalDimension(
             id="calibration",
@@ -297,6 +254,14 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             weight=1.0,
             target_difficulty=Difficulty.L4,
             needs_research=False,
+            target_item_count=None,
+            target_source_backed_count=0,
+            target_generated_count=None,
+            task_types=[TaskType.open_generation],
+            item_requirements=[
+                "Test calibrated uncertainty and avoidance of unsupported claims.",
+                "Rubrics should reward concise uncertainty handling when evidence is insufficient.",
+            ],
         ),
     ]
 
@@ -357,15 +322,28 @@ def plan_eval_spec(
             "hard-to-synthesize tasks, large/standardized coverage, expert difficulty beyond reliable model generation, "
             "or need for real benchmark/source calibration. Prefer the hardest suitable sources that match the user goal."
         ),
+        "reference_model": config.reference_model.model_dump(mode="json") if config.reference_model else None,
+        "pairwise_policy": (
+            "If reference_model is present, you may include pairwise_preference task types for dimensions where "
+            "target-vs-reference comparison is more informative than absolute scoring. Do not use pairwise_preference "
+            "without reference_model."
+        ),
         "questions_per_dimension": config.questions_per_dimension,
         "feedback": feedback,
         "previous_spec": previous_spec.model_dump(mode="json") if previous_spec else None,
     }
+    if text_requests_multimodal(goal):
+        context["multimodal_policy"] = (
+            "The user explicitly requested non-text or multimodal evaluation. Create at least one dimension "
+            "that requires metadata.multimodal, and keep multimodal assets necessary for the tested capability."
+        )
+        context["multimodal_schema"] = MULTIMODAL_SCHEMA
+        context["multimodal_generation_guidance"] = MULTIMODAL_GENERATION_GUIDANCE
 
     for _ in range(max(1, config.max_planner_iterations)):
         raw = call_llm(
             [Message(role="user", content=json.dumps(context, ensure_ascii=False, indent=2))],
-            system=_SYSTEM,
+            system=PLANNER_SYSTEM_PROMPT,
             model=config.orchestrator_model,
             api_key=config.orchestrator_api_key,
             base_url=config.orchestrator_base_url,

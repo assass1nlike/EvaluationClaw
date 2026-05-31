@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evaluationclaw.local/schemas/task-agent-spec.v1.json",
+  "title": "EvaluationClaw Task Agent Spec",
+  "description": "Standard metadata.task_agent object for complex multi-turn, simulated, or agentic benchmark items.",
+  "type": "object",
+  "required": ["schema_version", "agent_role", "system_prompt", "scoring"],
+  "properties": {
+    "schema_version": {
+      "const": "evalclaw.task_agent.v1",
+      "description": "Schema version for this standardized task-agent JSON object."
+    },
+    "agent_role": {
+      "type": "string",
+      "description": "Role of the task-specific agent, such as dialogue_simulator, environment_controller, target_agent_executor, or judge."
+    },
+    "system_prompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Complete system prompt for the task-specific agent. It should state the evaluation being executed, the agent role, turn-by-turn behavior, constraints, and secrecy requirements."
+    },
+    "initial_content": {
+      "type": ["object", "string"],
+      "description": "Initial scenario, state, persona, repository brief, visible files, or other setup needed to execute the item.",
+      "properties": {
+        "scenario": {
+          "type": "string",
+          "description": "Natural-language description of the initial scenario or task context."
+        },
+        "files": {
+          "type": "object",
+          "description": "Initial visible files for repository/workspace tasks. Keys are relative paths; values are full file contents.",
+          "additionalProperties": {"type": "string"}
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional non-secret setup notes."
+        }
+      },
+      "additionalProperties": true
+    },
+    "interaction": {
+      "type": "object",
+      "description": "How the interaction should unfold.",
+      "properties": {
+        "max_turns": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Maximum number of helper-agent follow-up turns or simulated interaction steps."
+        },
+        "initial_user_message": {
+          "type": "string",
+          "description": "Optional first user message. If absent, BenchmarkItem.prompt is used."
+        },
+        "user_turns": {
+          "type": "array",
+          "description": "Optional deterministic follow-up user turns for multi-turn dialogue tasks.",
+          "items": {"type": "string"}
+        },
+        "followup_instruction": {
+          "type": "string",
+          "description": "Instruction telling the helper agent how to choose the next user turn from the transcript."
+        },
+        "stop_condition": {
+          "type": "string",
+          "description": "When the task-specific agent should stop the interaction."
+        }
+      },
+      "additionalProperties": true
+    },
+    "scoring": {
+      "type": "object",
+      "description": "Scoring guidance for the item.",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": ["agent_judge", "runner_judge", "deterministic", "task_agent_judge"],
+          "description": "agent_judge/task_agent_judge uses the task agent as judge; runner_judge uses the normal judge with this guidance; deterministic uses environment scoring."
+        },
+        "instructions": {
+          "type": "string",
+          "description": "General scoring instructions for transcript or trace evaluation."
+        },
+        "levels": {
+          "type": "object",
+          "description": "Score-level meanings, usually 1-5.",
+          "additionalProperties": {"type": "string"}
+        },
+        "pass_fail": {
+          "type": "object",
+          "description": "Pass/partial/fail standards for deterministic or simulated completion tasks.",
+          "properties": {
+            "pass": {"type": "string"},
+            "partial": {"type": "string"},
+            "fail": {"type": "string"}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "execution": {
+      "type": "object",
+      "description": "Execution environment information.",
+      "properties": {
+        "environment_type": {
+          "type": "string",
+          "description": "dialogue, workspace, code_sandbox, or another runner-supported environment type."
+        },
+        "agent_env": {
+          "type": "object",
+          "description": "Optional built-in environment config. For current runner compatibility, also copy this object to metadata.agent_env."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

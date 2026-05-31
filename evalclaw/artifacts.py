@@ -17,6 +17,10 @@ def _yaml_scalar(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def _portable_path(value: Path) -> str:
+    return value.as_posix()
+
+
 def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[str, Path]:
     """Write a minimal lm-eval-harness compatible dataset and task YAML.
 
@@ -53,7 +57,8 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
         item.task_type == TaskType.multiple_choice for item in dataset.items
     ) else "generate_until"
     requires_custom_judge = any(
-        item.task_type in {TaskType.open_generation, TaskType.multi_turn, TaskType.agent_interaction}
+        item.task_type
+        in {TaskType.open_generation, TaskType.multi_turn, TaskType.agent_interaction, TaskType.pairwise_preference}
         for item in dataset.items
     )
     metric = "acc" if output_type == "multiple_choice" else "exact_match"
@@ -62,7 +67,7 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
         "dataset_path: json",
         "dataset_kwargs:",
         "  data_files:",
-        f"    test: {_yaml_scalar(str(jsonl_path))}",
+        f"    test: {_yaml_scalar(_portable_path(jsonl_path))}",
         "test_split: test",
         f"output_type: {output_type}",
         "doc_to_text: \"{{question}}\"",

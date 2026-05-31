@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import copy
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from .protocols.tool import ToolSpec, format_tool_specs_for_prompt, object_schema
 from .types import BenchmarkItem
-
 
 DEFAULT_WORKSPACE_ENV: dict[str, Any] = {
     "type": "workspace",
@@ -28,6 +29,14 @@ DEFAULT_WORKSPACE_ENV: dict[str, Any] = {
     "goal": {"outgoing_bin": ["blue_notebook", "charged_tablet"]},
     "max_steps": 8,
 }
+
+
+def _platform_test_command(command: str) -> str:
+    stripped = command.strip()
+    if stripped == "python3" or stripped.startswith("python3 "):
+        executable = subprocess.list2cmdline([sys.executable])
+        return executable + stripped[len("python3") :]
+    return command
 
 
 @dataclass
@@ -89,17 +98,45 @@ class WorkspaceAgentEnvironment:
     def required_items(self) -> set[str]:
         return set(self.goal.get("outgoing_bin", []))
 
+    def tool_specs(self) -> list[ToolSpec]:
+        return [
+            ToolSpec(
+                name="look",
+                description="Inspect the current room, inventory, outgoing bin, and goal state.",
+                parameters=object_schema(),
+            ),
+            ToolSpec(
+                name="move",
+                description="Move to another room in the workspace.",
+                parameters=object_schema(
+                    {"room": {"type": "string", "enum": sorted(self.rooms)}},
+                    required=["room"],
+                ),
+            ),
+            ToolSpec(
+                name="inspect",
+                description="Inspect a visible or carried item for extra details.",
+                parameters=object_schema({"item": {"type": "string"}}, required=["item"]),
+            ),
+            ToolSpec(
+                name="take",
+                description="Pick up a visible item in the current room.",
+                parameters=object_schema({"item": {"type": "string"}}, required=["item"]),
+            ),
+            ToolSpec(
+                name="place",
+                description="Place a carried item into the outgoing bin. Only works in the mailroom.",
+                parameters=object_schema({"item": {"type": "string"}}, required=["item"]),
+            ),
+            ToolSpec(
+                name="final",
+                description="Finish the task with a brief completion summary.",
+                parameters=object_schema({"answer": {"type": "string"}}),
+            ),
+        ]
+
     def action_schema(self) -> str:
-        rooms = ", ".join(sorted(self.rooms))
-        return (
-            "Return exactly one JSON object per turn. Valid actions:\n"
-            '- {"action":"look","args":{}}\n'
-            f'- {{"action":"move","args":{{"room":"<one of: {rooms}>"}}}}\n'
-            '- {"action":"inspect","args":{"item":"<visible or carried item>"}}\n'
-            '- {"action":"take","args":{"item":"<visible item>"}}\n'
-            '- {"action":"place","args":{"item":"<carried item>"}}  # only works in mailroom\n'
-            '- {"action":"final","args":{"answer":"brief completion summary"}}'
-        )
+        return format_tool_specs_for_prompt(self.tool_specs())
 
     def observation(self) -> str:
         visible = self.rooms.get(self.room, [])
@@ -303,15 +340,40 @@ class CodeSandboxAgentEnvironment:
                 files.append(rel)
         return sorted(files)
 
+    def tool_specs(self) -> list[ToolSpec]:
+        return [
+            ToolSpec(
+                name="list_files",
+                description="List visible files in the sandbox workspace.",
+                parameters=object_schema(),
+            ),
+            ToolSpec(
+                name="read_file",
+                description="Read a visible file by relative path. Hidden files cannot be read.",
+                parameters=object_schema({"path": {"type": "string"}}, required=["path"]),
+            ),
+            ToolSpec(
+                name="write_file",
+                description="Write complete file content to a visible relative path.",
+                parameters=object_schema(
+                    {"path": {"type": "string"}, "content": {"type": "string"}},
+                    required=["path", "content"],
+                ),
+            ),
+            ToolSpec(
+                name="run_tests",
+                description="Run the configured test command, including hidden tests when present.",
+                parameters=object_schema(),
+            ),
+            ToolSpec(
+                name="final",
+                description="Finish the task with a brief completion summary.",
+                parameters=object_schema({"answer": {"type": "string"}}),
+            ),
+        ]
+
     def action_schema(self) -> str:
-        return (
-            "Return exactly one JSON object per turn. Valid actions:\n"
-            '- {"action":"list_files","args":{}}\n'
-            '- {"action":"read_file","args":{"path":"relative/path.py"}}\n'
-            '- {"action":"write_file","args":{"path":"relative/path.py","content":"full file content"}}\n'
-            '- {"action":"run_tests","args":{}}\n'
-            '- {"action":"final","args":{"answer":"brief completion summary"}}'
-        )
+        return format_tool_specs_for_prompt(self.tool_specs())
 
     def observation(self) -> str:
         test_summary = "not run"
@@ -365,7 +427,7 @@ class CodeSandboxAgentEnvironment:
             self.test_runs += 1
             try:
                 proc = subprocess.run(
-                    self.test_command,
+                    _platform_test_command(self.test_command),
                     shell=True,
                     cwd=self.root,
                     input="",
@@ -445,8 +507,19 @@ class CodeSandboxAgentEnvironment:
 
 def build_agent_environment(item: BenchmarkItem) -> WorkspaceAgentEnvironment | CodeSandboxAgentEnvironment:
     config = item.metadata.get("agent_env")
+    task_agent = item.metadata.get("task_agent")
+    if not isinstance(config, dict) and isinstance(task_agent, dict):
+        execution = task_agent.get("execution")
+        if isinstance(execution, dict) and isinstance(execution.get("agent_env"), dict):
+            config = execution["agent_env"]
     if not isinstance(config, dict):
         config = copy.deepcopy(DEFAULT_WORKSPACE_ENV)
+    if isinstance(task_agent, dict) and config.get("type") == "code_sandbox":
+        initial = task_agent.get("initial_content")
+        if isinstance(initial, dict) and isinstance(initial.get("files"), dict) and not isinstance(
+            config.get("visible_files") or config.get("files"), dict
+        ):
+            config = {**config, "visible_files": initial["files"]}
     env_type = str(config.get("type") or "workspace")
     if env_type == "workspace":
         return WorkspaceAgentEnvironment.from_config(config)

@@ -6,7 +6,16 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from .types import BenchmarkDataset, EvalReport, EvalRun, ItemResult, QcReport, SourceKind, TargetSummary, TaskType
+from .types import (
+    BenchmarkDataset,
+    EvalReport,
+    EvalRun,
+    ItemResult,
+    QcReport,
+    SourceKind,
+    TargetSummary,
+    TaskType,
+)
 
 
 def _pct(value: float) -> str:
@@ -586,6 +595,15 @@ def _format_transcript(raw_response: str, task_type: TaskType) -> str:
                 )
             chunks.extend(["", "Final state:", json.dumps(parsed.get("final_state", {}), ensure_ascii=False, indent=2)])
             return "\n".join(chunks)
+    if task_type == TaskType.pairwise_preference and isinstance(parsed, dict):
+        return "\n\n".join(
+            [
+                f"Winner: {parsed.get('winner', '-')}",
+                f"Reference model: {parsed.get('reference_model', '-')}",
+                "Target response:\n" + _clip(str(parsed.get("target_response", "")), 1600),
+                "Reference response:\n" + _clip(str(parsed.get("reference_response", "")), 1600),
+            ]
+        )
     return raw_response
 
 
