@@ -1,0 +1,865 @@
+﻿{
+  "case_id": "instruction_following_with_distractors",
+  "goal": "Evaluate whether the target model follows multi-step instructions with distractors while preserving required format and order.",
+  "config": {
+    "orchestrator_model": "deepseek-reasoner",
+    "orchestrator_api_key": "[REDACTED]",
+    "orchestrator_base_url": "https://api.deepseek.com",
+    "task_agent_model": "deepseek-reasoner",
+    "task_agent_api_key": "[REDACTED]",
+    "task_agent_base_url": "https://api.deepseek.com",
+    "targets": [
+      {
+        "id": "deepseek-chat",
+        "provider": "openai_compatible",
+        "model": "deepseek-chat",
+        "api_key": "[REDACTED]",
+        "base_url": "https://api.deepseek.com"
+      }
+    ],
+    "reference_model": null,
+    "scale_budget": "mid",
+    "questions_per_dimension": 2,
+    "max_planner_iterations": 5,
+    "max_qc_iterations": 4,
+    "max_research_sources": 3,
+    "max_hf_records_per_dimension": 0,
+    "output_dir": "benchmark-output\\planner-loop-mid-cases\\instruction_following_with_distractors",
+    "run_targets": false,
+    "use_web_research": false,
+    "use_hf_discovery": false,
+    "judge_double_pass": true,
+    "llm_backend": "legacy",
+    "runner": "direct",
+    "human_review": false,
+    "improve_iterations": 0,
+    "loop3_diagnosis": "llm",
+    "loop3_diagnosis_timeout_s": 90,
+    "loop3_max_actions": 4
+  },
+  "spec": {
+    "id": "multi_step_instruction_following_distractors",
+    "objective": "Evaluate whether the target model follows multi-step instructions with distractors while preserving required format and order.",
+    "subjects": [
+      "deepseek-chat"
+    ],
+    "task_types": [
+      "open_generation",
+      "multi_turn"
+    ],
+    "dimensions": [
+      {
+        "id": "baseline_sequential",
+        "name": "Baseline sequential instruction following",
+        "description": "Follow a sequence of 3-5 explicit steps in order, outputting results in a specified format (e.g., numbered list). No distractors.",
+        "approach": "Generate prompts that list several steps (e.g., write a summary, then list three keywords, then provide a numerical calculation). The required output format is specified. Score based on whether all steps are completed in the specified order with correct formatting.",
+        "weight": 1.0,
+        "target_difficulty": "L3",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 2,
+        "target_source_backed_count": 0,
+        "target_generated_count": 2,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Each item must include exactly 3-5 sequential instructions, with a clear required output format (e.g., numbered list, bulleted list, key-value pair).",
+          "Do not include any distractor instructions or irrelevant extra steps.",
+          "The ground truth answer must specify the exact expected output for each step in order.",
+          "Scoring metadata: produce a ground_truth_output field, and an optional order_check field for verifying step order."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "distractor_irrelevant_instructions",
+        "name": "Distractor irrelevant instructions",
+        "description": "Follow a set of relevant instructions while ignoring one or two irrelevant instructions embedded in the prompt.",
+        "approach": "Generate prompts that mix relevant steps with irrelevant ones (e.g., 'Ignore the following: move item X elsewhere' or include instructions about unrelated tasks). The model must perform only the relevant steps in the prescribed format.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 2,
+        "target_source_backed_count": 0,
+        "target_generated_count": 2,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Each item must contain 3-5 total instructions, with 1-2 of them being distractors (irrelevant to the primary task).",
+          "Distractors should be clearly marked as irrelevant in the prompt (e.g., 'Note: This step is optional' or by context) but still easy to mistake if not careful.",
+          "The required output format must be specified and must match only the relevant steps.",
+          "Scoring metadata: include a ground_truth_answer listing only the relevant steps in correct order, and a distractor_list identifying which instructions are distractors."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "distractor_order_preservation",
+        "name": "Distractor order preservation",
+        "description": "Follow instructions in the given order despite distractors that attempt to reorder or mislead about the sequence.",
+        "approach": "Generate prompts where the relevant instructions are numbered or ordered, but distractors suggest a different order or contain contradictory ordering cues. The model must output results in the original specified order.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 2,
+        "target_source_backed_count": 0,
+        "target_generated_count": 2,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Each item must have 3-5 relevant steps in a specific order, plus 1-2 distractors that mention reordering or alternative sequences.",
+          "The required output format must preserve the original order (e.g., 'Output the results in the order they were first listed').",
+          "Scoring metadata: ground_truth_output in correct order, and an order_check field that verifies the correct sequence."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "format_adherence_with_distractors",
+        "name": "Format adherence with distractors",
+        "description": "Produce output in a specified format (e.g., JSON, markdown list, table) while ignoring distractors that suggest different formats.",
+        "approach": "Generate prompts that require output in a specific format (e.g., 'Respond with a JSON object containing keys x, y, z'). Include distractors that propose alternative formats or incomplete formatting hints.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 2,
+        "target_source_backed_count": 0,
+        "target_generated_count": 2,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Each item must specify a clear output format (e.g., JSON, Markdown list, YAML).",
+          "Include 1-2 distractors that mention or use a different format (e.g., 'If helpful, you can also use bullet points').",
+          "The ground truth output must be a valid instance of the required format containing the correct data.",
+          "Scoring metadata: include format_requirement string and a ground_truth_output that exactly matches expected format."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "multi_turn_instruction_distractors",
+        "name": "Multi-turn instruction following with distractors",
+        "description": "Follow a sequence of instructions delivered across multiple conversational turns, with some turns containing distractors or misleading information.",
+        "approach": "Create multi-turn dialogue scenarios where each turn adds a new instruction or introduces a distractor. The model must accumulate and follow all relevant instructions in order while ignoring distractors, and output a final consolidated result in a specified format.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 2,
+        "target_source_backed_count": 0,
+        "target_generated_count": 2,
+        "task_types": [
+          "multi_turn"
+        ],
+        "item_requirements": [
+          "Each item must be a multi_turn interaction with 3-5 user turns.",
+          "Include 1-2 distractor turns that contain irrelevant or misleading instructions.",
+          "The final turn must request output in a specific format (e.g., summary list, JSON).",
+          "Scoring metadata: produce a structured task_agent metadata following evalclaw.task_agent.v1 schema, with agent_role='dialogue_simulator', system_prompt describing the task, and scoring criteria based on cumulative execution.",
+          "The ground truth must specify the expected final output after all turns, ignoring distractors."
+        ],
+        "difficulty_distribution": {}
+      }
+    ],
+    "scale_budget": "mid",
+    "scale": 10,
+    "metrics": [
+      "accuracy",
+      "judge_score"
+    ],
+    "constraints": [
+      "Each dimension must contain exactly 2 items as per user's questions_per_dimension constraint.",
+      "Items must have well-defined ground truth for order and format requirements.",
+      "Distractors must be clearly distinguishable from relevant instructions for scoring purposes."
+    ],
+    "planner_notes": "The user specified questions_per_dimension=2, which limits total item count to 2 per dimension. With 5 dimensions, total items = 10, which is below typical mid-budget anchor (~30). This is accepted as a trade-off to keep dimensions focused. Each dimension targets a distinct aspect of multi-step instruction following.",
+    "critique": {
+      "checklist": {
+        "objective": true,
+        "subjects": true,
+        "format": true,
+        "content": true,
+        "scale": true,
+        "metrics": true
+      },
+      "score": 4.5,
+      "missing_items": [],
+      "notes": "The spec covers multi-step instruction following with distractors across 5 dimensions, each with 2 items, totaling 10 items. Scale is below typical mid-budget but respects user's questions_per_dimension constraint. All dimensions are self-generated, no external research needed. Metrics include accuracy for format/order and judge_score for quality. Task types are open_generation and multi_turn, appropriate for the goal."
+    }
+  },
+  "dataset": {
+    "spec": {
+      "id": "multi_step_instruction_following_distractors",
+      "objective": "Evaluate whether the target model follows multi-step instructions with distractors while preserving required format and order.",
+      "subjects": [
+        "deepseek-chat"
+      ],
+      "task_types": [
+        "open_generation",
+        "multi_turn"
+      ],
+      "dimensions": [
+        {
+          "id": "baseline_sequential",
+          "name": "Baseline sequential instruction following",
+          "description": "Follow a sequence of 3-5 explicit steps in order, outputting results in a specified format (e.g., numbered list). No distractors.",
+          "approach": "Generate prompts that list several steps (e.g., write a summary, then list three keywords, then provide a numerical calculation). The required output format is specified. Score based on whether all steps are completed in the specified order with correct formatting.",
+          "weight": 1.0,
+          "target_difficulty": "L3",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 2,
+          "target_source_backed_count": 0,
+          "target_generated_count": 2,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Each item must include exactly 3-5 sequential instructions, with a clear required output format (e.g., numbered list, bulleted list, key-value pair).",
+            "Do not include any distractor instructions or irrelevant extra steps.",
+            "The ground truth answer must specify the exact expected output for each step in order.",
+            "Scoring metadata: produce a ground_truth_output field, and an optional order_check field for verifying step order."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "distractor_irrelevant_instructions",
+          "name": "Distractor irrelevant instructions",
+          "description": "Follow a set of relevant instructions while ignoring one or two irrelevant instructions embedded in the prompt.",
+          "approach": "Generate prompts that mix relevant steps with irrelevant ones (e.g., 'Ignore the following: move item X elsewhere' or include instructions about unrelated tasks). The model must perform only the relevant steps in the prescribed format.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 2,
+          "target_source_backed_count": 0,
+          "target_generated_count": 2,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Each item must contain 3-5 total instructions, with 1-2 of them being distractors (irrelevant to the primary task).",
+            "Distractors should be clearly marked as irrelevant in the prompt (e.g., 'Note: This step is optional' or by context) but still easy to mistake if not careful.",
+            "The required output format must be specified and must match only the relevant steps.",
+            "Scoring metadata: include a ground_truth_answer listing only the relevant steps in correct order, and a distractor_list identifying which instructions are distractors."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "distractor_order_preservation",
+          "name": "Distractor order preservation",
+          "description": "Follow instructions in the given order despite distractors that attempt to reorder or mislead about the sequence.",
+          "approach": "Generate prompts where the relevant instructions are numbered or ordered, but distractors suggest a different order or contain contradictory ordering cues. The model must output results in the original specified order.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 2,
+          "target_source_backed_count": 0,
+          "target_generated_count": 2,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Each item must have 3-5 relevant steps in a specific order, plus 1-2 distractors that mention reordering or alternative sequences.",
+            "The required output format must preserve the original order (e.g., 'Output the results in the order they were first listed').",
+            "Scoring metadata: ground_truth_output in correct order, and an order_check field that verifies the correct sequence."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "format_adherence_with_distractors",
+          "name": "Format adherence with distractors",
+          "description": "Produce output in a specified format (e.g., JSON, markdown list, table) while ignoring distractors that suggest different formats.",
+          "approach": "Generate prompts that require output in a specific format (e.g., 'Respond with a JSON object containing keys x, y, z'). Include distractors that propose alternative formats or incomplete formatting hints.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 2,
+          "target_source_backed_count": 0,
+          "target_generated_count": 2,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Each item must specify a clear output format (e.g., JSON, Markdown list, YAML).",
+            "Include 1-2 distractors that mention or use a different format (e.g., 'If helpful, you can also use bullet points').",
+            "The ground truth output must be a valid instance of the required format containing the correct data.",
+            "Scoring metadata: include format_requirement string and a ground_truth_output that exactly matches expected format."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "multi_turn_instruction_distractors",
+          "name": "Multi-turn instruction following with distractors",
+          "description": "Follow a sequence of instructions delivered across multiple conversational turns, with some turns containing distractors or misleading information.",
+          "approach": "Create multi-turn dialogue scenarios where each turn adds a new instruction or introduces a distractor. The model must accumulate and follow all relevant instructions in order while ignoring distractors, and output a final consolidated result in a specified format.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 2,
+          "target_source_backed_count": 0,
+          "target_generated_count": 2,
+          "task_types": [
+            "multi_turn"
+          ],
+          "item_requirements": [
+            "Each item must be a multi_turn interaction with 3-5 user turns.",
+            "Include 1-2 distractor turns that contain irrelevant or misleading instructions.",
+            "The final turn must request output in a specific format (e.g., summary list, JSON).",
+            "Scoring metadata: produce a structured task_agent metadata following evalclaw.task_agent.v1 schema, with agent_role='dialogue_simulator', system_prompt describing the task, and scoring criteria based on cumulative execution.",
+            "The ground truth must specify the expected final output after all turns, ignoring distractors."
+          ],
+          "difficulty_distribution": {}
+        }
+      ],
+      "scale_budget": "mid",
+      "scale": 10,
+      "metrics": [
+        "accuracy",
+        "judge_score"
+      ],
+      "constraints": [
+        "Each dimension must contain exactly 2 items as per user's questions_per_dimension constraint.",
+        "Items must have well-defined ground truth for order and format requirements.",
+        "Distractors must be clearly distinguishable from relevant instructions for scoring purposes."
+      ],
+      "planner_notes": "The user specified questions_per_dimension=2, which limits total item count to 2 per dimension. With 5 dimensions, total items = 10, which is below typical mid-budget anchor (~30). This is accepted as a trade-off to keep dimensions focused. Each dimension targets a distinct aspect of multi-step instruction following.",
+      "critique": {
+        "checklist": {
+          "objective": true,
+          "subjects": true,
+          "format": true,
+          "content": true,
+          "scale": true,
+          "metrics": true
+        },
+        "score": 4.5,
+        "missing_items": [],
+        "notes": "The spec covers multi-step instruction following with distractors across 5 dimensions, each with 2 items, totaling 10 items. Scale is below typical mid-budget but respects user's questions_per_dimension constraint. All dimensions are self-generated, no external research needed. Metrics include accuracy for format/order and judge_score for quality. Task types are open_generation and multi_turn, appropriate for the goal."
+      }
+    },
+    "items": [
+      {
+        "id": "baseline_sequential_ca8f5b6414",
+        "dimension_id": "baseline_sequential",
+        "task_type": "open_generation",
+        "prompt": "Perform the following steps in the order given. Output your results as a key-value pair on separate lines, like:\nSorted numbers: [list]\nAverage: number\n\n1. Sort this list of numbers in ascending order: [45, 12, 78, 23, 9, 56].\n2. Calculate the arithmetic mean (average) of the numbers in the sorted list. Show the value rounded to one decimal place.\n3. Write the final output using exactly the format described above.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5: 5 = All three steps completed in correct order, format matches key-value pair, sorted list correct [9, 12, 23, 45, 56, 78], average correct 37.2. 4 = Minor formatting error but content correct. 3 = Order correct but one calculation or sort error. 2 = Two steps correct but order wrong. 1 = One or zero correct steps or format completely wrong.",
+        "test_code": null,
+        "difficulty": "L3",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "instruction_following",
+          "baseline_sequential",
+          "multi_step",
+          "key_value"
+        ],
+        "metadata": {
+          "ground_truth_output": "Sorted numbers: [9, 12, 23, 45, 56, 78]\nAverage: 37.2",
+          "order_check": "steps must appear as 1->2->3 in the output"
+        }
+      },
+      {
+        "id": "distractor_order_preservation_86813d33fb",
+        "dimension_id": "distractor_order_preservation",
+        "task_type": "open_generation",
+        "prompt": "You are planning a business trip. Follow these steps strictly in the order they are given. Ignore any suggestions to reorder them.\n\nSteps:\n1. Choose a destination city.\n2. Select a hotel.\n3. Identify a local restaurant for dinner.\n\nOutput your results as a bulleted list with the bullet points in the exact order above. Remember to maintain the original sequence despite any alternative ordering hints you may have encountered elsewhere. (Note: A common approach is to book the hotel first, then destination, then restaurant, but please disregard that for this task.)",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score the output on a scale of 1 to 5:\n- 5: All three steps are included in the correct order (destination, hotel, restaurant) as a bulleted list. The content is plausible and matches each step's requirement.\n- 4: All steps present and in correct order, but minor format deviation (e.g., numbered instead of bullets) or one step content is slightly off.\n- 3: All steps present but order is partially incorrect (e.g., hotel, destination, restaurant) or one step missing.\n- 2: Multiple steps out of order or missing, or format completely wrong.\n- 1: Output does not follow the steps at all, or order is entirely reversed.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_order_preservation",
+          "instruction_following",
+          "self_generated"
+        ],
+        "metadata": {
+          "ground_truth_output": "• Destination: (any city name)\n• Hotel: (any hotel name)\n• Restaurant: (any restaurant name)",
+          "order_check": "Verify that the bulleted list contains exactly three items in the order: destination, hotel, restaurant."
+        }
+      },
+      {
+        "id": "distractor_order_preservation_08c9eebf2c",
+        "dimension_id": "distractor_order_preservation",
+        "task_type": "open_generation",
+        "prompt": "You are a data analyst summarizing a quarterly sales report. Follow these steps in the order given, ignoring any alternative ordering suggestions.\n\nSteps:\n1. State the overall sales trend (increase, decrease, or stable).\n2. Identify the best-performing product category.\n3. Recommend one action to improve sales.\n\nOutput your answer as a numbered list in the exact order as above. Do not reorder the steps, even if you think a different order might be more logical. Note: Some analysts prefer to start with recommendations, then trends, then categories, but you must adhere to the original sequence.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score the output on a scale of 1 to 5:\n- 5: All three steps are included in the correct order (trend, category, recommendation) as a numbered list. Each item is a reasonable response for the step.\n- 4: All steps present and in correct order, but minor format deviation (e.g., bullets instead of numbers) or one step content is weakly relevant.\n- 3: All steps present but order is partially incorrect (e.g., category, trend, recommendation) or one step missing.\n- 2: Multiple steps out of order or missing, or format completely wrong.\n- 1: Output does not follow the steps at all, or order is entirely reversed.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_order_preservation",
+          "instruction_following",
+          "self_generated"
+        ],
+        "metadata": {
+          "ground_truth_output": "1. (overall sales trend)\n2. (best-performing product category)\n3. (recommended action to improve sales)",
+          "order_check": "Verify that the numbered list contains exactly three items in the order: trend, category, recommendation."
+        }
+      },
+      {
+        "id": "format_adherence_with_distractors_eea90bddd3",
+        "dimension_id": "format_adherence_with_distractors",
+        "task_type": "open_generation",
+        "prompt": "Below is a description of a new software tool called 'TaskFlow'. TaskFlow is a project management app that allows teams to create tasks, assign deadlines, and track progress. Output the following information in a JSON object with keys: 'name', 'features' (array of strings), 'target_users' (string). The features are: real-time collaboration, automated reminders, and custom reports. The target users are small to medium-sized teams. If needed, you could also present the data as a markdown table. But ensure your primary output is JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score the response on a scale of 1 to 5:\n\n5: Output is valid JSON exactly matching the required structure with correct keys and values. The response does not include any alternative format (e.g., no markdown table, no additional commentary).\n\n4: Output is valid JSON with correct content, but includes a minor extraneous element (e.g., a brief comment suggesting the alternative format) that does not interfere with the JSON.\n\n3: Output is valid JSON but missing one required key or has an incorrect value type. Or the output is a mix of JSON and another format (e.g., JSON followed by a markdown table).\n\n2: Output is not JSON but uses one of the mentioned alternative formats (e.g., markdown table) with correct content.\n\n1: Output is in an unspecified format, incomplete, or contains major errors.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "format_adherence",
+          "distractor_irrelevant_format",
+          "json",
+          "multi_step_instruction"
+        ],
+        "metadata": {
+          "format_requirement": "JSON with keys: name (string), features (array of strings), target_users (string)",
+          "ground_truth_output": "{\"name\":\"TaskFlow\",\"features\":[\"real-time collaboration\",\"automated reminders\",\"custom reports\"],\"target_users\":\"small to medium-sized teams\"}"
+        }
+      },
+      {
+        "id": "format_adherence_with_distractors_b0f6a8138e",
+        "dimension_id": "format_adherence_with_distractors",
+        "task_type": "open_generation",
+        "prompt": "Here is a summary of a team retrospective meeting: The team discussed the successful launch of version 2.0, identified a need for better documentation, and decided to create documentation guidelines as an action item. Output this information in YAML format with the following structure:\n- key: 'meeting_type'\n- key: 'positives' (list of strings)\n- key: 'improvements' (list of strings)\n- key: 'action_items' (list of strings)\nThe YAML keys should match exactly. If you prefer, you can also use comma-separated values or a plain numbered list, but the required format is YAML.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score the response on a scale of 1 to 5:\n\n5: Output is valid YAML exactly matching the required structure with correct keys and values. No alternative format is used.\n\n4: Output is valid YAML with correct content, but includes an extraneous comment or minor formatting deviation (e.g., extra whitespace, comment lines) that does not affect data correctness.\n\n3: Output is valid YAML but missing one required key or has an incorrect value type. Or the output is a mix of YAML and another format.\n\n2: Output uses one of the mentioned alternative formats (e.g., CSV, numbered list) with correct content.\n\n1: Output is in a completely different format, incomplete, or contains major errors.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "format_adherence",
+          "distractor_irrelevant_format",
+          "yaml",
+          "multi_step_instruction"
+        ],
+        "metadata": {
+          "format_requirement": "YAML with keys: meeting_type (string), positives (list of strings), improvements (list of strings), action_items (list of strings)",
+          "ground_truth_output": "meeting_type: team retrospective\npositives:\n  - successful launch of version 2.0\nimprovements:\n  - need for better documentation\naction_items:\n  - create documentation guidelines"
+        }
+      },
+      {
+        "id": "baseline_sequential_e6176507b7",
+        "dimension_id": "baseline_sequential",
+        "task_type": "open_generation",
+        "prompt": "Follow these instructions in the exact order given. Output your response as a numbered list (1., 2., 3.) with each step's result on its own line. Do not include any extra commentary.\n\n1. Read the following description of a book club meeting and write a one-sentence summary that captures the main idea.\n   Description: \"The Maple Street Book Club meets every first Tuesday of the month at the local library. This month's selection is 'The Night Circus' by Erin Morgenstern. Members will discuss the themes of illusion and reality, share their favorite passages, and then vote on next month's book.\"\n\n2. Based on the description, list exactly three activities that occur during the meeting. Provide them as a comma-separated list on a single line.\n\n3. The meeting room has 20 chairs. If 7 members are already seated and 5 more arrive, calculate the number of empty chairs remaining. Provide the answer as a single number.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: All three steps completed in order. Summary is a single sentence capturing the main idea (book club meets monthly to discuss a book, share passages, and vote on next). Three activities listed: discuss themes, share passages, vote on next book (order within the list does not matter). Calculation yields 8. Output is a numbered list exactly as specified.\nScore 3: Two steps completed correctly, but one step is missing, out of order, or format deviates (e.g., extra commentary, sub-bullets).\nScore 1: Only one step completed or major errors in multiple steps.",
+        "test_code": null,
+        "difficulty": "L3",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "instruction_following",
+          "sequential",
+          "no_distractors",
+          "summary",
+          "calculation"
+        ],
+        "metadata": {
+          "ground_truth_output": "1. The Maple Street Book Club meets monthly at the library to discuss \"The Night Circus\", share favorite passages, and vote on the next book.\n2. Discuss themes of illusion and reality, Share favorite passages, Vote on next month's book\n3. 8",
+          "order_check": [
+            "summary",
+            "activity_list",
+            "calculation"
+          ]
+        }
+      },
+      {
+        "id": "distractor_irrelevant_instructions_b53acf6147",
+        "dimension_id": "distractor_irrelevant_instructions",
+        "task_type": "open_generation",
+        "prompt": "You are organizing a small team-building event. Please follow the steps below and output the results in a numbered list showing only the steps that are directly relevant to planning the event. Ignore any optional or irrelevant instructions.\n\nInstructions:\n1. Decide on a date and time for the event.\n2. Optional: Research the history of team-building exercises. (This step is not required.)\n3. Choose a venue or activity (e.g., bowling, escape room).\n4. (Bonus step) Calculate the average age of team members. (This is not part of event planning.)\n5. Send a calendar invitation to all participants.\n\nOutput format: Provide a numbered list with the relevant steps, each described in a sentence.",
+        "choices": [],
+        "answer": "1. Decide on a date and time for the event.\n2. Choose a venue or activity (e.g., bowling, escape room).\n3. Send a calendar invitation to all participants.",
+        "rubric": "Score 5: Output includes exactly the three relevant steps (1,3,5) in correct numbered order, each described correctly, ignoring distractors.\nScore 4: All relevant steps present but minor formatting issue (e.g., no description or improper numbering).\nScore 3: Two relevant steps correctly output, one missing or extra distractor included.\nScore 2: Only one relevant step or multiple errors.\nScore 1: Completely off or includes all instructions.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "instruction_following",
+          "distractor_irrelevant",
+          "event_planning",
+          "numbered_list"
+        ],
+        "metadata": {
+          "ground_truth_answer": "1. Decide on a date and time for the event.\n2. Choose a venue or activity (e.g., bowling, escape room).\n3. Send a calendar invitation to all participants.",
+          "distractor_list": [
+            2,
+            4
+          ],
+          "format_requirement": "numbered list with each step described in a sentence"
+        }
+      },
+      {
+        "id": "distractor_irrelevant_instructions_843b7e72f4",
+        "dimension_id": "distractor_irrelevant_instructions",
+        "task_type": "open_generation",
+        "prompt": "Read the following product review:\n\n\"I recently bought the TechGizmo X100 and I'm really impressed. The battery life lasts a full day even with heavy use, and the camera takes stunning photos. However, the software is a bit buggy and the price is on the high side. Overall, I'd recommend it to tech enthusiasts.\"\n\nNow perform the following steps:\n\n1. Identify the overall sentiment of the review (positive, negative, or neutral).\n2. List the two product features mentioned most prominently.\n3. (Optional) Count the number of adjectives in the review.\n4. (Optional) Suggest one product improvement based on the review.\n\nOutput your answer as a numbered list containing only the results for steps 1 and 2. Do not include steps 3 or 4 in your output.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: Output is a numbered list exactly with '1.' for sentiment and '2.' for the two features, in that order. No extra content. Sentiment is correctly identified (positive), features are correctly listed as 'battery life' and 'camera' (or equivalent phrasing). Score 4: Output includes the two required steps in correct order but also includes extra irrelevant content (e.g., results for distractor steps) OR one feature is incorrectly listed. Score 3: Output includes only one of the required steps or the order is reversed. Score 2: Output includes distractors instead of required steps or is missing both required steps. Score 1: Output does not follow the numbered list format or is off-topic.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "instruction_following",
+          "distractor_irrelevant",
+          "open_generation"
+        ],
+        "metadata": {
+          "ground_truth_answer": "1. positive\n2. battery life and camera",
+          "distractor_list": [
+            "Step 3: (Optional) Count the number of adjectives in the review.",
+            "Step 4: (Optional) Suggest one product improvement based on the review."
+          ]
+        }
+      },
+      {
+        "id": "multi_turn_instruction_distractors_61a4e47d17",
+        "dimension_id": "multi_turn_instruction_distractors",
+        "task_type": "multi_turn",
+        "prompt": "From the meeting transcript below, list the three main action items in order of priority.\n\nTranscript: During the Q2 review meeting, the team agreed on three action items: first, finalize the marketing campaign by Friday; second, update the inventory system; third, schedule client interviews. The budget for these items is $500, $1200, and $350 respectively.",
+        "choices": [],
+        "answer": null,
+        "rubric": "The model receives 5 user turns. The first, third, and fifth turns are relevant; the second and fourth are distractors. The final output must be a valid JSON object with keys 'action_items' (list of the three action items from turn 1), 'total_budget' (sum from turn 3), and 'project_phase' (string 'Q2'). The output must not include distractor content (thank-you note or weather opinion). Scoring:\n5: Perfect JSON with correct values, no distractor content.\n4: JSON correct but minor formatting issues or one value slightly off.\n3: JSON correct but includes distractor content or missing one key.\n2: JSON present but significant errors in values or structure.\n1: No JSON or completely wrong output.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "multi_turn",
+          "instruction_following",
+          "distractor",
+          "json_output",
+          "meeting_transcript"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a user who gives a series of instructions to the target model. Follow the scripted user turns exactly. Do not deviate based on the model's responses. Deliver each turn one at a time, waiting for the model's response before proceeding to the next turn. After the fifth user turn and receiving the model's response, stop the dialogue. Do not disclose that you are following a script.",
+            "initial_content": {
+              "scenario": "The user is providing instructions based on a meeting transcript. The target model must follow only the relevant instructions and ignore distractors.",
+              "files": {},
+              "notes": ""
+            },
+            "interaction": {
+              "max_turns": 5,
+              "user_turns": [
+                "From the meeting transcript below, list the three main action items in order of priority.\n\nTranscript: During the Q2 review meeting, the team agreed on three action items: first, finalize the marketing campaign by Friday; second, update the inventory system; third, schedule client interviews. The budget for these items is $500, $1200, and $350 respectively.",
+                "Ignore the action items for now and draft a thank-you note to the speaker.",
+                "Calculate the total budget allocated for each action item: Action item A: $500, B: $1200, C: $350. Sum them up.",
+                "Also, tell me your opinion on the weather.",
+                "Finally, output a JSON object with keys 'action_items' (list of the three items from step 1), 'total_budget' (sum from step 3), and 'project_phase' (which is 'Q2' as mentioned in the transcript). Only include the JSON."
+              ],
+              "followup_instruction": "After each user turn, wait for the model's response, then deliver the next user turn from the list.",
+              "stop_condition": "After delivering the fifth user turn and receiving the model's response, stop the dialogue."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the final consolidated output from the model's last response. Check that it is valid JSON with the required keys and correct values. Penalize inclusion of distractor content (thank-you note, weather) in any part of the final output. Use the levels below.",
+              "levels": {
+                "5": "Perfect final JSON with correct values and no distractor content.",
+                "4": "Minor formatting issues or one value slightly off, but no distractor content.",
+                "3": "JSON correct but includes distractor content or missing one key.",
+                "2": "JSON present but significant errors in values or structure.",
+                "1": "No JSON or completely wrong output."
+              },
+              "pass_fail": {
+                "pass": "Final output is a valid JSON object with exactly the three required keys and correct values, and no distractor content present.",
+                "partial": "Final output is valid JSON but contains incorrect values or includes distractor content.",
+                "fail": "Final output is not valid JSON or is missing required keys."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "ground_truth_output": "{\n  \"action_items\": [\"Finalize marketing campaign by Friday\", \"Update inventory system\", \"Schedule client interviews\"],\n  \"total_budget\": 2050,\n  \"project_phase\": \"Q2\"\n}",
+          "distractor_list": [
+            "Ignore the action items for now and draft a thank-you note to the speaker.",
+            "Also, tell me your opinion on the weather."
+          ]
+        }
+      },
+      {
+        "id": "multi_turn_instruction_distractors_2ccbb806e6",
+        "dimension_id": "multi_turn_instruction_distractors",
+        "task_type": "multi_turn",
+        "prompt": "You are helping a user plan a company picnic. The user will give you instructions over several turns. Pay attention to each instruction, but ignore any that are marked as optional or irrelevant. At the final turn, provide a consolidated response in the specified format.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: Final output is a numbered list with exactly three relevant planning steps (venue booking, refreshments, activities) and a budget estimate, no extra items from distractors. Score 3: Final output includes all relevant items but also mentions a distractor (weather or color scheme). Score 1: Final output misses relevant steps, follows distractors, or does not use numbered list format.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "multi_turn",
+          "instruction_following",
+          "distractors",
+          "format_adherence"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a user who is giving instructions for planning a company picnic. Follow the scripted turns exactly. Wait for the model's response after each turn before proceeding. Do not reveal that you are a simulator. Do not add extra instructions. Enforce the turn order strictly.",
+            "initial_content": {
+              "scenario": "User wants to plan a company picnic. The user will provide instructions over multiple turns. Some turns contain optional or irrelevant instructions that should be ignored."
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": "I need to plan a company picnic. First, list the key steps: venue booking, refreshments planning, and activities arrangement. Please respond to each instruction as we go, but I will give you the final format later.",
+              "user_turns": [
+                "Also, I'll need a rough budget estimate for the picnic. Please include that when you consolidate.",
+                "You might also want to consider the weather forecast for the day, but that's not necessary for the plan.",
+                "Please also think about the color scheme for the decorations, though it's optional.",
+                "Now provide a final summary in the form of a numbered list with only the relevant steps and the budget estimate. Ignore anything I said that was optional or unnecessary."
+              ],
+              "followup_instruction": "After receiving the model's response to the current turn, say the next user turn exactly as scripted. Stop after the model responds to the final turn.",
+              "stop_condition": "Stop after the model has responded to the fifth user turn (the final turn requesting the numbered list)."
+            },
+            "scoring": {
+              "method": "runner_judge",
+              "instructions": "Score the final consolidated output from the model. Check that it is a numbered list containing exactly the three relevant planning steps (venue booking, refreshments, activities) and a budget estimate. Penalize if any distractor content (weather, color scheme) is included in the list. Also check that the list is numbered and includes the required elements.",
+              "levels": {
+                "5": "Numbered list with all three relevant steps and budget, no distractor content, correct order.",
+                "3": "Includes all relevant steps but also mentions weather or color scheme, or misses one step.",
+                "1": "Missing multiple steps, follows distractors, or wrong format."
+              },
+              "pass_fail": {
+                "pass": "Final output is a numbered list containing venue booking, refreshments, activities, and budget estimate, with no reference to weather or color scheme.",
+                "partial": "Final output contains all required elements but also includes distractor content.",
+                "fail": "Final output does not include all required elements or uses incorrect format."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue"
+            }
+          }
+        }
+      },
+      {
+        "id": "baseline_sequential_11043ce0e6",
+        "dimension_id": "baseline_sequential",
+        "task_type": "open_generation",
+        "prompt": "Follow these steps exactly in order and output your results as a numbered list (1. 2. 3.) with each step's result on a new line.\n\nStep 1: Summarize the following paragraph in a single sentence.\n\"The Amazon rainforest, often referred to as the 'lungs of the Earth,' produces approximately 20% of the world's oxygen. It spans over 5.5 million square kilometers and is home to an estimated 390 billion individual trees belonging to 16,000 species. Deforestation rates have increased in recent years, threatening biodiversity and global climate stability.\"\n\nStep 2: List exactly three keywords from the paragraph that capture its main themes.\n\nStep 3: Calculate the total number of words in the provided paragraph (including the title or heading word 'The' at the start). Output only the number.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n- 5: All three steps completed in correct order, each matching the required format (numbered list with step numbers). Step 1: a single sentence summary that captures the essence (Amazon rainforest, oxygen, deforestation, biodiversity, climate). Step 2: three keywords from the paragraph (e.g., oxygen, deforestation, biodiversity). Step 3: correct word count (52 words including 'The'). Exact wording may vary but order and format must be correct.\n- 4: All steps completed but minor deviation in format (e.g., missing numbering) or one step slightly off (e.g., summary too long, keywords not from paragraph, word count off by 1-2).\n- 3: Two steps clearly correct, one missing or severely incorrect.\n- 2: Only one step correctly done.\n- 1: No steps followed correctly or output does not match instructions.",
+        "test_code": null,
+        "difficulty": "L3",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "instruction_following",
+          "sequential",
+          "baseline",
+          "no_distractors",
+          "open_generation"
+        ],
+        "metadata": {
+          "ground_truth_output": "1. The Amazon rainforest, called the 'lungs of the Earth,' produces much of the world's oxygen but faces deforestation threats to biodiversity and climate.\n2. oxygen, deforestation, biodiversity\n3. 52",
+          "order_check": "Steps must appear as 1, 2, 3 in order."
+        }
+      },
+      {
+        "id": "distractor_irrelevant_instructions_2831a5b5c4",
+        "dimension_id": "distractor_irrelevant_instructions",
+        "task_type": "open_generation",
+        "prompt": "You are preparing a meeting agenda. Please follow these instructions:\n1. State the meeting date as 'January 15, 2025'.\n2. List three agenda topics: Budget Review, Project Update, and Q&A Session.\n3. State the meeting duration as '60 minutes'.\nNote: The following step is optional and can be ignored: include a list of expected attendees.\nOutput your response as a bulleted list with exactly three items in the order given above.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: Output is a bulleted list with exactly three items in the correct order (date, topics, duration), uses the exact specified values, and does not include any attendee information. Score 4: All three items present in correct order with expected values, but minor formatting issues (e.g., extra spaces, wrong bullet style). Score 3: Missing one relevant step OR includes distractor content (attendees) OR order is wrong. Score 2: Missing two relevant steps or contains major errors. Score 1: No relevant output or completely wrong format.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "instruction_following",
+          "distractor_irrelevant",
+          "meeting_agenda",
+          "open_generation"
+        ],
+        "metadata": {
+          "ground_truth_answer": [
+            "Meeting date: January 15, 2025",
+            "Agenda topics: Budget Review, Project Update, Q&A Session",
+            "Meeting duration: 60 minutes"
+          ],
+          "distractor_list": [
+            "include a list of expected attendees"
+          ]
+        }
+      },
+      {
+        "id": "multi_turn_instruction_distractors_7341f38ae9",
+        "dimension_id": "multi_turn_instruction_distractors",
+        "task_type": "multi_turn",
+        "prompt": "I need to pick dates for a team outing in July. First, list three potential dates (just the dates, no explanation).",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: Output is exactly the three dates from Turn 1 in a valid JSON array with key 'dates', in any order. Score 3: Output includes the correct three dates but format is not valid JSON, or includes extra items. Score 1: Output includes distractor items or missing dates.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "multi_turn",
+          "instruction_following",
+          "distractor",
+          "format_adherence"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": "You are simulating a user who gives multi-turn instructions. You must follow the exact scripted list of user turns. Do not add extra turns or deviate from the script. Do not reveal that you are a simulator. The target model must accumulate relevant instructions across turns and produce a final output ignoring distractors.",
+            "initial_content": {
+              "scenario": "User is planning a team outing and needs to pick dates. They first ask for dates, then add a distractor about personal vacation spots, then ask for the final output in JSON format.",
+              "notes": "Turn 2 is a distractor: it asks for vacation spots, which should be ignored for the final answer."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": "I need to pick dates for a team outing in July. First, list three potential dates (just the dates, no explanation).",
+              "user_turns": [
+                "For your personal reference, also list two vacation spots you'd recommend.",
+                "Now, output the three dates in a JSON array with the key 'dates'."
+              ],
+              "followup_instruction": "Send the next user turn from the list exactly as written. Do not add commentary or change the text.",
+              "stop_condition": "After sending the last user turn, stop and let the model respond."
+            },
+            "scoring": {
+              "method": "runner_judge",
+              "instructions": "Check if the final model output is a valid JSON object containing a 'dates' key with an array of exactly three strings representing dates (e.g., 'July 10'). The dates must be the same three that the model listed in Turn 1. Ignore any vacation spots mentioned in Turn 2.",
+              "pass_fail": {
+                "pass": "Output is a JSON object with key 'dates' and an array of exactly three date strings from the first response.",
+                "partial": "Output is JSON but includes extra keys or the dates array has wrong number of items, or format is correct but dates are not from the first response.",
+                "fail": "Output is not JSON, or includes vacation spots, or omits dates."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue"
+            }
+          },
+          "ground_truth": "{\"dates\": [\"July 10\", \"July 17\", \"July 24\"]} (or any three dates from the model's first response; the grader should extract them)",
+          "distractor_turns": [
+            1
+          ]
+        }
+      }
+    ],
+    "sources": [],
+    "generation_notes": "baseline_sequential: Two open_generation items for baseline_sequential dimension. Both have exactly 3-5 sequential steps, clear output format, no distractors, and ground truth output with order check.\ndistractor_irrelevant_instructions: Generated two open_generation items for the distractor_irrelevant_instructions dimension. Each item includes 5 instructions (3 relevant, 2 distractors marked as 'optional'), with clear output format. Rubrics define 1-5 scoring based on complete and correct execution in order, ignoring distractors. Metadata includes ground_truth_answer and distractor_list.\ndistractor_order_preservation: Generated 2 open_generation items for distractor_order_preservation dimension. Each item has 3 relevant steps in a specific order plus 1 distractor that suggests an alternative order. The required output format (bulleted list or numbered list) preserves the original sequence. Scoring metadata includes ground_truth_output and order_check. Scenarios differ: one uses business trip planning, the other uses quarterly sales report summary, to avoid near-duplication.\nformat_adherence_with_distractors: Two open_generation items for the format_adherence_with_distractors dimension. Item 1 requires JSON output with a distractor suggesting a Markdown table. Item 2 requires YAML output with a distractor suggesting CSV. Both items include scoring metadata with format_requirement and ground_truth_output. Rubrics define 1-5 levels based on format adherence, distractor ignoring, and content completeness.\nmulti_turn_instruction_distractors: Generated two multi_turn items for the multi_turn_instruction_distractors dimension. Each item has 5 user turns (3-4 relevant instructions, 2 distractor turns). Final turn requests output in JSON format. Task_agent metadata follows evalclaw.task_agent.v1 schema with dialogue_simulator role. Ground truth specified for final output, ignoring distractors. Scenarios are distinct: one uses country population data, the other uses product pricing data.\nPlanner pre-run review:\nIgnored planner deletion of QC-passed item(s) that would underfill dimension(s) without replacement: baseline_sequential.\nPre-run repair generation:\nbaseline_sequential: Two open_generation items for baseline_sequential dimension. Each has 3 sequential instructions, clear output format (numbered list), no distractors. Ground truth outputs are illustrative; rubric accepts minor wording variations as long as meaning and order are preserved. Order_check field lists step identifiers to verify sequence.\nPlanner pre-run review:\nDeleted 1 planner-flagged off-target item(s).\nRemoved 2 QC-rejected item(s) before runner execution.\nPlanner pre-run review:\nDeleted 2 planner-flagged off-target item(s).\nPre-run repair generation:\ndistractor_irrelevant_instructions: Generated 2 open_generation items for dimension 'distractor_irrelevant_instructions'. Each item contains 4-5 total instructions with 1-2 distractors clearly marked as optional/unrelated. Output format specified and matches only relevant steps. Rubrics define 5-level scoring based on completeness, order, format, and distractor avoidance. Metadata includes ground_truth_answer and distractor_list.\ndistractor_irrelevant_instructions: One open_generation item for dimension distractor_irrelevant_instructions. The prompt contains 4 instructions, with 2 distractors marked as 'Optional'. The required output format is a numbered list covering only the 2 relevant steps. Ground truth and distractor list are provided in metadata.\nmulti_turn_instruction_distractors: Generated 2 multi_turn items for dimension 'multi_turn_instruction_distractors'. Each item has 5 user turns (3 relevant, 2 distractors). The final turn requests a specific output format (JSON or YAML). The task_agent metadata uses schema evalclaw.task_agent.v1 with agent_role=dialogue_simulator, deterministic user_turns, and max_turns matching user_turns length. Rubrics evaluate final consolidated output and ignoring distractors. Avoids provided prompts by using meeting minutes and sales data scenarios.\nmulti_turn_instruction_distractors: Generated 2 multi_turn items for dimension multi_turn_instruction_distractors. Each item has 3-5 user turns with 1-2 distractor turns. Final turn requests output in a specific format. task_agent metadata follows evalclaw.task_agent.v1 schema. Ground truth defines expected final output ignoring distractors. Scenarios are distinct: event planning and sales data analysis. Both avoid the population and product examples from avoid_prompts.\nPlanner pre-run review:\nIgnored planner deletion of QC-passed item(s) that would underfill dimension(s) without replacement: baseline_sequential, distractor_irrelevant_instructions, multi_turn_instruction_distractors.\nPre-run repair generation:\nbaseline_sequential: Generated two open_generation items for the baseline_sequential dimension. Each item has exactly 3 sequential instructions with a clear output format (numbered list or bulleted list). No distractors. Ground truth specified with step-by-step expected output. Rubric defines scoring based on completeness, order, and format adherence.\ndistractor_irrelevant_instructions: Generated two open_generation items for the 'distractor_irrelevant_instructions' dimension. Each item contains 3 relevant instructions and 1 distractor instruction, marked as optional/irrelevant. Output formats specified (bulleted list and JSON). Ground truth answers and distractor lists provided in metadata. Rubric defines scoring from 1 to 5 based on completeness, order, format, and distractor exclusion.\nmulti_turn_instruction_distractors: Generated two multi_turn items for the multi_turn_instruction_distractors dimension. Each item has 3-4 turns with exactly 1-2 distractor turns. The final turn requests output in a specific format (JSON or bulleted list). The dialogue simulator is defined via scripted user turns in metadata.task_agent.interaction.user_turns. Ground truth specifies the expected final output ignoring distractors.",
+    "created_at": "2026-05-31T01:16:19.895042+00:00"
+  },
+  "qc_report": {
+    "issues": [
+      {
+        "item_id": null,
+        "severity": "warning",
+        "category": "clarity",
+        "message": "LLM QC failed; static QC was used as fallback: JSON parse failed after repair attempt: Expecting value: line 1 column 1 (char 0)\nCandidate (first 800 chars):\n",
+        "suggested_action": "Retry with a smaller dataset, a different QC model, or local/static-only QC."
+      }
+    ],
+    "passed_item_ids": [
+      "baseline_sequential_ca8f5b6414",
+      "distractor_order_preservation_86813d33fb",
+      "distractor_order_preservation_08c9eebf2c",
+      "format_adherence_with_distractors_eea90bddd3",
+      "format_adherence_with_distractors_b0f6a8138e",
+      "baseline_sequential_e6176507b7",
+      "distractor_irrelevant_instructions_b53acf6147",
+      "distractor_irrelevant_instructions_843b7e72f4",
+      "multi_turn_instruction_distractors_61a4e47d17",
+      "multi_turn_instruction_distractors_2ccbb806e6",
+      "baseline_sequential_11043ce0e6",
+      "distractor_irrelevant_instructions_2831a5b5c4",
+      "multi_turn_instruction_distractors_7341f38ae9"
+    ],
+    "rejected_item_ids": [],
+    "quality_score": 0.9961538461538462,
+    "summary": "QC completed: 13/13 items passed, 0 rejected, 1 issues."
+  },
+  "overview_path": "benchmark-output\\planner-loop-mid-cases\\instruction_following_with_distractors\\human_review_overview.md",
+  "state_path": "benchmark-output\\planner-loop-mid-cases\\instruction_following_with_distractors\\pre_run_state.json"
+}

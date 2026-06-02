@@ -1,0 +1,778 @@
+﻿{
+  "case_id": "code_sandbox_bug_fix",
+  "goal": "Evaluate whether the target model can inspect a tiny Python repository in a sandbox, run tests, and fix a failing bug.",
+  "config": {
+    "orchestrator_model": "deepseek-reasoner",
+    "orchestrator_api_key": "[REDACTED]",
+    "orchestrator_base_url": "https://api.deepseek.com",
+    "task_agent_model": "deepseek-reasoner",
+    "task_agent_api_key": "[REDACTED]",
+    "task_agent_base_url": "https://api.deepseek.com",
+    "targets": [
+      {
+        "id": "deepseek-chat",
+        "provider": "openai_compatible",
+        "model": "deepseek-chat",
+        "api_key": "[REDACTED]",
+        "base_url": "https://api.deepseek.com"
+      }
+    ],
+    "reference_model": null,
+    "scale_budget": "mid",
+    "questions_per_dimension": 1,
+    "max_planner_iterations": 5,
+    "max_qc_iterations": 4,
+    "max_research_sources": 3,
+    "max_hf_records_per_dimension": 0,
+    "output_dir": "benchmark-output\\planner-loop-mid-cases\\code_sandbox_bug_fix",
+    "run_targets": false,
+    "use_web_research": false,
+    "use_hf_discovery": false,
+    "judge_double_pass": true,
+    "llm_backend": "legacy",
+    "runner": "direct",
+    "human_review": false,
+    "improve_iterations": 0,
+    "loop3_diagnosis": "llm",
+    "loop3_diagnosis_timeout_s": 90,
+    "loop3_max_actions": 4
+  },
+  "spec": {
+    "id": "python_repo_debug_and_fix",
+    "objective": "Evaluate whether the target model can inspect a tiny Python repository in a sandbox, run tests, and fix a failing bug by identifying and correcting the root cause.",
+    "subjects": [
+      "deepseek-chat"
+    ],
+    "task_types": [
+      "agent_interaction"
+    ],
+    "dimensions": [
+      {
+        "id": "logical_error",
+        "name": "Logical error in a simple function",
+        "description": "The target model must fix a function that returns wrong result due to an incorrect condition or expression logic (e.g., using `and` instead of `or`, swapped comparisons).",
+        "approach": "Generate a tiny Python repo with a single function that contains a logical bug and one test that fails. The model must inspect the code, run tests, identify the bug, and correct it.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 1,
+        "target_source_backed_count": 0,
+        "target_generated_count": 1,
+        "task_types": [
+          "agent_interaction"
+        ],
+        "item_requirements": [
+          "Create a tiny Python repository (e.g., 2 files: src.py and test.py).",
+          "Define a function with a logical error that produces wrong output for the test.",
+          "The test must be a single pytest test that fails on the buggy function and passes after the correct fix.",
+          "Use metadata.task_agent with agent_role='target_agent_executor' and environment_type='code_sandbox'.",
+          "system_prompt must tell the model it is a coding agent that must inspect files, run tests, and revise code to make all tests pass.",
+          "initial_content.file_preview must contain the full source and test files. Do not use a 'files' field; use the 'file_preview' map.",
+          "scoring.method must be 'deterministic' with pass/fail based on test exit code (0=pass). Judge can also evaluate fix quality on 1-5 scale (e.g., minimal diff, correct logic).",
+          "Do not include any comments or hints about the bug location or nature. In particular, initial_content.notes must be empty or contain only generic text (e.g., 'No additional setup required.').",
+          "Ensure metadata.agent_env.visible_files contains the source and test files and that execution.agent_env is fully populated (not null).",
+          "Ensure followup_instruction in interaction does not provide any hints about the bug; it should be neutral (e.g., 'Please continue debugging.')."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "off_by_one",
+        "name": "Off-by-one error in loop or index",
+        "description": "The target model must fix an off-by-one error in a loop range or list index (e.g., using `range(n-1)` instead of `range(n)`, or incorrect slice endpoint).",
+        "approach": "Generate a tiny Python repo with a function that has an off-by-one error causing a test to fail. Model must diagnose and fix.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 1,
+        "target_source_backed_count": 0,
+        "target_generated_count": 1,
+        "task_types": [
+          "agent_interaction"
+        ],
+        "item_requirements": [
+          "Create a tiny Python repository with one off-by-one error in a loop or indexing.",
+          "Include a single pytest test that fails due to the error.",
+          "Use metadata.task_agent as described in the logical error dimension, with same agent_role and environment config.",
+          "scoring.method 'deterministic' with pass/fail plus judge score for fix minimality.",
+          "The bug must be correctable by changing only one line.",
+          "Do not include any hints or comments about the bug location in visible code or initial content.",
+          "Use initial_content.file_preview for full source and test files.",
+          "Ensure execution.agent_env is fully populated (not null) and that visible_files contain the source and test files.",
+          "Ensure followup_instruction is neutral (no hints about bug)."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "incorrect_api_usage",
+        "name": "Wrong API usage or argument order",
+        "description": "The target model must fix incorrect usage of a standard library API (e.g., wrong argument name, wrong method, etc.).",
+        "approach": "Generate a repo where a function misuses a common Python API (e.g., wrong argument, wrong method). Model must correct it.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 1,
+        "target_source_backed_count": 0,
+        "target_generated_count": 1,
+        "task_types": [
+          "agent_interaction"
+        ],
+        "item_requirements": [
+          "Create a repo with a function that uses a standard library API incorrectly (e.g., wrong keyword argument, wrong number of arguments, wrong method name).",
+          "The test should fail because of the API misuse.",
+          "Same metadata.task_agent structure and scoring as previous dimensions.",
+          "Ensure the API misuse is realistic and fixable by correcting one line.",
+          "Do not leak the bug location in comments or notes.",
+          "Use initial_content.file_preview for full source and test files.",
+          "Ensure execution.agent_env is fully populated and visible_files contain source and test files.",
+          "Ensure followup_instruction is neutral (no hints about bug)."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "missing_edge_case",
+        "name": "Missing handling of edge case",
+        "description": "The target model must add handling for an edge case that the function currently ignores (e.g., empty list, None input).",
+        "approach": "Generate a repo where a function works for normal inputs but fails on a specific edge case (e.g., empty list, negative number). Model must add a guard or modify logic to handle the edge case.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 1,
+        "target_source_backed_count": 0,
+        "target_generated_count": 1,
+        "task_types": [
+          "agent_interaction"
+        ],
+        "item_requirements": [
+          "Create a repo where a function does not handle a standard edge case (e.g., empty input, zero value).",
+          "The test should cover that edge case and fail.",
+          "Same metadata.task_agent and scoring structure.",
+          "The fix should be a small addition or change (single line or simple if statement).",
+          "Use initial_content.file_preview for full source and test files.",
+          "Ensure execution.agent_env is fully populated and visible_files contain source and test files.",
+          "Ensure followup_instruction is neutral (no hints about bug)."
+        ],
+        "difficulty_distribution": {}
+      }
+    ],
+    "scale_budget": "mid",
+    "scale": 4,
+    "metrics": [
+      "accuracy",
+      "judge_score"
+    ],
+    "constraints": [
+      "All items must use self-contained Python repositories with exactly one failing test.",
+      "The repository must be tiny (fewer than 10 files, each under 50 lines).",
+      "The bug must be a single-edit fix (no refactoring or multiple changes required).",
+      "The model must execute code in a sandbox environment; agent_env must be code_sandbox.",
+      "Do not leak the fix or any hints in the initial content."
+    ],
+    "planner_notes": "Mid budget with heavy agent_interaction items. 4 dimensions (L4 difficulty) each with 1 generated item, total 4 items. Each dimension covers a distinct bug type. No research needed; all items are self-generated.",
+    "critique": {
+      "checklist": {
+        "objective": true,
+        "subjects": true,
+        "format": true,
+        "content": true,
+        "scale": true,
+        "metrics": true
+      },
+      "score": 5.0,
+      "missing_items": [],
+      "notes": "All checklist items covered. The spec includes 4 dimensions each with a distinct bug type, using agent_interaction task type with code_sandbox environment. scale_budget mid is appropriately represented by 4 heavy items. Metrics include accuracy (deterministic pass/fail) and judge_score. No research needed; items are self-generated. Constraints ensure reproducibility and fairness."
+    }
+  },
+  "dataset": {
+    "spec": {
+      "id": "python_repo_debug_and_fix",
+      "objective": "Evaluate whether the target model can inspect a tiny Python repository in a sandbox, run tests, and fix a failing bug by identifying and correcting the root cause.",
+      "subjects": [
+        "deepseek-chat"
+      ],
+      "task_types": [
+        "agent_interaction"
+      ],
+      "dimensions": [
+        {
+          "id": "logical_error",
+          "name": "Logical error in a simple function",
+          "description": "The target model must fix a function that returns wrong result due to an incorrect condition or expression logic (e.g., using `and` instead of `or`, swapped comparisons).",
+          "approach": "Generate a tiny Python repo with a single function that contains a logical bug and one test that fails. The model must inspect the code, run tests, identify the bug, and correct it.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 1,
+          "target_source_backed_count": 0,
+          "target_generated_count": 1,
+          "task_types": [
+            "agent_interaction"
+          ],
+          "item_requirements": [
+            "Create a tiny Python repository (e.g., 2 files: src.py and test.py).",
+            "Define a function with a logical error that produces wrong output for the test.",
+            "The test must be a single pytest test that fails on the buggy function and passes after the correct fix.",
+            "Use metadata.task_agent with agent_role='target_agent_executor' and environment_type='code_sandbox'.",
+            "system_prompt must tell the model it is a coding agent that must inspect files, run tests, and revise code to make all tests pass.",
+            "initial_content.file_preview must contain the full source and test files. Do not use a 'files' field; use the 'file_preview' map.",
+            "scoring.method must be 'deterministic' with pass/fail based on test exit code (0=pass). Judge can also evaluate fix quality on 1-5 scale (e.g., minimal diff, correct logic).",
+            "Do not include any comments or hints about the bug location or nature. In particular, initial_content.notes must be empty or contain only generic text (e.g., 'No additional setup required.').",
+            "Ensure metadata.agent_env.visible_files contains the source and test files and that execution.agent_env is fully populated (not null).",
+            "Ensure followup_instruction in interaction does not provide any hints about the bug; it should be neutral (e.g., 'Please continue debugging.')."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "off_by_one",
+          "name": "Off-by-one error in loop or index",
+          "description": "The target model must fix an off-by-one error in a loop range or list index (e.g., using `range(n-1)` instead of `range(n)`, or incorrect slice endpoint).",
+          "approach": "Generate a tiny Python repo with a function that has an off-by-one error causing a test to fail. Model must diagnose and fix.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 1,
+          "target_source_backed_count": 0,
+          "target_generated_count": 1,
+          "task_types": [
+            "agent_interaction"
+          ],
+          "item_requirements": [
+            "Create a tiny Python repository with one off-by-one error in a loop or indexing.",
+            "Include a single pytest test that fails due to the error.",
+            "Use metadata.task_agent as described in the logical error dimension, with same agent_role and environment config.",
+            "scoring.method 'deterministic' with pass/fail plus judge score for fix minimality.",
+            "The bug must be correctable by changing only one line.",
+            "Do not include any hints or comments about the bug location in visible code or initial content.",
+            "Use initial_content.file_preview for full source and test files.",
+            "Ensure execution.agent_env is fully populated (not null) and that visible_files contain the source and test files.",
+            "Ensure followup_instruction is neutral (no hints about bug)."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "incorrect_api_usage",
+          "name": "Wrong API usage or argument order",
+          "description": "The target model must fix incorrect usage of a standard library API (e.g., wrong argument name, wrong method, etc.).",
+          "approach": "Generate a repo where a function misuses a common Python API (e.g., wrong argument, wrong method). Model must correct it.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 1,
+          "target_source_backed_count": 0,
+          "target_generated_count": 1,
+          "task_types": [
+            "agent_interaction"
+          ],
+          "item_requirements": [
+            "Create a repo with a function that uses a standard library API incorrectly (e.g., wrong keyword argument, wrong number of arguments, wrong method name).",
+            "The test should fail because of the API misuse.",
+            "Same metadata.task_agent structure and scoring as previous dimensions.",
+            "Ensure the API misuse is realistic and fixable by correcting one line.",
+            "Do not leak the bug location in comments or notes.",
+            "Use initial_content.file_preview for full source and test files.",
+            "Ensure execution.agent_env is fully populated and visible_files contain source and test files.",
+            "Ensure followup_instruction is neutral (no hints about bug)."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "missing_edge_case",
+          "name": "Missing handling of edge case",
+          "description": "The target model must add handling for an edge case that the function currently ignores (e.g., empty list, None input).",
+          "approach": "Generate a repo where a function works for normal inputs but fails on a specific edge case (e.g., empty list, negative number). Model must add a guard or modify logic to handle the edge case.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 1,
+          "target_source_backed_count": 0,
+          "target_generated_count": 1,
+          "task_types": [
+            "agent_interaction"
+          ],
+          "item_requirements": [
+            "Create a repo where a function does not handle a standard edge case (e.g., empty input, zero value).",
+            "The test should cover that edge case and fail.",
+            "Same metadata.task_agent and scoring structure.",
+            "The fix should be a small addition or change (single line or simple if statement).",
+            "Use initial_content.file_preview for full source and test files.",
+            "Ensure execution.agent_env is fully populated and visible_files contain source and test files.",
+            "Ensure followup_instruction is neutral (no hints about bug)."
+          ],
+          "difficulty_distribution": {}
+        }
+      ],
+      "scale_budget": "mid",
+      "scale": 4,
+      "metrics": [
+        "accuracy",
+        "judge_score"
+      ],
+      "constraints": [
+        "All items must use self-contained Python repositories with exactly one failing test.",
+        "The repository must be tiny (fewer than 10 files, each under 50 lines).",
+        "The bug must be a single-edit fix (no refactoring or multiple changes required).",
+        "The model must execute code in a sandbox environment; agent_env must be code_sandbox.",
+        "Do not leak the fix or any hints in the initial content."
+      ],
+      "planner_notes": "Mid budget with heavy agent_interaction items. 4 dimensions (L4 difficulty) each with 1 generated item, total 4 items. Each dimension covers a distinct bug type. No research needed; all items are self-generated.",
+      "critique": {
+        "checklist": {
+          "objective": true,
+          "subjects": true,
+          "format": true,
+          "content": true,
+          "scale": true,
+          "metrics": true
+        },
+        "score": 5.0,
+        "missing_items": [],
+        "notes": "All checklist items covered. The spec includes 4 dimensions each with a distinct bug type, using agent_interaction task type with code_sandbox environment. scale_budget mid is appropriately represented by 4 heavy items. Metrics include accuracy (deterministic pass/fail) and judge_score. No research needed; items are self-generated. Constraints ensure reproducibility and fairness."
+      }
+    },
+    "items": [
+      {
+        "id": "missing_edge_case_9ccf64f427",
+        "dimension_id": "missing_edge_case",
+        "task_type": "agent_interaction",
+        "prompt": "Please inspect the repository and fix the failing test. Run the tests to verify your fix.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Pass/fail: The test must pass (exit code 0) after the fix. Judge score: 1-5 scale based on minimality and correctness of the fix. 5 = single-line correct guard added, all tests pass. 3 = fix works but modifies unnecessary lines. 1 = no fix or incorrect fix.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "missing_edge_case",
+          "python",
+          "agent_interaction",
+          "code_sandbox",
+          "bug_fix"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "target_agent_executor",
+            "system_prompt": "You are a coding agent in a code sandbox. Your task is to inspect the repository files, run the tests, and fix the bug so that all tests pass. You can read files, write files, and run commands. Do not provide any hints about the bug; just fix it.",
+            "initial_content": {
+              "scenario": "A tiny Python repository with a bug. The function average does not handle the edge case of an empty list, causing a test to fail.",
+              "files": {
+                "src.py": "def average(lst):\n    return sum(lst) / len(lst)\n",
+                "test.py": "from src import average\n\ndef test_empty_list():\n    assert average([]) == 0.0\n"
+              },
+              "notes": "No additional setup required."
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": "Please inspect the repository and fix the failing test. Run the tests to verify your fix.",
+              "user_turns": [],
+              "followup_instruction": "If the tests still fail, the agent should continue debugging. If the tests pass, the agent should report success and stop.",
+              "stop_condition": "The agent indicates that all tests pass, or max_turns reached."
+            },
+            "scoring": {
+              "method": "deterministic",
+              "instructions": "The test exit code determines pass/fail. If exit code is 0, the task passes. Additionally, a judge evaluates the fix quality on a 1-5 scale: 5 = minimal change (one line added/edited), correct logic, all tests pass. 4 = correct but slightly less minimal. 3 = fix works but modifies unnecessary code. 2 = partial fix (some tests still fail). 1 = no fix or incorrect fix.",
+              "levels": {
+                "5": "Excellent: single-line guard added, all tests pass.",
+                "3": "Partial credit: fix works but not minimal.",
+                "1": "Fail: no fix or incorrect fix."
+              },
+              "pass_fail": {
+                "pass": "Exit code 0 from pytest.",
+                "partial": "Not applicable for pass/fail; judge score captures partial quality.",
+                "fail": "Exit code non-zero."
+              }
+            },
+            "execution": {
+              "environment_type": "code_sandbox",
+              "agent_env": {
+                "type": "code_sandbox",
+                "visible_files": {
+                  "src.py": "def average(lst):\n    return sum(lst) / len(lst)\n",
+                  "test.py": "from src import average\n\ndef test_empty_list():\n    assert average([]) == 0.0\n"
+                },
+                "hidden_files": {},
+                "test_command": "python -m pytest test.py"
+              }
+            }
+          },
+          "agent_env": {
+            "type": "code_sandbox",
+            "visible_files": {
+              "src.py": "def average(lst):\n    return sum(lst) / len(lst)\n",
+              "test.py": "from src import average\n\ndef test_empty_list():\n    assert average([]) == 0.0\n"
+            },
+            "hidden_files": {},
+            "test_command": "python -m pytest test.py"
+          }
+        }
+      },
+      {
+        "id": "off_by_one_4e4c6ae73e",
+        "dimension_id": "off_by_one",
+        "task_type": "agent_interaction",
+        "prompt": "You are a coding agent debugging a small Python project. The project consists of two files: src.py (the module with a bug) and test.py (a single pytest test). Your goal is to identify the bug, correct it, and ensure that all tests pass. You can inspect files, run tests, and edit code as needed.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5 based on correctness and minimality. 5 = all tests pass with a minimal one-line fix (changing only the buggy line). 4 = all tests pass but the fix is slightly non-minimal (e.g., added comments or adjusted whitespace). 3 = all tests pass but the fix changes more than one line or restructures code unnecessarily. 2 = tests partially pass or the fix introduces new errors. 1 = tests still fail or no meaningful fix attempted.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "off_by_one",
+          "debugging",
+          "python",
+          "code_sandbox",
+          "agent_interaction"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "target_agent_executor",
+            "system_prompt": "You are a coding agent tasked with debugging and fixing a Python repository. You can view the contents of files in the sandbox, run tests, and edit files. Your goal is to make all tests pass by identifying and correcting the bug. Do not add any comments or hints about the bug in the code; only correct the logic. When you believe the fix is complete, run the tests to verify. Inform the user when all tests pass.",
+            "initial_content": {
+              "scenario": "You have been given access to a small Python project with a bug. The project contains two files: src.py and test.py. Your task is to fix the bug so that the single test passes.",
+              "files": {
+                "src.py": "def sum_to_n(n):\n    total = 0\n    for i in range(1, n):\n        total += i\n    return total\n",
+                "test.py": "from src import sum_to_n\n\ndef test_sum_to_n():\n    assert sum_to_n(5) == 15\n"
+              },
+              "notes": "No additional setup required."
+            },
+            "interaction": {
+              "max_turns": 10,
+              "initial_user_message": "You are a coding agent debugging a small Python project. The project consists of two files: src.py (the module with a bug) and test.py (a single pytest test). Your goal is to identify the bug, correct it, and ensure that all tests pass. You can inspect files, run tests, and edit code as needed.",
+              "user_turns": null,
+              "followup_instruction": "Based on the conversation history, generate the next user turn that prompts the agent to continue if it hasn't finished. If the agent states it has fixed the bug and tests pass, respond with 'completed' and stop.",
+              "stop_condition": "Stop when the agent indicates all tests pass or after max_turns exceeded."
+            },
+            "scoring": {
+              "method": "deterministic",
+              "instructions": "Score the agent's performance: first, check if the final test run exits with code 0 (all tests pass). If not, score 1. If tests pass, evaluate the simplicity of the fix (single-line change vs. larger modification) using the judge rubric.",
+              "levels": {
+                "5": "All tests pass with exactly one line changed from the original code, and that line is the minimal correct fix (e.g., changing range(1, n) to range(1, n+1)).",
+                "4": "All tests pass with a one-line fix but the fix includes minor cosmetic changes (e.g., added spaces).",
+                "3": "All tests pass but the fix modifies more than one line or unnecessarily restructures the function.",
+                "2": "Tests fail but the agent made a reasonable attempt that partially addresses the bug (e.g., changed the right line but incorrectly).",
+                "1": "Tests still fail and the agent did not produce a correct fix."
+              },
+              "pass_fail": {
+                "pass": "All tests pass (exit code 0).",
+                "partial": "Tests do not all pass.",
+                "fail": "No attempt or all tests fail."
+              }
+            },
+            "execution": {
+              "environment_type": "code_sandbox",
+              "agent_env": {
+                "type": "code_sandbox",
+                "visible_files": {
+                  "src.py": "def sum_to_n(n):\n    total = 0\n    for i in range(1, n):\n        total += i\n    return total\n",
+                  "test.py": "from src import sum_to_n\n\ndef test_sum_to_n():\n    assert sum_to_n(5) == 15\n"
+                },
+                "hidden_files": {},
+                "test_command": "cd /workspace && python -m pytest test.py -v"
+              }
+            }
+          },
+          "agent_env": {
+            "type": "code_sandbox",
+            "visible_files": {
+              "src.py": "def sum_to_n(n):\n    total = 0\n    for i in range(1, n):\n        total += i\n    return total\n",
+              "test.py": "from src import sum_to_n\n\ndef test_sum_to_n():\n    assert sum_to_n(5) == 15\n"
+            },
+            "hidden_files": {},
+            "test_command": "cd /workspace && python -m pytest test.py -v"
+          }
+        }
+      },
+      {
+        "id": "incorrect_api_usage_eeaff5d4b9",
+        "dimension_id": "incorrect_api_usage",
+        "task_type": "agent_interaction",
+        "prompt": "Fix the bug in the Python repository so that all tests pass. The repository contains two files: utils.py and test_utils.py. Use the available tools to inspect the code, run tests, and make the necessary edits.",
+        "choices": [],
+        "answer": null,
+        "rubric": "The target model must inspect the repository, identify the bug (incorrect API usage), and fix it with a minimal one-line change. Pass if all tests pass (exit code 0). The judge will assign a score of 1-5: 5 for minimal correct fix (only the incorrect API argument fixed), 3 for correct but non-minimal fix, 1 for failing tests or incorrect fix.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "python",
+          "bug-fix",
+          "api-misuse",
+          "incorrect-api-usage",
+          "code-sandbox"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "target_agent_executor",
+            "system_prompt": "You are a coding agent. Your task is to inspect the provided Python repository, run the tests, identify the failing test, and fix the bug in the source code. The repository is tiny and self-contained. Use the available tools to read files, run tests, and edit code. All tests must pass with exit code 0. Do not add any comments or hints about the bug. Focus on making minimal changes.",
+            "initial_content": {
+              "scenario": "You have a small Python repository with two files: utils.py and test_utils.py. The test is failing. Inspect and fix the bug.",
+              "files": {
+                "utils.py": "import json\n\ndef convert_to_json(data):\n    return json.dumps(data, ensure_asci=True)\n",
+                "test_utils.py": "from utils import convert_to_json\n\ndef test_convert_to_json():\n    data = {\"name\": \"José\", \"city\": \"São Paulo\"}\n    result = convert_to_json(data)\n    expected = '{\"name\": \"José\", \"city\": \"São Paulo\"}'\n    assert result == expected\n"
+              },
+              "notes": "No additional setup required."
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": "Fix the bug in the Python repository so that all tests pass. The repository contains two files: utils.py and test_utils.py. Use the available tools to inspect the code, run tests, and make the necessary edits.",
+              "user_turns": [],
+              "followup_instruction": "Based on the transcript, decide whether the target model has completed the task. If all tests pass, stop.",
+              "stop_condition": "Stop when the model reports that all tests pass or when max_turns reached."
+            },
+            "scoring": {
+              "method": "deterministic",
+              "instructions": "Pass if pytest exit code is 0. Fail otherwise. Additionally, judge assigns a quality score (1-5) based on fix minimality.",
+              "levels": {
+                "5": "Exit code 0 and diff changes only the incorrect API argument (single line)",
+                "3": "Exit code 0 but diff includes more changes than necessary",
+                "1": "Tests still failing or incorrect fix"
+              },
+              "pass_fail": {
+                "pass": "pytest exit code 0",
+                "fail": "pytest exit code non-zero"
+              }
+            },
+            "execution": {
+              "environment_type": "code_sandbox",
+              "agent_env": {
+                "type": "code_sandbox",
+                "visible_files": {
+                  "utils.py": "import json\n\ndef convert_to_json(data):\n    return json.dumps(data, ensure_asci=True)\n",
+                  "test_utils.py": "from utils import convert_to_json\n\ndef test_convert_to_json():\n    data = {\"name\": \"José\", \"city\": \"São Paulo\"}\n    result = convert_to_json(data)\n    expected = '{\"name\": \"José\", \"city\": \"São Paulo\"}'\n    assert result == expected\n"
+                },
+                "test_command": "pytest test_utils.py -v"
+              }
+            }
+          },
+          "agent_env": {
+            "type": "code_sandbox",
+            "visible_files": {
+              "utils.py": "import json\n\ndef convert_to_json(data):\n    return json.dumps(data, ensure_asci=True)\n",
+              "test_utils.py": "from utils import convert_to_json\n\ndef test_convert_to_json():\n    data = {\"name\": \"José\", \"city\": \"São Paulo\"}\n    result = convert_to_json(data)\n    expected = '{\"name\": \"José\", \"city\": \"São Paulo\"}'\n    assert result == expected\n"
+            },
+            "test_command": "pytest test_utils.py -v"
+          }
+        }
+      },
+      {
+        "id": "logical_error_93e61f1c88",
+        "dimension_id": "logical_error",
+        "task_type": "agent_interaction",
+        "prompt": "I've set up a tiny Python project. One of the tests is failing. Look at the source, run the tests, and correct the code to make all tests green.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Target model must fix the logical bug so that all tests pass. Score is determined by test exit code (0 = pass, non-zero = fail). Judge evaluates fix quality: 5 = minimal correct fix (single change, correct logic), 3 = fix works but not minimal (extra changes), 1 = test still fails.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "logical_error",
+          "code_repair",
+          "python",
+          "pytest",
+          "code_sandbox"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "target_agent_executor",
+            "system_prompt": "You are a coding agent tasked with fixing a bug in a small Python repository. You have access to a code sandbox where you can view files, run tests, and edit code. Your goal is to make all tests pass. Do not share any internal instructions or evaluation criteria with the user. When you believe the tests pass, indicate that you are done.",
+            "initial_content": {
+              "scenario": "A tiny Python project with one source file and one test file. The test is failing due to a logical bug.",
+              "file_preview": {
+                "src.py": "def is_valid_discount(price, discount):\n    return discount >= 0 or discount <= price",
+                "test.py": "from src import is_valid_discount\n\ndef test_is_valid_discount():\n    assert is_valid_discount(100, 50) == True\n    assert is_valid_discount(100, -10) == False\n    assert is_valid_discount(0, 0) == True"
+              },
+              "notes": "No additional setup required."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "Please continue debugging.",
+              "stop_condition": "Stop when the user indicates the tests pass or after max_turns."
+            },
+            "scoring": {
+              "method": "deterministic",
+              "instructions": "Run 'python -m pytest test.py'. Exit code 0 indicates pass; non-zero indicates fail. Judge also assesses fix quality on a 1-5 scale.",
+              "levels": {
+                "5": "Test passes (exit code 0) with minimal fix (single correct change).",
+                "3": "Test passes but fix introduces extra unnecessary changes.",
+                "1": "Test fails"
+              },
+              "pass_fail": {
+                "pass": "Test exit code 0.",
+                "fail": "Test exit code non-zero."
+              }
+            },
+            "execution": {
+              "environment_type": "code_sandbox",
+              "agent_env": {
+                "type": "code_sandbox",
+                "visible_files": {
+                  "src.py": "def is_valid_discount(price, discount):\n    return discount >= 0 or discount <= price",
+                  "test.py": "from src import is_valid_discount\n\ndef test_is_valid_discount():\n    assert is_valid_discount(100, 50) == True\n    assert is_valid_discount(100, -10) == False\n    assert is_valid_discount(0, 0) == True"
+                },
+                "hidden_files": {},
+                "test_command": "python -m pytest test.py"
+              }
+            }
+          },
+          "agent_env": {
+            "type": "code_sandbox",
+            "visible_files": {
+              "src.py": "def is_valid_discount(price, discount):\n    return discount >= 0 or discount <= price",
+              "test.py": "from src import is_valid_discount\n\ndef test_is_valid_discount():\n    assert is_valid_discount(100, 50) == True\n    assert is_valid_discount(100, -10) == False\n    assert is_valid_discount(0, 0) == True"
+            },
+            "hidden_files": {},
+            "test_command": "python -m pytest test.py"
+          }
+        }
+      },
+      {
+        "id": "logical_error_6c106eaf45",
+        "dimension_id": "logical_error",
+        "task_type": "agent_interaction",
+        "prompt": "We have a small Python project with a failing test. Please examine the code, run the test suite, and fix the code so that all tests pass.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring: deterministic pass/fail based on test exit code (0=pass, non-zero=fail). Judge evaluates fix quality on 1-5 scale: 5 = correct minimal single-line fix, 4 = correct but slightly more changes than necessary, 3 = correct fix but includes unnecessary refactoring, 2 = fix changes logic but still has minor issues, 1 = fix does not resolve the bug or introduces new issues. To pass, the test must pass (exit code 0). The judge score is applied after a passing fix.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "python",
+          "logical-error",
+          "bug-fix",
+          "leap-year",
+          "code-sandbox"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "target_agent_executor",
+            "system_prompt": "You are a coding agent. Your goal is to inspect the files in the sandbox, run the tests, and make any necessary code changes so that all tests pass. Do not change the tests. You can read files, write files, and run shell commands. When you believe all tests pass, report that you are done.",
+            "initial_content": {
+              "scenario": "A tiny Python repository with a bug in src.py and a failing test in test.py.",
+              "file_preview": {
+                "src.py": "def is_leap_year(year):\n    if year % 4 == 0:\n        if year % 100 != 0 and year % 400 == 0:\n            return True\n    return False\n",
+                "test.py": "def test_leap_year():\n    assert is_leap_year(2000) == True, \"2000 is a leap year\"\n"
+              },
+              "file_names": [
+                "src.py",
+                "test.py"
+              ],
+              "file_count": 2,
+              "notes": "No additional setup required."
+            },
+            "interaction": {
+              "max_turns": 10,
+              "initial_user_message": "We have a small Python project with a failing test. Please examine the code, run the test suite, and fix the code so that all tests pass.",
+              "user_turns": [],
+              "followup_instruction": "Continue debugging until all tests pass or the user indicates they are done.",
+              "stop_condition": "When all tests pass or user says they are done."
+            },
+            "scoring": {
+              "method": "deterministic",
+              "instructions": "Run 'pytest test.py' in the sandbox. Exit code 0 = pass, else fail. Judge also assigns a 1-5 quality score based on minimality and correctness of the fix.",
+              "levels": {
+                "5": "Correct minimal single-line fix",
+                "4": "Correct fix with slightly more changes than necessary",
+                "3": "Correct fix but includes unnecessary refactoring",
+                "2": "Fix changes logic but still has minor issues",
+                "1": "Fix does not resolve the bug or introduces new issues"
+              },
+              "pass_fail": {
+                "pass": "Test exit code 0",
+                "partial": null,
+                "fail": "Test exit code non-zero"
+              }
+            },
+            "execution": {
+              "environment_type": "code_sandbox",
+              "agent_env": {
+                "type": "code_sandbox",
+                "visible_files": {
+                  "src.py": "def is_leap_year(year):\n    if year % 4 == 0:\n        if year % 100 != 0 and year % 400 == 0:\n            return True\n    return False\n",
+                  "test.py": "def test_leap_year():\n    assert is_leap_year(2000) == True, \"2000 is a leap year\"\n"
+                },
+                "hidden_files": {},
+                "test_command": "pytest test.py"
+              }
+            }
+          },
+          "agent_env": {
+            "type": "code_sandbox",
+            "visible_files": {
+              "src.py": "def is_leap_year(year):\n    if year % 4 == 0:\n        if year % 100 != 0 and year % 400 == 0:\n            return True\n    return False\n",
+              "test.py": "def test_leap_year():\n    assert is_leap_year(2000) == True, \"2000 is a leap year\"\n"
+            },
+            "hidden_files": {},
+            "test_command": "pytest test.py"
+          }
+        }
+      }
+    ],
+    "sources": [],
+    "generation_notes": "logical_error: Generated a single agent_interaction item for the logical_error dimension. The repository contains a buggy function 'is_valid_password' that uses 'or' instead of 'and' in the condition, causing it to return True for passwords meeting only one criterion when both should be required. The test fails on the first assertion. The fix is a one-line change: replace 'or' with 'and'. No hints about the bug are provided. The scoring is deterministic pass/fail based on test exit code, plus a judge score (1-5) for fix quality.\noff_by_one: One agent_interaction item for the off-by-one dimension. Uses a tiny Python repo with a factorial function that has an off-by-one loop range error (range(1, n) instead of range(1, n+1)). The test fails on factorial(5) returning 24 instead of 120. The fix is a single-line change. metadata.task_agent is set up with environment_type 'code_sandbox', deterministic scoring with pass/fail and judge score for minimality.\nincorrect_api_usage: Generated a single agent_interaction item for the 'incorrect_api_usage' dimension. The repository is tiny (two files: greeter.py and test_greeter.py). The bug is a misuse of str.format: the format string uses a named placeholder but only a positional argument is provided, causing a KeyError. The fix is a single-line change (e.g., replace '{name}' with '{}' or '{0}'). The item follows the required metadata.task_agent structure with agent_role target_agent_executor, environment_type code_sandbox, and deterministic scoring. No hints about the bug are included. The test is a single pytest test that fails due to the API misuse.\nmissing_edge_case: Generated a single agent_interaction item for the missing_edge_case dimension. The repo contains two files: src.py with a function average() that fails on empty list due to division by zero, and test.py with a test that expects 0.0. The fix is a one-line guard. metadata.task_agent uses target_agent_executor with code_sandbox environment. Scoring is deterministic based on test exit code plus a judge score for fix quality.\nRemoved 2 QC-rejected item(s) before runner execution.\nPlanner pre-run review:\nDeleted 1 planner-flagged off-target item(s).\nUpdated dimension logical_error.\nUpdated dimension off_by_one.\nUpdated dimension incorrect_api_usage.\nPre-run repair generation:\nlogical_error: Generated a single agent_interaction item for the logical_error dimension. The repository contains two files: src.py with a logical error (using 'or' instead of 'and') and test.py with one pytest test that fails. The bug is correctable by changing one line. initial_content.notes is generic and does not hint at the bug. metadata.task_agent follows the required schema with deterministic scoring plus judge quality levels. metadata.agent_env uses code_sandbox with visible files. The prompt instructs the model to inspect and fix the code to pass all tests.\noff_by_one: Generated one agent_interaction item for the off-by-one dimension. The bug is in sum_to_n: loop range(1, n) instead of range(1, n+1). The test expects sum of 1..5 to be 15 but gets 10. No hints in visible code. Repository: src.py (function) and test.py (single pytest test). Metadata.task_agent configured as target_agent_executor with code_sandbox environment. Scoring is deterministic pass/fail plus a 1-5 judge score for fix minimality.\nincorrect_api_usage: Generated a single agent_interaction item for the 'incorrect_api_usage' dimension. The repository contains two files: utils.py with a function that misuses json.dumps by passing an invalid keyword argument 'ensure_asci' (should be 'ensure_ascii'), and test_utils.py with a pytest test that fails due to the TypeError. The fix is a one-line change. The item uses metadata.task_agent with target_agent_executor role, code_sandbox environment, deterministic scoring, and judge score for fix quality. No hints about the bug are included. The avoid_prompt pattern (greeter repo) is avoided. The random seed is fixed for reproducibility.\nPlanner pre-run review:\nIgnored planner deletion of QC-passed item(s) that would underfill dimension(s) without replacement: incorrect_api_usage, logical_error, missing_edge_case, off_by_one.\nPre-run repair generation:\nmissing_edge_case: Self-generated item for missing_edge_case dimension. Repo: tiny Python repo with two files (src.py and test.py). The function find_max does not handle empty list; test expects None for empty list but the function raises ValueError. Fix is a one-line guard clause. No hints about the bug location. metadata.task_agent configured for code_sandbox execution.\nlogical_error: Generated one agent_interaction item for logical_error dimension. Repo has src.py with a logical operator bug ('and' instead of 'or') and test.py with three assertions. The bug is a single-line fix. metadata.task_agent uses target_agent_executor role, code_sandbox environment. No hints provided.\noff_by_one: Generated one agent_interaction item for the off_by_one dimension. The item uses a tiny Python repository with an off-by-one error in range() that causes the test to fail. The fix is a single-line change. No hints about the bug location provided.\nincorrect_api_usage: Generated one agent_interaction item for dimension 'incorrect_api_usage'. The repo has two files: src.py uses json.load (expects file object) instead of json.loads (expects string), causing test failure. The fix is a single-line change. No hints or comments are included. The metadata.task_agent and metadata.agent_env conform to the required schema.\nRemoved 1 QC-rejected item(s) before runner execution.\nPlanner pre-run review:\nDeleted 4 planner-flagged off-target item(s).\nUpdated dimension logical_error.\nUpdated dimension off_by_one.\nUpdated dimension incorrect_api_usage.\nUpdated dimension missing_edge_case.\nPre-run repair generation:\nlogical_error: Self-generated item for logical_error dimension. Tiny Python repository with a logical bug (using 'or' instead of 'and' in discount validation). No comments or hints about the bug location. Follows all dimension requirements including file_preview, neutral followup_instruction, and populated execution.agent_env.\nPlanner pre-run review:\nIgnored planner deletion of QC-passed item(s) that would underfill dimension(s) without replacement: logical_error.\nPre-run repair generation:\nlogical_error: Generated one agent_interaction item for logical_error dimension. The bug is a classic leap-year logic error: using 'and' instead of 'or' between the century and exception conditions. The fix is a single-line change. All requirements met: file_preview used instead of files, file_names and file_count included, no hints, deterministic scoring plus judge quality levels, fully populated agent_env, neutral followup instruction.",
+    "created_at": "2026-05-31T01:16:43.163036+00:00"
+  },
+  "qc_report": {
+    "issues": [
+      {
+        "item_id": null,
+        "severity": "warning",
+        "category": "clarity",
+        "message": "LLM QC failed; static QC was used as fallback: JSON parse failed after repair attempt: Expecting value: line 1 column 1 (char 0)\nCandidate (first 800 chars):\n",
+        "suggested_action": "Retry with a smaller dataset, a different QC model, or local/static-only QC."
+      }
+    ],
+    "passed_item_ids": [
+      "missing_edge_case_9ccf64f427",
+      "off_by_one_4e4c6ae73e",
+      "incorrect_api_usage_eeaff5d4b9",
+      "logical_error_93e61f1c88",
+      "logical_error_6c106eaf45"
+    ],
+    "rejected_item_ids": [],
+    "quality_score": 0.99,
+    "summary": "QC completed: 5/5 items passed, 0 rejected, 1 issues."
+  },
+  "overview_path": "benchmark-output\\planner-loop-mid-cases\\code_sandbox_bug_fix\\human_review_overview.md",
+  "state_path": "benchmark-output\\planner-loop-mid-cases\\code_sandbox_bug_fix\\pre_run_state.json"
+}

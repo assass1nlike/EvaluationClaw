@@ -1,0 +1,1624 @@
+﻿{
+  "case_id": "numerical_word_problem_consistency",
+  "goal": "Evaluate whether the target model solves multi-step numerical word problems with unit conversions, distractor filtering, and consistency checks.",
+  "config": {
+    "orchestrator_model": "deepseek-reasoner",
+    "orchestrator_api_key": "[REDACTED]",
+    "orchestrator_base_url": "https://api.deepseek.com",
+    "task_agent_model": "deepseek-reasoner",
+    "task_agent_api_key": "[REDACTED]",
+    "task_agent_base_url": "https://api.deepseek.com",
+    "targets": [
+      {
+        "id": "deepseek-chat",
+        "provider": "openai_compatible",
+        "model": "deepseek-chat",
+        "api_key": "[REDACTED]",
+        "base_url": "https://api.deepseek.com"
+      }
+    ],
+    "reference_model": null,
+    "scale_budget": "mid",
+    "questions_per_dimension": 3,
+    "max_planner_iterations": 5,
+    "max_qc_iterations": 4,
+    "max_research_sources": 3,
+    "max_hf_records_per_dimension": 0,
+    "output_dir": "benchmark-output\\planner-loop-mid-cases\\numerical_word_problem_consistency",
+    "run_targets": false,
+    "use_web_research": false,
+    "use_hf_discovery": false,
+    "judge_double_pass": true,
+    "llm_backend": "legacy",
+    "runner": "direct",
+    "human_review": false,
+    "improve_iterations": 0,
+    "loop3_diagnosis": "llm",
+    "loop3_diagnosis_timeout_s": 90,
+    "loop3_max_actions": 4
+  },
+  "spec": {
+    "id": "multi_step_numerical_word_problems",
+    "objective": "Evaluate the target model's ability to solve multi-step numerical word problems involving unit conversions, distractor filtering, and consistency checks.",
+    "subjects": [
+      "deepseek-chat"
+    ],
+    "task_types": [
+      "multiple_choice",
+      "open_generation"
+    ],
+    "dimensions": [
+      {
+        "id": "unit_conversion",
+        "name": "Multi-Step Unit Conversion",
+        "description": "Problems requiring multiple unit conversions (e.g., feet to miles, seconds to hours) within a multi-step calculation.",
+        "approach": "Generate word problems that explicitly require converting between different units (metric and imperial) across multiple steps, with no unnecessary distractors.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 8,
+        "target_source_backed_count": 0,
+        "target_generated_count": 8,
+        "task_types": [
+          "multiple_choice",
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Create 4 multiple-choice and 4 open-generation items. Each problem must involve at least two unit conversions (e.g., meters to kilometers, then hours to seconds).",
+          "Do not include extraneous numerical distractors; all provided numbers should be necessary for the solution.",
+          "Ensure conversion factors are standard and realistic. Answers must be numerical.",
+          "For multiple-choice items, provide 4 options with one correct answer and plausible distractors that represent common conversion errors. Include all answer options clearly in the prompt.",
+          "For open-generation items, provide the correct numerical answer and an explanation for scoring by a judge.",
+          "Rubrics must be complete, with explicit scoring criteria (e.g., full credit, partial credit, no credit) and no truncation or missing sections."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "distractor_filtering",
+        "name": "Distractor Filtering",
+        "description": "Problems that include irrelevant numerical information that must be filtered out to reach the correct answer.",
+        "approach": "Generate word problems with extraneous numbers and details. The model must identify which numbers are relevant and perform the necessary calculations.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 8,
+        "target_source_backed_count": 0,
+        "target_generated_count": 8,
+        "task_types": [
+          "multiple_choice",
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Create 4 multiple-choice and 4 open-generation items. Each problem must include at least two extraneous numerical pieces of information that are not needed to solve the problem.",
+          "The correct answer should only use a subset of the given numbers. Ensure distractors in multiple-choice items include answers that would result from using irrelevant numbers.",
+          "For multiple-choice items, include all answer options clearly in the prompt.",
+          "For open-generation items, require the model to show reasoning steps indicating which numbers are used (for judge evaluation).",
+          "Avoid trivial distractions; the irrelevant numbers should be plausible but clearly unnecessary after careful reading.",
+          "Rubrics must be complete, with explicit scoring criteria (e.g., full credit, partial credit, no credit) and no truncation or missing sections."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "consistency_checks",
+        "name": "Consistency Checks",
+        "description": "Problems that require verifying consistency of numerical information, such as checking for contradictory statements or verifying that intermediate results are plausible.",
+        "approach": "Generate problems where the model must check if given numbers are consistent or validate a claim. This may involve identifying errors or confirming consistency.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 7,
+        "target_source_backed_count": 0,
+        "target_generated_count": 7,
+        "task_types": [
+          "multiple_choice",
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Create 3 multiple-choice and 4 open-generation items.",
+          "Multiple-choice items should present a scenario with numerical claims and ask whether they are consistent or not, with options like 'Consistent', 'Inconsistent', or 'Cannot determine'.",
+          "Open-generation items should require the model to explain the consistency reasoning explicitly.",
+          "Include problems where a hidden inconsistency exists (e.g., total sum doesn't match subtotals) or where all numbers are consistent.",
+          "Focus on logical consistency of numbers; avoid simple arithmetic checks that only involve a single addition or average. Require at least one non‑trivial relationship (e.g., percentages, hidden total, conflicting constraints).",
+          "Rubrics must be complete, with explicit scoring criteria (e.g., 1-5 scale or pass/fail) and no truncation or missing sections."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "integrated_multi_step",
+        "name": "Integrated Multi-Step Problems with All Aspects",
+        "description": "Combined problems that require unit conversions, distractor filtering, and consistency checks simultaneously.",
+        "approach": "Generate complex word problems that incorporate all three aspects. The model must perform unit conversions, ignore irrelevant information, and check for consistency of the result.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 7,
+        "target_source_backed_count": 0,
+        "target_generated_count": 7,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Generate 7 open-generation items only (no multiple-choice).",
+          "Each problem must require at least one unit conversion, include at least two irrelevant numbers, and have a built-in consistency check (e.g., the problem involves verifying that a derived value matches a given constraint).",
+          "The model should produce a step-by-step solution and a final numerical answer. Scoring will use a judge to evaluate correctness and reasoning quality.",
+          "Ensure that the integration is natural; all three aspects should be essential to solving the problem.",
+          "Rubrics must be complete, with explicit scoring criteria (e.g., 1-5 scale) and no truncation or missing sections."
+        ],
+        "difficulty_distribution": {}
+      }
+    ],
+    "scale_budget": "mid",
+    "scale": 30,
+    "metrics": [
+      "accuracy",
+      "judge_score"
+    ],
+    "constraints": [],
+    "planner_notes": "Designed 4 dimensions covering unit conversions, distractor filtering, consistency checks, and integrated scenarios. All items are generated; no external sources needed. Item counts balanced to reach approximately 30 items total.",
+    "critique": {
+      "checklist": {
+        "objective": true,
+        "subjects": true,
+        "format": true,
+        "content": true,
+        "scale": true,
+        "metrics": true
+      },
+      "score": 5.0,
+      "missing_items": [],
+      "notes": "All checklist items are fully addressed. Dimensions cover the required capabilities with appropriate difficulty and item distributions. Scale and metrics align with the mid-budget specification."
+    }
+  },
+  "dataset": {
+    "spec": {
+      "id": "multi_step_numerical_word_problems",
+      "objective": "Evaluate the target model's ability to solve multi-step numerical word problems involving unit conversions, distractor filtering, and consistency checks.",
+      "subjects": [
+        "deepseek-chat"
+      ],
+      "task_types": [
+        "multiple_choice",
+        "open_generation"
+      ],
+      "dimensions": [
+        {
+          "id": "unit_conversion",
+          "name": "Multi-Step Unit Conversion",
+          "description": "Problems requiring multiple unit conversions (e.g., feet to miles, seconds to hours) within a multi-step calculation.",
+          "approach": "Generate word problems that explicitly require converting between different units (metric and imperial) across multiple steps, with no unnecessary distractors.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 8,
+          "target_source_backed_count": 0,
+          "target_generated_count": 8,
+          "task_types": [
+            "multiple_choice",
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Create 4 multiple-choice and 4 open-generation items. Each problem must involve at least two unit conversions (e.g., meters to kilometers, then hours to seconds).",
+            "Do not include extraneous numerical distractors; all provided numbers should be necessary for the solution.",
+            "Ensure conversion factors are standard and realistic. Answers must be numerical.",
+            "For multiple-choice items, provide 4 options with one correct answer and plausible distractors that represent common conversion errors. Include all answer options clearly in the prompt.",
+            "For open-generation items, provide the correct numerical answer and an explanation for scoring by a judge.",
+            "Rubrics must be complete, with explicit scoring criteria (e.g., full credit, partial credit, no credit) and no truncation or missing sections."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "distractor_filtering",
+          "name": "Distractor Filtering",
+          "description": "Problems that include irrelevant numerical information that must be filtered out to reach the correct answer.",
+          "approach": "Generate word problems with extraneous numbers and details. The model must identify which numbers are relevant and perform the necessary calculations.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 8,
+          "target_source_backed_count": 0,
+          "target_generated_count": 8,
+          "task_types": [
+            "multiple_choice",
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Create 4 multiple-choice and 4 open-generation items. Each problem must include at least two extraneous numerical pieces of information that are not needed to solve the problem.",
+            "The correct answer should only use a subset of the given numbers. Ensure distractors in multiple-choice items include answers that would result from using irrelevant numbers.",
+            "For multiple-choice items, include all answer options clearly in the prompt.",
+            "For open-generation items, require the model to show reasoning steps indicating which numbers are used (for judge evaluation).",
+            "Avoid trivial distractions; the irrelevant numbers should be plausible but clearly unnecessary after careful reading.",
+            "Rubrics must be complete, with explicit scoring criteria (e.g., full credit, partial credit, no credit) and no truncation or missing sections."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "consistency_checks",
+          "name": "Consistency Checks",
+          "description": "Problems that require verifying consistency of numerical information, such as checking for contradictory statements or verifying that intermediate results are plausible.",
+          "approach": "Generate problems where the model must check if given numbers are consistent or validate a claim. This may involve identifying errors or confirming consistency.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 7,
+          "target_source_backed_count": 0,
+          "target_generated_count": 7,
+          "task_types": [
+            "multiple_choice",
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Create 3 multiple-choice and 4 open-generation items.",
+            "Multiple-choice items should present a scenario with numerical claims and ask whether they are consistent or not, with options like 'Consistent', 'Inconsistent', or 'Cannot determine'.",
+            "Open-generation items should require the model to explain the consistency reasoning explicitly.",
+            "Include problems where a hidden inconsistency exists (e.g., total sum doesn't match subtotals) or where all numbers are consistent.",
+            "Focus on logical consistency of numbers; avoid simple arithmetic checks that only involve a single addition or average. Require at least one non‑trivial relationship (e.g., percentages, hidden total, conflicting constraints).",
+            "Rubrics must be complete, with explicit scoring criteria (e.g., 1-5 scale or pass/fail) and no truncation or missing sections."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "integrated_multi_step",
+          "name": "Integrated Multi-Step Problems with All Aspects",
+          "description": "Combined problems that require unit conversions, distractor filtering, and consistency checks simultaneously.",
+          "approach": "Generate complex word problems that incorporate all three aspects. The model must perform unit conversions, ignore irrelevant information, and check for consistency of the result.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 7,
+          "target_source_backed_count": 0,
+          "target_generated_count": 7,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Generate 7 open-generation items only (no multiple-choice).",
+            "Each problem must require at least one unit conversion, include at least two irrelevant numbers, and have a built-in consistency check (e.g., the problem involves verifying that a derived value matches a given constraint).",
+            "The model should produce a step-by-step solution and a final numerical answer. Scoring will use a judge to evaluate correctness and reasoning quality.",
+            "Ensure that the integration is natural; all three aspects should be essential to solving the problem.",
+            "Rubrics must be complete, with explicit scoring criteria (e.g., 1-5 scale) and no truncation or missing sections."
+          ],
+          "difficulty_distribution": {}
+        }
+      ],
+      "scale_budget": "mid",
+      "scale": 30,
+      "metrics": [
+        "accuracy",
+        "judge_score"
+      ],
+      "constraints": [],
+      "planner_notes": "Designed 4 dimensions covering unit conversions, distractor filtering, consistency checks, and integrated scenarios. All items are generated; no external sources needed. Item counts balanced to reach approximately 30 items total.",
+      "critique": {
+        "checklist": {
+          "objective": true,
+          "subjects": true,
+          "format": true,
+          "content": true,
+          "scale": true,
+          "metrics": true
+        },
+        "score": 5.0,
+        "missing_items": [],
+        "notes": "All checklist items are fully addressed. Dimensions cover the required capabilities with appropriate difficulty and item distributions. Scale and metrics align with the mid-budget specification."
+      }
+    },
+    "items": [
+      {
+        "id": "unit_conversion_cb6c1401c6",
+        "dimension_id": "unit_conversion",
+        "task_type": "open_generation",
+        "prompt": "A car accelerates from 0 to 60 miles per hour in 10 seconds. What is the acceleration in feet per second squared? (1 mile = 5280 feet)",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1 (full credit) if the model converts the final speed to ft/s: 60 mph * 5280 ft/mi = 316,800 ft/hr; 316,800 ft/hr / 3600 s/hr = 88 ft/s; then divides by time: 88/10 = 8.8 ft/s². The answer should be 8.8 ft/s². Score 0.5 if the model correctly converts to ft/s but makes an arithmetic error in the final division or states the result with wrong units. Score 0 if the model omits either conversion or uses the wrong conversion factor.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit conversion",
+          "imperial",
+          "acceleration",
+          "time",
+          "multi-step"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "integrated_multi_step_d02e129068",
+        "dimension_id": "integrated_multi_step",
+        "task_type": "open_generation",
+        "prompt": "A delivery truck drove 50,000 meters. The truck's fuel tank capacity is 100 liters. The driver reports that the truck consumed exactly 12 liters of fuel for the trip. The truck's fuel efficiency is 8 kilometers per liter. The driver made 3 stops during the trip and carried cargo weighing 2 tons. Check whether the reported fuel consumption is consistent with the distance driven. Provide a step-by-step solution and state if the claim is consistent or not. (Assume no fuel was used during stops.)",
+        "choices": [],
+        "answer": "Distance = 50,000 meters = 50 km. Fuel efficiency = 8 km/L → expected fuel consumption = 50 km / 8 km/L = 6.25 L. Reported consumption = 12 L. 6.25 ≠ 12, so inconsistent. Irrelevant numbers: tank capacity (100 L), number of stops (3), cargo weight (2 tons). Consistency check: expected 6.25 L, reported 12 L → inconsistent.",
+        "rubric": "Score 1-5 as per base rubric: correct conversion meters to km, correct fuel calculation, identification of irrelevant numbers (tank capacity, stops, cargo weight), correct consistency conclusion.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "integrated",
+          "unit_conversion",
+          "distractor_filtering",
+          "consistency_check",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "integrated_multi_step_711056b586",
+        "dimension_id": "integrated_multi_step",
+        "task_type": "open_generation",
+        "prompt": "A construction project requires 500 cubic yards of concrete. The concrete mix uses 1 part cement, 2 parts sand, and 3 parts gravel by volume. The contractor orders 100 bags of cement, each bag contains 1 cubic foot of cement. The project duration is 30 days. The sand pile contains 800 cubic feet and the gravel pile contains 1200 cubic feet. The cement bags cost $5 each. Determine if the materials on hand are sufficient for the required concrete volume. (1 cubic yard = 27 cubic feet). Provide a step-by-step solution and state whether the materials are sufficient or not.",
+        "choices": [],
+        "answer": "Required concrete volume = 500 yd³ × 27 ft³/yd³ = 13,500 ft³. Mix ratios: cement: 1 part, total parts = 1+2+3 = 6. Cement volume needed = (1/6)×13,500 = 2,250 ft³. Available cement: 100 bags × 1 ft³/bag = 100 ft³. 100 < 2,250, so insufficient. Sand needed = (2/6)×13,500 = 4,500 ft³. Available sand: 800 ft³ → insufficient. Gravel needed = (3/6)×13,500 = 6,750 ft³. Available gravel: 1,200 ft³ → insufficient. Irrelevant numbers: project duration (30 days), cost per bag ($5). Consistency check: all three materials fall short, so insufficient. The claim of sufficiency would be inconsistent.",
+        "rubric": "Score 1-5 based on: correct yd³ to ft³ conversion, correct ratio calculation for each material, comparison of needed vs. available, identification of irrelevant numbers, correct conclusion. Deduct for missing step or arithmetic error.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "integrated",
+          "unit_conversion",
+          "distractor_filtering",
+          "consistency_check",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "integrated_multi_step_f62fb6bc9a",
+        "dimension_id": "integrated_multi_step",
+        "task_type": "open_generation",
+        "prompt": "A marathon runner completes a 26.2-mile race. The runner's average speed is 5 miles per hour. The runner stops for water at 3 aid stations, each stop lasting 30 seconds. The runner's heart rate averages 150 beats per minute. The runner burns 100 calories per mile. The race started at 7:00 AM and ended at 2:00 PM. Is the reported end time consistent with the runner's average speed and total stops? Provide step-by-step solution and state whether the time is consistent or not. (Note: total moving time includes distance/speed; stopping time must be added.)",
+        "choices": [],
+        "answer": "Moving time = 26.2 miles / 5 mph = 5.24 hours. Total stop time = 3 stops × 30 seconds = 90 seconds = 1.5 minutes = 0.025 hours. Total time = 5.24 + 0.025 = 5.265 hours ≈ 5 hours 15.9 minutes. Start at 7:00 AM → end time = 12:15.9 PM. But reported end time is 2:00 PM, which is 7 hours after start. The difference is large, so inconsistent. Irrelevant numbers: heart rate (150 bpm), calories per mile (100 cal/mile). Consistency check: expected end ~12:16 PM, reported 2:00 PM → inconsistent.",
+        "rubric": "Score 1-5 based on: correct unit conversions (seconds to hours), correct calculation of moving and stop times, identification of irrelevant numbers, correct consistency conclusion. Deduct for misapplying units or incorrect total time.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "integrated",
+          "unit_conversion",
+          "distractor_filtering",
+          "consistency_check",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "integrated_multi_step_0853a83efc",
+        "dimension_id": "integrated_multi_step",
+        "task_type": "open_generation",
+        "prompt": "A swimming pool is being filled by a pipe that delivers 4 gallons per minute. The pool is 30 feet long, 15 feet wide, and 5 feet deep. The pool was initially empty. The owner claims that after 2 hours of filling, the pool will be 24 inches deep. There are 3 pool lights and the water temperature is 75°F. Is the owner's claim consistent with the fill rate? (1 cubic foot = 7.48 gallons). Provide a step-by-step solution and state whether the claim is consistent or not.",
+        "choices": [],
+        "answer": "Pool area = 30 ft × 15 ft = 450 ft². To reach 24 inches (2 ft) depth, volume needed = 450 ft² × 2 ft = 900 ft³. Volume in gallons = 900 ft³ × 7.48 gal/ft³ = 6,732 gallons. Fill rate = 4 gal/min. Time required = 6,732 gal / 4 gal/min = 1,683 minutes = 28.05 hours. Claimed time = 2 hours. 2 hours << 28.05 hours, so inconsistent. Irrelevant numbers: number of pool lights (3), water temperature (75°F). Consistency check: expected time ≈28 hours, owner claimed 2 hours → inconsistent.",
+        "rubric": "Score 1-5 based on: correct volume calculation (ft³ to gallons), correct conversion of time and units, identification of irrelevant numbers, correct consistency conclusion. Deduct for arithmetic errors or missing steps.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "integrated",
+          "unit_conversion",
+          "distractor_filtering",
+          "consistency_check",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "integrated_multi_step_942f5d38cd",
+        "dimension_id": "integrated_multi_step",
+        "task_type": "open_generation",
+        "prompt": "A recipe calls for 2 quarts of milk. The chef has milk cartons that each hold 1 liter. The chef also has 3 eggs and 500 grams of sugar. The chef claims that 5 cartons of milk will be enough. There are 4 servings in the recipe and the cooking time is 45 minutes. Determine if the chef's claim is consistent with the required milk volume. (1 quart = 0.946 liters). Provide a step-by-step solution and state whether the claim is consistent or not.",
+        "choices": [],
+        "answer": "Required milk = 2 quarts × 0.946 L/quart = 1.892 L. Available milk = 5 cartons × 1 L = 5 L. 5 L > 1.892 L, so the chef's claim is consistent (actually more than enough). Irrelevant numbers: eggs (3), sugar (500g), servings (4), cooking time (45 min). Consistency check: required milk ~1.892 L, available 5 L → consistent (claim is true).",
+        "rubric": "Score 1-5 based on: correct quart-to-liter conversion, correct comparison, identification of irrelevant numbers (at least 3 of the 4 irrelevant), correct consistency conclusion (consistent). Deduct for misidentifying irrelevant numbers or calculation errors.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "integrated",
+          "unit_conversion",
+          "distractor_filtering",
+          "consistency_check",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "integrated_multi_step_a040522fce",
+        "dimension_id": "integrated_multi_step",
+        "task_type": "open_generation",
+        "prompt": "A hiking trail is 12 miles long. A hiker walks at an average speed of 3 miles per hour. The hiker takes a 10-minute break every 2 miles. The hiker carries a 2-liter water bottle and drinks 0.5 liters per mile. The weather is sunny with a temperature of 85°F. The hiker claims the total hiking time (including breaks) is 4 hours and 20 minutes. Is the hiker's claim consistent? Provide a step-by-step solution and state whether the claim is consistent or not.",
+        "choices": [],
+        "answer": "Walking time = 12 miles / 3 mph = 4 hours. Number of breaks: every 2 miles → 12/2 = 6 breaks, but after the last mile no need for break? Typically breaks after each 2-mile segment: for 12 miles, there are 5 segments of 2 miles (since start at 0). Actually: after 2 miles (break), after 4, 6, 8, 10 miles = 5 breaks. After 12 miles, no break needed. So 5 breaks × 10 minutes = 50 minutes = 50/60 = 0.833 hours. Total time = 4 + 0.833 = 4.833 hours = 4 hours 50 minutes. Claim: 4 hours 20 minutes. 4h50m ≠ 4h20m, so inconsistent. Irrelevant numbers: water bottle size (2L), water consumption rate, weather info. Consistency check: expected 4h50m, claimed 4h20m → inconsistent.",
+        "rubric": "Score 1-5 based on: correct walking time, correct number and calculation of break time in hours/minutes, identification of irrelevant numbers (at least 3), correct consistency conclusion. Deduct for miscounting breaks or unit conversion errors.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "integrated",
+          "unit_conversion",
+          "distractor_filtering",
+          "consistency_check",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "consistency_checks_305dc9ec2e",
+        "dimension_id": "consistency_checks",
+        "task_type": "multiple_choice",
+        "prompt": "A company reports the following sales figures for three departments in a quarter:\n\n- Department A: $45,000 (30% of total quarterly sales)\n- Department B: $60,000 (40% of total quarterly sales)\n- Department C: $35,000 (25% of total quarterly sales)\n\nThe total quarterly sales reported by the company is $140,000.\n\nAre these numbers consistent?\n\nA) Consistent\nB) Inconsistent\nC) Cannot determine",
+        "choices": [
+          "A. Consistent",
+          "B. Inconsistent",
+          "C. Cannot determine"
+        ],
+        "answer": "B",
+        "rubric": "Pass if the model selects 'B. Inconsistent'. Fail otherwise. The inconsistency arises because the stated percentages (30% + 40% + 25% = 95%) do not sum to 100%, yet the total is given as $140,000, which matches the sum of the department sales ($45,000 + $60,000 + $35,000 = $140,000). The percentages are inconsistent with the actual shares (e.g., $45,000 / $140,000 ≈ 32.14%, not 30%).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "consistency_checks",
+          "multiple_choice",
+          "percentages",
+          "hidden_inconsistency"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "consistency_checks_5e90265417",
+        "dimension_id": "consistency_checks",
+        "task_type": "multiple_choice",
+        "prompt": "A company reports its total sales for the year as $5,000,000. The sales by quarter are: Q1 $1,200,000, Q2 $1,300,000, Q3 $1,400,000, Q4 $1,100,000. Additionally, the report claims that Q1 sales increased by 20% over the previous quarter (Q4 of the previous year). Are these numbers consistent?\nA. Consistent\nB. Inconsistent\nC. Cannot determine",
+        "choices": [
+          "A. Consistent",
+          "B. Inconsistent",
+          "C. Cannot determine"
+        ],
+        "answer": "C",
+        "rubric": "Score 1 if answer is C (Cannot determine), because the increase claim cannot be verified without the previous year's Q4 figure. Score 0 otherwise.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "consistency_checks"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_9c1d91d414",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "Evaluation objective: Evaluate the target model's ability to solve multi-step numerical word problems involving unit conversions, distractor filtering, and consistency checks.\nDimension: Multi-Step Unit Conversion\nTask: Generate word problems that explicitly require converting between different units (metric and imperial) across multiple steps, with no unnecessary distractors.\nDifficulty: L4\nChoose the best answer. This is a placeholder item for generator smoke tests.",
+        "choices": [
+          "A. The response fully satisfies the dimension",
+          "B. The response partially satisfies the dimension",
+          "C. The response avoids the requested behavior",
+          "D. The response is irrelevant"
+        ],
+        "answer": "A",
+        "rubric": null,
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_9c6ac63983",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A snail moves at a speed of 0.01 meters per second. How far, in kilometers, does the snail travel in 3 hours?",
+        "choices": [
+          "A. 0.108 km",
+          "B. 0.00003 km",
+          "C. 108 km",
+          "D. 1.08 km"
+        ],
+        "answer": "A",
+        "rubric": "Correct answer (A) = full credit. Any other answer = no credit.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "web",
+          "uri": "https://self.generated/unit_conversion_mc_001",
+          "title": "Self-generated multi-step unit conversion problem (MC)",
+          "notes": ""
+        },
+        "tags": [
+          "multi-step",
+          "unit-conversion",
+          "metric",
+          "time-conversion",
+          "length-conversion"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_c4f42e968d",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A car travels 15 meters in 3 seconds. What is its speed in kilometers per hour?",
+        "choices": [
+          "A. 5 km/h",
+          "B. 18 km/h",
+          "C. 1.8 km/h",
+          "D. 180 km/h"
+        ],
+        "answer": "B",
+        "rubric": "Correct answer (B) receives full credit. Any other choice receives no credit.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "multi_step",
+          "speed",
+          "metric"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_7aeb99128b",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A car travels at a constant speed of 55 miles per hour for 45 minutes. How many feet does the car travel? (1 mile = 5280 feet)",
+        "choices": [
+          "A. 217,800 feet",
+          "B. 13,068,000 feet",
+          "C. 3,630 feet",
+          "D. 2,475 feet"
+        ],
+        "answer": "A",
+        "rubric": "Single correct answer among four choices. Scoring: correct answer (A) receives full credit, any other choice receives no credit.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "multi_step",
+          "L4",
+          "numerical"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_b97d52e0ed",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A marathon runner runs 42,195 meters in 4 hours 15 minutes. What is her average speed in kilometers per hour?",
+        "choices": [
+          "A) 9.93 km/h",
+          "B) 9.36 km/h",
+          "C) 10.14 km/h",
+          "D) 99.3 km/h"
+        ],
+        "answer": "A",
+        "rubric": "1 point for selecting the correct answer (A). 0 points otherwise.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "distance",
+          "time",
+          "speed",
+          "multiple_choice"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_383fffe241",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A construction project requires 12,000 feet of copper wire. The wire is sold in spools of 3,000 meters each. How many full spools must be purchased? (Use 1 foot = 0.3048 meters)",
+        "choices": [
+          "A. 1 spool",
+          "B. 2 spools",
+          "C. 3 spools",
+          "D. 4 spools"
+        ],
+        "answer": "B",
+        "rubric": "Correct answer: B (2 spools). Full credit for B. No partial credit for this multiple-choice item.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "feet_to_meters",
+          "length",
+          "multi_step"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_0ddbde8b63",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A water tank has a capacity of 5000 liters. Water flows into the tank through a pipe at a rate of 3.5 gallons per minute. How many hours (to the nearest hundredth) will it take to fill the tank? Use the conversion factor: 1 gallon = 3.78541 liters.",
+        "choices": [
+          "A. 6.29 hours",
+          "B. 23.81 hours",
+          "C. 5.95 hours",
+          "D. 90.18 hours"
+        ],
+        "answer": "A",
+        "rubric": "1 point for selecting the correct answer (A).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "multiple_choice",
+          "L4",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_4cc4cc4edd",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A company purchases the following items for its office setup:\n- 200 laptops at $800 each\n- 150 monitors at $300 each\n- 50 keyboards at $50 each\n- 20 mice at $25 each\nThe company also pays $2,000 for shipping. Their total budget for the purchase is $200,000.\n\nHow much money did the company spend on monitors?\n\nA. $45,000\nB. $50,000\nC. $30,000\nD. $160,000",
+        "choices": [
+          "A. $45,000",
+          "B. $50,000",
+          "C. $30,000",
+          "D. $160,000"
+        ],
+        "answer": "A",
+        "rubric": "Full credit for selecting A. No credit for any other choice.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "L4",
+          "word_problems",
+          "multiple_choice"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_f474d3d8dd",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A bookstore sells three types of notebooks: Type A costs $2.50 each, Type B costs $3.00 each, and Type C costs $4.00 each. The store sold a total of 120 notebooks: 40 of Type A, 30 of Type B, and 50 of Type C. The total revenue from these sales was $390. The store's rent is $2000 per month and they have 2 employees each earning $15 per hour. The store is open 8 hours a day, 6 days a week. What was the average cost per notebook sold?",
+        "choices": [
+          "A. $2.50",
+          "B. $3.00",
+          "C. $3.25",
+          "D. $4.00"
+        ],
+        "answer": "C",
+        "rubric": null,
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multi-step",
+          "average",
+          "extraneous_info"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_4a38da0676",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A baker makes 5 batches of cookies. Each batch requires 2 cups of flour and 1 cup of sugar. The baker has 12 cups of flour and 8 cups of sugar available in the pantry. The bakery sells each cookie for $1.50. The recipe does not require eggs, but the baker has 3 eggs on hand. How many cups of sugar will the baker use in total if they make all 5 batches?",
+        "choices": [
+          "A. 2 cups",
+          "B. 5 cups",
+          "C. 10 cups",
+          "D. 8 cups"
+        ],
+        "answer": "B",
+        "rubric": "One point for correct answer (B). No partial credit.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "L4",
+          "multiple_choice"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_3b7567a42d",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A farmer has 120 apples, 45 oranges, 30 bananas, and 20 pears. He sells 20 apples, 10 oranges, and 5 bananas to a friend. He also gives away 12 apples to a local charity. The farmer uses a basket that can hold up to 50 fruits. How many apples does the farmer have left after giving away and selling?",
+        "choices": [
+          "A. 88",
+          "B. 78",
+          "C. 68",
+          "D. 58"
+        ],
+        "answer": "A",
+        "rubric": "Full credit (1 point): Select 'A. 88' (120 - 20 - 12 = 88). Partial credit (0.5 points): Select a distractor that shows understanding of subtracting some apple numbers but misapplies irrelevant info (e.g., 78 subtracts oranges incorrectly). No credit (0 points): Any other choice.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multiple_choice",
+          "numerical_reasoning"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_7bc738d885",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A bakery sells cupcakes for $3 each and cookies for $2 each. On Monday, they sold 120 cupcakes and 80 cookies. They also sold 50 brownies at $4 each, and they paid a rent of $200 for the day. How much revenue did they earn from cupcakes and cookies combined on Monday?",
+        "choices": [
+          "A. $520",
+          "B. $720",
+          "C. $920",
+          "D. $570"
+        ],
+        "answer": "A",
+        "rubric": "Full credit for selecting A ($520). No credit for any other choice.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multiple_choice",
+          "revenue",
+          "extraneous_numbers"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_589fab7154",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A contractor is building a rectangular wooden deck. The deck has a length of 12 feet and a width of 8 feet. The railing around the deck will be made from wooden planks, each plank being 6 feet long and costing $15. The deck will also include a hot tub that measures 6 feet by 6 feet. The hot tub costs $2000 to install. The contractor charges $40 per hour for labor and estimates the job will take 15 hours. The client has a budget of $5000 for the entire project. The contractor purchases 30 planks for the railing. What is the total area of the deck in square feet?",
+        "choices": [
+          "A. 96",
+          "B. 72",
+          "C. 48",
+          "D. 60"
+        ],
+        "answer": "A",
+        "rubric": "Full credit (1 point): Select A (96 square feet). The deck area is 12 ft × 8 ft = 96 ft². All other numbers (plank length, plank cost, hot tub size, hot tub cost, labor rate, labor hours, budget, number of planks) are irrelevant. Partial credit: None. No credit (0 points): Any other choice. Plausible distractor errors include: B. 72 (12 ft × 6 ft plank length), C. 48 (8 ft × 6 ft plank length), D. 60 (96 ft² – 36 ft² hot tub area, mistakenly subtracting the hot tub's area).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multiple_choice",
+          "area",
+          "construction"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_40bb8a1382",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A family is buying apples at a store. The store sells apples at $0.50 per apple. They have a sale: buy 10 apples, get 2 free. The family buys 24 apples. They also buy 6 oranges at $0.75 each. The store is open from 8 AM to 8 PM. They have a total of 3 bags. How much do they spend on apples?",
+        "choices": [
+          "A. $10.00",
+          "B. $12.00",
+          "C. $11.40",
+          "D. $11.00"
+        ],
+        "answer": "A",
+        "rubric": "Choice A ($10.00) is correct. This accounts for the sale: 24 apples = 2 sets of (10 paid + 2 free), so cost = 20 × $0.50 = $10.00. Choice B ($12.00) ignores the sale. Choice C ($11.40) incorrectly includes a purchase of one orange. Choice D ($11.00) incorrectly treats 2 apples as free and pays for 22. Extraneous information: oranges, store hours, and number of bags.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multi-step",
+          "L4"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_9791b676b9",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A contractor is building a rectangular fence around a garden. The garden is 30 feet long and 20 feet wide. The contractor plans to use wooden posts every 10 feet, including the corners. The posts cost $12 each, and the wire mesh costs $8 per 50-foot roll. The gate is 4 feet wide and does not require mesh. The contractor has a budget of $600 for this project. How many posts are needed for the fence?",
+        "choices": [
+          "A. 10 posts",
+          "B. 12 posts",
+          "C. 14 posts",
+          "D. 15 posts"
+        ],
+        "answer": "A",
+        "rubric": null,
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multiple_choice",
+          "extraneous_numbers"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "consistency_checks_f14828d86d",
+        "dimension_id": "consistency_checks",
+        "task_type": "multiple_choice",
+        "prompt": "A company reports its quarterly revenue as $500,000. According to the income statement: cost of goods sold (COGS) is 60% of revenue, operating expenses are 25% of revenue, and net profit is $100,000. Are these figures consistent with each other?\n\nA. Consistent\nB. Inconsistent\nC. Cannot determine from the given information",
+        "choices": [
+          "A. Consistent",
+          "B. Inconsistent",
+          "C. Cannot determine from the given information"
+        ],
+        "answer": "B",
+        "rubric": "Award 1 point if the model selects B (Inconsistent). Award 0 points otherwise. No partial credit.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "consistency_checks",
+          "multi-step",
+          "percentages",
+          "financial"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "consistency_checks_4f9feee126",
+        "dimension_id": "consistency_checks",
+        "task_type": "multiple_choice",
+        "prompt": "A company reported the following quarterly revenues for the fiscal year:\n- Q1: $1.2 million\n- Q2: $1.5 million\n- Q3: $1.4 million\n- Q4: $1.9 million\n\nThe annual report states that the total revenue for the year is $6.0 million. The CEO remarks in a press release: \"Q4 revenue was 50% higher than Q1, reflecting strong end-of-year performance.\"\n\nBased on the given numbers, are these statements consistent with each other?",
+        "choices": [
+          "A. Consistent",
+          "B. Inconsistent",
+          "C. Cannot determine"
+        ],
+        "answer": "B",
+        "rubric": "Award 1 point for answer B (Inconsistent), 0 points otherwise.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "consistency_checks",
+          "numerical_reasoning",
+          "multi_step",
+          "percentage",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "consistency_checks_d45776b5d2",
+        "dimension_id": "consistency_checks",
+        "task_type": "multiple_choice",
+        "prompt": "A fruit vendor sells apples, bananas, and cherries. One day, 60% of the fruits sold were apples, 25% were bananas, and 20% were cherries. Are these percentages consistent? (Assume each fruit was sold as a whole fruit and each fruit was counted only once.)",
+        "choices": [
+          "A. Consistent",
+          "B. Inconsistent",
+          "C. Cannot determine"
+        ],
+        "answer": "B",
+        "rubric": "Award 1 point for answer B (Inconsistent). Award 0 points for any other answer.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "consistency",
+          "percentages",
+          "L4"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "consistency_checks_99a7cf666a",
+        "dimension_id": "consistency_checks",
+        "task_type": "multiple_choice",
+        "prompt": "A fruit vendor has 30 apples, 40 oranges, and 30 bananas. The vendor claims that apples are 25% of total, oranges 40%, and bananas 35%. Is this claim consistent with the given numbers?",
+        "choices": [
+          "A. Consistent",
+          "B. Inconsistent",
+          "C. Cannot determine"
+        ],
+        "answer": "B",
+        "rubric": "Award 1 point for selecting 'Inconsistent', 0 otherwise.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "consistency_checks",
+          "math",
+          "percentage",
+          "word_problem"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "consistency_checks_3a3ad70db1",
+        "dimension_id": "consistency_checks",
+        "task_type": "multiple_choice",
+        "prompt": "A company has 120 employees. Department A has 40% of the employees, Department B has 30%, Department C has 25%, and the rest are in Department D. The manager claims that Department D has 10 employees. Are these numbers consistent?",
+        "choices": [
+          "A. Consistent",
+          "B. Inconsistent",
+          "C. Cannot determine"
+        ],
+        "answer": "B",
+        "rubric": "Award 1 point if the answer is B (Inconsistent). Award 0 points otherwise.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "consistency_checks",
+          "percentages",
+          "hidden_total",
+          "logical_inconsistency"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "integrated_multi_step_68c49a7a96",
+        "dimension_id": "integrated_multi_step",
+        "task_type": "open_generation",
+        "prompt": "A family is driving from City A to City B, a distance of 320 miles. Their car gets 28 miles per gallon of gasoline, and the fuel tank holds 14 gallons. They start with a full tank. Along the way they make one stop that lasts 45 minutes. The speed limit is 65 mph, but construction reduces speed to 45 mph for 12 miles of the trip. They have 3 passengers and 2 suitcases. Estimate the total travel time in hours (including the stop) assuming they drive at the speed limit except where construction reduces speed, and ignoring acceleration/deceleration. Then check if the trip can be completed without refueling based on their fuel consumption. Provide the estimated travel time and state whether refueling is needed.",
+        "choices": [],
+        "answer": "5.545 hours; refueling not needed.",
+        "rubric": "Score 1-5:\n1: No correct calculation or reasoning.\n2: Partially correct but major errors (wrong unit conversions, missing steps, ignoring consistency check).\n3: Correct travel time but fails to check fuel consistency or uses irrelevant numbers incorrectly.\n4: Correct travel time and fuel check with clear steps, but minor oversight (e.g., rounding error).\n5: Fully correct: travel time ≈ (308/65 + 12/45) hours + 0.75 = 5.545 hours, fuel used = 320/28 ≈ 11.43 gallons, tank holds 14 gallons, so refueling not needed. All steps shown, irrelevant numbers (passengers, suitcases) identified and excluded, consistency check performed correctly.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "integrated",
+          "unit_conversion",
+          "distractor_filtering",
+          "consistency_check",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_06cb2334d3",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A marathon runner completes a race in 3 hours 15 minutes 30 seconds. If the marathon distance is 26.21875 miles, what is the runner's average speed in meters per second? (Note: 1 mile = 1609.34 meters)",
+        "choices": [
+          "A. 3.59 m/s",
+          "B. 4.78 m/s",
+          "C. 2.85 m/s",
+          "D. 5.01 m/s"
+        ],
+        "answer": "A",
+        "rubric": "Full credit (1 point) if choice A is selected. No partial credit. Correct answer: A (3.59 m/s). Distractor B results from converting only hours to seconds but ignoring minutes and seconds. Distractor C comes from using miles-to-kilometers (1 mile = 1.609 km) incorrectly and forgetting seconds. Distractor D results from converting time to only seconds but using wrong conversion factor for distance (1 mile = 1600 m).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "speed",
+          "time",
+          "distance",
+          "imperial_to_metric"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_7a481bd8c0",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A car travels at a constant speed of 60 miles per hour. How many feet does the car travel in 2 minutes? (1 mile = 5280 feet)",
+        "choices": [
+          "A. 5280 feet",
+          "B. 10560 feet",
+          "C. 21120 feet",
+          "D. 63360 feet"
+        ],
+        "answer": "B",
+        "rubric": "1 point if the correct answer B is selected. 0 points for any other selection.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "multi-step",
+          "math",
+          "distance",
+          "time"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_55b4c12ebb",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A cyclist rides at a constant speed of 18 miles per hour. He rides for 2 hours and 30 minutes. What is the total distance he travels in feet?",
+        "choices": [
+          "A. 237,600 feet",
+          "B. 190,080 feet",
+          "C. 79,200 feet",
+          "D. 118,800 feet"
+        ],
+        "answer": "A",
+        "rubric": "Correct answer: A (237,600 feet). Each incorrect choice corresponds to a specific conversion error: B (forgetting to convert the 30 minutes to 0.5 hours, using only 2 hours), C (converting miles to yards instead of feet), D (using half the correct conversion factor for feet per mile).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "time_to_hours",
+          "miles_to_feet",
+          "multi_step"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_9756f85754",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A marathon runner covers a distance of 26.2 miles. The runner completes the race in 3.5 hours. What is the runner’s average speed in feet per second? (1 mile = 5280 feet)",
+        "choices": [
+          "A. 10.97 ft/s",
+          "B. 3.74 ft/s",
+          "C. 5.09 ft/s",
+          "D. 7.48 ft/s"
+        ],
+        "answer": "A",
+        "rubric": "Score 1 if correct answer A is selected. Score 0 otherwise.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "speed",
+          "feet per second",
+          "miles per hour"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_f7623d5dbf",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A water pipe has a flow rate of 5 liters per second. How many cubic meters of water flow through the pipe in 2 hours?\n(1 cubic meter = 1000 liters)\n\nA) 18 cubic meters\nB) 36 cubic meters\nC) 0.01 cubic meters\nD) 3.6 cubic meters",
+        "choices": [
+          "A) 18 cubic meters",
+          "B) 36 cubic meters",
+          "C) 0.01 cubic meters",
+          "D) 3.6 cubic meters"
+        ],
+        "answer": "B",
+        "rubric": "1 point for selecting the correct answer (B). 0 points otherwise.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "metric",
+          "flow_rate",
+          "multiple_steps"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_e1d6c05664",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A marathon runner completes a 26.2-mile race in 3.5 hours. What is her average speed in feet per second (ft/s)?",
+        "choices": [
+          "A. 10.98 ft/s",
+          "B. 1.10 ft/s",
+          "C. 658.74 ft/s",
+          "D. 38.67 ft/s"
+        ],
+        "answer": "A",
+        "rubric": "Scoring: 1 point for selecting the correct answer (A). 0 points for any other selection. No partial credit.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "multi-step",
+          "speed",
+          "imperial",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "unit_conversion_3fdb379987",
+        "dimension_id": "unit_conversion",
+        "task_type": "multiple_choice",
+        "prompt": "A car's fuel efficiency is 25 miles per gallon. How many kilometers can it travel on 15 liters of fuel? (Use 1 gallon = 3.785 liters, 1 mile = 1.609 kilometers)",
+        "choices": [
+          "A. 159.4 km",
+          "B. 239.1 km",
+          "C. 398.5 km",
+          "D. 603.5 km"
+        ],
+        "answer": "A",
+        "rubric": "",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "unit_conversion",
+          "multi_step",
+          "fuel_efficiency"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_2ea2b03df4",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A school is planning a field trip. There are 240 students and 15 teachers going. Each bus can hold 50 passengers. The school has already reserved 4 buses. Additionally, there are 3 parent volunteers who will drive their own cars. Each parent volunteer's car can hold 4 passengers including the driver. How many more buses does the school need to reserve to transport all 240 students and 15 teachers?",
+        "choices": [
+          "A. 1 bus",
+          "B. 2 buses",
+          "C. 3 buses",
+          "D. 0 buses (already enough)"
+        ],
+        "answer": "A",
+        "rubric": "Score 1 if the correct answer (A. 1 bus) is selected. Score 0 if any other choice is selected.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "extraneous_numbers",
+          "passenger_capacity"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_7543522ae0",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A school has 500 students, 25 teachers, and 12 buses. The school is planning a field trip. Each bus can hold 40 students. If 320 students are going on the trip, how many buses are needed?",
+        "choices": [
+          "A. 8",
+          "B. 12",
+          "C. 13",
+          "D. 7"
+        ],
+        "answer": "A",
+        "rubric": null,
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multiple_choice",
+          "word_problem"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_ff2eecc832",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "Evaluation objective: Evaluate the target model's ability to solve multi-step numerical word problems involving unit conversions, distractor filtering, and consistency checks.\nDimension: Distractor Filtering\nTask: Generate word problems with extraneous numbers and details. The model must identify which numbers are relevant and perform the necessary calculations.\nDifficulty: L4\nChoose the best answer. This is a placeholder item for generator smoke tests.",
+        "choices": [
+          "A. The response fully satisfies the dimension",
+          "B. The response partially satisfies the dimension",
+          "C. The response avoids the requested behavior",
+          "D. The response is irrelevant"
+        ],
+        "answer": "A",
+        "rubric": null,
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_23b9a53a84",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A construction company orders the following materials for a project:\n- 15,000 bricks\n- 500 bags of cement\n- 200 bags of sand\n- 100 bags of gravel\n\nThe workers use 3,000 bricks for the first wall and 2,000 bricks for the second wall. How many bricks remain?",
+        "choices": [
+          "A. 10,000",
+          "B. 9,500",
+          "C. 12,000",
+          "D. 13,000"
+        ],
+        "answer": "A",
+        "rubric": "1 point for correct answer (A). 0 points otherwise. Correct answer: 15000 - 3000 - 2000 = 10000. Common errors: B uses the number of cement bags (500) as an extra deduction (15000 - 3000 - 2000 - 500 = 9500); C omits the second wall deduction (15000 - 3000 = 12000); D omits the first wall deduction (15000 - 2000 = 13000).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multi_step",
+          "arithmetic",
+          "L4"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_b421ed1994",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A school is ordering new desks. Each desk costs $45. The school has 500 students. The principal orders 400 desks. The school also bought 20 new computers at $800 each. What is the total cost of the desks?",
+        "choices": [
+          "A. $22,500",
+          "B. $18,000",
+          "C. $20,000",
+          "D. $36,000"
+        ],
+        "answer": "B",
+        "rubric": "",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multi_step",
+          "word_problem"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_d2415b6f4d",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A factory has three production shifts. The first shift produces 500 units per hour, the second shift produces 400 units per hour, and the third shift produces 300 units per hour. Each shift lasts 8 hours. The factory operates 5 days a week. The factory also has a warehouse with a capacity of 10,000 units. If the factory runs only the first and second shifts each day, how many total units are produced in one week?\n\nA. 36,000\nB. 48,000\nC. 10,000\nD. 7,200",
+        "choices": [
+          "A. 36,000",
+          "B. 48,000",
+          "C. 10,000",
+          "D. 7,200"
+        ],
+        "answer": "A",
+        "rubric": "Score 1 if the answer is A, otherwise score 0.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multiple_choice",
+          "word_problem",
+          "extraneous_numbers"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_9320c02f55",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "Sarah is hosting a birthday party. She buys 3 packs of balloons, each pack contains 12 balloons. She also buys 2 packs of cups, each pack contains 20 cups. The total cost before tax is $45. The tax rate is 8%. She invites 15 friends. However, 3 friends cancel. How many balloons does Sarah have total?\n\nA. 36\nB. 40\nC. 540\nD. 76",
+        "choices": [
+          "A. 36",
+          "B. 40",
+          "C. 540",
+          "D. 76"
+        ],
+        "answer": "A",
+        "rubric": "Full credit (1 point) for selecting A. 36. No credit (0 points) for any other choice.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multiple_choice",
+          "arithmetic",
+          "extraneous_info",
+          "word_problem"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distractor_filtering_3f960d8a8f",
+        "dimension_id": "distractor_filtering",
+        "task_type": "multiple_choice",
+        "prompt": "A contractor is building a brick wall. The wall will be 10 feet long. The contractor needs 200 bricks, and each brick costs $0.50. Bricks come in pallets of 500, but there are no partial pallets. The labor cost is $15 per hour, and the job takes 2 hours. The mortar costs $20 per bag, and they need 2 bags. Additionally, the contractor has a $50 discount if the total exceeds $100. However, the discount only applies to the brick cost. How much does the contractor spend on bricks alone?",
+        "choices": [
+          "A. $75",
+          "B. $100",
+          "C. $120",
+          "D. $150"
+        ],
+        "answer": "B",
+        "rubric": "Full credit (1) if the correct answer B is selected. No credit (0) otherwise. The correct answer is $100 (200 * $0.50). Choice A ($75) may result from incorrectly using the pallet discount or other irrelevant numbers. Choice C ($120) may include an extra cost. Choice D ($150) is the total brick cost if no discount applied.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "distractor_filtering",
+          "multiple_choice",
+          "irrelevant_information"
+        ],
+        "metadata": {}
+      }
+    ],
+    "sources": [],
+    "generation_notes": "unit_conversion: Generated 8 items (4 MC, 4 OG) for dimension 'Unit Conversion' at L4. Each item involves at least two unit conversions using standard conversion factors. No extraneous numerical distractors included. MC distractors represent common conversion errors (incorrect conversion factor, skipping a conversion, using ft/s instead of distance, etc.). OG items provide precise numerical answers and detailed scoring rubrics for judge evaluation.\ndistractor_filtering: Generated 8 items (4 multiple-choice, 4 open-generation) for the Distractor Filtering dimension. Each problem includes at least two extraneous numerical pieces. Multiple-choice distractors include plausible answers derived from irrelevant numbers. Open-generation items require reasoning and identification of which numbers are used. Scenarios avoid trivial distractions; irrelevant numbers are plausible but clearly unnecessary upon careful reading.\nconsistency_checks: Generated 3 multiple-choice and 4 open-generation items for the consistency_checks dimension. Each item focuses on logical consistency of numbers (e.g., total vs subtotals, percentages, averages, constraints) and avoids simple arithmetic checks. All scenarios are self-contained, distinct, and require multi-step reasoning at L4 difficulty.\nintegrated_multi_step: Generated 7 integrated open-generation items combining unit conversion, distractor filtering, and consistency checks. Each problem includes at least one unit conversion, at least two clearly irrelevant numerical distractors, and a built-in consistency verification. The model must produce a step-by-step solution and a final determinate answer (e.g., consistent/inconsistent, or a verified value). The rubric is a 1-5 score judging correctness, conversion accuracy, irrelevant-data handling, and consistency reasoning.\nRemoved 7 QC-rejected item(s) before runner execution.\nPlanner pre-run review:\nDeleted 1 planner-flagged off-target item(s).\nUpdated dimension distractor_filtering.\nUpdated dimension consistency_checks.\nPre-run repair generation:\ndistractor_filtering: Generated 8 items (4 multiple-choice, 4 open-generation) for the distractor_filtering dimension. Each problem includes at least two extraneous numerical values. Multiple-choice distractors incorporate common errors from using irrelevant numbers. Open-generation rubrics reward explicit identification of extraneous data and correct numerical answers. All scenarios avoid the provided example prompts.\ndistractor_filtering: Generated one multiple-choice item for the distractor_filtering dimension. The problem involves a farmer selling apples, with extraneous numbers from other fruits, container capacities, and costs. Correct answer is $1000; distractors reflect common errors of including irrelevant data. Avoids the provided example prompts.\ndistractor_filtering: Generated one multiple-choice item for the distractor_filtering dimension. The problem includes three extraneous numerical pieces (4 passengers, 8 gallons of gasoline, and 2 rest stops each lasting 15 minutes) that are not needed for the calculation of average speed. The distractors are designed to arise from misusing these irrelevant numbers, in line with the item requirements.\ndistractor_filtering: Generated one open-generation item for the distractor_filtering dimension. The problem includes three irrelevant numerical pieces (field dimensions, shed and pond dimensions/area, total fertilizer bought) that are not needed to compute the fertilizer for the corn plot. The rubric is clean and unambiguous, requiring explicit identification of relevant vs. irrelevant numbers and correct calculation. Avoids all avoid_prompts.\ndistractor_filtering: Generated 8 items (4 multiple-choice, 4 open-generation) for the distractor_filtering dimension. Each problem contains at least two extraneous numerical pieces of information. Multiple-choice distractors include answers that would result from using irrelevant numbers. Open-generation items require reasoning steps identifying which numbers are used. All rubrics are clean and unambiguous, with clear scoring levels. No duplication of avoid_prompts.\ndistractor_filtering: Generated 8 items (4 multiple-choice, 4 open-generation) for the Distractor Filtering dimension. Each problem includes at least two extraneous numerical pieces of information that are plausible but unnecessary. Multiple-choice distractors incorporate common errors from using irrelevant numbers. Open-generation items require explicit reasoning indicating which numbers are used/ignored. Rubrics are clean and unambiguous. All scenarios are distinct from the avoid_prompts list.\nconsistency_checks: Generated a single open-generation item for the consistency_checks dimension. The problem involves percentage-based relationships and a hidden total inconsistency, avoiding simple arithmetic checks. Rubric is clean and unambiguous.\nconsistency_checks: Generated 7 items (3 multiple_choice, 4 open_generation) for the consistency_checks dimension. All items avoid the avoid_prompts, include at least one non-trivial relationship (percentages, overlapping sets, multi-step discounts), and have clean, final rubrics with no internal planning notes.\nRemoved 3 QC-rejected item(s) before runner execution.\nPlanner pre-run review:\nDeleted 9 planner-flagged off-target item(s).\nUpdated dimension unit_conversion.\nUpdated dimension distractor_filtering.\nUpdated dimension consistency_checks.\nUpdated dimension integrated_multi_step.\nPre-run repair generation:\nunit_conversion: Generated 8 items for the Multi-Step Unit Conversion dimension: 4 multiple-choice and 4 open-generation. Each problem involves at least two unit conversions with standard conversion factors. Multiple-choice distractors reflect common conversion errors. Open-generation items include step-by-step solutions and explicit rubrics for judge scoring. All numbers provided are necessary for the solution; no extraneous distractors.\nunit_conversion: Generated 8 items for the unit_conversion dimension: 4 multiple-choice and 4 open-generation. Each problem involves at least two unit conversions (e.g., km to m, min to s; m³ to L, s to min; miles to ft, h to min; gallons to L, min to s). No extraneous numbers are included. Conversion factors are standard and realistic. Multiple-choice distractors represent common conversion errors (unit omission, wrong operation). Open-generation items include correct numerical answer and full rubric for judge scoring. Difficulty is L4. All items are self-generated.\nunit_conversion: Generated 1 multiple-choice item for the unit_conversion dimension. The problem involves converting gallons to liters and minutes to hours, requiring exactly two unit conversions. No extraneous numbers are included. The distractors represent common conversion errors: ignoring the gallon-to-liter conversion, forgetting to convert minutes to hours, and a double-division error. The rubric provides clear scoring criteria.\ndistractor_filtering: Generated 8 items (4 multiple_choice, 4 open_generation) for the distractor_filtering dimension. Each item includes at least two extraneous numerical pieces of information that are plausible but unnecessary. Multiple-choice distractors include answers that would result from using irrelevant numbers. Open-generation items require step-by-step reasoning and explicit identification of irrelevant numbers. Rubrics are complete with clear scoring criteria. All items are distinct from the avoid_prompts and do not duplicate the given examples.\ndistractor_filtering: Generated one open_generation item for the distractor_filtering dimension. The problem includes multiple extraneous numbers (fuel tank capacity, speed, rest stops, friends, budget, gas cost) while only requiring total distance (180+120=300 miles) and fuel efficiency (25 mpg) to compute the needed gallons (12). The rubric is explicit and avoids self-contradiction. This item fits the requested count of 1.\ndistractor_filtering: Generated 8 items for the distractor_filtering dimension: 4 multiple-choice and 4 open-generation. Each includes at least two extraneous numerical pieces of information that are plausible but unnecessary. Multiple-choice distractors reflect common errors from using irrelevant numbers. Open-generation items require step-by-step reasoning and clear identification of which numbers are used. Rubrics are explicit with scoring criteria. All items avoid the provided avoid_prompts and are self-contained.\ndistractor_filtering: Generated 8 items (4 multiple_choice, 4 open_generation) for distractor_filtering dimension. Each problem includes at least two extraneous numerical pieces. Multiple-choice distractors include answers from using irrelevant numbers. Open-generation items require reasoning steps. Rubrics are explicit and complete. Avoided the three example prompts. Scenarios: school fundraising, construction, recipe, travel, library, crops, factory, marathon.\nconsistency_checks: Generated 7 items (3 multiple-choice, 4 open-generation) for the Consistency Checks dimension. Each item requires verifying logical consistency of numerical claims involving non-trivial relationships such as percentages, hidden totals, or conflicting constraints. Multiple-choice items have plausible distractors; open-generation items require step-by-step reasoning. All items are self_generated and designed for L4 difficulty.\nconsistency_checks: Generated 7 items for the consistency_checks dimension: 3 multiple-choice and 4 open-generation. All problems require verifying logical consistency of numerical information with at least one non-trivial relationship (percentages, hidden totals, conflicting constraints). Rubrics use a 1-5 scale with explicit criteria. No external sources used; all items self-generated.\nconsistency_checks: This multiple-choice item tests consistency checks with a sales report containing hidden percentage inconsistencies. The scenario involves three departments with given sales numbers and percentages that do not match the total. The model must identify that the numbers are inconsistent. The rubric uses pass/fail based on correct choice.\nconsistency_checks: Generated 7 items for the consistency_checks dimension: 3 multiple-choice and 4 open-generation. Each problem requires verifying consistency of numerical information using non-trivial relationships such as weighted percentages, sums of parts vs totals, and hidden constraints. Rubrics are complete with explicit scoring criteria (1-5 scale for open-generation, pass/fail for multiple-choice). All items are self-generated, target difficulty L4, and tagged accordingly.\nconsistency_checks: Generated one open_generation item for the consistency_checks dimension. The problem involves checking consistency of departmental spending percentages, requiring a non-trivial relationship (percentages of allocations). The rubric uses a 1-5 scale with explicit criteria. Item count is 1 as per requested_count, fulfilling the workload signal while meeting the dimension requirements.\nRemoved 2 QC-rejected item(s) before runner execution.\nPlanner pre-run review:\nDeleted 19 planner-flagged off-target item(s).\nPre-run repair generation:\nunit_conversion: One multiple-choice item for the unit_conversion dimension. The problem requires converting meters to kilometers and hours to seconds (two unit conversions). No extraneous numbers. Distractors represent common conversion errors. Rubric is explicit.\nunit_conversion: Generated 8 items for the unit_conversion dimension: 4 multiple_choice and 4 open_generation. Each problem requires at least two unit conversions with standard conversion factors. No extraneous numbers are included. Multiple-choice distractors are designed to reflect common conversion errors. Open-generation items include a clear answer and a detailed rubric allowing partial credit. All items are self-generated (no sources).\nunit_conversion: Generated 8 items (4 multiple-choice, 4 open-generation) for the unit_conversion dimension. Each problem involves at least two unit conversions (e.g., miles to feet and hours to minutes, cubic feet to gallons and minutes to hours). No extraneous numerical distractors are included; all numbers are necessary for the solution. Conversion factors are standard and realistic. Multiple-choice distractors represent common errors (e.g., forgetting hour-to-minute conversion, using wrong conversion factor). Open-generation items include correct numerical answers and detailed 1-5 scoring rubrics with explicit criteria for full credit, partial credit, and no credit. All items are self-generated.\nunit_conversion: Generated 8 items for Multi-Step Unit Conversion dimension: 4 multiple-choice and 4 open-generation. Each requires at least two unit conversions using standard (metric/imperial) conversion factors. No extraneous numerical information included. Multiple-choice distractors represent common conversion errors (e.g., forgetting to convert units, wrong conversion direction, incorrect time fraction). Open-generation items include a complete numerical answer and detailed scoring rubric with explicit criteria for full, partial, and no credit. All items are self-generated, no external sources used.\nunit_conversion: Generated 8 items for the Multi-Step Unit Conversion dimension: 4 multiple-choice and 4 open-generation. Each problem requires at least two unit conversions with standard conversion factors. No extraneous numbers are included. Multiple-choice distractors represent common conversion errors (e.g., forgetting to convert, using wrong factor, misplacing decimal). Open-generation rubrics define explicit scoring criteria for correct answer, correct intermediate conversions, and clear reasoning.\nunit_conversion: Generated 1 multiple-choice item for unit_conversion dimension. Problem requires converting gallons to liters and minutes to hours. Distractors represent common conversion errors: forgetting unit conversion, using approximate factor 1 gal=4 L, and reversing multiplication/division.\ndistractor_filtering: Generated 8 items for the Distractor Filtering dimension: 4 multiple-choice and 4 open-generation. Each item includes at least two extraneous numerical pieces of information. Multiple-choice distractors include answers from using irrelevant numbers. Open-generation items require showing reasoning and identifying which numbers were used. Rubrics are explicit with scoring criteria. All items target L4 difficulty.\ndistractor_filtering: Generated 8 items for the Distractor Filtering dimension: 4 multiple-choice and 4 open-generation. Each includes at least two extraneous numerical details. Multiple-choice distractors incorporate answers from using irrelevant numbers. Open-generation rubrics explicitly require reasoning with identification of used/ignored numbers, with full/partial/no credit criteria. All items avoid the provided avoid_prompt and are distinct in scenario. Rubrics are complete with no truncation.\ndistractor_filtering: Generated 4 items for the distractor_filtering dimension: 2 multiple-choice and 2 open-generation. Each problem includes at least two extraneous numerical details. Rubrics are complete with explicit scoring. No duplication of the avoided road trip scenario.\ndistractor_filtering: Generated 8 items for the Distractor Filtering dimension: 4 multiple-choice and 4 open-generation. Each problem includes at least two extraneous numerical pieces of information that are plausible but unnecessary for the solution. Multiple-choice distractor options include answers that would result from using irrelevant numbers. Open-generation prompts explicitly ask for step-by-step reasoning to show which numbers are used and why others are ignored. Rubrics are complete with explicit scoring criteria (full/partial/no credit for MC, 1-5 scale for OG). Scenarios avoid the road trip example from avoid_prompts and cover diverse contexts (inventory, gardening, reading, travel, baking, attendance, warehouse). All items are self-generated, difficulty L4.\ndistractor_filtering: Generated 8 items for the distractor_filtering dimension: 4 multiple-choice and 4 open-generation. Each problem includes at least two extraneous numerical pieces of information. Multiple-choice distractors reflect common errors that incorporate irrelevant numbers. Open-generation problems require explicit reasoning about which numbers are used. Rubrics provide explicit scoring criteria. All problems are novel and avoid the road trip example given in avoid_prompts.\ndistractor_filtering: Generated one multiple-choice distractor filtering item. The problem involves calculating deck area with many extraneous numbers (plank length, plank cost, hot tub size, labor details, budget, number of planks). Only length and width are needed. Distractors reflect common errors using irrelevant numbers (plank length, hot tub area). Rubric is explicit. Avoid_prompt scenario (road trip) is avoided.\ndistractor_filtering: Generated 8 items (4 multiple_choice, 4 open_generation) for the distractor_filtering dimension. Each problem includes at least two extraneous numerical pieces of information. Multiple-choice distractors include answers resulting from using irrelevant numbers. Open-generation prompts explicitly ask for reasoning and identification of irrelevant numbers. Rubrics are complete with explicit scoring criteria.\ndistractor_filtering: Generated 8 items for the distractor_filtering dimension: 4 multiple-choice and 4 open-generation. Each problem includes at least two extraneous numerical pieces of information. Multiple-choice distractors include plausible wrong answers derived from irrelevant numbers. Open-generation items require reasoning steps to indicate which numbers are used. Rubrics follow full/partial/no credit with explicit criteria. Avoided the road trip prompt from avoid_prompts.\nconsistency_checks: Generated one multiple-choice item for the consistency_checks dimension. The scenario involves percentages and a net profit figure that conflicts with derived profit, requiring multi-step reasoning. The rubric is binary to comply with repair guidance (no reasoning requirement for multiple-choice). The item avoids the provided avoid_prompt.\nconsistency_checks: Generated one multiple-choice consistency check item. The scenario involves quarterly revenue figures, total sum, average, and a percentage claim, requiring the model to check multiple relationships (sum consistency, percentage claim accuracy). Avoids the prompt about training program percentages. Scoring is binary as per repair guidance for multiple-choice items.\nconsistency_checks: Generated 7 items for the consistency_checks dimension: 3 multiple-choice (binary correct/incorrect rubrics) and 4 open-generation (1-5 score rubrics). Each problem involves a non-trivial numerical relationship such as percentages, hidden totals, or conflicting constraints. Avoided simple arithmetic checks and the example from avoid_prompts. All rubrics are complete and follow the repair guidance: multiple-choice rubrics are pass/fail without reasoning requirements; open-generation rubrics define explicit score levels.\nconsistency_checks: Generated 7 items for the consistency_checks dimension: 3 multiple-choice and 4 open-generation. Each problem involves a non-trivial numerical relationship (percentages, weighted averages, inclusion-exclusion, scaling) beyond simple addition or average. Multiple-choice items have binary scoring rubrics. Open-generation items have 1-5 scale rubrics with explicit criteria. All items are self-contained and avoid the given avoid_prompt.\nconsistency_checks: Generated one multiple-choice item for the consistency_checks dimension, following repair_guidance to avoid a rubric that expects reasoning for a multiple-choice item. The scenario involves percentages of employees across departments, requiring computation of the remaining percentage and conversion to an actual count before comparing to a claim. This ensures non-trivial consistency checking beyond simple addition. The rubric is minimal: correct/incorrect.\nintegrated_multi_step: All 7 open-generation items are self-generated. Each integrates unit conversion, distractor filtering, and consistency checks. Rubrics use a 1-5 scale based on correctness, reasoning clarity, and proper handling of all three aspects.\nPlanner pre-run review:\nIgnored planner deletion of QC-passed item(s) that would underfill dimension(s) without replacement: distractor_filtering, unit_conversion.\nUpdated dimension unit_conversion.\nUpdated dimension distractor_filtering.\nPre-run repair generation:\nunit_conversion: Generated 8 items for the unit_conversion dimension: 4 multiple-choice and 4 open-generation. Each problem requires at least two unit conversions using standard factors. No extraneous numbers are included. Multiple-choice distractors reflect common conversion errors (e.g., using wrong conversion factor, forgetting a conversion, arithmetic mistakes). Open-generation items provide the correct numerical answer and a justification. All items are self-contained and do not rely on external sources.\nunit_conversion: Generated one multiple-choice item for the unit_conversion dimension. The problem requires converting miles to feet and hours to minutes, satisfying the requirement for at least two unit conversions. No extraneous numbers are included. The distractors represent common conversion errors (forgetting to convert hours to minutes, using 1 minute instead of 2, or miscalculating the minutes fraction). The rubric is explicit for scoring correctness.\nunit_conversion: Generated one multiple-choice item for the unit_conversion dimension. The problem involves two unit conversions: minutes to hours (time) and miles to feet (length). All provided numbers are necessary. Distractors represent common conversion errors. Standard conversion factors are used.\nunit_conversion: Generated 8 unit conversion word problems (4 multiple-choice, 4 open-generation) for the unit_conversion dimension. Each problem involves at least two unit conversions using standard conversion factors, no extraneous numbers, and realistic scenarios. Multiple-choice distractors reflect common errors (e.g., forgetting to divide, incorrect conversion factors). Open-generation items include a complete rubric with full-credit, partial-credit, and no-credit criteria. All items are self-generated, no external sources.\nunit_conversion: Generated a multiple-choice item for the unit_conversion dimension. The problem requires converting liters to cubic meters and seconds to hours, satisfying the requirement for at least two unit conversions. No extraneous numbers are included. The distractors represent common conversion errors: using half the time (18), mixing up liter-to-cubic-meter factor (0.01), and using wrong time conversion factor (3.6). Answer is B.\nunit_conversion: Generated a multiple-choice item for the unit_conversion dimension. The problem requires converting miles to feet and hours to seconds to find average speed in ft/s. Distractors represent common conversion errors: using 528 ft/mile, confusing hours-to-seconds conversion (using 60 instead of 3600), and ignoring the given time duration. No extraneous numbers are included. Answer calculated precisely: (26.2 * 5280) / (3.5 * 3600) ≈ 10.978 ft/s, rounded to 10.98 ft/s.\nunit_conversion: Generated 8 items for the unit_conversion dimension: 4 multiple-choice and 4 open-generation. Each problem involves at least two unit conversions (e.g., metric/imperial, distance/volume/time). Conversion factors are standard and realistic. No extraneous numbers. Multiple-choice options include plausible distractors from common errors. Open-generation items include expected numerical answer and detailed rubrics for scoring. All items are self-contained and independently executable.\ndistractor_filtering: Generated 8 distractor filtering items: 4 multiple-choice and 4 open-generation. Each problem includes at least two extraneous numerical pieces of information. Distractors in multiple-choice items are derived from common errors (using irrelevant numbers or misidentifying relevant data). Open-generation items require step-by-step reasoning indicating which numbers are used. All conversion factors are standard. Rubrics provide explicit scoring criteria. No external sources used.\ndistractor_filtering: Generated 8 items for the Distractor Filtering dimension: 4 multiple-choice and 4 open-generation. Each problem includes at least two extraneous numerical pieces of information. Multiple-choice distractors include plausible wrong answers from using irrelevant numbers. Open-generation items require step-by-step reasoning and exclusion of irrelevant data. All rubrics are explicit and complete. Sources are self_generated.\ndistractor_filtering: Generated 2 items for the distractor_filtering dimension: 1 multiple-choice and 1 open-generation. Each includes at least two extraneous numbers, plausible distractors from irrelevant values, and complete rubrics.\ndistractor_filtering: Generated 8 items for the distractor_filtering dimension: 4 multiple-choice and 4 open-generation. Each problem includes at least two extraneous numerical pieces of information. Multiple-choice options include plausible distractors based on common errors using irrelevant numbers. Open-generation items require reasoning to identify relevant numbers. Rubrics provide explicit scoring criteria.\ndistractor_filtering: Generated one multiple-choice item for the distractor_filtering dimension. The problem includes two extraneous numbers (third shift rate of 300 units/hr and warehouse capacity of 10,000 units). The correct answer uses only the first and second shift rates. Distractors are based on common errors: including the extraneous shift rate or using the warehouse capacity. Rubric is straightforward for MC.\ndistractor_filtering: Generated one multiple-choice item for the distractor_filtering dimension. The problem includes at least two extraneous numerical pieces of information (total cost, tax rate, number of friends invited, and cancellations). The correct answer uses only the number of balloon packs and per-pack count. Distractors correspond to plausible misinterpretations using irrelevant numbers (cups, friends, or combined total). The rubric is straightforward binary scoring.\ndistractor_filtering: Generated 8 items for the distractor_filtering dimension: 4 multiple-choice and 4 open-generation. Each item includes at least two extraneous numerical pieces of information. Multiple-choice distractors include plausible but incorrect answers that could result from using irrelevant numbers. Open-generation items require showing reasoning steps to identify relevant vs irrelevant information. All rubrics are complete and explicit.",
+    "created_at": "2026-05-30T23:09:28.147688+00:00"
+  },
+  "qc_report": {
+    "issues": [],
+    "passed_item_ids": [
+      "unit_conversion_cb6c1401c6",
+      "integrated_multi_step_d02e129068",
+      "integrated_multi_step_711056b586",
+      "integrated_multi_step_f62fb6bc9a",
+      "integrated_multi_step_0853a83efc",
+      "integrated_multi_step_942f5d38cd",
+      "integrated_multi_step_a040522fce",
+      "consistency_checks_305dc9ec2e",
+      "consistency_checks_5e90265417",
+      "unit_conversion_9c1d91d414",
+      "unit_conversion_9c6ac63983",
+      "unit_conversion_c4f42e968d",
+      "unit_conversion_7aeb99128b",
+      "unit_conversion_b97d52e0ed",
+      "unit_conversion_383fffe241",
+      "unit_conversion_0ddbde8b63",
+      "distractor_filtering_4cc4cc4edd",
+      "distractor_filtering_f474d3d8dd",
+      "distractor_filtering_4a38da0676",
+      "distractor_filtering_3b7567a42d",
+      "distractor_filtering_7bc738d885",
+      "distractor_filtering_589fab7154",
+      "distractor_filtering_40bb8a1382",
+      "distractor_filtering_9791b676b9",
+      "consistency_checks_f14828d86d",
+      "consistency_checks_4f9feee126",
+      "consistency_checks_d45776b5d2",
+      "consistency_checks_99a7cf666a",
+      "consistency_checks_3a3ad70db1",
+      "integrated_multi_step_68c49a7a96",
+      "unit_conversion_06cb2334d3",
+      "unit_conversion_7a481bd8c0",
+      "unit_conversion_55b4c12ebb",
+      "unit_conversion_9756f85754",
+      "unit_conversion_f7623d5dbf",
+      "unit_conversion_e1d6c05664",
+      "unit_conversion_3fdb379987",
+      "distractor_filtering_2ea2b03df4",
+      "distractor_filtering_7543522ae0",
+      "distractor_filtering_ff2eecc832",
+      "distractor_filtering_23b9a53a84",
+      "distractor_filtering_b421ed1994",
+      "distractor_filtering_d2415b6f4d",
+      "distractor_filtering_9320c02f55",
+      "distractor_filtering_3f960d8a8f"
+    ],
+    "rejected_item_ids": [],
+    "quality_score": 1.0,
+    "summary": "QC completed: 45/45 items passed, 0 rejected, 0 issues."
+  },
+  "overview_path": "benchmark-output\\planner-loop-mid-cases\\numerical_word_problem_consistency\\human_review_overview.md",
+  "state_path": "benchmark-output\\planner-loop-mid-cases\\numerical_word_problem_consistency\\pre_run_state.json"
+}

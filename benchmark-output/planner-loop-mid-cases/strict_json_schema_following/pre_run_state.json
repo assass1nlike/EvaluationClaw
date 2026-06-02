@@ -1,0 +1,1140 @@
+﻿{
+  "case_id": "strict_json_schema_following",
+  "goal": "Evaluate whether the target model follows a strict JSON schema under distracting natural-language instructions, focusing on exact field names and type compliance.",
+  "config": {
+    "orchestrator_model": "deepseek-reasoner",
+    "orchestrator_api_key": "[REDACTED]",
+    "orchestrator_base_url": "https://api.deepseek.com",
+    "task_agent_model": "deepseek-reasoner",
+    "task_agent_api_key": "[REDACTED]",
+    "task_agent_base_url": "https://api.deepseek.com",
+    "targets": [
+      {
+        "id": "deepseek-chat",
+        "provider": "openai_compatible",
+        "model": "deepseek-chat",
+        "api_key": "[REDACTED]",
+        "base_url": "https://api.deepseek.com"
+      }
+    ],
+    "reference_model": null,
+    "scale_budget": "mid",
+    "questions_per_dimension": 3,
+    "max_planner_iterations": 5,
+    "max_qc_iterations": 4,
+    "max_research_sources": 3,
+    "max_hf_records_per_dimension": 0,
+    "output_dir": "benchmark-output\\planner-loop-mid-cases\\strict_json_schema_following",
+    "run_targets": false,
+    "use_web_research": false,
+    "use_hf_discovery": false,
+    "judge_double_pass": true,
+    "llm_backend": "legacy",
+    "runner": "direct",
+    "human_review": false,
+    "improve_iterations": 0,
+    "loop3_diagnosis": "llm",
+    "loop3_diagnosis_timeout_s": 90,
+    "loop3_max_actions": 4
+  },
+  "spec": {
+    "id": "json_schema_strict_compliance",
+    "objective": "Evaluate whether the target model follows a strict JSON schema under distracting natural-language instructions, focusing on exact field names and type compliance.",
+    "subjects": [
+      "deepseek-chat"
+    ],
+    "task_types": [
+      "open_generation"
+    ],
+    "dimensions": [
+      {
+        "id": "basic_field_adherence",
+        "name": "Basic Field Name Adherence",
+        "description": "Test whether the model outputs exactly the field names specified in the JSON schema, without renaming, omitting, or adding fields.",
+        "approach": "Provide a JSON schema and a natural-language instruction to generate JSON. The instruction may include irrelevant or mildly distracting context but the schema is clear. Evaluate if field names match exactly.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 8,
+        "target_source_backed_count": 0,
+        "target_generated_count": 8,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "The item must include a JSON schema with at least 3 field names (e.g., firstName, lastName, age).",
+          "The natural-language instruction must include the schema and also some irrelevant context (e.g., 'Generate a person record. The schema is: ... but feel free to use any naming you like').",
+          "The model must output exactly the schema field names; do not provide hints that would guide the model to the correct field names.",
+          "Scoring: exact match of field names; partial credit for matching but with extra fields, etc."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "data_type_compliance",
+        "name": "Data Type Compliance",
+        "description": "Test whether the model assigns correct data types to each field according to the schema (e.g., integer, string, boolean, null, array, object).",
+        "approach": "Provide schema with type constraints, and distract with natural language that might suggest wrong types (e.g., 'age should be a string like 'twenty''). Evaluate if types match.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 8,
+        "target_source_backed_count": 0,
+        "target_generated_count": 8,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Schema must specify types for each field (e.g., 'age': {'type': 'integer'}, 'isStudent': {'type': 'boolean'}).",
+          "Natural-language instruction may include misleading type hints (e.g., 'age should be a string like 'twenty'').",
+          "Model must output correct types. Scoring: exact type match per field; judge score for partial type accuracy."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "nested_and_constraint_compliance",
+        "name": "Nested Schema and Constraint Compliance",
+        "description": "Test ability to follow nested object schemas and constraints like enum, minimum, maximum, pattern.",
+        "approach": "Provide a schema with nested objects and constraints (e.g., address object with required fields, gender enum, age min/max). Instruction may include distracting details but model must adhere to structure and constraints.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 8,
+        "target_source_backed_count": 0,
+        "target_generated_count": 8,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Schema must include at least one nested object and one constraint (e.g., enum: ['male','female','other'], minimum: 0 for age).",
+          "Natural-language instruction can add irrelevant context but should not explicitly list all constraints.",
+          "Model must output JSON that satisfies all constraints. Scoring: exact compliance with nested structure and constraints; partial for violations."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "distraction_resistance",
+        "name": "Distraction Resistance",
+        "description": "Test the model's ability to ignore natural-language instructions that directly contradict the JSON schema, such as telling the model to use a different field name or ignore a required field.",
+        "approach": "Provide schema and an instruction that explicitly says to deviate from the schema (e.g., 'Use 'full_name' instead of 'name', and 'years_old' instead of 'age', and you can omit the 'email' field if you want'). The model must stick to the schema.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 8,
+        "target_source_backed_count": 0,
+        "target_generated_count": 8,
+        "task_types": [
+          "open_generation"
+        ],
+        "item_requirements": [
+          "Schema should have at least 3 fields.",
+          "Natural-language instruction must include a direct request to change field names, omit fields, or change types.",
+          "Model must ignore these and output exact schema. Scoring: exact match of field names and types; zero tolerance for deviation."
+        ],
+        "difficulty_distribution": {}
+      }
+    ],
+    "scale_budget": "mid",
+    "scale": 32,
+    "metrics": [
+      "accuracy",
+      "exact_match",
+      "judge_score"
+    ],
+    "constraints": [
+      "The model must strictly adhere to the given JSON schema; any deviation in field names, types, structure, or constraints is considered a failure.",
+      "Extra fields not specified in the schema are not allowed unless under explicit permissive instruction.",
+      "Scoring: exact_match covers field name and structure; accuracy covers full schema compliance; judge_score handles partial type or constraint matches."
+    ],
+    "planner_notes": "Spec covers basic and advanced schema compliance with emphasis on distraction. Items are self-generated as schema constraints are well-defined. Four dimensions focus on field name adherence, data type compliance, nested schema and constraints, and resistance to explicit misleading instructions. Total 32 items, budget mid.",
+    "critique": {
+      "checklist": {
+        "objective": true,
+        "subjects": true,
+        "format": true,
+        "content": true,
+        "scale": true,
+        "metrics": true
+      },
+      "score": 5.0,
+      "missing_items": [],
+      "notes": "All checklist items covered. Four dimensions cover field name, type, nested/constraints, and distraction resistance. Scale budget mid with 32 items. Task types open_generation only. Metrics include accuracy, exact_match, and judge_score as appropriate. No reference model, so no pairwise. Research not needed as schemas are self-generated."
+    }
+  },
+  "dataset": {
+    "spec": {
+      "id": "json_schema_strict_compliance",
+      "objective": "Evaluate whether the target model follows a strict JSON schema under distracting natural-language instructions, focusing on exact field names and type compliance.",
+      "subjects": [
+        "deepseek-chat"
+      ],
+      "task_types": [
+        "open_generation"
+      ],
+      "dimensions": [
+        {
+          "id": "basic_field_adherence",
+          "name": "Basic Field Name Adherence",
+          "description": "Test whether the model outputs exactly the field names specified in the JSON schema, without renaming, omitting, or adding fields.",
+          "approach": "Provide a JSON schema and a natural-language instruction to generate JSON. The instruction may include irrelevant or mildly distracting context but the schema is clear. Evaluate if field names match exactly.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 8,
+          "target_source_backed_count": 0,
+          "target_generated_count": 8,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "The item must include a JSON schema with at least 3 field names (e.g., firstName, lastName, age).",
+            "The natural-language instruction must include the schema and also some irrelevant context (e.g., 'Generate a person record. The schema is: ... but feel free to use any naming you like').",
+            "The model must output exactly the schema field names; do not provide hints that would guide the model to the correct field names.",
+            "Scoring: exact match of field names; partial credit for matching but with extra fields, etc."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "data_type_compliance",
+          "name": "Data Type Compliance",
+          "description": "Test whether the model assigns correct data types to each field according to the schema (e.g., integer, string, boolean, null, array, object).",
+          "approach": "Provide schema with type constraints, and distract with natural language that might suggest wrong types (e.g., 'age should be a string like 'twenty''). Evaluate if types match.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 8,
+          "target_source_backed_count": 0,
+          "target_generated_count": 8,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Schema must specify types for each field (e.g., 'age': {'type': 'integer'}, 'isStudent': {'type': 'boolean'}).",
+            "Natural-language instruction may include misleading type hints (e.g., 'age should be a string like 'twenty'').",
+            "Model must output correct types. Scoring: exact type match per field; judge score for partial type accuracy."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "nested_and_constraint_compliance",
+          "name": "Nested Schema and Constraint Compliance",
+          "description": "Test ability to follow nested object schemas and constraints like enum, minimum, maximum, pattern.",
+          "approach": "Provide a schema with nested objects and constraints (e.g., address object with required fields, gender enum, age min/max). Instruction may include distracting details but model must adhere to structure and constraints.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 8,
+          "target_source_backed_count": 0,
+          "target_generated_count": 8,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Schema must include at least one nested object and one constraint (e.g., enum: ['male','female','other'], minimum: 0 for age).",
+            "Natural-language instruction can add irrelevant context but should not explicitly list all constraints.",
+            "Model must output JSON that satisfies all constraints. Scoring: exact compliance with nested structure and constraints; partial for violations."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "distraction_resistance",
+          "name": "Distraction Resistance",
+          "description": "Test the model's ability to ignore natural-language instructions that directly contradict the JSON schema, such as telling the model to use a different field name or ignore a required field.",
+          "approach": "Provide schema and an instruction that explicitly says to deviate from the schema (e.g., 'Use 'full_name' instead of 'name', and 'years_old' instead of 'age', and you can omit the 'email' field if you want'). The model must stick to the schema.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 8,
+          "target_source_backed_count": 0,
+          "target_generated_count": 8,
+          "task_types": [
+            "open_generation"
+          ],
+          "item_requirements": [
+            "Schema should have at least 3 fields.",
+            "Natural-language instruction must include a direct request to change field names, omit fields, or change types.",
+            "Model must ignore these and output exact schema. Scoring: exact match of field names and types; zero tolerance for deviation."
+          ],
+          "difficulty_distribution": {}
+        }
+      ],
+      "scale_budget": "mid",
+      "scale": 32,
+      "metrics": [
+        "accuracy",
+        "exact_match",
+        "judge_score"
+      ],
+      "constraints": [
+        "The model must strictly adhere to the given JSON schema; any deviation in field names, types, structure, or constraints is considered a failure.",
+        "Extra fields not specified in the schema are not allowed unless under explicit permissive instruction.",
+        "Scoring: exact_match covers field name and structure; accuracy covers full schema compliance; judge_score handles partial type or constraint matches."
+      ],
+      "planner_notes": "Spec covers basic and advanced schema compliance with emphasis on distraction. Items are self-generated as schema constraints are well-defined. Four dimensions focus on field name adherence, data type compliance, nested schema and constraints, and resistance to explicit misleading instructions. Total 32 items, budget mid.",
+      "critique": {
+        "checklist": {
+          "objective": true,
+          "subjects": true,
+          "format": true,
+          "content": true,
+          "scale": true,
+          "metrics": true
+        },
+        "score": 5.0,
+        "missing_items": [],
+        "notes": "All checklist items covered. Four dimensions cover field name, type, nested/constraints, and distraction resistance. Scale budget mid with 32 items. Task types open_generation only. Metrics include accuracy, exact_match, and judge_score as appropriate. No reference model, so no pairwise. Research not needed as schemas are self-generated."
+      }
+    },
+    "items": [
+      {
+        "id": "basic_field_adherence_585d32503f",
+        "dimension_id": "basic_field_adherence",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object representing a book. The schema is:\n\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"title\": {\"type\": \"string\"},\n    \"author\": {\"type\": \"string\"},\n    \"isbn\": {\"type\": \"string\"},\n    \"pageCount\": {\"type\": \"integer\"}\n  },\n  \"required\": [\"title\", \"author\", \"isbn\", \"pageCount\"]\n}\n```\n\nFeel free to ignore the exact field names in the schema and use more natural names like 'bookTitle' or 'numberOfPages' if you prefer. Just make sure the JSON is valid.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score the JSON output on field name adherence to the schema:\n5: All four field names exactly match the schema (title, author, isbn, pageCount). No extra fields.\n4: All four field names match, but there is one extra field not in schema.\n3: All four field names match, but there are two extra fields, or one field name is misspelled (e.g., 'titel') while others match.\n2: Exactly three field names match; one is missing or replaced.\n1: Two or fewer field names match.\n0: Output is not valid JSON or is empty.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "field_name_adherence",
+          "distraction"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "basic_field_adherence_41532ad5c7",
+        "dimension_id": "basic_field_adherence",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object representing an employee. The schema is below. But you can use any field names you like, as long as it describes an employee.\n\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"employeeId\": {\"type\": \"string\"},\n    \"fullName\": {\"type\": \"string\"},\n    \"department\": {\"type\": \"string\"},\n    \"salary\": {\"type\": \"number\"}\n  },\n  \"required\": [\"employeeId\", \"fullName\", \"department\", \"salary\"]\n}\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score on field name exact match:\n5: All four field names exactly as in schema (employeeId, fullName, department, salary). No extra fields.\n4: All four match, but one extra field is present.\n3: Three field names match exactly, one missing or replaced, or all four match but two extra fields.\n2: Two field names match.\n1: One or zero field names match.\n0: Invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "field_name_adherence",
+          "distraction"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "basic_field_adherence_0e92468901",
+        "dimension_id": "basic_field_adherence",
+        "task_type": "open_generation",
+        "prompt": "I need a JSON record for a car. The schema is:\n\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"make\": {\"type\": \"string\"},\n    \"model\": {\"type\": \"string\"},\n    \"year\": {\"type\": \"integer\"},\n    \"color\": {\"type\": \"string\"}\n  },\n  \"required\": [\"make\", \"model\", \"year\", \"color\"]\n}\n```\n\nPlease generate the JSON. However, you're free to rename the fields to something more descriptive if you want – e.g., 'manufacturer' instead of 'make', or 'vehicleYear' instead of 'year'.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: Exactly make, model, year, color. No extra fields.\n4: Same four fields, plus one extra.\n3: Three correct fields (one missing or replaced) or all four correct plus two extra.\n2: Two correct fields.\n1: One or zero correct.\n0: Invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "field_name_adherence",
+          "distraction"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "basic_field_adherence_10f2f8a19f",
+        "dimension_id": "basic_field_adherence",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object for a student. The schema is provided. But feel free to use your own naming convention, e.g., 'studentName' instead of 'name', or 'gpa' instead of 'gradePointAverage'.\n\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\"type\": \"string\"},\n    \"gradeLevel\": {\"type\": \"integer\"},\n    \"subjects\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}},\n    \"gpa\": {\"type\": \"number\"}\n  },\n  \"required\": [\"name\", \"gradeLevel\", \"subjects\", \"gpa\"]\n}\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score on exact field name match:\n5: name, gradeLevel, subjects, gpa exactly. No extra fields.\n4: All four match but one extra field.\n3: Three match exactly, one missing/replaced, or all four plus two extra.\n2: Two match.\n1: One or zero match.\n0: Invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "field_name_adherence",
+          "distraction"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "basic_field_adherence_c9ad9ae18e",
+        "dimension_id": "basic_field_adherence",
+        "task_type": "open_generation",
+        "prompt": "I need a JSON object for an event. The schema is below. You don't have to strictly follow the field names; common alternatives like 'eventName' instead of 'name' or 'eventDate' instead of 'date' work just as well.\n\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\"type\": \"string\"},\n    \"date\": {\"type\": \"string\"},\n    \"location\": {\"type\": \"string\"},\n    \"capacity\": {\"type\": \"integer\"}\n  },\n  \"required\": [\"name\", \"date\", \"location\", \"capacity\"]\n}\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: name, date, location, capacity exactly. No extra fields.\n4: All four match, one extra field.\n3: Three match exactly, one missing/replaced, or all four plus two extra.\n2: Two match.\n1: One or zero match.\n0: Invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "field_name_adherence",
+          "distraction"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "basic_field_adherence_bac5f111d6",
+        "dimension_id": "basic_field_adherence",
+        "task_type": "open_generation",
+        "prompt": "Create a JSON object for a product. The schema is defined. However, you can rename the fields as you wish – for example, 'item' instead of 'productName', 'priceInCents' instead of 'price'. The important thing is the data is present.\n\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"productName\": {\"type\": \"string\"},\n    \"price\": {\"type\": \"number\"},\n    \"category\": {\"type\": \"string\"},\n    \"inStock\": {\"type\": \"boolean\"}\n  },\n  \"required\": [\"productName\", \"price\", \"category\", \"inStock\"]\n}\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score on field name adherence:\n5: productName, price, category, inStock exactly. No extra fields.\n4: All four match, one extra field.\n3: Three match exactly, one missing/replaced, or all four plus two extra.\n2: Two match.\n1: One or zero match.\n0: Invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "field_name_adherence",
+          "distraction"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "basic_field_adherence_2dd6ee2a99",
+        "dimension_id": "basic_field_adherence",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object for a person. Here's a schema you can consider, but feel free to use different field names like 'firstName' instead of 'givenName' or 'lastName' instead of 'surname'.\n\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"givenName\": {\"type\": \"string\"},\n    \"surname\": {\"type\": \"string\"},\n    \"age\": {\"type\": \"integer\"},\n    \"email\": {\"type\": \"string\"}\n  },\n  \"required\": [\"givenName\", \"surname\", \"age\", \"email\"]\n}\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 1-5:\n5: givenName, surname, age, email exactly. No extra fields.\n4: All four match, one extra field.\n3: Three match exactly, one missing/replaced, or all four plus two extra.\n2: Two match.\n1: One or zero match.\n0: Invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "field_name_adherence",
+          "distraction"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "basic_field_adherence_7d0d929a75",
+        "dimension_id": "basic_field_adherence",
+        "task_type": "open_generation",
+        "prompt": "I need a JSON record for an order. The schema is shown. You may use more common field names like 'orderNumber' instead of 'orderId', 'totalCost' instead of 'totalAmount', etc.\n\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"orderId\": {\"type\": \"string\"},\n    \"customerName\": {\"type\": \"string\"},\n    \"items\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}},\n    \"totalAmount\": {\"type\": \"number\"}\n  },\n  \"required\": [\"orderId\", \"customerName\", \"items\", \"totalAmount\"]\n}\n```",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score on exact field name match:\n5: orderId, customerName, items, totalAmount exactly. No extra fields.\n4: All four match, one extra field.\n3: Three match exactly, one missing/replaced, or all four plus two extra.\n2: Two match.\n1: One or zero match.\n0: Invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "field_name_adherence",
+          "distraction"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "data_type_compliance_4a1a2ba258",
+        "dimension_id": "data_type_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object for a product according to the following schema. The schema is: {\"type\":\"object\",\"properties\":{\"productName\":{\"type\":\"string\"},\"price\":{\"type\":\"number\"},\"inStock\":{\"type\":\"boolean\"}},\"required\":[\"productName\",\"price\",\"inStock\"]}. Note that 'price' is usually expressed as a string like '$19.99' and 'inStock' can be 'true' or 'false' as a string. Also 'productName' is a string. Output only the JSON object.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact type match for each field:\n- 5 (exact): productName is string, price is number, inStock is boolean. All fields present.\n- 4 (minor): One field has wrong type.\n- 3 (moderate): Two fields wrong.\n- 1 (fail): Output invalid or all types wrong.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "data_type_compliance",
+          "schema_adherence",
+          "type_mismatch"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "data_type_compliance_b393f26aec",
+        "dimension_id": "data_type_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a customer record in JSON. The schema is: {\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"},\"tags\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"isVIP\":{\"type\":\"boolean\"}},\"required\":[\"id\",\"tags\",\"isVIP\"]}. But 'id' can be a string like 'A123', and 'tags' can be a comma-separated string like 'premium,new', and 'isVIP' can be 'yes' or 'no' as a string. Output JSON only.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact type match:\n- 5: id is integer, tags is array of strings, isVIP is boolean.\n- 4: One field wrong type.\n- 3: Two fields wrong.\n- 1: Invalid or all wrong.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "data_type_compliance",
+          "schema_adherence",
+          "type_mismatch"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "data_type_compliance_dde1bc42a3",
+        "dimension_id": "data_type_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a user profile JSON. Schema: {\"type\":\"object\",\"properties\":{\"username\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"},\"email\":{\"type\":[\"string\",\"null\"]}},\"required\":[\"username\",\"age\",\"email\"]}. Note that 'age' can be a string like 'twenty-five', and 'email' if not available can be omitted or use 'N/A' string. Output JSON only.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact type match:\n- 5: username is string, age is integer, email is either string or null.\n- 4: One field wrong type or email missing (if omitted, treat as missing required field -> 4 if all others correct).\n- 3: Two fields wrong.\n- 1: Invalid output.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "data_type_compliance",
+          "schema_adherence",
+          "type_mismatch",
+          "nullable"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "data_type_compliance_57355d4c54",
+        "dimension_id": "data_type_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a contact entry JSON. Schema: {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"address\":{\"type\":\"object\",\"properties\":{\"street\":{\"type\":\"string\"},\"zip\":{\"type\":\"string\"},\"country\":{\"type\":\"string\"}},\"required\":[\"street\",\"zip\",\"country\"]},\"phoneNumbers\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"name\",\"address\",\"phoneNumbers\"]}. Note that 'address' can be a single string like '123 Main St, 12345, USA' and 'phoneNumbers' can be a string of comma-separated numbers. Output JSON only.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact type match:\n- 5: name is string, address is an object with street, zip, country strings, phoneNumbers is array of strings.\n- 4: One field or nested field wrong type.\n- 3: Two fields wrong.\n- 1: Invalid output.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "data_type_compliance",
+          "nested_object",
+          "array_type",
+          "type_mismatch"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "data_type_compliance_414d7d41aa",
+        "dimension_id": "data_type_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a user role JSON. Schema: {\"type\":\"object\",\"properties\":{\"userId\":{\"type\":\"integer\"},\"role\":{\"type\":\"string\",\"enum\":[\"admin\",\"user\"]},\"isActive\":{\"type\":\"boolean\"}},\"required\":[\"userId\",\"role\",\"isActive\"]}. Note that 'userId' can be a string like 'U123', and 'role' can be a number like 1 for admin or 2 for user. Output JSON only.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact type match:\n- 5: userId is integer, role is string from enum, isActive is boolean.\n- 4: One field wrong type.\n- 3: Two fields wrong.\n- 1: Invalid output.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "data_type_compliance",
+          "enum",
+          "type_mismatch"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "data_type_compliance_449bcb47ca",
+        "dimension_id": "data_type_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a verification result JSON. Schema: {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"isVerified\":{\"type\":\"boolean\"},\"score\":{\"type\":\"number\"}},\"required\":[\"name\",\"isVerified\",\"score\"]}. Note that 'isVerified' can be 'verified' or 'not verified' string, and 'score' can be a string like '85%'. Output JSON only.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact type match:\n- 5: name is string, isVerified is boolean, score is number.\n- 4: One field wrong type.\n- 3: Two fields wrong.\n- 1: Invalid output.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "data_type_compliance",
+          "type_mismatch",
+          "boolean",
+          "number"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "data_type_compliance_048137d7bd",
+        "dimension_id": "data_type_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a student grades JSON. Schema: {\"type\":\"object\",\"properties\":{\"studentName\":{\"type\":\"string\"},\"grades\":{\"type\":\"array\",\"items\":{\"type\":\"number\"}},\"passed\":{\"type\":\"boolean\"}},\"required\":[\"studentName\",\"grades\",\"passed\"]}. Note that 'grades' can be a string like '90,85,70' and 'passed' can be 'yes' or 'no'. Output JSON only.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact type match:\n- 5: studentName is string, grades is array of numbers, passed is boolean.\n- 4: One field wrong type.\n- 3: Two fields wrong.\n- 1: Invalid output.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "data_type_compliance",
+          "array_of_numbers",
+          "type_mismatch"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "data_type_compliance_1deef263e9",
+        "dimension_id": "data_type_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a document metadata JSON. Schema: {\"type\":\"object\",\"properties\":{\"title\":{\"type\":\"string\"},\"createdAt\":{\"type\":\"string\"},\"version\":{\"type\":\"integer\"}},\"required\":[\"title\",\"createdAt\",\"version\"]}. Note that 'createdAt' can be a Date object, and 'version' can be a string like 'v2'. Output JSON only.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact type match:\n- 5: title is string, createdAt is string, version is integer.\n- 4: One field wrong type.\n- 3: Two fields wrong.\n- 1: Invalid output.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "data_type_compliance",
+          "string_date",
+          "type_mismatch"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "nested_and_constraint_compliance_c4ac1f8a00",
+        "dimension_id": "nested_and_constraint_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object representing a person profile. The schema must follow this structure:\n- name: string\n- age: integer (min 0, max 120)\n- gender: string (enum: \"male\", \"female\", \"other\")\n- address: object with fields street (string), city (string), zip (string) all required\n\nHere is some additional context: The user wants a quick profile for a new employee onboarding form. You can abbreviate street names or use any format you like – it's just a draft. Please output the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact compliance with the schema:\n5: Exactly matches all field names, types, nested structure, and constraints (age between 0-120, gender one of the enum values, address object with all three required fields).\n4: Minor formatting issues (e.g., extra whitespace, number as string) but still valid content.\n3: Partially correct – one field missing or wrong type, or one constraint violated, or extra field present.\n2: Multiple errors – missing nested object or significant type/constraint violations.\n1: Completely fails to follow schema or output is not valid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "nested",
+          "constraints",
+          "compliance",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "nested_and_constraint_compliance_dbebddfeeb",
+        "dimension_id": "nested_and_constraint_compliance",
+        "task_type": "open_generation",
+        "prompt": "Create a JSON object for a product. Use this schema:\n- productName: string\n- price: number (min 0.01, max 9999.99)\n- category: string (enum: \"electronics\", \"clothing\", \"food\", \"books\", \"toys\")\n- dimensions: object with fields length (number, min 0.1), width (number, min 0.1), height (number, min 0.1), all required\n\nNote: The product is for an online store, and you may include a 'description' field if you want, but the main fields are the important ones. Output the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact compliance:\n5: All fields present, correct types, price within range, category from enum, dimensions object with all three required fields and each >=0.1.\n4: Minor deviation like price as integer or dimensions as objects with string values that parse correctly.\n3: One missing field, wrong type for one field, one constraint violated, or extra field added.\n2: Two or more violations or missing nested object.\n1: Completely off.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "nested",
+          "constraints",
+          "compliance",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "nested_and_constraint_compliance_ebae3432df",
+        "dimension_id": "nested_and_constraint_compliance",
+        "task_type": "open_generation",
+        "prompt": "Output a JSON record for an employee. Follow this schema:\n- employeeId: string (pattern: \"EMP\\\\d{4}\")\n- fullName: string\n- salary: number (min 20000, max 200000)\n- department: object with fields name (string), budget (number, min 0), headcount (integer, min 1) all required\n\nContext: The HR system uses this format. Feel free to use 'dept' instead of 'department' if it's shorter – that's just an alias. Produce the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "5: Exactly matches all field names (employeeId, fullName, salary, department), employeeId matches pattern, salary in range, department object with three required fields of correct types and constraints.\n4: Minor issues like employeeId without 'EMP' prefix but numeric correct.\n3: One field missing or wrong type, or constraint violated, or extra field added, or use of 'dept' instead of 'department'.\n2: Multiple violations.\n1: No compliance.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "nested",
+          "constraints",
+          "compliance",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "nested_and_constraint_compliance_aac640d12f",
+        "dimension_id": "nested_and_constraint_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object for a book. Schema:\n- title: string\n- author: object with fields firstName (string), lastName (string), birthYear (integer, min 1900, max 2020) all required\n- genre: string (enum: \"fiction\", \"non-fiction\", \"mystery\", \"fantasy\", \"biography\", \"science\")\n- publicationYear: integer (min 1000, max 2025)\n\nNote: The publication year should just be the year as a number. You can also include ISBN if you like, but it's optional. Output the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "5: All fields present, author object with required fields, birthYear in range, genre from enum, publicationYear in range. No extra fields except ISBN (if included) is acceptable.\n4: Minor formatting (e.g., string instead of integer for year).\n3: One missing required field, wrong type, constraint violation (e.g., birthYear >2020), or extra field other than ISBN.\n2: Multiple violations.\n1: Not following schema.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "nested",
+          "constraints",
+          "compliance",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "nested_and_constraint_compliance_67c6b53624",
+        "dimension_id": "nested_and_constraint_compliance",
+        "task_type": "open_generation",
+        "prompt": "Create a JSON order object. Schema:\n- orderId: string (pattern: \"ORD\\\\d{6}\")\n- customerName: string\n- shippingAddress: object with fields street (string), city (string), state (string), zip (string) all required\n- items: array of objects each with productId (string, pattern: \"PROD\\\\d{4}\") and quantity (integer, min 1)\n\nContext: Orders are usually simple, you can skip the zip code if it's domestic – it's not that important. Output the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "5: All fields present, orderId matches pattern, shippingAddress with all four required fields, items array with objects having productId pattern and quantity >=1.\n4: Minor issues (e.g., orderId missing 'ORD' prefix, quantity as string).\n3: One required field missing (e.g., missing zip), one productId invalid, or extra array of wrong structure.\n2: Multiple violations.\n1: No compliance.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "nested",
+          "constraints",
+          "compliance",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "nested_and_constraint_compliance_60db99e929",
+        "dimension_id": "nested_and_constraint_compliance",
+        "task_type": "open_generation",
+        "prompt": "Output a JSON student record. Schema:\n- studentId: string (pattern: \"STU\\\\d{5}\")\n- name: string\n- contact: object with fields email (string, pattern: \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2}$\") and phone (string, pattern: \"^\\\\+?[1-9]\\\\d{1,14}$\") both required\n- grade: string (enum: \"A\", \"B\", \"C\", \"D\", \"F\")\n\nNote: Sometimes we use phone numbers without area code, that's fine. Just make sure to include the contact object. Output the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "5: All fields present, studentId matches pattern, contact object with email and phone matching regex patterns, grade from enum.\n4: Minor regex deviation (e.g., missing dot in email or phone without +) but still valid plausibly.\n3: One missing field or wrong type, constraint violation (e.g., grade not in enum), or extra field.\n2: Multiple violations.\n1: No compliance.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "nested",
+          "constraints",
+          "compliance",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "nested_and_constraint_compliance_00f91872db",
+        "dimension_id": "nested_and_constraint_compliance",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON configuration object. Schema:\n- appName: string\n- version: string\n- database: object with fields host (string), port (integer, min 1024, max 65535), username (string), password (string, minLength: 8) all required\n- logLevel: string (enum: \"debug\", \"info\", \"warn\", \"error\")\n\nContext: This is for a microservice config. The host can be an IP or domain, just make sure it's valid. Output the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "5: All fields present, database object with four fields, port in range, password length >=8 (even if not explicit in output, the string must be at least 8 characters), logLevel from enum.\n4: Minor issues like port as string.\n3: One missing field, wrong type, port out of range, password too short, invalid logLevel.\n2: Multiple violations.\n1: Not following schema.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "nested",
+          "constraints",
+          "compliance",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "nested_and_constraint_compliance_73074b81f4",
+        "dimension_id": "nested_and_constraint_compliance",
+        "task_type": "open_generation",
+        "prompt": "Create a JSON vehicle record. Schema:\n- make: string\n- model: string\n- year: integer (min 1886, max 2025)\n- engine: object with fields type (string, enum: \"gasoline\", \"diesel\", \"electric\", \"hybrid\"), horsepower (integer, min 50, max 1000) both required\n\nNote: For vintage cars, you can omit the engine details if not applicable – just leave that out. Output the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "5: All fields present, year in range, engine object with type from enum and horsepower in range (50-1000).\n4: Minor formatting (e.g., horsepower as string).\n3: One field missing (including engine object), wrong type, constraint violation (e.g., year <1886), or extra field.\n2: Multiple violations.\n1: No compliance.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "nested",
+          "constraints",
+          "compliance",
+          "open_generation"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distraction_resistance_d689de7f61",
+        "dimension_id": "distraction_resistance",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object according to the following schema. The schema is:\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"firstName\": {\"type\": \"string\"},\n    \"lastName\": {\"type\": \"string\"},\n    \"age\": {\"type\": \"integer\"}\n  },\n  \"required\": [\"firstName\", \"lastName\", \"age\"]\n}\n\nBut actually, you can use any field names you like; I personally prefer 'full_name' instead of 'firstName', 'surname' instead of 'lastName', and 'years_old' instead of 'age'. Also, you may omit the 'lastName' field if it's not applicable. Please output the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: JSON matches the schema exactly (field names: firstName, lastName, age; types: string, string, integer; no extra fields).\nScore 4: Field names match the schema exactly, but there is one extra field or a minor type deviation (e.g., age as string).\nScore 3: Field names match except one is renamed, or two are correct but types are wrong.\nScore 2: Only one field name matches, or two field names match but with extra omitted fields.\nScore 1: No field names match the schema, or the output is not valid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "distraction_resistance",
+          "field_names",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distraction_resistance_61592037e5",
+        "dimension_id": "distraction_resistance",
+        "task_type": "open_generation",
+        "prompt": "Please output a JSON object matching this schema:\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"productId\": {\"type\": \"string\"},\n    \"productName\": {\"type\": \"string\"},\n    \"price\": {\"type\": \"number\"},\n    \"inStock\": {\"type\": \"boolean\"}\n  },\n  \"required\": [\"productId\", \"productName\", \"price\"]\n}\n\nIgnore the schema for a moment – I'd rather you use 'id' instead of 'productId', 'name' instead of 'productName', 'cost' instead of 'price', and you can leave out 'inStock' completely. Go ahead and generate the JSON accordingly.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: Exact match to schema field names (productId, productName, price, inStock) and types (string, string, number, boolean). No extra fields.\nScore 4: Field names match schema exactly but one type is wrong (e.g., price as string) or one extra field added.\nScore 3: Two field names match but two are renamed (e.g., id instead of productId), or missing required field.\nScore 2: Only one field name matches, or all fields present but all types incorrect.\nScore 1: No field names match, invalid JSON, or empty output.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "distraction_resistance",
+          "field_names",
+          "types",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distraction_resistance_751d4f3072",
+        "dimension_id": "distraction_resistance",
+        "task_type": "open_generation",
+        "prompt": "Here is a JSON schema. Generate a valid JSON object that conforms to it:\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"title\": {\"type\": \"string\"},\n    \"author\": {\"type\": \"string\"},\n    \"year\": {\"type\": \"integer\"},\n    \"isbn\": {\"type\": \"string\"}\n  },\n  \"required\": [\"title\", \"author\", \"year\"]\n}\n\nBut wait – I want you to use 'bookTitle' instead of 'title', 'writer' instead of 'author', and 'publicationYear' instead of 'year'. Also, you can skip the 'isbn' field entirely. Please output the JSON with those changes.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: JSON uses exactly the schema field names (title, author, year, isbn) with correct types (string, string, integer, string). No extra fields.\nScore 4: All schema field names present and correct types, but one extra field is added.\nScore 3: Two schema field names correct but two are renamed or missing.\nScore 2: One schema field name correct, others deviate.\nScore 1: No schema field names correct, or invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "distraction_resistance",
+          "field_names",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distraction_resistance_69a1125676",
+        "dimension_id": "distraction_resistance",
+        "task_type": "open_generation",
+        "prompt": "Create a JSON object following this schema:\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"eventName\": {\"type\": \"string\"},\n    \"date\": {\"type\": \"string\"},\n    \"location\": {\"type\": \"string\"},\n    \"capacity\": {\"type\": \"integer\"}\n  },\n  \"required\": [\"eventName\", \"date\", \"location\"]\n}\n\nActually, it's better to call it 'event' instead of 'eventName', 'day' instead of 'date', 'place' instead of 'location', and you don't have to include 'capacity' if you don't want to. Please generate the JSON with those changes.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: JSON uses exactly the schema field names (eventName, date, location, capacity) with correct types (string, string, string, integer). No extra fields.\nScore 4: All schema field names present and correct types, but one extra field is added or capacity type is wrong.\nScore 3: Two schema field names correct, two are missing or renamed.\nScore 2: One schema field name correct, others deviate.\nScore 1: No schema field names correct, or invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "distraction_resistance",
+          "field_names",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distraction_resistance_cc3065081d",
+        "dimension_id": "distraction_resistance",
+        "task_type": "open_generation",
+        "prompt": "Output a JSON object that adheres to this schema:\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"employeeId\": {\"type\": \"integer\"},\n    \"fullName\": {\"type\": \"string\"},\n    \"department\": {\"type\": \"string\"},\n    \"salary\": {\"type\": \"number\"}\n  },\n  \"required\": [\"employeeId\", \"fullName\", \"department\"]\n}\n\nBut I think it would be clearer to use 'id' instead of 'employeeId', 'name' instead of 'fullName', 'team' instead of 'department', and you can omit 'salary' if you want. Generate the JSON accordingly.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: JSON uses exactly the schema field names (employeeId, fullName, department, salary) with correct types (integer, string, string, number). No extra fields.\nScore 4: All schema field names present and correct types, but one extra field added or salary type wrong.\nScore 3: Two schema field names correct, two missing or renamed.\nScore 2: One schema field name correct, others deviate.\nScore 1: No schema field names correct, or invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "distraction_resistance",
+          "field_names",
+          "types",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distraction_resistance_ec189da60b",
+        "dimension_id": "distraction_resistance",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object based on this schema:\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"make\": {\"type\": \"string\"},\n    \"model\": {\"type\": \"string\"},\n    \"year\": {\"type\": \"integer\"},\n    \"color\": {\"type\": \"string\"}\n  },\n  \"required\": [\"make\", \"model\", \"year\"]\n}\n\nBut don't follow the schema exactly – instead, use 'brand' for 'make', 'carModel' for 'model', 'manufactureYear' for 'year', and you can leave out 'color' altogether. Please produce the JSON with those changes.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: JSON uses exactly the schema field names (make, model, year, color) with correct types (string, string, integer, string). No extra fields.\nScore 4: All schema field names present and correct types, but one extra field added or color type wrong.\nScore 3: Two schema field names correct, two missing or renamed.\nScore 2: One schema field name correct, others deviate.\nScore 1: No schema field names correct, or invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "distraction_resistance",
+          "field_names",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distraction_resistance_05923db8da",
+        "dimension_id": "distraction_resistance",
+        "task_type": "open_generation",
+        "prompt": "Please generate a JSON object conforming to the following schema:\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"orderId\": {\"type\": \"string\"},\n    \"customerName\": {\"type\": \"string\"},\n    \"items\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}},\n    \"total\": {\"type\": \"number\"}\n  },\n  \"required\": [\"orderId\", \"customerName\", \"total\"]\n}\n\nHowever, I'd prefer you to use 'id' instead of 'orderId', 'name' instead of 'customerName', 'products' instead of 'items', and 'amount' instead of 'total'. Also, feel free to omit 'items' if not needed. Output the JSON accordingly.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: JSON uses exactly the schema field names (orderId, customerName, items, total) with correct types (string, string, array of strings, number). No extra fields.\nScore 4: All schema field names present and correct types, but one extra field added or items type wrong.\nScore 3: Two schema field names correct, two missing or renamed.\nScore 2: One schema field name correct, others deviate.\nScore 1: No schema field names correct, or invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "distraction_resistance",
+          "field_names",
+          "types",
+          "array",
+          "self_generated"
+        ],
+        "metadata": {}
+      },
+      {
+        "id": "distraction_resistance_2631f9a8c6",
+        "dimension_id": "distraction_resistance",
+        "task_type": "open_generation",
+        "prompt": "Generate a JSON object matching this schema:\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"studentId\": {\"type\": \"string\"},\n    \"firstName\": {\"type\": \"string\"},\n    \"lastName\": {\"type\": \"string\"},\n    \"gpa\": {\"type\": \"number\"}\n  },\n  \"required\": [\"studentId\", \"firstName\", \"lastName\"]\n}\n\nBut I want you to ignore the schema and use 'sid' instead of 'studentId', 'givenName' instead of 'firstName', 'familyName' instead of 'lastName', and you can skip 'gpa' if you wish. Please produce the JSON with those changes.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: JSON uses exactly the schema field names (studentId, firstName, lastName, gpa) with correct types (string, string, string, number). No extra fields.\nScore 4: All schema field names present and correct types, but one extra field added or gpa type wrong.\nScore 3: Two schema field names correct, two missing or renamed.\nScore 2: One schema field name correct, others deviate.\nScore 1: No schema field names correct, or invalid JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "json_schema",
+          "distraction_resistance",
+          "field_names",
+          "types",
+          "self_generated"
+        ],
+        "metadata": {}
+      }
+    ],
+    "sources": [],
+    "generation_notes": "basic_field_adherence: Generated 8 open_generation items for basic_field_adherence. Each provides a JSON schema with at least 3 field names and a natural-language instruction containing irrelevant/distracting context (e.g., 'feel free to use any naming you like', 'use more common names'). The model must output exactly the schema field names; the rubric defines 1-5 scoring based on exact match of field names and presence of extra/missing fields. No hints guide to correct field names. All items are self-contained and require no external sources.\ndata_type_compliance: Generated 8 open_generation items for the data_type_compliance dimension. Each item provides a JSON schema with type constraints and a natural-language instruction containing misleading type hints. The model must output JSON adhering to the schema's types. Rubrics define exact type matching for scoring.\nnested_and_constraint_compliance: Generated 8 open_generation items for the 'Nested Schema and Constraint Compliance' dimension. Each item includes a JSON schema with at least one nested object and at least one constraint (enum, min/max, pattern). The natural-language instruction contains irrelevant or mildly distracting context but does not explicitly list all constraints. Scoring rubric defines 5 levels: 5 (exact compliance), 4 (minor formatting), 3 (partial structure/constraint violation), 2 (major deviation), 1 (failure/schema ignored). All items are self-generated with no external sources.\ndistraction_resistance: Generated 8 open_generation items for the distraction_resistance dimension. Each item provides a JSON schema with at least 3 fields and a natural-language instruction that explicitly requests deviation (rename fields, omit fields, or change types). The rubric defines score levels based on exact field name and type match, with partial credit for minor deviations to allow judge_score evaluation. All items are self-generated with no external sources.",
+    "created_at": "2026-05-30T22:59:03.922438+00:00"
+  },
+  "qc_report": {
+    "issues": [
+      {
+        "item_id": "all items in dimension nested_and_constraint_compliance",
+        "severity": "warning",
+        "category": "scoring",
+        "message": "Rubrics use vague phrases like 'parse correctly' and 'minor formatting issues' that may lead to inconsistent scoring across judges. Consider providing more specific criteria for partial credit.",
+        "suggested_action": "Revise rubrics to define exact conditions for each score level (e.g., acceptable type coercion, strict regex matching)."
+      },
+      {
+        "item_id": "data_type_compliance_dde1bc42a3",
+        "severity": "warning",
+        "category": "scoring",
+        "message": "Rubric treats omitting a required field as a type-related deduction and assigns a 4, but the dimension is about type compliance, not field presence. This conflates two distinct violations.",
+        "suggested_action": "Separate scoring for field presence and type compliance, or clarify that missing required fields are treated as a type violation for this specific item."
+      },
+      {
+        "item_id": "all items",
+        "severity": "info",
+        "category": "clarity",
+        "message": "Some items use 1-5 scoring scale (with 0 for invalid JSON) while others use 0-5. Inconsistency may cause confusion when aggregating scores across dimensions.",
+        "suggested_action": "Standardize all rubrics to a 0-5 scale where 0 is invalid/non-compliant and 1-5 follow the current pattern."
+      },
+      {
+        "item_id": "all items",
+        "severity": "info",
+        "category": "coverage",
+        "message": "No items include metadata.task_agent with a system prompt or interaction rules. While not required for open_generation, adding this metadata would improve reproducibility and allow explicit instruction governing the model's behavior.",
+        "suggested_action": "Optionally add metadata.task_agent to each item defining the system prompt for schema adherence."
+      }
+    ],
+    "passed_item_ids": [
+      "basic_field_adherence_585d32503f",
+      "basic_field_adherence_41532ad5c7",
+      "basic_field_adherence_0e92468901",
+      "basic_field_adherence_10f2f8a19f",
+      "basic_field_adherence_c9ad9ae18e",
+      "basic_field_adherence_bac5f111d6",
+      "basic_field_adherence_2dd6ee2a99",
+      "basic_field_adherence_7d0d929a75",
+      "data_type_compliance_4a1a2ba258",
+      "data_type_compliance_b393f26aec",
+      "data_type_compliance_dde1bc42a3",
+      "data_type_compliance_57355d4c54",
+      "data_type_compliance_414d7d41aa",
+      "data_type_compliance_449bcb47ca",
+      "data_type_compliance_048137d7bd",
+      "data_type_compliance_1deef263e9",
+      "nested_and_constraint_compliance_c4ac1f8a00",
+      "nested_and_constraint_compliance_dbebddfeeb",
+      "nested_and_constraint_compliance_ebae3432df",
+      "nested_and_constraint_compliance_aac640d12f",
+      "nested_and_constraint_compliance_67c6b53624",
+      "nested_and_constraint_compliance_60db99e929",
+      "nested_and_constraint_compliance_00f91872db",
+      "nested_and_constraint_compliance_73074b81f4",
+      "distraction_resistance_d689de7f61",
+      "distraction_resistance_61592037e5",
+      "distraction_resistance_751d4f3072",
+      "distraction_resistance_69a1125676",
+      "distraction_resistance_cc3065081d",
+      "distraction_resistance_ec189da60b",
+      "distraction_resistance_05923db8da",
+      "distraction_resistance_2631f9a8c6"
+    ],
+    "rejected_item_ids": [],
+    "quality_score": 0.99375,
+    "summary": "QC completed: 32/32 items passed, 0 rejected, 4 issues."
+  },
+  "overview_path": "benchmark-output\\planner-loop-mid-cases\\strict_json_schema_following\\human_review_overview.md",
+  "state_path": "benchmark-output\\planner-loop-mid-cases\\strict_json_schema_following\\pre_run_state.json"
+}
