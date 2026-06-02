@@ -2157,7 +2157,7 @@ def test_generation_qc_loop_raises_when_repair_budget_exhausted(monkeypatch) -> 
         )
 
 
-def test_human_review_overview_mentions_dimensions_and_qc() -> None:
+def test_human_review_overview_mentions_dimension_item_mix_without_qc_details() -> None:
     dimension = EvalDimension(
         id="format_following",
         name="Format following",
@@ -2183,7 +2183,10 @@ def test_human_review_overview_mentions_dimensions_and_qc() -> None:
 
     assert "EvaluationClaw benchmark is ready for human review." in overview
     assert "format_following" in overview
-    assert "QC quality" in overview
+    assert "| Dimension | Target | Ready | Item types |" in overview
+    assert "multiple_choice: 1" in overview
+    assert "QC quality" not in overview
+    assert "QC issues" not in overview
 
 
 def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None:

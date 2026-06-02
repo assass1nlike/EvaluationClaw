@@ -63,7 +63,7 @@ CLI 会把这些参数组装成 `BenchmarkConfig`，然后调用 `run_pipeline(.
 
 ## 3. 输入规范化
 
-Pipeline 开始后先调用 [evalclaw/planner.py](../evalclaw/planner.py) 中的：
+Pipeline 开始后先调用 [evalclaw/planning/planner.py](../evalclaw/planning/planner.py) 中的：
 
 ```python
 translate_goal_to_english(goal, config)
@@ -153,7 +153,7 @@ calibration
 
 ## 5. 生成/QC 自检循环
 
-正式进入 Runner 之前，Pipeline 会调用 [evalclaw/planning_loop.py](../evalclaw/planning_loop.py)：
+正式进入 Runner 之前，Pipeline 会调用 [evalclaw/planning/loop.py](../evalclaw/planning/loop.py)：
 
 ```python
 generate_dataset_with_qc_loop(spec, config, log=log)
@@ -258,7 +258,7 @@ fetch_url_text
 
 ### 5.4 QC Gate
 
-初始生成后，进入 [evalclaw/qc.py](../evalclaw/qc.py)：
+初始生成后，进入 [evalclaw/quality/qc.py](../evalclaw/quality/qc.py)：
 
 ```python
 run_qc_gate(dataset, config)
@@ -512,7 +512,7 @@ Human review 最多会给用户 3 轮确认机会。每轮修改后都会重新�
 
 ## 10. Runner：执行最终题集
 
-Runner 在 [evalclaw/runner.py](../evalclaw/runner.py)。
+Runner 在 [evalclaw/execution/runner.py](../evalclaw/execution/runner.py)。
 
 Pipeline 会把最终 dataset 和最终 qc_report 传给：
 
@@ -553,7 +553,7 @@ created_at
 
 ## 11. Agent 和 Code Sandbox
 
-Agent 环境在 [evalclaw/agent_envs.py](../evalclaw/agent_envs.py)。
+Agent 环境在 [evalclaw/execution/agent_envs.py](../evalclaw/execution/agent_envs.py)。
 
 当前支持：
 
@@ -581,8 +581,8 @@ code_sandbox
 EvaluationClaw 会在报告产物里写出 lm-eval 互操作文件，相关代码在：
 
 ```text
-evalclaw/artifacts.py
-evalclaw/lm_eval_runner.py
+evalclaw/reporting/artifacts.py
+evalclaw/execution/lm_eval.py
 ```
 
 通常输出：
@@ -639,9 +639,9 @@ Loop 3 improvement            正式测试后基于模型表现深挖弱点
 报告生成在：
 
 ```text
-evalclaw/reporter.py
-evalclaw/report_viewer.py
-evalclaw/artifacts.py
+evalclaw/reporting/reporter.py
+evalclaw/reporting/viewer.py
+evalclaw/reporting/artifacts.py
 ```
 
 Pipeline 最后会生成：
