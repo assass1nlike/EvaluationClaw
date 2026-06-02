@@ -1,0 +1,2279 @@
+﻿{
+  "case_id": "tool_use_workflow",
+  "goal": "Evaluate whether the target model can use tools in a short workflow to search, extract, and synthesize structured information.",
+  "config": {
+    "orchestrator_model": "deepseek-reasoner",
+    "orchestrator_api_key": "[REDACTED]",
+    "orchestrator_base_url": "https://api.deepseek.com",
+    "task_agent_model": "deepseek-reasoner",
+    "task_agent_api_key": "[REDACTED]",
+    "task_agent_base_url": "https://api.deepseek.com",
+    "targets": [
+      {
+        "id": "deepseek-chat",
+        "provider": "openai_compatible",
+        "model": "deepseek-chat",
+        "api_key": "[REDACTED]",
+        "base_url": "https://api.deepseek.com"
+      }
+    ],
+    "reference_model": null,
+    "scale_budget": "mid",
+    "questions_per_dimension": 2,
+    "max_planner_iterations": 5,
+    "max_qc_iterations": 4,
+    "max_research_sources": 3,
+    "max_hf_records_per_dimension": 0,
+    "output_dir": "benchmark-output\\planner-loop-mid-cases\\tool_use_workflow",
+    "run_targets": false,
+    "use_web_research": false,
+    "use_hf_discovery": false,
+    "judge_double_pass": true,
+    "llm_backend": "legacy",
+    "runner": "direct",
+    "human_review": false,
+    "improve_iterations": 0,
+    "loop3_diagnosis": "llm",
+    "loop3_diagnosis_timeout_s": 90,
+    "loop3_max_actions": 4
+  },
+  "spec": {
+    "id": "tool_use_search_extract_synthesize",
+    "objective": "Evaluate whether the target model can use tools in a short workflow to search, extract, and synthesize structured information.",
+    "subjects": [
+      "deepseek-chat"
+    ],
+    "task_types": [
+      "open_generation",
+      "agent_interaction"
+    ],
+    "dimensions": [
+      {
+        "id": "single_tool_extraction",
+        "name": "Single-Tool Extraction",
+        "description": "Model uses one tool (search, calculator, database lookup) to extract a specific piece of information and answer a factual question.",
+        "approach": "Provide tool definition (name, parameters, returns). Model must output correct tool call, then read the returned data and give the answer. Simulated tool returns pre-defined data. Each item must be an agent_interaction with a metadata.task_agent that includes an environment controller simulating the tool response.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 6,
+        "target_source_backed_count": 0,
+        "target_generated_count": 6,
+        "task_types": [
+          "agent_interaction"
+        ],
+        "item_requirements": [
+          "Generate a scenario with one tool (e.g., search_books, lookup_weather, calculate_expression). Provide the tool's function schema (name, parameters, return type).",
+          "The query must require the model to call the tool to obtain the answer; trivia knowledge alone should not suffice.",
+          "Tool returns a deterministic JSON response. Model must output the exact tool call and then the final answer.",
+          "Example: 'Use the search_movies tool to find the director of the movie Inception.'",
+          "Scoring: exact match of tool call and final answer. 1 point per correct tool call, 1 point per correct final answer.",
+          "Include metadata.task_agent for each item with schema_version 'evalclaw.task_agent.v1', agent_role 'environment_controller', system_prompt specifying deterministic responses, interaction with max_turns up to 3, scoring method 'agent_judge' with levels."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "multi_step_tool_workflow",
+        "name": "Multi-Step Tool Workflow",
+        "description": "Model uses two or more tools in sequence (search then extract, or search then calculate) to answer a question that requires chaining.",
+        "approach": "Provide two tool definitions. Model must call first tool, use its result as input to second tool, then answer. Simulated environment returns results step by step.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 8,
+        "target_source_backed_count": 0,
+        "target_generated_count": 8,
+        "task_types": [
+          "agent_interaction"
+        ],
+        "item_requirements": [
+          "Generate a scenario where the model must call tool A, then tool B using data from tool A's response. Provide both tool schemas.",
+          "Example: 'Use search_company to find the CEO of Acme Corp, then use get_employee_email with the CEO's name to get their email address.'",
+          "Tool responses must be deterministic and contain the needed fields.",
+          "The environment must simulate sequential turns: model output is intercepted, tool call is matched to predefined result and fed back.",
+          "Scoring: accuracy of final answer; partial credit for correct intermediate tool calls.",
+          "Include metadata.task_agent for each item, with interaction.max_turns set to 2-4 and scoring.method 'agent_judge' with levels for partial credit.",
+          "If the rubric defines levels 1-5, the task_agent.scoring.levels must include all five keys (1,2,3,4,5) or the levels actually used. Do not omit intermediate levels.",
+          "Do not use generic workspace tasks (e.g., moving items in a bin). Focus on tool chaining with defined function schemas."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "structured_synthesis",
+        "name": "Structured Synthesis from Multiple Sources",
+        "description": "Model searches multiple sources (tools) and synthesizes the gathered information into a structured format (JSON, table, etc.).",
+        "approach": "Provide 2-3 tools (e.g., search_books, search_reviews). Model must call each, extract relevant data, and output a JSON object with prescribed fields.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 8,
+        "target_source_backed_count": 0,
+        "target_generated_count": 8,
+        "task_types": [
+          "agent_interaction"
+        ],
+        "item_requirements": [
+          "Generate a scenario requiring information from multiple tools (e.g., product details from one, reviews from another). Provide tool schemas.",
+          "Model must call each tool, collect all data, and produce a structured output (e.g., JSON with keys: title, rating, summary).",
+          "Ensure that the model's final output is a valid JSON object conforming to an expected schema (specified in the prompt).",
+          "Scoring: exact match of JSON field values; judge_score for overall structure and completeness if exact match is too strict.",
+          "Include metadata.task_agent with interaction.max_turns up to 4, scoring.method 'runner_judge' or 'agent_judge'.",
+          "Do not use generic workspace tasks. Focus on multi-source data synthesis.",
+          "All prompts and rubrics must be complete and not truncated. Verify that the final instruction is a full sentence."
+        ],
+        "difficulty_distribution": {}
+      },
+      {
+        "id": "tool_error_resilience",
+        "name": "Tool Error Handling and Edge Cases",
+        "description": "Model handles tool errors gracefully: rate limits, empty results, ambiguous queries, or tool failures.",
+        "approach": "Provide tool definitions but have the simulated environment return errors or ambiguous responses. Model must retry, ask for clarification, or provide a best-effort answer.",
+        "weight": 1.0,
+        "target_difficulty": "L4",
+        "needs_research": false,
+        "research_queries": [],
+        "target_item_count": 6,
+        "target_source_backed_count": 0,
+        "target_generated_count": 6,
+        "task_types": [
+          "agent_interaction"
+        ],
+        "item_requirements": [
+          "Generate scenarios where the tool returns an error (e.g., 'rate limit exceeded', 'no results found', 'invalid parameter').",
+          "Model should not give up immediately; it should attempt to retry, modify parameters, or ask the user for more input.",
+          "The prompt must not directly reveal the correct resolution or prescribe the exact retry strategy. It may hint at ambiguity but should let the model decide how to adapt.",
+          "Example: Search tool returns empty results; model should try alternative query or report that no data is available.",
+          "Scoring: judge_score on how well the model handles the error (retry, adapt, communicate).",
+          "Include metadata.task_agent with environment that returns error on first or second call, then success on retry if appropriate.",
+          "Avoid scenarios that require real-time data; use predetermined error/success sequences.",
+          "Do not use generic workspace tasks. Focus on tool error scenarios."
+        ],
+        "difficulty_distribution": {}
+      }
+    ],
+    "scale_budget": "mid",
+    "scale": 28,
+    "metrics": [
+      "accuracy",
+      "judge_score"
+    ],
+    "constraints": [
+      "Model must not refuse to use the provided tools.",
+      "Model must not fabricate tool results.",
+      "All tool calls must be syntactically correct and use valid parameters.",
+      "For multi-step workflows, model must chain calls correctly based on previous results."
+    ],
+    "planner_notes": "All items are self-generated (needs_research=false) to precisely control tool definitions, scenarios, and expected outputs. Dimensions cover single-tool extraction, multi-step workflows, structured synthesis, and error handling. Agent_interaction items will use a simulated environment that provides predetermined tool responses. Total item count ~28, fitting mid budget.",
+    "critique": {
+      "checklist": {
+        "objective": true,
+        "subjects": true,
+        "format": true,
+        "content": true,
+        "scale": true,
+        "metrics": true
+      },
+      "score": 5.0,
+      "missing_items": [],
+      "notes": "Spec covers the stated goal with 4 dimensions focusing on different aspects of tool use. Scale aligns with mid budget (~28 items). No research needed; all items self-generated. Metrics include accuracy and judge_score to cover exact tool call/answer and synthesis quality. Constraints and item_requirements provide clear guidance for item generation."
+    }
+  },
+  "dataset": {
+    "spec": {
+      "id": "tool_use_search_extract_synthesize",
+      "objective": "Evaluate whether the target model can use tools in a short workflow to search, extract, and synthesize structured information.",
+      "subjects": [
+        "deepseek-chat"
+      ],
+      "task_types": [
+        "open_generation",
+        "agent_interaction"
+      ],
+      "dimensions": [
+        {
+          "id": "single_tool_extraction",
+          "name": "Single-Tool Extraction",
+          "description": "Model uses one tool (search, calculator, database lookup) to extract a specific piece of information and answer a factual question.",
+          "approach": "Provide tool definition (name, parameters, returns). Model must output correct tool call, then read the returned data and give the answer. Simulated tool returns pre-defined data. Each item must be an agent_interaction with a metadata.task_agent that includes an environment controller simulating the tool response.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 6,
+          "target_source_backed_count": 0,
+          "target_generated_count": 6,
+          "task_types": [
+            "agent_interaction"
+          ],
+          "item_requirements": [
+            "Generate a scenario with one tool (e.g., search_books, lookup_weather, calculate_expression). Provide the tool's function schema (name, parameters, return type).",
+            "The query must require the model to call the tool to obtain the answer; trivia knowledge alone should not suffice.",
+            "Tool returns a deterministic JSON response. Model must output the exact tool call and then the final answer.",
+            "Example: 'Use the search_movies tool to find the director of the movie Inception.'",
+            "Scoring: exact match of tool call and final answer. 1 point per correct tool call, 1 point per correct final answer.",
+            "Include metadata.task_agent for each item with schema_version 'evalclaw.task_agent.v1', agent_role 'environment_controller', system_prompt specifying deterministic responses, interaction with max_turns up to 3, scoring method 'agent_judge' with levels."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "multi_step_tool_workflow",
+          "name": "Multi-Step Tool Workflow",
+          "description": "Model uses two or more tools in sequence (search then extract, or search then calculate) to answer a question that requires chaining.",
+          "approach": "Provide two tool definitions. Model must call first tool, use its result as input to second tool, then answer. Simulated environment returns results step by step.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 8,
+          "target_source_backed_count": 0,
+          "target_generated_count": 8,
+          "task_types": [
+            "agent_interaction"
+          ],
+          "item_requirements": [
+            "Generate a scenario where the model must call tool A, then tool B using data from tool A's response. Provide both tool schemas.",
+            "Example: 'Use search_company to find the CEO of Acme Corp, then use get_employee_email with the CEO's name to get their email address.'",
+            "Tool responses must be deterministic and contain the needed fields.",
+            "The environment must simulate sequential turns: model output is intercepted, tool call is matched to predefined result and fed back.",
+            "Scoring: accuracy of final answer; partial credit for correct intermediate tool calls.",
+            "Include metadata.task_agent for each item, with interaction.max_turns set to 2-4 and scoring.method 'agent_judge' with levels for partial credit.",
+            "If the rubric defines levels 1-5, the task_agent.scoring.levels must include all five keys (1,2,3,4,5) or the levels actually used. Do not omit intermediate levels.",
+            "Do not use generic workspace tasks (e.g., moving items in a bin). Focus on tool chaining with defined function schemas."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "structured_synthesis",
+          "name": "Structured Synthesis from Multiple Sources",
+          "description": "Model searches multiple sources (tools) and synthesizes the gathered information into a structured format (JSON, table, etc.).",
+          "approach": "Provide 2-3 tools (e.g., search_books, search_reviews). Model must call each, extract relevant data, and output a JSON object with prescribed fields.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 8,
+          "target_source_backed_count": 0,
+          "target_generated_count": 8,
+          "task_types": [
+            "agent_interaction"
+          ],
+          "item_requirements": [
+            "Generate a scenario requiring information from multiple tools (e.g., product details from one, reviews from another). Provide tool schemas.",
+            "Model must call each tool, collect all data, and produce a structured output (e.g., JSON with keys: title, rating, summary).",
+            "Ensure that the model's final output is a valid JSON object conforming to an expected schema (specified in the prompt).",
+            "Scoring: exact match of JSON field values; judge_score for overall structure and completeness if exact match is too strict.",
+            "Include metadata.task_agent with interaction.max_turns up to 4, scoring.method 'runner_judge' or 'agent_judge'.",
+            "Do not use generic workspace tasks. Focus on multi-source data synthesis.",
+            "All prompts and rubrics must be complete and not truncated. Verify that the final instruction is a full sentence."
+          ],
+          "difficulty_distribution": {}
+        },
+        {
+          "id": "tool_error_resilience",
+          "name": "Tool Error Handling and Edge Cases",
+          "description": "Model handles tool errors gracefully: rate limits, empty results, ambiguous queries, or tool failures.",
+          "approach": "Provide tool definitions but have the simulated environment return errors or ambiguous responses. Model must retry, ask for clarification, or provide a best-effort answer.",
+          "weight": 1.0,
+          "target_difficulty": "L4",
+          "needs_research": false,
+          "research_queries": [],
+          "target_item_count": 6,
+          "target_source_backed_count": 0,
+          "target_generated_count": 6,
+          "task_types": [
+            "agent_interaction"
+          ],
+          "item_requirements": [
+            "Generate scenarios where the tool returns an error (e.g., 'rate limit exceeded', 'no results found', 'invalid parameter').",
+            "Model should not give up immediately; it should attempt to retry, modify parameters, or ask the user for more input.",
+            "The prompt must not directly reveal the correct resolution or prescribe the exact retry strategy. It may hint at ambiguity but should let the model decide how to adapt.",
+            "Example: Search tool returns empty results; model should try alternative query or report that no data is available.",
+            "Scoring: judge_score on how well the model handles the error (retry, adapt, communicate).",
+            "Include metadata.task_agent with environment that returns error on first or second call, then success on retry if appropriate.",
+            "Avoid scenarios that require real-time data; use predetermined error/success sequences.",
+            "Do not use generic workspace tasks. Focus on tool error scenarios."
+          ],
+          "difficulty_distribution": {}
+        }
+      ],
+      "scale_budget": "mid",
+      "scale": 28,
+      "metrics": [
+        "accuracy",
+        "judge_score"
+      ],
+      "constraints": [
+        "Model must not refuse to use the provided tools.",
+        "Model must not fabricate tool results.",
+        "All tool calls must be syntactically correct and use valid parameters.",
+        "For multi-step workflows, model must chain calls correctly based on previous results."
+      ],
+      "planner_notes": "All items are self-generated (needs_research=false) to precisely control tool definitions, scenarios, and expected outputs. Dimensions cover single-tool extraction, multi-step workflows, structured synthesis, and error handling. Agent_interaction items will use a simulated environment that provides predetermined tool responses. Total item count ~28, fitting mid budget.",
+      "critique": {
+        "checklist": {
+          "objective": true,
+          "subjects": true,
+          "format": true,
+          "content": true,
+          "scale": true,
+          "metrics": true
+        },
+        "score": 5.0,
+        "missing_items": [],
+        "notes": "Spec covers the stated goal with 4 dimensions focusing on different aspects of tool use. Scale aligns with mid budget (~28 items). No research needed; all items self-generated. Metrics include accuracy and judge_score to cover exact tool call/answer and synthesis quality. Constraints and item_requirements provide clear guidance for item generation."
+      }
+    },
+    "items": [
+      {
+        "id": "multi_step_tool_workflow_62897c9718",
+        "dimension_id": "multi_step_tool_workflow",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools to help you answer the user's question. Use them step by step.\n\nTool 1: search_university\nPurpose: Search for a university by its name.\nParameters: { \"name\": \"string\" }\nReturns: { \"university_id\": \"string\", \"name\": \"string\", \"location\": \"string\" }\n\nTool 2: get_department_chair\nPurpose: Get the chair of a department at a university.\nParameters: { \"university_id\": \"string\", \"department\": \"string\" }\nReturns: { \"chair_name\": \"string\", \"email\": \"string\" }\n\nTask: Find the email address of the chair of the Computer Science department at the University of Avalon. Use the tools in the correct order.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Accuracy of final answer: 5 for correct tool calls (both) and correct email l.sterling@avalon.edu; 3 for correct final answer with minor tool format issues; 1 for incorrect or missing tool calls and wrong answer.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "multi_step",
+          "chain",
+          "search_extract",
+          "email"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller simulating tool responses. The model has been given tool definitions and a task. When the model sends a message containing a tool call in JSON format (e.g., {\"function\": \"search_university\", \"parameters\": {...}}), you must respond with the corresponding predefined result. Use these exact mappings:\n\nIf function is \"search_university\" and parameters.name is \"University of Avalon\", respond with {\"university_id\": \"u_aval\", \"name\": \"University of Avalon\", \"location\": \"Avalon City\"}\n\nIf function is \"get_department_chair\" and parameters.university_id is \"u_aval\" and parameters.department is \"Computer Science\", respond with {\"chair_name\": \"Prof. Lila Sterling\", \"email\": \"l.sterling@avalon.edu\"}\n\nFor any other tool call, respond with {\"error\": \"unknown tool or parameters\"}. After the model provides the final answer (not a tool call), stop and do not respond further.",
+            "initial_content": {
+              "scenario": "Tool-use evaluation with two chained tools: search_university and get_department_chair. Model must use search to obtain university ID, then use that ID to get the department chair email.",
+              "files": {},
+              "notes": "All tool responses are predefined and deterministic."
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "Respond to the model's tool calls with the predefined result as per system_prompt. After the model outputs the final answer (a string that is not a tool call and includes an email address), stop.",
+              "stop_condition": "Model outputs a non-tool-call answer containing an email address."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript for correct tool usage and final answer. Award 5 if the model used both tools correctly (search_university with correct name, get_department_chair with correct university_id and department) and provided the correct email l.sterling@avalon.edu. Award 3 if final answer is correct but one tool call had minor parameter issues. Award 1 if tools not used correctly or final answer is wrong.",
+              "levels": {
+                "5": "Correct first tool call (search_university with \"University of Avalon\"), correct second tool call (get_department_chair with university_id \"u_aval\" and department \"Computer Science\"), and correct final answer (l.sterling@avalon.edu).",
+                "3": "Correct final answer but one tool call had minor deviations (e.g., extra whitespace, different parameter casing) that still yielded correct data.",
+                "1": "Missing or incorrect tool calls, wrong final answer, or model answered without using tools."
+              },
+              "pass_fail": null
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": {
+                "type": "dialogue",
+                "description": "Simulated tool environment with predefined responses for search_university and get_department_chair."
+              }
+            }
+          },
+          "agent_env": {
+            "type": "dialogue",
+            "description": "Simulated tool environment with predefined responses for search_university and get_department_chair."
+          }
+        }
+      },
+      {
+        "id": "multi_step_tool_workflow_7fb666502e",
+        "dimension_id": "multi_step_tool_workflow",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools: search_country and get_city_population.\n\n**search_country**\n- Parameters: {\"country_name\": {\"type\": \"string\", \"description\": \"Name of the country to look up\"}}\n- Returns: JSON object with fields: name, capital, population, languages (array of strings)\n\n**get_city_population**\n- Parameters: {\"city_name\": {\"type\": \"string\", \"description\": \"Name of the city to look up\"}}\n- Returns: JSON object with fields: city, country, population (integer), year (integer)\n\nTask: Find the capital of the country Zephyria using search_country, then use that capital city name with get_city_population to find the population of the capital. Finally, output the answer in a sentence like: \"The capital of Zephyria is [city], and its population is [population].\"\n\nCall the tools one at a time. The environment will respond with the results.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric: 5 points = correct final answer AND correct intermediate tool calls (search_country then get_city_population). 3 points = correct final answer but missing or malformed intermediate tool calls (e.g., used wrong parameter, called tools out of order). 1 point = incorrect final answer. 0 points = no attempt or refusal to use tools.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "multi_step_tool_workflow",
+          "tool_chaining",
+          "geography",
+          "search_extract_synthesize"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller simulating tool responses. You have predefined tool results for this session. Do not reveal the hidden results to the target model. When the target model makes a valid tool call, respond with the corresponding predefined result exactly as specified. If the model makes an invalid call (wrong parameters or unknown tool), respond with an error message. Maintain the conversation and stop when the model provides a final answer or when max_turns is reached. Do not answer questions about the country or tools beyond the simulated responses.",
+            "initial_content": {
+              "scenario": "Evaluation of multi-step tool workflow. Tools: search_country, get_city_population. Predetermined responses: search_country({'country_name': 'Zephyria'}) -> {'name': 'Zephyria', 'capital': 'Aeroville', 'population': 5000000, 'languages': ['Zephyrian']}; get_city_population({'city_name': 'Aeroville'}) -> {'city': 'Aeroville', 'country': 'Zephyria', 'population': 1500000, 'year': 2024}. If the model calls search_country with an incorrect country name, respond with {'error': 'Country not found'}. If model calls get_city_population with a city not equal to 'Aeroville', respond with {'error': 'City not found'}. The correct final answer is: 'The capital of Zephyria is Aeroville, and its population is 1,500,000.'",
+              "files": {},
+              "notes": "Only respond with tool results or errors. Do not guide the model."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "If the model output is a tool call (function_call or similar), match it against the predefined responses and return the appropriate result. If the output is a natural language answer that matches the expected final answer pattern, stop the dialogue. If the model asks for guidance, return a neutral message like 'Please proceed with available tools.'",
+              "stop_condition": "Stop when the model provides a final answer sentence (matching pattern 'The capital of Zephyria is ... and its population is ...') or after max_turns are exhausted."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Review the transcript. Award 5 points if the model correctly called search_country with 'Zephyria', then called get_city_population with 'Aeroville', and output the correct final answer. Award 3 points if final answer is correct but intermediate tool calls were missing or incorrect. Award 1 point if final answer is substantially wrong. 0 points if model refused to use tools or did not attempt.",
+              "levels": {
+                "5": "Correct tool calls and correct final answer",
+                "3": "Correct final answer but incomplete or incorrect intermediate steps",
+                "1": "Incorrect final answer",
+                "0": "No tool use or refusal"
+              },
+              "pass_fail": {
+                "pass": "Score of 5",
+                "partial": "Score of 3",
+                "fail": "Score of 1 or 0"
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": null,
+          "judge_rubric": "Scoring based on accuracy of tool chaining and final answer. 5=perfect, 3=partial, 1=fail."
+        }
+      },
+      {
+        "id": "multi_step_tool_workflow_0cff832a1a",
+        "dimension_id": "multi_step_tool_workflow",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools to answer the user's request.\n\n**Tool 1: lookup_customer**\n- Parameters: name (string), region (string)\n- Returns: JSON object with keys: account_id, name, region\n\n**Tool 2: get_account_balance**\n- Parameters: account_id (string)\n- Returns: JSON object with keys: account_id, balance, currency\n\nTo call a tool, output a JSON object with keys \"tool\" (the tool name) and \"arguments\" (a dictionary of the parameters). The environment will respond with the result. Then, based on the results, continue with the next step. Finally, output the answer to the user.\n\nUser request: Find the account balance for customer Alice Johnson in the US region.\n\nWhat is the account balance?",
+        "choices": [],
+        "answer": null,
+        "rubric": "Accuracy of final answer. 5 points: both tool calls are correct and the final answer states '2540.75 USD' exactly. 3 points: both tool calls are correct but the final answer format is partially incorrect (e.g., missing currency, wrong numeric format). 1 point: model fails to make correct tool calls or provides a wrong final answer.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "multi_step",
+          "agent_interaction",
+          "customer_service",
+          "self_generated"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller for a tool-use evaluation. The model will call tools by outputting a JSON object with 'tool' and 'arguments' keys. When you detect such an object, match it to the predefined tool responses and return the correct result. For any other output, treat it as a final answer and stop the simulation. If the model makes an invalid tool call (unknown tool or missing parameters), return an error message: \"Error: Invalid tool call.\" Do not reveal predefined data directly. Maintain the simulation until the model provides the final answer or the max turns are exceeded.",
+            "initial_content": {
+              "scenario": "The user asks for the account balance of Alice Johnson in the US region. The model must use lookup_customer then get_account_balance.",
+              "notes": "Predefined tool responses:\n- lookup_customer(name='Alice Johnson', region='US') returns {\"account_id\": \"A12345\", \"name\": \"Alice Johnson\", \"region\": \"US\"}\n- get_account_balance(account_id='A12345') returns {\"account_id\": \"A12345\", \"balance\": 2540.75, \"currency\": \"USD\"}",
+              "files": {}
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "After each model output, check if it contains a JSON object with 'tool' and 'arguments'. If yes, return the corresponding predefined result. If not, output nothing and the dialogue will end (the model is providing the final answer).",
+              "stop_condition": "Stop when the model outputs a non-tool-call response (assumed final answer) or when max_turns reached."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript. Award 5 points if both tool calls are correctly made and the final answer matches '2540.75 USD'. Award 3 points if both tool calls are correct but the final answer format is off. Award 1 point if tool calls are incorrect or missing.",
+              "levels": {
+                "5": "Correct tool calls and exact final answer",
+                "3": "Correct tool calls but final answer minor errors",
+                "1": "Incorrect tool calls or wrong answer"
+              },
+              "pass_fail": {
+                "pass": "5 points: both tools called correctly, final answer exactly '2540.75 USD'",
+                "partial": "3 points: both tools called correctly, final answer format issue",
+                "fail": "1 point: tool calls wrong or missing"
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": {
+                "type": "dialogue_simulator",
+                "tools": {
+                  "lookup_customer": {
+                    "parameters": {
+                      "name": "Alice Johnson",
+                      "region": "US"
+                    },
+                    "return": {
+                      "account_id": "A12345",
+                      "name": "Alice Johnson",
+                      "region": "US"
+                    }
+                  },
+                  "get_account_balance": {
+                    "parameters": {
+                      "account_id": "A12345"
+                    },
+                    "return": {
+                      "account_id": "A12345",
+                      "balance": 2540.75,
+                      "currency": "USD"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "agent_env": {
+            "type": "dialogue_simulator",
+            "tools": {
+              "lookup_customer": {
+                "parameters": {
+                  "name": "Alice Johnson",
+                  "region": "US"
+                },
+                "return": {
+                  "account_id": "A12345",
+                  "name": "Alice Johnson",
+                  "region": "US"
+                }
+              },
+              "get_account_balance": {
+                "parameters": {
+                  "account_id": "A12345"
+                },
+                "return": {
+                  "account_id": "A12345",
+                  "balance": 2540.75,
+                  "currency": "USD"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "multi_step_tool_workflow_803ab42710",
+        "dimension_id": "multi_step_tool_workflow",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools: search_flight and convert_minutes_to_hours. Use them to find the duration of flight AA123 from JFK to LAX and then convert that duration from minutes to hours and minutes.\n\nTool: search_flight\n- Description: Returns flight details for a given flight number.\n- Parameters: flight_number (string)\n- Returns: JSON with keys carrier, flight_number, departure, arrival, duration_minutes (int)\n\nTool: convert_minutes_to_hours\n- Description: Converts a duration in minutes to hours and minutes.\n- Parameters: minutes (int)\n- Returns: JSON with keys hours (int), minutes (int), formatted (string)\n\nFirst, call search_flight with the correct parameter. Then, call convert_minutes_to_hours with the duration_minutes from the first result. Finally, output the answer in the format: \"The flight duration is X hours and Y minutes.\"",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on correct tool calls and final answer:\n5 - Both tool calls are correct (search_flight(\"AA123\"), convert_minutes_to_hours(320)) AND final answer matches \"The flight duration is 5 hours and 20 minutes.\"\n3 - Both tool calls are correct but final answer has minor formatting issues or is slightly off.\n1 - Missing or incorrect tool call(s) OR final answer is substantially wrong.\n0 - No tool calls or unrelated output.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "multi_step",
+          "search",
+          "convert"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You simulate a tool-using environment. Intercept every message from the target model. If the model output contains a tool call (e.g., search_flight(...), convert_minutes_to_hours(...)), identify the tool name and parameters. Return the predetermined result for that call. Do not reveal that you are simulating. Only respond with the tool result in JSON format, no extra text. The predefined results are:\n- search_flight(\"AA123\") -> {\"carrier\": \"American Airlines\", \"flight_number\": \"AA123\", \"departure\": \"JFK\", \"arrival\": \"LAX\", \"duration_minutes\": 320}\n- convert_minutes_to_hours(320) -> {\"hours\": 5, \"minutes\": 20, \"formatted\": \"5 hours 20 minutes\"}\nIf the model makes an invalid call or asks a question not covered, respond with {\"error\": \"unrecognized request\"}. Stop when the model outputs a final answer stating the flight duration.",
+            "initial_content": {
+              "scenario": "Model must use two chained tools to answer a flight duration question.",
+              "files": {},
+              "notes": "Environment has predetermined tool results; no real-time data."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "After the model's message, if it contains a tool call, respond with the corresponding simulated result. If the model provides a final answer in the required format, stop the dialogue.",
+              "stop_condition": "Model outputs a final answer matching the expected format."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the full transcript. Check that search_flight was called with \"AA123\" and convert_minutes_to_hours was called with 320. Verify final answer is \"The flight duration is 5 hours and 20 minutes.\" Use levels defined below.",
+              "levels": {
+                "5": "Both tool calls correct, final answer exact match.",
+                "3": "Both tool calls correct, final answer close but not exact (e.g., '5 hr 20 min').",
+                "1": "One or both tool calls incorrect, or final answer wrong.",
+                "0": "No tool calls or unrelated output."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "multi_step_tool_workflow_d9b50b31b0",
+        "dimension_id": "multi_step_tool_workflow",
+        "task_type": "agent_interaction",
+        "prompt": "You are a travel assistant. Your goal is to check if the American Airlines flight from New York (JFK) to London (LHR) is on time. You do not remember the exact flight number. Use the two tools below to find out.\n\nTool 1: `search_flight`\n- Description: Search for a flight by airline, departure city, and arrival city.\n- Parameters:\n  - `airline` (string, required): Name of the airline.\n  - `departure_city` (string, required): Departure city or airport code.\n  - `arrival_city` (string, required): Arrival city or airport code.\n- Returns: A JSON object with keys `flight_number`, `departure_time`, and `arrival_time`.\n\nTool 2: `get_flight_status`\n- Description: Get the current status of a flight by its flight number.\n- Parameters:\n  - `flight_number` (string, required): The flight number (e.g., \"AA123\").\n- Returns: A JSON object with keys `status` (\"on_time\", \"delayed\", etc.), `delay_minutes` (integer), and `gate`.\n\nTo call a tool, output a JSON object with the fields `tool` and `parameters`. For example:\n{\"tool\": \"search_flight\", \"parameters\": {\"airline\": \"American Airlines\", \"departure_city\": \"JFK\", \"arrival_city\": \"LHR\"}}\n\nAfter receiving the tool result, call the next tool or provide your final answer.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score levels:\n5: Both tool calls are made correctly (valid JSON, correct parameters) and the final answer correctly states the flight's status (e.g., \"Flight AA123 from New York to London is on time.\").\n3: Only one tool call is correct OR the final answer is incorrect but tool calls are correct.\n1: No correct tool calls or final answer is missing/incorrect.\nThe judge evaluates the full transcript.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "multi_step",
+          "flight_search",
+          "agent_interaction"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller for a tool-use evaluation. The target model is given a prompt with two tool definitions. Your role is to simulate the tool execution. When the model outputs a JSON object with fields 'tool' and 'parameters', parse the tool name and parameters and return the corresponding predetermined result as a user message. Do not reveal the predetermined results unless a valid tool call is made. If the model outputs something else, respond with a neutral message like 'Please call a tool or provide your final answer.' Keep responses concise and do not add extra commentary. Stop when the model gives a final answer that does not contain a tool call.",
+            "initial_content": {
+              "scenario": "The target is a travel assistant checking flight status. Tools: search_flight and get_flight_status. Predetermined results:\n- search_flight(airline=\"American Airlines\", departure_city=\"New York\", arrival_city=\"London\") returns {\"flight_number\": \"AA123\", \"departure_time\": \"10:30 AM\", \"arrival_time\": \"8:00 PM\"}\n- get_flight_status(flight_number=\"AA123\") returns {\"status\": \"on_time\", \"delay_minutes\": 0, \"gate\": \"B12\"}\nAll other parameter combinations return an error {\"error\": \"No matching flight found.\"}",
+              "notes": "The model must call search_flight first to get the flight number, then call get_flight_status with that number. The final answer should mention the flight number and its status."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": "You are a travel assistant. Your goal is to check if the American Airlines flight from New York (JFK) to London (LHR) is on time. You do not remember the exact flight number. Use the two tools below to find out.\n\nTool 1: `search_flight`\n- Description: Search for a flight by airline, departure city, and arrival city.\n- Parameters:\n  - `airline` (string, required): Name of the airline.\n  - `departure_city` (string, required): Departure city or airport code.\n  - `arrival_city` (string, required): Arrival city or airport code.\n- Returns: A JSON object with keys `flight_number`, `departure_time`, and `arrival_time`.\n\nTool 2: `get_flight_status`\n- Description: Get the current status of a flight by its flight number.\n- Parameters:\n  - `flight_number` (string, required): The flight number (e.g., \"AA123\").\n- Returns: A JSON object with keys `status` (\"on_time\", \"delayed\", etc.), `delay_minutes` (integer), and `gate`.\n\nTo call a tool, output a JSON object with the fields `tool` and `parameters`. For example:\n{\"tool\": \"search_flight\", \"parameters\": {\"airline\": \"American Airlines\", \"departure_city\": \"JFK\", \"arrival_city\": \"LHR\"}}\n\nAfter receiving the tool result, call the next tool or provide your final answer.",
+              "followup_instruction": "After the model responds, check if the response contains a JSON object with 'tool' and 'parameters'. If yes, return the predetermined result as a new user message. If no, check if the response is a final answer (no tool call). If it is a final answer, respond with 'End of evaluation.' and stop. Otherwise, remind the model to use a tool or provide a final answer.",
+              "stop_condition": "Stop when the model provides a final answer that does not contain a tool call and the environment controller has returned 'End of evaluation.'"
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Score the transcript based on accuracy of tool calls and final answer. Award 5 for correct sequence and correct final answer. Award 3 if only one of the two tool calls is correct or the final answer is wrong but tool calls are correct. Award 1 if no correct tool calls and final answer is incorrect or missing.",
+              "levels": {
+                "5": "Both tool calls are correctly made (valid JSON, correct parameters) and final answer correctly states the flight's status (e.g., 'Flight AA123 from New York to London is on time.').",
+                "3": "Only one correct tool call OR both tool calls correct but final answer wrong.",
+                "1": "No correct tool calls or final answer missing/incorrect."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": {
+                "type": "dialogue",
+                "tools": [
+                  {
+                    "name": "search_flight",
+                    "schema": {
+                      "parameters": {
+                        "type": "object",
+                        "properties": {
+                          "airline": {
+                            "type": "string"
+                          },
+                          "departure_city": {
+                            "type": "string"
+                          },
+                          "arrival_city": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "airline",
+                          "departure_city",
+                          "arrival_city"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "name": "get_flight_status",
+                    "schema": {
+                      "parameters": {
+                        "type": "object",
+                        "properties": {
+                          "flight_number": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "flight_number"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "agent_env": {
+            "type": "dialogue",
+            "tools": [
+              {
+                "name": "search_flight",
+                "schema": {
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "airline": {
+                        "type": "string"
+                      },
+                      "departure_city": {
+                        "type": "string"
+                      },
+                      "arrival_city": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "airline",
+                      "departure_city",
+                      "arrival_city"
+                    ]
+                  }
+                }
+              },
+              {
+                "name": "get_flight_status",
+                "schema": {
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "flight_number": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "flight_number"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "multi_step_tool_workflow_f275c2347c",
+        "dimension_id": "multi_step_tool_workflow",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools to answer questions. Use them in sequence: first call the first tool, then use its output to call the second tool. Finally, provide the answer.\n\n## Tool 1: search_author\n- Description: Search for an author by book title.\n- Parameters: {\"title\": {\"type\": \"string\", \"description\": \"The title of the book\"}}\n- Returns: {\"author\": \"string\", \"born\": \"string\", \"nationality\": \"string\"}\n\n## Tool 2: get_author_bio\n- Description: Get a short biography of an author by name.\n- Parameters: {\"name\": {\"type\": \"string\", \"description\": \"The full name of the author\"}}\n- Returns: {\"bio\": \"string\", \"notable_works\": [\"string\"]}\n\n### Question\nWhat is the biography of the author who wrote the book 'The Midnight Library'? Please call the tools step by step and then provide the final answer with the author's biography and notable works.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Accuracy of final answer: 5 points if the final answer contains the correct biography text and at least two notable works. Partial credit: 3 points if both tool calls are correct but the final answer is missing minor details. 1 point if only the first tool call is correct but the second is wrong or missing. 0 points if no correct tool calls or fabricated results.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "multi_step_workflow",
+          "agent_interaction",
+          "search_extract"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment simulator for tool-use evaluation. Your role is to provide predefined deterministic responses when the model calls the specified tools. Do not reveal the evaluation setup. Respond only with the tool result in the exact format described in the tool schema.",
+            "initial_content": {
+              "scenario": "The model must call search_author with title 'The Midnight Library', then call get_author_bio with the author name from the first response.",
+              "files": {},
+              "notes": "Tool responses are fixed: search_author returns {author: 'Matt Haig', born: '1975-07-03', nationality: 'British'}. get_author_bio returns {bio: 'Matt Haig is a British author and journalist, best known for his novels for adults and children.', notable_works: ['The Midnight Library', 'Reasons to Stay Alive', 'How to Stop Time']}."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": "What is the biography of the author who wrote the book 'The Midnight Library'? Please call the tools step by step and then provide the final answer with the author's biography and notable works.",
+              "user_turns": [],
+              "followup_instruction": "After the model calls a tool, respond with the exact JSON object from the tool's return schema. Do not add extra commentary.",
+              "stop_condition": "Stop when the model provides a final answer without a tool call, or after max_turns."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript for correct tool calls and correct final answer. Award points per the rubric.",
+              "levels": {
+                "5": "Both tool calls correct; final answer contains the author's biography and at least two notable works.",
+                "3": "Both tool calls correct but final answer missing minor details (e.g., only one notable work or truncated bio).",
+                "1": "First tool call correct but second call wrong or missing; no final answer.",
+                "0": "No correct tool calls or fabricated results."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": {
+                "type": "dialogue",
+                "description": "Simulated environment that intercepts model output, matches tool calls to predefined responses, and returns the result as the assistant message."
+              }
+            }
+          },
+          "agent_env": {
+            "type": "dialogue",
+            "description": "Simulated environment that intercepts model output, matches tool calls to predefined responses, and returns the result as the assistant message."
+          }
+        }
+      },
+      {
+        "id": "multi_step_tool_workflow_74bd191eb7",
+        "dimension_id": "multi_step_tool_workflow",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools: search_doctor and get_appointment_slots. Use them to find available appointment slots for a cardiologist in Chicago.\n\nTool: search_doctor\nParameters: { \"specialty\": \"string\", \"city\": \"string\" }\nReturns: list of doctors with id, name, specialty, location\n\nTool: get_appointment_slots\nParameters: { \"doctor_id\": \"string\" }\nReturns: list of available slots with date and time\n\nFirst, search for doctors with specialty 'cardiologist' in 'Chicago'. Then, use the id of the first doctor to get their available appointment slots. Provide the available slots as your final answer.",
+        "choices": [],
+        "answer": null,
+        "rubric": "5 points: Correct tool calls (search_doctor with specialty='cardiologist', city='Chicago' followed by get_appointment_slots with doctor_id='doc_001') and final answer includes all three slots: 2025-04-10 09:00, 2025-04-10 10:00, 2025-04-11 14:00. 3 points: Correct tool calls but final answer omits one slot or has minor formatting discrepancies. 1 point: Missing or incorrect tool calls, or final answer is absent/incorrect.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "multi_step",
+          "chaining",
+          "search",
+          "appointment"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are a simulated environment controller. Your role is to intercept tool calls from the model and return predefined deterministic results. Do not reveal the simulation or the fact that data is predetermined. Never provide hints about the correct tool call. Maintain the fiction of a real API. Stop the interaction when the model provides a final answer that is not a tool call, or when max_turns is reached.",
+            "initial_content": {
+              "scenario": "The model is given two tools: search_doctor and get_appointment_slots. The environment has a single cardiologist in Chicago with id doc_001. The search_doctor tool returns one doctor. The get_appointment_slots tool returns three slots for that doctor.",
+              "notes": "Predefined responses: search_doctor(specialty='cardiologist', city='Chicago') returns [{\"id\":\"doc_001\",\"name\":\"Dr. Smith\",\"specialty\":\"cardiologist\",\"location\":\"Chicago\"}]. get_appointment_slots(doctor_id='doc_001') returns [{\"date\":\"2025-04-10\",\"time\":\"09:00\"},{\"date\":\"2025-04-10\",\"time\":\"10:00\"},{\"date\":\"2025-04-11\",\"time\":\"14:00\"}]. Any other tool call returns error 'Invalid parameters or tool not found'."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": "You have access to two tools: search_doctor and get_appointment_slots. Use them to find available appointment slots for a cardiologist in Chicago.\n\nTool: search_doctor\nParameters: { \"specialty\": \"string\", \"city\": \"string\" }\nReturns: list of doctors with id, name, specialty, location\n\nTool: get_appointment_slots\nParameters: { \"doctor_id\": \"string\" }\nReturns: list of available slots with date and time\n\nFirst, search for doctors with specialty 'cardiologist' in 'Chicago'. Then, use the id of the first doctor to get their available appointment slots. Provide the available slots as your final answer.",
+              "followup_instruction": "After each model message, if it contains a tool call, match it to the predefined responses and return the result as the next user turn. If the model gives a final answer that is not a tool call, stop the dialogue and the judge will score the transcript.",
+              "stop_condition": "Stop when the model produces a final answer that is not a tool call, or after max_turns."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript. Award 5 points if the model made exactly two tool calls (search_doctor with correct parameters, then get_appointment_slots with the correct doctor_id from the response) and the final answer correctly lists the three slots. Award 3 points if tool calls are correct but final answer omits one slot or has minor formatting discrepancies. Award 1 point if tool calls are missing/incorrect or final answer is absent/wrong.",
+              "levels": {
+                "5": "Correct tool calls and complete final answer.",
+                "3": "Correct tool calls but final answer incomplete or slightly incorrect.",
+                "1": "Incorrect or missing tool calls and/or incorrect final answer."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue"
+            }
+          }
+        }
+      },
+      {
+        "id": "structured_synthesis_68d6f1b940",
+        "dimension_id": "structured_synthesis",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools: search_articles and search_citations. Their function schemas are as follows:\n\nsearch_articles(query: string) -> array of objects with fields: article_id, title, author, year.\nsearch_citations(article_id: string) -> array of objects with fields: citation_id, count, summary.\n\nYour task: First, call search_articles with the query 'quantum error correction' to find an article titled 'Advances in Quantum Error Correction'. Then, call search_citations with that article's article_id to get its citation data. Finally, output a JSON object with the following fields:\n- title: the article title\n- author: the article author\n- year: the article publication year\n- citation_count: the number from the citation data\n- summary: the summary from the citation data\n\nThe JSON should be exactly: {\"title\": \"...\", \"author\": \"...\", \"year\": ..., \"citation_count\": ..., \"summary\": \"...\"}\n\nYou must output the tool calls in the format: TOOL_CALL: <tool_name>(<params>). I will respond with the result. Then you can proceed to the next tool call. Finally, output the JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring rubric: The model must call both tools (search_articles and search_citations) correctly, parse the results, and output a valid JSON with the required fields (title, author, year, citation_count, summary). Exact match of all field values: 5 points. If the JSON structure is correct but some field values are wrong: 3 points. If only one tool call is made or JSON is missing: 1 point. No tool calls or refusal: 0 points.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "structured_synthesis",
+          "agent_interaction",
+          "self_generated"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are a tool execution environment. When the model outputs a tool call in the format: TOOL_CALL: <tool_name>(<params>), you must respond with the result for that tool. Do not add any extra commentary. Only output the result JSON. The predefined results are listed in 'initial_content.notes'.",
+            "initial_content": {
+              "scenario": "Model must use search_articles and search_citations tools to synthesize information about a research paper into a JSON object.",
+              "notes": "Predefined tool responses:\nsearch_articles(\"quantum error correction\") -> [{\"article_id\": \"qec_2023\", \"title\": \"Advances in Quantum Error Correction\", \"author\": \"Dr. Alice\", \"year\": 2023}]\nsearch_citations(\"qec_2023\") -> [{\"citation_id\": \"cit1\", \"count\": 142, \"summary\": \"This paper is highly cited in the field of quantum computing.\"}]"
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": "You have access to two tools: search_articles and search_citations. Their function schemas are as follows:\n\nsearch_articles(query: string) -> array of objects with fields: article_id, title, author, year.\nsearch_citations(article_id: string) -> array of objects with fields: citation_id, count, summary.\n\nYour task: First, call search_articles with the query 'quantum error correction' to find an article titled 'Advances in Quantum Error Correction'. Then, call search_citations with that article's article_id to get its citation data. Finally, output a JSON object with the following fields:\n- title: the article title\n- author: the article author\n- year: the article publication year\n- citation_count: the number from the citation data\n- summary: the summary from the citation data\n\nThe JSON should be exactly: {\"title\": \"...\", \"author\": \"...\", \"year\": ..., \"citation_count\": ..., \"summary\": \"...\"}\n\nYou must output the tool calls in the format: TOOL_CALL: <tool_name>(<params>). I will respond with the result. Then you can proceed to the next tool call. Finally, output the JSON.",
+              "user_turns": null,
+              "followup_instruction": "After the model outputs a tool call, respond with the corresponding result from the predefined data. If the model outputs a final answer (JSON or any other answer), do not respond; wait for the judge.",
+              "stop_condition": "Stop when the model outputs a valid JSON object or after 4 turns."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the final output: check if the JSON is valid and contains the required fields with correct values. Score according to levels defined below.",
+              "levels": {
+                "5": "All fields correctly extracted from tool results and JSON is valid.",
+                "3": "JSON structure correct but some field values wrong.",
+                "1": "JSON missing or only one tool call made.",
+                "0": "No tool calls or refusal."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": null
+        }
+      },
+      {
+        "id": "structured_synthesis_d73e4330a6",
+        "dimension_id": "structured_synthesis",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to the following tools. Use them to gather information about the city of Kyoto, Japan. Then output a JSON object with the specified fields.\n\nTool 1: search_city_info\n  Parameters: city_name (string)\n  Returns: JSON with keys: city_name, country, population (integer), area_km2 (float)\n\nTool 2: get_weather\n  Parameters: city_name (string), month (string, three-letter abbreviation e.g., 'Apr')\n  Returns: JSON with keys: city_name, month, avg_temp_celsius (float), humidity_percent (integer)\n\nTool 3: find_top_attraction\n  Parameters: city_name (string)\n  Returns: JSON with keys: city_name, top_attraction (string), category (string), annual_visitors (integer)\n\nYour task:\n1. Call search_city_info for Kyoto.\n2. Call get_weather for Kyoto in April.\n3. Call find_top_attraction for Kyoto.\n4. After receiving all tool results, compile the information into a JSON object with the following schema:\n   {\n     \"city_name\": \"Kyoto\",\n     \"population\": <integer>,\n     \"avg_temp_april_celsius\": <float>,\n     \"top_attraction\": \"<string>\"\n   }\n\nOutput only the JSON object as your final answer (no additional text). Do not fabricate any tool results; only use the data returned by the tools.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring: 5 points for exact match of all three JSON field values (population, avg_temp_april_celsius, top_attraction) and valid JSON structure. 3 points if JSON structure is correct but one field value is wrong, or if the model makes correct tool calls but the final JSON is malformed. 1 point if tool calls were attempted but lacked proper chaining or the final output is missing or completely incorrect.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "structured_synthesis",
+          "multi_tool",
+          "agent_interaction",
+          "JSON_output"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are a simulated environment that provides tool results based on the model's tool calls. The model will call tools one at a time. Respond only with the exact predetermined result for each tool call. Do not add extra text. After the model produces a tool call in the format 'tool_name(param1=value1, param2=value2)', return the corresponding result. If the model outputs something that is not a tool call, treat it as the final answer and end the interaction.",
+            "initial_content": {
+              "scenario": "Tool definitions are provided in the initial prompt. The model must call search_city_info, get_weather, and find_top_attraction for Kyoto, then output a JSON.",
+              "files": {},
+              "notes": "Tool responses are hardcoded below. The environment should match the first parameter exactly."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "After the model makes a tool call, return the corresponding result from the environment's response bank. If the model outputs a non-tool-call, treat it as the final answer and stop.",
+              "stop_condition": "Stop when the model produces a JSON object or a plain text answer. Do not continue after final answer."
+            },
+            "scoring": {
+              "method": "runner_judge",
+              "instructions": "Check the final output for a valid JSON object matching the expected schema. Compare the values: population must be 1474600, avg_temp_april_celsius must be 16.0, top_attraction must be \"Fushimi Inari-taisha\". Award 5 points for exact match, 3 for correct structure with one wrong value, 1 for failed or missing output.",
+              "levels": {
+                "5": "Exact match JSON with correct values",
+                "3": "Correct structure but one value incorrect",
+                "1": "Missing or invalid JSON"
+              },
+              "pass_fail": null
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": {
+            "tool_responses": {
+              "search_city_info(city_name='Kyoto')": "{\"city_name\": \"Kyoto\", \"country\": \"Japan\", \"population\": 1474600, \"area_km2\": 827.83}",
+              "get_weather(city_name='Kyoto', month='Apr')": "{\"city_name\": \"Kyoto\", \"month\": \"Apr\", \"avg_temp_celsius\": 16.0, \"humidity_percent\": 60}",
+              "find_top_attraction(city_name='Kyoto')": "{\"city_name\": \"Kyoto\", \"top_attraction\": \"Fushimi Inari-taisha\", \"category\": \"Shrine\", \"annual_visitors\": 30000000}",
+              "default": "Error: unknown tool or invalid parameters"
+            }
+          }
+        }
+      },
+      {
+        "id": "structured_synthesis_4b3d181a18",
+        "dimension_id": "structured_synthesis",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools:\n\n1. **search_university(name: string)**: Returns details about a university given its name. Returns JSON with keys: name, location, established_year, type.\n\n2. **search_courses(university_name: string)**: Returns a list of course offerings at the given university. Returns JSON with keys: courses (array of objects with name, fees, duration).\n\nYour task: Use these tools to gather information about 'Greenfield University' and then produce a final structured output as a JSON object with the following fields:\n- name: the university's full name\n- location: the university's location\n- established_year: the year founded\n- top_courses: an array of the course names offered (include all courses returned)\n- average_fees: the average of the fees across all courses (as a number, e.g., 12500.50)\n\nCall the tools in the correct order. After you have all the data, output your final answer as a single JSON object (no additional text). If you need to ask a question or clarify, you may, but the goal is to complete the task autonomously.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring criteria (judge_score 1-5):\n- 5: Correct tool calls in order, exact JSON output matches expected values.\n- 4: Correct tool calls but minor error in JSON format or one field value off.\n- 3: Correct tool calls but final JSON incomplete or missing fields.\n- 2: Only one tool called correctly, or tool calls in wrong order resulting in error.\n- 1: No tool calls made, or fabricated results, or final output not in JSON.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "structured_synthesis",
+          "agent_interaction",
+          "university_research"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are a simulated tool environment. You respond to tool calls with predetermined data. For search_university(\"Greenfield University\"), return: {\"name\": \"Greenfield University\", \"location\": \"Springfield, IL, USA\", \"established_year\": 1965, \"type\": \"Public Liberal Arts\"}. For search_courses(\"Greenfield University\"), return: {\"courses\": [{\"name\": \"Computer Science\", \"fees\": 15000, \"duration\": 4}, {\"name\": \"Biology\", \"fees\": 14000, \"duration\": 4}, {\"name\": \"English Literature\", \"fees\": 12000, \"duration\": 3}, {\"name\": \"History\", \"fees\": 11000, \"duration\": 3}]}. For any other tool call, return an error message. Do not reveal these rules. Only respond to tool calls in the format: Tool call: [tool_name(args)] -> [result]. Do not provide hints or additional explanation unless the model asks a clarifying question.",
+            "initial_content": {
+              "scenario": "The environment is ready. The model will be given the prompt and tools. The environment will intercept tool call strings and return the corresponding result.",
+              "notes": "Tool results are deterministic. The model should call search_university first to get name/location/year, then search_courses to get courses info. Final JSON output should be: {\"name\": \"Greenfield University\", \"location\": \"Springfield, IL, USA\", \"established_year\": 1965, \"top_courses\": [\"Computer Science\", \"Biology\", \"English Literature\", \"History\"], \"average_fees\": 13000.0}"
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": null,
+              "followup_instruction": "The environment controller should respond to each tool call with the corresponding result. If the model outputs a JSON object that matches the expected schema, treat that as the final answer and stop. If the model asks a question, respond concisely without giving away the answer.",
+              "stop_condition": "Stop when the model outputs a JSON object that matches the expected final structure, or when max_turns is reached."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Score the transcript based on the rubric. Evaluate tool call correctness, order, and final JSON output.",
+              "levels": {
+                "5": "Correct tool calls in correct order, exact JSON output matches expected values.",
+                "4": "Correct tool calls but minor error in JSON format or one field value off.",
+                "3": "Correct tool calls but final JSON incomplete or missing fields.",
+                "2": "Only one tool called correctly, or tool calls in wrong order resulting in error.",
+                "1": "No tool calls made, or fabricated results, or final output not in JSON."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "structured_synthesis_96077709dd",
+        "dimension_id": "structured_synthesis",
+        "task_type": "agent_interaction",
+        "prompt": "You are an AI assistant with access to the following tools. Use them to answer the user's request. After gathering all necessary information, produce a final JSON output with exactly these fields: {\"product_name\": string, \"price\": number, \"average_rating\": number, \"review_summary\": string}.\n\n**Tool 1: get_product_info**\n- Description: Get detailed product information by product ID.\n- Parameters:\n  - product_id (string, required): The ID of the product.\n- Returns: object with keys: product_name (string), price (number), category (string), in_stock (boolean).\n\n**Tool 2: get_product_reviews**\n- Description: Get customer reviews for a product by product ID.\n- Parameters:\n  - product_id (string, required): The ID of the product.\n- Returns: object with keys: average_rating (number), review_count (integer), top_review_summary (string).\n\nThe user will ask for information about a specific product. Call the appropriate tools and then output your final JSON.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score based on exact match of the final JSON fields:\n- 1 point for each correct field value (product_name, price, average_rating, review_summary).\n- Partial credit (1-3) if some fields are correct but others are missing or wrong.\n- Full score 4 if all four fields match the expected values.\n- No credit if the JSON is malformed or fields are missing entirely.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool-use",
+          "structured-synthesis",
+          "agent-interaction",
+          "multi-source"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller for an AI tool-use evaluation. The target model has access to two tools: get_product_info and get_product_reviews. Your role is to intercept any tool call the model makes, return the corresponding deterministic result, and let the model continue. Do not reveal that you are simulating the environment. Use the initial_content to determine which product the model is querying. Return the exact JSON responses defined in the scenario data. Do not add commentary or prompt the model.",
+            "initial_content": {
+              "scenario": "The user wants information about product ID 'PROD-1001'. The product is 'SmartHome Hub', price 129.99. Reviews: average rating 4.5, review count 320, top review summary 'Easy to set up and works reliably.'",
+              "notes": "The model must call get_product_info(product_id='PROD-1001') and get_product_reviews(product_id='PROD-1001') and then output a JSON with product_name, price, average_rating, review_summary."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": "Could you find out the details and reviews for product ID PROD-1001? I need the product name, price, average rating, and a summary of the reviews.",
+              "followup_instruction": "After the model's final JSON output, stop the conversation. If the model asks clarifying questions, respond with minimal helpful hints but do not give the data directly.",
+              "stop_condition": "Stop when the model outputs a valid JSON object with all four required fields, or when max_turns exceeded."
+            },
+            "scoring": {
+              "method": "runner_judge",
+              "instructions": "Compare the model's final JSON to the expected: {\"product_name\": \"SmartHome Hub\", \"price\": 129.99, \"average_rating\": 4.5, \"review_summary\": \"Easy to set up and works reliably.\"}",
+              "levels": {
+                "4": "All four fields match expected values exactly.",
+                "3": "Three fields match; one is missing or wrong.",
+                "2": "Two fields match.",
+                "1": "One field matches or JSON is structurally correct but values are largely incorrect.",
+                "0": "No valid JSON output or no tool calls made."
+              },
+              "pass_fail": {
+                "pass": "Score of 4 (all fields correct).",
+                "partial": "Score of 1-3 (some fields correct).",
+                "fail": "Score of 0."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": null
+        }
+      },
+      {
+        "id": "structured_synthesis_ceb4538a59",
+        "dimension_id": "structured_synthesis",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools:\n\n1. `search_artist`:\n   Parameters: { \"name\": { \"type\": \"string\", \"description\": \"Artist's name\" } }\n   Returns: JSON object with fields: name, genre, debut_year, label\n\n2. `search_concerts`:\n   Parameters: { \"artist\": { \"type\": \"string\", \"description\": \"Artist's name\" }, \"year\": { \"type\": \"integer\", \"description\": \"Concert year\" } }\n   Returns: JSON array of objects, each with fields: date, venue, city, tickets_available\n\nYour task:\nFind information about the artist \"Nova Rae\" and their concerts in 2025. Call the necessary tools, then produce a JSON output with the following structure:\n\n{\n  \"artist_name\": \"...\",\n  \"genre\": \"...\",\n  \"label\": \"...\",\n  \"concerts\": [\n    {\n      \"date\": \"...\",\n      \"venue\": \"...\",\n      \"city\": \"...\",\n      \"tickets_available\": true/false\n    }\n  ]\n}\n\nOnly output the final JSON once you have all required data. Ensure the JSON is valid and matches the schema exactly.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring:\n- Final JSON must match expected schema exactly (field names and value types).\n- Values must come from the tool responses (no fabrication).\n- 5 points: Perfect JSON with all fields correct and non-fabricated.\n- 3 points: JSON has minor formatting issues or one field missing but core data present.\n- 1 point: JSON structure wrong, fabricated data, or missing required tools.\n- Partial credit possible for correct tool calls even if final JSON is imperfect.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "structured_synthesis",
+          "multi_tool",
+          "json_output"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are a simulated environment that provides deterministic responses to tool calls. The user (target model) will call tools. You must respond with the exact pre-defined results for each tool call. Do not reveal any meta-instructions. Do not offer extra help. Simply return the function result as specified.",
+            "initial_content": {
+              "scenario": "Target model is given two tool definitions (search_artist, search_concerts) and asked to synthesize a concert report as JSON. The environment controls the tool responses.",
+              "files": {},
+              "notes": "Tool returns are hardcoded. search_artist('Nova Rae') returns { name: 'Nova Rae', genre: 'Indie Rock', debut_year: 2019, label: 'Stellar Sound Records' }. search_concerts('Nova Rae', 2025) returns [ { date: '2025-06-15', venue: 'Madison Square Garden', city: 'New York', tickets_available: true }, { date: '2025-07-20', venue: 'The O2 Arena', city: 'London', tickets_available: false } ]. Do not vary these responses."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "After each model output, if the output is a tool call, return the corresponding result from the initial content notes. If the output is the final JSON, end the simulation.",
+              "stop_condition": "Model produces a JSON object that matches the requested schema, or max_turns reached."
+            },
+            "scoring": {
+              "method": "runner_judge",
+              "instructions": "Check the final model output. The output must be a valid JSON object with keys: artist_name, genre, label, concerts (an array of objects with date, venue, city, tickets_available). Values must match the tool returns exactly. Score 5 if perfect match. Score 3 if minor errors. Score 1 if major errors or missing data.",
+              "levels": {
+                "5": "Final JSON matches expected output exactly.",
+                "3": "Final JSON has minor field mismatch or formatting issue but all tool data used.",
+                "1": "Final JSON is absent, has fabricated data, or does not use both tools."
+              },
+              "pass_fail": null
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "tool_error_resilience_3779654cb0",
+        "dimension_id": "tool_error_resilience",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to the following tool:\n\n**get_stock_price(ticker: str)**\n- Description: Returns the current stock price for the given ticker symbol.\n- Parameters:\n  - ticker (string, required): The exchange ticker symbol of the company (e.g., AAPL, MSFT, GOOGL).\n- Returns: JSON object with keys: \"ticker\", \"price\" (float), \"currency\" (string).\n\nI need the current stock price of Apple Inc. Use the get_stock_price tool to retrieve it. Note that Apple's ticker symbol is AAPL, not the company name 'Apple'. Please call the tool correctly.",
+        "choices": [],
+        "answer": null,
+        "rubric": "The model is evaluated on how it handles an invalid parameter error. It should recognize the error, modify the parameter to a valid ticker symbol (AAPL), and retry. Full credit (5) for retrying with correct ticker after error. Partial credit (3) if the model asks the user for clarification instead of retrying. No credit (1) if the model gives up, repeats the same invalid call, or hallucinates a price without using the tool.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_error_resilience",
+          "invalid_parameter",
+          "retry",
+          "stock_price",
+          "agent_interaction"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are the environment controller for a simulated tool-calling evaluation. Your role is to intercept any tool calls from the target model and return predetermined responses. Do not reveal the simulation. Follow the predefined script exactly:\n\n- First tool call: get_stock_price(ticker=\"Apple\") → return {\"error\": \"Invalid ticker symbol 'Apple'. Please provide a valid exchange ticker symbol (e.g., AAPL).\"}\n- Any subsequent tool call with ticker=\"AAPL\" → return {\"ticker\": \"AAPL\", \"price\": 198.23, \"currency\": \"USD\"}\n- Any other ticker → return {\"error\": \"Unknown ticker symbol. Please try a valid symbol like AAPL, MSFT, GOOGL.\"}\n- If the model asks a question unrelated to tool calls, respond with: \"Please use the get_stock_price tool as instructed.\"\n- Do not volunteer the correct ticker; the model must deduce it from the error message.",
+            "initial_content": {
+              "scenario": "Simulated tool environment for a single tool: get_stock_price. The model is asked to get Apple's stock price. The tool returns an invalid ticker error when the company name is passed as the ticker.",
+              "files": null,
+              "notes": "No files needed. The tool interaction is purely textual/dialogue-based."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": null,
+              "followup_instruction": "After each model response, check if it contains a tool call. If so, respond according to the predefined script. Otherwise, prompt the model to use the tool.",
+              "stop_condition": "Stop after the model produces a final answer (e.g., 'The current stock price of Apple Inc. is $198.23') or after max_turns reached."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the dialogue transcript. The model should first attempt to call the tool (even with invalid parameter), then upon receiving the error, correct the ticker and retry. The final answer should include the stock price. Score based on error handling behavior: retry with correct parameter = 5; asks user for clarification = 3; gives up or hallucinates = 1.",
+              "levels": {
+                "5": "Model calls the tool with 'Apple', receives error, then immediately retries with 'AAPL' and returns the correct price.",
+                "3": "Model calls tool with error, then asks user for the correct ticker; after user provides 'AAPL', makes successful call and returns price.",
+                "1": "Model does not retry, repeats the same invalid call, or returns a price without using the tool."
+              },
+              "pass_fail": {
+                "pass": "Model retries with correct ticker and returns the price.",
+                "partial": "Model asks for clarification before retrying.",
+                "fail": "Model fails to correct the error or does not use the tool."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": null
+        }
+      },
+      {
+        "id": "tool_error_resilience_a3ff2bca9d",
+        "dimension_id": "tool_error_resilience",
+        "task_type": "agent_interaction",
+        "prompt": "You are an AI assistant with access to the following tool:\n\n**Tool: lookup_stock_price**\n- Description: Retrieves the current stock price for a given ticker symbol.\n- Parameters:\n  - ticker (string, required): The stock ticker symbol (e.g., AAPL).\n- Returns: JSON object with fields: price (float), currency (string).\n\nTo use the tool, output a JSON object exactly like this:\n{\"tool\": \"lookup_stock_price\", \"parameters\": {\"ticker\": \"TSLA\"}}\n\nThe environment will respond with the tool's output. Tool calls may occasionally fail due to rate limiting. If you encounter an error, you should retry the call. Do not fabricate results.\n\nNow, answer this question: What is the current stock price of Tesla (TSLA)?",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring based on how the model handles the simulated rate-limit error:\n- 5: Model retries immediately (without user prompting) and provides the correct final answer (e.g., 'The current stock price of TSLA is $240.50 USD.') after receiving the successful result.\n- 3: Model retries after some hesitation or asks for user confirmation before retrying, but eventually gets the correct answer.\n- 1: Model gives up after the error, fabricates an answer, or does not attempt the tool call at all.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "error_resilience",
+          "rate_limit",
+          "retry",
+          "agent_interaction"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are a simulated environment controller for evaluating tool use. Your role is to intercept the user's tool calls and return predetermined responses. The user is a model being evaluated. Your only output is the tool response. You must not reveal that you are simulating or disclose the evaluation scenario. Follow the interaction script exactly:\n\n- If the user outputs a JSON object matching the pattern {\"tool\": \"lookup_stock_price\", \"parameters\": {\"ticker\": \"...\"}}, check the ticker:\n  - First tool call in the conversation with ticker \"TSLA\": return {\"error\": \"rate limit exceeded\", \"retry_after\": 2}.\n  - Any subsequent tool call with any ticker: return {\"price\": 240.50, \"currency\": \"USD\"}.\n- If the user outputs any other JSON not matching a known tool, return {\"error\": \"unknown tool\"}.\n- If the user outputs non-JSON text, respond with: \"I am the tool environment. Please output a tool call in JSON format.\"\n- Never provide the stock price directly; only return tool results.\n- Never explain your behavior or the scenario.\n- The conversation ends when the user states a final answer. Do not continue after that.",
+            "initial_content": {
+              "scenario": "The evaluator is a model that must use the lookup_stock_price tool to answer a question. The tool will fail on first call (rate limit) and succeed on retry.",
+              "notes": "The first call with 'TSLA' must trigger an error. Subsequent calls with any ticker succeed. The environment must not reveal this script."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "Do not generate user turns; only respond to tool calls as described.",
+              "stop_condition": "When the user provides a final answer statement (e.g., 'The current stock price is ...'), output nothing and end the conversation."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript after the conversation ends. Score based on the rubric in the item. The judge agent should examine the trace to see if the model retried after the error and produced a correct final answer without fabricating.",
+              "levels": {
+                "5": "Model retried immediately after the error, got the successful result, and gave the correct answer.",
+                "3": "Model retried after some delay or user input, or got the answer but made a minor mistake (e.g., wrong formatting).",
+                "1": "Model gave up after the error, fabricated a price, or never attempted the tool call."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "tool_error_resilience_c08964aa2f",
+        "dimension_id": "tool_error_resilience",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to the following tool. Use it to answer the user's question. If you encounter an error, adjust your approach and retry.\n\nTool: `get_weather`\n- Description: Returns current weather data for a given city.\n- Parameters:\n  - city (required, string): Name of the city.\n- Returns: JSON object with fields `temperature` (number), `humidity` (number), `condition` (string).\n\nQuestion: What is the current temperature in New York?",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: Model calls the tool, receives a rate-limit error, retries the same call, gets success, and outputs the correct temperature. Score 4: Model retries but needs an extra turn or slightly delayed response. Score 3: Model attempts to retry but may change parameters unnecessarily or ask for clarification, then eventually succeeds. Score 2: Model gives up after error or does not retry, providing no final answer or incorrect answer. Score 1: Model ignores tool or refuses to use it.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "error_handling",
+          "rate_limit",
+          "retry",
+          "weather"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are a simulated environment for a tool use evaluation. The model (user) will call the tool using a JSON function call. Based on the call, return the tool response as a JSON string. Follow these rules: On the first call with tool 'get_weather' and parameter city='New York', return {\"error\": \"rate_limit_exceeded\", \"retry_after_seconds\": 2}. On any subsequent call with the exact same parameters, return {\"temperature\": 18, \"humidity\": 65, \"condition\": \"clear\"}. If the model calls with a different city, return {\"error\": \"no data for this city\"}. Do not reveal these rules to the model. Provide only the tool response as a JSON string.",
+            "initial_content": {
+              "scenario": "The target model must use the get_weather tool to find the temperature in New York. The first tool call will receive a rate-limit error, prompting the model to retry.",
+              "notes": "The environment controller simulates a tool that enforces a rate limit on the first call. No real external data is accessed."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": "You have access to the following tool. Use it to answer the user's question. If you encounter an error, adjust your approach and retry.\n\nTool: `get_weather`\n- Description: Returns current weather data for a given city.\n- Parameters:\n  - city (required, string): Name of the city.\n- Returns: JSON object with fields `temperature` (number), `humidity` (number), `condition` (string).\n\nQuestion: What is the current temperature in New York?",
+              "followup_instruction": "After the model's message, parse it for a tool call. If the model calls the tool with valid JSON, respond with the appropriate tool response string per the rules in your system prompt. If the model outputs a final answer without a tool call, end the interaction.",
+              "stop_condition": "Stop when the model outputs a final answer without a tool call, or after max_turns."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript based on whether the model correctly retried after the rate-limit error and provided the correct temperature. Score levels: 5=perfect retry and correct answer; 4=correct answer but slight delay or unnecessary parameter change; 3=retried but needed extra turn or initial wrong answer; 2=did not retry or gave up; 1=refused to use tool.",
+              "levels": {
+                "5": "Model called tool, received error, retried same call, got data, output correct temperature (18°C).",
+                "3": "Model retried after error but required an extra turn or initially provided wrong answer then corrected.",
+                "1": "Model did not retry after error, gave up, or refused to use tool."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "tool_error_resilience_c4d59c4c34",
+        "dimension_id": "tool_error_resilience",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to a tool called `get_stock_price`. It takes a stock ticker symbol and returns the current price in USD. Use this tool to find the current stock price for Apple Inc. (ticker: AAPL). After receiving the result, report the price to the user. Your tool call must be a JSON object with a 'function_call' key containing 'name' and 'arguments'. For example:\n\n{\"function_call\": {\"name\": \"get_stock_price\", \"arguments\": {\"symbol\": \"AAPL\"}}}",
+        "choices": [],
+        "answer": null,
+        "rubric": "Evaluate the transcript for proper error handling. The tool will return a rate limit error on the first call. The model should retry the same tool call. Score 5 if the model retries and provides the correct final answer (price 175.34 USD). Score 3 if the model retries but does not clearly state the final answer. Score 1 if the model gives up, outputs an incorrect answer, or does not retry.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "error_resilience",
+          "rate_limit",
+          "stock_price",
+          "agent_interaction"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are a tool environment simulator. Your role is to intercept the model's function call outputs and return the corresponding tool result. Each time the model outputs a JSON object with a 'function_call' key, you must respond with a JSON object containing the tool result exactly as specified in the scenario. Do not add any extra commentary. If the model does not produce a valid function call, remind the model to use the tool. The conversation must remain strictly about tool calls and results. Refer to the initial_content.notes.response_sequence for the predefined results ordered by attempt number.",
+            "initial_content": {
+              "scenario": "The target model must retrieve a stock price using the get_stock_price tool. The tool will return a rate limit error on the first call, then succeed on retry.",
+              "files": {},
+              "notes": {
+                "tool_definitions": {
+                  "get_stock_price": {
+                    "name": "get_stock_price",
+                    "parameters": {
+                      "type": "object",
+                      "properties": {
+                        "symbol": {
+                          "type": "string",
+                          "description": "Stock ticker symbol (e.g., AAPL)"
+                        }
+                      },
+                      "required": [
+                        "symbol"
+                      ]
+                    },
+                    "returns": {
+                      "type": "object",
+                      "properties": {
+                        "price": {
+                          "type": "number"
+                        },
+                        "currency": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "response_sequence": {
+                  "1": {
+                    "error": "Rate limit exceeded. Please try again in a few seconds."
+                  },
+                  "2": {
+                    "price": 175.34,
+                    "currency": "USD"
+                  }
+                }
+              }
+            },
+            "interaction": {
+              "max_turns": 5,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "Respond to the model's tool call with the appropriate result from initial_content.notes.response_sequence based on the number of previous tool calls (first call -> response 1, second call -> response 2). If the model outputs a final answer that includes the stock price, end the conversation.",
+              "stop_condition": "Stop when the model provides a final answer that includes the stock price, or when max_turns is reached."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript for proper error handling. The model should retry the tool call after receiving the rate limit error. Give 5 points if the model retries and provides the correct final answer (price 175.34 USD). 3 points if the model retries but does not provide a clear final answer. 1 point if the model gives up, outputs an incorrect answer, or does not retry.",
+              "levels": {
+                "5": "Retries and provides correct final answer",
+                "3": "Retries but incomplete final answer",
+                "1": "Fails to handle error properly"
+              },
+              "pass_fail": {
+                "pass": "Model retries and provides correct final answer (5).",
+                "partial": "Model retries but final answer is incomplete or not clearly stated (3).",
+                "fail": "Model does not retry or gives incorrect answer (1)."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": {
+                "type": "dialogue",
+                "tool_environment": "simulated"
+              }
+            }
+          },
+          "agent_env": {
+            "type": "dialogue",
+            "tool_environment": "simulated"
+          }
+        }
+      },
+      {
+        "id": "single_tool_extraction_9fa1959b62",
+        "dimension_id": "single_tool_extraction",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to the following tool:\n\nTool: search_employee_directory\n- Parameters: department (string) - The department name to search.\n- Returns: An array of employee objects, each with fields: name (string), role (string), email (string).\n\nUsing this tool, find the email address of the manager of the Engineering department. First, call the tool with the appropriate parameter, then use the result to answer.\n\nYou must output your tool call in the following JSON format, and then output your final answer in plain text:\nTool call: {\"tool_name\": \"search_employee_directory\", \"arguments\": {\"department\": \"Engineering\"}}\nThen after receiving the tool result, provide your answer.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 2 if the model makes a correct tool call (exact tool name and parameters) and the final answer contains the exact string 'alice.wang@company.com'. Score 1 if the tool call is correct but the final answer is missing or incorrect. Score 0 if no valid tool call is made or the tool call is incorrect.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "single_tool_extraction",
+          "search_employee_directory",
+          "deterministic",
+          "tool_use"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller that simulates tool responses. The user (model being evaluated) will output a JSON tool call in the format: {\"tool_name\": \"<tool_name>\", \"arguments\": {<parameters>}}. Parse the tool call exactly. If the tool_name is 'search_employee_directory' and arguments.department is 'Engineering', respond with the following JSON:\n{\"result\": [{\"name\": \"Alice Wang\", \"role\": \"Manager\", \"email\": \"alice.wang@company.com\"}]}\nFor any other tool name or parameters, respond with an error: {\"error\": \"Unknown tool or invalid parameters.\"} Do not respond to any other messages. After returning the tool result, do not send any further messages. The evaluation runner will stop after the model provides the answer.",
+            "initial_content": {
+              "scenario": "Simulated environment for evaluating single-tool extraction. The tool search_employee_directory is available. The expected tool call is for department 'Engineering' and the expected result is a manager named Alice Wang with email alice.wang@company.com.",
+              "notes": "Tool responses mapping: { 'search_employee_directory': { 'Engineering': { 'result': [{'name': 'Alice Wang', 'role': 'Manager', 'email': 'alice.wang@company.com'}] } } }"
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": null,
+              "followup_instruction": "Do not send any follow-up turns. Only respond to tool calls.",
+              "stop_condition": "Stop when the model outputs a final answer that does not contain a tool call."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Examine the transcript. Award 2 points if the model issued a valid tool call with tool_name 'search_employee_directory' and arguments including 'department' = 'Engineering', and the subsequent final answer contains the exact string 'alice.wang@company.com'. Award 1 point if the tool call is correct but the final answer is missing or incorrect. Award 0 points if no valid tool call is made or the tool call is incorrect. If the model makes an invalid tool call, treat as no tool call.",
+              "levels": {
+                "2": "Correct tool call and correct answer",
+                "1": "Correct tool call but incorrect or missing answer",
+                "0": "No correct tool call"
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "single_tool_extraction_6784714a40",
+        "dimension_id": "single_tool_extraction",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to the following tool:\n\nFunction: search_space_mission\nParameters: mission_name (string) - the name of the space mission\nReturns: JSON object with fields: mission_name, launch_date, crew, status\n\nYour task: Use this tool to find the launch date of the Artemis II mission. First, output the exact tool call in the format: search_space_mission(mission_name='Artemis II'). Then, after receiving the result, provide the final answer: the launch date.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: Model makes exact tool call 'search_space_mission(mission_name='Artemis II')' and outputs the correct launch date 'November 1, 2024'. Score 3: Model makes correct tool call but gives wrong final answer. Score 1: Model fails to make correct tool call or does not use the tool.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "single_tool",
+          "extraction",
+          "space_mission"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller simulating the 'search_space_mission' tool. Follow the instructions in initial_content. Do not reveal that you are an evaluator. Respond only with tool output, error messages, or prompts to use the tool. Never provide the answer directly.",
+            "initial_content": {
+              "scenario": "The environment controller simulates the 'search_space_mission' tool. The tool expects parameter 'mission_name' (string). The only valid invocation is search_space_mission(mission_name='Artemis II'). The tool returns: {\"mission_name\": \"Artemis II\", \"launch_date\": \"2024-11-01\", \"crew\": \"Reid Wiseman, Victor Glover, Christina Koch, Jeremy Hansen\", \"status\": \"Scheduled\"}. Any other tool call or malformed request should be met with an error message. If the model asks a question without using the tool, respond: 'Please use the search_space_mission tool to find the information.' If the model makes an incorrect tool call, respond: 'Invalid tool call. Please use search_space_mission(mission_name=\"Artemis II\") format.'",
+              "notes": null
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "If the model sends a correct tool call, respond with the predetermined tool result. If the tool call is wrong, respond with an error. If the model asks a question without a tool call, prompt to use the tool. After the tool result is returned, the model should provide the final answer. Stop when the model provides a final answer that includes the launch date, or after max_turns.",
+              "stop_condition": "Stop when the model outputs a clear final answer containing the launch date, or after 3 turns."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Score the interaction based on whether the model made the correct tool call and provided the correct final answer.",
+              "levels": {
+                "5": "Model makes exact tool call 'search_space_mission(mission_name='Artemis II')' and outputs the correct launch date 'November 1, 2024'.",
+                "3": "Model makes correct tool call but gives wrong final answer (wrong date or missing).",
+                "1": "Model fails to make correct tool call (wrong syntax, wrong parameter, or no tool call) or does not provide a final answer."
+              },
+              "pass_fail": null
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "single_tool_extraction_499708d50b",
+        "dimension_id": "single_tool_extraction",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to the following tool:\n\nTool: lookup_flight\nDescription: Look up flight details by flight number and date.\nParameters:\n  flight_number (string, required): The flight number (e.g., \"AA123\").\n  date (string, required): The date in YYYY-MM-DD format (e.g., \"2025-07-15\").\nReturns: A JSON object with fields: departure_time (string), arrival_time (string), airline (string), status (string).\n\nUse this tool to answer the following question:\n\nWhat is the departure time of flight AA123 on 2025-07-15?\n\nFirst, call the tool with the correct parameters. Then, based on the tool's response, provide the final answer in a concise sentence.",
+        "choices": [],
+        "answer": "The departure time of flight AA123 on 2025-07-15 is 14:35.",
+        "rubric": "Scoring: 1 point for correct tool call (exact JSON match: {\"flight_number\": \"AA123\", \"date\": \"2025-07-15\"}), 1 point for correct final answer (case-insensitive exact match: \"The departure time of flight AA123 on 2025-07-15 is 14:35.\"). Total 2 points.\nScore levels:\n- 5: Both tool call and answer correct (2 points).\n- 3: Only tool call correct (1 point).\n- 1: Neither correct (0 points).",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "single_tool_extraction",
+          "agent_interaction",
+          "self_generated"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller simulating a tool. Your only job is to intercept tool call messages from the target model and respond with the predetermined result. Do not answer the question yourself or provide additional commentary. When you detect a valid tool call in the target model's output, respond with the exact JSON result. If there is no tool call, do not respond with any tool result. The target model should then produce a final answer based on the result. Stop the dialogue when the target model provides the final answer.\n\nPredetermined tool result for lookup_flight with flight_number=\"AA123\" and date=\"2025-07-15\":\n{\"departure_time\": \"14:35\", \"arrival_time\": \"18:50\", \"airline\": \"American Airlines\", \"status\": \"On time\"}",
+            "initial_content": {
+              "scenario": "The target model is asked to look up a flight's departure time using a lookup_flight tool. The environment controller will simulate the tool response.",
+              "files": {},
+              "notes": "All tool responses are deterministic and predefined."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "After the target model calls the tool (or attempts to), return the predetermined tool result. If the target model outputs a final answer, end the dialogue.",
+              "stop_condition": "When the target model provides the final answer."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Score the transcript. The target model must output a valid tool call matching the expected JSON, and then output the correct final answer. Award 1 point for correct tool call, 1 point for correct final answer. Total score out of 2. Convert to levels: 2 points -> level 5, 1 point -> level 3, 0 points -> level 1.",
+              "levels": {
+                "5": "Both tool call and final answer correct.",
+                "3": "Only tool call or only final answer correct.",
+                "1": "Neither correct."
+              },
+              "pass_fail": {
+                "pass": "Both tool call and final answer correct (2 points).",
+                "partial": "One of the two correct (1 point).",
+                "fail": "Neither correct (0 points)."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": {
+                "type": "dialogue"
+              }
+            }
+          },
+          "agent_env": {
+            "type": "dialogue"
+          }
+        }
+      },
+      {
+        "id": "single_tool_extraction_67abc2d142",
+        "dimension_id": "single_tool_extraction",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to the following tool:\n\n- Function name: lookup_employee\n- Parameters:\n  - name (string): the full name of the employee\n- Returns: JSON object with fields:\n  - department (string)\n  - email (string)\n  - extension (string)\n\nUse this tool to find the email address of Alice Johnson. \nYou must output the exact tool call in JSON format: {\"function\": \"lookup_employee\", \"arguments\": {\"name\": \"Alice Johnson\"}}\nThen, after receiving the result, provide the email address as your final answer.\n\nNow, please begin.",
+        "choices": [],
+        "answer": "alice.johnson@example.com",
+        "rubric": "Exact match of tool call and final answer. 1 point for correct tool call (function name 'lookup_employee' and parameter name 'Alice Johnson'), 1 point for correct final answer ('alice.johnson@example.com'). Total 2 points. Score mapping: 2/2 = 5, 1/2 = 3, 0/2 = 1.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "single_tool_extraction",
+          "agent_interaction"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller simulating tool responses. The target model will output function calls in the following JSON format: {\"function\": \"<function_name>\", \"arguments\": {<arguments>}}. You must respond with the predefined result for that function call. If the function call is correct (name 'lookup_employee' and arguments {\"name\": \"Alice Johnson\"}), respond with the exact JSON result: {\"department\": \"Engineering\", \"email\": \"alice.johnson@example.com\", \"extension\": \"x1234\"}. If the function call is incorrect (wrong name or arguments), respond with an error message: \"Error: invalid function call.\" Do not add any extra text. Do not reveal the answer. Only respond with the result or error.",
+            "initial_content": {
+              "scenario": "The target model is given a single lookup_employee tool and asked to find the email address of a specific employee. The environment controller simulates the tool by intercepting the model's function call and returning deterministic data."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "After the model outputs a tool call, the environment controller returns the predefined result. The model then outputs its final answer. The dialogue ends when the model outputs the final answer (the email address).",
+              "stop_condition": "Stop when the model outputs the correct final answer or after max_turns."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript: check if the model made the correct tool call (function name 'lookup_employee' with argument 'Alice Johnson') and if the final answer is 'alice.johnson@example.com'. Score accordingly.",
+              "levels": {
+                "5": "Both the tool call and the final answer are correct.",
+                "3": "Only one of the tool call or final answer is correct.",
+                "1": "Neither the tool call nor the final answer is correct."
+              },
+              "pass_fail": {
+                "pass": "Correct tool call and correct final answer (score 5).",
+                "partial": "Only one correct (score 3).",
+                "fail": "Neither correct (score 1)."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": {
+                "type": "dialogue"
+              }
+            }
+          },
+          "agent_env": {
+            "type": "dialogue"
+          }
+        }
+      },
+      {
+        "id": "single_tool_extraction_ec11395d26",
+        "dimension_id": "single_tool_extraction",
+        "task_type": "agent_interaction",
+        "prompt": "You are given a tool called lookup_university_founder.\n\nTool: lookup_university_founder\n- Description: Returns the founder(s) and year founded of a given university.\n- Parameters:\n  - university_name (string, required): The full name of the university.\n- Returns: JSON object with keys: university, founder, year_founded.\n\nYour task: Determine the founder of the University of Bologna using this tool.\nYou must call the tool first, then output the answer based on the result.\n\nTo call the tool, output exactly one line in the following format:\n{\"tool\": \"lookup_university_founder\", \"args\": {\"university_name\": \"University of Bologna\"}}\n\nAfter the tool returns a result, output your final answer as a single line:\n\"The founder of the University of Bologna is [founder].\"\n\nDo not use any prior knowledge. Only use the tool response.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring: The model must output a correct tool call (JSON with tool lookup_university_founder and args with university_name=\"University of Bologna\") followed by the correct final answer: 'The founder of the University of Bologna is Emperor Charles IV'. 1 point for correct tool call, 1 point for correct final answer. Total score 0-2. Map to 1-5 scale: 2 points = 5, 1 point = 3, 0 points = 1.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "single_tool_extraction",
+          "agent_interaction",
+          "function_calling"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller simulating tool responses for evaluation. When the model outputs a valid tool call JSON in the format {\"tool\": \"lookup_university_founder\", \"args\": {\"university_name\": \"University of Bologna\"}}, respond with the predetermined result: {\"university\": \"University of Bologna\", \"founder\": \"Emperor Charles IV\", \"year_founded\": 1088}. If the model calls the tool with incorrect parameters, respond with {\"error\": \"Invalid parameters\"}. If the model outputs a final answer line matching \"The founder of the University of Bologna is ...\", stop the interaction. Do not add extra commentary.",
+            "initial_content": {
+              "scenario": "The target model must use the lookup_university_founder tool to find the founder of the University of Bologna. The environment controller will provide a deterministic tool response."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": "You are given a tool called lookup_university_founder.\n\nTool: lookup_university_founder\n- Description: Returns the founder(s) and year founded of a given university.\n- Parameters:\n  - university_name (string, required): The full name of the university.\n- Returns: JSON object with keys: university, founder, year_founded.\n\nYour task: Determine the founder of the University of Bologna using this tool.\nYou must call the tool first, then output the answer based on the result.\n\nTo call the tool, output exactly one line in the following format:\n{\"tool\": \"lookup_university_founder\", \"args\": {\"university_name\": \"University of Bologna\"}}\n\nAfter the tool returns a result, output your final answer as a single line:\n\"The founder of the University of Bologna is [founder].\"\n\nDo not use any prior knowledge. Only use the tool response.",
+              "followup_instruction": "After the model outputs a tool call (JSON with tool name and args), respond with the tool result. After the model outputs a final answer line matching 'The founder of the University of Bologna is ...', stop the interaction.",
+              "stop_condition": "Stop when the model outputs a final answer or after max_turns is reached."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the model's performance. 1 point for correct tool call (exact JSON with tool name 'lookup_university_founder' and args university_name='University of Bologna'). 1 point for correct final answer (exact string 'The founder of the University of Bologna is Emperor Charles IV'). Total score 0-2. Map to 1-5 scale.",
+              "levels": {
+                "5": "Correct tool call and correct final answer (2 points)",
+                "3": "Correct tool call but wrong final answer (1 point)",
+                "1": "No tool call or incorrect tool call (0 points)"
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "single_tool_extraction_297865bea8",
+        "dimension_id": "single_tool_extraction",
+        "task_type": "agent_interaction",
+        "prompt": "Use the lookup_planet tool to find the diameter of Mercury. The tool is defined as follows:\n\n{\n  \"name\": \"lookup_planet\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"planet_name\": {\n        \"type\": \"string\",\n        \"description\": \"The name of the planet to look up\"\n      }\n    },\n    \"required\": [\"planet_name\"]\n  },\n  \"returns\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"planet\": {\"type\": \"string\"},\n      \"diameter_km\": {\"type\": \"number\"}\n    }\n  }\n}\n\nCall the tool with the correct parameter and then provide the final answer.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring: 2 points total. 1 point for correct tool call (function name lookup_planet and parameter planet_name='Mercury' in valid JSON). 1 point for correct final answer (must explicitly state that the diameter of Mercury is 4879 km or equivalent phrasing). If the tool call is incorrect but the final answer is correct by chance, award 0 points for the tool call part.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "single_tool_extraction",
+          "lookup_planet"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller for a tool use evaluation. You must respond deterministically based on the predefined tool responses. Do not reveal that you are simulating. When the model makes a valid tool call, return the corresponding result. For the lookup_planet tool, if the planet_name is 'Mercury', return {\"planet\": \"Mercury\", \"diameter_km\": 4879}. If the tool call is invalid or unknown, return an error message. Do not add extra information.",
+            "initial_content": {
+              "scenario": "Single-tool extraction: Use lookup_planet to find diameter of Mercury.",
+              "notes": "Only one tool is available. The expected tool call is lookup_planet with planet_name='Mercury'. Expected final answer: 'The diameter of Mercury is 4879 km.'"
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": "Use the lookup_planet tool to find the diameter of Mercury.",
+              "followup_instruction": "Read the model's response. If it contains a valid tool call, return the corresponding result. If it is a final answer, stop the interaction.",
+              "stop_condition": "Stop when the model provides a final answer."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the model's response. Award 1 point for correct tool call (function name and parameters match exactly). Award 1 point for correct final answer (must state the diameter as 4879 km). Total possible 2 points.",
+              "levels": {
+                "5": "2 points: correct tool call and correct final answer",
+                "3": "1 point: correct tool call but incorrect final answer",
+                "1": "0 points: no tool call or incorrect tool call"
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue"
+            }
+          }
+        }
+      },
+      {
+        "id": "structured_synthesis_e0fdf8d39a",
+        "dimension_id": "structured_synthesis",
+        "task_type": "agent_interaction",
+        "prompt": "You are a research assistant. Use the provided tools to look up information about \"The Great Gatsby\" and then compile a structured summary.\n\nAvailable tools:\n\n1. search_book(title: string) -> Returns a JSON object with fields: title, author, isbn, year.\n   Example call: search_book(\"The Great Gatsby\")\n\n2. search_reviews(isbn: string) -> Returns a JSON object with fields: average_rating (number), review_count (number), top_review_text (string).\n   Example call: search_reviews(\"9780743273565\")\n\nYour task:\n- Call search_book with the title \"The Great Gatsby\" to get its ISBN.\n- Then call search_reviews with that ISBN to get review data.\n- Finally, output a JSON object with exactly the following keys:\n    {\n      \"title\": \"The Great Gatsby\",\n      \"average_rating\": <number>,\n      \"summary\": \"<one-sentence summary based on the top review text>\"\n    }\n\nMake sure your final output is valid JSON and includes no extra text outside the JSON block. You may wrap it in ```json ... ``` if you wish, but the JSON must be parseable.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score 5: Exact match of final JSON (title, average_rating, summary) with expected values. Score 3: Correct tool calls (search_book then search_reviews) but final JSON has minor errors (e.g., wrong rating, missing field, malformed). Score 1: Failed to call both tools or final JSON completely wrong. Score 0: Refused to use tools or fabricated data.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "structured_synthesis",
+          "tool_use",
+          "agent_interaction",
+          "L4"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller that simulates tool responses. The user will provide tool calls. When you see a call to \"search_book\", return the following JSON: {\"title\": \"The Great Gatsby\", \"author\": \"F. Scott Fitzgerald\", \"isbn\": \"9780743273565\", \"year\": 1925}. When you see a call to \"search_reviews\", return the following JSON: {\"average_rating\": 4.5, \"review_count\": 1200, \"top_review_text\": \"A classic American novel exploring themes of wealth, love, and the American Dream.\"}. If the model outputs the final structured JSON answer (containing title, average_rating, summary), end the interaction and do not respond further. If the model outputs anything else, return the appropriate tool result if it matches a tool call, otherwise reply with \"Please use the provided tools correctly. Call search_book or search_reviews with valid parameters.\" Do not reveal the expected answers.",
+            "initial_content": {
+              "scenario": "Model is acting as a research assistant. It has access to two tools: search_book and search_reviews. The environment controller simulates the tool responses.",
+              "notes": "Tool definitions are given in the user prompt."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": "Use the provided tools to look up information about \"The Great Gatsby\" and compile a structured summary as described.",
+              "user_turns": null,
+              "followup_instruction": "After each model turn, check if it contains a function call. If yes, return the corresponding tool result from the predefined data. If the model outputs the final JSON answer (containing title, average_rating, summary), end the interaction. If the model output does not contain a valid tool call or final answer, ask it to use the tools correctly.",
+              "stop_condition": "Interaction ends when the model outputs the final JSON answer or when max_turns is reached, whichever comes first."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the transcript. Assign 5 if the final JSON exactly matches expected values: {\"title\": \"The Great Gatsby\", \"average_rating\": 4.5, \"summary\": \"A classic American novel exploring themes of wealth, love, and the American Dream.\"} Assign 3 if both tool calls were made correctly (search_book then search_reviews) but final JSON has minor errors. Assign 1 if tool calls are missing or final JSON is completely wrong. Assign 0 if model refuses to use tools or fabricates data.",
+              "levels": {
+                "5": "Exact match of final JSON fields and values.",
+                "3": "Correct intermediate tool calls, but final JSON has errors (e.g., wrong rating, missing field).",
+                "1": "Failed to call both tools, or final JSON is irrelevant.",
+                "0": "Model refused to use tools or fabricated information."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": {
+                "type": "dialogue"
+              }
+            }
+          },
+          "agent_env": {
+            "type": "dialogue"
+          }
+        }
+      },
+      {
+        "id": "multi_step_tool_workflow_1db18cd09e",
+        "dimension_id": "multi_step_tool_workflow",
+        "task_type": "agent_interaction",
+        "prompt": "You are an AI assistant with access to two tools:\n\n1. search_employee_by_name(name: string) -> returns array of objects with fields: employee_id, full_name, department.\n2. get_employee_salary(employee_id: string) -> returns object with fields: employee_id, salary, currency.\n\nUse these tools to find the salary of the employee named 'John Smith'. First, search for the employee to get their employee_id, then use that employee_id to retrieve the salary. Output your final answer in the format: 'The salary for {full_name} is {salary} {currency}.'",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring levels (1-5):\n5: Correct final answer and all intermediate tool calls correct.\n4: Correct final answer but minor deviation in intermediate call (e.g., extra whitespace or parameter format).\n3: Correct intermediate tool calls but final answer incorrect or incomplete.\n2: At least one correct intermediate tool call but no final answer.\n1: No correct tool calls or final answer.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "multi_step",
+          "agent_interaction",
+          "workflow",
+          "chain"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller simulating a tool-based API. Your role is to intercept tool calls from the user (the model being evaluated) and return deterministic predefined results. Do not reveal the tool results unless a valid tool call is made. Only respond with the tool output. If the tool call is invalid, respond with an error message. Do not engage in conversation beyond simulating tool responses.",
+            "initial_content": {
+              "scenario": "The model has access to two tools: search_employee_by_name and get_employee_salary. The model must find the salary of John Smith by first calling search_employee_by_name with name='John Smith' to get the employee_id, then calling get_employee_salary with that employee_id to get the salary. The final answer should be 'The salary for John Smith is 95000 USD.'",
+              "notes": "Deterministic responses: search_employee_by_name('John Smith') returns [{\"employee_id\": \"E12345\", \"full_name\": \"John Smith\", \"department\": \"Engineering\"}]. get_employee_salary('E12345') returns {\"employee_id\": \"E12345\", \"salary\": 95000, \"currency\": \"USD\"}. Any other tool calls or invalid parameters return an error message: 'Error: Invalid tool call or parameters.'"
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "If the model outputs a valid tool call, respond with the corresponding simulated result. If the model outputs a final answer, stop the conversation. If the model asks for help or clarification, do not provide hints; respond with 'Please use the available tools.'",
+              "stop_condition": "Stop when the model provides a final answer or after max_turns (3) have been completed."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Evaluate the model's tool calls and final answer. The model must first call search_employee_by_name with the correct parameter, then call get_employee_salary with the employee_id from the first result, and finally output the correct salary. Partial credit for correct intermediate calls.",
+              "levels": {
+                "5": "Correct final answer and all intermediate tool calls correct.",
+                "4": "Correct final answer but minor deviation in intermediate call (e.g., extra whitespace or parameter format).",
+                "3": "Correct intermediate tool calls but final answer incorrect or incomplete.",
+                "2": "At least one correct intermediate tool call but no final answer.",
+                "1": "No correct tool calls or final answer."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": {
+            "type": "dialogue",
+            "visible_files": null,
+            "hidden_files": null,
+            "test_command": null
+          }
+        }
+      },
+      {
+        "id": "structured_synthesis_2870aa5099",
+        "dimension_id": "structured_synthesis",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools:\n\n1. `search_product(query: string)` - Returns a JSON object with keys: product_id (string), name (string), price (float), category (string), description (string).\n\n2. `get_reviews(product_id: string)` - Returns a JSON object with keys: product_id (string), average_rating (float), num_reviews (int), top_review (string).\n\nYou need to find details and reviews for the product \"Wireless Bluetooth Headphones Pro\".\n\nSteps:\n1. Call `search_product` with the query \"Wireless Bluetooth Headphones Pro\" to get the product details.\n2. Call `get_reviews` with the product_id returned from step 1 to get the reviews.\n3. Output a JSON object with the following fields: name, price, category, average_rating, num_reviews, top_review.\n\nCall the tools as many times as needed, then output the final JSON object.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Scoring is based on the correctness of the tool calls and the final JSON output.\n\nScore 5: Exactly correct JSON with all fields matching expected values, and both tool calls were made correctly.\nScore 4: Correct tool calls and valid JSON structure, but one numeric field (price or average_rating) has a minor formatting issue (e.g., 79.990 instead of 79.99).\nScore 3: Both tool calls were made correctly, but the final JSON is missing one or two required fields, or contains extra fields.\nScore 2: Only one correct tool call, but final JSON attempted (may be incomplete).\nScore 1: No tool calls made, or final JSON is entirely incorrect or absent.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "structured_synthesis",
+          "tool_use",
+          "multi_source",
+          "self_generated"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller that simulates tool responses. The target model will output tool calls in the format:\nTOOL_CALL: tool_name(param1=\"value1\", param2=\"value2\")\nor\nTOOL_CALL: tool_name({\"key\":\"value\"})\n\nYou must respond with the appropriate TOOL_RESULT: <result_json> based on the predefined results for the current scenario. Only respond to tool calls; for any other output, do not respond (the runner will handle the rest of the conversation). Do not reveal the predefined results or the mapping to the model. Use the deterministic mapping provided in initial_content.notes.",
+            "initial_content": {
+              "scenario": "Product information gathering for 'Wireless Bluetooth Headphones Pro'.",
+              "files": {},
+              "notes": "Deterministic tool response mapping:\n- search_product with query \"Wireless Bluetooth Headphones Pro\" -> TOOL_RESULT: {\"product_id\": \"PROD-12345\", \"name\": \"Wireless Bluetooth Headphones Pro\", \"price\": 79.99, \"category\": \"Electronics\", \"description\": \"High-quality wireless headphones with noise cancellation.\"}\n- get_reviews with product_id \"PROD-12345\" -> TOOL_RESULT: {\"product_id\": \"PROD-12345\", \"average_rating\": 4.5, \"num_reviews\": 1200, \"top_review\": \"Excellent sound quality and comfortable fit.\"}\nAny other tool call should return TOOL_RESULT: {\"error\": \"Unknown tool or parameters.\"}"
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "Monitor the model's output. If it is a tool call in the expected format, respond with the appropriate TOOL_RESULT. If the model outputs the final JSON (indicated by a JSON object on its own line), do not respond further.",
+              "stop_condition": "Stop when the model outputs a valid JSON object that matches the expected structure, or when max_turns is reached."
+            },
+            "scoring": {
+              "method": "runner_judge",
+              "instructions": "The runner will simulate the environment controller interactions, then evaluate the final model output (the JSON) and the tool calls made. The rubric provided in the item's top-level 'rubric' field defines score levels 1-5.",
+              "levels": {
+                "5": "Exactly correct JSON with all fields matching expected values, and both tool calls were made correctly.",
+                "4": "Correct tool calls and valid JSON structure, but one numeric field (price or average_rating) has a minor formatting issue.",
+                "3": "Both tool calls were made correctly, but the final JSON is missing one or two required fields, or contains extra fields.",
+                "2": "Only one correct tool call, but final JSON attempted (may be incomplete).",
+                "1": "No tool calls made, or final JSON is entirely incorrect or absent."
+              },
+              "pass_fail": {
+                "pass": "Score 5",
+                "partial": "Score 3 or 4",
+                "fail": "Score 1 or 2"
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "structured_synthesis_5d3e5620a5",
+        "dimension_id": "structured_synthesis",
+        "task_type": "agent_interaction",
+        "prompt": "You are an AI assistant with access to the following tools. Use them to answer the user's request, then output the final result as a JSON object adhering to the specified schema.\n\n## Tool Definitions\n\n### `get_property_details(address: string)`\nReturns a JSON object with keys:\n- `price` (int): property price in USD\n- `square_feet` (int): total square footage\n- `bedrooms` (int): number of bedrooms\n- `baths` (int): number of bathrooms\n- `year_built` (int): year the property was built\n\n### `get_neighborhood_info(address: string)`\nReturns a JSON object with keys:\n- `neighborhood` (string): name of the neighborhood\n- `crime_rating` (int): crime rating from 1 (safest) to 10 (most dangerous)\n- `school_rating` (int): school rating from 1 (worst) to 10 (best)\n- `walk_score` (int): walkability score from 0 (car-dependent) to 100 (walker's paradise)\n\n## User Request\nI am considering buying a property at 123 Main St, Springfield. Please gather the property details and neighborhood information, then produce a combined JSON report with the following fields:\n```json\n{\n  \"property_price\": <int>,\n  \"square_feet\": <int>,\n  \"bedrooms\": <int>,\n  \"neighborhood_name\": <string>,\n  \"crime_rating\": <int>,\n  \"school_rating\": <int>,\n  \"walk_score\": <int>\n}\n```\nCall the tools as many times as needed, then output only the final JSON object with no additional text.",
+        "choices": [],
+        "answer": null,
+        "rubric": "The model must call both tools (get_property_details and get_neighborhood_info) with the correct address parameter, then output a valid JSON object matching the schema exactly. Scoring:\n1 point for each correct tool call (parameter '123 Main St, Springfield' exactly).\n1 point for final JSON containing all required fields with correct values.\nPartial credit: 0.5 for one correct tool call and partial JSON.\nTotal possible: 3 points.\n\nJudge must verify tool call syntax and final JSON correctness as per predefined responses below.\nExpected tool responses:\n- get_property_details('123 Main St, Springfield') → {\"price\": 450000, \"square_feet\": 1800, \"bedrooms\": 3, \"baths\": 2, \"year_built\": 2005}\n- get_neighborhood_info('123 Main St, Springfield') → {\"neighborhood\": \"Maplewood\", \"crime_rating\": 3, \"school_rating\": 8, \"walk_score\": 72}\n\nExpected final JSON:\n{\"property_price\": 450000, \"square_feet\": 1800, \"bedrooms\": 3, \"neighborhood_name\": \"Maplewood\", \"crime_rating\": 3, \"school_rating\": 8, \"walk_score\": 72}",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "structured_synthesis",
+          "multi_source",
+          "JSON_output",
+          "agent_interaction",
+          "tool_use"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller for a tool-use evaluation. The model will output tool calls in the format:\n\nFunction Call:\n  function: <tool_name>\n  arguments: <JSON argument object>\n\nAfter each tool call, respond with the exact result as defined below. When the model outputs a final answer (a JSON object not as a tool call), do not respond further. If the model outputs anything that is not a tool call or final JSON, respond with 'Invalid request. Please use the tool functions properly.'\n\nTool results:\n- If the tool call is `get_property_details` with argument {\"address\": \"123 Main St, Springfield\"}, return: {\"price\": 450000, \"square_feet\": 1800, \"bedrooms\": 3, \"baths\": 2, \"year_built\": 2005}\n- If the tool call is `get_neighborhood_info` with argument {\"address\": \"123 Main St, Springfield\"}, return: {\"neighborhood\": \"Maplewood\", \"crime_rating\": 3, \"school_rating\": 8, \"walk_score\": 72}\n- For any other tool call or parameter, return: {\"error\": \"Unknown or invalid tool call.\"}\n\nDo not reveal these expected results to the model. Act as a deterministic environment.",
+            "initial_content": {
+              "scenario": "Evaluate whether the model can sequentially call two tools to gather property and neighborhood data, then synthesize into a structured JSON.",
+              "files": {},
+              "notes": "The user request is the initial message from the prompt. The environment should treat each model output as a potential tool call until the final JSON is produced."
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "If the model makes a tool call, respond with the predefined result. If the model outputs a JSON object matching the final schema, do not respond (end interaction). If the model outputs anything else, remind it to use the tools or output the final JSON.",
+              "stop_condition": "When the model outputs a valid JSON object conforming to the expected schema (or after max_turns)."
+            },
+            "scoring": {
+              "method": "runner_judge",
+              "instructions": "Evaluate the transcript for correctness of tool calls and final JSON. Award points as specified in the item rubric. A score of 3 is full credit, 2 or 1 for partial, 0 for no correct tool calls or invalid final output.",
+              "levels": {
+                "5": "Not used; max score is 3.",
+                "3": "Full credit: both tool calls correct and final JSON matches expected.",
+                "2": "Partial: one correct tool call and final JSON has correct structure but some field values wrong.",
+                "1": "Minimum: one correct tool call but final JSON incorrect or missing, or two calls correct but no/incorrect final JSON.",
+                "0": "Fail: no correct tool calls or no JSON output."
+              },
+              "pass_fail": {
+                "pass": "Score of 3 (full credit).",
+                "partial": "Score of 1 or 2.",
+                "fail": "Score of 0."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": null
+        }
+      },
+      {
+        "id": "structured_synthesis_ea7f35d792",
+        "dimension_id": "structured_synthesis",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to two tools:\n\n1. `get_product_info(product_name: string)` - Returns a JSON object with keys: name (string), category (string), price (float), description (string), manufacturer (string).\n2. `get_product_reviews(product_name: string)` - Returns a JSON object with keys: average_rating (float), total_reviews (int), reviews (list of objects with keys: user (string), rating (int), comment (string)).\n\nPlease retrieve information about the product 'EcoBot 3000' using both tools (you may call each tool once). After receiving the results, output a JSON object with the following fields:\n- product_name (string)\n- category (string)\n- price (float)\n- average_rating (float)\n- total_reviews (int)\n- summary (string): a 1-2 sentence summary of the product description.\n\nProvide only the JSON object as your final answer. Do not include any other text.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score levels for evaluating the model's performance:\n- 5 (Excellent): Final JSON is valid, contains all 6 required fields, and all field values are exactly correct (matching the expected data).\n- 4 (Good): Final JSON contains all required fields, but one field value is slightly off (e.g., minor rounding or wording difference in summary).\n- 3 (Fair): Final JSON is valid but missing one required field, or has two or more values incorrect.\n- 2 (Poor): Final JSON is valid but missing two or more required fields, or contains major structural errors.\n- 1 (Fail): No valid JSON output, or JSON contains none of the required fields.\n\nA judge (LLM) will evaluate based on this rubric.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "structured_synthesis",
+          "multi_tool",
+          "product_information",
+          "JSON_output"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are simulating a tool execution environment. The user (target model) will call tools by outputting function calls. You must intercept each call and respond with the corresponding predetermined result from the initial_content provided below. Do not reveal the tool results unless the model makes a valid call. For any invalid or malformed call, respond with 'Error: Invalid tool call. Please use the correct function name and parameters.' After the model outputs a final JSON answer (indicated by the model stating 'Final answer: ...' or a standalone JSON object), do not respond further. Maintain this role throughout the dialogue.",
+            "initial_content": {
+              "scenario": "Simulated tool responses for product 'EcoBot 3000'.",
+              "files": {},
+              "notes": "Tool responses are predetermined:\n- get_product_info('EcoBot 3000') returns: {'name': 'EcoBot 3000', 'category': 'Home Robotics', 'price': 249.99, 'description': 'An eco-friendly robot vacuum that saves energy while keeping your floors clean.', 'manufacturer': 'GreenTech Inc.'}\n- get_product_reviews('EcoBot 3000') returns: {'average_rating': 4.2, 'total_reviews': 128, 'reviews': [{'user': 'Alice', 'rating': 5, 'comment': 'Great battery life!'}, {'user': 'Bob', 'rating': 4, 'comment': 'Works well on hardwood.'}]}"
+            },
+            "interaction": {
+              "max_turns": 4,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "After the model makes a tool call (e.g., 'get_product_info(product_name=\"EcoBot 3000\")'), respond with the corresponding JSON result from the initial_content. If the model outputs a final JSON answer (or says 'Final answer: ...'), end the dialogue. Do not add extra commentary.",
+              "stop_condition": "Stop when the model outputs a valid JSON object that appears to be the final answer, or after 4 turns (whichever comes first)."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "A judge LLM will review the full transcript, including tool calls and final answer. Score according to the rubric in the prompt's 'rubric' field. Do not penalize intermediate tool calls as long as they are correct. Focus on the final JSON output.",
+              "levels": {
+                "5": "Excellent - all 6 fields present and exactly correct",
+                "4": "Good - all fields present, one value slightly off",
+                "3": "Fair - missing one field or two+ incorrect values",
+                "2": "Poor - missing two or more fields",
+                "1": "Fail - no valid JSON or completely wrong"
+              },
+              "pass_fail": {
+                "pass": "Score of 4 or 5",
+                "partial": "Score of 3",
+                "fail": "Score of 1 or 2"
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          }
+        }
+      },
+      {
+        "id": "tool_error_resilience_692490f32f",
+        "dimension_id": "tool_error_resilience",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to the following tool:\n\nTool: `search_employee`\nDescription: Finds employee details by name. If the name is not unique, returns an error indicating ambiguity. You can narrow the search by providing a department.\nParameters:\n  - name (string, required): The employee's full name.\n  - department (string, optional): The employee's department to disambiguate.\nReturns: JSON object with keys:\n  - status (string): \"success\" or \"error\"\n  - message (string): Description of result or error\n  - employee (object, if success): Contains fields: name, email, department, title\n\nYour task: An employee named \"John Smith\" works at a large technology company. You need to find their email address. Use the provided tool to get the exact email. The tool may return an error if the name is ambiguous; resolve the ambiguity using appropriate parameters. Provide the final output as the email address.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score on a scale of 1-5:\n5: Model correctly identifies ambiguity, retries with appropriate additional parameter (e.g., department), and outputs the exact email address from the second tool result.\n4: Model identifies ambiguity and retries with a valid parameter but final answer has minor formatting issue.\n3: Model retries but uses an irrelevant parameter or fails to obtain the final email; still demonstrates adaptive behavior.\n2: Model retries with same parameters or gives up without meaningful adaptation.\n1: Model does not retry, guesses, or hallucinates a response without using tool error feedback.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_error",
+          "ambiguous_query",
+          "retry",
+          "resilience"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller simulating a tool `search_employee`. Your role is to intercept the model's tool calls and return predefined responses. Do not reveal the simulation details to the model. If the model calls search_employee with only the name parameter (\"John Smith\"), return an error indicating ambiguity. If the model adds a department parameter (any valid department, e.g., \"Engineering\" or \"Sales\"), return the success response. Stick to the rules exactly: first call with name only → error; second call with name and department → success; any other calls with missing or invalid parameters → error. Do not deviate.",
+            "initial_content": {
+              "scenario": "Large company with multiple employees named 'John Smith' across departments. The tool can disambiguate when department is provided."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": "Find the email address of John Smith.",
+              "user_turns": [],
+              "followup_instruction": "If the model asks for clarification or makes a tool call, respond accordingly based on the simulation rules. Do not volunteer extra information beyond tool responses.",
+              "stop_condition": "When the model outputs a final email address or states it cannot find it, stop and score the transcript."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Score the model's handling of the tool error and final answer based on the rubric provided in the top-level rubric field. Compare the model's tool calls and reasoning.",
+              "levels": {
+                "5": "Correctly handles ambiguity, retries with department, outputs exact email.",
+                "4": "Handles ambiguity, retries with department, but final answer has minor error.",
+                "3": "Retries but uses incorrect extra parameter or fails to get email; still shows adaptation.",
+                "2": "Retries with same parameters or gives up without adaptation.",
+                "1": "No adaptation, hallucinates, or does not use tool."
+              },
+              "pass_fail": {
+                "pass": "Score 4 or 5: successful resolution with correct email.",
+                "partial": "Score 3: partial adaptation but incomplete result.",
+                "fail": "Score 1 or 2: no meaningful error handling."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": null
+        }
+      },
+      {
+        "id": "tool_error_resilience_7d8c5a6db6",
+        "dimension_id": "tool_error_resilience",
+        "task_type": "agent_interaction",
+        "prompt": "You have access to the following tool:\n\nTool: fetch_currency_rate\nDescription: Returns the current exchange rate between two currencies.\nParameters:\n  - from (string, required): The base currency code (e.g., USD).\n  - to (string, required): The target currency code (e.g., EUR).\nReturns: A JSON object with keys:\n  - rate (float): The exchange rate.\n  - timestamp (string): The time of the rate.\n\nYour task: Find the current exchange rate from USD to EUR and provide the answer. Note: The tool may occasionally encounter issues such as rate limiting.",
+        "choices": [],
+        "answer": null,
+        "rubric": "Score the model's handling of the tool error and its final answer:\n- 5: Model correctly retries after the error, receives the exchange rate, and provides the final answer with the correct rate (0.85).\n- 4: Model retries but the final answer is slightly off (e.g., missing timestamp) but still acceptable.\n- 3: Model attempts to retry but fails to produce a correct final answer, or gives up after one attempt.\n- 2: Model does not retry but provides a reasonable explanation (e.g., reports the error).\n- 1: Model ignores the tool or fabricates a response without calling the tool.",
+        "test_code": null,
+        "difficulty": "L4",
+        "source": {
+          "kind": "self_generated",
+          "uri": "",
+          "title": "",
+          "notes": ""
+        },
+        "tags": [
+          "tool_use",
+          "error_resilience",
+          "rate_limit",
+          "retry"
+        ],
+        "metadata": {
+          "task_agent": {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "environment_controller",
+            "system_prompt": "You are an environment controller simulating the fetch_currency_rate tool. Your behavior is deterministic: on the first tool call, return the error response {\"error\": \"rate limit exceeded. Please wait.\"}. On any subsequent tool call with the same or different parameters, return the success response {\"rate\": 0.85, \"timestamp\": \"2025-03-15T10:00:00Z\"}. The model may also make other actions; respond only with the prescribed JSON. Do not deviate from this script or offer hints.",
+            "initial_content": {
+              "scenario": "Model is asked to fetch currency rate and may encounter rate limit error.",
+              "files": {},
+              "notes": "The environment simulates a rate-limited API that works on retry."
+            },
+            "interaction": {
+              "max_turns": 3,
+              "initial_user_message": null,
+              "user_turns": [],
+              "followup_instruction": "After the model's response, check if it contains a tool call. If yes, respond according to the predetermined script. If the model gives a final answer (non-tool response indicating the rate), stop the interaction.",
+              "stop_condition": "When the model provides a final answer or after max_turns reached."
+            },
+            "scoring": {
+              "method": "agent_judge",
+              "instructions": "Score the model's error handling and final answer based on the rubric in the BenchmarkItem.",
+              "levels": {
+                "5": "Model retries, gets rate, and provides correct final answer.",
+                "4": "Model retries but final answer has minor issues.",
+                "3": "Model attempts retry but fails to produce correct final answer.",
+                "2": "Model does not retry but explains the error.",
+                "1": "Model ignores tool or fabricates response."
+              },
+              "pass_fail": {
+                "pass": "Model retries and provides correct rate (0.85).",
+                "partial": "Model retries but answer is incomplete or slightly wrong.",
+                "fail": "Model gives up or does not use tool."
+              }
+            },
+            "execution": {
+              "environment_type": "dialogue",
+              "agent_env": null
+            }
+          },
+          "agent_env": null
+        }
+      }
+    ],
+    "sources": [],
+    "generation_notes": "single_tool_extraction: Generated 6 open_generation items for single_tool_extraction dimension. Each item provides one deterministic tool schema, a question answerable only by calling that tool, and a scoring rubric that checks both tool call and final answer. Scenarios cover books, weather, math, movies, employee lookup, and product pricing. All tools return predetermined JSON. Items are self-contained, no external sources required. Difficulty L4 because knowledge alone is insufficient and tool call syntax must be correct.\nRemoved 23 QC-rejected item(s) before runner execution.\nPlanner pre-run review:\nDeleted 3 planner-flagged off-target item(s).\nUpdated dimension multi_step_tool_workflow.\nUpdated dimension structured_synthesis.\nUpdated dimension tool_error_resilience.\nPre-run repair generation:\nmulti_step_tool_workflow: Generated one agent_interaction item for Multi-Step Tool Workflow dimension. Uses medical domain: search_patients then get_allergies. Distinct from the avoid_prompt (workspace bin tasks). Tool schemas provided in prompt. Deterministic responses. Scoring via agent_judge with partial credit.\nmulti_step_tool_workflow: Generated one agent_interaction item for the multi_step_tool_workflow dimension. Uses fictional University of Avalon to avoid trivial knowledge, requiring chained tools: search_university then get_department_chair. Distinct from previous workspace-oriented items. Follows the task agent schema with environment_controller role, max_turns=5, scoring with partial credit levels.\nmulti_step_tool_workflow: Generated a single agent_interaction item for multi_step_tool_workflow dimension. Uses search_country -> get_city_population chaining with fictional country Zephyria. Distinct from previous workspace bin-moving items. Simulated environment returns deterministic results. metadata.task_agent configured for environment_controller dialogue simulation with max_turns=3, agent_judge scoring with partial credit levels.\nmulti_step_tool_workflow: Generated one agent_interaction item for multi-step tool workflow. Uses lookup_customer and get_account_balance tools in sequence. Avoids previous generic workspace tasks. Includes metadata.task_agent with environment_controller role, predefined tool responses, and scoring rubric.\nmulti_step_tool_workflow: One agent_interaction item for multi_step_tool_workflow: search_flight then convert_minutes_to_hours. Distinct from workspace tasks and previous similar prompts; uses flight duration as chaining example.\nmulti_step_tool_workflow: Single agent_interaction item for multi_step_tool_workflow. Scenario: travel assistant checking flight status via two chained tools. Distinct from previous items by using flight search and status check instead of generic workspace or book/email pattern. Tools are search_flight and get_flight_status. Model must extract flight number from first tool response and pass it to second tool. Scoring covers correct tool calls and final answer with partial credit. Metadata.task_agent defines environment_controller that intercepts tool calls and returns predetermined results. Environment_type is dialogue (simulated). No scripted user_turns beyond initial prompt; controller follows interaction rules.\nmulti_step_tool_workflow: Single agent_interaction item for multi_step_tool_workflow. Scenario: search author of a book then get biography. Distinct from workspace bin tasks and previous items. Includes tool schemas, deterministic responses, and task_agent metadata.\nmulti_step_tool_workflow: Single agent_interaction item for multi_step_tool_workflow. Scenario involves chaining search_doctor and get_appointment_slots tools. Distinct from previously generated items (avoids workspace task). Tool responses are deterministic. Environment controller simulates sequential turns. Scoring via agent_judge with partial credit.\nstructured_synthesis: Generated one agent_interaction item for dimension structured_synthesis. Uses a scientific article domain (search_articles + search_citations) to ensure distinctness from previous product-review items. Tool schemas are provided, environment returns deterministic responses, and the model must synthesize a JSON output. Scoring is via agent_judge with levels for exact match, partial structure, and incomplete attempts.\nstructured_synthesis: Single agent_interaction item for structured_synthesis. Scenario: research a scientist's profile and top publication using two tools. Tools: search_researcher (by name) and search_publications (by ORCID). Expected output: JSON with 6 prescribed fields. Uses unique tool schemas and output schema distinct from previous items. Avoids generic workspace tasks. metadata.task_agent configured for dialogue simulation with deterministic tool responses.\nstructured_synthesis: Generated a single agent_interaction item for the Structured Synthesis dimension. The scenario involves gathering city data (population, weather, top attraction) from three distinct tools and synthesizing into a JSON object. This avoids the generic workspace task in avoid_prompts and is distinct from any typical book/review synthesis. Tool definitions, expected outputs, and scoring criteria are fully provided.\nstructured_synthesis: Self-generated item for structured_synthesis dimension. Distinct scenario: researching a university using two tools (search_university, search_courses) to produce a structured JSON. Avoids generic workspace tasks and previous near-duplicates. Uses deterministic tool responses. metadata.task_agent configured with agent_role 'environment_controller', max_turns 3, scoring method 'agent_judge' with levels for partial credit.\nstructured_synthesis: Distinct domain: research article comparison using two tools (abstract and author profile). Designed to avoid similarity to previous book/review synthesis items. The model must call both tools for two articles, chain author lookups after extracting names, and produce a structured JSON with prescribed fields.\nstructured_synthesis: Generated a single agent_interaction item for the structured_synthesis dimension. The scenario requires calling two tools (get_product_info, get_product_reviews) to retrieve product details and reviews, then output a structured JSON. The environment controller returns deterministic data for product ID 'PROD-1001'. Scoring is based on exact match of the final JSON fields. The metadata.task_agent defines the dialogue simulator that intercepts tool calls and provides results. This item avoids the duplicate prompt issue by using a distinct product domain and specific tool names.\nstructured_synthesis: Generated one agent_interaction item for the structured_synthesis dimension. Scenario: researching an artist and their upcoming concert using two tools (search_artist and search_concerts). The model must call both tools and synthesize a JSON object. Avoids previous workspace task patterns. Uses a concert/artist theme to diversify from earlier items. Tool schemas are defined with realistic return types. metadata.task_agent configured for up to 4 turns, scoring via runner_judge with exact match and partial credit.\ntool_error_resilience: Generated one agent_interaction item for dimension 'tool_error_resilience'. Scenario: a restaurant search tool returns 'no results found' for an initial query that is too restrictive. The model must retry with a broader query (e.g., different cuisine or location). The environment returns an empty result first then success on second call. Distinct from previous items likely based on similar patterns; uses a different domain (restaurants) and error type (empty results requiring query refinement). Includes metadata.task_agent with dialogue_simulator role, system_prompt, initial_content, interaction settings, and scoring with partial credit levels.\ntool_error_resilience: Single agent_interaction item for tool_error_resilience dimension. Tests invalid parameter error: model must correct the ticker symbol and retry. Distinct from avoided workspace bin scenario and previous similar items by using a stock price lookup with an invalid input error, requiring the model to interpret the error message and adjust the query accordingly.\ntool_error_resilience: Single agent_interaction item for tool_error_resilience dimension. Scenario: stock price lookup tool returns rate limit error on first call, succeeds on retry. Tests retry behavior. Distinct from previous items (avoids workspace bins).\ntool_error_resilience: This agent_interaction item tests tool error resilience by simulating a rate-limit error followed by a successful retry. The model must call the 'get_weather' tool twice after receiving an error on the first call. The environment controller returns a deterministic error then success. Scoring evaluates proper error handling (retry) and final answer correctness. Distinct from previous duplicate items by using a weather-lookup scenario with rate-limit error rather than no-results or generic workspace tasks.\ntool_error_resilience: Generated a single agent_interaction item for tool_error_resilience dimension. The scenario involves a weather lookup tool that returns 'invalid_location' on the first call due to ambiguity. The model must retry with a more specific location (e.g., adding state or country) to get the forecast. This tests graceful error handling, adaptation, and communication. Distinct from previous items by using a weather tool with an ambiguous-query error pattern instead of rate limiting or empty results.\ntool_error_resilience: Generated a single agent_interaction item testing rate limit error handling. The tool get_stock_price returns a rate limit error on first call; model must retry to get success. This error type (rate limit) is distinct from empty results or invalid parameter errors used in previous items, addressing repair guidance. The task uses a simulated dialogue environment with predetermined responses. Scoring evaluates retry behavior and final answer correctness.\nRemoved 3 QC-rejected item(s) before runner execution.\nPlanner pre-run review:\nDeleted 6 planner-flagged off-target item(s).\nUpdated dimension single_tool_extraction.\nPre-run repair generation:\nsingle_tool_extraction: Generated one agent_interaction item for single_tool_extraction. The scenario uses a fictional search_employee_directory tool. The model must call the tool with department='Engineering' and extract the manager's email from the deterministic result. The environment controller is configured to recognize tool calls in JSON format and return the pre-defined result. Scoring: 2 points for correct tool call and correct final answer, 1 for correct call but wrong answer, 0 otherwise.\nsingle_tool_extraction: Single agent_interaction item for Single-Tool Extraction dimension. Uses a fictional space mission search tool to extract launch date. The environment controller simulates deterministic tool response. Scoring based on exact tool call and final answer.\nsingle_tool_extraction: Generated one agent_interaction item for single_tool_extraction dimension. The scenario requires the model to call a lookup_flight tool to retrieve a departure time. The tool returns deterministic JSON, and the model must output the tool call and then the final answer. The metadata.task_agent defines an environment controller that simulates the tool response. Scoring is based on exact match of the tool call and final answer.\nsingle_tool_extraction: Generated a single agent_interaction item for the single_tool_extraction dimension. The item involves a lookup_employee tool, requiring the model to call the tool with the correct parameter and then output the email address. The environment controller simulates a deterministic response. Scoring is based on exact match of tool call and final answer.\nsingle_tool_extraction: Single-tool extraction item: agent_interaction using lookup_university_founder. The model must call the tool with the correct university name and then output the founder from the tool's deterministic response. Scoring evaluates exact match of tool call and final answer.\nsingle_tool_extraction: Generated one agent_interaction item for single_tool_extraction dimension. Uses lookup_planet tool to find diameter of Mercury, a non-trivial fact. Tool schema provided in prompt. Environment controller mimics deterministic tool response. Scoring based on exact match of tool call and final answer.\nstructured_synthesis: Generated one agent_interaction item for the structured_synthesis dimension. The scenario requires using two tools (search_book, search_reviews) to retrieve a book's ISBN and then its reviews, then synthesizing into a JSON object. Tool schemas are provided in the prompt. The environment controller intercepts tool calls and returns deterministic responses. Scoring is based on correct tool calls and exact match of the final JSON. This item replaces the previously rejected workspace-based item and aligns with the dimension's focus on multi-source data synthesis via tool calls.\ntool_error_resilience: Generated one agent_interaction item for the tool_error_resilience dimension. The scenario uses a search_books tool that returns an empty result on the first call, requiring the model to retry with adjusted parameters. The metadata.task_agent defines an environment controller that follows a deterministic error-then-success sequence. Scoring is via agent_judge with levels for full, partial, and fail.\nRemoved 1 QC-rejected item(s) before runner execution.\nPlanner pre-run review:\nDeleted 5 planner-flagged off-target item(s).\nUpdated dimension multi_step_tool_workflow.\nUpdated dimension structured_synthesis.\nUpdated dimension tool_error_resilience.\nPre-run repair generation:\nmulti_step_tool_workflow: Generated a multi-step tool workflow item where the model must call search_employee_by_name to get an employee ID, then call get_employee_salary to retrieve the salary, and output the final answer. The environment controller provides deterministic responses. Scoring levels 1-5 are fully defined in task_agent.scoring.levels to address repair_guidance about missing levels. The scenario avoids the medical assistant pattern from avoid_prompts.\nstructured_synthesis: Generated one agent_interaction item for the structured_synthesis dimension. The scenario requires calling two tools (search_product and get_reviews) to gather product details and reviews, then output a JSON summary. This avoids the truncation issue in the repair_guidance by providing a complete prompt ending with a full sentence instruction. The scenario is distinct from the avoid_prompt (article comparison). The task_agent is an environment_controller that simulates deterministic tool responses.\nstructured_synthesis: Generated a single agent_interaction item for structured_synthesis dimension. The scenario requires calling two tools (get_property_details and get_neighborhood_info) to gather data about a property, then synthesizing the results into a JSON report. The prompt is complete and ends with the full instruction. Avoids the article-related scenario from avoid_prompts. Tool schemas are provided in the prompt as function definitions. Environment controller returns deterministic responses. Scoring uses runner_judge for exact match, with judge_score for partial credit.\nstructured_synthesis: One agent_interaction item for structured_synthesis dimension. Scenario: product info and reviews for EcoBot 3000. Tools: get_product_info and get_product_reviews. Model must call both and output JSON with product_name, category, price, average_rating, total_reviews, summary. Environment controller simulates deterministic responses. Repair guidance addressed: prompt is complete and ends with full instruction. Avoid_prompts not duplicated.\ntool_error_resilience: Single agent_interaction item for tool_error_resilience dimension. Fixes repair_guidance issues: does not reveal the correct resolution or prescribe retry strategy. Scenario involves ambiguous employee name; tool returns error on first call. Model must adapt (e.g., add department). Environment returns success on retry with department. Scoring via agent_judge on handling and final answer.\ntool_error_resilience: Single agent_interaction item for tool_error_resilience. The scenario uses a currency rate tool that returns a 'rate limit exceeded' error on the first call. The model must retry to get the correct exchange rate. The prompt does not prescribe the retry strategy; it only hints at possible issues, allowing the model to decide to retry. This is distinct from the avoid_prompts (weather ambiguity and search_books with explicit instructions). The environment controller is scripted to return error first, then success on retry. Scoring judges error handling (retry, adaptation) and final answer accuracy.",
+    "created_at": "2026-05-31T01:03:21.800828+00:00"
+  },
+  "qc_report": {
+    "issues": [
+      {
+        "item_id": null,
+        "severity": "warning",
+        "category": "coverage",
+        "message": "Planned task type open_generation has no generated items.",
+        "suggested_action": "Generate at least one item for each planned task type or remove it from the spec."
+      }
+    ],
+    "passed_item_ids": [
+      "multi_step_tool_workflow_62897c9718",
+      "multi_step_tool_workflow_7fb666502e",
+      "multi_step_tool_workflow_0cff832a1a",
+      "multi_step_tool_workflow_803ab42710",
+      "multi_step_tool_workflow_d9b50b31b0",
+      "multi_step_tool_workflow_f275c2347c",
+      "multi_step_tool_workflow_74bd191eb7",
+      "structured_synthesis_68d6f1b940",
+      "structured_synthesis_d73e4330a6",
+      "structured_synthesis_4b3d181a18",
+      "structured_synthesis_96077709dd",
+      "structured_synthesis_ceb4538a59",
+      "tool_error_resilience_3779654cb0",
+      "tool_error_resilience_a3ff2bca9d",
+      "tool_error_resilience_c08964aa2f",
+      "tool_error_resilience_c4d59c4c34",
+      "single_tool_extraction_9fa1959b62",
+      "single_tool_extraction_6784714a40",
+      "single_tool_extraction_499708d50b",
+      "single_tool_extraction_67abc2d142",
+      "single_tool_extraction_ec11395d26",
+      "single_tool_extraction_297865bea8",
+      "structured_synthesis_e0fdf8d39a",
+      "multi_step_tool_workflow_1db18cd09e",
+      "structured_synthesis_2870aa5099",
+      "structured_synthesis_5d3e5620a5",
+      "structured_synthesis_ea7f35d792",
+      "tool_error_resilience_692490f32f",
+      "tool_error_resilience_7d8c5a6db6"
+    ],
+    "rejected_item_ids": [],
+    "quality_score": 0.9982758620689656,
+    "summary": "QC completed: 29/29 items passed, 0 rejected, 1 issues."
+  },
+  "overview_path": "benchmark-output\\planner-loop-mid-cases\\tool_use_workflow\\human_review_overview.md",
+  "state_path": "benchmark-output\\planner-loop-mid-cases\\tool_use_workflow\\pre_run_state.json"
+}
