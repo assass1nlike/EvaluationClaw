@@ -7,8 +7,8 @@ generation, QC, and improvement stages.
 
 | Stage | File | Line | Purpose |
 | --- | --- | --- | --- |
-| Goal translation | [evalclaw/planner.py](../evalclaw/planner.py) | 25 | Translate non-English goals into English before planning. |
-| Main planning prompt | [evalclaw/planner.py](../evalclaw/planner.py) | 36 | Turn a natural-language goal into a structured `EvalSpec`, including task-agent requirements and optional reference-model pairwise planning. |
+| Goal translation | [evalclaw/planning/planner.py](../evalclaw/planning/planner.py) | 25 | Translate non-English goals into English before planning. |
+| Main planning prompt | [evalclaw/planning/planner.py](../evalclaw/planning/planner.py) | 36 | Turn a natural-language goal into a structured `EvalSpec`, including task-agent requirements and optional reference-model pairwise planning. |
 | Task-agent schema guidance | [evalclaw/task_agent.py](../evalclaw/task_agent.py) | 56 | Standardized `metadata.task_agent` generation guidance reused by Planner, Generator, and Planner review prompts. |
 
 ## Generation
@@ -21,13 +21,13 @@ generation, QC, and improvement stages.
 
 | Stage | File | Line | Purpose |
 | --- | --- | --- | --- |
-| Planner dataset review prompt | [evalclaw/planning_loop.py](../evalclaw/planning_loop.py) | 31 | Review the generated dataset before any target model run, including optional human feedback, pairwise reference fit, task-agent completeness, and delete/move/add/merge/split/refill decisions. |
+| Planner dataset review prompt | [evalclaw/planning/loop.py](../evalclaw/planning/loop.py) | 31 | Review the generated dataset before any target model run, including optional human feedback, pairwise reference fit, task-agent completeness, and delete/move/add/merge/split/refill decisions. |
 
 ## Quality Control
 
 | Stage | File | Line | Purpose |
 | --- | --- | --- | --- |
-| QC gate prompt | [evalclaw/qc.py](../evalclaw/qc.py) | 24 | Judge whether the benchmark plan and items are coherent, executable, adequately covered, and well specified for pairwise and task-agent interactive items. |
+| QC gate prompt | [evalclaw/quality/qc.py](../evalclaw/quality/qc.py) | 24 | Judge whether the benchmark plan and items are coherent, executable, adequately covered, and well specified for pairwise and task-agent interactive items. |
 
 ## Loop 3
 
@@ -50,10 +50,10 @@ the repository root and jump to the listed line:
 
 | Stage | Relative path |
 | --- | --- |
-| Goal translation | `evalclaw/planner.py`, line 25 |
-| Main planning prompt | `evalclaw/planner.py`, line 36 |
+| Goal translation | `evalclaw/planning/planner.py`, line 25 |
+| Main planning prompt | `evalclaw/planning/planner.py`, line 36 |
 | Task-agent schema guidance | `evalclaw/task_agent.py`, line 56 |
 | Dimension item-generation prompt | `evalclaw/generator.py`, line 28 |
-| Planner dataset review prompt | `evalclaw/planning_loop.py`, line 31 |
-| QC gate prompt | `evalclaw/qc.py`, line 24 |
+| Planner dataset review prompt | `evalclaw/planning/loop.py`, line 31 |
+| QC gate prompt | `evalclaw/quality/qc.py`, line 24 |
 | Loop 3 improvement prompt | `evalclaw/improver.py`, line 28 |

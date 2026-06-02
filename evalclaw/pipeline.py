@@ -17,7 +17,7 @@ from .planning_loop import (
 )
 from .report_viewer import build_report_viewer_html
 from .reporter import artifact_index_markdown, build_report
-from .runner import run_eval
+from .runner import run_eval, validate_multimodal_target_support
 from .types import BenchmarkConfig, BenchmarkPackage, EvalSpec
 
 _SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]+")
@@ -124,6 +124,8 @@ def run_pipeline(
 
     run_direct = config.runner in {"direct", "auto"}
     direct_config = config if run_direct else config.model_copy(update={"run_targets": False})
+    accepted_for_run = [item for item in dataset.items if item.id in set(qc_report.passed_item_ids)]
+    validate_multimodal_target_support(accepted_for_run, config)
 
     log("\n[Runner] Executing accepted items against target models...")
     if not run_direct and config.runner == "lm-eval":

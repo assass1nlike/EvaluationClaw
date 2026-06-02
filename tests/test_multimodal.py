@@ -1,10 +1,14 @@
+import pytest
+
 from evalclaw.generator import generate_dimension_items
-from evalclaw.runner import run_question
+from evalclaw.runner import run_eval, run_question
 from evalclaw.types import (
     BenchmarkConfig,
+    BenchmarkDataset,
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
+    QcReport,
     TargetModelConfig,
     TaskType,
 )
@@ -85,3 +89,68 @@ def test_runner_sends_multimodal_content_to_target(monkeypatch) -> None:
     assert isinstance(captured["user_content"], list)
     assert captured["user_content"][0]["type"] == "text"
     assert captured["user_content"][1]["type"] == "image_url"
+
+
+def test_deepseek_target_rejects_multimodal_item_before_call() -> None:
+    item = BenchmarkItem(
+        id="vision_item",
+        dimension_id="vision_reasoning",
+        task_type=TaskType.short_answer,
+        prompt="Look at the image and answer yes or no.",
+        answer="yes",
+        metadata={
+            "multimodal": {
+                "schema_version": "evalclaw.multimodal.v1",
+                "modalities": ["image"],
+                "assets": [
+                    {
+                        "id": "image_1",
+                        "kind": "image",
+                        "uri": "data:image/svg+xml;base64,PHN2Zy8+",
+                        "mime_type": "image/svg+xml",
+                    }
+                ],
+            }
+        },
+    )
+    config = BenchmarkConfig(
+        targets=[TargetModelConfig(provider="openai_compatible", model="deepseek-chat", api_key="dummy")],
+        run_targets=True,
+    )
+
+    with pytest.raises(ValueError, match="not known to support native multimodal input"):
+        run_question(item, config)
+
+
+def test_run_eval_reports_multimodal_incompatible_target() -> None:
+    spec = EvalSpec(objective="Evaluate image reasoning.")
+    item = BenchmarkItem(
+        id="vision_item",
+        dimension_id="vision_reasoning",
+        task_type=TaskType.short_answer,
+        prompt="Look at the image and answer yes or no.",
+        answer="yes",
+        metadata={
+            "multimodal": {
+                "schema_version": "evalclaw.multimodal.v1",
+                "modalities": ["image"],
+                "assets": [
+                    {
+                        "id": "image_1",
+                        "kind": "image",
+                        "uri": "data:image/svg+xml;base64,PHN2Zy8+",
+                        "mime_type": "image/svg+xml",
+                    }
+                ],
+            }
+        },
+    )
+    dataset = BenchmarkDataset(spec=spec, items=[item])
+    qc_report = QcReport(passed_item_ids=[item.id])
+    config = BenchmarkConfig(
+        targets=[TargetModelConfig(provider="deepseek", model="deepseek-chat", api_key="dummy")],
+        run_targets=True,
+    )
+
+    with pytest.raises(ValueError, match="Multimodal item\\(s\\): vision_item"):
+        run_eval(dataset, qc_report, config)

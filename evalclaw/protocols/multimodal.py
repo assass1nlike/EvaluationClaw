@@ -6,7 +6,7 @@ import mimetypes
 from pathlib import Path
 from typing import Any
 
-from ..types import BenchmarkItem
+from ..types import BenchmarkItem, TargetModelConfig
 
 MULTIMODAL_METADATA_KEY = "multimodal"
 MULTIMODAL_SCHEMA_VERSION = "evalclaw.multimodal.v1"
@@ -99,6 +99,48 @@ def has_multimodal_assets(item: BenchmarkItem) -> bool:
         return False
     assets = spec.get("assets")
     return isinstance(assets, list) and any(isinstance(asset, dict) for asset in assets)
+
+
+def target_supports_multimodal_input(target: TargetModelConfig) -> bool:
+    """Return whether a target model is known to accept native multimodal input."""
+    provider = target.provider.lower()
+    model = target.model.lower()
+    if provider in {"mock", "test"}:
+        return True
+    if provider == "deepseek" or model.startswith("deepseek-"):
+        return False
+    if provider in {"anthropic", "claude"} or model.startswith("claude-"):
+        return True
+    if provider in {"gemini", "google"} or model.startswith("gemini"):
+        return True
+    if provider == "openai":
+        return model.startswith(
+            (
+                "gpt-4o",
+                "gpt-4.1",
+                "gpt-5",
+                "o3",
+                "o4",
+                "chatgpt-",
+            )
+        )
+    if provider in {"mistral"} or model.startswith(("pixtral-", "mistral-medium")):
+        return True
+    if provider == "openai_compatible":
+        # Custom OpenAI-compatible gateways may point to vision-capable local or
+        # hosted models. Known non-vision providers are handled above.
+        return True
+    return False
+
+
+def multimodal_unsupported_reason(target: TargetModelConfig) -> str | None:
+    if target_supports_multimodal_input(target):
+        return None
+    return (
+        f"Target model '{target.id}' ({target.provider}/{target.model}) is not known to support "
+        "native multimodal input. Choose a vision-capable target model, or remove multimodal "
+        "requirements from this evaluation."
+    )
 
 
 def _asset_map(spec: dict[str, Any]) -> dict[str, dict[str, Any]]:
