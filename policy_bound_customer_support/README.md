@@ -1,0 +1,1 @@
+Evaluate whether the target model handles a multi-turn customer support conversation under a refund/exchange policy, asking for missing information, applying policy constraints, and escalating when needed.
