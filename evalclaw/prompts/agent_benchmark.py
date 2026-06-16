@@ -92,6 +92,9 @@ Planning requirements:
   - docker_workspace: realistic dependencies, shell diagnostics, non-Python
     runtimes, package installation, native builds, or OS-sensitive tasks.
   - dialogue: multi-turn user simulation without a file/tool environment.
+- Common task_family values include workspace_navigation, code_repair,
+  repo_issue, shell_debugging, api_tool_use, web_research, data_analysis,
+  multi_turn_delegation, safety_tool_use, and custom.
 - Every executable task must have a clear oracle: deterministic tests, state
   assertions, pass/fail criteria, or a task-specific judge rubric. Prefer
   deterministic scoring when the environment can support it.
