@@ -6,7 +6,9 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from ..scaling import simple_equivalent_workload
 from ..types import (
+    AgentTaskSuite,
     BenchmarkDataset,
     EvalReport,
     EvalRun,
@@ -473,6 +475,58 @@ def _source_mapping_lines(items: list[object]) -> list[str]:
     return lines
 
 
+def _agent_task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
+    suite = dataset.agent_task_suite
+    if suite is None:
+        return []
+    lines = [
+        "## Agent Benchmark",
+        "",
+        f"- Agent task suite: {suite.id}",
+        f"- Agent tasks: {len(suite.tasks)}",
+        f"- Agent resources: {len(suite.resources)}",
+        f"- Agent blueprints: {len(suite.blueprints)}",
+        "",
+    ]
+    if suite.blueprints:
+        rows = [
+            [
+                blueprint.id,
+                blueprint.dimension_id,
+                blueprint.task_family.value,
+                blueprint.environment_type.value,
+                str(blueprint.expected_task_count),
+                blueprint.title,
+            ]
+            for blueprint in suite.blueprints
+        ]
+        lines.extend([_markdown_table(["Blueprint", "Dimension", "Family", "Env", "Count", "Title"], rows), ""])
+    if suite.resources:
+        rows = [
+            [
+                resource.id,
+                resource.kind,
+                resource.title or "-",
+                resource.uri[:120] or "-",
+            ]
+            for resource in suite.resources[:10]
+        ]
+        lines.extend([_markdown_table(["Resource", "Kind", "Title", "URI"], rows), ""])
+    if suite.tasks:
+        rows = [
+            [
+                task.id,
+                task.dimension_id,
+                task.task_family.value,
+                task.environment.type.value if hasattr(task.environment.type, "value") else str(task.environment.type),
+                _escape_cell(task.prompt, 120),
+            ]
+            for task in suite.tasks[:10]
+        ]
+        lines.extend([_markdown_table(["Task", "Dimension", "Family", "Env", "Prompt"], rows), ""])
+    return lines
+
+
 def _qc_summary_lines(qc: QcReport) -> list[str]:
     severity_counts = Counter(issue.severity.value for issue in qc.issues)
     category_counts = Counter(issue.category.value for issue in qc.issues)
@@ -881,7 +935,7 @@ def build_report(run: EvalRun) -> EvalReport:
         f"- Task types: {', '.join(t.value for t in dataset.spec.task_types)}",
         f"- Metrics: {', '.join(m.value for m in dataset.spec.metrics)}",
         f"- Scale budget: {dataset.spec.scale_budget.value}",
-        f"- Planned scale: {dataset.spec.scale}",
+        f"- Planned simple-equivalent workload: {dataset.spec.scale:g}",
         f"- Planner critique score: {dataset.spec.critique.score:.1f}/5",
         "",
         *_score_semantics_lines(),
@@ -911,12 +965,15 @@ def build_report(run: EvalRun) -> EvalReport:
             f"- Items generated: {len(dataset.items)}",
             f"- Items accepted for run: {len(used_items)}",
             f"- Items rejected by QC: {rejected_count}",
+            f"- Batches: {len(dataset.batches)}",
+            f"- Simple-equivalent workload accepted: {simple_equivalent_workload(used_items):.1f}",
             f"- External source candidates: {len(_dedupe_sources(dataset.sources))}",
             f"- Source-backed used items: {sum(1 for item in used_items if _is_source_backed(item))}/{len(used_items)}",
             f"- Self-generated used items: {sum(1 for item in used_items if item.source.kind == SourceKind.self_generated)}",
             "",
         ]
     )
+    lines.extend(_agent_task_suite_lines(dataset))
     task_counts: dict[str, int] = defaultdict(int)
     difficulty_counts: dict[str, int] = defaultdict(int)
     item_source_counts: Counter[str] = Counter()
@@ -933,6 +990,29 @@ def build_report(run: EvalRun) -> EvalReport:
         )
     )
     lines.extend(["", "### Source Coverage", ""])
+    if dataset.batches:
+        lines.extend(
+            [
+                "### Batch Plan",
+                "",
+                _markdown_table(
+                    ["Batch", "Dimension", "Planned", "Materialized", "Source Target", "Generated Target", "QC Sample"],
+                    [
+                        [
+                            batch.id,
+                            batch.dimension_id,
+                            str(batch.planned_item_count),
+                            str(batch.materialized_item_count),
+                            str(batch.source_backed_target),
+                            str(batch.generated_target),
+                            str(batch.qc_sample_size),
+                        ]
+                        for batch in dataset.batches
+                    ],
+                ),
+                "",
+            ]
+        )
     source_rows = [[f"item_source:{key}", str(value)] for key, value in sorted(item_source_counts.items())]
     if source_rows:
         lines.append(_markdown_table(["Bucket", "Count"], source_rows))

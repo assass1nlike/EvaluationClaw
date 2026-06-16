@@ -17,6 +17,7 @@ from ..llm import call_llm, extract_json
 from ..prompts.planning_loop import PLANNER_REVIEW_SYSTEM_PROMPT
 from ..protocols.task_agent import compact_task_agent_for_qc
 from ..quality.qc import run_qc_gate
+from ..scaling import is_large_scale_budget
 from ..types import (
     BenchmarkConfig,
     BenchmarkDataset,
@@ -27,6 +28,7 @@ from ..types import (
     EvalSpec,
     Message,
     QcReport,
+    SourceKind,
     TaskType,
 )
 
@@ -96,6 +98,16 @@ def _item_excerpt(item: BenchmarkItem) -> dict[str, object]:
     agent_env = item.metadata.get("agent_env")
     if isinstance(agent_env, dict):
         metadata["agent_env_type"] = str(agent_env.get("type") or "")
+    science = item.metadata.get("science")
+    if isinstance(science, dict):
+        metadata["science"] = {
+            "schema_version": science.get("schema_version"),
+            "discipline": science.get("discipline"),
+            "scientific_skill": science.get("scientific_skill"),
+            "evidence_context": science.get("evidence_context"),
+            "answer_type": science.get("answer_type"),
+            "units": science.get("units"),
+        }
     return {
         "id": item.id,
         "dimension_id": item.dimension_id,
@@ -108,6 +120,30 @@ def _item_excerpt(item: BenchmarkItem) -> dict[str, object]:
         "tags": item.tags,
         "metadata": metadata,
     }
+
+
+def _dimension_dataset_summaries(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[dict[str, object]]:
+    batch_by_dimension = {batch.dimension_id: batch for batch in dataset.batches}
+    summaries: list[dict[str, object]] = []
+    for dimension in dataset.spec.dimensions:
+        dim_items = [item for item in dataset.items if item.dimension_id == dimension.id]
+        source_counts = Counter(item.source.kind.value for item in dim_items)
+        task_counts = Counter(item.task_type.value for item in dim_items)
+        batch = batch_by_dimension.get(dimension.id)
+        summaries.append(
+            {
+                "dimension_id": dimension.id,
+                "batch": batch.model_dump(mode="json") if batch else None,
+                "planned_materialized_target": target_count_for_dimension(dimension, config),
+                "current_items": len(dim_items),
+                "task_counts": dict(task_counts),
+                "source_counts": dict(source_counts),
+                "target_item_count": dimension.target_item_count,
+                "target_source_backed_count": dimension.target_source_backed_count,
+                "target_generated_count": dimension.target_generated_count,
+            }
+        )
+    return summaries
 
 
 def _planner_review(
@@ -132,6 +168,7 @@ def _planner_review(
         "human_feedback": human_feedback,
         "reference_model": config.reference_model.model_dump(mode="json") if config.reference_model else None,
         "dimensions": [dimension.model_dump(mode="json") for dimension in dataset.spec.dimensions],
+        "dimension_dataset_summaries": _dimension_dataset_summaries(dataset, config),
         "target_counts": {
             dimension.id: target_count_for_dimension(dimension, config)
             for dimension in dataset.spec.dimensions
@@ -296,7 +333,13 @@ def _apply_review(
     generation_notes = dataset.generation_notes
     if notes:
         generation_notes = (generation_notes.rstrip() + "\nPlanner pre-run review:\n" + "\n".join(notes)).strip()
-    return BenchmarkDataset(spec=spec, items=items, sources=sources, generation_notes=generation_notes), notes
+    return BenchmarkDataset(
+        spec=spec,
+        items=items,
+        sources=sources,
+        batches=dataset.batches,
+        generation_notes=generation_notes,
+    ), notes
 
 
 def _remove_qc_rejected_items(dataset: BenchmarkDataset, qc_report: QcReport) -> tuple[BenchmarkDataset, int]:
@@ -318,7 +361,19 @@ def _dimension_deficits(
     deficits: dict[str, int] = {}
     for dimension in dataset.spec.dimensions:
         target = target_count_for_dimension(dimension, config)
-        missing = max(0, target - counts[dimension.id])
+        if is_large_scale_budget(config.scale_budget):
+            generated_items = [
+                item
+                for item in dataset.items
+                if item.dimension_id == dimension.id and item.source.kind == SourceKind.self_generated
+            ]
+            generated_target = dimension.target_generated_count
+            if generated_target is None:
+                generated_target = min(target, max(0, int(config.large_scale_generated_item_cap_per_dimension)))
+            generated_target = min(max(0, int(generated_target)), max(0, int(config.large_scale_generated_item_cap_per_dimension)))
+            missing = max(0, generated_target - len(generated_items))
+        else:
+            missing = max(0, target - counts[dimension.id])
         if missing:
             deficits[dimension.id] = missing
     for raw_need in (review or {}).get("needs_more_items", []) or []:
@@ -326,6 +381,8 @@ def _dimension_deficits(
             continue
         dimension_id = str(raw_need.get("dimension_id") or "")
         count = _safe_positive_int(raw_need.get("count"), 0) or 0
+        if is_large_scale_budget(config.scale_budget):
+            count = min(count, max(0, int(config.large_scale_generated_item_cap_per_dimension)))
         if dimension_id and count:
             deficits[dimension_id] = max(deficits.get(dimension_id, 0), count)
     return deficits
@@ -369,9 +426,13 @@ def _dedupe_sources(sources: list[BenchmarkSource]) -> list[BenchmarkSource]:
 
 
 def _is_duplicate(candidate: BenchmarkItem, existing_items: list[BenchmarkItem]) -> bool:
+    candidate_fingerprint = re.sub(r"\s+", " ", candidate.prompt.strip().lower())
+    if any(re.sub(r"\s+", " ", existing.prompt.strip().lower()) == candidate_fingerprint for existing in existing_items):
+        return True
+    near_duplicate_window = existing_items if len(existing_items) <= 100 else existing_items[-50:]
     return any(
         difflib.SequenceMatcher(None, candidate.prompt.lower(), existing.prompt.lower()).ratio() >= 0.92
-        for existing in existing_items
+        for existing in near_duplicate_window
     )
 
 
@@ -412,6 +473,7 @@ def _fill_dimension_deficits(
     if not deficits:
         return dataset
     by_dimension = {dimension.id: dimension for dimension in dataset.spec.dimensions}
+    batch_by_dimension = {batch.dimension_id: batch for batch in dataset.batches}
     items = list(dataset.items)
     sources = list(dataset.sources)
     notes: list[str] = []
@@ -440,6 +502,12 @@ def _fill_dimension_deficits(
                     if prompt_excerpt not in local_avoid_prompts:
                         local_avoid_prompts.append(prompt_excerpt)
                     continue
+                batch = batch_by_dimension.get(dimension_id)
+                if batch:
+                    metadata = dict(item.metadata)
+                    metadata["batch_id"] = batch.id
+                    metadata["batch_index"] = len([x for x in items if x.dimension_id == dimension_id]) + 1
+                    item = item.model_copy(update={"metadata": metadata})
                 sources.extend(generated_sources)
                 items.append(item)
                 generated_by_dimension[dimension_id] += 1
@@ -466,6 +534,7 @@ def _fill_dimension_deficits(
         spec=dataset.spec,
         items=items,
         sources=_dedupe_sources(sources),
+        batches=dataset.batches,
         generation_notes=generation_notes,
     )
 

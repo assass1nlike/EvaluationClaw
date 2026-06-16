@@ -6,7 +6,10 @@ import re
 from pathlib import Path
 from typing import Callable, Optional
 
+from .agent_benchmark import build_agent_dataset
 from .artifacts import write_artifact_manifest, write_lm_eval_artifacts
+from .execution.environment_claw import format_environment_claw_report, run_environment_claw
+from .execution.swebench import validate_swebench_environment_for_items
 from .improver import run_loop3_improvement
 from .lm_eval_runner import run_lm_eval
 from .planner import plan_eval_spec, translate_goal_to_english
@@ -15,12 +18,34 @@ from .planning_loop import (
     format_human_review_overview,
     generate_dataset_with_qc_loop,
 )
+from .quality.qc import run_qc_gate
 from .report_viewer import build_report_viewer_html
 from .reporter import artifact_index_markdown, build_report
 from .runner import run_eval, validate_multimodal_target_support
-from .types import BenchmarkConfig, BenchmarkPackage, EvalSpec
+from .types import BenchmarkConfig, BenchmarkItem, BenchmarkMode, BenchmarkPackage, EvalSpec
 
 _SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]+")
+_AGENT_GOAL_PATTERN = re.compile(
+    r"\b(agent|tool\s*use|tool[- ]calling|tools?|environment|sandbox|docker|workspace|"
+    r"terminal|shell|browser|api|multi[- ]?step|long[- ]?horizon|code\s*agent|"
+    r"repo|repository|issue|debug|repair|run\s+tests?)\b",
+    re.IGNORECASE,
+)
+_AGENT_GOAL_CJK_TERMS = (
+    "智能体",
+    "代理",
+    "工具调用",
+    "调用工具",
+    "环境交互",
+    "沙盒",
+    "浏览器",
+    "终端",
+    "命令行",
+    "代码修复",
+    "仓库",
+    "多步",
+    "长程",
+)
 
 
 def _redact_secrets(text: str) -> str:
@@ -63,6 +88,48 @@ def _persist_package(pkg: BenchmarkPackage, output_dir: str, log: Callable[[str]
     log(f"Saved manifest: {manifest_path}")
 
 
+def _validate_swebench_preflight_with_retry(
+    accepted_items: list[BenchmarkItem],
+    config: BenchmarkConfig,
+    *,
+    log: Callable[[str], None],
+    ask_user: Optional[Callable[[str], str]],
+    interactive: bool,
+) -> BenchmarkConfig:
+    try:
+        validate_swebench_environment_for_items(accepted_items, config)
+        return config
+    except RuntimeError as exc:
+        if not interactive or ask_user is None:
+            raise
+        log(f"\n[SWE-bench Preflight]\n{exc}")
+
+    while True:
+        answer = ask_user(
+            "\nSWE-bench runtime is not ready. Configure it using the commands above, then press Enter to retry.\n"
+            "Type 'skip' to skip target execution for this run, or 'abort' to stop: "
+        ).strip().lower()
+        if answer in {"skip", "s", "no-run", "norun"}:
+            log("\n[SWE-bench Preflight] Target execution skipped by user.")
+            return config.model_copy(update={"run_targets": False})
+        if answer in {"abort", "stop", "exit", "q", "quit"}:
+            raise RuntimeError("SWE-bench preflight failed and the run was aborted by user.")
+        try:
+            validate_swebench_environment_for_items(accepted_items, config)
+            log("\n[SWE-bench Preflight] Runtime is ready.")
+            return config
+        except RuntimeError as exc:
+            log(f"\n[SWE-bench Preflight] Still not ready.\n{exc}")
+
+
+def _resolve_benchmark_mode(goal: str, config: BenchmarkConfig) -> BenchmarkMode:
+    if config.benchmark_mode != BenchmarkMode.auto:
+        return config.benchmark_mode
+    if _AGENT_GOAL_PATTERN.search(goal) or any(term in goal for term in _AGENT_GOAL_CJK_TERMS):
+        return BenchmarkMode.agent
+    return BenchmarkMode.static
+
+
 def run_pipeline(
     goal: str,
     config: BenchmarkConfig,
@@ -79,21 +146,30 @@ def run_pipeline(
         log("\n[Input] Translated non-English evaluation goal to English before planning.")
         log(f"  English goal: {goal}")
 
-    log("\n[Planner] Building eval_spec with self-critique...")
-    spec: EvalSpec = plan_eval_spec(goal, config)
-    log(f"  Objective: {spec.objective}")
-    log(f"  Dimensions: {len(spec.dimensions)}")
-    log(f"  Planner critique: {spec.critique.score:.1f}/5")
+    benchmark_mode = _resolve_benchmark_mode(goal, config)
+    log(f"\n[Mode] Benchmark mode: {benchmark_mode.value}")
 
-    if interactive and ask_user is not None:
-        feedback = ask_user("\nPress Enter to accept the eval_spec, or enter revision feedback: ").strip()
-        if feedback:
-            log("\n[Planner] Revising eval_spec from feedback...")
-            spec = plan_eval_spec(goal, config, feedback=feedback, previous_spec=spec)
-            log(f"  Revised dimensions: {len(spec.dimensions)}")
+    if benchmark_mode == BenchmarkMode.agent:
+        log("\n[Agent Planner/Builder] Building executable agent task suite...")
+        dataset = build_agent_dataset(goal, config)
+        spec = dataset.spec
+        qc_report = run_qc_gate(dataset, config)
+    else:
+        log("\n[Planner] Building eval_spec with self-critique...")
+        spec = plan_eval_spec(goal, config)
+        log(f"  Objective: {spec.objective}")
+        log(f"  Dimensions: {len(spec.dimensions)}")
+        log(f"  Planner critique: {spec.critique.score:.1f}/5")
 
-    log("\n[Planner/Generator/QC] Building benchmark dataset with pre-run self-check...")
-    spec, dataset, qc_report = generate_dataset_with_qc_loop(spec, config, log=log)
+        if interactive and ask_user is not None:
+            feedback = ask_user("\nPress Enter to accept the eval_spec, or enter revision feedback: ").strip()
+            if feedback:
+                log("\n[Planner] Revising eval_spec from feedback...")
+                spec = plan_eval_spec(goal, config, feedback=feedback, previous_spec=spec)
+                log(f"  Revised dimensions: {len(spec.dimensions)}")
+
+        log("\n[Planner/Generator/QC] Building benchmark dataset with pre-run self-check...")
+        spec, dataset, qc_report = generate_dataset_with_qc_loop(spec, config, log=log)
     log(f"  Final dimensions: {len(spec.dimensions)}")
     log(f"  Final items: {len(dataset.items)}")
     log(f"  Sources used: {len(dataset.sources)}")
@@ -125,7 +201,18 @@ def run_pipeline(
     run_direct = config.runner in {"direct", "auto"}
     direct_config = config if run_direct else config.model_copy(update={"run_targets": False})
     accepted_for_run = [item for item in dataset.items if item.id in set(qc_report.passed_item_ids)]
+    direct_config, environment_claw_report = run_environment_claw(accepted_for_run, direct_config)
+    for line in format_environment_claw_report(environment_claw_report):
+        log(line)
     validate_multimodal_target_support(accepted_for_run, config)
+    if run_direct:
+        direct_config = _validate_swebench_preflight_with_retry(
+            accepted_for_run,
+            direct_config,
+            log=log,
+            ask_user=ask_user,
+            interactive=interactive,
+        )
 
     log("\n[Runner] Executing accepted items against target models...")
     if not run_direct and config.runner == "lm-eval":
@@ -135,6 +222,7 @@ def run_pipeline(
         progress(f"  {done}/{total} {target_id} {item_id}")
 
     run = run_eval(dataset, qc_report, direct_config, on_progress=_on_progress)
+    run.runner_artifacts["environment_claw"] = environment_claw_report.as_dict()
     if config.runner in {"lm-eval", "auto"} and config.targets and config.output_dir:
         log("\nlm-eval: Running interoperability harness...")
         out_dir = Path(config.output_dir)
