@@ -114,6 +114,14 @@ def _loop3_budget_guidance(config: BenchmarkConfig) -> str:
             "HIGH budget: dig deeper into weak dimensions. Prefer multiple targeted actions that isolate failure "
             "patterns, confirm persistent weaknesses, and increase difficulty without drifting from the user goal."
         ),
+        "large": (
+            "LARGE budget: prioritize systematic weak-slice expansion, source-backed replenishment, and targeted "
+            "regression items across multiple dimensions."
+        ),
+        "xlarge": (
+            "XLARGE budget: prioritize scalable slice-level repairs, source-backed expansion, deduplication, and "
+            "sampling/QC strategy over hand-crafting many individual items."
+        ),
     }
     return guidance.get(config.scale_budget.value, guidance["mid"])
 
@@ -124,6 +132,10 @@ def _loop3_action_limit(config: BenchmarkConfig) -> int:
         return min(configured, 2)
     if config.scale_budget.value == "high" and configured == 4:
         return 8
+    if config.scale_budget.value == "large" and configured == 4:
+        return 12
+    if config.scale_budget.value == "xlarge" and configured == 4:
+        return 16
     return configured
 
 
@@ -132,6 +144,10 @@ def _loop3_per_dimension_limit(config: BenchmarkConfig) -> int:
         return 1
     if config.scale_budget.value == "high":
         return 4
+    if config.scale_budget.value == "large":
+        return 6
+    if config.scale_budget.value == "xlarge":
+        return 8
     return 2
 
 
@@ -323,6 +339,7 @@ def _replace_or_expand_items(
         spec=dataset.spec,
         items=new_items,
         sources=dataset.sources,
+        batches=dataset.batches,
         generation_notes=dataset.generation_notes + "\nLoop 3 improvement applied.",
     )
 

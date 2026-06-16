@@ -21,9 +21,12 @@ from .protocols.multimodal import (
     MULTIMODAL_SCHEMA,
     text_requests_multimodal,
 )
+from .protocols.science import SCIENCE_GENERATION_GUIDANCE, SCIENCE_SCHEMA, text_requests_science
 from .protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
+from .scaling import is_large_scale_budget
 from .search import fetch_url_text, format_search_result, web_search
 from .types import (
+    BenchmarkBatch,
     BenchmarkConfig,
     BenchmarkDataset,
     BenchmarkItem,
@@ -104,7 +107,39 @@ def _difficulty_cycle(dimension: EvalDimension) -> cycle[Difficulty]:
 
 
 def target_count_for_dimension(dimension: EvalDimension, config: BenchmarkConfig) -> int:
-    return max(1, int(dimension.target_item_count or config.questions_per_dimension))
+    planned = _planned_count_for_dimension(dimension, config)
+    if not is_large_scale_budget(config.scale_budget):
+        return planned
+    source_target = _large_scale_source_target_for_dimension(dimension, planned, config)
+    generated_target = _large_scale_generated_target_for_dimension(dimension, planned, config)
+    return max(1, min(planned, source_target + generated_target))
+
+
+def _large_scale_source_target_for_dimension(
+    dimension: EvalDimension,
+    planned_count: int,
+    config: BenchmarkConfig,
+) -> int:
+    if not is_large_scale_budget(config.scale_budget):
+        return min(planned_count, dimension.target_source_backed_count)
+    if dimension.target_source_backed_count > 0:
+        return min(planned_count, dimension.target_source_backed_count)
+    ratio = max(0.0, min(1.0, float(config.large_scale_min_source_backed_ratio)))
+    return min(planned_count, int(round(planned_count * ratio)))
+
+
+def _large_scale_generated_target_for_dimension(
+    dimension: EvalDimension,
+    planned_count: int,
+    config: BenchmarkConfig,
+) -> int:
+    cap = max(0, int(config.large_scale_generated_item_cap_per_dimension))
+    if not is_large_scale_budget(config.scale_budget):
+        return max(0, planned_count - min(planned_count, dimension.target_source_backed_count))
+    if dimension.target_generated_count is not None:
+        return min(planned_count, max(0, int(dimension.target_generated_count)), cap)
+    source_target = _large_scale_source_target_for_dimension(dimension, planned_count, config)
+    return min(max(0, planned_count - source_target), cap)
 
 
 def _source_backed_target_for_dimension(
@@ -114,7 +149,61 @@ def _source_backed_target_for_dimension(
 ) -> int:
     if dimension.target_source_backed_count > 0:
         return min(count, dimension.target_source_backed_count)
+    if is_large_scale_budget(config.scale_budget):
+        planned = max(count, int(dimension.target_item_count or count))
+        return min(count, _large_scale_source_target_for_dimension(dimension, planned, config))
     return min(count, max(0, config.max_hf_records_per_dimension))
+
+
+def _planned_count_for_dimension(dimension: EvalDimension, config: BenchmarkConfig) -> int:
+    return max(1, int(dimension.target_item_count or config.questions_per_dimension))
+
+
+def _batch_for_dimension(
+    spec: EvalSpec,
+    dimension: EvalDimension,
+    config: BenchmarkConfig,
+    materialized_count: int,
+) -> BenchmarkBatch | None:
+    if not is_large_scale_budget(spec.scale_budget):
+        return None
+    planned_count = _planned_count_for_dimension(dimension, config)
+    source_target = _source_backed_target_for_dimension(dimension, materialized_count, config)
+    generated_target = min(
+        max(0, materialized_count - source_target),
+        max(0, int(config.large_scale_generated_item_cap_per_dimension)),
+    )
+    return BenchmarkBatch(
+        id=f"{dimension.id}_batch_1",
+        dimension_id=dimension.id,
+        description=f"Large-scale materialized batch for dimension {dimension.id}.",
+        planned_item_count=planned_count,
+        materialized_item_count=materialized_count,
+        source_backed_target=source_target,
+        generated_target=generated_target,
+        task_types=dimension.task_types or spec.task_types,
+        source_strategy=(
+            "Prefer source-backed/imported items for the bulk of this dimension; "
+            "use generated items only for scarce slices, edge cases, or targeted augmentation."
+        ),
+        qc_sample_size=max(1, int(config.large_scale_llm_qc_sample_size)),
+        notes=(
+            "Batch count is a materialized representative subset when source-backed data is unavailable; "
+            "do not replace source-backed shortfall with unbounded model generation."
+        ),
+    )
+
+
+def _attach_batch_metadata(items: list[BenchmarkItem], batch: BenchmarkBatch | None) -> list[BenchmarkItem]:
+    if batch is None:
+        return items
+    updated: list[BenchmarkItem] = []
+    for index, item in enumerate(items, 1):
+        metadata = dict(item.metadata)
+        metadata["batch_id"] = batch.id
+        metadata["batch_index"] = index
+        updated.append(item.model_copy(update={"metadata": metadata}))
+    return updated
 
 
 def _select_research_sources(
@@ -212,20 +301,27 @@ def _source_context(sources: list[BenchmarkSource]) -> str:
 def _generation_scale_guidance(spec: EvalSpec) -> str:
     guidance = {
         "low": (
-            "LOW budget: generate lean, high-signal items. Treat the budget as a rough anchor for a small run, "
-            "not a hard quota. Prefer essential coverage over breadth; a few simple items can be enough, but a "
-            "single multi_turn, agent_interaction, or code_sandbox item may already carry more workload than "
-            "several simple items."
+            "LOW budget: generate compact, high-signal items. Treat the budget as about 100 simple-equivalent "
+            "workload units, not a raw item quota. Prefer essential coverage over exhaustive slicing."
         ),
         "mid": (
-            "MID budget: generate balanced items covering the main dimension and important edge cases. Adjust "
-            "the simple-versus-interactive mix to the objective instead of forcing the same count across task types."
+            "MID budget: generate balanced items around a 500 simple-equivalent workload anchor. Cover the main "
+            "dimension and important edge cases while mixing simple and heavier interactive tasks appropriately."
         ),
         "high": (
-            "HIGH budget: generate deeper items with richer rubrics, stronger edge cases, and more careful "
-            "source/agent/test metadata when the dimension supports it. Use a heavier interactive item mix when "
-            "the task naturally requires it, but keep the overall breadth/depth aligned to the objective rather "
-            "than to a fixed item count."
+            "HIGH budget: generate or curate deeper coverage around a 1,000 simple-equivalent workload anchor. "
+            "Prefer source-backed items where available; use generated items for targeted gaps, edge cases, "
+            "and complex agent/test metadata."
+        ),
+        "large": (
+            "LARGE budget: plan for about 5,000 simple-equivalent workload units. Avoid making the bulk of the "
+            "dimension model-generated; prefer source-backed/imported items, stratified sampling, and generated "
+            "items only for scarce or under-covered slices."
+        ),
+        "xlarge": (
+            "XLARGE budget: plan for about 20,000 simple-equivalent workload units. Treat generation as targeted "
+            "augmentation, not the primary source. Emphasize scalable dataset sourcing, deduplication, and slice "
+            "coverage assumptions."
         ),
     }
     return guidance.get(spec.scale_budget.value, guidance["mid"])
@@ -234,6 +330,11 @@ def _generation_scale_guidance(spec: EvalSpec) -> str:
 def _dimension_requests_multimodal(dimension: EvalDimension) -> bool:
     text = " ".join([dimension.name, dimension.description, dimension.approach, *dimension.item_requirements])
     return text_requests_multimodal(text)
+
+
+def _dimension_requests_science(dimension: EvalDimension) -> bool:
+    text = " ".join([dimension.name, dimension.description, dimension.approach, *dimension.item_requirements])
+    return text_requests_science(text)
 
 
 def _parse_items(
@@ -324,6 +425,11 @@ def generate_dimension_items(
         count=source_backed_target,
     )
     remaining_count = max(0, count - len(imported_items))
+    if is_large_scale_budget(spec.scale_budget):
+        planned = max(count, int(dimension.target_item_count or count))
+        generated_target = _large_scale_generated_target_for_dimension(dimension, planned, config)
+        if remaining_count > generated_target:
+            remaining_count = generated_target
     if remaining_count == 0:
         return imported_items[:count], sources, f"Imported {len(imported_items)} item(s) from HuggingFace datasets."
     if not sources and has_programmatic_multimodal_fallback(dimension):
@@ -357,6 +463,10 @@ def generate_dimension_items(
         payload["multimodal_schema"] = MULTIMODAL_SCHEMA
         payload["multimodal_generation_guidance"] = MULTIMODAL_GENERATION_GUIDANCE
         system_prompt += "\n\n" + GENERATOR_MULTIMODAL_PROMPT
+    if _dimension_requests_science(dimension):
+        payload["science_schema"] = SCIENCE_SCHEMA
+        payload["science_generation_guidance"] = SCIENCE_GENERATION_GUIDANCE
+        system_prompt += "\n\n" + SCIENCE_GENERATION_GUIDANCE
     raw = call_llm(
         [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
         system=system_prompt,
@@ -385,6 +495,11 @@ def generate_dimension_items(
     all_items = imported_items + items
     if imported_items:
         notes = f"Imported {len(imported_items)} HF item(s). {notes}".strip()
+    if is_large_scale_budget(spec.scale_budget) and len(all_items) < count:
+        notes = (
+            f"{notes} Large-scale materialization produced {len(all_items)}/{count} planned item(s); "
+            "source-backed shortfall was not replaced with unbounded model generation."
+        ).strip()
     return all_items[:count], sources, notes
 
 
@@ -414,12 +529,17 @@ def generate_dataset_with_progress(
     """Generate and synthesize the full benchmark dataset with optional progress logs."""
     all_items: list[BenchmarkItem] = []
     all_sources: list[BenchmarkSource] = []
+    batches: list[BenchmarkBatch] = []
     notes: list[str] = []
     research_cache: list[tuple[set[str], list[BenchmarkSource]]] = []
     for index, dimension in enumerate(spec.dimensions, 1):
         target_count = target_count_for_dimension(dimension, config)
+        batch = _batch_for_dimension(spec, dimension, config, target_count)
+        if batch:
+            batches.append(batch)
         if log:
-            log(f"  [{index}/{len(spec.dimensions)}] {dimension.id}: generating {target_count} item(s)...")
+            mode = "batch-materializing" if batch else "generating"
+            log(f"  [{index}/{len(spec.dimensions)}] {dimension.id}: {mode} {target_count} item(s)...")
         research_sources = _find_shared_research_sources(dimension, config, research_cache)
         items, sources, note = generate_dimension_items(
             spec,
@@ -428,6 +548,7 @@ def generate_dataset_with_progress(
             config,
             research_sources=research_sources,
         )
+        items = _attach_batch_metadata(items, batch)
         all_items.extend(items)
         all_sources.extend(sources)
         if log:
@@ -438,6 +559,7 @@ def generate_dataset_with_progress(
         spec=spec,
         items=all_items,
         sources=_dedupe_sources(all_sources),
+        batches=batches,
         generation_notes="\n".join(notes),
     )
 

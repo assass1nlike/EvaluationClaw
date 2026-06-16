@@ -45,6 +45,16 @@ For items using metadata.multimodal:
 - image items should provide a usable URL, data URI, or local file path that the
   runner can resolve into provider-native image content.
 
+For items using metadata.science:
+- metadata.science.schema_version should be evalclaw.science.v1.
+- Check that the scientific skill, evidence context, units, and assumptions are
+  consistent with the prompt and scoring rubric.
+- For quantitative science items, constants/data and required units should be
+  stated clearly enough to make the answer reliable.
+- For experimental or literature-grounded science items, the prompt should
+  provide enough observations, source excerpt, or study context to support the
+  requested inference without hallucinated facts.
+
 Return pure JSON only, with no markdown. Format:
 {
   "issues": [

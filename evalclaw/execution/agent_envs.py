@@ -11,6 +11,7 @@ from typing import Any
 
 from ..protocols.tool import ToolSpec, format_tool_specs_for_prompt, object_schema
 from ..types import BenchmarkItem
+from .docker_agent_env import DockerWorkspaceAgentEnvironment
 
 DEFAULT_WORKSPACE_ENV: dict[str, Any] = {
     "type": "workspace",
@@ -505,7 +506,9 @@ class CodeSandboxAgentEnvironment:
             self._root = None
 
 
-def build_agent_environment(item: BenchmarkItem) -> WorkspaceAgentEnvironment | CodeSandboxAgentEnvironment:
+def build_agent_environment(
+    item: BenchmarkItem,
+) -> WorkspaceAgentEnvironment | CodeSandboxAgentEnvironment | DockerWorkspaceAgentEnvironment:
     config = item.metadata.get("agent_env")
     task_agent = item.metadata.get("task_agent")
     if not isinstance(config, dict) and isinstance(task_agent, dict):
@@ -525,4 +528,6 @@ def build_agent_environment(item: BenchmarkItem) -> WorkspaceAgentEnvironment | 
         return WorkspaceAgentEnvironment.from_config(config)
     if env_type == "code_sandbox":
         return CodeSandboxAgentEnvironment.from_config(config)
+    if env_type == "docker_workspace":
+        return DockerWorkspaceAgentEnvironment.from_config(config)
     raise ValueError(f"Unsupported agent environment type: {env_type}")

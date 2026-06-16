@@ -9,6 +9,7 @@ from ..protocols.multimodal import (
     MULTIMODAL_SCHEMA_VERSION,
     text_requests_multimodal,
 )
+from ..protocols.science import SCIENCE_METADATA_KEY, SCIENCE_SCHEMA_VERSION, text_requests_science
 from ..types import BenchmarkItem, Difficulty, EvalDimension, EvalSpec, TaskType
 
 
@@ -25,6 +26,11 @@ def _difficulty_cycle(dimension: EvalDimension) -> cycle[Difficulty]:
 def _dimension_needs_multimodal(dimension: EvalDimension) -> bool:
     text = " ".join([dimension.name, dimension.description, dimension.approach, *dimension.item_requirements])
     return text_requests_multimodal(text)
+
+
+def _dimension_needs_science(dimension: EvalDimension) -> bool:
+    text = " ".join([dimension.name, dimension.description, dimension.approach, *dimension.item_requirements])
+    return text_requests_science(text)
 
 
 def _dimension_text(dimension: EvalDimension) -> str:
@@ -310,21 +316,328 @@ def attach_multimodal_metadata_if_needed(
     return item
 
 
+def _science_metadata(
+    *,
+    discipline: str,
+    subdomain: str,
+    scientific_skill: str,
+    evidence_context: str,
+    answer_type: str,
+    units: str = "",
+    assumptions: list[str] | None = None,
+) -> dict[str, object]:
+    return {
+        "schema_version": SCIENCE_SCHEMA_VERSION,
+        "discipline": discipline,
+        "subdomain": subdomain,
+        "scientific_skill": scientific_skill,
+        "evidence_context": evidence_context,
+        "answer_type": answer_type,
+        "units": units,
+        "assumptions": assumptions or [],
+        "safety_notes": "Evaluate scientific reasoning from the supplied evidence; do not provide actionable advice.",
+    }
+
+
+def _science_fallback_item(
+    dimension: EvalDimension,
+    task_type: TaskType,
+    difficulty: Difficulty,
+    idx: int,
+) -> BenchmarkItem:
+    text = _dimension_text(dimension)
+    discipline = "interdisciplinary"
+    if "physics" in text or "quantitative" in text or "unit" in text:
+        discipline = "physics"
+    elif "chem" in text:
+        discipline = "chemistry"
+    elif any(token in text for token in ("bio", "genetic", "cell", "ecology")):
+        discipline = "biology"
+    elif any(token in text for token in ("medical", "medicine", "clinical", "pubmed")):
+        discipline = "medicine"
+
+    contexts = [
+        "a classroom mechanics demonstration",
+        "a wet-lab methods comparison",
+        "a greenhouse pilot study",
+        "a materials characterization report",
+        "an ecology field notebook",
+        "an astronomy observation log",
+        "a chemistry teaching lab",
+        "a cell-biology screening assay",
+        "an ocean-science mesocosm",
+        "a reproducibility review meeting",
+    ]
+    evidence_forms = [
+        "a short numeric setup",
+        "a two-condition comparison",
+        "a compact study excerpt",
+        "an observation with one omitted mechanism",
+        "a result with a small sample",
+        "a controlled-variable critique",
+        "a units-sensitive calculation",
+        "a causality-versus-association judgment",
+        "a confounder identification task",
+        "a cautious inference task",
+    ]
+    pitfalls = [
+        "confusing acceleration with final speed",
+        "ignoring units",
+        "overstating a causal claim",
+        "missing a changed control variable",
+        "treating a small study as definitive",
+        "assuming an unmeasured mechanism",
+        "generalizing beyond the stated evidence",
+        "choosing an answer with the right direction but wrong magnitude",
+        "forgetting that correlation does not establish mechanism",
+        "dropping an explicit experimental assumption",
+    ]
+    context = contexts[idx % len(contexts)]
+    evidence_form = evidence_forms[(idx // len(contexts)) % len(evidence_forms)]
+    pitfall = pitfalls[(idx // (len(contexts) * len(evidence_forms))) % len(pitfalls)]
+
+    if idx % 3 == 0:
+        mass = 1.0 + (idx % 7)
+        force = 4.0 + ((idx * 3) % 11)
+        time_s = 2.0 + ((idx * 5) % 7)
+        speed = force / mass * time_s
+        distractor_1 = speed / 2
+        distractor_2 = speed + mass
+        distractor_3 = speed * 2 + 1
+        case = {
+            "skill": "quantitative_reasoning",
+            "subdomain": "mechanics",
+            "prompt": (
+                f"A {mass:.1f} kg cart starts from rest and is pushed by a constant {force:.1f} N "
+                f"horizontal force for {time_s:.1f} s on a frictionless track. What is the cart's "
+                "speed at the end of the push? Use F = ma and answer with units."
+            ),
+            "answer": f"{speed:.2f} m/s",
+            "choices": [
+                f"A. {distractor_1:.2f} m/s",
+                f"B. {distractor_2:.2f} m/s",
+                f"C. {speed:.2f} m/s",
+                f"D. {distractor_3:.2f} m/s",
+            ],
+            "correct": "C",
+            "rubric": (
+                f"Full credit: computes a = {force:.1f}/{mass:.1f} = {force / mass:.2f} m/s^2 "
+                f"and v = at = {speed:.2f} m/s with units. Partial credit for correct method "
+                "with arithmetic or unit error."
+            ),
+            "units": "m/s",
+            "assumptions": ["frictionless track", "constant force", "starts from rest"],
+        }
+    elif idx % 3 == 1:
+        systems = [
+            ("buffer", "enzyme activity", "temperature", "test both buffers at the same temperature"),
+            ("light color", "algal growth", "nutrient concentration", "use equal nutrient concentration in all tanks"),
+            ("soil additive", "seed germination", "watering frequency", "water all groups on the same schedule"),
+            ("catalyst", "reaction rate", "reactant concentration", "hold reactant concentration constant"),
+            ("incubator setting", "bacterial growth", "starting cell density", "start all cultures at the same density"),
+            ("mineral supplement", "bone-cell marker expression", "culture passage number", "compare cultures at the same passage"),
+            ("cooling protocol", "crystal formation", "solution pH", "hold pH constant across all groups"),
+        ]
+        treatment, outcome, confounder, control = systems[(idx // 3) % len(systems)]
+        case = {
+            "skill": "experimental_design",
+            "subdomain": "controlled experiment design",
+            "prompt": (
+                f"A lab claims a new {treatment} improves {outcome}. They tested one group with "
+                f"the new {treatment} while also changing {confounder}, then compared it with an "
+                f"old-condition group. Identify the main confounder and propose one control that "
+                "would make the comparison more valid."
+            ),
+            "answer": f"{confounder} is confounded with {treatment}; {control}.",
+            "choices": [
+                f"A. {confounder.capitalize()} is confounded with {treatment}; {control}",
+                "B. The result proves the treatment directly caused the outcome",
+                "C. The control group should be removed because it adds noise",
+                "D. The measured outcome is irrelevant and should not be recorded",
+            ],
+            "correct": "A",
+            "rubric": (
+                f"Full credit: identifies {confounder} as the confounder and proposes an equivalent "
+                "controlled comparison. Partial credit for naming a relevant control without explaining "
+                "why it matters."
+            ),
+            "units": "",
+            "assumptions": [f"{outcome} may depend on {confounder}"],
+        }
+    else:
+        studies = [
+            ("greenhouse experiment", "fertilizer X", "plants", "grew 12% taller", "leaf nitrogen did not differ", 8),
+            ("cell-culture assay", "compound Q", "cells", "showed 18% lower viability", "apoptosis markers were unchanged", 6),
+            ("field survey", "habitat restoration", "bird counts", "were 9% higher", "nest success was not measured", 12),
+            ("materials test", "coating M", "samples", "resisted abrasion 15% longer", "humidity was not varied", 5),
+            ("microbiome study", "diet A", "mice", "had 20% more taxon R", "body mass did not differ", 10),
+            ("astronomy observation", "filter set Z", "galaxy candidates", "appeared 11% brighter", "redshift uncertainty remained high", 7),
+            ("ocean chemistry mesocosm", "alkalinity treatment", "plankton communities", "had 14% higher calcification", "temperature was held constant", 9),
+        ]
+        setting, intervention, subject, result, limitation, sample_size = studies[(idx // 3) % len(studies)]
+        case = {
+            "skill": "literature_reasoning",
+            "subdomain": "evidence interpretation",
+            "prompt": (
+                f"Study excerpt: In a randomized {setting}, {subject} receiving {intervention} {result} "
+                f"than controls after six weeks, but {limitation} and the sample size was {sample_size} "
+                "per group. What is the most cautious interpretation?"
+            ),
+            "answer": (
+                f"{intervention} is associated with the reported outcome in this small study, but "
+                "mechanism and generality remain uncertain."
+            ),
+            "choices": [
+                f"A. {intervention} conclusively works by the unmeasured mechanism in all settings",
+                "B. The result is an association in this small study, with mechanism and generality uncertain",
+                "C. The control group proves there is no possible effect",
+                "D. The result establishes long-term performance in every environment",
+            ],
+            "correct": "B",
+            "rubric": (
+                "Full credit: states the observed association while preserving uncertainty about mechanism, "
+                "sample size, and generalization. No credit for unsupported causal or broad claims."
+            ),
+            "units": "",
+            "assumptions": ["small study results may not generalize without replication"],
+        }
+    answer_type = "multiple_choice" if task_type == TaskType.multiple_choice else "short_explanation"
+    metadata = {
+        SCIENCE_METADATA_KEY: _science_metadata(
+            discipline=discipline,
+            subdomain=str(case["subdomain"]),
+            scientific_skill=str(case["skill"]),
+            evidence_context="self_contained",
+            answer_type=answer_type,
+            units=str(case["units"]),
+            assumptions=[str(x) for x in case["assumptions"]],
+        )
+    }
+    prompt = (
+        f"Science dimension: {dimension.name}. Science evaluation case {idx + 1} "
+        f"({difficulty.value}). Context: this item uses {context}, framed as {evidence_form}; "
+        f"the main distractor should test {pitfall}. {case['prompt']}"
+    )
+    if task_type == TaskType.multiple_choice:
+        return BenchmarkItem(
+            id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
+            dimension_id=dimension.id,
+            task_type=TaskType.multiple_choice,
+            prompt=prompt + "\nChoose the best option and answer with the letter only.",
+            choices=[str(choice) for choice in case["choices"]],
+            answer=str(case["correct"]),
+            rubric=f"Multiple-choice scoring: full credit for answer {case['correct']}. {case['rubric']}",
+            difficulty=difficulty,
+            metadata=metadata,
+        )
+    return BenchmarkItem(
+        id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
+        dimension_id=dimension.id,
+        task_type=TaskType.short_answer if task_type == TaskType.short_answer else TaskType.open_generation,
+        prompt=prompt,
+        answer=str(case["answer"]) if task_type == TaskType.short_answer else None,
+        rubric=str(case["rubric"]),
+        difficulty=difficulty,
+        metadata=metadata,
+    )
+
+
 def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list[BenchmarkItem]:
     tasks = cycle(dimension.task_types or spec.task_types or [TaskType.open_generation])
     difficulties = _difficulty_cycle(dimension)
     items: list[BenchmarkItem] = []
+    scenario_domains = [
+        "a Python package that recently split its configuration across pyproject.toml and setup.cfg",
+        "a TypeScript service whose failing tests come from a stale generated client",
+        "a data pipeline where one platform uses POSIX paths and another uses Windows paths",
+        "a CLI tool whose behavior changes when an optional dependency is missing",
+        "a web backend where a small schema migration affects two request handlers",
+        "a notebook-to-script export flow that silently changes relative imports",
+        "a Dockerized test runner with cached layers and a missing environment variable",
+        "a plugin system where two extensions register the same command name",
+        "a monorepo package that shares helpers between unit tests and integration tests",
+        "a release script that must preserve compatibility with older lockfiles",
+    ]
+    observed_failures = [
+        "one test fails only after the full suite has run",
+        "the reproduction command passes locally but fails in a clean environment",
+        "the stack trace points at a wrapper rather than the real source of the bug",
+        "the model must inspect more than one file before proposing a patch",
+        "the expected behavior is implied by tests rather than fully stated",
+        "a tempting dependency upgrade would mask the underlying issue",
+        "a generated artifact should not be hand-edited",
+        "the obvious one-line patch breaks an edge case",
+        "the task requires distinguishing setup failure from product failure",
+        "the final answer should report exactly what changed and what remains unverified",
+    ]
+    constraints = [
+        "keep the public API unchanged",
+        "avoid network access during tests",
+        "preserve cross-platform behavior",
+        "make the smallest coherent code change",
+        "add or update a focused regression test",
+        "do not rewrite unrelated modules",
+        "explain any environment assumption explicitly",
+        "prefer deterministic validation over manual inspection",
+        "treat logs as evidence but not as the sole source of truth",
+        "separate diagnosis from speculative remediation",
+    ]
+    requested_outputs = [
+        "a patch plan with the likely root cause",
+        "a concise diagnosis and the next command to run",
+        "a final engineering note after tests pass",
+        "a risk assessment for the proposed fix",
+        "a comparison between two plausible fixes",
+        "a minimal test case that would catch the bug",
+        "a decision on whether to edit code or environment configuration",
+        "a structured summary of files that need inspection",
+        "a calibrated response when the evidence is incomplete",
+        "a tool-use sequence that avoids reading hidden test data",
+    ]
+    focus_areas = [
+        "normal path behavior",
+        "boundary-condition handling",
+        "ambiguous input clarification",
+        "cross-file consistency",
+        "dependency or environment constraints",
+        "test failure diagnosis",
+        "incremental revision after feedback",
+        "tool-result interpretation",
+        "concise uncertainty handling",
+        "irrelevant-context filtering",
+    ]
+    seed = int(uuid.uuid4().hex[:8], 16)
     for idx in range(count):
         task_type = next(tasks)
         difficulty = next(difficulties)
+        variant_id = uuid.uuid4().hex[:8]
+        domain_count = len(scenario_domains)
+        failure_count = len(observed_failures)
+        constraint_count = len(constraints)
+        focus = focus_areas[(seed + idx) % len(focus_areas)]
+        domain = scenario_domains[(seed + idx) % domain_count]
+        failure = observed_failures[((seed // domain_count) + (idx // domain_count)) % failure_count]
+        constraint = constraints[
+            ((seed // (domain_count * failure_count)) + (idx // (domain_count * failure_count))) % constraint_count
+        ]
+        requested_output = requested_outputs[
+            (
+                (seed // (domain_count * failure_count * constraint_count))
+                + (idx // (domain_count * failure_count * constraint_count))
+            )
+            % len(requested_outputs)
+        ]
         base = (
-            f"Evaluation objective: {spec.objective}\n"
-            f"Dimension: {dimension.name}\n"
-            f"Task: {dimension.approach or dimension.description}\n"
-            f"Difficulty: {difficulty.value}\n"
+            f"Evaluation dimension: {dimension.name}.\n"
+            f"Dimension intent: {dimension.description or dimension.approach}.\n"
+            f"Case {idx + 1} ({difficulty.value}, {focus}, {variant_id}): The target is {domain}. "
+            f"In this case, {failure}; the response must {constraint}. Ask for {requested_output} "
+            "and judge whether the model stays aligned with the engineering evidence.\n"
         )
         chart_kind = _chart_kind(dimension)
-        if chart_kind and task_type == TaskType.multiple_choice:
+        if _dimension_needs_science(dimension):
+            item = _science_fallback_item(dimension, task_type, difficulty, idx + seed % 997)
+        elif chart_kind and task_type == TaskType.multiple_choice:
             prompt, expected, choices, _ = _chart_question(chart_kind, dimension)
             item = BenchmarkItem(
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
@@ -355,7 +668,11 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
                 dimension_id=dimension.id,
                 task_type=task_type,
-                prompt=base + "Choose the best answer. This is a placeholder item for generator smoke tests.",
+                prompt=(
+                    base
+                    + "Which model behavior best satisfies this evaluation case? "
+                    "Choose the best answer and respond with the letter only."
+                ),
                 choices=[
                     "A. The response fully satisfies the dimension",
                     "B. The response partially satisfies the dimension",
@@ -363,6 +680,11 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                     "D. The response is irrelevant",
                 ],
                 answer="A",
+                rubric=(
+                    "Multiple-choice scoring: full credit for answer A. No credit for B, C, D, "
+                    "or a non-choice response. The item is a local fallback smoke-test placeholder "
+                    "whose purpose is to preserve schema, scoring, and coverage mechanics."
+                ),
                 difficulty=difficulty,
             )
         elif task_type == TaskType.pairwise_preference:
@@ -398,7 +720,11 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
                 dimension_id=dimension.id,
                 task_type=TaskType.open_generation,
-                prompt=base + "Produce a concise answer that demonstrates the target capability.",
+                prompt=(
+                    base
+                    + "Produce the requested engineering response. Be specific about evidence, assumptions, "
+                    "and validation steps."
+                ),
                 rubric=(
                     "Score 5 for a complete, correct, well-calibrated answer; 3 for a partially "
                     "correct answer with omissions; 1 for incorrect, evasive, or unsupported output."

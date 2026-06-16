@@ -123,18 +123,27 @@ Requirements:
   use L5 for expert, long-horizon, or complex interaction evaluations; use L3
   only for basic smoke dimensions.
 - scale_budget is the global relative budget specified by the user and must be
-  one of low/mid/high. Do not change it.
-- scale is your estimate of the relative item count based on both scale_budget and
-  how much the content deserves to be evaluated. Do not mechanically apply fixed
-  item counts.
-- Treat the budget as a rough anchor rather than a hard quota: LOW is often about
-  2-3 dimensions and ~12 items, MID about 3-5 dimensions and ~30 items, HIGH about
-  4-7 dimensions and ~60 items. Adjust up or down when the objective naturally
-  needs less or more breadth.
+  one of low/mid/high/large/xlarge. Do not change it.
+- scale is your estimate of the simple-equivalent workload, not a raw item count.
+  Simple yes_no/multiple_choice/short_answer items are roughly 1 unit; open_generation
+  is roughly 2; code_execution/pairwise roughly 3; multi_turn roughly 5;
+  agent_interaction roughly 8; docker_workspace roughly 15; SWE-bench-style
+  tasks roughly 30+.
+- Treat the budget as a rough anchor rather than a hard quota: LOW is about 100
+  simple-equivalent units, MID about 500, HIGH about 1,000, LARGE about 5,000,
+  and XLARGE about 20,000. Adjust up or down when the objective naturally needs
+  less or more breadth.
 - Treat task types as having different workload weights. A single multi_turn,
-  agent_interaction, or code_sandbox item can represent more evaluation depth than
-  several simple multiple_choice or open_generation items. Choose the task-type mix
-  that best fits the objective instead of forcing the same count across all types.
+  agent_interaction, code_sandbox, docker_workspace, or SWE-bench item can represent
+  more evaluation depth than many simple multiple_choice items. Choose the task-type
+  mix that best fits the objective instead of forcing the same count across all types.
+- For LARGE and XLARGE plans, favor source-backed/imported datasets and stratified
+  sampling. Use model-generated items mainly for under-covered slices, scarce domains,
+  and targeted adversarial or edge-case coverage.
+- For LARGE and XLARGE dimensions, set target_source_backed_count and
+  target_generated_count deliberately. The source-backed portion should usually be
+  the majority of the planned count. target_generated_count should normally be a
+  small targeted augmentation budget, not thousands of model-generated near-duplicates.
 """ + "\n\nStandardized task-agent file guidance for complex interactive items:\n" + TASK_AGENT_GENERATION_GUIDANCE + "\nCanonical metadata.task_agent schema:\n" + json.dumps(
     TASK_AGENT_SCHEMA,
     ensure_ascii=False,

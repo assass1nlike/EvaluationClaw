@@ -71,8 +71,34 @@
 
 执行环境信息。
 
-- `environment_type`: `dialogue`、`workspace`、`code_sandbox` 等。
-- `agent_env`: 内置环境配置。为了兼容当前 runner，如果使用内置 `workspace` 或 `code_sandbox`，还应把同一份对象放到 `metadata.agent_env`。
+- `environment_type`: `dialogue`、`workspace`、`code_sandbox`、`docker_workspace` 等。
+- `agent_env`: 内置环境配置。为了兼容当前 runner，如果使用内置 `workspace`、`code_sandbox` 或 `docker_workspace`，还应把同一份对象放到 `metadata.agent_env`。
+
+`docker_workspace` 用于轻量本地 sandbox 不适合的真实环境交互任务，例如需要 Linux 依赖、非 Python runtime、包安装、native build、命令行诊断或容器隔离的任务。常用配置如下：
+
+```json
+{
+  "type": "docker_workspace",
+  "image": "python:3.11-slim",
+  "visible_files": {
+    "app.py": "def handle(x):\n    return x\n"
+  },
+  "hidden_files": {
+    "tests/test_hidden.py": "from app import handle\nassert handle(2) == 4\n"
+  },
+  "setup_commands": ["pip install pytest -i https://pypi.tuna.tsinghua.edu.cn/simple"],
+  "test_command": "pytest -q tests/test_hidden.py",
+  "max_steps": 8,
+  "timeout": 20,
+  "network": "none",
+  "resource_limits": {
+    "memory": "1g",
+    "cpus": "2"
+  }
+}
+```
+
+`docker_workspace` 支持 `list_files`、`read_file`、`write_file`、`run_command`、`run_tests`、`final`。`hidden_files` 不会常驻在 workspace 中，runner 只会在 `run_tests` 时临时注入，测试结束后删除，避免模型通过 `run_command` 直接读取隐藏测试。
 
 ## 示例
 

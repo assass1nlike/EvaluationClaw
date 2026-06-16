@@ -46,7 +46,7 @@ evalclaw generate --goal "Evaluate strict JSON format following"
 --model                    主目标模型
 --compare                  额外对比模型，可重复
 --orchestrator-model       用于规划、生成、QC、judge 的模型
---scale-budget             low / mid / high
+--scale-budget             low / mid / high / large / xlarge
 --qpd                      默认每维度题目数量
 --max-qc-iterations        pre-run 生成/QC 自检循环最大迭代数
 --max-hf-records           每个维度最多导入多少 HF 记录
@@ -90,8 +90,8 @@ id                      评估规格 ID
 objective               评估目标
 subjects                被评估对象
 task_types              计划使用的题型
-scale_budget            low / mid / high
-scale                   估计规模
+scale_budget            low / mid / high / large / xlarge
+scale                   simple-equivalent workload 估计规模
 metrics                 指标，例如 accuracy / judge_score / pass@1
 constraints             约束
 planner_notes           planner 说明
@@ -129,12 +129,24 @@ item_requirements             交给生成 worker 的具体要求
 
 ### 4.1 预算机制
 
-`scale_budget` 不是硬性的题量配额，而是一个全局的粗粒度锚点。当前实现里，
-`low / mid / high` 大致可以理解为：
+`scale_budget` 不是硬性的题量配额，而是一个全局的 simple-equivalent workload 锚点。当前实现里：
 
-- `low`：约 2-3 个维度，约 12 道题，适合烟雾测试或很轻量的验证。
-- `mid`：约 3-5 个维度，约 30 道题，适合常规评测。
-- `high`：约 4-7 个维度，约 60 道题，适合更深入的覆盖。
+- `low`：约 100 simple-equivalent workload units。
+- `mid`：约 500 simple-equivalent workload units。
+- `high`：约 1,000 simple-equivalent workload units。
+- `large`：约 5,000 simple-equivalent workload units。
+- `xlarge`：约 20,000 simple-equivalent workload units。
+
+simple-equivalent workload 不是原始题目数量。大致权重为：
+
+- `yes_no` / `multiple_choice` / `short_answer`：约 1。
+- `open_generation`：约 2。
+- `code_execution` / `pairwise_preference`：约 3。
+- `multi_turn`：约 5。
+- `agent_interaction`：约 8。
+- `code_sandbox` agent item：至少约 8。
+- `docker_workspace` agent item：至少约 15。
+- SWE-bench 风格 item：至少约 30。
 
 这些只是基线。planner 仍然可以根据评测目标自由调整维度数量和题量，只要整体上不严重偏离预算的粗粒度预期即可。不同题型的工作量也不一样：
 
@@ -150,6 +162,22 @@ core_capability
 robustness
 calibration
 ```
+
+### 4.2 大规模预算策略
+
+`large` 和 `xlarge` 不应主要依赖模型生成题目，否则很容易出现同质化、重复考点和 QC 成本爆炸。当前实现加入了大规模策略：
+
+- Planner prompt 要求在 `large` / `xlarge` 下显式规划 `target_source_backed_count` 和 `target_generated_count`。
+- Generator 会优先尝试 source-backed/imported items。
+- 如果 source-backed 数据不足，缺口不会被无限量模型生成题替代。
+- `large_scale_generated_item_cap_per_dimension` 控制每个维度最多补多少模型生成题，默认 50。
+- `large_scale_min_source_backed_ratio` 控制大规模计划中期望 source-backed 的比例，默认 0.8。
+- QC 在大规模下仍对全量做静态 schema/scoring/coverage 检查，但 LLM QC 使用分层样本。
+- `large_scale_llm_qc_sample_size` 控制 LLM QC 样本大小，默认 120。
+- 大规模生成会写入 `BenchmarkDataset.batches`，记录每个批次的 planned count、materialized count、source-backed target、generated target 和 QC sample size。
+- 每个物化 item 会在 `metadata.batch_id` 中记录所属 batch，QC 和报告可以按 batch 聚合。
+
+这意味着 `EvalSpec.scale` 表示目标 simple-equivalent workload；实际物化多少 item，取决于已有数据是否可用、source-backed 目标、生成 cap 和后续 runner 预算。
 
 ## 5. 生成/QC 自检循环
 
@@ -560,6 +588,7 @@ Agent 环境在 [evalclaw/execution/agent_envs.py](../evalclaw/execution/agent_e
 ```text
 workspace
 code_sandbox
+docker_workspace
 ```
 
 `workspace` 是简单的房间 / 物品 / 背包 / 目标环境，用于测试状态跟踪和行动规划。
@@ -575,6 +604,19 @@ code_sandbox
 ```
 
 注意：这是轻量本地 sandbox，不是强安全隔离容器。
+
+`docker_workspace` 是容器化 agent 环境，用于 `code_sandbox` 无法真实覆盖的任务，例如需要 Linux 系统依赖、非 Python runtime、包安装、native build、命令行诊断或更强隔离的代码/工具任务。它支持：
+
+```json
+{"action": "list_files", "args": {}}
+{"action": "read_file", "args": {"path": "app.py"}}
+{"action": "write_file", "args": {"path": "app.py", "content": "..."}}
+{"action": "run_command", "args": {"command": "python --version"}}
+{"action": "run_tests", "args": {}}
+{"action": "final", "args": {"answer": "..."}}
+```
+
+Docker 环境只在最终 accepted items 中真的出现 `metadata.agent_env.type = "docker_workspace"` 时才会启动。缺少 Docker 时，runner 会明确报错并给出配置命令，不会在 planning 或 QC 阶段自动安装。
 
 ## 12. lm-eval 互操作
 

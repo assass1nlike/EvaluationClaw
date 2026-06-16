@@ -49,6 +49,8 @@ class ScaleBudget(str, Enum):
     low = "low"
     mid = "mid"
     high = "high"
+    large = "large"
+    xlarge = "xlarge"
 
 
 class SourceKind(str, Enum):
@@ -57,6 +59,12 @@ class SourceKind(str, Enum):
     hf_dataset = "hf_dataset"
     lm_eval = "lm_eval"
     imported = "imported"
+
+
+class BenchmarkMode(str, Enum):
+    auto = "auto"
+    static = "static"
+    agent = "agent"
 
 
 class QcSeverity(str, Enum):
@@ -139,6 +147,106 @@ class BenchmarkSource(BaseModel):
     notes: str = ""
 
 
+class AgentTaskFamily(str, Enum):
+    workspace_navigation = "workspace_navigation"
+    code_repair = "code_repair"
+    repo_issue = "repo_issue"
+    shell_debugging = "shell_debugging"
+    api_tool_use = "api_tool_use"
+    web_research = "web_research"
+    data_analysis = "data_analysis"
+    multi_turn_delegation = "multi_turn_delegation"
+    safety_tool_use = "safety_tool_use"
+    custom = "custom"
+
+
+class AgentEnvironmentType(str, Enum):
+    dialogue = "dialogue"
+    workspace = "workspace"
+    code_sandbox = "code_sandbox"
+    docker_workspace = "docker_workspace"
+
+
+class AgentResource(BaseModel):
+    id: str
+    kind: str = "web"
+    uri: str = ""
+    title: str = ""
+    license: str = ""
+    content_summary: str = ""
+    notes: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class AgentTaskBlueprint(BaseModel):
+    id: str
+    dimension_id: str
+    title: str
+    description: str = ""
+    task_family: AgentTaskFamily = AgentTaskFamily.custom
+    environment_type: AgentEnvironmentType = AgentEnvironmentType.workspace
+    expected_task_count: int = 1
+    resource_queries: list[str] = Field(default_factory=list)
+    source_strategy: str = ""
+    tool_requirements: list[str] = Field(default_factory=list)
+    construction_requirements: list[str] = Field(default_factory=list)
+    scoring_strategy: str = ""
+
+
+class AgentEnvironmentSpec(BaseModel):
+    type: AgentEnvironmentType = AgentEnvironmentType.workspace
+    tools: list[dict[str, Any]] = Field(default_factory=list)
+    visible_files: dict[str, str] = Field(default_factory=dict)
+    hidden_files: dict[str, str] = Field(default_factory=dict)
+    image: str = ""
+    setup_commands: list[str] = Field(default_factory=list)
+    test_command: str = ""
+    max_steps: int = 8
+    timeout: int = 20
+    network: str = "none"
+    resource_limits: dict[str, Any] = Field(default_factory=dict)
+    workspace: dict[str, Any] = Field(default_factory=dict)
+    notes: str = ""
+
+
+class AgentScoringSpec(BaseModel):
+    method: str = "deterministic"
+    instructions: str = ""
+    pass_criteria: str = ""
+    partial_criteria: str = ""
+    fail_criteria: str = ""
+    score_levels: dict[str, str] = Field(default_factory=dict)
+    oracle_notes: str = ""
+
+
+class AgentTask(BaseModel):
+    id: str
+    dimension_id: str
+    title: str
+    description: str = ""
+    task_family: AgentTaskFamily = AgentTaskFamily.custom
+    prompt: str
+    system_prompt: str = ""
+    resource_ids: list[str] = Field(default_factory=list)
+    environment: AgentEnvironmentSpec = Field(default_factory=AgentEnvironmentSpec)
+    interaction: dict[str, Any] = Field(default_factory=dict)
+    scoring: AgentScoringSpec = Field(default_factory=AgentScoringSpec)
+    difficulty: Difficulty = Difficulty.L4
+    tags: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class AgentTaskSuite(BaseModel):
+    id: str = "agent_task_suite"
+    objective: str
+    dimensions: list[EvalDimension] = Field(default_factory=list)
+    blueprints: list[AgentTaskBlueprint] = Field(default_factory=list)
+    resources: list[AgentResource] = Field(default_factory=list)
+    tasks: list[AgentTask] = Field(default_factory=list)
+    construction_notes: str = ""
+    created_at: str = Field(default_factory=utc_now)
+
+
 class BenchmarkItem(BaseModel):
     id: str
     dimension_id: str
@@ -156,10 +264,26 @@ class BenchmarkItem(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class BenchmarkBatch(BaseModel):
+    id: str
+    dimension_id: str
+    description: str = ""
+    planned_item_count: int = 0
+    materialized_item_count: int = 0
+    source_backed_target: int = 0
+    generated_target: int = 0
+    task_types: list[TaskType] = Field(default_factory=list)
+    source_strategy: str = ""
+    qc_sample_size: int = 0
+    notes: str = ""
+
+
 class BenchmarkDataset(BaseModel):
     spec: EvalSpec
     items: list[BenchmarkItem]
     sources: list[BenchmarkSource] = Field(default_factory=list)
+    batches: list[BenchmarkBatch] = Field(default_factory=list)
+    agent_task_suite: Optional[AgentTaskSuite] = None
     generation_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
 
@@ -264,6 +388,7 @@ class BenchmarkPackage(BaseModel):
 
 
 class BenchmarkConfig(BaseModel):
+    benchmark_mode: BenchmarkMode = BenchmarkMode.auto
     orchestrator_model: str = "claude-opus-4-6"
     orchestrator_api_key: Optional[str] = None
     orchestrator_base_url: Optional[str] = None
@@ -278,6 +403,9 @@ class BenchmarkConfig(BaseModel):
     max_qc_iterations: int = 3
     max_research_sources: int = 3
     max_hf_records_per_dimension: int = 1
+    large_scale_generated_item_cap_per_dimension: int = 50
+    large_scale_min_source_backed_ratio: float = 0.8
+    large_scale_llm_qc_sample_size: int = 120
     output_dir: str = "./benchmark-output"
     run_targets: bool = True
     use_web_research: bool = True
@@ -285,11 +413,24 @@ class BenchmarkConfig(BaseModel):
     judge_double_pass: bool = True
     llm_backend: str = "auto"  # auto | litellm | legacy
     runner: str = "direct"  # direct | lm-eval | auto
+    environment_claw: bool = True
+    environment_claw_auto_configure: bool = True
     human_review: bool = False
     improve_iterations: int = 0
     loop3_diagnosis: str = "llm"  # llm | local
     loop3_diagnosis_timeout_s: int = 90
     loop3_max_actions: int = 4
+    swebench_use_wsl: bool = False
+    swebench_wsl_distro: Optional[str] = None
+    swebench_wsl_python_executable: str = ".venv-swebench-wsl/bin/python"
+    swebench_wsl_docker_host: str = "unix:///mnt/wsl/docker-desktop/shared-sockets/guest-services/docker.proxy.sock"
+    swebench_wsl_docker_cli_dir: str = "/mnt/wsl/docker-desktop/cli-tools/usr/bin"
+    swebench_wsl_http_proxy: Optional[str] = None
+    swebench_python_executable: str = "python"
+    swebench_docker_executable: str = "docker"
+    swebench_dataset_name: str = "princeton-nlp/SWE-bench_Lite"
+    swebench_split: str = "test"
+    swebench_predictions_path: str = "gold"
 
 
 # Backwards-compatible aliases for older scripts that import these names.

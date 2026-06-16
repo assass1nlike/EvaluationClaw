@@ -46,7 +46,7 @@ TASK_AGENT_SCHEMA: dict[str, Any] = {
         },
     },
     "execution": {
-        "environment_type": "dialogue | workspace | code_sandbox",
+        "environment_type": "dialogue | workspace | code_sandbox | docker_workspace",
         "agent_env": "Optional environment config; may mirror metadata.agent_env.",
     },
 }
@@ -74,7 +74,7 @@ Fields:
   and fail standards.
 - execution: environment_type and optional agent_env config. Keep legacy
   metadata.agent_env too for runner compatibility when using workspace or
-  code_sandbox. When using a built-in environment, describe the tool/environment
+  code_sandbox or docker_workspace. When using a built-in environment, describe the tool/environment
   behavior with structured agent_env fields rather than a long custom command
   protocol in system_prompt.
   For iterative code-repair tasks, prefer environment_type="code_sandbox" with
@@ -82,6 +82,12 @@ Fields:
   tasks, the system_prompt should describe the target model as the coding agent
   who must inspect files, run tests, and revise code. Do not describe the helper
   as the environment itself or as an environment controller.
+  Use environment_type="docker_workspace" only when the task needs realistic
+  OS dependencies, non-Python runtimes, package installation, command-line
+  diagnostics, native builds, or container isolation that the lightweight
+  code_sandbox cannot provide. Provide image, visible_files, hidden_files,
+  setup_commands, test_command, timeout, and resource_limits in agent_env.
+  Keep hidden_files secret; the runner injects them only during run_tests.
 """
 
 

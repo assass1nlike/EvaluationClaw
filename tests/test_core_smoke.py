@@ -6,17 +6,27 @@ from pathlib import PureWindowsPath
 
 import pytest
 
+from evalclaw.agent_benchmark import build_agent_dataset, plan_agent_benchmark
 from evalclaw.agent_envs import _platform_test_command, build_agent_environment
 from evalclaw.artifacts import _portable_path, write_lm_eval_artifacts
-from evalclaw.generator import _parse_items, generate_dimension_items
+from evalclaw.execution.docker import DockerStatus
+from evalclaw.execution.environment_claw import run_environment_claw
+from evalclaw.generation.fallback import fallback_items
+from evalclaw.generator import (
+    _parse_items,
+    generate_dataset_with_progress,
+    generate_dimension_items,
+    target_count_for_dimension,
+)
 from evalclaw.hf_discovery import _expanded_queries
 from evalclaw.hf_ingest import _matches_dimension, item_from_hf_record
 from evalclaw.llm_json import extract_json
 from evalclaw.lm_eval_runner import _resolve_lm_eval_executable
 from evalclaw.multimodal import MULTIMODAL_SCHEMA_VERSION
-from evalclaw.pipeline import _persist_package
+from evalclaw.pipeline import _persist_package, _resolve_benchmark_mode
 from evalclaw.planner import plan_eval_spec, translate_goal_to_english
 from evalclaw.planning_loop import (
+    _dimension_deficits,
     apply_human_review_feedback,
     format_human_review_overview,
     generate_dataset_with_qc_loop,
@@ -26,11 +36,19 @@ from evalclaw.report_viewer import build_report_viewer_html
 from evalclaw.reporter import build_report
 from evalclaw.runner import _parse_agent_action, _score_choice, _target_prompt, run_question
 from evalclaw.sandbox import build_code_harness, run_python_sandbox
+from evalclaw.scaling import (
+    item_workload_weight,
+    scale_budget_target_workload,
+    simple_equivalent_workload,
+)
+from evalclaw.science import SCIENCE_SCHEMA_VERSION, text_requests_science
 from evalclaw.tool_protocol import ToolCall, ToolSpec, object_schema, validate_tool_call
 from evalclaw.types import (
+    BenchmarkBatch,
     BenchmarkConfig,
     BenchmarkDataset,
     BenchmarkItem,
+    BenchmarkMode,
     BenchmarkPackage,
     BenchmarkSource,
     Difficulty,
@@ -86,8 +104,318 @@ def test_planner_fallback_preserves_scale_budget() -> None:
     spec = plan_eval_spec("Evaluate iterative code agents", config)
 
     assert spec.scale_budget == ScaleBudget.high
-    assert spec.scale == 60
+    assert spec.scale == 1000
     assert all(dimension.target_difficulty == Difficulty.L4 for dimension in spec.dimensions)
+    assert sum(dimension.target_item_count or 0 for dimension in spec.dimensions) > 500
+    assert all((dimension.target_item_count or 0) > 100 for dimension in spec.dimensions)
+
+
+def test_scale_budget_targets_use_simple_equivalent_workload() -> None:
+    assert scale_budget_target_workload(ScaleBudget.low) == 100
+    assert scale_budget_target_workload(ScaleBudget.mid) == 500
+    assert scale_budget_target_workload(ScaleBudget.high) == 1000
+    assert scale_budget_target_workload(ScaleBudget.large) == 5000
+    assert scale_budget_target_workload(ScaleBudget.xlarge) == 20000
+
+
+def test_simple_equivalent_workload_weights_heavy_agent_items() -> None:
+    simple = BenchmarkItem(
+        id="mc",
+        dimension_id="format",
+        task_type=TaskType.multiple_choice,
+        prompt="Pick one.",
+    )
+    docker_agent = BenchmarkItem(
+        id="docker_agent",
+        dimension_id="code",
+        task_type=TaskType.agent_interaction,
+        prompt="Fix the project.",
+        metadata={"agent_env": {"type": "docker_workspace"}},
+    )
+    swebench = BenchmarkItem(
+        id="swebench_item",
+        dimension_id="code",
+        task_type=TaskType.open_generation,
+        prompt="Fix the issue.",
+        metadata={"swebench": {"instance_id": "repo__repo-1"}},
+    )
+
+    assert item_workload_weight(simple) == 1.0
+    assert item_workload_weight(docker_agent) == 15.0
+    assert item_workload_weight(swebench) == 30.0
+    assert simple_equivalent_workload([simple, docker_agent, swebench]) == 46.0
+
+
+def test_environment_claw_switches_swebench_to_wsl_when_native_harness_missing(monkeypatch) -> None:
+    monkeypatch.setattr("evalclaw.execution.environment_claw.platform.system", lambda: "Windows")
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.docker_status",
+        lambda **kwargs: DockerStatus(
+            available=True,
+            executable="docker",
+            client_version="1",
+            server_version="1",
+        ),
+    )
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw._python_module_available",
+        lambda *args, **kwargs: (False, "missing swebench"),
+    )
+    monkeypatch.setattr("evalclaw.execution.environment_claw._wsl_available", lambda *args, **kwargs: (True, "WSL ok"))
+
+    item = BenchmarkItem(
+        id="swe",
+        dimension_id="code",
+        task_type=TaskType.open_generation,
+        prompt="Fix the repository.",
+        metadata={"swebench": {"instance_id": "repo__repo-1"}},
+    )
+    updated, report = run_environment_claw([item], BenchmarkConfig())
+
+    assert updated.swebench_use_wsl is True
+    assert any(action.applied and action.action == "set swebench_use_wsl=True" for action in report.actions)
+    assert any(probe.name == "swebench_native_harness" and not probe.ok for probe in report.probes)
+
+
+def test_auto_mode_routes_obvious_agent_goals_to_agent_benchmark() -> None:
+    config = BenchmarkConfig(benchmark_mode=BenchmarkMode.auto)
+
+    assert _resolve_benchmark_mode("Evaluate tool-calling agents in a workspace", config) == BenchmarkMode.agent
+    assert _resolve_benchmark_mode("Evaluate complex math reasoning", config) == BenchmarkMode.static
+    assert _resolve_benchmark_mode("评估智能体的工具调用和环境交互能力", config) == BenchmarkMode.agent
+
+
+def test_agent_benchmark_fallback_builds_executable_task_suite() -> None:
+    config = BenchmarkConfig(
+        benchmark_mode=BenchmarkMode.agent,
+        scale_budget=ScaleBudget.low,
+        use_web_research=False,
+        use_hf_discovery=False,
+    )
+
+    dataset = build_agent_dataset("Evaluate code-repair agents that recover from failing tests", config)
+    qc = run_qc_gate(dataset, config)
+
+    assert dataset.agent_task_suite is not None
+    assert dataset.items
+    assert all(item.task_type == TaskType.agent_interaction for item in dataset.items)
+    assert all(item.metadata.get("task_agent", {}).get("schema_version") == "evalclaw.task_agent.v1" for item in dataset.items)
+    assert all(isinstance(item.metadata.get("agent_env"), dict) for item in dataset.items)
+    assert qc.rejected_item_ids == []
+
+
+def test_agent_benchmark_honors_blueprint_expected_task_count() -> None:
+    config = BenchmarkConfig(
+        benchmark_mode=BenchmarkMode.agent,
+        scale_budget=ScaleBudget.low,
+        use_web_research=False,
+        use_hf_discovery=False,
+    )
+    spec, blueprints = plan_agent_benchmark("Evaluate agent tool use", config)
+    blueprints[0].expected_task_count = 3
+
+    from evalclaw.agent_benchmark import build_agent_task_suite
+
+    suite = build_agent_task_suite(spec, [blueprints[0]], config)
+
+    assert len(suite.tasks) == 3
+    assert len({task.id for task in suite.tasks}) == 3
+
+
+def test_environment_claw_can_be_disabled(monkeypatch) -> None:
+    def fail_probe(*args, **kwargs):
+        raise AssertionError("environment claw should not probe when disabled")
+
+    monkeypatch.setattr("evalclaw.execution.environment_claw.docker_status", fail_probe)
+    item = BenchmarkItem(
+        id="docker_agent",
+        dimension_id="code",
+        task_type=TaskType.agent_interaction,
+        prompt="Fix the repository.",
+        metadata={"agent_env": {"type": "docker_workspace"}},
+    )
+
+    updated, report = run_environment_claw([item], BenchmarkConfig(environment_claw=False))
+
+    assert updated.environment_claw is False
+    assert report.enabled is False
+
+
+def test_large_scale_generation_caps_model_generated_items(monkeypatch) -> None:
+    captured_payload = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        return json.dumps(
+            {
+                "items": [
+                    {
+                        "task_type": "open_generation",
+                        "prompt": f"Explain robust behavior for case {index}.",
+                        "rubric": "Score correctness and specificity.",
+                    }
+                    for index in range(80)
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    dimension = EvalDimension(
+        id="robustness",
+        name="Robustness",
+        description="Evaluate robustness.",
+        approach="Use diverse edge cases.",
+        target_item_count=1000,
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate robustness", dimensions=[dimension], scale_budget=ScaleBudget.large)
+    config = BenchmarkConfig(
+        orchestrator_api_key="dummy",
+        scale_budget=ScaleBudget.large,
+        large_scale_generated_item_cap_per_dimension=25,
+        use_hf_discovery=False,
+        use_web_research=False,
+    )
+
+    items, _, notes = generate_dimension_items(spec, dimension, target_count_for_dimension(dimension, config), config)
+
+    assert captured_payload["requested_count"] == 25
+    assert len(items) == 25
+    assert "source-backed shortfall" in notes
+
+
+def test_large_scale_dataset_generation_creates_batch_manifest(monkeypatch) -> None:
+    def fake_call_llm(messages, **kwargs):
+        return json.dumps(
+            {
+                "items": [
+                    {
+                        "task_type": "open_generation",
+                        "prompt": f"Explain batched behavior for case {index}.",
+                        "rubric": "Score correctness.",
+                    }
+                    for index in range(10)
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    dimension = EvalDimension(
+        id="batched",
+        name="Batched",
+        description="Evaluate batched generation.",
+        approach="Use large-scale policy.",
+        target_item_count=1000,
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Large eval", dimensions=[dimension], scale_budget=ScaleBudget.large)
+    dataset = generate_dataset_with_progress(
+        spec,
+        BenchmarkConfig(
+            orchestrator_api_key="dummy",
+            scale_budget=ScaleBudget.large,
+            large_scale_generated_item_cap_per_dimension=10,
+            use_hf_discovery=False,
+            use_web_research=False,
+        ),
+    )
+
+    assert len(dataset.batches) == 1
+    assert dataset.batches[0].id == "batched_batch_1"
+    assert dataset.batches[0].planned_item_count == 1000
+    assert all(item.metadata.get("batch_id") == "batched_batch_1" for item in dataset.items)
+
+
+def test_large_scale_deficits_do_not_replace_source_shortfall_with_generation() -> None:
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate knowledge.",
+        approach="Use sourced questions.",
+        target_item_count=1000,
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(objective="Evaluate knowledge", dimensions=[dimension], scale_budget=ScaleBudget.large)
+    item = BenchmarkItem(
+        id="knowledge_generated_1",
+        dimension_id=dimension.id,
+        task_type=TaskType.open_generation,
+        prompt="Explain one sourced fact in detail.",
+        rubric="Score factuality.",
+    )
+    dataset = BenchmarkDataset(spec=spec, items=[item])
+    config = BenchmarkConfig(
+        scale_budget=ScaleBudget.large,
+        large_scale_generated_item_cap_per_dimension=3,
+    )
+
+    assert _dimension_deficits(dataset, config) == {"knowledge": 2}
+
+
+def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
+    captured_payload = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        return json.dumps({"issues": []})
+
+    monkeypatch.setattr("evalclaw.qc.call_llm", fake_call_llm)
+    dim_a = EvalDimension(id="a", name="A", description="A", approach="A")
+    dim_b = EvalDimension(id="b", name="B", description="B", approach="B")
+    spec = EvalSpec(objective="Large eval", dimensions=[dim_a, dim_b], scale_budget=ScaleBudget.large)
+    items = [
+        BenchmarkItem(
+            id=f"a_{index}",
+            dimension_id="a",
+            task_type=TaskType.multiple_choice,
+            prompt=f"Choose the correct robust answer for A case {index}.",
+            choices=["A. correct", "B. wrong"],
+            answer="A",
+        )
+        for index in range(30)
+    ] + [
+        BenchmarkItem(
+            id=f"b_{index}",
+            dimension_id="b",
+            task_type=TaskType.open_generation,
+            prompt=f"Explain the robust answer for B case {index}.",
+            rubric="Score correctness.",
+        )
+        for index in range(30)
+    ]
+
+    run_qc_gate(
+        BenchmarkDataset(
+            spec=spec,
+            items=items,
+            batches=[
+                BenchmarkBatch(
+                    id="a_batch",
+                    dimension_id="a",
+                    planned_item_count=30,
+                    materialized_item_count=30,
+                    generated_target=30,
+                ),
+                BenchmarkBatch(
+                    id="b_batch",
+                    dimension_id="b",
+                    planned_item_count=30,
+                    materialized_item_count=30,
+                    generated_target=30,
+                ),
+            ],
+        ),
+        BenchmarkConfig(
+            orchestrator_api_key="dummy",
+            scale_budget=ScaleBudget.large,
+            large_scale_llm_qc_sample_size=10,
+        ),
+    )
+
+    assert captured_payload["llm_qc_sampling"]["sample_size"] == 10
+    assert len(captured_payload["batches"]) == 2
+    sampled_dimensions = {item["dimension_id"] for item in captured_payload["items"]}
+    assert sampled_dimensions == {"a", "b"}
 
 
 def test_planner_parses_dimension_item_allocation(monkeypatch) -> None:
@@ -300,15 +628,130 @@ def test_planner_omits_multimodal_guidance_for_text_only_goals(monkeypatch) -> N
     assert "multimodal_schema" not in captured_payload
 
 
+def test_planner_includes_science_guidance_when_requested(monkeypatch) -> None:
+    captured_payload = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        return json.dumps(
+            {
+                "spec": {
+                    "id": "science_eval",
+                    "objective": "Evaluate graduate physics reasoning.",
+                    "subjects": ["target"],
+                    "task_types": ["multiple_choice", "short_answer"],
+                    "scale_budget": "mid",
+                    "scale": 500,
+                    "metrics": ["accuracy", "judge_score"],
+                    "dimensions": [
+                        {
+                            "id": "physics_units",
+                            "name": "Physics units",
+                            "description": "Solve physics problems with units.",
+                            "approach": "Use self-contained quantitative prompts.",
+                            "target_item_count": 2,
+                            "task_types": ["short_answer"],
+                            "item_requirements": [
+                                "Include constants, units, assumptions, and metadata.science.",
+                            ],
+                        }
+                    ],
+                },
+                "critique": {
+                    "checklist": {
+                        "objective": True,
+                        "subjects": True,
+                        "format": True,
+                        "content": True,
+                        "scale": True,
+                        "metrics": True,
+                    },
+                    "score": 4.5,
+                },
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+
+    spec = plan_eval_spec("Evaluate graduate physics scientific reasoning", BenchmarkConfig(orchestrator_api_key="dummy"))
+
+    assert "science_policy" in captured_payload
+    assert "science_schema" in captured_payload
+    assert spec.dimensions[0].item_requirements[0].startswith("Include constants")
+
+
+def test_planner_omits_science_guidance_for_non_science_goal(monkeypatch) -> None:
+    captured_payload = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        return json.dumps(
+            {
+                "spec": {
+                    "id": "instruction_eval",
+                    "objective": "Evaluate instruction following.",
+                    "subjects": ["target"],
+                    "task_types": ["open_generation"],
+                    "scale_budget": "low",
+                    "scale": 100,
+                    "metrics": ["judge_score"],
+                    "dimensions": [
+                        {
+                            "id": "format",
+                            "name": "Format",
+                            "description": "Follow output constraints.",
+                            "approach": "Use text-only instructions.",
+                            "target_item_count": 2,
+                            "task_types": ["open_generation"],
+                            "item_requirements": ["Score output format and constraint adherence."],
+                        }
+                    ],
+                },
+                "critique": {
+                    "checklist": {
+                        "objective": True,
+                        "subjects": True,
+                        "format": True,
+                        "content": True,
+                        "scale": True,
+                        "metrics": True,
+                    },
+                    "score": 4.5,
+                },
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+
+    plan_eval_spec("Evaluate instruction following", BenchmarkConfig(orchestrator_api_key="dummy"))
+
+    assert "science_policy" not in captured_payload
+    assert "science_schema" not in captured_payload
+
+
 def test_chinese_goal_translation_before_planning(monkeypatch) -> None:
     def fake_call_llm(*args, **kwargs):
         return '{"english_goal":"Evaluate complex mathematical reasoning."}'
 
     monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
 
-    translated = translate_goal_to_english("评估复杂数学推理能力", BenchmarkConfig())
+    translated = translate_goal_to_english(
+        "评估复杂数学推理能力",
+        BenchmarkConfig(orchestrator_api_key="dummy"),
+    )
 
     assert translated == "Evaluate complex mathematical reasoning."
+
+
+def test_chinese_goal_translation_skips_remote_call_without_key(monkeypatch) -> None:
+    def fake_call_llm(*args, **kwargs):
+        raise AssertionError("remote translation should be skipped without an orchestrator key")
+
+    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+
+    translated = translate_goal_to_english("评估复杂数学推理能力", BenchmarkConfig())
+
+    assert translated == "评估复杂数学推理能力"
 
 
 def test_extract_json_parses_json_repair_string_return(monkeypatch) -> None:
@@ -604,6 +1047,63 @@ def test_local_generator_attaches_multimodal_metadata_for_visual_dimensions() ->
     assert item.metadata["multimodal"]["assets"]
 
 
+def test_science_request_detection_and_fallback_spec() -> None:
+    assert text_requests_science("Evaluate physics and chemistry scientific reasoning")
+    assert text_requests_science("测试物理定量计算和科学证据解释")
+    assert not text_requests_science("Evaluate instruction following without science")
+
+    spec = plan_eval_spec(
+        "Evaluate scientific reasoning in physics experiments",
+        BenchmarkConfig(scale_budget=ScaleBudget.low),
+    )
+
+    dimension_ids = {dimension.id for dimension in spec.dimensions}
+    assert "science_conceptual_reasoning" in dimension_ids
+    assert "quantitative_units" in dimension_ids
+    assert "experimental_evidence" in dimension_ids
+
+
+def test_local_generator_adds_science_metadata_for_science_dimensions() -> None:
+    dimension = EvalDimension(
+        id="quantitative_units",
+        name="Quantitative science with units",
+        description="Evaluate physics quantitative reasoning with units.",
+        approach="Use self-contained problems.",
+        task_types=[TaskType.short_answer, TaskType.multiple_choice],
+    )
+    spec = EvalSpec(
+        objective="Evaluate scientific reasoning.",
+        dimensions=[dimension],
+        task_types=[TaskType.short_answer, TaskType.multiple_choice],
+    )
+
+    items = fallback_items(spec, dimension, 2)
+    report = run_qc_gate(BenchmarkDataset(spec=spec, items=items), BenchmarkConfig())
+
+    assert all(item.metadata["science"]["schema_version"] == SCIENCE_SCHEMA_VERSION for item in items)
+    assert all(item.metadata["science"]["scientific_skill"] for item in items)
+    assert report.rejected_item_ids == []
+
+
+def test_qc_warns_on_invalid_science_metadata() -> None:
+    item = BenchmarkItem(
+        id="bad_science",
+        dimension_id="science",
+        task_type=TaskType.short_answer,
+        prompt="What force is required for a 1 kg object accelerating at 2 m/s^2?",
+        answer="2 N",
+        metadata={"science": {"schema_version": "old"}},
+    )
+    spec = EvalSpec(
+        objective="Evaluate science reasoning.",
+        dimensions=[EvalDimension(id="science", name="Science", description="Science", approach="Science")],
+    )
+
+    report = run_qc_gate(BenchmarkDataset(spec=spec, items=[item]), BenchmarkConfig())
+
+    assert any("metadata.science.schema_version" in issue.message for issue in report.issues)
+
+
 def test_local_generator_creates_meaningful_chart_asset_for_chart_dimensions() -> None:
     dimension = EvalDimension(
         id="chart_reasoning",
@@ -780,6 +1280,107 @@ def test_llm_generator_includes_multimodal_payload_only_when_required(monkeypatc
 
     assert "multimodal_schema" in captured_payload
     assert "metadata.multimodal" in captured_system["system"]
+
+
+def test_llm_generator_includes_science_payload_only_when_required(monkeypatch) -> None:
+    captured_payload = {}
+    captured_system = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        captured_system["system"] = kwargs.get("system") or ""
+        return json.dumps(
+            {
+                "items": [
+                    {
+                        "task_type": "short_answer",
+                        "prompt": "A 1 kg mass accelerates at 2 m/s^2. What force is required?",
+                        "answer": "2 N",
+                        "rubric": "Full credit for F=ma=2 N with units.",
+                        "source_uri": "self_generated",
+                        "metadata": {
+                            "science": {
+                                "schema_version": SCIENCE_SCHEMA_VERSION,
+                                "discipline": "physics",
+                                "subdomain": "mechanics",
+                                "scientific_skill": "quantitative_reasoning",
+                                "evidence_context": "self_contained",
+                                "answer_type": "exact_numeric",
+                                "units": "N",
+                                "assumptions": ["constant acceleration"],
+                            }
+                        },
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    dimension = EvalDimension(
+        id="physics_units",
+        name="Physics units",
+        description="Evaluate physics quantitative reasoning with units.",
+        approach="Use self-contained science prompts.",
+        task_types=[TaskType.short_answer],
+        item_requirements=["Include metadata.science and required units."],
+    )
+    spec = EvalSpec(objective="Evaluate science reasoning.", dimensions=[dimension], task_types=[TaskType.short_answer])
+
+    items, _, _ = generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+    )
+
+    assert "science_schema" in captured_payload
+    assert "evalclaw.science.v1" in captured_system["system"]
+    assert items[0].metadata["science"]["schema_version"] == SCIENCE_SCHEMA_VERSION
+
+
+def test_llm_generator_omits_science_payload_for_non_science_dimension(monkeypatch) -> None:
+    captured_payload = {}
+    captured_system = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured_payload.update(json.loads(messages[0].content))
+        captured_system["system"] = kwargs.get("system") or ""
+        return json.dumps(
+            {
+                "items": [
+                    {
+                        "task_type": "open_generation",
+                        "prompt": "Rewrite this response to follow the requested JSON format.",
+                        "rubric": "Score format compliance.",
+                        "source_uri": "self_generated",
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    dimension = EvalDimension(
+        id="format_following",
+        name="Format following",
+        description="Evaluate instruction following.",
+        approach="Use text-only formatting prompts.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(
+        objective="Evaluate instruction following.",
+        dimensions=[dimension],
+        task_types=[TaskType.open_generation],
+    )
+
+    generate_dimension_items(
+        spec,
+        dimension,
+        1,
+        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+    )
+
+    assert "science_schema" not in captured_payload
+    assert "evalclaw.science.v1" not in captured_system["system"]
 
 
 def test_chart_dimensions_use_programmatic_fallback_without_external_sources(monkeypatch) -> None:

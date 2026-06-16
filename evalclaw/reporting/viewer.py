@@ -8,6 +8,7 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
+from ..scaling import simple_equivalent_workload
 from ..types import BenchmarkItem, BenchmarkPackage, SourceKind, TaskType
 from .reporter import _is_safety_eval, _is_source_backed, _risk_labels, _risk_severity
 
@@ -278,6 +279,8 @@ def _viewer_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
             "generated_items": len(dataset.items),
             "used_items": len(used_items),
             "rejected_items": len(dataset.items) - len(used_items),
+            "batch_count": len(dataset.batches),
+            "simple_equivalent_workload": round(simple_equivalent_workload(used_items), 2),
             "source_candidates": len({(source.kind.value, source.uri, source.title) for source in dataset.sources}),
             "source_backed_items": source_backed,
             "self_generated_items": sum(1 for item in used_items if item.source.kind == SourceKind.self_generated),
@@ -636,6 +639,8 @@ _HTML_TEMPLATE = """<!doctype html>
       grid.append(stat("Target models", summaries.length));
       grid.append(stat("Generated items", diag.generated_items ?? (pkg.dataset.items || []).length));
       grid.append(stat("Used items", diag.used_items ?? (pkg.run.results || []).length));
+      grid.append(stat("Batches", diag.batch_count ?? ((pkg.dataset.batches || []).length)));
+      grid.append(stat("Simple-equivalent workload", diag.simple_equivalent_workload ?? "n/a"));
       grid.append(stat("Rejected items", diag.rejected_items ?? ((pkg.qc_report.rejected_item_ids || []).length)));
       grid.append(stat("Source-backed used items", `${diag.source_backed_items}/${diag.used_items ?? (pkg.dataset.items || []).length}`));
       grid.append(stat("Mean target score", summaries.length ? pct(avg) : "not run", summaries.length ? scoreTone(avg) : ""));
