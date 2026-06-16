@@ -17,7 +17,7 @@ TASK_AGENT_METADATA_KEY = "task_agent"
 
 TASK_AGENT_SCHEMA: dict[str, Any] = {
     "schema_version": TASK_AGENT_SCHEMA_VERSION,
-    "agent_role": "dialogue_simulator | environment_controller | target_agent_executor | judge",
+    "agent_role": "dialogue_simulator | environment_controller | target_agent_executor | judge | api_oracle | research_synthesizer",
     "system_prompt": "System prompt for the task-specific agent.",
     "initial_content": {
         "scenario": "Initial scenario, state, persona, policy, repository brief, or other task context.",
@@ -57,7 +57,8 @@ metadata.task_agent using schema_version "evalclaw.task_agent.v1".
 
 Fields:
 - agent_role: role of the task-specific agent, such as dialogue_simulator,
-  environment_controller, target_agent_executor, or judge.
+  environment_controller, target_agent_executor, judge, api_oracle, or
+  research_synthesizer.
 - system_prompt: concise system prompt for the task-specific agent. It should
   state the evaluation role, non-disclosure rules, and high-level turn policy.
   Do not encode repository files, test suites, command protocols, score tables,
@@ -88,6 +89,11 @@ Fields:
   code_sandbox cannot provide. Provide image, visible_files, hidden_files,
   setup_commands, test_command, timeout, and resource_limits in agent_env.
   Keep hidden_files secret; the runner injects them only during run_tests.
+  For multi-turn delegation tasks, keep the system_prompt focused on the helper
+  role and the interaction.turn policy. Store any scripted turns in interaction.
+  For API/tool/research/data-analysis tasks, use structured files or tool client
+  stubs in initial_content.files rather than embedding large narratives in the
+  system prompt.
 """
 
 

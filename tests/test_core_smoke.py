@@ -6,7 +6,11 @@ from pathlib import PureWindowsPath
 
 import pytest
 
-from evalclaw.agent_benchmark import build_agent_dataset, plan_agent_benchmark
+from evalclaw.agent_benchmark import (
+    build_agent_dataset,
+    build_agent_task_suite,
+    plan_agent_benchmark,
+)
 from evalclaw.agent_envs import _platform_test_command, build_agent_environment
 from evalclaw.artifacts import _portable_path, write_lm_eval_artifacts
 from evalclaw.execution.docker import DockerStatus
@@ -44,6 +48,9 @@ from evalclaw.scaling import (
 from evalclaw.science import SCIENCE_SCHEMA_VERSION, text_requests_science
 from evalclaw.tool_protocol import ToolCall, ToolSpec, object_schema, validate_tool_call
 from evalclaw.types import (
+    AgentEnvironmentType,
+    AgentTaskBlueprint,
+    AgentTaskFamily,
     BenchmarkBatch,
     BenchmarkConfig,
     BenchmarkDataset,
@@ -214,12 +221,63 @@ def test_agent_benchmark_honors_blueprint_expected_task_count() -> None:
     spec, blueprints = plan_agent_benchmark("Evaluate agent tool use", config)
     blueprints[0].expected_task_count = 3
 
-    from evalclaw.agent_benchmark import build_agent_task_suite
-
     suite = build_agent_task_suite(spec, [blueprints[0]], config)
 
     assert len(suite.tasks) == 3
     assert len({task.id for task in suite.tasks}) == 3
+
+
+def test_agent_benchmark_local_fallback_covers_common_task_families() -> None:
+    dimension = EvalDimension(
+        id="agent_capability",
+        name="Agent capability",
+        description="Evaluate realistic agent task execution.",
+        approach="Use executable local fixtures.",
+        target_difficulty=Difficulty.L4,
+    )
+    spec = EvalSpec(
+        objective="Evaluate agents on realistic task families.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+        scale_budget=ScaleBudget.low,
+    )
+    families = [
+        (AgentTaskFamily.code_repair, AgentEnvironmentType.code_sandbox),
+        (AgentTaskFamily.repo_issue, AgentEnvironmentType.code_sandbox),
+        (AgentTaskFamily.shell_debugging, AgentEnvironmentType.docker_workspace),
+        (AgentTaskFamily.api_tool_use, AgentEnvironmentType.code_sandbox),
+        (AgentTaskFamily.web_research, AgentEnvironmentType.code_sandbox),
+        (AgentTaskFamily.data_analysis, AgentEnvironmentType.code_sandbox),
+        (AgentTaskFamily.multi_turn_delegation, AgentEnvironmentType.dialogue),
+        (AgentTaskFamily.safety_tool_use, AgentEnvironmentType.workspace),
+    ]
+    blueprints = [
+        AgentTaskBlueprint(
+            id=f"{family.value}_blueprint",
+            dimension_id=dimension.id,
+            title=family.value.replace("_", " ").title(),
+            task_family=family,
+            environment_type=env_type,
+            expected_task_count=1,
+        )
+        for family, env_type in families
+    ]
+
+    suite = build_agent_task_suite(
+        spec,
+        blueprints,
+        BenchmarkConfig(benchmark_mode=BenchmarkMode.agent, use_web_research=False, use_hf_discovery=False),
+    )
+    assert [task.task_family for task in suite.tasks] == [family for family, _ in families]
+    assert [task.environment.type for task in suite.tasks] == [env_type for _, env_type in families]
+    assert all(task.prompt.strip() for task in suite.tasks)
+    assert all(task.scoring.pass_criteria for task in suite.tasks)
+    assert suite.tasks[2].environment.image == "python:3.11-slim"
+    assert all(
+        task.environment.hidden_files
+        for task in suite.tasks
+        if task.environment.type in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
+    )
 
 
 def test_environment_claw_can_be_disabled(monkeypatch) -> None:
