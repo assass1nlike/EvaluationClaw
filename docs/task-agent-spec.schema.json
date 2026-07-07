@@ -29,8 +29,25 @@
         },
         "files": {
           "type": "object",
-          "description": "Initial visible files for repository/workspace tasks. Keys are relative paths; values are full file contents.",
+          "description": "Initial visible files for repository/workspace/VM tasks. Keys are relative or guest paths; values are full file contents. VM tasks can materialize these into the guest before startup.",
           "additionalProperties": {"type": "string"}
+        },
+        "session": {
+          "type": "object",
+          "description": "Optional GUI/browser/VM session state. session.asset_files or assets entries with path/content can be materialized into a VM guest.",
+          "properties": {
+            "asset_files": {
+              "type": "object",
+              "description": "Inline files to create in the session or VM guest.",
+              "additionalProperties": {"type": "string"}
+            },
+            "assets": {
+              "type": "array",
+              "description": "Input files, URLs, documents, or inline asset objects. Inline file objects may contain path/content.",
+              "items": {}
+            }
+          },
+          "additionalProperties": true
         },
         "notes": {
           "type": "string",
@@ -110,10 +127,13 @@
         },
         "agent_env": {
           "type": "object",
-          "description": "Optional built-in environment config. For current runner compatibility, also copy this object to metadata.agent_env."
+          "description": "Optional built-in environment config. For current runner compatibility, also copy this object to metadata.agent_env. Docker workspace tasks may include image_build with enabled, base_image, apt/system packages, pip/python packages, npm/node packages, cran/r packages, bioconductor, julia, conda, cargo, go, gem, composer, apk/dnf/yum/pacman packages, install_steps, commands, dockerfile, context_files, tag, rebuild, or build_timeout. VM-backed tasks may include vm_materialization to tune guest_user, guest_root, enabled, include_task_manifest, include_evaluation_manifest, or overwrite_seed_iso, and vm_provisioning with enabled, apt/system, pip/python, snap, cran/r, bioconductor, julia, conda, cargo, go, gem, composer, apk/dnf/yum/pacman package fields, install_steps, commands, desktop_bridge_install_command, or desktop_bridge_start_command."
         }
       },
       "additionalProperties": true
+    },
+    "agent_task_package": {
+      "description": "Optional pointer or compact summary. The full ALE-style executable task package should be stored at metadata.agent_task_package and follow docs/agent-task-package-spec.schema.json."
     }
   },
   "additionalProperties": true

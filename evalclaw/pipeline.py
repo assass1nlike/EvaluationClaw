@@ -28,8 +28,11 @@ from .types import BenchmarkConfig, BenchmarkItem, BenchmarkMode, BenchmarkPacka
 _SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]+")
 _AGENT_GOAL_PATTERN = re.compile(
     r"\b(agent|tool\s*use|tool[- ]calling|tools?|environment|sandbox|docker|workspace|"
-    r"terminal|shell|browser|api|multi[- ]?step|long[- ]?horizon|code\s*agent|"
-    r"repo|repository|issue|debug|repair|run\s+tests?)\b",
+    r"terminal|shell|browser|gui|desktop|computer\s*use|cua|mouse|keyboard|screenshot|"
+    r"screen|click|desktop\s*software|multi[- ]?industrial[- ]?software|"
+    r"industrial[- ]?software|engineering[- ]?software|"
+    r"cad|eda|cae|cam|pcb|kicad|freecad|blender|api|multi[- ]?step|"
+    r"long[- ]?horizon|code\s*agent|repo|repository|issue|debug|repair|run\s+tests?)\b",
     re.IGNORECASE,
 )
 _AGENT_GOAL_CJK_TERMS = (
@@ -46,6 +49,21 @@ _AGENT_GOAL_CJK_TERMS = (
     "仓库",
     "多步",
     "长程",
+)
+
+
+_AGENT_GOAL_CJK_TERMS += (
+    "\u667a\u80fd\u4f53",
+    "\u5de5\u5177\u8c03\u7528",
+    "\u73af\u5883\u4ea4\u4e92",
+    "\u684c\u9762",
+    "\u5de5\u4e1a\u8f6f\u4ef6",
+    "\u591a\u8f6f\u4ef6",
+    "\u534f\u540c",
+    "\u5de5\u4f5c\u6d41",
+    "\u5de5\u7a0b\u8f6f\u4ef6",
+    "\u673a\u68b0\u8bbe\u8ba1",
+    "\u7535\u8def\u677f",
 )
 
 
@@ -237,6 +255,8 @@ def run_pipeline(
     direct_config, environment_claw_report = run_environment_claw(accepted_for_run, direct_config)
     for line in format_environment_claw_report(environment_claw_report):
         log(line)
+    if direct_config.run_targets and environment_claw_report.blocking_errors:
+        raise RuntimeError("\n\n".join(environment_claw_report.blocking_errors))
     validate_multimodal_target_support(accepted_for_run, config)
     if run_direct:
         direct_config = _validate_swebench_preflight_with_retry(

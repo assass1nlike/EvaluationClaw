@@ -8,6 +8,11 @@ from collections import Counter
 
 from ..llm import call_llm, extract_json
 from ..prompts.qc import QC_SYSTEM_PROMPT
+from ..protocols.agent_task_package import (
+    AGENT_TASK_PACKAGE_METADATA_KEY,
+    agent_task_package_issues,
+    compact_agent_task_package,
+)
 from ..protocols.multimodal import MULTIMODAL_METADATA_KEY, MULTIMODAL_SCHEMA_VERSION
 from ..protocols.science import science_metadata_issues
 from ..protocols.task_agent import TASK_AGENT_METADATA_KEY, compact_task_agent_for_qc
@@ -332,6 +337,51 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                         "Add hidden tests or a deterministic test command.",
                     )
                 )
+        if isinstance(env, dict) and env.get("type") == "gui_desktop":
+            session = env.get("session")
+            evaluation = env.get("evaluation")
+            vm = env.get("vm")
+            if not isinstance(session, dict) or not session:
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.error,
+                        QcCategory.schema,
+                        "GUI desktop agent item needs metadata.agent_env.session.",
+                        "Add session.application, launch/start state, input assets, expected artifacts, and task restrictions.",
+                    )
+                )
+            if not isinstance(evaluation, dict) or not evaluation:
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.error,
+                        QcCategory.scoring,
+                        "GUI desktop agent item needs metadata.agent_env.evaluation.",
+                        "Add bridge artifact/state checks with pass, partial, and fail criteria.",
+                    )
+                )
+            if bool(env.get("requires_vm")) and (not isinstance(vm, dict) or not vm):
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.error,
+                        QcCategory.schema,
+                        "GUI desktop item with requires_vm=true needs metadata.agent_env.vm.",
+                        "Add VM image/template, snapshot/reset behavior, display, required software, network, and locale requirements.",
+                    )
+                )
+        for package_issue in agent_task_package_issues(item):
+            severity = QcSeverity.error if "missing metadata.agent_task_package" in package_issue else QcSeverity.warning
+            issues.append(
+                _issue(
+                    item.id,
+                    severity,
+                    QcCategory.schema,
+                    package_issue,
+                    "Add or repair metadata.agent_task_package with visible_inputs, hidden_references, output_contract, execution, evaluation, artifact_collection, trajectory_requirements, and provenance.",
+                )
+            )
     return issues
 
 
@@ -558,13 +608,47 @@ def _compact_metadata_for_qc(metadata: dict) -> dict:
             value = env.get(key)
             if isinstance(value, dict):
                 env_summary[key] = value
+        session = env.get("session")
+        if isinstance(session, dict):
+            env_summary["session_keys"] = list(session.keys())[:20]
+            for key in ("kind", "application", "entrypoint", "start_url"):
+                if key in session:
+                    env_summary[f"session_{key}"] = session[key]
+            assets = session.get("assets")
+            if isinstance(assets, list):
+                env_summary["session_assets"] = assets[:20]
+            expected_artifacts = session.get("expected_artifacts")
+            if isinstance(expected_artifacts, list):
+                env_summary["session_expected_artifacts"] = expected_artifacts[:20]
+        evaluation = env.get("evaluation")
+        if isinstance(evaluation, dict):
+            env_summary["evaluation_keys"] = list(evaluation.keys())[:20]
+            for key in ("method", "pass_criteria", "partial_criteria", "fail_criteria"):
+                if key in evaluation:
+                    env_summary[f"evaluation_{key}"] = str(evaluation[key])[:800]
+        vm = env.get("vm")
+        if isinstance(vm, dict):
+            env_summary["requires_vm"] = bool(env.get("requires_vm"))
+            env_summary["vm_keys"] = list(vm.keys())[:20]
+            for key in ("isolation", "image", "snapshot", "network", "locale"):
+                if key in vm:
+                    env_summary[f"vm_{key}"] = vm[key]
+            required_software = vm.get("required_software")
+            if isinstance(required_software, list):
+                env_summary["vm_required_software"] = required_software[:20]
+            display = vm.get("display")
+            if isinstance(display, dict):
+                env_summary["vm_display"] = display
         compact["agent_env"] = env_summary
     task_agent = metadata.get(TASK_AGENT_METADATA_KEY)
     if isinstance(task_agent, dict):
         compact[TASK_AGENT_METADATA_KEY] = compact_task_agent_for_qc(task_agent)
+    agent_task_package = metadata.get(AGENT_TASK_PACKAGE_METADATA_KEY)
+    if isinstance(agent_task_package, dict):
+        compact[AGENT_TASK_PACKAGE_METADATA_KEY] = compact_agent_task_package(agent_task_package)
 
     for key, value in metadata.items():
-        if key in {"agent_env", TASK_AGENT_METADATA_KEY}:
+        if key in {"agent_env", TASK_AGENT_METADATA_KEY, AGENT_TASK_PACKAGE_METADATA_KEY}:
             continue
         if isinstance(value, (str, int, float, bool)) or value is None:
             compact[key] = value

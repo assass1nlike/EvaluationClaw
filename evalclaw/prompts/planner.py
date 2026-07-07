@@ -3,6 +3,10 @@ from __future__ import annotations
 
 import json
 
+from ..protocols.agent_task_package import (
+    AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
+    AGENT_TASK_PACKAGE_SCHEMA,
+)
 from ..protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
 
 TRANSLATION_SYSTEM_PROMPT = """\
@@ -116,6 +120,48 @@ Requirements:
   metadata.agent_env, execution.environment_type, interaction, and scoring. For
   iterative code-repair dimensions, prefer built-in code_sandbox agent_env over
   a long free-form environment-controller prompt.
+- For any agent_interaction dimension that needs a VM, tell the worker to put
+  task-specific guest files in metadata.agent_env.visible_files or
+  metadata.task_agent.initial_content.files, and session documents/data in
+  metadata.agent_env.session.asset_files or assets objects with path/content.
+  The runner can materialize these into a per-task cloud-init seed ISO before
+  VM startup, so workers should describe the desired VM state structurally
+  instead of asking for a hand-built custom image unless special software is
+  genuinely required.
+- For VM-backed tasks whose required software can be installed on a clean base
+  OS at first boot, tell the worker to use metadata.agent_env.vm_provisioning
+  with enabled=true, apt_packages/system_packages, pip_packages/python_packages,
+  snap_packages, cran_packages/r_packages, bioconductor_packages/bioc_packages,
+  julia_packages, conda_packages with conda_channels, cargo_packages,
+  go_packages, gem_packages, composer_packages, apk/dnf/yum/pacman package
+  fields for non-Ubuntu bases, install_steps, commands, and optional
+  desktop_bridge_install_command/desktop_bridge_start_command. This lets
+  EvaluationClaw provision software through cloud-init instead of requiring a
+  manually pre-edited VM template.
+- For docker_workspace dimensions requiring specialized CLI tools, native
+  packages, or libraries that are unlikely to exist in a common Hub runtime
+  image, tell the worker to use metadata.agent_env.image_build with
+  enabled=true, base_image, system_packages/apt_packages,
+  python_packages/pip_packages, node_packages/npm_packages,
+  cran_packages/r_packages, bioconductor_packages/bioc_packages,
+  julia_packages, conda_packages with conda_channels, cargo_packages,
+  go_packages, gem_packages, composer_packages, apk/dnf/yum/pacman package
+  fields, install_steps, commands, or a complete dockerfile. This lets
+  EvaluationClaw build a local task image before execution.
+- For professional agent workflows, VM-backed tasks, GUI/browser/desktop
+  software, docker_workspace tasks, or ALE-like executable benchmark tasks,
+  item_requirements must also request metadata.agent_task_package. The package
+  must separate visible inputs from hidden references, define output artifacts
+  or output schema, setup/run/evaluate steps, artifact and trajectory collection,
+  environment/software requirements, and provenance.
+- For multi-industrial-software collaboration requests, plan agent_interaction
+  dimensions around cross-application artifact handoff, engineering constraint
+  reconciliation, and end-to-end workflow execution. Require VM-backed
+  desktop_software tasks with multiple named applications, intermediate/final
+  artifacts, workflow_manifest.json provenance, and deterministic artifact/trace
+  checks. If using KiCad/FreeCAD/Blender on a base Ubuntu VM, require
+  vm_provisioning for those packages rather than assuming a preinstalled image.
+  Do not reduce the request to single-application CAD questions.
 - Do not design a difficulty ladder or drift away from the requested content just
   to include hard tasks. Within content that matches the user need, target the
   hardest suitable difficulty.
@@ -144,8 +190,12 @@ Requirements:
   target_generated_count deliberately. The source-backed portion should usually be
   the majority of the planned count. target_generated_count should normally be a
   small targeted augmentation budget, not thousands of model-generated near-duplicates.
-""" + "\n\nStandardized task-agent file guidance for complex interactive items:\n" + TASK_AGENT_GENERATION_GUIDANCE + "\nCanonical metadata.task_agent schema:\n" + json.dumps(
+""" + "\n\nStandardized task-agent file guidance for complex interactive items:\n" + TASK_AGENT_GENERATION_GUIDANCE + "\nExecutable agent task package guidance:\n" + AGENT_TASK_PACKAGE_GENERATION_GUIDANCE + "\nCanonical metadata.task_agent schema:\n" + json.dumps(
     TASK_AGENT_SCHEMA,
+    ensure_ascii=False,
+    indent=2,
+) + "\nCanonical metadata.agent_task_package schema:\n" + json.dumps(
+    AGENT_TASK_PACKAGE_SCHEMA,
     ensure_ascii=False,
     indent=2,
 ) + "\n"

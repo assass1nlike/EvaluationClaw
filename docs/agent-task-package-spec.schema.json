@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evaluationclaw.local/schemas/agent-task-package.v1.json",
+  "title": "EvaluationClaw Executable Agent Task Package",
+  "description": "ALE-style executable task package metadata for professional, VM-backed, GUI, Docker, and long-horizon agent benchmark tasks.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "capability_target",
+    "environment_requirements",
+    "visible_inputs",
+    "hidden_references",
+    "output_contract",
+    "execution",
+    "evaluation",
+    "artifact_collection",
+    "trajectory_requirements"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "evalclaw.agent_task_package.v1"
+    },
+    "style": {
+      "type": "string",
+      "description": "Usually ale_executable_task."
+    },
+    "capability_target": {
+      "type": "object",
+      "description": "The capability target being measured, not just the concrete task title.",
+      "additionalProperties": true
+    },
+    "environment_requirements": {
+      "type": "object",
+      "description": "Runtime, OS, VM, GUI, software, network, licensing, image build, and resource assumptions.",
+      "properties": {
+        "image_build": {
+          "type": "object",
+          "description": "Optional custom Docker image build config for docker_workspace tasks when no suitable Hub image exists. Supported fields include enabled, base_image, system_packages/apt_packages, python_packages/pip_packages, node_packages/npm_packages, cran_packages/r_packages, bioconductor_packages/bioc_packages, julia_packages, conda_packages/conda_channels, cargo_packages, go_packages, gem_packages, composer_packages, apk_packages, dnf_packages, yum_packages, pacman_packages, install_steps, commands, dockerfile, context_files, tag, rebuild, and build_timeout.",
+          "additionalProperties": true
+        },
+        "vm_provisioning": {
+          "type": "object",
+          "description": "Optional cloud-init provisioning config for VM-backed tasks when a base OS image exists but task software is not installed. Supported fields include enabled, strategy, apt_packages/system_packages, pip_packages/python_packages, snap_packages, cran_packages/r_packages, bioconductor_packages/bioc_packages, julia_packages, conda_packages/conda_channels, cargo_packages, go_packages, gem_packages, composer_packages, apk_packages, dnf_packages, yum_packages, pacman_packages, install_steps, commands, desktop_bridge_install_command, and desktop_bridge_start_command.",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "visible_inputs": {
+      "type": "object",
+      "description": "Instructions, files, assets, datasets, URLs, and public session state visible to the target agent.",
+      "additionalProperties": true
+    },
+    "hidden_references": {
+      "type": "object",
+      "description": "Runner-private references, evaluator files, expected artifacts, checksums, or hidden oracle notes.",
+      "additionalProperties": true
+    },
+    "output_contract": {
+      "type": "object",
+      "description": "Expected artifacts, output schema, final state, and constraints to check after the run.",
+      "additionalProperties": true
+    },
+    "execution": {
+      "type": "object",
+      "description": "Setup, run, and evaluate contract for the environment or bridge.",
+      "additionalProperties": true
+    },
+    "evaluation": {
+      "type": "object",
+      "description": "Evaluation method, checks, score range, and pass/partial/fail criteria.",
+      "additionalProperties": true
+    },
+    "artifact_collection": {
+      "type": "object",
+      "description": "Paths, logs, screenshots, renders, notebooks, traces, and other artifacts to save.",
+      "additionalProperties": true
+    },
+    "trajectory_requirements": {
+      "type": "object",
+      "description": "Expected/forbidden tool use and trace audit rules.",
+      "additionalProperties": true
+    },
+    "resource_provenance": {
+      "type": "object",
+      "description": "Sources, licenses, and construction notes for source-backed tasks.",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

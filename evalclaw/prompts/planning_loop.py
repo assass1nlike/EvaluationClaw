@@ -1,6 +1,7 @@
 """Planner-supervised generation loop prompt templates."""
 from __future__ import annotations
 
+from ..protocols.agent_task_package import AGENT_TASK_PACKAGE_GENERATION_GUIDANCE
 from ..protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE
 
 PLANNER_REVIEW_SYSTEM_PROMPT = """\
@@ -29,9 +30,27 @@ Your job:
    request metadata.task_agent. If you add/update such a dimension, include
    item_requirements that tell generation workers what the task-agent system
    prompt, initial content, interaction rules, and scoring standards must cover.
+   For professional workflows, VM-backed tasks, GUI/browser/desktop software,
+   docker_workspace tasks, or ALE-like executable tasks, also preserve or request
+   metadata.agent_task_package with visible inputs, hidden references, output
+   contract, setup/run/evaluate steps, artifact collection, trajectory
+   requirements, environment requirements, and provenance.
 6. For pairwise_preference items, preserve the target-vs-reference comparison
    intent. Request pairwise_preference only when reference_model is configured
    and the dimension benefits from direct comparison to that reference.
+7. For docker_workspace items that need specialized CLI tools or native
+   packages beyond common Hub runtime images, preserve or request
+   metadata.agent_env.image_build so EvaluationClaw can build a local task image.
+8. For multi-industrial-software collaboration tasks, preserve the requirement
+   that multiple named applications participate in one workflow. Keep explicit
+   artifact handoffs, VM/software-stack requirements, workflow_manifest.json
+   provenance, and hidden artifact/trace checks through every generation/QC
+   repair cycle.
+9. For VM-backed tasks with vm_provisioning, preserve apt/pip/snap,
+   CRAN/Bioconductor, Julia, Conda, Cargo, Go, Ruby, Composer,
+   non-Debian package-manager fields, install_steps, commands, and bridge
+   install/start commands unless the task explicitly depends on a prebuilt
+   proprietary VM image.
 
 Allowed changes:
 - delete_item_ids: remove off-target or unrepairable items.
@@ -89,4 +108,4 @@ Return JSON:
   "needs_more_items": [{"dimension_id": "...", "count": 1, "guidance": "..."}],
   "notes": "..."
 }
-""" + "\n\nTask-agent guidance for complex interactive item requirements:\n" + TASK_AGENT_GENERATION_GUIDANCE + "\n"
+""" + "\n\nTask-agent guidance for complex interactive item requirements:\n" + TASK_AGENT_GENERATION_GUIDANCE + "\n\nExecutable agent task package guidance:\n" + AGENT_TASK_PACKAGE_GENERATION_GUIDANCE + "\n"
