@@ -10,8 +10,21 @@ from typing import Any
 
 from ..execution.lm_eval import _resolve_lm_eval_executable
 from ..types import BenchmarkConfig, BenchmarkItem
+from .desktop_agent_env import desktop_bridge_setup_message, probe_desktop_bridge
 from .docker import docker_status
+from .docker_images import (
+    apply_docker_image_selection,
+    docker_image_build_requested,
+    inspect_docker_image,
+)
+from .installers import package_list
 from .swebench import is_swebench_item
+from .vm_materializer import (
+    VmTaskMaterializationError,
+    materialize_vm_task,
+    vm_task_requires_vm,
+)
+from .vm_provider import probe_vm_provider, vm_provider_setup_message
 
 
 @dataclass
@@ -46,6 +59,34 @@ class EnvironmentClawReport:
         }
 
 
+def _package_fields(config: dict[str, Any]) -> dict[str, list[str]]:
+    aliases = {
+        "system_packages": ("system_packages", "apt_packages", "packages"),
+        "python_packages": ("python_packages", "pip_packages"),
+        "node_packages": ("node_packages", "npm_packages"),
+        "cran_packages": ("cran_packages", "r_packages"),
+        "bioconductor_packages": ("bioconductor_packages", "bioc_packages"),
+        "julia_packages": ("julia_packages",),
+        "conda_packages": ("conda_packages",),
+        "cargo_packages": ("cargo_packages",),
+        "go_packages": ("go_packages",),
+        "gem_packages": ("gem_packages", "ruby_gems"),
+        "composer_packages": ("composer_packages",),
+        "apk_packages": ("apk_packages",),
+        "dnf_packages": ("dnf_packages",),
+        "yum_packages": ("yum_packages",),
+        "pacman_packages": ("pacman_packages",),
+    }
+    fields: dict[str, list[str]] = {}
+    for canonical, keys in aliases.items():
+        packages: list[str] = []
+        for key in keys:
+            packages.extend(package_list(config.get(key)))
+        if packages:
+            fields[canonical] = list(dict.fromkeys(packages))
+    return fields
+
+
 def _agent_env_type(item: BenchmarkItem) -> str:
     env = item.metadata.get("agent_env")
     if isinstance(env, dict):
@@ -63,6 +104,94 @@ def _agent_env_type(item: BenchmarkItem) -> str:
 
 def _has_docker_workspace(items: list[BenchmarkItem]) -> bool:
     return any(_agent_env_type(item) == "docker_workspace" for item in items)
+
+
+def _has_gui_desktop(items: list[BenchmarkItem]) -> bool:
+    return any(_agent_env_type(item) == "gui_desktop" for item in items)
+
+
+def _first_gui_bridge_url(items: list[BenchmarkItem]) -> str | None:
+    for item in items:
+        env = item.metadata.get("agent_env")
+        if isinstance(env, dict) and str(env.get("type") or "").lower() == "gui_desktop":
+            value = env.get("bridge_url")
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        task_agent = item.metadata.get("task_agent")
+        if isinstance(task_agent, dict):
+            execution = task_agent.get("execution")
+            if isinstance(execution, dict):
+                task_env = execution.get("agent_env")
+                if isinstance(task_env, dict) and str(task_env.get("type") or "").lower() == "gui_desktop":
+                    value = task_env.get("bridge_url")
+                    if isinstance(value, str) and value.strip():
+                        return value.strip()
+    return None
+
+
+def _agent_env(item: BenchmarkItem) -> dict[str, Any]:
+    env = item.metadata.get("agent_env")
+    if isinstance(env, dict):
+        return env
+    task_agent = item.metadata.get("task_agent")
+    if isinstance(task_agent, dict):
+        execution = task_agent.get("execution")
+        if isinstance(execution, dict):
+            task_env = execution.get("agent_env")
+            if isinstance(task_env, dict):
+                return task_env
+    return {}
+
+
+def _set_agent_env(item: BenchmarkItem, env: dict[str, Any]) -> None:
+    item.metadata["agent_env"] = env
+    task_agent = item.metadata.get("task_agent")
+    if isinstance(task_agent, dict):
+        execution = task_agent.get("execution")
+        if isinstance(execution, dict):
+            execution["agent_env"] = env
+            task_agent["execution"] = execution
+            item.metadata["task_agent"] = task_agent
+
+
+def _docker_task_text(item: BenchmarkItem) -> str:
+    env = _agent_env(item)
+    task_agent = item.metadata.get("task_agent") if isinstance(item.metadata.get("task_agent"), dict) else {}
+    parts = [
+        item.id,
+        item.prompt,
+        item.rubric or "",
+        " ".join(item.tags),
+        str(task_agent.get("system_prompt") or ""),
+        str(task_agent.get("initial_content") or ""),
+        str(env.get("test_command") or ""),
+    ]
+    for key in ("visible_files", "files", "hidden_files"):
+        files = env.get(key)
+        if isinstance(files, dict):
+            parts.extend(str(path) for path in files.keys())
+    return "\n".join(part for part in parts if part)
+
+
+def _item_requires_vm(item: BenchmarkItem) -> bool:
+    return vm_task_requires_vm(item)
+
+
+def _has_vm_required(items: list[BenchmarkItem]) -> bool:
+    return any(_item_requires_vm(item) for item in items)
+
+
+def _has_gui_desktop_without_vm(items: list[BenchmarkItem]) -> bool:
+    return any(_agent_env_type(item) == "gui_desktop" and not _item_requires_vm(item) for item in items)
+
+
+def _first_vm_provider_url(items: list[BenchmarkItem]) -> str | None:
+    for item in items:
+        env = _agent_env(item)
+        value = env.get("vm_provider_url")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
 
 
 def _has_swebench(items: list[BenchmarkItem]) -> bool:
@@ -133,6 +262,125 @@ def _probe_docker(report: EnvironmentClawReport, config: BenchmarkConfig) -> Non
     )
 
 
+def _probe_docker_images(
+    report: EnvironmentClawReport,
+    items: list[BenchmarkItem],
+    config: BenchmarkConfig,
+) -> None:
+    for item in items:
+        env = _agent_env(item)
+        if str(env.get("type") or "").lower() != "docker_workspace":
+            continue
+        selected_env, selection = apply_docker_image_selection(
+            env,
+            task_text=_docker_task_text(item),
+            preserve_explicit=True,
+        )
+        if selected_env != env:
+            _set_agent_env(item, selected_env)
+        report.actions.append(
+            EnvironmentAction(
+                action=f"select docker image {selection.image}",
+                reason=selection.reason,
+                applied=not selection.explicit,
+                data={
+                    "item_id": item.id,
+                    "image": selection.image,
+                    "confidence": selection.confidence,
+                    "explicit": selection.explicit,
+                    "evidence": selection.evidence,
+                },
+            )
+        )
+        if docker_image_build_requested(selected_env):
+            build_config = selected_env.get("image_build") if isinstance(selected_env.get("image_build"), dict) else {}
+            report.actions.append(
+                EnvironmentAction(
+                    action=f"build docker image {build_config.get('tag') or 'evalclaw-task:<auto>'}",
+                    reason=(
+                        "Task requested a custom Docker image build. DockerWorkspaceAgentEnvironment will "
+                        "generate or use the configured Dockerfile, build a local image, and run the task with it."
+                    ),
+                    applied=False,
+                    data={
+                        "item_id": item.id,
+                        "base_image": build_config.get("base_image"),
+                        "has_dockerfile": bool(build_config.get("dockerfile")),
+                        "system_packages": build_config.get("system_packages") or build_config.get("apt_packages") or [],
+                        "python_packages": build_config.get("python_packages") or build_config.get("pip_packages") or [],
+                        "package_fields": _package_fields(build_config),
+                        "install_step_count": len(build_config.get("install_steps") or []),
+                    },
+                )
+            )
+            continue
+        probe = inspect_docker_image(
+            selection.image,
+            docker_executable=config.swebench_docker_executable,
+            timeout_s=15,
+        )
+        report.probes.append(
+            EnvironmentProbe(
+                name="docker_image",
+                ok=probe.local,
+                detail=probe.detail or ("Image is available locally." if probe.local else "Image is not available locally."),
+                data={"item_id": item.id, "image": probe.image, "local": probe.local},
+            )
+        )
+        if not probe.local and bool(selected_env.get("pull_image", True)):
+            report.actions.append(
+                EnvironmentAction(
+                    action=f"pull docker image {selection.image}",
+                    reason="Image is not local; DockerWorkspaceAgentEnvironment will pull it when the task starts.",
+                    applied=False,
+                    data={"item_id": item.id, "image": selection.image},
+                )
+            )
+
+
+def _materialize_vm_tasks(report: EnvironmentClawReport, items: list[BenchmarkItem]) -> None:
+    for item in items:
+        if not _item_requires_vm(item):
+            continue
+        try:
+            result = materialize_vm_task(item)
+        except VmTaskMaterializationError as exc:
+            report.actions.append(
+                EnvironmentAction(
+                    action="materialize VM task content",
+                    reason=str(exc),
+                    applied=False,
+                    data={"item_id": item.id},
+                )
+            )
+            report.blocking_errors.append(str(exc))
+            continue
+        if result.applied:
+            report.actions.append(
+                EnvironmentAction(
+                    action="materialize VM task content",
+                    reason=(
+                        "Generated a task-specific cloud-init seed ISO for VM initial files, metadata, "
+                        "and optional software provisioning commands."
+                    ),
+                    applied=True,
+                    data=result.as_dict(),
+                )
+            )
+        elif result.skipped_reason and result.skipped_reason not in {
+            "item does not require a VM",
+            "no VM guest files to materialize",
+        }:
+            report.actions.append(
+                EnvironmentAction(
+                    action="materialize VM task content",
+                    reason=result.skipped_reason,
+                    applied=False,
+                    data=result.as_dict(),
+                )
+            )
+
+
 def _probe_lm_eval(report: EnvironmentClawReport) -> None:
     executable = _resolve_lm_eval_executable()
     report.probes.append(
@@ -157,9 +405,51 @@ def run_environment_claw(
     updated = config
     has_swebench = _has_swebench(items)
     has_docker_workspace = _has_docker_workspace(items)
+    has_vm_required = _has_vm_required(items)
+    has_gui_desktop_without_vm = _has_gui_desktop_without_vm(items)
 
     if has_swebench or has_docker_workspace:
         _probe_docker(report, config)
+    if has_docker_workspace:
+        _probe_docker_images(report, items, config)
+    if has_vm_required:
+        _materialize_vm_tasks(report, items)
+
+    if has_vm_required:
+        provider_url = _first_vm_provider_url(items) or config.vm_provider_url or "local://auto"
+        status = probe_vm_provider(
+            provider_url,
+            api_key=config.vm_provider_api_key,
+            timeout=min(config.vm_provider_timeout_s, 30),
+        )
+        report.probes.append(
+            EnvironmentProbe(
+                name="vm_provider",
+                ok=status.available,
+                detail=status.detail or "VM provider is reachable.",
+                data={"provider_url": status.provider_url, **status.data},
+            )
+        )
+        if not status.available:
+            report.blocking_errors.append(vm_provider_setup_message())
+
+    if has_gui_desktop_without_vm:
+        bridge_url = _first_gui_bridge_url(items) or config.gui_bridge_url
+        status = probe_desktop_bridge(
+            bridge_url,
+            api_key=config.gui_bridge_api_key,
+            timeout=config.gui_bridge_timeout_s,
+        )
+        report.probes.append(
+            EnvironmentProbe(
+                name="gui_desktop_bridge",
+                ok=status.available,
+                detail=status.detail or "GUI desktop bridge is reachable.",
+                data={"bridge_url": status.bridge_url, **status.data},
+            )
+        )
+        if not status.available:
+            report.blocking_errors.append(desktop_bridge_setup_message())
 
     if config.runner in {"lm-eval", "auto"}:
         _probe_lm_eval(report)

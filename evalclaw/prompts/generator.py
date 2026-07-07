@@ -3,6 +3,10 @@ from __future__ import annotations
 
 import json
 
+from ..protocols.agent_task_package import (
+    AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
+    AGENT_TASK_PACKAGE_SCHEMA,
+)
 from ..protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
 
 GENERATOR_SYSTEM_PROMPT = """\
@@ -139,11 +143,58 @@ Requirements:
   visible_files, hidden_files, test_command, and max_steps. Do not create a long
   prose environment-controller protocol when structured agent_env can represent
   the same task.
+  For docker_workspace tasks, use image="auto" or omit image when a common Hub
+  runtime is enough. If no common Hub image is sufficient, set image="build://auto"
+  or metadata.agent_env.image_build.enabled=true. image_build may include
+  base_image, system_packages/apt_packages, python_packages/pip_packages,
+  node_packages/npm_packages, cran_packages/r_packages,
+  bioconductor_packages/bioc_packages, julia_packages, conda_packages with
+  conda_channels, cargo_packages, go_packages, gem_packages,
+  composer_packages, apk_packages/dnf_packages/yum_packages/pacman_packages,
+  install_steps, commands, dockerfile, context_files, tag, rebuild, and
+  build_timeout. Include the needed language/runtime system packages or choose
+  a suitable base_image when using package managers such as R, Julia, conda,
+  cargo, Go, Ruby, or Composer. Use this for specialized CLI tools or native
+  packages that should be baked into the image instead of installed
+  interactively every run.
+  For VM-backed tasks, put files that should exist inside the guest in
+  metadata.agent_env.visible_files or metadata.task_agent.initial_content.files,
+  and put session-specific input documents/data in metadata.agent_env.session.asset_files
+  or assets entries with path/content. Do not ask for a manually pre-edited
+  image when task-level files are sufficient; EvaluationClaw will materialize
+  those files into the VM before startup when no explicit seed ISO is supplied.
+  If a VM task can start from a base OS image and install task software at first
+  boot, include metadata.agent_env.vm_provisioning.enabled=true with
+  apt_packages/system_packages, pip_packages/python_packages, snap_packages,
+  cran_packages/r_packages, bioconductor_packages/bioc_packages,
+  julia_packages, conda_packages with conda_channels, cargo_packages,
+  go_packages, gem_packages, composer_packages, apk/dnf/yum/pacman package
+  fields for non-Ubuntu bases, install_steps, commands, and optional
+  desktop_bridge_install_command/desktop_bridge_start_command. EvaluationClaw
+  writes these into the same cloud-init seed ISO as task files.
+  For professional, VM-backed, GUI/desktop-software, docker_workspace, or
+  long-horizon executable tasks, also include metadata.agent_task_package with
+  schema_version "evalclaw.agent_task_package.v1". It must define visible
+  inputs, hidden references, output contract, setup/run/evaluate steps,
+  evaluation checks, artifact collection, trajectory requirements, environment
+  requirements, and provenance.
+  For industrial multi-software workflows, require at least two named
+  industrial applications and explicit artifact handoffs. Prefer KiCad +
+  FreeCAD + Blender for reproducible EDA/CAD/rendering coverage when no
+  licensed stack is supplied. Include session.workflow_stages,
+  handoff_artifacts, expected_artifacts, vm.required_software, a
+  workflow_manifest.json contract, vm_provisioning for kicad/freecad/blender
+  when using a base Ubuntu VM, and a hidden evaluator or bridge check for
+  artifacts plus provenance.
   - workspace tests navigation, organization, and multi-step state tracking.
   - code_sandbox tests iterative coding: write code, run tests, read failures,
     and revise.
-""" + "\n\n" + TASK_AGENT_GENERATION_GUIDANCE + "\n\nCanonical metadata.task_agent schema example:\n" + json.dumps(
+""" + "\n\n" + TASK_AGENT_GENERATION_GUIDANCE + "\n\n" + AGENT_TASK_PACKAGE_GENERATION_GUIDANCE + "\n\nCanonical metadata.task_agent schema example:\n" + json.dumps(
     TASK_AGENT_SCHEMA,
+    ensure_ascii=False,
+    indent=2,
+) + "\n\nCanonical metadata.agent_task_package schema example:\n" + json.dumps(
+    AGENT_TASK_PACKAGE_SCHEMA,
     ensure_ascii=False,
     indent=2,
 ) + """

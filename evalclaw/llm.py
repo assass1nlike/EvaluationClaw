@@ -50,6 +50,11 @@ def _message_dicts(messages: list[Message], system: Optional[str] = None) -> lis
     return result
 
 
+def _messages_request_json(messages: list[dict]) -> bool:
+    text = "\n".join(str(message.get("content") or "") for message in messages).lower()
+    return "json" in text
+
+
 def _extract_litellm_content(response: object) -> str:
     choices = getattr(response, "choices", None)
     if choices is None and isinstance(response, dict):
@@ -273,10 +278,15 @@ def call_llm(
         )
         budget = _effective_max_tokens(model_name, max_tokens)
         for attempt in range(2):
+            body: dict[str, Any] = {"model": model_name, "messages": messages_dict, "max_tokens": budget}
+            if "api.deepseek.com" in base_url and model_name.startswith("deepseek-v4"):
+                body["thinking"] = {"type": "disabled"}
+                if _messages_request_json(messages_dict):
+                    body["response_format"] = {"type": "json_object"}
             data = _post_with_retry(
                 f"{base_url.rstrip('/')}/chat/completions",
                 headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-                body={"model": model_name, "messages": messages_dict, "max_tokens": budget},
+                body=body,
             )
             choice = data["choices"][0]
             if choice.get("finish_reason") == "length":
@@ -287,7 +297,12 @@ def call_llm(
                     f"LLM output truncated at {budget} completion tokens "
                     f"(finish_reason=length) for model {model_name}"
                 )
-            return choice["message"]["content"]
+            message = choice["message"]
+            content = message.get("content")
+            if isinstance(content, str) and content:
+                return content
+            reasoning = message.get("reasoning_content")
+            return reasoning if isinstance(reasoning, str) else ""
 
     # Native Anthropic path
     client = _get_anthropic_client(api_key)
