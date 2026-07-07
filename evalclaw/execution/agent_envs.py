@@ -10,8 +10,10 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from ..protocols.tool import ToolSpec, format_tool_specs_for_prompt, object_schema
-from ..types import BenchmarkItem
+from ..types import BenchmarkConfig, BenchmarkItem
+from .desktop_agent_env import DesktopBridgeAgentEnvironment
 from .docker_agent_env import DockerWorkspaceAgentEnvironment
+from .docker_images import apply_docker_image_selection
 
 DEFAULT_WORKSPACE_ENV: dict[str, Any] = {
     "type": "workspace",
@@ -508,26 +510,59 @@ class CodeSandboxAgentEnvironment:
 
 def build_agent_environment(
     item: BenchmarkItem,
-) -> WorkspaceAgentEnvironment | CodeSandboxAgentEnvironment | DockerWorkspaceAgentEnvironment:
-    config = item.metadata.get("agent_env")
+    config: BenchmarkConfig | None = None,
+) -> WorkspaceAgentEnvironment | CodeSandboxAgentEnvironment | DockerWorkspaceAgentEnvironment | DesktopBridgeAgentEnvironment:
+    env_config = item.metadata.get("agent_env")
     task_agent = item.metadata.get("task_agent")
-    if not isinstance(config, dict) and isinstance(task_agent, dict):
+    if not isinstance(env_config, dict) and isinstance(task_agent, dict):
         execution = task_agent.get("execution")
         if isinstance(execution, dict) and isinstance(execution.get("agent_env"), dict):
-            config = execution["agent_env"]
-    if not isinstance(config, dict):
-        config = copy.deepcopy(DEFAULT_WORKSPACE_ENV)
-    if isinstance(task_agent, dict) and config.get("type") == "code_sandbox":
+            env_config = execution["agent_env"]
+    if not isinstance(env_config, dict):
+        env_config = copy.deepcopy(DEFAULT_WORKSPACE_ENV)
+    else:
+        env_config = copy.deepcopy(env_config)
+    if isinstance(task_agent, dict) and env_config.get("type") == "code_sandbox":
         initial = task_agent.get("initial_content")
         if isinstance(initial, dict) and isinstance(initial.get("files"), dict) and not isinstance(
-            config.get("visible_files") or config.get("files"), dict
+            env_config.get("visible_files") or env_config.get("files"), dict
         ):
-            config = {**config, "visible_files": initial["files"]}
-    env_type = str(config.get("type") or "workspace")
-    if env_type == "workspace":
-        return WorkspaceAgentEnvironment.from_config(config)
-    if env_type == "code_sandbox":
-        return CodeSandboxAgentEnvironment.from_config(config)
+            env_config = {**env_config, "visible_files": initial["files"]}
+    env_type = str(env_config.get("type") or "workspace")
     if env_type == "docker_workspace":
-        return DockerWorkspaceAgentEnvironment.from_config(config)
+        task_text = "\n".join(
+            value
+            for value in (
+                item.prompt,
+                item.rubric or "",
+                " ".join(item.tags),
+                str(item.metadata.get("task_agent") or ""),
+            )
+            if value
+        )
+        if config is not None and not config.docker_auto_select_image:
+            env_config["auto_select_image"] = False
+        env_config, _ = apply_docker_image_selection(env_config, task_text=task_text)
+        if config is not None:
+            env_config.setdefault("pull_timeout", config.docker_pull_timeout_s)
+    if env_type == "gui_desktop" and config is not None:
+        requires_vm = bool(env_config.get("requires_vm") or env_config.get("vm"))
+        env_config = {
+            **env_config,
+            "bridge_url": env_config.get("bridge_url") or ("" if requires_vm else config.gui_bridge_url or ""),
+            "bridge_api_key": env_config.get("bridge_api_key") or config.gui_bridge_api_key,
+            "timeout": env_config.get("timeout") or config.gui_bridge_timeout_s,
+            "vm_provider_url": env_config.get("vm_provider_url") or config.vm_provider_url or ("local://auto" if requires_vm else ""),
+            "vm_provider_api_key": env_config.get("vm_provider_api_key") or config.vm_provider_api_key,
+            "vm_provider_timeout": env_config.get("vm_provider_timeout") or config.vm_provider_timeout_s,
+            "destroy_vm_on_cleanup": env_config.get("destroy_vm_on_cleanup", config.vm_provider_destroy_on_cleanup),
+        }
+    if env_type == "workspace":
+        return WorkspaceAgentEnvironment.from_config(env_config)
+    if env_type == "code_sandbox":
+        return CodeSandboxAgentEnvironment.from_config(env_config)
+    if env_type == "docker_workspace":
+        return DockerWorkspaceAgentEnvironment.from_config(env_config)
+    if env_type == "gui_desktop":
+        return DesktopBridgeAgentEnvironment.from_config(env_config)
     raise ValueError(f"Unsupported agent environment type: {env_type}")

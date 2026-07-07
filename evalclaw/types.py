@@ -149,6 +149,9 @@ class BenchmarkSource(BaseModel):
 
 class AgentTaskFamily(str, Enum):
     workspace_navigation = "workspace_navigation"
+    gui_desktop = "gui_desktop"
+    browser_gui = "browser_gui"
+    desktop_software = "desktop_software"
     code_repair = "code_repair"
     repo_issue = "repo_issue"
     shell_debugging = "shell_debugging"
@@ -165,6 +168,7 @@ class AgentEnvironmentType(str, Enum):
     workspace = "workspace"
     code_sandbox = "code_sandbox"
     docker_workspace = "docker_workspace"
+    gui_desktop = "gui_desktop"
 
 
 class AgentResource(BaseModel):
@@ -199,6 +203,11 @@ class AgentEnvironmentSpec(BaseModel):
     visible_files: dict[str, str] = Field(default_factory=dict)
     hidden_files: dict[str, str] = Field(default_factory=dict)
     image: str = ""
+    auto_select_image: bool = True
+    image_selection: dict[str, Any] = Field(default_factory=dict)
+    image_build: dict[str, Any] = Field(default_factory=dict)
+    pull_image: bool = True
+    pull_timeout: int = 300
     setup_commands: list[str] = Field(default_factory=list)
     test_command: str = ""
     max_steps: int = 8
@@ -206,6 +215,16 @@ class AgentEnvironmentSpec(BaseModel):
     network: str = "none"
     resource_limits: dict[str, Any] = Field(default_factory=dict)
     workspace: dict[str, Any] = Field(default_factory=dict)
+    bridge_url: str = ""
+    bridge_api_key: Optional[str] = None
+    requires_vm: bool = False
+    vm_provider_url: str = ""
+    vm_provider_api_key: Optional[str] = None
+    vm: dict[str, Any] = Field(default_factory=dict)
+    vm_materialization: dict[str, Any] = Field(default_factory=dict)
+    vm_provisioning: dict[str, Any] = Field(default_factory=dict)
+    session: dict[str, Any] = Field(default_factory=dict)
+    evaluation: dict[str, Any] = Field(default_factory=dict)
     notes: str = ""
 
 
@@ -480,6 +499,8 @@ class BenchmarkConfig(BaseModel):
     loop3_diagnosis: str = "llm"  # llm | local
     loop3_diagnosis_timeout_s: int = 90
     loop3_max_actions: int = 4
+    docker_auto_select_image: bool = True
+    docker_pull_timeout_s: int = 300
     swebench_use_wsl: bool = False
     swebench_wsl_distro: Optional[str] = None
     swebench_wsl_python_executable: str = ".venv-swebench-wsl/bin/python"
@@ -491,6 +512,13 @@ class BenchmarkConfig(BaseModel):
     swebench_dataset_name: str = "princeton-nlp/SWE-bench_Lite"
     swebench_split: str = "test"
     swebench_predictions_path: str = "gold"
+    gui_bridge_url: Optional[str] = None
+    gui_bridge_api_key: Optional[str] = None
+    gui_bridge_timeout_s: int = 30
+    vm_provider_url: Optional[str] = None
+    vm_provider_api_key: Optional[str] = None
+    vm_provider_timeout_s: int = 120
+    vm_provider_destroy_on_cleanup: bool = True
 
 
 # Backwards-compatible aliases for older scripts that import these names.

@@ -16,6 +16,10 @@ from .hf_discovery import discover_hf_datasets
 from .hf_ingest import import_hf_dataset_items
 from .llm import call_llm, extract_json
 from .prompts.generator import GENERATOR_MULTIMODAL_PROMPT, GENERATOR_SYSTEM_PROMPT
+from .protocols.agent_task_package import (
+    AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
+    AGENT_TASK_PACKAGE_SCHEMA,
+)
 from .protocols.multimodal import (
     MULTIMODAL_GENERATION_GUIDANCE,
     MULTIMODAL_SCHEMA,
@@ -474,6 +478,8 @@ def generate_dimension_items(
         },
         "task_agent_schema": TASK_AGENT_SCHEMA,
         "task_agent_generation_guidance": TASK_AGENT_GENERATION_GUIDANCE,
+        "agent_task_package_schema": AGENT_TASK_PACKAGE_SCHEMA,
+        "agent_task_package_generation_guidance": AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
         "scale_budget_guidance": _generation_scale_guidance(spec),
         "research_context": _source_context(sources),
         "repair_guidance": repair_guidance or [],

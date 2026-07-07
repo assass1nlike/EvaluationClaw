@@ -7,12 +7,19 @@ import uuid
 from collections import defaultdict
 from typing import Any
 
+from .execution.docker_images import apply_docker_image_selection
 from .generation.fallback import fallback_items
 from .generator import _safe_difficulty as _item_safe_difficulty
 from .generator import _safe_task_type as _item_safe_task_type
 from .generator import _source_context
 from .llm import call_llm, extract_json
 from .prompts.agent_benchmark import AGENT_BENCHMARK_PLANNER_PROMPT, AGENT_TASK_BUILDER_PROMPT
+from .protocols.agent_task_package import (
+    AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
+    AGENT_TASK_PACKAGE_METADATA_KEY,
+    AGENT_TASK_PACKAGE_SCHEMA,
+    AGENT_TASK_PACKAGE_SCHEMA_VERSION,
+)
 from .protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
 from .scaling import scale_budget_target_workload
 from .search import format_search_result, web_search
@@ -133,7 +140,409 @@ def _goal_mentions_code(goal: str) -> bool:
     return any(keyword in text for keyword in ("code", "repo", "repository", "debug", "repair", "test", "python", "program"))
 
 
+def _contains_any(text: str, keywords: tuple[str, ...]) -> bool:
+    return any(keyword in text for keyword in keywords)
+
+
+def _mentioned_industrial_apps(full_text: str) -> list[str]:
+    app_keywords = (
+        ("kicad", "KiCad"),
+        ("freecad", "FreeCAD"),
+        ("blender", "Blender"),
+        ("autocad", "AutoCAD"),
+        ("solidworks", "SolidWorks"),
+        ("fusion 360", "Fusion 360"),
+        ("inventor", "Inventor"),
+        ("catia", "CATIA"),
+        ("nx", "NX"),
+        ("rhino", "Rhino"),
+        ("revit", "Revit"),
+        ("ltspice", "LTspice"),
+        ("ansys", "Ansys"),
+        ("moldex3d", "Moldex3D"),
+        ("powermill", "PowerMill"),
+    )
+    found: list[str] = []
+    for needle, label in app_keywords:
+        if needle in full_text:
+            found.append(label)
+    return list(dict.fromkeys(found))
+
+
+def _goal_mentions_multi_industrial_workflow(full_text: str) -> bool:
+    normalized_text = re.sub(r"[-_/]+", " ", full_text)
+    search_text = f"{full_text} {normalized_text}"
+    multi_markers = (
+        "multi software",
+        "multi-software",
+        "multi industrial",
+        "multi industrial software",
+        "multiple software",
+        "multiple industrial",
+        "cross-application",
+        "cross application",
+        "cross-tool",
+        "toolchain",
+        "interoperability",
+        "handoff",
+        "workflow",
+        "pipeline",
+        "\u591a\u8f6f\u4ef6",
+        "\u591a\u4e2a\u8f6f\u4ef6",
+        "\u534f\u540c",
+        "\u5171\u540c\u53c2\u4e0e",
+        "\u5de5\u4f5c\u6d41",
+    )
+    industrial_markers = (
+        "industrial software",
+        "engineering software",
+        "cad",
+        "eda",
+        "cae",
+        "cam",
+        "pcb",
+        "mechanical",
+        "manufacturing",
+        "enclosure",
+        "render",
+        "3d model",
+        "kicad",
+        "freecad",
+        "blender",
+        "autocad",
+        "solidworks",
+        "\u5de5\u4e1a\u8f6f\u4ef6",
+        "\u5de5\u4e1a",
+        "\u5de5\u7a0b",
+        "\u673a\u68b0",
+        "\u5236\u9020",
+        "\u7535\u8def\u677f",
+        "\u5e38\u7528\u5de5\u4e1a\u8f6f\u4ef6",
+    )
+    mentioned_apps = _mentioned_industrial_apps(search_text)
+    return (
+        len(mentioned_apps) >= 2
+        or (_contains_any(search_text, multi_markers) and _contains_any(search_text, industrial_markers))
+    )
+
+
+def _goal_mentions_gui_desktop(full_text: str) -> bool:
+    gui_keywords = (
+        "gui",
+        "desktop",
+        "cua",
+        "computer use",
+        "mouse",
+        "keyboard",
+        "cursor",
+        "screenshot",
+        "click",
+        "drag",
+        "scroll",
+        "window",
+        "ui interaction",
+        "graphical interface",
+        "remote desktop",
+        "vnc",
+        "rdp",
+        "\u56fe\u5f62\u754c\u9762",
+        "\u684c\u9762",
+        "\u8f6f\u4ef6\u64cd\u4f5c",
+    )
+    return _contains_any(full_text, gui_keywords)
+
+
+def _goal_mentions_browser_gui(full_text: str) -> bool:
+    browser_keywords = (
+        "browser gui",
+        "browser automation",
+        "browser ui",
+        "web app",
+        "website ui",
+        "browser-based",
+        "browser based",
+        "page interaction",
+        "click through",
+    )
+    return _contains_any(full_text, browser_keywords) or ("browser" in full_text and any(
+        keyword in full_text for keyword in ("click", "scroll", "screenshot", "form", "page", "ui")
+    ))
+
+
+def _goal_mentions_desktop_software(full_text: str) -> bool:
+    software_keywords = (
+        "blender",
+        "freecad",
+        "kicad",
+        "autocad",
+        "solidworks",
+        "fusion 360",
+        "inventor",
+        "catia",
+        "ansys",
+        "3d modeling",
+        "3d model",
+        "3d scene",
+        "render",
+        "mesh",
+        "material",
+        "animation",
+        "cad",
+        "bim",
+        "cae",
+        "cam",
+        "rhino",
+        "moldex3d",
+        "powermill",
+        "ltspice",
+        "unreal",
+        "davinci",
+        "after effects",
+        "video compositing",
+        "chroma key",
+        "spreadsheet",
+        "excel",
+        "word processor",
+        "document editor",
+        "presentation",
+        "slides",
+        "pdf viewer",
+        "file manager",
+        "photo editor",
+        "image editor",
+        "desktop software",
+        "desktop app",
+        "native app",
+        "application window",
+        "industrial software",
+        "engineering software",
+        "\u5de5\u4e1a\u8f6f\u4ef6",
+        "\u5de5\u7a0b\u8f6f\u4ef6",
+        "\u5efa\u6a21\u8f6f\u4ef6",
+        "\u7535\u8def\u677f",
+        "\u673a\u68b0\u8bbe\u8ba1",
+    )
+    return _contains_any(full_text, software_keywords)
+
+
+def _goal_mentions_blender(full_text: str) -> bool:
+    blender_keywords = (
+        "blender",
+        "3d modeling",
+        "3d model",
+        "3d scene",
+        "mesh",
+        "material",
+        "rendered image",
+        "render image",
+        "cycles render",
+        "eevee",
+    )
+    return _contains_any(full_text, blender_keywords)
+
+
+def _goal_mentions_runtime_pipeline(full_text: str) -> bool:
+    runtime_keywords = (
+        "scientific computing",
+        "simulation",
+        "numerical",
+        "pipeline",
+        "dataset",
+        "notebook",
+        "zarr",
+        "netcdf",
+        "climate",
+        "genomics",
+        "variant calling",
+        "bioinformatics",
+        "clinical",
+        "cell tracking",
+        "financial statement",
+        "sec filing",
+        "10-k",
+        "kubernetes",
+        "k8s",
+        "sre",
+        "root cause",
+        "incident",
+        "pcap",
+        "wireshark",
+        "ghidra",
+        "malware",
+        "cloud cost",
+        "chemistry",
+        "materials",
+        "phonon",
+        "vqe",
+    )
+    return _contains_any(full_text, runtime_keywords)
+
+
+def _runtime_task_family(full_text: str) -> AgentTaskFamily:
+    diagnostic_keywords = ("kubernetes", "k8s", "sre", "root cause", "incident", "pcap", "wireshark", "ghidra", "malware")
+    if _contains_any(full_text, diagnostic_keywords):
+        return AgentTaskFamily.shell_debugging
+    return AgentTaskFamily.data_analysis
+
+
 def _fallback_dimensions(goal: str) -> list[EvalDimension]:
+    full_text = goal.lower()
+    if _goal_mentions_multi_industrial_workflow(full_text):
+        return [
+            EvalDimension(
+                id="cross_application_artifact_handoff",
+                name="Cross-application artifact handoff",
+                description=(
+                    "Measure whether the agent can pass engineering artifacts across multiple industrial "
+                    f"applications without losing units, geometry, constraints, or provenance for: {goal}"
+                ),
+                approach=(
+                    "Use VM-backed workflows where one application produces an intermediate artifact that must be "
+                    "opened, checked, and transformed by another application."
+                ),
+                target_difficulty=Difficulty.L5,
+                needs_research=True,
+                research_queries=[
+                    "KiCad FreeCAD Blender PCB enclosure workflow",
+                    "CAD EDA render multi application engineering workflow benchmark",
+                ],
+                task_types=[TaskType.agent_interaction],
+                item_requirements=[
+                    "Construct a VM-backed desktop_software task requiring at least two named industrial applications.",
+                    "The task must include explicit handoff artifacts, expected file paths, and provenance checks.",
+                    "Do not accept a single-application or text-only task for this dimension.",
+                ],
+            ),
+            EvalDimension(
+                id="engineering_constraint_reconciliation",
+                name="Engineering constraint reconciliation",
+                description=(
+                    "Measure whether the agent can reconcile PCB, mechanical, manufacturing, and visual review "
+                    f"constraints across different tools for: {goal}"
+                ),
+                approach=(
+                    "Provide compact design briefs and hidden reference constraints; score final artifacts and a "
+                    "workflow manifest against clearance, placement, units, and review requirements."
+                ),
+                target_difficulty=Difficulty.L5,
+                task_types=[TaskType.agent_interaction],
+                item_requirements=[
+                    "Include design constraints that require cross-checking between EDA/CAD/rendering stages.",
+                    "Require a structured workflow manifest recording which application produced each artifact.",
+                    "Use hidden evaluator files or bridge checks for pass/partial/fail scoring.",
+                ],
+            ),
+            EvalDimension(
+                id="end_to_end_industrial_workflow_execution",
+                name="End-to-end industrial workflow execution",
+                description=(
+                    "Measure whether the agent can plan, execute, recover from tool friction, and finish a "
+                    f"multi-software industrial workflow for: {goal}"
+                ),
+                approach=(
+                    "Require launch/use of multiple desktop applications, artifact export/import, final review "
+                    "outputs, and deterministic bridge or artifact evaluation."
+                ),
+                target_difficulty=Difficulty.L5,
+                task_types=[TaskType.agent_interaction],
+                item_requirements=[
+                    "The environment must declare VM/session/software requirements for the full application stack.",
+                    "The task must produce concrete intermediate and final artifacts, not only a report.",
+                    "The trajectory requirements must make shortcut-only completion auditable.",
+                ],
+            ),
+        ]
+    if _goal_mentions_gui_desktop(full_text) or _goal_mentions_desktop_software(full_text):
+        return [
+            EvalDimension(
+                id="desktop_state_grounding",
+                name="Desktop state grounding",
+                description=f"Measure whether the agent can inspect and understand GUI/software state for: {goal}",
+                approach="Use VM/bridge-backed desktop tasks with screenshots, files, assets, and explicit session state.",
+                target_difficulty=Difficulty.L5,
+                needs_research=True,
+                research_queries=[f"{goal} desktop agent benchmark task", f"{goal} reference artifact evaluation"],
+                task_types=[TaskType.agent_interaction],
+                item_requirements=[
+                    "Construct a GUI or desktop-software task with metadata.task_agent and metadata.agent_task_package.",
+                    "The task must include visible inputs, VM/session requirements, expected artifacts, hidden references, and bridge evaluation.",
+                ],
+            ),
+            EvalDimension(
+                id="artifact_workflow_execution",
+                name="Artifact workflow execution",
+                description=f"Measure whether the agent can complete a professional software workflow and produce artifacts for: {goal}",
+                approach="Require multi-step GUI/tool use, saved files, exported artifacts, and deterministic artifact checks.",
+                target_difficulty=Difficulty.L5,
+                task_types=[TaskType.agent_interaction],
+                item_requirements=[
+                    "Require the target to produce concrete files or GUI state, not only a textual summary.",
+                    "Use metadata.agent_task_package.output_contract and artifact_collection to name all outputs and logs.",
+                ],
+            ),
+            EvalDimension(
+                id="hidden_reference_alignment",
+                name="Hidden-reference alignment",
+                description=(
+                    "Measure whether produced artifacts match runner-private reference criteria without exposing "
+                    f"the oracle for: {goal}"
+                ),
+                approach="Use hidden references, evaluator scripts, artifact metrics, and trace checks.",
+                target_difficulty=Difficulty.L5,
+                task_types=[TaskType.agent_interaction],
+                item_requirements=[
+                    "Keep reference artifacts and evaluator internals runner-private.",
+                    "Define pass/partial/fail criteria and trajectory requirements in metadata.agent_task_package.",
+                ],
+            ),
+        ]
+    if _goal_mentions_runtime_pipeline(full_text):
+        return [
+            EvalDimension(
+                id="resource_grounded_pipeline_setup",
+                name="Resource-grounded pipeline setup",
+                description=f"Measure whether the agent can inspect domain resources, configs, data, and docs for: {goal}",
+                approach="Use Docker-backed tasks with compact source-backed files and realistic setup commands.",
+                target_difficulty=Difficulty.L5,
+                needs_research=True,
+                research_queries=[f"{goal} benchmark dataset", f"{goal} reproducible workflow"],
+                task_types=[TaskType.agent_interaction],
+                item_requirements=[
+                    "Build a docker_workspace task with visible files, setup commands, and metadata.agent_task_package.",
+                    "Use source-backed or realistic compact fixtures rather than pure prose prompts.",
+                ],
+            ),
+            EvalDimension(
+                id="iterative_execution_and_recovery",
+                name="Iterative execution and recovery",
+                description=(
+                    "Measure whether the agent can run commands, diagnose failures, revise files, and complete "
+                    f"the workflow for: {goal}"
+                ),
+                approach="Require command execution, log inspection, edits or parameter choices, and reruns.",
+                target_difficulty=Difficulty.L5,
+                task_types=[TaskType.agent_interaction],
+                item_requirements=[
+                    "The task must require at least one executable run/test/evaluation step.",
+                    "Scoring should reward correct recovery from realistic command, data, or configuration failures.",
+                ],
+            ),
+            EvalDimension(
+                id="structured_output_oracle",
+                name="Structured output oracle",
+                description=(
+                    "Measure whether final outputs match hidden truth sets, numerical tolerances, or schema checks "
+                    f"for: {goal}"
+                ),
+                approach="Use hidden evaluator files or tests over produced JSON/CSV/reports/artifacts.",
+                target_difficulty=Difficulty.L5,
+                task_types=[TaskType.agent_interaction],
+                item_requirements=[
+                    "Define output_contract, hidden_references, evaluation checks, and artifact_collection.",
+                    "Keep hidden truth sets runner-private and make all visible inputs self-contained.",
+                ],
+            ),
+        ]
     return [
         EvalDimension(
             id="agent_tool_use",
@@ -178,6 +587,155 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
 def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBlueprint:
     identity = " ".join([dimension.id, dimension.name]).lower()
     full_text = " ".join([dimension.id, dimension.name, dimension.description, dimension.approach]).lower()
+    if _goal_mentions_multi_industrial_workflow(full_text):
+        return AgentTaskBlueprint(
+            id=f"{dimension.id}_industrial_multi_app_blueprint",
+            dimension_id=dimension.id,
+            title=f"{dimension.name} industrial multi-app workflow",
+            description=f"VM-backed multi-application industrial software workflow tasks for {dimension.name}.",
+            task_family=AgentTaskFamily.desktop_software,
+            environment_type=AgentEnvironmentType.gui_desktop,
+            expected_task_count=1,
+            resource_queries=[
+                f"{dimension.name} KiCad FreeCAD Blender workflow",
+                f"{dimension.name} CAD EDA mechanical render artifact handoff",
+            ],
+            source_strategy=(
+                "Prefer source-backed industrial workflows and compact generated project briefs. Use the "
+                "reproducible open-source stack KiCad + FreeCAD + Blender unless the user supplied a licensed "
+                "industrial software stack."
+            ),
+            tool_requirements=[
+                "screenshot",
+                "mouse_move",
+                "click",
+                "drag",
+                "scroll",
+                "key",
+                "type",
+                "list_files",
+                "read_file",
+                "write_file",
+                "run_command",
+                "evaluate",
+            ],
+            construction_requirements=[
+                "Build a VM-backed desktop_software task with at least two distinct industrial applications; default to KiCad, FreeCAD, and Blender for reproducible open-source coverage.",
+                "Define workflow_stages with input artifacts, output artifacts, and the application responsible for each handoff.",
+                "Require a final workflow_manifest.json recording application sequence, artifact provenance, units, and checks performed.",
+                "Provide hidden evaluator logic or bridge checks for intermediate artifacts, final artifacts, and GUI/tool trajectory.",
+                "Reject tasks that can be completed entirely inside one application or by writing a text report.",
+            ],
+            scoring_strategy=(
+                "Bridge-backed artifact evaluation over EDA/CAD/render outputs, workflow manifest provenance, "
+                "and trace evidence that multiple industrial applications were used."
+            ),
+        )
+    if _goal_mentions_browser_gui(full_text):
+        return AgentTaskBlueprint(
+            id=f"{dimension.id}_browser_gui_blueprint",
+            dimension_id=dimension.id,
+            title=f"{dimension.name} browser GUI",
+            description=f"Browser-mediated GUI tasks for {dimension.name}.",
+            task_family=AgentTaskFamily.browser_gui,
+            environment_type=AgentEnvironmentType.gui_desktop,
+            expected_task_count=1,
+            resource_queries=[f"{dimension.name} browser GUI benchmark"],
+            source_strategy="Use a bridge-backed browser session or local web app bundle.",
+            tool_requirements=[
+                "screenshot",
+                "mouse_move",
+                "click",
+                "drag",
+                "scroll",
+                "key",
+                "type",
+                "list_files",
+                "read_file",
+                "write_file",
+                "run_command",
+                "evaluate",
+            ],
+            construction_requirements=[
+                "Define the browser session state and starting page in the task-agent metadata.",
+                "Specify the completion oracle as a page-state or artifact check.",
+            ],
+            scoring_strategy="Bridge-backed evaluation with artifact or page-state scoring.",
+        )
+    if _goal_mentions_desktop_software(full_text):
+        is_blender = _goal_mentions_blender(full_text)
+        title_suffix = "Blender task" if is_blender else "desktop software"
+        source_query = f"{dimension.name} Blender 3D modeling benchmark" if is_blender else f"{dimension.name} desktop software benchmark"
+        construction_requirements = [
+            "Define the application, initial document state, and expected output artifacts.",
+            "Make the oracle inspectable through saved files, exported artifacts, or bridge evaluation.",
+        ]
+        if is_blender:
+            construction_requirements = [
+                "Define a Blender VM session with a clean Blender image/snapshot and desktop bridge.",
+                "Provide scene requirements, starter assets or scripts, and expected .blend/render artifacts.",
+                "Make the oracle inspect object types, materials, positions, camera/light setup, and rendered PNG validity.",
+            ]
+        return AgentTaskBlueprint(
+            id=f"{dimension.id}_desktop_software_blueprint",
+            dimension_id=dimension.id,
+            title=f"{dimension.name} {title_suffix}",
+            description=f"Desktop application tasks for {dimension.name}.",
+            task_family=AgentTaskFamily.desktop_software,
+            environment_type=AgentEnvironmentType.gui_desktop,
+            expected_task_count=1,
+            resource_queries=[source_query],
+            source_strategy="Use a bridge-backed desktop application or local software fixture.",
+            tool_requirements=[
+                "screenshot",
+                "cursor_position",
+                "mouse_move",
+                "click",
+                "type",
+                "key",
+                "scroll",
+                "list_files",
+                "read_file",
+                "write_file",
+                "run_command",
+                "evaluate",
+            ],
+            construction_requirements=construction_requirements,
+            scoring_strategy="Bridge-backed artifact scoring with deterministic checks when possible.",
+        )
+    if _goal_mentions_gui_desktop(full_text):
+        return AgentTaskBlueprint(
+            id=f"{dimension.id}_gui_desktop_blueprint",
+            dimension_id=dimension.id,
+            title=f"{dimension.name} GUI desktop",
+            description=f"General GUI desktop tasks for {dimension.name}.",
+            task_family=AgentTaskFamily.gui_desktop,
+            environment_type=AgentEnvironmentType.gui_desktop,
+            expected_task_count=1,
+            resource_queries=[f"{dimension.name} GUI desktop benchmark"],
+            source_strategy="Use a bridge-backed desktop session with realistic UI state.",
+            tool_requirements=[
+                "screenshot",
+                "cursor_position",
+                "mouse_move",
+                "click",
+                "drag",
+                "scroll",
+                "key",
+                "type",
+                "hold_key",
+                "list_files",
+                "read_file",
+                "write_file",
+                "run_command",
+                "evaluate",
+            ],
+            construction_requirements=[
+                "Provide a standardized task-agent session description and evaluation contract.",
+                "Keep the task bridge-agnostic so runtime configuration can supply the actual desktop session.",
+            ],
+            scoring_strategy="Bridge-backed GUI state scoring or artifact evaluation.",
+        )
     if any(keyword in identity for keyword in ("code", "repo", "debug", "repair", "test", "python")):
         return AgentTaskBlueprint(
             id=f"{dimension.id}_code_blueprint",
@@ -213,6 +771,32 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
                 "Define pass/fail/partial scoring for the transcript.",
             ],
             scoring_strategy="Transcript-based judge scoring.",
+        )
+    if _goal_mentions_runtime_pipeline(full_text):
+        task_family = _runtime_task_family(full_text)
+        return AgentTaskBlueprint(
+            id=f"{dimension.id}_{task_family.value}_blueprint",
+            dimension_id=dimension.id,
+            title=f"{dimension.name} executable workflow",
+            description=f"Docker-backed executable workflow tasks for {dimension.name}.",
+            task_family=task_family,
+            environment_type=AgentEnvironmentType.docker_workspace,
+            expected_task_count=1,
+            resource_queries=[
+                f"{dimension.name} benchmark dataset task",
+                f"{dimension.name} reproducible workflow fixture",
+            ],
+            source_strategy=(
+                "Use compact source-backed datasets, logs, notebooks, configs, or document packets where possible; "
+                "generate only the minimal fixture needed to make the task executable."
+            ),
+            tool_requirements=["list_files", "read_file", "write_file", "run_command", "run_tests"],
+            construction_requirements=[
+                "Build a complete docker_workspace task with visible input files, setup commands, and deterministic evaluation.",
+                "Include metadata.agent_task_package with visible_inputs, hidden_references, output_contract, execution, evaluation, artifact_collection, trajectory_requirements, and provenance.",
+                "Keep hidden truth sets, reference outputs, or evaluator scripts runner-private.",
+            ],
+            scoring_strategy="Deterministic hidden evaluator over produced files, structured outputs, logs, or numerical tolerances.",
         )
     if any(keyword in full_text for keyword in ("browser", "web", "search", "research", "api", "tool")):
         return AgentTaskBlueprint(
@@ -262,17 +846,22 @@ def plan_agent_benchmark(goal: str, config: BenchmarkConfig) -> tuple[EvalSpec, 
             "benchmark_mode": config.benchmark_mode.value,
             "task_agent_schema": TASK_AGENT_SCHEMA,
             "task_agent_generation_guidance": TASK_AGENT_GENERATION_GUIDANCE,
+            "agent_task_package_schema": AGENT_TASK_PACKAGE_SCHEMA,
+            "agent_task_package_generation_guidance": AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
         }
-        raw = call_llm(
-            [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
-            system=AGENT_BENCHMARK_PLANNER_PROMPT,
-            model=config.orchestrator_model,
-            api_key=config.orchestrator_api_key,
-            base_url=config.orchestrator_base_url,
-            backend=config.llm_backend,
-            max_tokens=8192,
-        )
-        parsed = extract_json(raw)
+        try:
+            raw = call_llm(
+                [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
+                system=AGENT_BENCHMARK_PLANNER_PROMPT,
+                model=config.orchestrator_model,
+                api_key=config.orchestrator_api_key,
+                base_url=config.orchestrator_base_url,
+                backend=config.llm_backend,
+                max_tokens=8192,
+            )
+            parsed = extract_json(raw)
+        except Exception:
+            parsed = None
         if isinstance(parsed, dict):
             spec = _parse_dimensions(parsed, goal, scale_budget)
             blueprints: list[AgentTaskBlueprint] = []
@@ -445,6 +1034,11 @@ def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_i
             if isinstance(environment.get("hidden_files"), dict)
             else {},
             image=str(environment.get("image") or ""),
+            auto_select_image=bool(environment.get("auto_select_image", True)),
+            image_selection=environment.get("image_selection") if isinstance(environment.get("image_selection"), dict) else {},
+            image_build=environment.get("image_build") if isinstance(environment.get("image_build"), dict) else {},
+            pull_image=bool(environment.get("pull_image", True)),
+            pull_timeout=max(1, int(environment.get("pull_timeout") or 300)),
             setup_commands=[str(cmd) for cmd in environment.get("setup_commands", []) if str(cmd).strip()]
             if isinstance(environment.get("setup_commands"), list)
             else [],
@@ -454,6 +1048,20 @@ def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_i
             network=str(environment.get("network") or "none"),
             resource_limits=environment.get("resource_limits") if isinstance(environment.get("resource_limits"), dict) else {},
             workspace=environment.get("workspace") if isinstance(environment.get("workspace"), dict) else {},
+            bridge_url=str(environment.get("bridge_url") or ""),
+            bridge_api_key=str(environment.get("bridge_api_key") or "").strip() or None,
+            requires_vm=bool(environment.get("requires_vm", False)),
+            vm_provider_url=str(environment.get("vm_provider_url") or ""),
+            vm_provider_api_key=str(environment.get("vm_provider_api_key") or "").strip() or None,
+            vm=environment.get("vm") if isinstance(environment.get("vm"), dict) else {},
+            vm_materialization=environment.get("vm_materialization")
+            if isinstance(environment.get("vm_materialization"), dict)
+            else {},
+            vm_provisioning=environment.get("vm_provisioning")
+            if isinstance(environment.get("vm_provisioning"), dict)
+            else {},
+            session=environment.get("session") if isinstance(environment.get("session"), dict) else {},
+            evaluation=environment.get("evaluation") if isinstance(environment.get("evaluation"), dict) else {},
             notes=str(environment.get("notes") or ""),
         ),
         interaction=raw.get("interaction") if isinstance(raw.get("interaction"), dict) else {},
@@ -499,6 +1107,9 @@ def _task_from_legacy_item(item: BenchmarkItem, *, title: str, family: AgentTask
         resource_ids=[],
         environment=AgentEnvironmentSpec(
             type=env_type,
+            tools=[tool for tool in env.get("tools", []) if isinstance(tool, dict)]
+            if isinstance(env.get("tools"), list)
+            else [],
             visible_files={str(k): str(v) for k, v in (env.get("visible_files") or env.get("files") or {}).items()}
             if isinstance(env.get("visible_files") or env.get("files"), dict)
             else {},
@@ -506,6 +1117,11 @@ def _task_from_legacy_item(item: BenchmarkItem, *, title: str, family: AgentTask
             if isinstance(env.get("hidden_files"), dict)
             else {},
             image=str(env.get("image") or ""),
+            auto_select_image=bool(env.get("auto_select_image", True)),
+            image_selection=env.get("image_selection") if isinstance(env.get("image_selection"), dict) else {},
+            image_build=env.get("image_build") if isinstance(env.get("image_build"), dict) else {},
+            pull_image=bool(env.get("pull_image", True)),
+            pull_timeout=max(1, int(env.get("pull_timeout") or 300)),
             setup_commands=[str(cmd) for cmd in env.get("setup_commands", [])]
             if isinstance(env.get("setup_commands"), list)
             else [],
@@ -515,6 +1131,16 @@ def _task_from_legacy_item(item: BenchmarkItem, *, title: str, family: AgentTask
             network=str(env.get("network") or "none"),
             resource_limits=env.get("resource_limits") if isinstance(env.get("resource_limits"), dict) else {},
             workspace=workspace,
+            bridge_url=str(env.get("bridge_url") or ""),
+            bridge_api_key=str(env.get("bridge_api_key") or "").strip() or None,
+            requires_vm=bool(env.get("requires_vm", False)),
+            vm_provider_url=str(env.get("vm_provider_url") or ""),
+            vm_provider_api_key=str(env.get("vm_provider_api_key") or "").strip() or None,
+            vm=env.get("vm") if isinstance(env.get("vm"), dict) else {},
+            vm_materialization=env.get("vm_materialization") if isinstance(env.get("vm_materialization"), dict) else {},
+            vm_provisioning=env.get("vm_provisioning") if isinstance(env.get("vm_provisioning"), dict) else {},
+            session=env.get("session") if isinstance(env.get("session"), dict) else {},
+            evaluation=env.get("evaluation") if isinstance(env.get("evaluation"), dict) else {},
             notes="Converted from EvaluationClaw fallback agent item.",
         ),
         interaction=task_agent.get("interaction") if isinstance(task_agent.get("interaction"), dict) else {},
@@ -554,6 +1180,13 @@ def _agent_system_prompt(environment: str) -> str:
             "You are the target model acting as an agent in an EvaluationClaw docker_workspace task. "
             "Use exactly one JSON tool action per turn. Inspect files, run diagnostic commands when useful, "
             "write complete file contents, run the configured tests, and stop only when the task is complete."
+        )
+    if environment == "gui_desktop":
+        return (
+            "You are the target model acting as an agent in an EvaluationClaw gui_desktop task. "
+            "Use exactly one JSON tool action per turn. Rely on screenshots, mouse, keyboard, file, and "
+            "command tools provided by the bridge. Inspect the current UI state before acting, keep the task "
+            "state in sync with the bridge session, and finish only when the bridge evaluation says the goal is complete."
         )
     return (
         "You are the target model acting as an agent in an EvaluationClaw simulated workspace. "
@@ -864,35 +1497,276 @@ def _shell_debugging_task_for_blueprint(
     *,
     index: int = 1,
 ) -> AgentTask:
-    visible = {
-        "healthcheck.sh": (
-            "#!/bin/sh\n"
-            "set -eu\n"
-            "python app.py --check data/input.txt\n"
-        ),
-        "app.py": (
-            "import argparse\n"
-            "from pathlib import Path\n\n"
-            "parser = argparse.ArgumentParser()\n"
-            "parser.add_argument('--check')\n"
-            "args = parser.parse_args()\n\n"
-            "path = Path(args.check)\n"
-            "lines = path.read_text().split('\\n')\n"
-            "print(f'records={len(lines)}')\n"
-            "if '' in lines:\n"
-            "    raise SystemExit('blank record found')\n"
-        ),
-        "data/input.txt": "alpha\nbeta\ngamma\n",
-    }
-    hidden = {
-        "tests.py": (
-            "import subprocess\n"
-            "import sys\n\n"
-            "proc = subprocess.run(['sh', 'healthcheck.sh'], text=True, capture_output=True)\n"
-            "assert proc.returncode == 0, proc.stdout + proc.stderr\n"
-            "assert 'records=3' in proc.stdout\n"
-        )
-    }
+    variants = [
+        {
+            "prompt": (
+                "The repository healthcheck fails because app.py mishandles ordinary text files. Use shell "
+                "diagnostics and file edits to make the hidden healthcheck tests pass."
+            ),
+            "scoring": {
+                "instructions": "Score by running hidden tests inside the docker_workspace.",
+                "pass": "The healthcheck succeeds and reports the correct number of records.",
+                "partial": "The agent runs useful diagnostics but the final tests still fail.",
+                "fail": "The agent never diagnoses the shell/runtime failure.",
+            },
+            "visible": {
+                "healthcheck.sh": (
+                    "#!/bin/sh\n"
+                    "set -eu\n"
+                    "python app.py --check data/input.txt\n"
+                ),
+                "app.py": (
+                    "import argparse\n"
+                    "from pathlib import Path\n\n"
+                    "parser = argparse.ArgumentParser()\n"
+                    "parser.add_argument('--check')\n"
+                    "args = parser.parse_args()\n\n"
+                    "path = Path(args.check)\n"
+                    "lines = path.read_text().split('\\n')\n"
+                    "print(f'records={len(lines)}')\n"
+                    "if '' in lines:\n"
+                    "    raise SystemExit('blank record found')\n"
+                ),
+                "data/input.txt": "alpha\nbeta\ngamma\n",
+            },
+            "hidden": {
+                "tests.py": (
+                    "import subprocess\n"
+                    "import sys\n\n"
+                    "proc = subprocess.run(['sh', 'healthcheck.sh'], text=True, capture_output=True)\n"
+                    "assert proc.returncode == 0, proc.stdout + proc.stderr\n"
+                    "assert 'records=3' in proc.stdout\n"
+                )
+            },
+        },
+        {
+            "prompt": (
+                "Diagnose the Kubernetes incident packet and update rca.py so answer() identifies the failing "
+                "service, root cause, and remediation. Use the provided logs/manifests, then run tests until they pass."
+            ),
+            "scoring": {
+                "instructions": (
+                    "Score by hidden RCA checks that verify the identified service, root cause, remediation, "
+                    "and cited evidence files."
+                ),
+                "pass": (
+                    "The RCA identifies payment-api, explains the readiness probe port mismatch between "
+                    "8080 and 8081, recommends aligning the probe/container port, and cites the log and manifest."
+                ),
+                "partial": "The RCA identifies the affected service and some evidence but misses the exact port mismatch or remediation.",
+                "fail": "The agent does not ground the RCA in the provided Kubernetes logs and manifests.",
+            },
+            "visible": {
+                "logs/payment-api.log": (
+                    "10:01 readiness probe failed: connect ECONNREFUSED 127.0.0.1:8080\n"
+                    "10:02 payment-api pod restarted after config reload\n"
+                    "10:03 upstream checkout requests returning 503\n"
+                ),
+                "manifests/payment-api.yaml": (
+                    "service: payment-api\n"
+                    "containerPort: 8081\n"
+                    "readinessProbe:\n"
+                    "  httpGet:\n"
+                    "    path: /ready\n"
+                    "    port: 8080\n"
+                ),
+                "rca.py": (
+                    "def answer():\n"
+                    "    return {'service': '', 'root_cause': '', 'remediation': '', 'evidence_files': []}\n"
+                ),
+            },
+            "hidden": {
+                "tests.py": (
+                    "from rca import answer\n\n"
+                    "result = answer()\n"
+                    "text = ' '.join(str(v).lower() for v in result.values())\n"
+                    "assert result['service'] == 'payment-api'\n"
+                    "assert 'readiness' in text and 'port' in text and '8080' in text and '8081' in text\n"
+                    "assert 'manifests/payment-api.yaml' in result['evidence_files']\n"
+                    "assert 'logs/payment-api.log' in result['evidence_files']\n"
+                )
+            },
+        },
+        {
+            "prompt": (
+                "Triage the security artifact packet and update extract_iocs.py so answer() returns the command-and-control "
+                "host, beacon interval, and suspicious user agent grounded in the provided PCAP summary. Run tests until they pass."
+            ),
+            "scoring": {
+                "instructions": "Score by hidden IOC checks over the produced structured answer.",
+                "pass": "The answer extracts the C2 host, beacon interval, user agent, and evidence file exactly.",
+                "partial": "The answer extracts at least two correct indicators but misses one required IOC or citation.",
+                "fail": "The agent does not identify the malicious flow from the packet summary.",
+            },
+            "visible": {
+                "pcap_summary.txt": (
+                    "flow 17: workstation -> updates.example.org GET /check user-agent Mozilla/5.0\n"
+                    "flow 22: workstation -> c2-shadow.invalid POST /gate user-agent WinHttp-Stage interval=45s\n"
+                    "flow 28: workstation -> cdn.example.org GET /asset.js user-agent Mozilla/5.0\n"
+                ),
+                "extract_iocs.py": (
+                    "def answer():\n"
+                    "    return {'c2_host': '', 'beacon_interval_s': 0, 'user_agent': '', 'evidence': []}\n"
+                ),
+            },
+            "hidden": {
+                "tests.py": (
+                    "from extract_iocs import answer\n\n"
+                    "result = answer()\n"
+                    "assert result['c2_host'] == 'c2-shadow.invalid'\n"
+                    "assert result['beacon_interval_s'] == 45\n"
+                    "assert result['user_agent'] == 'WinHttp-Stage'\n"
+                    "assert 'pcap_summary.txt' in result['evidence']\n"
+                )
+            },
+        },
+    ]
+    full_text = " ".join(
+        [dimension.id, dimension.name, dimension.description, dimension.approach, blueprint.title, blueprint.description]
+    ).lower()
+    if _contains_any(full_text, ("kubernetes", "k8s", "payment api", "root-cause", "root cause", "incident", "manifest")):
+        kubernetes_variants = [
+            variants[1],
+            {
+                "prompt": (
+                    "Diagnose the Kubernetes autoscaling incident and update rca.py so answer() identifies the "
+                    "failing service, root cause, and remediation. Use the provided HPA metrics and manifests, "
+                    "then run tests until they pass."
+                ),
+                "scoring": {
+                    "instructions": "Score by hidden RCA checks over autoscaling evidence and remediation.",
+                    "pass": (
+                        "The RCA identifies payment-api, explains that the HPA targets the wrong metric name "
+                        "so replicas never scale under checkout load, recommends correcting the HPA metric, "
+                        "and cites the HPA and metrics files."
+                    ),
+                    "partial": "The RCA identifies autoscaling as relevant but misses the exact metric mismatch or remediation.",
+                    "fail": "The agent does not ground the RCA in the provided HPA and metric evidence.",
+                },
+                "visible": {
+                    "manifests/payment-api-hpa.yaml": (
+                        "apiVersion: autoscaling/v2\n"
+                        "kind: HorizontalPodAutoscaler\n"
+                        "metadata:\n"
+                        "  name: payment-api\n"
+                        "spec:\n"
+                        "  scaleTargetRef:\n"
+                        "    apiVersion: apps/v1\n"
+                        "    kind: Deployment\n"
+                        "    name: payment-api\n"
+                        "  minReplicas: 2\n"
+                        "  maxReplicas: 6\n"
+                        "  metrics:\n"
+                        "  - type: Pods\n"
+                        "    pods:\n"
+                        "      metric:\n"
+                        "        name: http_requests_per_second\n"
+                        "      target:\n"
+                        "        type: AverageValue\n"
+                        "        averageValue: \"50\"\n"
+                    ),
+                    "metrics/prometheus_snapshot.txt": (
+                        "payment_api_requests_per_second{pod=\"payment-api-5f7\"} 180\n"
+                        "payment_api_requests_per_second{pod=\"payment-api-6a2\"} 175\n"
+                        "hpa_current_replicas{name=\"payment-api\"} 2\n"
+                        "hpa_condition{name=\"payment-api\",reason=\"FailedGetPodsMetric\"} 1\n"
+                    ),
+                    "logs/checkout-errors.log": (
+                        "10:14 checkout -> payment-api 503 upstream timeout\n"
+                        "10:15 checkout -> payment-api 503 upstream timeout\n"
+                        "10:16 payment-api saturated: queue_depth=124\n"
+                    ),
+                    "rca.py": (
+                        "def answer():\n"
+                        "    return {'service': '', 'root_cause': '', 'remediation': '', 'evidence_files': []}\n"
+                    ),
+                },
+                "hidden": {
+                    "tests.py": (
+                        "from rca import answer\n\n"
+                        "result = answer()\n"
+                        "text = ' '.join(str(v).lower() for v in result.values())\n"
+                        "assert result['service'] == 'payment-api'\n"
+                        "assert 'hpa' in text and 'metric' in text\n"
+                        "assert 'http_requests_per_second' in text and 'payment_api_requests_per_second' in text\n"
+                        "assert 'manifests/payment-api-hpa.yaml' in result['evidence_files']\n"
+                        "assert 'metrics/prometheus_snapshot.txt' in result['evidence_files']\n"
+                    )
+                },
+            },
+            {
+                "prompt": (
+                    "Diagnose the Kubernetes network-policy incident and update rca.py so answer() identifies "
+                    "the affected service, root cause, and remediation. Use the provided policy, service, and "
+                    "connection logs, then run tests until they pass."
+                ),
+                "scoring": {
+                    "instructions": "Score by hidden RCA checks over network-policy evidence and remediation.",
+                    "pass": (
+                        "The RCA identifies payment-api, explains that a NetworkPolicy blocks ingress from "
+                        "checkout because the podSelector/namespaceSelector does not match, recommends allowing "
+                        "checkout traffic, and cites the policy and logs."
+                    ),
+                    "partial": "The RCA identifies a network-policy issue but misses the selector mismatch or evidence.",
+                    "fail": "The agent does not ground the RCA in the provided Kubernetes network evidence.",
+                },
+                "visible": {
+                    "manifests/payment-api-networkpolicy.yaml": (
+                        "apiVersion: networking.k8s.io/v1\n"
+                        "kind: NetworkPolicy\n"
+                        "metadata:\n"
+                        "  name: payment-api-ingress\n"
+                        "spec:\n"
+                        "  podSelector:\n"
+                        "    matchLabels:\n"
+                        "      app: payment-api\n"
+                        "  ingress:\n"
+                        "  - from:\n"
+                        "    - podSelector:\n"
+                        "        matchLabels:\n"
+                        "          app: fraud-worker\n"
+                        "    ports:\n"
+                        "    - protocol: TCP\n"
+                        "      port: 8080\n"
+                    ),
+                    "manifests/checkout-pod.yaml": (
+                        "metadata:\n"
+                        "  labels:\n"
+                        "    app: checkout\n"
+                        "spec:\n"
+                        "  containers:\n"
+                        "  - name: checkout\n"
+                        "    image: checkout:stable\n"
+                    ),
+                    "logs/network.log": (
+                        "checkout-7c9 -> payment-api:8080 connection timed out\n"
+                        "fraud-worker-55a -> payment-api:8080 connected\n"
+                        "payment-api readiness: ok\n"
+                    ),
+                    "rca.py": (
+                        "def answer():\n"
+                        "    return {'service': '', 'root_cause': '', 'remediation': '', 'evidence_files': []}\n"
+                    ),
+                },
+                "hidden": {
+                    "tests.py": (
+                        "from rca import answer\n\n"
+                        "result = answer()\n"
+                        "text = ' '.join(str(v).lower() for v in result.values())\n"
+                        "assert result['service'] == 'payment-api'\n"
+                        "assert 'networkpolicy' in text or 'network policy' in text\n"
+                        "assert 'checkout' in text and 'fraud-worker' in text\n"
+                        "assert 'manifests/payment-api-networkpolicy.yaml' in result['evidence_files']\n"
+                        "assert 'logs/network.log' in result['evidence_files']\n"
+                    )
+                },
+            },
+        ]
+        variant = kubernetes_variants[(index - 1) % len(kubernetes_variants)]
+    elif _contains_any(full_text, ("pcap", "malware", "security", "ioc", "wireshark", "ghidra")):
+        variant = variants[2]
+    else:
+        variant = variants[(index - 1) % len(variants)]
     return AgentTask(
         id=_task_id(dimension, blueprint.task_family, index),
         dimension_id=dimension.id,
@@ -902,16 +1776,13 @@ def _shell_debugging_task_for_blueprint(
             "execution. The agent must inspect files, run commands, and patch the failure."
         ),
         task_family=blueprint.task_family,
-        prompt=(
-            "The repository healthcheck fails because app.py mishandles ordinary text files. Use shell "
-            "diagnostics and file edits to make the hidden healthcheck tests pass."
-        ),
+        prompt=str(variant["prompt"]),
         system_prompt=_agent_system_prompt("docker_workspace"),
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.docker_workspace,
             image="python:3.11-slim",
-            visible_files=visible,
-            hidden_files=hidden,
+            visible_files=variant["visible"],
+            hidden_files=variant["hidden"],
             setup_commands=[],
             test_command="python3 tests.py",
             max_steps=10,
@@ -925,10 +1796,10 @@ def _shell_debugging_task_for_blueprint(
         },
         scoring=AgentScoringSpec(
             method="deterministic",
-            instructions="Score by running hidden tests inside the docker_workspace.",
-            pass_criteria="The healthcheck succeeds and reports the correct number of records.",
-            partial_criteria="The agent runs useful diagnostics but the final tests still fail.",
-            fail_criteria="The agent never diagnoses the shell/runtime failure.",
+            instructions=str(variant["scoring"]["instructions"]),
+            pass_criteria=str(variant["scoring"]["pass"]),
+            partial_criteria=str(variant["scoring"]["partial"]),
+            fail_criteria=str(variant["scoring"]["fail"]),
         ),
         difficulty=dimension.target_difficulty,
         tags=[dimension.id, blueprint.task_family.value, "docker_workspace", "shell"],
@@ -1111,35 +1982,175 @@ def _data_analysis_task_for_blueprint(
     *,
     index: int = 1,
 ) -> AgentTask:
-    visible = {
-        "data.csv": (
-            "date,team,region,revenue,cost\n"
-            "2026-01-01,alpha,north,120,80\n"
-            "2026-01-02,beta,south,90,60\n"
-            "2026-01-03,alpha,north,150,90\n"
-            "2026-01-04,beta,south,130,100\n"
-            "2026-01-05,gamma,north,70,55\n"
-        ),
-        "analysis.py": (
-            "def answer():\n"
-            "    return {\n"
-            "        'top_team_by_profit': '',\n"
-            "        'north_profit': 0,\n"
-            "        'south_margin': 0.0,\n"
-            "        'rows_used': 0,\n"
-            "    }\n"
-        ),
-    }
-    hidden = {
-        "tests.py": (
-            "from analysis import answer\n\n"
-            "result = answer()\n"
-            "assert result['top_team_by_profit'] == 'alpha'\n"
-            "assert result['north_profit'] == 115\n"
-            "assert abs(result['south_margin'] - (60 / 220)) < 1e-9\n"
-            "assert result['rows_used'] == 5\n"
+    env_type = (
+        AgentEnvironmentType.docker_workspace
+        if blueprint.environment_type == AgentEnvironmentType.docker_workspace
+        else AgentEnvironmentType.code_sandbox
+    )
+    env_kwargs: dict[str, Any] = {}
+    if env_type == AgentEnvironmentType.docker_workspace:
+        env_kwargs.update(
+            {
+                "image": "python:3.11-slim",
+                "setup_commands": [],
+                "network": "none",
+                "resource_limits": {"memory": "512m", "cpus": "1"},
+            }
         )
-    }
+    variants = [
+        {
+            "prompt": (
+                "Analyze data.csv and update analysis.py so answer() returns the requested metrics: top team by "
+                "total profit, total north-region profit, south-region margin, and row count. Run tests until they pass."
+            ),
+            "visible": {
+                "data.csv": (
+                    "date,team,region,revenue,cost\n"
+                    "2026-01-01,alpha,north,120,80\n"
+                    "2026-01-02,beta,south,90,60\n"
+                    "2026-01-03,alpha,north,150,90\n"
+                    "2026-01-04,beta,south,130,100\n"
+                    "2026-01-05,gamma,north,70,55\n"
+                ),
+                "analysis.py": (
+                    "def answer():\n"
+                    "    return {\n"
+                    "        'top_team_by_profit': '',\n"
+                    "        'north_profit': 0,\n"
+                    "        'south_margin': 0.0,\n"
+                    "        'rows_used': 0,\n"
+                    "    }\n"
+                ),
+            },
+            "hidden": {
+                "tests.py": (
+                    "from analysis import answer\n\n"
+                    "result = answer()\n"
+                    "assert result['top_team_by_profit'] == 'alpha'\n"
+                    "assert result['north_profit'] == 115\n"
+                    "assert abs(result['south_margin'] - (60 / 220)) < 1e-9\n"
+                    "assert result['rows_used'] == 5\n"
+                )
+            },
+        },
+        {
+            "prompt": (
+                "Inspect climate_observations.csv and update analysis.py so answer() returns the station with the "
+                "largest positive anomaly, the weighted mean anomaly rounded to 3 decimals, and the number of "
+                "stations above +1.0. Run tests until they pass."
+            ),
+            "visible": {
+                "climate_observations.csv": (
+                    "station,baseline_c,observed_c,weight\n"
+                    "coast,14.0,15.6,2\n"
+                    "ridge,8.5,10.0,1\n"
+                    "valley,12.0,12.4,3\n"
+                    "plain,16.0,17.3,2\n"
+                ),
+                "analysis.py": (
+                    "def answer():\n"
+                    "    return {\n"
+                    "        'max_anomaly_station': '',\n"
+                    "        'weighted_mean_anomaly': 0.0,\n"
+                    "        'stations_above_1c': 0,\n"
+                    "    }\n"
+                ),
+            },
+            "hidden": {
+                "tests.py": (
+                    "from analysis import answer\n\n"
+                    "result = answer()\n"
+                    "assert result['max_anomaly_station'] == 'coast'\n"
+                    "assert result['weighted_mean_anomaly'] == 1.025\n"
+                    "assert result['stations_above_1c'] == 3\n"
+                )
+            },
+        },
+        {
+            "prompt": (
+                "Use filings_extract.csv and update analysis.py so answer() reconstructs the balance-sheet checks: "
+                "total assets, total liabilities, equity, and whether assets equal liabilities plus equity. Run tests until they pass."
+            ),
+            "visible": {
+                "filings_extract.csv": (
+                    "line_item,amount_musd\n"
+                    "cash,18\n"
+                    "inventory,7\n"
+                    "equipment,35\n"
+                    "accounts_payable,9\n"
+                    "long_term_debt,21\n"
+                    "retained_earnings,30\n"
+                ),
+                "analysis.py": (
+                    "def answer():\n"
+                    "    return {\n"
+                    "        'assets': 0,\n"
+                    "        'liabilities': 0,\n"
+                    "        'equity': 0,\n"
+                    "        'balances': False,\n"
+                    "    }\n"
+                ),
+            },
+            "hidden": {
+                "tests.py": (
+                    "from analysis import answer\n\n"
+                    "result = answer()\n"
+                    "assert result['assets'] == 60\n"
+                    "assert result['liabilities'] == 30\n"
+                    "assert result['equity'] == 30\n"
+                    "assert result['balances'] is True\n"
+                )
+            },
+        },
+        {
+            "prompt": (
+                "Inspect variant_calls.tsv and cohort_notes.md, then update analysis.py so answer() returns the "
+                "pathogenic variant IDs, affected genes, and evidence file list matching the visible genomics evidence. "
+                "Run tests until they pass."
+            ),
+            "visible": {
+                "variant_calls.tsv": (
+                    "variant_id\tgene\timpact\tclin_sig\tread_depth\n"
+                    "v1\tBRCA1\tframeshift\tpathogenic\t42\n"
+                    "v2\tCFTR\tmissense\tbenign\t35\n"
+                    "v3\tTP53\tsplice_acceptor\tpathogenic\t51\n"
+                    "v4\tAPOE\tmissense\tuncertain\t28\n"
+                ),
+                "cohort_notes.md": (
+                    "# Cohort notes\n\nReport only variants marked pathogenic with read_depth >= 40. "
+                    "The final answer must cite variant_calls.tsv and cohort_notes.md.\n"
+                ),
+                "analysis.py": (
+                    "def answer():\n"
+                    "    return {\n"
+                    "        'pathogenic_variant_ids': [],\n"
+                    "        'genes': [],\n"
+                    "        'evidence_files': []\n"
+                    "    }\n"
+                ),
+            },
+            "hidden": {
+                "tests.py": (
+                    "from analysis import answer\n\n"
+                    "result = answer()\n"
+                    "assert result['pathogenic_variant_ids'] == ['v1', 'v3']\n"
+                    "assert result['genes'] == ['BRCA1', 'TP53']\n"
+                    "assert set(result['evidence_files']) == {'variant_calls.tsv', 'cohort_notes.md'}\n"
+                )
+            },
+        },
+    ]
+    full_text = " ".join(
+        [dimension.id, dimension.name, dimension.description, dimension.approach, blueprint.title, blueprint.description]
+    ).lower()
+    if _contains_any(full_text, ("climate", "zarr", "netcdf", "scientific", "simulation", "numerical")):
+        variant = variants[1]
+    elif _contains_any(full_text, ("financial", "statement", "sec filing", "10-k", "balance-sheet", "balance sheet")):
+        variant = variants[2]
+    elif _contains_any(full_text, ("bioinformatics", "variant", "genomics", "clinical", "truth-set", "truth set")):
+        variant = variants[3]
+    else:
+        variant = variants[(index - 1) % len(variants)]
     return AgentTask(
         id=_task_id(dimension, blueprint.task_family, index),
         dimension_id=dimension.id,
@@ -1149,18 +2160,16 @@ def _data_analysis_task_for_blueprint(
             "and encoding the result in a deterministic answer function."
         ),
         task_family=blueprint.task_family,
-        prompt=(
-            "Analyze data.csv and update analysis.py so answer() returns the requested metrics: top team by "
-            "total profit, total north-region profit, south-region margin, and row count. Run tests until they pass."
-        ),
-        system_prompt=_agent_system_prompt("code_sandbox"),
+        prompt=str(variant["prompt"]),
+        system_prompt=_agent_system_prompt(env_type.value),
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.code_sandbox,
-            visible_files=visible,
-            hidden_files=hidden,
+            type=env_type,
+            visible_files=variant["visible"],
+            hidden_files=variant["hidden"],
             test_command="python3 tests.py",
             max_steps=8,
             timeout=10,
+            **env_kwargs,
         ),
         interaction={
             "max_turns": 8,
@@ -1174,7 +2183,7 @@ def _data_analysis_task_for_blueprint(
             fail_criteria="The agent does not inspect or compute from the dataset.",
         ),
         difficulty=dimension.target_difficulty,
-        tags=[dimension.id, blueprint.task_family.value, "data_analysis", "code_sandbox"],
+        tags=[dimension.id, blueprint.task_family.value, "data_analysis", env_type.value],
     )
 
 
@@ -1301,6 +2310,799 @@ def _safety_tool_task_for_blueprint(
     )
 
 
+def _gui_desktop_task_for_blueprint(
+    dimension: EvalDimension,
+    blueprint: AgentTaskBlueprint,
+    *,
+    index: int = 1,
+) -> AgentTask:
+    blueprint_text = " ".join(
+        [dimension.id, dimension.name, dimension.description, dimension.approach, blueprint.title, blueprint.description]
+    ).lower()
+    vm_spec = {
+        "isolation": "fresh_snapshot",
+        "image": "evalclaw-gui-ubuntu-22.04",
+        "snapshot": "clean",
+        "display": {"width": 1280, "height": 900, "scale": 1.0},
+        "network": "restricted",
+        "locale": "en-US",
+        "bridge": {"required": True, "protocol": "evalclaw.gui_bridge.v1"},
+    }
+    hidden_files: dict[str, str] = {}
+    if blueprint.task_family == AgentTaskFamily.browser_gui:
+        prompt = (
+            "Use the GUI browser session to review the local customer portal, update the priority field for "
+            "ticket EC-104 to high, save the change, and run the bridge evaluation when finished."
+        )
+        visible_files = {
+            "portal_fixture/tickets.json": (
+                "[\n"
+                '  {"id": "EC-103", "priority": "normal", "owner": "Nora"},\n'
+                '  {"id": "EC-104", "priority": "normal", "owner": "Kai"}\n'
+                "]\n"
+            ),
+            "portal_fixture/README.md": (
+                "The bridge should launch a browser with a local ticket portal backed by tickets.json. "
+                "The target agent must use GUI actions to modify ticket EC-104 rather than editing the file directly."
+            ),
+        }
+        session = {
+            "kind": "browser_gui",
+            "application": "browser",
+            "entrypoint": "local_web_app",
+            "start_url": "http://evalclaw.local/tickets",
+            "instruction": prompt,
+            "assets": ["portal_fixture/tickets.json", "portal_fixture/README.md"],
+            "expected_artifacts": ["bridge_state:ticket_priority"],
+            "allowed_direct_file_edits": False,
+        }
+        vm_spec = {
+            **vm_spec,
+            "image": "evalclaw-browser-gui",
+            "required_software": ["chromium", "evalclaw-desktop-bridge"],
+        }
+        evaluation = {
+            "method": "bridge_state_check",
+            "checks": [
+                {
+                    "name": "ticket_priority_updated",
+                    "description": "Ticket EC-104 has priority high in the browser-backed application state.",
+                    "weight": 0.8,
+                },
+                {
+                    "name": "gui_path_used",
+                    "description": "The trace shows screenshot/mouse/keyboard interactions rather than direct data-file edits.",
+                    "weight": 0.2,
+                },
+            ],
+            "pass_criteria": "EC-104 is saved with priority high and no unrelated ticket is modified.",
+            "partial_criteria": "The agent reaches the correct page or selects EC-104 but does not complete the saved change.",
+            "fail_criteria": "The agent does not use the GUI state or changes the wrong ticket.",
+        }
+        tags = ["gui_desktop", "browser_gui", "bridge"]
+    elif blueprint.task_family == AgentTaskFamily.desktop_software and _goal_mentions_multi_industrial_workflow(blueprint_text):
+        workflow_variants = [
+            {
+                "title": "controller-board enclosure review",
+                "eda_goal": "export the controller PCB outline, mounting holes, and tall-component keepout as a STEP assembly",
+                "cad_goal": "design a two-piece electronics enclosure with standoffs, USB clearance, lid screw bosses, and a tolerance report",
+                "render_goal": "produce a materials-applied product-review render showing the board seated inside the enclosure",
+                "board": {
+                    "board_name": "controller_board_rev_a",
+                    "units": "mm",
+                    "outline": {"width": 72.0, "height": 48.0, "corner_radius": 3.0},
+                    "mounting_holes": [
+                        {"x": 6.0, "y": 6.0, "diameter": 3.2},
+                        {"x": 66.0, "y": 6.0, "diameter": 3.2},
+                        {"x": 6.0, "y": 42.0, "diameter": 3.2},
+                        {"x": 66.0, "y": 42.0, "diameter": 3.2},
+                    ],
+                    "components": [
+                        {"ref": "U1", "x": 36.0, "y": 24.0, "height": 9.5},
+                        {"ref": "J1", "x": 72.0, "y": 24.0, "height": 6.0, "edge_connector": "usb_c"},
+                    ],
+                },
+                "constraints": {
+                    "internal_clearance_mm": 2.0,
+                    "wall_thickness_mm": 2.4,
+                    "standoff_diameter_mm": 6.0,
+                    "usb_cutout_extra_clearance_mm": 1.0,
+                    "max_enclosure_height_mm": 22.0,
+                },
+                "visual": {
+                    "enclosure_material": "matte dark gray plastic",
+                    "pcb_material": "green solder mask",
+                    "camera": "three-quarter top view",
+                    "required_annotations": ["USB-C opening", "four standoffs", "board seated in lower shell"],
+                },
+            },
+            {
+                "title": "sensor-carrier bracket fit check",
+                "eda_goal": "export the small sensor PCB with connector envelope and two M2 holes as a STEP assembly",
+                "cad_goal": "create a FreeCAD carrier bracket that aligns holes, leaves cable bend clearance, and exports an assembly check",
+                "render_goal": "render the bracket and PCB in Blender with transparent cover material and visible connector clearance",
+                "board": {
+                    "board_name": "sensor_carrier_rev_b",
+                    "units": "mm",
+                    "outline": {"width": 38.0, "height": 28.0, "corner_radius": 2.0},
+                    "mounting_holes": [
+                        {"x": 5.0, "y": 5.0, "diameter": 2.2},
+                        {"x": 33.0, "y": 23.0, "diameter": 2.2},
+                    ],
+                    "components": [
+                        {"ref": "S1", "x": 19.0, "y": 14.0, "height": 5.0},
+                        {"ref": "J2", "x": 38.0, "y": 14.0, "height": 7.5, "edge_connector": "jst"},
+                    ],
+                },
+                "constraints": {
+                    "internal_clearance_mm": 1.5,
+                    "wall_thickness_mm": 2.0,
+                    "standoff_diameter_mm": 4.5,
+                    "cable_bend_radius_mm": 8.0,
+                    "max_enclosure_height_mm": 18.0,
+                },
+                "visual": {
+                    "enclosure_material": "translucent smoke plastic",
+                    "pcb_material": "blue solder mask",
+                    "camera": "front-left exploded view",
+                    "required_annotations": ["connector clearance", "two aligned standoffs", "transparent cover"],
+                },
+            },
+            {
+                "title": "DIN-rail IO module packaging pass",
+                "eda_goal": "export the IO PCB, terminal block envelope, and four keepout zones as a STEP assembly",
+                "cad_goal": "model a DIN-rail-ready housing with terminal access slots and verify keepout-zone clearances",
+                "render_goal": "render a front product shot in Blender with labels, material contrast, and terminal access visible",
+                "board": {
+                    "board_name": "io_module_rev_c",
+                    "units": "mm",
+                    "outline": {"width": 94.0, "height": 58.0, "corner_radius": 2.5},
+                    "mounting_holes": [
+                        {"x": 8.0, "y": 8.0, "diameter": 3.2},
+                        {"x": 86.0, "y": 8.0, "diameter": 3.2},
+                        {"x": 8.0, "y": 50.0, "diameter": 3.2},
+                        {"x": 86.0, "y": 50.0, "diameter": 3.2},
+                    ],
+                    "components": [
+                        {"ref": "TB1", "x": 47.0, "y": 58.0, "height": 12.0, "edge_connector": "terminal_block"},
+                        {"ref": "U3", "x": 48.0, "y": 28.0, "height": 8.0},
+                    ],
+                },
+                "constraints": {
+                    "internal_clearance_mm": 2.5,
+                    "wall_thickness_mm": 2.8,
+                    "standoff_diameter_mm": 6.0,
+                    "terminal_access_clearance_mm": 3.0,
+                    "max_enclosure_height_mm": 32.0,
+                },
+                "visual": {
+                    "enclosure_material": "light gray industrial plastic",
+                    "pcb_material": "black solder mask",
+                    "camera": "front product shot",
+                    "required_annotations": ["terminal access", "DIN rail clip", "four standoffs"],
+                },
+            },
+        ]
+        variant = workflow_variants[(index - 1) % len(workflow_variants)]
+        expected_artifacts = [
+            "Desktop/exports/pcb_assembly.step",
+            "Desktop/exports/enclosure.step",
+            "Desktop/exports/assembly_clearance_report.json",
+            "Desktop/exports/product_render.png",
+            "Desktop/exports/workflow_manifest.json",
+        ]
+        prompt = (
+            "Use the VM desktop industrial software stack to complete the "
+            f"{variant['title']} workflow. Start in KiCad to {variant['eda_goal']}; then use FreeCAD to "
+            f"{variant['cad_goal']}; then use Blender to {variant['render_goal']}. Save the required artifacts "
+            "under Desktop/exports, write Desktop/exports/workflow_manifest.json with application provenance and "
+            "unit assumptions, and run the bridge evaluation. This task must not be solved as a text-only report "
+            "or inside a single application."
+        )
+        visible_files = {
+            "Desktop/industrial_workflow/brief.md": (
+                f"# Industrial multi-software workflow\n\nWorkflow: {variant['title']}\n\n"
+                "Required application chain:\n"
+                "1. KiCad: inspect or create the PCB-side geometry and export the board assembly STEP.\n"
+                "2. FreeCAD: import the KiCad STEP, build the mechanical enclosure/bracket, and export a clearance report.\n"
+                "3. Blender: import the CAD outputs, apply review materials/camera, and render the product image.\n\n"
+                "All outputs must be placed in Desktop/exports. Keep units in millimeters and record every "
+                "application handoff in workflow_manifest.json.\n"
+            ),
+            "Desktop/industrial_workflow/board_requirements.json": json.dumps(variant["board"], ensure_ascii=False, indent=2),
+            "Desktop/industrial_workflow/mechanical_constraints.json": json.dumps(
+                variant["constraints"],
+                ensure_ascii=False,
+                indent=2,
+            ),
+            "Desktop/industrial_workflow/render_requirements.json": json.dumps(variant["visual"], ensure_ascii=False, indent=2),
+            "Desktop/industrial_workflow/workflow_manifest_template.json": json.dumps(
+                {
+                    "units": "mm",
+                    "applications_used": [],
+                    "handoffs": [],
+                    "artifacts": {},
+                    "checks_performed": [],
+                    "notes": "",
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+        }
+        hidden_files = {
+            "hidden/evaluate_industrial_workflow.py": (
+                "import json\n"
+                "import os\n"
+                "import sys\n"
+                "from pathlib import Path\n\n"
+                "desktop = Path(os.environ.get('EVALCLAW_DESKTOP_DIR', str(Path.home() / 'Desktop')))\n"
+                "exports = desktop / 'exports'\n"
+                "required = [\n"
+                "    'pcb_assembly.step',\n"
+                "    'enclosure.step',\n"
+                "    'assembly_clearance_report.json',\n"
+                "    'product_render.png',\n"
+                "    'workflow_manifest.json',\n"
+                "]\n"
+                "missing = [name for name in required if not (exports / name).is_file() or (exports / name).stat().st_size == 0]\n"
+                "issues = []\n"
+                "score = 1.0\n"
+                "if missing:\n"
+                "    score -= 0.45\n"
+                "    issues.append({'missing_artifacts': missing})\n"
+                "try:\n"
+                "    manifest = json.loads((exports / 'workflow_manifest.json').read_text(encoding='utf-8'))\n"
+                "except Exception as exc:\n"
+                "    manifest = {}\n"
+                "    score -= 0.2\n"
+                "    issues.append({'manifest_error': str(exc)})\n"
+                "apps = {str(app).lower() for app in manifest.get('applications_used', [])}\n"
+                "required_apps = {'kicad', 'freecad', 'blender'}\n"
+                "if not required_apps.issubset(apps):\n"
+                "    score -= 0.2\n"
+                "    issues.append({'missing_applications': sorted(required_apps - apps)})\n"
+                "handoffs = manifest.get('handoffs', [])\n"
+                "if not isinstance(handoffs, list) or len(handoffs) < 2:\n"
+                "    score -= 0.1\n"
+                "    issues.append({'handoffs': 'expected at least two artifact handoffs'})\n"
+                "try:\n"
+                "    report = json.loads((exports / 'assembly_clearance_report.json').read_text(encoding='utf-8'))\n"
+                "except Exception as exc:\n"
+                "    report = {}\n"
+                "    score -= 0.1\n"
+                "    issues.append({'clearance_report_error': str(exc)})\n"
+                "if report and report.get('units') != 'mm':\n"
+                "    score -= 0.05\n"
+                "    issues.append({'units': 'expected mm in clearance report'})\n"
+                "if report and report.get('min_clearance_mm') is not None and float(report.get('min_clearance_mm', 0)) <= 0:\n"
+                "    score -= 0.05\n"
+                "    issues.append({'clearance': 'min_clearance_mm must be positive'})\n"
+                "score = max(0.0, min(1.0, score))\n"
+                "print(json.dumps({'score': score, 'missing': missing, 'issues': issues}, indent=2))\n"
+                "sys.exit(0 if score >= 0.8 else 1)\n"
+            )
+        }
+        session = {
+            "kind": "desktop_software_multi_app",
+            "application": "multi_app_industrial_workflow",
+            "applications": ["KiCad", "FreeCAD", "Blender"],
+            "launch_sequence": [
+                {"application": "KiCad", "command": "kicad", "working_directory": "Desktop/industrial_workflow"},
+                {"application": "FreeCAD", "command": "freecad", "working_directory": "Desktop/industrial_workflow"},
+                {"application": "Blender", "command": "blender", "working_directory": "Desktop/industrial_workflow"},
+            ],
+            "workflow_stages": [
+                {
+                    "id": "eda_board_export",
+                    "application": "KiCad",
+                    "inputs": ["Desktop/industrial_workflow/board_requirements.json"],
+                    "outputs": ["Desktop/exports/pcb_assembly.step"],
+                    "goal": variant["eda_goal"],
+                },
+                {
+                    "id": "mechanical_enclosure_fit",
+                    "application": "FreeCAD",
+                    "inputs": [
+                        "Desktop/exports/pcb_assembly.step",
+                        "Desktop/industrial_workflow/mechanical_constraints.json",
+                    ],
+                    "outputs": ["Desktop/exports/enclosure.step", "Desktop/exports/assembly_clearance_report.json"],
+                    "goal": variant["cad_goal"],
+                },
+                {
+                    "id": "visual_review_render",
+                    "application": "Blender",
+                    "inputs": [
+                        "Desktop/exports/pcb_assembly.step",
+                        "Desktop/exports/enclosure.step",
+                        "Desktop/industrial_workflow/render_requirements.json",
+                    ],
+                    "outputs": ["Desktop/exports/product_render.png"],
+                    "goal": variant["render_goal"],
+                },
+            ],
+            "handoff_artifacts": expected_artifacts[:-1],
+            "instruction": prompt,
+            "assets": list(visible_files.keys()),
+            "expected_artifacts": expected_artifacts,
+            "preferred_tools": [
+                "screenshot",
+                "click",
+                "drag",
+                "scroll",
+                "key",
+                "type",
+                "run_command",
+                "read_file",
+                "write_file",
+                "evaluate",
+            ],
+            "allowed_direct_file_edits": False,
+            "allowed_automation": (
+                "Application macros/scripts are allowed only when launched through the corresponding industrial "
+                "application and recorded in workflow_manifest.json."
+            ),
+        }
+        vm_spec = {
+            **vm_spec,
+            "image": "evalclaw-industrial-cad-eda-gui",
+            "display": {"width": 1600, "height": 1000, "scale": 1.0},
+            "gpu": "optional",
+            "required_software": [
+                "kicad>=8",
+                "freecad>=0.21",
+                "blender>=4.0",
+                "python3",
+                "evalclaw-desktop-bridge",
+            ],
+            "software_stack": {
+                "eda": "KiCad",
+                "mechanical_cad": "FreeCAD",
+                "rendering": "Blender",
+            },
+            "provisioning": {
+                "enabled": True,
+                "strategy": "cloud_init_apt.v1",
+                "base_os": "ubuntu",
+                "apt_packages": ["kicad", "freecad", "blender", "python3", "python3-pip", "xvfb", "xdotool"],
+                "commands": [
+                    "mkdir -p /opt/evalclaw/bridge",
+                    "if command -v evalclaw-desktop-bridge >/dev/null 2>&1; then "
+                    "echo bridge-ready >/opt/evalclaw/bridge/status.txt; "
+                    "else echo 'evalclaw-desktop-bridge install command not configured; base image or VM provider must supply the bridge service' "
+                    ">/opt/evalclaw/bridge/status.txt; fi",
+                ],
+            },
+            "artifacts_dir": "Desktop/exports",
+        }
+        evaluation = {
+            "method": "industrial_multi_app_artifact_check",
+            "expected_artifacts": expected_artifacts,
+            "checks": [
+                {
+                    "name": "eda_step_export",
+                    "description": "KiCad-stage Desktop/exports/pcb_assembly.step exists and is referenced in the manifest.",
+                    "weight": 0.2,
+                },
+                {
+                    "name": "cad_enclosure_and_clearance",
+                    "description": "FreeCAD-stage enclosure STEP and assembly_clearance_report.json satisfy geometry and clearance checks.",
+                    "weight": 0.3,
+                },
+                {
+                    "name": "render_review_artifact",
+                    "description": "Blender-stage product_render.png exists, is non-empty, and reflects the requested materials/camera.",
+                    "weight": 0.2,
+                },
+                {
+                    "name": "workflow_manifest_provenance",
+                    "description": "workflow_manifest.json records KiCad, FreeCAD, Blender, units, handoffs, and artifact dependencies.",
+                    "weight": 0.2,
+                },
+                {
+                    "name": "multi_app_gui_workflow_used",
+                    "description": "The trace shows interaction with multiple industrial applications instead of direct text-only completion.",
+                    "weight": 0.1,
+                },
+            ],
+            "pass_criteria": (
+                "All required intermediate and final artifacts exist, the manifest records KiCad -> FreeCAD -> "
+                "Blender provenance with millimeter units, and bridge checks confirm the multi-application workflow."
+            ),
+            "partial_criteria": (
+                "At least two applications are used and most artifacts are produced, but one handoff, clearance "
+                "detail, render requirement, or manifest field is incomplete."
+            ),
+            "fail_criteria": (
+                "The task is completed inside a single application, produces only a text report, omits core "
+                "intermediate artifacts, or lacks a usable workflow manifest."
+            ),
+            "bridge_evaluator": {
+                "type": "industrial_workflow_artifact_check",
+                "hidden_script": "hidden/evaluate_industrial_workflow.py",
+                "requires_trace_tools": ["screenshot", "click", "key", "run_command", "evaluate"],
+            },
+        }
+        tags = [
+            "gui_desktop",
+            "desktop_software",
+            "industrial_workflow",
+            "multi_app",
+            "artifact_handoff",
+            "kicad",
+            "freecad",
+            "blender",
+            "vm",
+            "bridge",
+        ]
+    elif blueprint.task_family == AgentTaskFamily.desktop_software and _goal_mentions_blender(blueprint_text):
+        blender_variants = [
+            (
+                "a blue cube on a gray plane, a red sphere to the cube's right, a warm area light, and a camera "
+                "framing both objects",
+                [
+                    "- Include a blue cube on a gray plane.",
+                    "- Include a red sphere to the cube's right.",
+                    "- Add a warm area light and a camera that frames both objects.",
+                ],
+            ),
+            (
+                "a simple articulated arm with three labeled bones, two colored joint spheres, a neutral material floor, "
+                "and a camera framing the rig",
+                [
+                    "- Include a three-segment articulated arm or armature-like structure.",
+                    "- Include two colored joint spheres at different joint positions.",
+                    "- Add a floor plane and a camera that frames the whole rig.",
+                ],
+            ),
+            (
+                "a small product display with a green cylinder, a gold torus, a labeled base plate, two lights, and a "
+                "camera-ready composition",
+                [
+                    "- Include a green cylinder and a gold torus on a labeled base plate.",
+                    "- Add two lights with visibly different positions.",
+                    "- Add a camera that frames the product display.",
+                ],
+            ),
+        ]
+        scene_summary, requirement_lines = blender_variants[(index - 1) % len(blender_variants)]
+        prompt = (
+            "Use the Blender desktop application inside the VM to create a low-poly evaluation scene: "
+            f"{scene_summary}. Save the project as Desktop/evalclaw_scene.blend, render a PNG to "
+            "Desktop/evalclaw_render.png, and run the bridge evaluation."
+        )
+        visible_files = {
+            "Desktop/scene_requirements.md": (
+                "# Blender scene requirements\n\n"
+                "- Create or edit the scene in Blender through the GUI.\n"
+                + "\n".join(requirement_lines)
+                + "\n"
+                "- Save Desktop/evalclaw_scene.blend and render Desktop/evalclaw_render.png.\n"
+            ),
+            "Desktop/starter_scene.py": (
+                "import bpy\n\n"
+                "bpy.ops.object.select_all(action='SELECT')\n"
+                "bpy.ops.object.delete()\n"
+                "bpy.ops.mesh.primitive_plane_add(size=6, location=(0, 0, 0))\n"
+                "plane = bpy.context.object\n"
+                "plane.name = 'gray_ground_plane'\n"
+                "mat = bpy.data.materials.new('neutral_gray')\n"
+                "mat.diffuse_color = (0.45, 0.45, 0.45, 1)\n"
+                "plane.data.materials.append(mat)\n"
+            ),
+        }
+        session = {
+            "kind": "desktop_software",
+            "application": "blender",
+            "launch": {
+                "command": "blender --factory-startup --python Desktop/starter_scene.py",
+                "working_directory": "Desktop",
+            },
+            "instruction": prompt,
+            "assets": ["Desktop/scene_requirements.md", "Desktop/starter_scene.py"],
+            "expected_artifacts": ["Desktop/evalclaw_scene.blend", "Desktop/evalclaw_render.png"],
+            "preferred_tools": [
+                "screenshot",
+                "click",
+                "drag",
+                "scroll",
+                "key",
+                "type",
+                "run_command",
+                "read_file",
+                "evaluate",
+            ],
+            "allowed_direct_file_edits": False,
+            "notes": "The bridge may expose Blender console/menu automation, but the target should still operate the desktop session.",
+        }
+        vm_spec = {
+            **vm_spec,
+            "image": "evalclaw-blender-gui",
+            "display": {"width": 1440, "height": 1000, "scale": 1.0},
+            "gpu": "optional",
+            "required_software": ["blender>=4.0", "python3", "evalclaw-desktop-bridge"],
+            "artifacts_dir": "Desktop",
+        }
+        evaluation = {
+            "method": "blender_artifact_check",
+            "expected_artifacts": ["Desktop/evalclaw_scene.blend", "Desktop/evalclaw_render.png"],
+            "checks": [
+                {
+                    "name": "blend_file_exists",
+                    "description": "Desktop/evalclaw_scene.blend exists and can be opened by Blender.",
+                    "weight": 0.2,
+                },
+                {
+                    "name": "required_objects",
+                    "description": "The .blend file contains a cube, sphere, plane, camera, and area light.",
+                    "weight": 0.25,
+                },
+                {
+                    "name": "materials_and_positions",
+                    "description": "The cube is blue, the sphere is red, the plane is gray, and the sphere is to the cube's right.",
+                    "weight": 0.25,
+                },
+                {
+                    "name": "render_file_exists",
+                    "description": "Desktop/evalclaw_render.png exists and is a non-empty image rendered from the scene.",
+                    "weight": 0.2,
+                },
+                {
+                    "name": "gui_workflow_used",
+                    "description": "The trace shows interaction with the Blender desktop session rather than only writing final artifacts directly.",
+                    "weight": 0.1,
+                },
+            ],
+            "pass_criteria": "The saved Blender scene and rendered PNG satisfy all object, material, lighting, and camera requirements.",
+            "partial_criteria": "The agent creates a usable Blender scene with at least two required elements but misses some material, render, or framing requirements.",
+            "fail_criteria": "No valid Blender scene artifact is produced or the task is completed outside the desktop/VM workflow.",
+            "bridge_evaluator": {
+                "type": "blender_python",
+                "script": "Open the .blend file, inspect objects/materials/positions/camera/light, and verify the PNG dimensions and non-empty pixels.",
+            },
+        }
+        tags = ["gui_desktop", "desktop_software", "blender", "3d_modeling", "vm", "bridge"]
+    elif blueprint.task_family == AgentTaskFamily.desktop_software:
+        if _contains_any(blueprint_text, ("video", "compositing", "chroma", "davinci", "after effects")):
+            video_variants = [
+                ("green-screen presenter", "replace the green background with the provided city plate"),
+                ("product lower-third", "add the provided title and timing notes over the product shot"),
+                ("reference color match", "apply the provided color notes and export a matched review clip"),
+            ]
+            shot, edit_goal = video_variants[(index - 1) % len(video_variants)]
+            prompt = (
+                f"Use the desktop video editor to open the {shot} project brief, {edit_goal}, export "
+                "Desktop/final_composite.mp4, save Desktop/project_state.json with the edit decisions, and run the bridge evaluation."
+            )
+            visible_files = {
+                "Desktop/video_brief.md": (
+                    f"# Video compositing brief\n\nSource shot: {shot}\nTask: {edit_goal}.\n"
+                    "Use the GUI editor timeline. Do not create only a text report.\n"
+                ),
+                "Desktop/project_state.json": "{\"layers\": [], \"exported\": false}\n",
+            }
+            session = {
+                "kind": "desktop_software",
+                "application": "video_editor",
+                "launch": {"file": "Desktop/video_brief.md"},
+                "instruction": prompt,
+                "assets": ["Desktop/video_brief.md", "Desktop/project_state.json"],
+                "expected_artifacts": ["Desktop/final_composite.mp4", "Desktop/project_state.json"],
+                "preferred_tools": ["screenshot", "click", "drag", "key", "type", "read_file", "evaluate"],
+            }
+            vm_spec = {
+                **vm_spec,
+                "image": "evalclaw-video-gui",
+                "required_software": ["kdenlive-or-openshot", "ffmpeg", "evalclaw-desktop-bridge"],
+            }
+            evaluation = {
+                "method": "video_artifact_check",
+                "expected_artifacts": ["Desktop/final_composite.mp4", "Desktop/project_state.json"],
+                "checks": [
+                    {"name": "video_export_exists", "description": "Desktop/final_composite.mp4 exists and is non-empty.", "weight": 0.35},
+                    {"name": "edit_decisions_match", "description": "project_state.json records the requested compositing decisions.", "weight": 0.45},
+                    {"name": "gui_workflow_used", "description": "The trace shows timeline/editor GUI interaction.", "weight": 0.2},
+                ],
+                "pass_criteria": "The exported video artifact and project state match the visible brief and hidden reference checks.",
+                "partial_criteria": "The project is opened and partially edited but export or one edit criterion is missing.",
+                "fail_criteria": "No usable video project/export artifact is produced.",
+            }
+            tags = ["gui_desktop", "desktop_software", "video_compositing", "bridge"]
+        elif _contains_any(blueprint_text, ("cad", "bim", "cae", "cam", "rhino", "drawing", "architectural")):
+            cad_variants = [
+                ("single-room plan", "extrude walls from the visible 2D room drawing and place a door opening"),
+                ("two-level core", "model two stacked floor plates, a stair opening, and four support columns"),
+                ("facade bay", "model a facade bay with three windows and a parapet line from the elevation notes"),
+            ]
+            drawing, model_goal = cad_variants[(index - 1) % len(cad_variants)]
+            prompt = (
+                f"Use the desktop CAD/BIM application in the VM to read the {drawing} brief, {model_goal}. "
+                "Save Desktop/model_project.step, export Desktop/model_preview.png, and run the bridge evaluation."
+            )
+            visible_files = {
+                "Desktop/drawing_brief.md": (
+                    f"# CAD/BIM drawing brief\n\nDrawing: {drawing}\nRequired model: {model_goal}.\n"
+                    "Use the CAD/BIM GUI and create geometric artifacts, not a text-only explanation.\n"
+                )
+            }
+            session = {
+                "kind": "desktop_software",
+                "application": "cad_bim",
+                "launch": {"file": "Desktop/drawing_brief.md"},
+                "instruction": prompt,
+                "assets": ["Desktop/drawing_brief.md"],
+                "expected_artifacts": ["Desktop/model_project.step", "Desktop/model_preview.png"],
+                "preferred_tools": ["screenshot", "click", "drag", "key", "type", "run_command", "evaluate"],
+            }
+            vm_spec = {
+                **vm_spec,
+                "image": "evalclaw-cad-gui",
+                "required_software": ["freecad-or-rhino-compatible-cad", "python3", "evalclaw-desktop-bridge"],
+            }
+            evaluation = {
+                "method": "cad_artifact_check",
+                "expected_artifacts": ["Desktop/model_project.step", "Desktop/model_preview.png"],
+                "checks": [
+                    {"name": "model_file_exists", "description": "Desktop/model_project.step exists and can be parsed.", "weight": 0.3},
+                    {"name": "geometry_requirements", "description": "The model contains required walls/columns/openings/features.", "weight": 0.5},
+                    {"name": "preview_exists", "description": "Desktop/model_preview.png exists and is non-empty.", "weight": 0.2},
+                ],
+                "pass_criteria": "The CAD model and preview satisfy the hidden geometry and artifact checks.",
+                "partial_criteria": "A parseable model exists but misses one required geometry feature or preview.",
+                "fail_criteria": "No usable CAD/BIM artifact is produced.",
+            }
+            tags = ["gui_desktop", "desktop_software", "cad_bim", "bridge"]
+        else:
+            prompt = (
+                "Use the desktop spreadsheet application to open Desktop/orders.csv, compute profit for each row, "
+                "create a summary sheet with total profit by region, export Desktop/profit_summary.csv, and run "
+                "the bridge evaluation."
+            )
+            visible_files = {
+                "Desktop/orders.csv": (
+                    "order_id,region,revenue,cost\n"
+                    "A-1,north,120,70\n"
+                    "A-2,south,90,55\n"
+                    "A-3,north,80,60\n"
+                )
+            }
+            session = {
+                "kind": "desktop_software",
+                "application": "spreadsheet",
+                "launch": {"file": "Desktop/orders.csv"},
+                "instruction": prompt,
+                "assets": ["Desktop/orders.csv"],
+                "expected_artifacts": ["Desktop/profit_summary.csv"],
+                "preferred_tools": ["screenshot", "click", "type", "key", "read_file", "evaluate"],
+            }
+            vm_spec = {
+                **vm_spec,
+                "image": "evalclaw-libreoffice-gui",
+                "required_software": ["libreoffice-calc", "evalclaw-desktop-bridge"],
+            }
+            evaluation = {
+                "method": "artifact_check",
+                "expected_artifacts": ["Desktop/profit_summary.csv"],
+                "checks": [
+                    {
+                        "name": "artifact_exists",
+                        "description": "Desktop/profit_summary.csv was exported by the desktop application.",
+                        "weight": 0.25,
+                    },
+                    {
+                        "name": "region_profit_correct",
+                        "description": "The artifact contains north=70 and south=35 total profit.",
+                        "weight": 0.6,
+                    },
+                    {
+                        "name": "spreadsheet_workflow_used",
+                        "description": "The trace indicates GUI interaction with the spreadsheet application.",
+                        "weight": 0.15,
+                    },
+                ],
+                "pass_criteria": "The exported CSV exists and contains correct profit totals for all regions.",
+                "partial_criteria": "The agent opens the spreadsheet and computes at least one region correctly.",
+                "fail_criteria": "No useful spreadsheet artifact is produced.",
+            }
+            tags = ["gui_desktop", "desktop_software", "spreadsheet", "bridge"]
+    else:
+        prompt = (
+            "Use the GUI desktop session to organize the provided task files: move the approved brief into "
+            "the Ready folder, leave the draft brief untouched, create Desktop/summary.txt with the approved "
+            "brief title, and run the bridge evaluation."
+        )
+        visible_files = {
+            "Desktop/Inbox/approved_brief.txt": "Title: Launch Readiness\nStatus: approved\n",
+            "Desktop/Inbox/draft_brief.txt": "Title: Legacy Proposal\nStatus: draft\n",
+            "Desktop/Ready/.keep": "",
+        }
+        session = {
+            "kind": "gui_desktop",
+            "application": "file_manager_and_text_editor",
+            "launch": {"path": "Desktop/Inbox"},
+            "instruction": prompt,
+            "assets": [
+                "Desktop/Inbox/approved_brief.txt",
+                "Desktop/Inbox/draft_brief.txt",
+                "Desktop/Ready/.keep",
+            ],
+            "expected_artifacts": ["Desktop/Ready/approved_brief.txt", "Desktop/summary.txt"],
+        }
+        vm_spec = {
+            **vm_spec,
+            "required_software": ["file-manager", "text-editor", "evalclaw-desktop-bridge"],
+        }
+        evaluation = {
+            "method": "artifact_and_file_state_check",
+            "expected_artifacts": ["Desktop/Ready/approved_brief.txt", "Desktop/summary.txt"],
+            "checks": [
+                {
+                    "name": "approved_file_moved",
+                    "description": "approved_brief.txt is in Desktop/Ready.",
+                    "weight": 0.4,
+                },
+                {
+                    "name": "draft_file_untouched",
+                    "description": "draft_brief.txt remains outside Desktop/Ready.",
+                    "weight": 0.25,
+                },
+                {
+                    "name": "summary_created",
+                    "description": "Desktop/summary.txt contains Launch Readiness.",
+                    "weight": 0.35,
+                },
+            ],
+            "pass_criteria": "The final file state and summary match all requested conditions.",
+            "partial_criteria": "At least one required artifact is correct and no critical wrong move is made.",
+            "fail_criteria": "The desktop state does not show meaningful progress toward the requested file organization.",
+        }
+        tags = ["gui_desktop", "file_manager", "bridge"]
+
+    return AgentTask(
+        id=_task_id(dimension, blueprint.task_family, index),
+        dimension_id=dimension.id,
+        title=_task_title(blueprint, index),
+        description=(
+            "A bridge-backed GUI desktop task. The target agent must inspect screenshots and operate the "
+            "desktop/browser/software session through the standardized EvaluationClaw tool protocol."
+        ),
+        task_family=blueprint.task_family,
+        prompt=prompt,
+        system_prompt=_agent_system_prompt("gui_desktop"),
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui_desktop,
+            visible_files=visible_files,
+            hidden_files=hidden_files,
+            max_steps=24,
+            timeout=30,
+            requires_vm=True,
+            vm=vm_spec,
+            vm_provisioning=vm_spec.get("provisioning", {}) if isinstance(vm_spec.get("provisioning"), dict) else {},
+            session=session,
+            evaluation=evaluation,
+            notes=(
+                "Requires an external VM provider or pre-existing GUI desktop bridge. When requires_vm is true, "
+                "the VM provider should create/reset an isolated desktop VM and return a bridge_url."
+            ),
+        ),
+        interaction={
+            "max_turns": 24,
+            "stop_condition": "Stop when the bridge evaluation reports completion or the step limit is reached.",
+        },
+        scoring=AgentScoringSpec(
+            method="deterministic",
+            instructions="Score using the GUI desktop bridge evaluation contract in environment.evaluation.",
+            pass_criteria=str(evaluation["pass_criteria"]),
+            partial_criteria=str(evaluation["partial_criteria"]),
+            fail_criteria=str(evaluation["fail_criteria"]),
+            score_levels={"5": "all bridge checks pass", "3": "partial artifact or GUI progress", "1": "failed"},
+            oracle_notes="The bridge owns the concrete VM/browser/software runtime and artifact inspection.",
+        ),
+        difficulty=dimension.target_difficulty,
+        tags=[dimension.id, blueprint.task_family.value, *tags],
+    )
+
+
 def _fallback_task_for_blueprint(
     spec: EvalSpec,
     dimension: EvalDimension,
@@ -1308,6 +3110,11 @@ def _fallback_task_for_blueprint(
     *,
     index: int = 1,
 ) -> AgentTask:
+    full_text = " ".join(
+        [dimension.id, dimension.name, dimension.description, dimension.approach, blueprint.title, blueprint.description]
+    ).lower()
+    if _runtime_task_family(full_text) == AgentTaskFamily.shell_debugging:
+        return _shell_debugging_task_for_blueprint(dimension, blueprint, index=index)
     if blueprint.task_family == AgentTaskFamily.code_repair:
         return _code_repair_task_for_blueprint(dimension, blueprint, index=index)
     if blueprint.task_family == AgentTaskFamily.repo_issue:
@@ -1324,10 +3131,18 @@ def _fallback_task_for_blueprint(
         return _multi_turn_delegation_task_for_blueprint(dimension, blueprint, index=index)
     if blueprint.task_family == AgentTaskFamily.safety_tool_use:
         return _safety_tool_task_for_blueprint(dimension, blueprint, index=index)
+    if blueprint.task_family in {
+        AgentTaskFamily.gui_desktop,
+        AgentTaskFamily.browser_gui,
+        AgentTaskFamily.desktop_software,
+    }:
+        return _gui_desktop_task_for_blueprint(dimension, blueprint, index=index)
     if blueprint.environment_type == AgentEnvironmentType.code_sandbox:
         return _code_repair_task_for_blueprint(dimension, blueprint, index=index)
     if blueprint.environment_type == AgentEnvironmentType.docker_workspace:
         return _shell_debugging_task_for_blueprint(dimension, blueprint, index=index)
+    if blueprint.environment_type == AgentEnvironmentType.gui_desktop:
+        return _gui_desktop_task_for_blueprint(dimension, blueprint, index=index)
     if blueprint.environment_type == AgentEnvironmentType.workspace:
         return _workspace_task_for_blueprint(dimension, blueprint, index=index)
     item_spec = spec.model_copy(update={"task_types": [TaskType.agent_interaction]})
@@ -1396,9 +3211,14 @@ def build_agent_task_suite(
     resources: list[AgentResource] = []
     tasks: list[AgentTask] = []
     notes: list[str] = []
+    fallback_variant_counts: defaultdict[AgentTaskFamily, int] = defaultdict(int)
     blueprint_by_dimension = defaultdict(list)
     for blueprint in blueprints:
         blueprint_by_dimension[blueprint.dimension_id].append(blueprint)
+
+    def next_fallback_index(blueprint: AgentTaskBlueprint) -> int:
+        fallback_variant_counts[blueprint.task_family] += 1
+        return fallback_variant_counts[blueprint.task_family]
 
     for dimension in spec.dimensions:
         dim_blueprints = blueprint_by_dimension.get(dimension.id, [])
@@ -1417,20 +3237,29 @@ def build_agent_task_suite(
                 "dimension": dimension.model_dump(mode="json"),
                 "blueprint": blueprint.model_dump(mode="json"),
                 "resource_context": _source_context(source_candidates),
-                "task_agent_schema": TASK_AGENT_SCHEMA,
-                "task_agent_generation_guidance": TASK_AGENT_GENERATION_GUIDANCE,
-            }
+            "task_agent_schema": TASK_AGENT_SCHEMA,
+            "task_agent_generation_guidance": TASK_AGENT_GENERATION_GUIDANCE,
+            "agent_task_package_schema": AGENT_TASK_PACKAGE_SCHEMA,
+            "agent_task_package_generation_guidance": AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
+        }
             if config.orchestrator_api_key:
-                raw = call_llm(
-                    [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
-                    system=AGENT_TASK_BUILDER_PROMPT,
-                    model=config.orchestrator_model,
-                    api_key=config.orchestrator_api_key,
-                    base_url=config.orchestrator_base_url,
-                    backend=config.llm_backend,
-                    max_tokens=8192,
-                )
-                parsed = extract_json(raw)
+                try:
+                    raw = call_llm(
+                        [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
+                        system=AGENT_TASK_BUILDER_PROMPT,
+                        model=config.orchestrator_model,
+                        api_key=config.orchestrator_api_key,
+                        base_url=config.orchestrator_base_url,
+                        backend=config.llm_backend,
+                        max_tokens=8192,
+                    )
+                    parsed = extract_json(raw) if raw.strip() else None
+                except Exception as exc:
+                    parsed = None
+                    notes.append(
+                        f"{blueprint.id}: LLM task builder failed or returned non-JSON; "
+                        f"using local executable fallback ({type(exc).__name__}: {str(exc)[:180]})."
+                    )
             else:
                 parsed = None
             parsed_resources = []
@@ -1442,8 +3271,15 @@ def build_agent_task_suite(
                     notes.append(str(parsed["construction_notes"]))
             target_task_count = max(1, int(blueprint.expected_task_count))
             if not parsed_tasks:
-                for task_index in range(1, target_task_count + 1):
-                    tasks.append(_fallback_task_for_blueprint(spec, dimension, blueprint, index=task_index))
+                for _ in range(target_task_count):
+                    tasks.append(
+                        _fallback_task_for_blueprint(
+                            spec,
+                            dimension,
+                            blueprint,
+                            index=next_fallback_index(blueprint),
+                        )
+                    )
                 notes.append(
                     f"{blueprint.id}: Local fallback executable agent task(s), count={target_task_count}."
                 )
@@ -1467,7 +3303,14 @@ def build_agent_task_suite(
                 added_for_blueprint += 1
             while added_for_blueprint < target_task_count:
                 added_for_blueprint += 1
-                tasks.append(_fallback_task_for_blueprint(spec, dimension, blueprint, index=added_for_blueprint))
+                tasks.append(
+                    _fallback_task_for_blueprint(
+                        spec,
+                        dimension,
+                        blueprint,
+                        index=next_fallback_index(blueprint),
+                    )
+                )
                 notes.append(f"{blueprint.id}: Filled missing agent task with local fallback.")
 
     if not resources and blueprints:
@@ -1511,10 +3354,30 @@ def _agent_env_for_runner(task: AgentTask) -> dict[str, Any]:
             env["test_command"] = "python3 tests.py"
         env.pop("workspace", None)
     if env_type == "docker_workspace":
-        if not env.get("image"):
-            env["image"] = "python:3.11-slim"
+        task_text = "\n".join(
+            value
+            for value in (
+                task.prompt,
+                task.description,
+                task.scoring.instructions,
+                " ".join(task.tags),
+            )
+            if value
+        )
+        env, _ = apply_docker_image_selection(env, task_text=task_text)
         if not env.get("test_command"):
             env["test_command"] = "pytest -q"
+        env.pop("workspace", None)
+    if env_type == "gui_desktop":
+        if not isinstance(env.get("session"), dict):
+            env["session"] = {}
+        if not isinstance(env.get("evaluation"), dict):
+            env["evaluation"] = {}
+        if not isinstance(env.get("vm"), dict):
+            env["vm"] = {}
+        env["requires_vm"] = bool(env.get("requires_vm") or env.get("vm"))
+        env["max_steps"] = env.get("max_steps") or 24
+        env["timeout"] = env.get("timeout") or 30
         env.pop("workspace", None)
     return env
 
@@ -1534,6 +3397,14 @@ def _task_agent_metadata_for_task(task: AgentTask, agent_env: dict[str, Any]) ->
         initial_content["hidden_file_names"] = sorted(agent_env["hidden_files"].keys())
     if agent_env.get("image") and "image" not in initial_content:
         initial_content["image"] = agent_env["image"]
+    if agent_env.get("session") and "session" not in initial_content:
+        initial_content["session"] = agent_env["session"]
+    if agent_env.get("vm") and "vm" not in initial_content:
+        initial_content["vm"] = agent_env["vm"]
+    if agent_env.get("vm_provisioning") and "vm_provisioning" not in initial_content:
+        initial_content["vm_provisioning"] = agent_env["vm_provisioning"]
+    if agent_env.get("evaluation") and "evaluation" not in initial_content:
+        initial_content["evaluation"] = agent_env["evaluation"]
     if agent_env.get("notes") and "notes" not in initial_content:
         initial_content["notes"] = agent_env["notes"]
 
@@ -1568,6 +3439,153 @@ def _task_agent_metadata_for_task(task: AgentTask, agent_env: dict[str, Any]) ->
     return metadata
 
 
+def _expected_artifacts(agent_env: dict[str, Any]) -> list[str]:
+    artifacts: list[str] = []
+    session = agent_env.get("session")
+    if isinstance(session, dict):
+        value = session.get("expected_artifacts")
+        if isinstance(value, list):
+            artifacts.extend(str(item) for item in value if str(item).strip())
+    evaluation = agent_env.get("evaluation")
+    if isinstance(evaluation, dict):
+        value = evaluation.get("expected_artifacts")
+        if isinstance(value, list):
+            artifacts.extend(str(item) for item in value if str(item).strip())
+    return list(dict.fromkeys(artifacts))
+
+
+def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
+    env_type = str(agent_env.get("type") or "workspace")
+    tools = [str(tool.get("name") or tool.get("type") or "") for tool in agent_env.get("tools", []) if isinstance(tool, dict)]
+    tools = [tool for tool in tools if tool]
+    if tools:
+        return tools
+    if env_type == "gui_desktop":
+        return ["screenshot", "mouse_move", "click", "key", "type", "read_file", "write_file", "run_command", "evaluate"]
+    if env_type == "docker_workspace":
+        return ["list_files", "read_file", "write_file", "run_command", "run_tests"]
+    if env_type == "code_sandbox":
+        return ["read_file", "write_file", "run_tests"]
+    return ["look", "read_file", "write_file"]
+
+
+def _agent_task_package_for_task(task: AgentTask, agent_env: dict[str, Any]) -> dict[str, Any]:
+    existing = task.metadata.get(AGENT_TASK_PACKAGE_METADATA_KEY)
+
+    env_type = str(agent_env.get("type") or task.environment.type.value)
+    vm = agent_env.get("vm") if isinstance(agent_env.get("vm"), dict) else {}
+    session = agent_env.get("session") if isinstance(agent_env.get("session"), dict) else {}
+    evaluation = agent_env.get("evaluation") if isinstance(agent_env.get("evaluation"), dict) else {}
+    vm_provisioning = agent_env.get("vm_provisioning") if isinstance(agent_env.get("vm_provisioning"), dict) else {}
+    visible_files = agent_env.get("visible_files") if isinstance(agent_env.get("visible_files"), dict) else {}
+    hidden_files = agent_env.get("hidden_files") if isinstance(agent_env.get("hidden_files"), dict) else {}
+    expected_artifacts = _expected_artifacts(agent_env)
+    required_outputs = expected_artifacts or [task.scoring.pass_criteria or "Task-specific completion state."]
+    setup_commands = agent_env.get("setup_commands") if isinstance(agent_env.get("setup_commands"), list) else []
+    required_software = vm.get("required_software") if isinstance(vm.get("required_software"), list) else []
+    if env_type in {"code_sandbox", "docker_workspace"} and agent_env.get("image"):
+        required_software = list(dict.fromkeys([*required_software, str(agent_env["image"])]))
+    hidden_reference_artifacts = expected_artifacts if env_type == "gui_desktop" else []
+    if hidden_files:
+        hidden_reference_artifacts.extend(sorted(str(path) for path in hidden_files.keys()))
+    if not hidden_reference_artifacts and evaluation:
+        hidden_reference_artifacts.append("runner-private evaluation contract")
+
+    generated = {
+        "schema_version": AGENT_TASK_PACKAGE_SCHEMA_VERSION,
+        "style": "ale_executable_task",
+        "capability_target": {
+            "name": task.title,
+            "description": task.description or task.prompt,
+            "dimension_id": task.dimension_id,
+            "task_family": task.task_family.value,
+        },
+        "environment_requirements": {
+            "type": env_type,
+            "os": "linux" if env_type in {"code_sandbox", "docker_workspace"} else "any",
+            "requires_vm": bool(agent_env.get("requires_vm") or vm),
+            "requires_gui": env_type == "gui_desktop",
+            "required_software": required_software,
+            "network": str(agent_env.get("network") or vm.get("network") or "none"),
+            "resource_limits": agent_env.get("resource_limits") if isinstance(agent_env.get("resource_limits"), dict) else {},
+            "vm": vm,
+            "vm_provisioning": vm_provisioning,
+            "image_build": agent_env.get("image_build") if isinstance(agent_env.get("image_build"), dict) else {},
+        },
+        "visible_inputs": {
+            "instructions": task.prompt,
+            "files": visible_files,
+            "assets": session.get("assets", []) if isinstance(session.get("assets"), list) else [],
+            "session": session,
+        },
+        "hidden_references": {
+            "staging_phase": "post_agent_or_runner_private",
+            "files": {str(path): str(content) for path, content in hidden_files.items()},
+            "reference_artifacts": list(dict.fromkeys(hidden_reference_artifacts)),
+            "notes": "Hidden references and evaluator internals are runner-private and must not be exposed to the target agent.",
+        },
+        "output_contract": {
+            "expected_artifacts": expected_artifacts,
+            "required_outputs": required_outputs,
+            "schema": {},
+            "constraints": [
+                "The final answer or artifacts must be produced inside the configured environment.",
+                "Hidden references and evaluator files must not be read by the target agent.",
+            ],
+        },
+        "execution": {
+            "setup": [str(command) for command in setup_commands],
+            "run": f"Target agent acts through the EvaluationClaw {env_type} tool environment.",
+            "evaluate": str(agent_env.get("test_command") or evaluation.get("method") or task.scoring.method),
+            "timeout_s": int(agent_env.get("timeout") or 0),
+            "max_steps": int(agent_env.get("max_steps") or task.interaction.get("max_turns") or 0),
+        },
+        "evaluation": {
+            "method": str(evaluation.get("method") or task.scoring.method or "deterministic"),
+            "checks": evaluation.get("checks", []) if isinstance(evaluation.get("checks"), list) else [],
+            "score_range": [0, 1],
+            "pass_criteria": str(evaluation.get("pass_criteria") or task.scoring.pass_criteria),
+            "partial_criteria": str(evaluation.get("partial_criteria") or task.scoring.partial_criteria),
+            "fail_criteria": str(evaluation.get("fail_criteria") or task.scoring.fail_criteria),
+        },
+        "artifact_collection": {
+            "collect_paths": expected_artifacts,
+            "collect_trajectory": True,
+            "logs": ["tool_trace", "stdout", "stderr"] + (["screenshots"] if env_type == "gui_desktop" else []),
+        },
+        "trajectory_requirements": {
+            "required_tools": _required_tools_for_env(agent_env),
+            "forbidden_shortcuts": [
+                "Do not read runner-private hidden references.",
+                "Do not bypass the intended GUI/VM/workspace workflow when the task requires it.",
+            ],
+            "audit_notes": "The saved trajectory should show meaningful environment inspection and task-directed actions.",
+        },
+        "resource_provenance": {
+            "source_kind": "generated_fixture" if not task.resource_ids else "imported",
+            "source_uris": list(task.resource_ids),
+            "license": "",
+            "construction_notes": "Generated or normalized by EvaluationClaw agent benchmark builder.",
+        },
+    }
+    if not isinstance(existing, dict):
+        return generated
+    if existing.get("schema_version") != AGENT_TASK_PACKAGE_SCHEMA_VERSION:
+        generated["resource_provenance"]["construction_notes"] = (
+            "Generated by EvaluationClaw because the builder supplied an incomplete or invalid "
+            "metadata.agent_task_package."
+        )
+        return generated
+
+    merged = dict(generated)
+    for key, value in existing.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = {**merged[key], **value}
+        elif value not in (None, "", [], {}):
+            merged[key] = value
+    return merged
+
+
 def task_suite_to_dataset(suite: AgentTaskSuite, spec: EvalSpec, config: BenchmarkConfig) -> BenchmarkDataset:
     items: list[BenchmarkItem] = []
     def _source_kind(kind: str) -> SourceKind:
@@ -1594,6 +3612,7 @@ def task_suite_to_dataset(suite: AgentTaskSuite, spec: EvalSpec, config: Benchma
         metadata = dict(task.metadata)
         metadata["task_agent"] = _task_agent_metadata_for_task(task, agent_env)
         metadata["agent_env"] = agent_env
+        metadata[AGENT_TASK_PACKAGE_METADATA_KEY] = _agent_task_package_for_task(task, agent_env)
         item = BenchmarkItem(
             id=task.id,
             dimension_id=task.dimension_id,

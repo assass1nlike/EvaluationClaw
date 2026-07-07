@@ -11,6 +11,7 @@ from typing import Any
 
 from ..protocols.tool import ToolSpec, format_tool_specs_for_prompt, object_schema
 from .docker import docker_status, docker_subprocess_env, resolve_docker_executable
+from .docker_images import apply_docker_image_selection, build_docker_image_if_requested
 
 
 @dataclass
@@ -47,6 +48,7 @@ class DockerWorkspaceAgentEnvironment:
     docker_executable: str = "docker"
     network: str = "none"
     pull_image: bool = True
+    pull_timeout: int = 300
     memory: str | None = None
     cpus: str | None = None
     workdir: str = "/workspace"
@@ -65,6 +67,25 @@ class DockerWorkspaceAgentEnvironment:
 
     @classmethod
     def from_config(cls, config: dict[str, Any]) -> "DockerWorkspaceAgentEnvironment":
+        task_text = "\n".join(
+            str(config.get(key) or "")
+            for key in ("prompt", "task_text", "description", "notes")
+            if config.get(key)
+        )
+        config, _ = apply_docker_image_selection(
+            {**config, "type": "docker_workspace"},
+            task_text=task_text,
+        )
+        image_build = config.get("image_build") if isinstance(config.get("image_build"), dict) else {}
+        config, _ = build_docker_image_if_requested(
+            config,
+            task_text=task_text,
+            docker_executable=str(config.get("docker_executable") or "docker"),
+            timeout_s=max(
+                1,
+                int(config.get("build_timeout") or config.get("image_build_timeout") or image_build.get("build_timeout") or 600),
+            ),
+        )
         visible = config.get("visible_files")
         if not isinstance(visible, dict):
             visible = config.get("files") if isinstance(config.get("files"), dict) else {}
@@ -88,6 +109,7 @@ class DockerWorkspaceAgentEnvironment:
             docker_executable=str(config.get("docker_executable") or "docker"),
             network=str(config.get("network") or "none"),
             pull_image=bool(config.get("pull_image", True)),
+            pull_timeout=max(1, int(config.get("pull_timeout") or 300)),
             memory=str(resources.get("memory") or config.get("memory") or "") or None,
             cpus=str(resources.get("cpus") or config.get("cpus") or "") or None,
             workdir=str(config.get("workdir") or "/workspace"),
@@ -189,7 +211,7 @@ class DockerWorkspaceAgentEnvironment:
 
         try:
             if self.pull_image:
-                self._require_ok(self._run_docker(["pull", self.image], timeout=max(60, self.timeout)), "pull")
+                self._require_ok(self._run_docker(["pull", self.image], timeout=max(self.pull_timeout, self.timeout)), "pull")
             create = ["create", "--name", self._container_name, "--workdir", self.workdir, "--network", self.network]
             if self.memory:
                 create.extend(["--memory", self.memory])

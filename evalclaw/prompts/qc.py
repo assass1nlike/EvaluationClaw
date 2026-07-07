@@ -31,6 +31,15 @@ For task_type=multi_turn or task_type=agent_interaction:
 - metadata.task_agent should define the task-specific agent system_prompt,
   initial_content, interaction rules, and scoring guidance. Missing task_agent
   is a warning for legacy items, not a blocking error by itself.
+- Professional workflow, VM-backed, docker_workspace, GUI/browser/desktop
+  software, or ALE-like executable agent tasks should also include
+  metadata.agent_task_package with schema_version
+  "evalclaw.agent_task_package.v1". It should separate visible_inputs from
+  runner-private hidden_references, define output_contract, setup/run/evaluate
+  steps, evaluation checks, artifact_collection, trajectory_requirements,
+  environment/software requirements, and provenance. Hidden references are
+  intentionally unavailable to the target agent; do not reject an item merely
+  because hidden_references are private.
 
 For task_type=pairwise_preference:
 - The item prompt should be suitable for both the target model and configured

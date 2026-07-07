@@ -22,6 +22,32 @@ TASK_AGENT_SCHEMA: dict[str, Any] = {
     "initial_content": {
         "scenario": "Initial scenario, state, persona, policy, repository brief, or other task context.",
         "files": {"relative/path.ext": "Initial file content when the task starts from a code/workspace state."},
+        "session": {
+            "application": "GUI/browser/desktop application to launch, when applicable.",
+            "start_state": "Initial desktop/browser/software state.",
+            "assets": [
+                "Input files, URLs, documents, or resources loaded into the session. "
+                "Inline file assets may be objects with path/content."
+            ],
+            "asset_files": {"relative/or/guest/path.ext": "Inline file content to materialize into a VM session."},
+            "expected_artifacts": ["Files, page states, or other artifacts expected after completion."],
+        },
+        "vm": {
+            "isolation": "fresh_snapshot | persistent_session | none",
+            "image": "VM image/template name, if a VM is required.",
+            "snapshot": "Snapshot/reset point to use before the task.",
+            "display": {"width": 1280, "height": 900, "scale": 1.0},
+            "required_software": ["Desktop applications, browsers, fonts, plugins, or bridge services."],
+            "network": "none | restricted | internet",
+            "locale": "Locale/language assumptions.",
+        },
+        "evaluation": {
+            "method": "Bridge, deterministic, judge, artifact, or state-check method.",
+            "checks": ["Named scoring checks or artifact/state assertions."],
+            "pass_criteria": "Full-credit completion standard.",
+            "partial_criteria": "Partial-credit standard.",
+            "fail_criteria": "Failure standard.",
+        },
         "notes": "Any non-secret setup detail needed to run the task.",
     },
     "interaction": {
@@ -46,9 +72,10 @@ TASK_AGENT_SCHEMA: dict[str, Any] = {
         },
     },
     "execution": {
-        "environment_type": "dialogue | workspace | code_sandbox | docker_workspace",
+        "environment_type": "dialogue | workspace | code_sandbox | docker_workspace | gui_desktop",
         "agent_env": "Optional environment config; may mirror metadata.agent_env.",
     },
+    "agent_task_package": "Optional summary pointer; full executable task package should live at metadata.agent_task_package.",
 }
 
 TASK_AGENT_GENERATION_GUIDANCE = """\
@@ -67,7 +94,26 @@ Fields:
   initial files under initial_content.files using relative paths and full file
   contents. Do not use aliases such as file_preview, file_snippets, omitted_files,
   or truncated_files in place of initial_content.files. Do not put secret hidden-test
-  answers in visible initial_content.
+  answers in visible initial_content. For any task that requires a VM, use
+  initial_content.files, metadata.agent_env.visible_files, and/or
+  metadata.agent_env.session.asset_files/assets with path/content objects to
+  describe task-specific guest files. EvaluationClaw materializes these into a
+  per-task cloud-init seed ISO before VM startup when no explicit seed ISO is
+  supplied. For GUI/browser/desktop-software tasks,
+  include initial_content.session, initial_content.vm, and
+  initial_content.evaluation summaries: application/window, start state,
+  assets/input files/URLs, expected artifacts, VM isolation/image/snapshot,
+  required software/display/network, oracle checks, and pass/partial/fail
+  standards.
+  For VM-backed tasks that can start from a base OS image, metadata.agent_env may
+  include vm_provisioning.enabled=true with apt_packages/system_packages,
+  pip_packages/python_packages, snap_packages, cran_packages/r_packages,
+  bioconductor_packages/bioc_packages, julia_packages, conda_packages with
+  conda_channels, cargo_packages, go_packages, gem_packages,
+  composer_packages, apk/dnf/yum/pacman package fields for non-Ubuntu bases,
+  install_steps, commands, and optional desktop_bridge_install_command/
+  desktop_bridge_start_command. EvaluationClaw writes these into cloud-init so
+  the VM installs task software at first boot.
 - interaction: max_turns, optional initial_user_message, optional deterministic
   user_turns, followup_instruction, and stop_condition for multi-turn execution.
 - scoring: scoring method plus instructions. For agent_judge, define 1-5 score
@@ -88,12 +134,55 @@ Fields:
   diagnostics, native builds, or container isolation that the lightweight
   code_sandbox cannot provide. Provide image, visible_files, hidden_files,
   setup_commands, test_command, timeout, and resource_limits in agent_env.
+  Choose a common official runtime image when the requirement is clear, or set
+  image to "auto" / leave it empty so EvaluationClaw can select a suitable
+  Docker image from task files and commands before execution.
+  If no common Hub image is sufficient, set image="build://auto" or
+  agent_env.image_build.enabled=true. image_build can include base_image,
+  system_packages/apt_packages, python_packages/pip_packages,
+  node_packages/npm_packages, cran_packages/r_packages,
+  bioconductor_packages/bioc_packages, julia_packages, conda_packages with
+  conda_channels, cargo_packages, go_packages, gem_packages,
+  composer_packages, apk_packages/dnf_packages/yum_packages/pacman_packages,
+  install_steps, commands, dockerfile, context_files, tag, rebuild, and
+  build_timeout. EvaluationClaw will build a local task image before starting
+  the container, then run the workspace in that image.
+  Use environment_type="gui_desktop" when the task requires screenshot-driven
+  browser or desktop software operation. Provide max_steps, timeout, session,
+  evaluation, and usually requires_vm=true plus vm in agent_env. Put task files
+  that should exist in the guest under agent_env.visible_files or
+  initial_content.files; put session-specific documents/data under
+  agent_env.session.asset_files or assets with path/content objects. The session
+  should describe application type, launch/start state, assets/input files/URLs,
+  and expected artifacts. The vm object should describe image/template,
+  snapshot/reset behavior, display, required software, network policy, and
+  locale. Optional agent_env.vm_materialization can set guest_user, guest_root,
+  enabled=false, or overwrite_seed_iso=true. The evaluation should describe artifact, UI-state, page-state, and
+  trace checks with pass/partial/fail criteria. Do not put bridge or VM-provider
+  secrets in task metadata; bridge_url, bridge_api_key, vm_provider_url, and
+  vm_provider_api_key can be supplied by runtime config.
+  For multi-industrial-software collaboration, do not collapse the task into a
+  single CAD/EDA/rendering application. Use a VM-backed desktop_software
+  agent_env with session.applications, workflow_stages, handoff_artifacts,
+  expected_artifacts, and a workflow_manifest.json requirement. Default to a
+  reproducible KiCad + FreeCAD + Blender stack when the request does not supply
+  licensed software, and make the evaluator check intermediate artifacts,
+  final artifacts, units, provenance, and trace evidence of multi-app use. Add
+  vm_provisioning package lists or install_steps for kicad/freecad/blender when
+  using a clean base image rather than a prebuilt industrial-software template.
   Keep hidden_files secret; the runner injects them only during run_tests.
   For multi-turn delegation tasks, keep the system_prompt focused on the helper
   role and the interaction.turn policy. Store any scripted turns in interaction.
   For API/tool/research/data-analysis tasks, use structured files or tool client
   stubs in initial_content.files rather than embedding large narratives in the
   system prompt.
+- For professional, VM-backed, GUI/desktop-software, docker_workspace, or
+  long-horizon executable tasks, also provide metadata.agent_task_package using
+  schema_version "evalclaw.agent_task_package.v1". metadata.task_agent remains
+  the interaction/scoring prompt contract; metadata.agent_task_package is the
+  executable package contract with visible inputs, hidden references, output
+  contract, setup/run/evaluate steps, artifact collection, trajectory
+  requirements, and provenance.
 """
 
 
@@ -207,8 +296,40 @@ def compact_task_agent_for_qc(spec: dict[str, Any]) -> dict[str, Any]:
             initial_summary["file_preview"] = {
                 name: str(content)[:500] for name, content in list(files.items())[:5]
             }
+        session = initial.get("session")
+        if isinstance(session, dict):
+            initial_summary["session_keys"] = list(session.keys())[:20]
+            for key in ("kind", "application", "entrypoint", "start_url"):
+                if key in session:
+                    initial_summary[f"session_{key}"] = session[key]
+            assets = session.get("assets")
+            if isinstance(assets, list):
+                initial_summary["session_assets"] = assets[:20]
+            expected_artifacts = session.get("expected_artifacts")
+            if isinstance(expected_artifacts, list):
+                initial_summary["session_expected_artifacts"] = expected_artifacts[:20]
+        vm = initial.get("vm")
+        if isinstance(vm, dict):
+            initial_summary["vm_keys"] = list(vm.keys())[:20]
+            for key in ("isolation", "image", "snapshot", "network", "locale"):
+                if key in vm:
+                    initial_summary[f"vm_{key}"] = vm[key]
+            required_software = vm.get("required_software")
+            if isinstance(required_software, list):
+                initial_summary["vm_required_software"] = required_software[:20]
+            display = vm.get("display")
+            if isinstance(display, dict):
+                initial_summary["vm_display"] = display
+        evaluation = initial.get("evaluation")
+        if isinstance(evaluation, dict):
+            initial_summary["evaluation_keys"] = list(evaluation.keys())[:20]
+            for key in ("method", "pass_criteria", "partial_criteria", "fail_criteria"):
+                if key in evaluation:
+                    initial_summary[f"evaluation_{key}"] = str(evaluation[key])[:800]
         for key, value in initial.items():
             if key == "files":
+                continue
+            if key in {"session", "vm", "evaluation"}:
                 continue
             if isinstance(value, (str, int, float, bool)) or value is None:
                 initial_summary[key] = value

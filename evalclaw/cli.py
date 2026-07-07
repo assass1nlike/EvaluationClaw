@@ -295,6 +295,41 @@ def generate(
         "--swebench-docker",
         help="Docker CLI executable for non-WSL SWE-bench runs.",
     ),
+    gui_bridge_url: Optional[str] = typer.Option(
+        None,
+        "--gui-bridge-url",
+        help="HTTP URL for a GUI/CUA desktop bridge used by agent_env.type=gui_desktop.",
+    ),
+    gui_bridge_api_key: Optional[str] = typer.Option(
+        None,
+        "--gui-bridge-api-key",
+        help="Optional bearer token for --gui-bridge-url.",
+    ),
+    gui_bridge_timeout: int = typer.Option(
+        30,
+        "--gui-bridge-timeout",
+        help="Timeout in seconds for GUI/CUA desktop bridge requests.",
+    ),
+    vm_provider_url: Optional[str] = typer.Option(
+        None,
+        "--vm-provider-url",
+        help="HTTP URL for a VM provider, or local://auto/local://virtualbox/local://qemu for the built-in local provider.",
+    ),
+    vm_provider_api_key: Optional[str] = typer.Option(
+        None,
+        "--vm-provider-api-key",
+        help="Optional bearer token for --vm-provider-url.",
+    ),
+    vm_provider_timeout: int = typer.Option(
+        120,
+        "--vm-provider-timeout",
+        help="Timeout in seconds for VM provider create/delete requests.",
+    ),
+    keep_vm: bool = typer.Option(
+        False,
+        "--keep-vm",
+        help="Do not destroy VM-provider sessions during runner cleanup.",
+    ),
     json_output: bool = typer.Option(False, "--json", help="Print full package JSON to stdout."),
 ) -> None:
     """Generate an EvaluationClaw benchmark package."""
@@ -323,6 +358,12 @@ def generate(
         raise typer.Exit(1)
     if large_scale_qc_sample < 0:
         console.print("[red]--large-scale-qc-sample cannot be negative.[/red]")
+        raise typer.Exit(1)
+    if gui_bridge_timeout < 1:
+        console.print("[red]--gui-bridge-timeout must be at least 1 second.[/red]")
+        raise typer.Exit(1)
+    if vm_provider_timeout < 1:
+        console.print("[red]--vm-provider-timeout must be at least 1 second.[/red]")
         raise typer.Exit(1)
     try:
         parsed_scale_budget = ScaleBudget(scale_budget.lower())
@@ -410,6 +451,13 @@ def generate(
         swebench_wsl_http_proxy=swebench_wsl_http_proxy,
         swebench_python_executable=swebench_python_executable,
         swebench_docker_executable=swebench_docker_executable,
+        gui_bridge_url=gui_bridge_url,
+        gui_bridge_api_key=gui_bridge_api_key,
+        gui_bridge_timeout_s=gui_bridge_timeout,
+        vm_provider_url=vm_provider_url,
+        vm_provider_api_key=vm_provider_api_key,
+        vm_provider_timeout_s=vm_provider_timeout,
+        vm_provider_destroy_on_cleanup=not keep_vm,
     )
 
     log_console = Console(stderr=json_output)

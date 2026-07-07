@@ -48,17 +48,45 @@ def parse_agent_action(response: str) -> tuple[dict[str, Any] | None, str | None
 
     stripped = response.strip()
     simple = re.search(
-        r"\b(look|move|inspect|take|place|list_files|read_file|write_file|run_tests|run_test|final)\b"
-        r"\s*:?\s*([\w./-]+)?",
+        r"\b(look|move|inspect|take|place|list_files|read_file|write_file|run_tests|run_test|"
+        r"run_command|screenshot|cursor_position|key|key_down|key_up|type|hold_key|"
+        r"mouse_move|click|drag|mouse_down|mouse_up|scroll|wait|evaluate|final)\b"
+        r"\s*:?\s*([^\n\r{}]*)?",
         stripped,
         re.I,
     )
     if simple:
         action = simple.group(1).lower()
-        value = simple.group(2) or ""
-        key = "room" if action == "move" else "path" if action in {"read_file", "write_file"} else "item"
-        args = {} if action in {"look", "final"} or not value else {key: value}
-        if action in {"list_files", "run_tests", "run_test"}:
+        value = (simple.group(2) or "").strip(" .")
+        if action == "move":
+            key = "room"
+        elif action in {"read_file", "write_file", "list_files", "screenshot"}:
+            key = "path"
+        elif action in {"type", "key", "run_command"}:
+            key = "text" if action == "type" else "keys" if action == "key" else "command"
+        elif action in {"wait"}:
+            key = "seconds"
+        else:
+            key = "item"
+        args = {} if action in {"look", "final", "screenshot", "cursor_position", "evaluate"} or not value else {key: value}
+        if action in {"key", "key_down", "key_up"} and value:
+            args = {"keys": [part for part in re.split(r"[,+]", value) if part]}
+        if action == "hold_key" and value:
+            parts = [part for part in re.split(r"[,+]", value) if part]
+            args = {"keys": parts}
+        if action in {"click", "mouse_move"} and value:
+            numbers = [float(part) for part in re.findall(r"-?\d+(?:\.\d+)?", value)]
+            if len(numbers) >= 2:
+                args = {"x": numbers[0], "y": numbers[1]}
+        if action == "drag" and value:
+            numbers = [float(part) for part in re.findall(r"-?\d+(?:\.\d+)?", value)]
+            if len(numbers) >= 4:
+                args = {"x1": numbers[0], "y1": numbers[1], "x2": numbers[2], "y2": numbers[3]}
+        if action == "wait" and value:
+            match = re.search(r"-?\d+(?:\.\d+)?", value)
+            if match:
+                args = {"seconds": float(match.group(0))}
+        if action in {"list_files", "run_tests", "run_test"} and not value:
             args = {}
         if action == "final" and value:
             args = {"answer": stripped}
@@ -71,7 +99,7 @@ def run_agent_interaction(
     target: TargetModelConfig,
     config: BenchmarkConfig,
 ) -> tuple[str, float, str]:
-    env = build_agent_environment(item)
+    env = build_agent_environment(item, config)
     try:
         system_prompt = task_agent_system_prompt(
             item,

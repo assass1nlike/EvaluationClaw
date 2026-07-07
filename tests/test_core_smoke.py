@@ -2,19 +2,36 @@ import json
 import subprocess
 import sys
 import types
-from pathlib import PureWindowsPath
+from pathlib import Path, PureWindowsPath
 
 import pytest
 
 from evalclaw.agent_benchmark import (
+    _default_blueprint_for_dimension,
     build_agent_dataset,
     build_agent_task_suite,
     plan_agent_benchmark,
+    task_suite_to_dataset,
 )
 from evalclaw.agent_envs import _platform_test_command, build_agent_environment
 from evalclaw.artifacts import _portable_path, write_lm_eval_artifacts
+from evalclaw.execution.desktop_agent_env import DesktopBridgeAgentEnvironment, DesktopBridgeStatus
 from evalclaw.execution.docker import DockerStatus
+from evalclaw.execution.docker_images import (
+    DockerImageProbe,
+    apply_docker_image_selection,
+    select_docker_image,
+)
 from evalclaw.execution.environment_claw import run_environment_claw
+from evalclaw.execution.vm_provider import (
+    VmProviderStatus,
+    VmSession,
+    create_local_vm_session,
+    destroy_local_vm_session,
+    probe_local_vm_backend,
+    probe_vm_provider,
+    trust_env_for_url,
+)
 from evalclaw.generation.fallback import fallback_items
 from evalclaw.generator import (
     _parse_items,
@@ -51,6 +68,7 @@ from evalclaw.types import (
     AgentEnvironmentType,
     AgentTaskBlueprint,
     AgentTaskFamily,
+    AgentTaskSuite,
     BenchmarkBatch,
     BenchmarkConfig,
     BenchmarkDataset,
@@ -153,6 +171,126 @@ def test_simple_equivalent_workload_weights_heavy_agent_items() -> None:
     assert simple_equivalent_workload([simple, docker_agent, swebench]) == 46.0
 
 
+def test_docker_image_selector_prefers_common_runtime_images() -> None:
+    node = select_docker_image(
+        {
+            "type": "docker_workspace",
+            "visible_files": {"package.json": '{"name":"demo"}', "src/app.ts": "export const ok = true;"},
+            "test_command": "npm test",
+        }
+    )
+    rust = select_docker_image(
+        {
+            "type": "docker_workspace",
+            "visible_files": {"Cargo.toml": "[package]\nname = 'demo'\n", "src/main.rs": "fn main() {}"},
+            "test_command": "cargo test",
+        }
+    )
+    applied_env, applied_selection = apply_docker_image_selection(
+        {
+            "type": "docker_workspace",
+            "visible_files": {"Cargo.toml": "[package]\nname = 'demo'\n", "src/main.rs": "fn main() {}"},
+            "test_command": "cargo test",
+        }
+    )
+    shell = select_docker_image(
+        {
+            "type": "docker_workspace",
+            "visible_files": {"deploy.sh": "apt-get update && apt-get install -y curl"},
+            "test_command": "sh deploy.sh",
+        }
+    )
+    explicit = select_docker_image(
+        {
+            "type": "docker_workspace",
+            "image": "ubuntu:22.04",
+            "visible_files": {"package.json": '{"name":"demo"}'},
+        }
+    )
+
+    assert node.image == "node:22-bookworm-slim"
+    assert rust.image == "rust:1.85-slim"
+    assert applied_env["image"] == "rust:1.85-slim"
+    assert applied_selection.image == "rust:1.85-slim"
+    assert shell.image == "ubuntu:22.04"
+    assert explicit.image == "ubuntu:22.04"
+    assert explicit.explicit is True
+
+
+def test_environment_claw_selects_missing_docker_image(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.docker_status",
+        lambda **kwargs: DockerStatus(available=True, executable="docker", client_version="1", server_version="1"),
+    )
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.inspect_docker_image",
+        lambda image, **kwargs: DockerImageProbe(image=image, local=False, detail="not present locally"),
+    )
+    item = BenchmarkItem(
+        id="docker_item",
+        dimension_id="docker",
+        task_type=TaskType.agent_interaction,
+        prompt="Repair the Node project in the container.",
+        metadata={
+            "agent_env": {
+                "type": "docker_workspace",
+                "visible_files": {"package.json": '{"name":"demo"}'},
+                "test_command": "npm test",
+            }
+        },
+    )
+
+    _, report = run_environment_claw([item], BenchmarkConfig())
+    env = item.metadata["agent_env"]
+
+    assert env["image"] == "node:22-bookworm-slim"
+    assert env["image_selection"]["strategy"] == "evalclaw_builtin_rules.v1"
+    assert any(action.action.startswith("select docker image node:22-bookworm-slim") for action in report.actions)
+    assert any(action.action.startswith("pull docker image node:22-bookworm-slim") for action in report.actions)
+    assert any(probe.name == "docker_image" for probe in report.probes)
+
+
+def test_environment_claw_reports_custom_docker_image_build(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.docker_status",
+        lambda **kwargs: DockerStatus(available=True, executable="docker", client_version="1", server_version="1"),
+    )
+    item = BenchmarkItem(
+        id="docker_build_item",
+        dimension_id="docker",
+        task_type=TaskType.agent_interaction,
+        prompt="Run a workspace that needs ffmpeg.",
+        metadata={
+            "agent_env": {
+                "type": "docker_workspace",
+                "image": "build://auto",
+                "image_build": {
+                    "base_image": "python:3.11-slim",
+                    "system_packages": ["ffmpeg"],
+                    "cran_packages": ["ggplot2"],
+                    "go_packages": ["golang.org/x/tools/cmd/stringer@latest"],
+                    "install_steps": [{"manager": "shell", "command": "echo custom"}],
+                    "tag": "evalclaw-ffmpeg:test",
+                },
+                "visible_files": {"task.py": "print('ok')\n"},
+                "test_command": "python task.py",
+            }
+        },
+    )
+
+    _, report = run_environment_claw([item], BenchmarkConfig())
+    env = item.metadata["agent_env"]
+
+    assert env["image"] == "build://auto"
+    assert env["image_build"]["enabled"] is True
+    build_actions = [action for action in report.actions if action.action.startswith("build docker image")]
+    assert build_actions
+    assert build_actions[0].data["package_fields"]["cran_packages"] == ["ggplot2"]
+    assert build_actions[0].data["package_fields"]["go_packages"] == ["golang.org/x/tools/cmd/stringer@latest"]
+    assert build_actions[0].data["install_step_count"] == 1
+    assert not any(action.action.startswith("pull docker image build://auto") for action in report.actions)
+
+
 def test_environment_claw_switches_swebench_to_wsl_when_native_harness_missing(monkeypatch) -> None:
     monkeypatch.setattr("evalclaw.execution.environment_claw.platform.system", lambda: "Windows")
     monkeypatch.setattr(
@@ -188,8 +326,11 @@ def test_auto_mode_routes_obvious_agent_goals_to_agent_benchmark() -> None:
     config = BenchmarkConfig(benchmark_mode=BenchmarkMode.auto)
 
     assert _resolve_benchmark_mode("Evaluate tool-calling agents in a workspace", config) == BenchmarkMode.agent
+    assert _resolve_benchmark_mode("Evaluate GUI desktop software agents", config) == BenchmarkMode.agent
+    assert _resolve_benchmark_mode("Evaluate multi-industrial-software workflow agents", config) == BenchmarkMode.agent
     assert _resolve_benchmark_mode("Evaluate complex math reasoning", config) == BenchmarkMode.static
     assert _resolve_benchmark_mode("评估智能体的工具调用和环境交互能力", config) == BenchmarkMode.agent
+    assert _resolve_benchmark_mode("评估多个工业软件协同完成工程工作流的能力", config) == BenchmarkMode.agent
 
 
 def test_agent_benchmark_fallback_builds_executable_task_suite() -> None:
@@ -242,6 +383,9 @@ def test_agent_benchmark_local_fallback_covers_common_task_families() -> None:
         scale_budget=ScaleBudget.low,
     )
     families = [
+        (AgentTaskFamily.gui_desktop, AgentEnvironmentType.gui_desktop),
+        (AgentTaskFamily.browser_gui, AgentEnvironmentType.gui_desktop),
+        (AgentTaskFamily.desktop_software, AgentEnvironmentType.gui_desktop),
         (AgentTaskFamily.code_repair, AgentEnvironmentType.code_sandbox),
         (AgentTaskFamily.repo_issue, AgentEnvironmentType.code_sandbox),
         (AgentTaskFamily.shell_debugging, AgentEnvironmentType.docker_workspace),
@@ -272,12 +416,817 @@ def test_agent_benchmark_local_fallback_covers_common_task_families() -> None:
     assert [task.environment.type for task in suite.tasks] == [env_type for _, env_type in families]
     assert all(task.prompt.strip() for task in suite.tasks)
     assert all(task.scoring.pass_criteria for task in suite.tasks)
-    assert suite.tasks[2].environment.image == "python:3.11-slim"
+    assert suite.tasks[5].environment.image == "python:3.11-slim"
+    assert all(
+        task.environment.session and task.environment.evaluation
+        for task in suite.tasks
+        if task.environment.type == AgentEnvironmentType.gui_desktop
+    )
+    assert all(
+        task.environment.requires_vm and task.environment.vm
+        for task in suite.tasks
+        if task.environment.type == AgentEnvironmentType.gui_desktop
+    )
     assert all(
         task.environment.hidden_files
         for task in suite.tasks
         if task.environment.type in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
     )
+
+
+def test_agent_benchmark_gui_blueprint_builds_bridge_task() -> None:
+    config = BenchmarkConfig(
+        benchmark_mode=BenchmarkMode.agent,
+        use_web_research=False,
+        use_hf_discovery=False,
+    )
+    dimension = EvalDimension(
+        id="desktop_spreadsheet",
+        name="Desktop spreadsheet GUI",
+        description="Evaluate GUI desktop software operation in a spreadsheet application.",
+        approach="Use screenshot, mouse, keyboard, and exported artifacts.",
+        target_difficulty=Difficulty.L4,
+    )
+    spec = EvalSpec(
+        objective="Evaluate desktop software GUI operation.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+        scale_budget=ScaleBudget.low,
+    )
+
+    blueprint = _default_blueprint_for_dimension(dimension)
+    suite = build_agent_task_suite(spec, [blueprint], config)
+    dataset = task_suite_to_dataset(suite, spec, config)
+    qc = run_qc_gate(dataset, config)
+
+    task = suite.tasks[0]
+    item = dataset.items[0]
+    assert blueprint.task_family == AgentTaskFamily.desktop_software
+    assert blueprint.environment_type == AgentEnvironmentType.gui_desktop
+    assert task.environment.type == AgentEnvironmentType.gui_desktop
+    assert task.environment.requires_vm is True
+    assert task.environment.vm["image"] == "evalclaw-libreoffice-gui"
+    assert task.environment.session["application"] == "spreadsheet"
+    assert task.environment.evaluation["method"] == "artifact_check"
+    assert item.metadata["agent_env"]["type"] == "gui_desktop"
+    assert item.metadata["agent_env"]["requires_vm"] is True
+    assert item.metadata["task_agent"]["initial_content"]["vm"]["image"] == "evalclaw-libreoffice-gui"
+    assert item.metadata["task_agent"]["initial_content"]["session"]["application"] == "spreadsheet"
+    package = item.metadata["agent_task_package"]
+    assert package["schema_version"] == "evalclaw.agent_task_package.v1"
+    assert package["environment_requirements"]["requires_vm"] is True
+    assert package["output_contract"]["expected_artifacts"] == ["Desktop/profit_summary.csv"]
+    assert package["hidden_references"]["staging_phase"] == "post_agent_or_runner_private"
+    assert package["artifact_collection"]["collect_trajectory"] is True
+    assert qc.rejected_item_ids == []
+
+
+def test_agent_benchmark_blender_gui_blueprint_builds_vm_task() -> None:
+    config = BenchmarkConfig(
+        benchmark_mode=BenchmarkMode.agent,
+        use_web_research=False,
+        use_hf_discovery=False,
+    )
+    dimension = EvalDimension(
+        id="blender_scene_creation",
+        name="Blender 3D scene creation",
+        description="Evaluate using Blender in a VM to create and render a simple 3D scene.",
+        approach="Use screenshot, mouse, keyboard, Blender artifacts, and bridge evaluation.",
+        target_difficulty=Difficulty.L4,
+    )
+    spec = EvalSpec(
+        objective="Evaluate Blender desktop software operation in a VM.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+        scale_budget=ScaleBudget.low,
+    )
+
+    blueprint = _default_blueprint_for_dimension(dimension)
+    suite = build_agent_task_suite(spec, [blueprint], config)
+    dataset = task_suite_to_dataset(suite, spec, config)
+    qc = run_qc_gate(dataset, config)
+
+    task = suite.tasks[0]
+    item = dataset.items[0]
+    env = item.metadata["agent_env"]
+
+    assert blueprint.task_family == AgentTaskFamily.desktop_software
+    assert blueprint.environment_type == AgentEnvironmentType.gui_desktop
+    assert any("Blender VM session" in requirement for requirement in blueprint.construction_requirements)
+    assert task.environment.requires_vm is True
+    assert task.environment.vm["image"] == "evalclaw-blender-gui"
+    assert "blender>=4.0" in task.environment.vm["required_software"]
+    assert task.environment.session["application"] == "blender"
+    assert "Desktop/evalclaw_scene.blend" in task.environment.session["expected_artifacts"]
+    assert task.environment.evaluation["method"] == "blender_artifact_check"
+    assert task.environment.evaluation["bridge_evaluator"]["type"] == "blender_python"
+    assert env["requires_vm"] is True
+    assert env["vm"]["image"] == "evalclaw-blender-gui"
+    assert item.metadata["task_agent"]["initial_content"]["vm"]["image"] == "evalclaw-blender-gui"
+    assert item.metadata["agent_task_package"]["output_contract"]["expected_artifacts"] == [
+        "Desktop/evalclaw_scene.blend",
+        "Desktop/evalclaw_render.png",
+    ]
+    assert "screenshot" in item.metadata["agent_task_package"]["trajectory_requirements"]["required_tools"]
+    assert "blender" in item.tags
+    assert qc.rejected_item_ids == []
+
+
+def test_agent_benchmark_multi_industrial_workflow_builds_cross_app_vm_tasks() -> None:
+    goal = (
+        "Build benchmarks for multi-industrial-software collaboration, simulating realistic workflows "
+        "that require several common industrial tools together."
+    )
+    config = BenchmarkConfig(
+        benchmark_mode=BenchmarkMode.agent,
+        scale_budget=ScaleBudget.low,
+        use_web_research=False,
+        use_hf_discovery=False,
+    )
+
+    spec, blueprints = plan_agent_benchmark(goal, config)
+    dataset = build_agent_dataset(goal, config)
+    qc = run_qc_gate(dataset, config)
+
+    assert [dimension.id for dimension in spec.dimensions] == [
+        "cross_application_artifact_handoff",
+        "engineering_constraint_reconciliation",
+        "end_to_end_industrial_workflow_execution",
+    ]
+    assert all(blueprint.task_family == AgentTaskFamily.desktop_software for blueprint in blueprints)
+    assert all(blueprint.environment_type == AgentEnvironmentType.gui_desktop for blueprint in blueprints)
+    assert any("KiCad, FreeCAD, and Blender" in requirement for blueprint in blueprints for requirement in blueprint.construction_requirements)
+
+    assert len(dataset.items) == 3
+    assert qc.rejected_item_ids == []
+    for item in dataset.items:
+        env = item.metadata["agent_env"]
+        session = env["session"]
+        vm = env["vm"]
+        package = item.metadata["agent_task_package"]
+
+        assert env["type"] == "gui_desktop"
+        assert env["requires_vm"] is True
+        assert env["evaluation"]["method"] == "industrial_multi_app_artifact_check"
+        assert env["vm_provisioning"]["enabled"] is True
+        assert {"kicad", "freecad", "blender"}.issubset(set(env["vm_provisioning"]["apt_packages"]))
+        assert session["application"] == "multi_app_industrial_workflow"
+        assert session["applications"] == ["KiCad", "FreeCAD", "Blender"]
+        assert [stage["application"] for stage in session["workflow_stages"]] == ["KiCad", "FreeCAD", "Blender"]
+        assert "Desktop/exports/pcb_assembly.step" in session["handoff_artifacts"]
+        assert "Desktop/exports/workflow_manifest.json" in session["expected_artifacts"]
+        assert "hidden/evaluate_industrial_workflow.py" in env["hidden_files"]
+        assert {"kicad>=8", "freecad>=0.21", "blender>=4.0"}.issubset(set(vm["required_software"]))
+        assert package["environment_requirements"]["requires_vm"] is True
+        assert "Desktop/exports/product_render.png" in package["output_contract"]["expected_artifacts"]
+        assert "hidden/evaluate_industrial_workflow.py" in package["hidden_references"]["files"]
+        assert "industrial_workflow" in item.tags
+        assert "single application" in env["evaluation"]["fail_criteria"]
+
+
+def test_agent_benchmark_runtime_pipeline_defaults_to_docker_task_package() -> None:
+    dimension = EvalDimension(
+        id="k8s_root_cause",
+        name="Kubernetes incident root cause",
+        description="Evaluate diagnosing a Kubernetes payment API incident from logs, configs, and command output.",
+        approach="Use a Docker workspace with visible incident artifacts and hidden RCA checks.",
+        target_difficulty=Difficulty.L5,
+    )
+    spec = EvalSpec(
+        objective="Evaluate SRE diagnostic agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+
+    blueprint = _default_blueprint_for_dimension(dimension)
+    suite = build_agent_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(benchmark_mode=BenchmarkMode.agent, use_web_research=False, use_hf_discovery=False),
+    )
+    dataset = task_suite_to_dataset(suite, spec, BenchmarkConfig(benchmark_mode=BenchmarkMode.agent))
+
+    item = dataset.items[0]
+
+    assert blueprint.environment_type == AgentEnvironmentType.docker_workspace
+    assert blueprint.task_family == AgentTaskFamily.shell_debugging
+    assert item.metadata["agent_env"]["type"] == "docker_workspace"
+    assert item.metadata["agent_task_package"]["schema_version"] == "evalclaw.agent_task_package.v1"
+
+
+def test_qc_rejects_alestyle_gui_item_without_task_package() -> None:
+    item = BenchmarkItem(
+        id="gui_missing_package",
+        dimension_id="gui",
+        task_type=TaskType.agent_interaction,
+        prompt="Use the desktop app to create an artifact.",
+        rubric="Score by bridge artifact checks.",
+        metadata={
+            "task_agent": {
+                "schema_version": "evalclaw.task_agent.v1",
+                "system_prompt": "You are the target agent.",
+                "scoring": {"method": "deterministic", "instructions": "Use bridge checks."},
+            },
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "evalclaw-gui"},
+                "session": {"application": "file_manager", "expected_artifacts": ["Desktop/out.txt"]},
+                "evaluation": {"method": "artifact_check", "pass_criteria": "Desktop/out.txt exists"},
+            },
+        },
+    )
+    dataset = BenchmarkDataset(
+        spec=EvalSpec(
+            objective="Evaluate GUI desktop agents.",
+            dimensions=[
+                EvalDimension(
+                    id="gui",
+                    name="GUI",
+                    description="GUI task",
+                    approach="Use a GUI desktop bridge with artifact scoring.",
+                )
+            ],
+            task_types=[TaskType.agent_interaction],
+        ),
+        items=[item],
+        sources=[],
+    )
+
+    qc = run_qc_gate(dataset, BenchmarkConfig(benchmark_mode=BenchmarkMode.agent))
+
+    assert item.id in qc.rejected_item_ids
+    assert any("metadata.agent_task_package" in issue.message for issue in qc.issues)
+
+
+def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
+    dimension = EvalDimension(
+        id="gui",
+        name="GUI",
+        description="Evaluate GUI desktop task execution.",
+        approach="Use a VM-backed GUI task.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate GUI desktop agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    source_suite = build_agent_task_suite(
+        spec,
+        [
+            AgentTaskBlueprint(
+                id="gui_blueprint",
+                dimension_id=dimension.id,
+                title="GUI task",
+                task_family=AgentTaskFamily.gui_desktop,
+                environment_type=AgentEnvironmentType.gui_desktop,
+            )
+        ],
+        BenchmarkConfig(benchmark_mode=BenchmarkMode.agent, use_web_research=False, use_hf_discovery=False),
+    )
+    task = source_suite.tasks[0]
+    task.metadata["agent_task_package"] = {"schema_version": "broken"}
+    dataset = task_suite_to_dataset(
+        AgentTaskSuite(
+            objective=spec.objective,
+            dimensions=[dimension],
+            blueprints=[],
+            tasks=[task],
+        ),
+        spec,
+        BenchmarkConfig(benchmark_mode=BenchmarkMode.agent),
+    )
+
+    package = dataset.items[0].metadata["agent_task_package"]
+
+    assert package["schema_version"] == "evalclaw.agent_task_package.v1"
+    assert package["visible_inputs"]["instructions"]
+    assert package["output_contract"]["required_outputs"]
+
+
+def test_build_agent_environment_injects_gui_bridge_runtime_config(monkeypatch) -> None:
+    captured: dict = {}
+    fake_env = object()
+
+    def fake_from_config(config: dict) -> object:
+        captured.update(config)
+        return fake_env
+
+    monkeypatch.setattr(
+        "evalclaw.execution.agent_envs.DesktopBridgeAgentEnvironment.from_config",
+        fake_from_config,
+    )
+    item = BenchmarkItem(
+        id="gui_item",
+        dimension_id="gui",
+        task_type=TaskType.agent_interaction,
+        prompt="Operate the GUI.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "session": {"application": "browser"},
+                "evaluation": {"method": "bridge_state_check"},
+            }
+        },
+    )
+
+    env = build_agent_environment(
+        item,
+        BenchmarkConfig(
+            gui_bridge_url="http://127.0.0.1:7766",
+            gui_bridge_api_key="token",
+            gui_bridge_timeout_s=12,
+        ),
+    )
+
+    assert env is fake_env
+    assert captured["bridge_url"] == "http://127.0.0.1:7766"
+    assert captured["bridge_api_key"] == "token"
+    assert captured["timeout"] == 12
+    assert captured["session"] == {"application": "browser"}
+    assert captured["evaluation"] == {"method": "bridge_state_check"}
+
+
+def test_build_agent_environment_injects_vm_provider_runtime_config(monkeypatch) -> None:
+    captured: dict = {}
+    fake_env = object()
+
+    def fake_from_config(config: dict) -> object:
+        captured.update(config)
+        return fake_env
+
+    monkeypatch.setattr(
+        "evalclaw.execution.agent_envs.DesktopBridgeAgentEnvironment.from_config",
+        fake_from_config,
+    )
+    item = BenchmarkItem(
+        id="gui_vm_item",
+        dimension_id="gui",
+        task_type=TaskType.agent_interaction,
+        prompt="Operate the VM GUI.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "evalclaw-gui"},
+                "session": {"application": "browser"},
+                "evaluation": {"method": "bridge_state_check"},
+            }
+        },
+    )
+
+    env = build_agent_environment(
+        item,
+        BenchmarkConfig(
+            gui_bridge_url="http://shared-bridge:7766",
+            vm_provider_url="http://127.0.0.1:7788",
+            vm_provider_api_key="vm-token",
+            vm_provider_timeout_s=44,
+            vm_provider_destroy_on_cleanup=False,
+        ),
+    )
+
+    assert env is fake_env
+    assert captured["bridge_url"] == ""
+    assert captured["vm_provider_url"] == "http://127.0.0.1:7788"
+    assert captured["vm_provider_api_key"] == "vm-token"
+    assert captured["vm_provider_timeout"] == 44
+    assert captured["destroy_vm_on_cleanup"] is False
+    assert captured["vm"] == {"image": "evalclaw-gui"}
+
+
+def test_build_agent_environment_defaults_vm_provider_to_local_auto(monkeypatch) -> None:
+    captured: dict = {}
+    fake_env = object()
+
+    def fake_from_config(config: dict) -> object:
+        captured.update(config)
+        return fake_env
+
+    monkeypatch.setattr(
+        "evalclaw.execution.agent_envs.DesktopBridgeAgentEnvironment.from_config",
+        fake_from_config,
+    )
+    item = BenchmarkItem(
+        id="gui_vm_item",
+        dimension_id="gui",
+        task_type=TaskType.agent_interaction,
+        prompt="Operate the VM GUI.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "evalclaw-gui"},
+                "session": {"application": "file_manager"},
+                "evaluation": {"method": "artifact_check"},
+            }
+        },
+    )
+
+    env = build_agent_environment(item, BenchmarkConfig())
+
+    assert env is fake_env
+    assert captured["bridge_url"] == ""
+    assert captured["vm_provider_url"] == "local://auto"
+
+
+def test_environment_claw_blocks_missing_gui_bridge(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.probe_desktop_bridge",
+        lambda *args, **kwargs: DesktopBridgeStatus(False, detail="bridge missing"),
+    )
+    item = BenchmarkItem(
+        id="gui_item",
+        dimension_id="gui",
+        task_type=TaskType.agent_interaction,
+        prompt="Operate the GUI.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "session": {"application": "browser"},
+                "evaluation": {"method": "bridge_state_check"},
+            }
+        },
+    )
+
+    _, report = run_environment_claw([item], BenchmarkConfig())
+
+    assert any(probe.name == "gui_desktop_bridge" and not probe.ok for probe in report.probes)
+    assert report.blocking_errors
+
+
+def test_environment_claw_blocks_missing_vm_provider(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.probe_vm_provider",
+        lambda *args, **kwargs: VmProviderStatus(False, detail="vm provider missing"),
+    )
+    item = BenchmarkItem(
+        id="gui_vm_item",
+        dimension_id="gui",
+        task_type=TaskType.agent_interaction,
+        prompt="Operate the VM GUI.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "evalclaw-gui"},
+                "session": {"application": "browser"},
+                "evaluation": {"method": "bridge_state_check"},
+            }
+        },
+    )
+
+    _, report = run_environment_claw([item], BenchmarkConfig())
+
+    assert any(probe.name == "vm_provider" and not probe.ok for probe in report.probes)
+    assert not any(probe.name == "gui_desktop_bridge" for probe in report.probes)
+    assert report.blocking_errors
+
+
+def test_environment_claw_defaults_vm_provider_probe_to_local_auto(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_probe(provider_url, **kwargs):
+        captured["provider_url"] = provider_url
+        return VmProviderStatus(False, provider_url=str(provider_url), detail="missing local backend")
+
+    monkeypatch.setattr("evalclaw.execution.environment_claw.probe_vm_provider", fake_probe)
+    item = BenchmarkItem(
+        id="gui_vm_item",
+        dimension_id="gui",
+        task_type=TaskType.agent_interaction,
+        prompt="Operate the VM GUI.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "evalclaw-gui"},
+                "session": {"application": "browser"},
+                "evaluation": {"method": "bridge_state_check"},
+            }
+        },
+    )
+
+    _, report = run_environment_claw([item], BenchmarkConfig())
+
+    assert captured["provider_url"] == "local://auto"
+    assert any(probe.name == "vm_provider" and probe.data["provider_url"] == "local://auto" for probe in report.probes)
+
+
+def test_environment_claw_accepts_available_vm_provider(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.probe_vm_provider",
+        lambda *args, **kwargs: VmProviderStatus(
+            True,
+            provider_url="http://127.0.0.1:7788",
+            detail="ok",
+            data={"provider": "fake"},
+        ),
+    )
+    item = BenchmarkItem(
+        id="gui_vm_item",
+        dimension_id="gui",
+        task_type=TaskType.agent_interaction,
+        prompt="Operate the VM GUI.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "evalclaw-gui"},
+                "session": {"application": "browser"},
+                "evaluation": {"method": "bridge_state_check"},
+            }
+        },
+    )
+
+    _, report = run_environment_claw([item], BenchmarkConfig(vm_provider_url="http://127.0.0.1:7788"))
+
+    assert any(probe.name == "vm_provider" and probe.ok for probe in report.probes)
+    assert report.blocking_errors == []
+
+
+def test_environment_claw_accepts_available_gui_bridge(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.probe_desktop_bridge",
+        lambda *args, **kwargs: DesktopBridgeStatus(
+            True,
+            bridge_url="http://127.0.0.1:7766",
+            detail="ok",
+            data={"bridge": "fake"},
+        ),
+    )
+    item = BenchmarkItem(
+        id="gui_item",
+        dimension_id="gui",
+        task_type=TaskType.agent_interaction,
+        prompt="Operate the GUI.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "session": {"application": "browser"},
+                "evaluation": {"method": "bridge_state_check"},
+            }
+        },
+    )
+
+    _, report = run_environment_claw([item], BenchmarkConfig(gui_bridge_url="http://127.0.0.1:7766"))
+
+    assert any(probe.name == "gui_desktop_bridge" and probe.ok for probe in report.probes)
+    assert report.blocking_errors == []
+
+
+def test_desktop_bridge_creates_and_cleans_vm_session(monkeypatch) -> None:
+    created: dict = {}
+    destroyed: list[tuple[str, str]] = []
+    requests: list[tuple[str, str, dict | None]] = []
+
+    def fake_create_vm_session(provider_url, **kwargs):
+        created["provider_url"] = provider_url
+        created.update(kwargs)
+        return VmSession(vm_id="vm-1", bridge_url="http://vm-bridge:7766", bridge_api_key="bridge-token")
+
+    def fake_destroy_vm_session(provider_url, vm_id, **kwargs):
+        destroyed.append((provider_url, vm_id))
+
+    class FakeResponse:
+        content = b"{}"
+
+        def __init__(self, payload: dict):
+            self.payload = payload
+            self.content = json.dumps(payload).encode()
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self.payload
+
+    class FakeClient:
+        def __init__(self, *, base_url, timeout, headers, trust_env=True):
+            self.base_url = base_url
+            self.timeout = timeout
+            self.headers = headers
+            self.trust_env = trust_env
+
+        def request(self, method, path, json=None):
+            requests.append((method, path, json))
+            if method == "GET" and path == "/health":
+                return FakeResponse({"observation": "ready"})
+            if method == "POST" and path == "/sessions":
+                return FakeResponse({"session_id": "session-1", "observation": "started"})
+            if method == "POST" and path.endswith("/evaluate"):
+                return FakeResponse({"score": 1.0, "done": True})
+            return FakeResponse({"observation": "ok"})
+
+        def delete(self, path):
+            requests.append(("DELETE", path, None))
+            return FakeResponse({})
+
+        def close(self):
+            return None
+
+    monkeypatch.setattr("evalclaw.execution.desktop_agent_env.create_vm_session", fake_create_vm_session)
+    monkeypatch.setattr("evalclaw.execution.desktop_agent_env.destroy_vm_session", fake_destroy_vm_session)
+    monkeypatch.setattr("evalclaw.execution.desktop_agent_env.httpx.Client", FakeClient)
+
+    env = DesktopBridgeAgentEnvironment.from_config(
+        {
+            "type": "gui_desktop",
+            "requires_vm": True,
+            "vm_provider_url": "http://vm-provider:7788",
+            "vm_provider_api_key": "vm-token",
+            "vm_provider_timeout": 55,
+            "vm": {"image": "evalclaw-gui"},
+            "session": {"application": "browser"},
+            "evaluation": {"method": "bridge_state_check"},
+            "max_steps": 3,
+            "timeout": 7,
+        }
+    )
+    outcome = env.step({"action": "evaluate", "args": {}})
+    env.cleanup()
+
+    assert created["provider_url"] == "http://vm-provider:7788"
+    assert created["api_key"] == "vm-token"
+    assert created["vm_spec"] == {"image": "evalclaw-gui"}
+    assert created["session_spec"] == {"application": "browser"}
+    assert created["timeout"] == 55
+    assert env.vm_id == "vm-1"
+    assert env.bridge_url == "http://vm-bridge:7766"
+    assert outcome.done is True
+    assert destroyed == [("http://vm-provider:7788", "vm-1")]
+    assert ("POST", "/sessions", {"session": {"application": "browser", "vm": {"image": "evalclaw-gui"}, "vm_id": "vm-1", "requires_vm": True}}) in requests
+
+
+def test_probe_vm_provider_uses_local_auto_when_no_url(monkeypatch) -> None:
+    monkeypatch.setattr("evalclaw.execution.vm_provider._virtualbox_executable", lambda: "VBoxManage")
+    monkeypatch.setattr("evalclaw.execution.vm_provider._run_command", lambda *args, **kwargs: (True, "7.0.0"))
+
+    status = probe_vm_provider(None)
+
+    assert status.available is True
+    assert status.provider_url == "local://virtualbox"
+    assert status.data["local_backend"] == "virtualbox"
+
+
+def test_probe_local_vm_backend_accepts_qemu_when_tools_exist(monkeypatch) -> None:
+    monkeypatch.setattr("evalclaw.execution.vm_provider._qemu_executable", lambda: "qemu-system-x86_64")
+    monkeypatch.setattr("evalclaw.execution.vm_provider._qemu_img_executable", lambda: "qemu-img")
+
+    status = probe_local_vm_backend("local://qemu")
+
+    assert status.available is True
+    assert status.backend == "qemu"
+    assert status.executable == "qemu-system-x86_64"
+    assert status.data["provider_url"] == "local://qemu"
+    assert status.data["qemu_img"] == "qemu-img"
+
+
+def test_vm_provider_disables_proxy_env_for_local_urls() -> None:
+    assert trust_env_for_url("http://127.0.0.1:7766") is False
+    assert trust_env_for_url("http://localhost:7766") is False
+    assert trust_env_for_url("http://[::1]:7766") is False
+    assert trust_env_for_url("http://vm-provider.internal:7788") is True
+
+
+def test_create_local_vm_session_virtualbox(monkeypatch) -> None:
+    commands: list[list[str]] = []
+
+    def fake_run_command(command, *, timeout=30):
+        commands.append(command)
+        return True, "ok"
+
+    monkeypatch.setattr("evalclaw.execution.vm_provider._virtualbox_executable", lambda: "VBoxManage")
+    monkeypatch.setattr("evalclaw.execution.vm_provider._run_command", fake_run_command)
+    monkeypatch.setattr("evalclaw.execution.vm_provider._free_local_port", lambda: 18766)
+    monkeypatch.setattr("evalclaw.execution.vm_provider._wait_for_bridge", lambda *args, **kwargs: (True, "ok"))
+    monkeypatch.setattr("evalclaw.execution.vm_provider.uuid.uuid4", lambda: types.SimpleNamespace(hex="abcdef123456"))
+
+    session = create_local_vm_session(
+        "local://virtualbox",
+        vm_spec={"image": "evalclaw-gui-ubuntu-22.04", "snapshot": "clean", "bridge": {"guest_port": 7766}},
+        session_spec={"application": "file_manager"},
+        timeout=12,
+    )
+
+    assert session.vm_id == "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12"
+    assert session.bridge_url == "http://127.0.0.1:18766"
+    assert commands[0] == ["VBoxManage", "--version"]
+    assert commands[1] == [
+        "VBoxManage",
+        "clonevm",
+        "evalclaw-gui-ubuntu-22.04",
+        "--name",
+        "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12",
+        "--register",
+        "--mode",
+        "machine",
+    ]
+    assert ["VBoxManage", "snapshot", "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12", "restore", "clean"] in commands
+    assert [
+        "VBoxManage",
+        "modifyvm",
+        "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12",
+        "--natpf1",
+        "evalclaw-bridge,tcp,127.0.0.1,18766,,7766",
+    ] in commands
+    assert ["VBoxManage", "startvm", "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12", "--type", "headless"] in commands
+
+
+def test_create_local_vm_session_qemu_uses_overlay_and_port_forward(monkeypatch, tmp_path) -> None:
+    commands: list[list[str]] = []
+    processes: list[object] = []
+    disk_image = tmp_path / "base.qcow2"
+    disk_image.write_bytes(b"base")
+    seed_iso = tmp_path / "seed.iso"
+    seed_iso.write_bytes(b"seed")
+
+    class FakeProcess:
+        def __init__(self, command, stdout=None, stderr=None):
+            self.command = command
+            self.stdout = stdout
+            self.stderr = stderr
+            self.terminated = False
+            self.killed = False
+            self.waited = False
+            self._poll = None
+            processes.append(self)
+
+        def poll(self):
+            return self._poll
+
+        def terminate(self):
+            self.terminated = True
+
+        def wait(self, timeout=None):
+            self.waited = True
+            self._poll = 0
+            return 0
+
+        def kill(self):
+            self.killed = True
+            self._poll = -9
+
+    def fake_run_command(command, *, timeout=30):
+        commands.append(command)
+        if command[:4] == ["qemu-img", "create", "-f", "qcow2"]:
+            tmp_path.joinpath("runtime").mkdir(exist_ok=True)
+            Path(command[-1]).write_bytes(b"overlay")
+        return True, "ok"
+
+    monkeypatch.setattr("evalclaw.execution.vm_provider._qemu_executable", lambda: "qemu-system-x86_64")
+    monkeypatch.setattr("evalclaw.execution.vm_provider._qemu_img_executable", lambda: "qemu-img")
+    monkeypatch.setattr("evalclaw.execution.vm_provider._run_command", fake_run_command)
+    monkeypatch.setattr("evalclaw.execution.vm_provider.subprocess.Popen", FakeProcess)
+    monkeypatch.setattr("evalclaw.execution.vm_provider._free_local_port", lambda: 18767)
+    monkeypatch.setattr("evalclaw.execution.vm_provider._wait_for_bridge", lambda *args, **kwargs: (True, "ok"))
+    monkeypatch.setattr("evalclaw.execution.vm_provider.uuid.uuid4", lambda: types.SimpleNamespace(hex="feedface1234"))
+    monkeypatch.setenv("EVALCLAW_VM_WORK_DIR", str(tmp_path / "runtime"))
+
+    session = create_local_vm_session(
+        "local://qemu",
+        vm_spec={
+            "disk_image": str(disk_image),
+            "seed_iso": str(seed_iso),
+            "bridge": {"guest_port": 7766},
+            "memory_mb": 1024,
+            "cpus": 1,
+        },
+        session_spec={"application": "file_manager"},
+        timeout=12,
+    )
+
+    assert session.vm_id == "evalclaw-qemu-base-feedface"
+    assert session.bridge_url == "http://127.0.0.1:18767"
+    assert commands[0][:6] == ["qemu-img", "create", "-f", "qcow2", "-F", "qcow2"]
+    process = processes[0]
+    assert "-nic" in process.command
+    assert "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:18767-:7766" in process.command
+    assert f"file={tmp_path / 'runtime' / 'evalclaw-qemu-base-feedface.qcow2'},if=virtio,format=qcow2" in process.command
+    assert f"file={seed_iso.resolve()},if=ide,media=cdrom,readonly=on" in process.command
+
+    overlay_path = tmp_path / "runtime" / "evalclaw-qemu-base-feedface.qcow2"
+    assert overlay_path.exists()
+    destroy_local_vm_session("local://qemu", session.vm_id)
+
+    assert process.terminated is True
+    assert process.waited is True
+    assert process.killed is False
+    assert not overlay_path.exists()
+
+
+def test_agent_action_parser_accepts_gui_actions() -> None:
+    action, error = _parse_agent_action('{"action":"click","args":{"x":10,"y":20}}')
+    assert error is None
+    assert action == {"action": "click", "args": {"x": 10, "y": 20}}
+
+    action, error = _parse_agent_action("key ctrl+s")
+    assert error is None
+    assert action == {"action": "key", "args": {"keys": ["ctrl", "s"]}}
+
+    action, error = _parse_agent_action("click 100,200")
+    assert error is None
+    assert action == {"action": "click", "args": {"x": 100.0, "y": 200.0}}
 
 
 def test_environment_claw_can_be_disabled(monkeypatch) -> None:
@@ -2302,6 +3251,23 @@ def test_code_sandbox_agent_can_revise_after_test_failure(monkeypatch) -> None:
     assert trace["trace"][1]["score_after_step"] == 0.25
     assert trace["trace"][3]["score_after_step"] == 1.0
     assert trace["final_state"]["last_test"]["passed"] is True
+
+
+def test_complex_code_smoke_requires_second_repair(monkeypatch) -> None:
+    from scripts.run_complex_agent_smokes import make_code_repair_item, run_scripted_item
+
+    item, actions, config = make_code_repair_item()
+
+    result = run_scripted_item(item, actions, config)
+    trace = result["raw"]["trace"]
+
+    assert result["score"] == 1.0
+    assert len(trace) == 5
+    assert trace[2]["parsed_action"]["action"] == "run_tests"
+    assert trace[2]["score_after_step"] == 0.25
+    assert "Tests failed" in trace[2]["observation"]
+    assert trace[4]["parsed_action"]["action"] == "run_tests"
+    assert trace[4]["score_after_step"] == 1.0
 
 
 def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
