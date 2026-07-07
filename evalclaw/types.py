@@ -309,6 +309,61 @@ class QcReport(BaseModel):
         return not hard_failures and self.quality_score >= 0.8
 
 
+class ResearchTaxonomyEntry(BaseModel):
+    """A subfield or capability identified during deep research."""
+
+    name: str
+    description: str = ""
+
+
+class ResearchBenchmarkNote(BaseModel):
+    """An existing benchmark surfaced during deep research."""
+
+    name: str
+    url: str = ""
+    known_weaknesses: list[str] = Field(default_factory=list)
+
+
+class ResearchSeedSource(BaseModel):
+    """A groundable document/data URL for the generator."""
+
+    title: str
+    url: str = ""
+    why_useful: str = ""
+
+
+class ResearchExemplarItem(BaseModel):
+    """A representative example item for the researched domain."""
+
+    prompt: str
+    answer: str = ""
+    notes: str = ""
+
+
+class ResearchCitation(BaseModel):
+    """A claim-to-source mapping backing brief conclusions."""
+
+    claim: str
+    url: str = ""
+
+
+class ResearchBrief(BaseModel):
+    """Structured output of the deep-research loop.
+
+    All fields are optional with defaults so partial briefs validate.
+    """
+
+    field_overview: str = ""
+    taxonomy: list[ResearchTaxonomyEntry] = Field(default_factory=list)
+    existing_benchmarks: list[ResearchBenchmarkNote] = Field(default_factory=list)
+    seed_sources: list[ResearchSeedSource] = Field(default_factory=list)
+    exemplar_items: list[ResearchExemplarItem] = Field(default_factory=list)
+    difficulty_anchors: dict[str, str] = Field(default_factory=dict)  # L1-L5 -> meaning
+    citations: list[ResearchCitation] = Field(default_factory=list)
+    research_notes: str = ""
+    created_at: str = Field(default_factory=utc_now)
+
+
 class TargetModelConfig(BaseModel):
     id: str = ""
     provider: str
@@ -384,6 +439,7 @@ class BenchmarkPackage(BaseModel):
     run: EvalRun
     improvements: list[ImprovementIteration] = Field(default_factory=list)
     report: EvalReport
+    research_brief: Optional[ResearchBrief] = None
     created_at: str = Field(default_factory=utc_now)
 
 
@@ -409,6 +465,10 @@ class BenchmarkConfig(BaseModel):
     output_dir: str = "./benchmark-output"
     run_targets: bool = True
     use_web_research: bool = True
+    search_backend: str = "auto"  # auto | gemini | keyless | none
+    use_deep_research: bool = False
+    max_research_iterations: int = 3
+    research_brief: Optional[ResearchBrief] = None
     use_hf_discovery: bool = True
     judge_double_pass: bool = True
     llm_backend: str = "auto"  # auto | litellm | legacy

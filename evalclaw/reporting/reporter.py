@@ -14,6 +14,7 @@ from ..types import (
     EvalRun,
     ItemResult,
     QcReport,
+    ResearchBrief,
     SourceKind,
     TargetSummary,
     TaskType,
@@ -918,7 +919,22 @@ def _safety_audit_lines(run: EvalRun) -> list[str]:
     return lines
 
 
-def build_report(run: EvalRun) -> EvalReport:
+def _research_brief_lines(research_brief: ResearchBrief | None) -> list[str]:
+    if research_brief is None:
+        return []
+    overview = _first_sentence(research_brief.field_overview, 320) if research_brief.field_overview else "-"
+    return [
+        "## Research Brief",
+        "",
+        "- Planning and generation were grounded in a deep-research brief (see research_brief.md / research_brief.json).",
+        f"- Field overview: {overview}",
+        f"- Known benchmarks surveyed: {len(research_brief.existing_benchmarks)}",
+        f"- Seed sources collected: {len(research_brief.seed_sources)}",
+        "",
+    ]
+
+
+def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -> EvalReport:
     """Build a Markdown report from an eval run."""
     dataset: BenchmarkDataset = run.dataset
     qc: QcReport = run.qc_report
@@ -938,6 +954,7 @@ def build_report(run: EvalRun) -> EvalReport:
         f"- Planned simple-equivalent workload: {dataset.spec.scale:g}",
         f"- Planner critique score: {dataset.spec.critique.score:.1f}/5",
         "",
+        *_research_brief_lines(research_brief),
         *_score_semantics_lines(),
         *_run_provenance_lines(run),
         "## Dimensions",
