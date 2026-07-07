@@ -122,6 +122,21 @@ def test_deepseek_target_rejects_multimodal_item_before_call() -> None:
         run_question(item, config)
 
 
+def test_azure_vision_deployments_support_multimodal() -> None:
+    from evalclaw.protocols.multimodal import target_supports_multimodal_input
+    from evalclaw.types import TargetModelConfig
+
+    for deployment, expected in [
+        ("azure/gpt-4o", True),
+        ("azure/gpt-4o-mini", True),
+        ("azure/gpt-5.5", True),
+        ("azure/o4-mini", True),
+        ("azure/DeepSeek-V3-0324", False),
+    ]:
+        target = TargetModelConfig(provider="azure", model=deployment, api_key="dummy")
+        assert target_supports_multimodal_input(target) is expected, deployment
+
+
 def test_run_eval_reports_multimodal_incompatible_target() -> None:
     spec = EvalSpec(objective="Evaluate image reasoning.")
     item = BenchmarkItem(

@@ -235,6 +235,21 @@ def generate(
     no_interactive: bool = typer.Option(False, "--no-interactive", help="Skip confirmation prompts."),
     no_run: bool = typer.Option(False, "--no-run", help="Build and QC the benchmark without running targets."),
     no_research: bool = typer.Option(False, "--no-research", help="Disable web research during generation."),
+    search_backend: str = typer.Option(
+        "auto",
+        "--search-backend",
+        help="Web search backend: auto (gemini if GEMINI_API_KEY else keyless), gemini, keyless, or none.",
+    ),
+    deep_research: bool = typer.Option(
+        False,
+        "--deep-research/--no-deep-research",
+        help="Run a bounded deep-research loop before planning to ground the spec in domain research.",
+    ),
+    max_research_iterations: int = typer.Option(
+        3,
+        "--max-research-iterations",
+        help="Maximum deep-research search/reflection rounds.",
+    ),
     no_hf_discovery: bool = typer.Option(False, "--no-hf-discovery", help="Disable HuggingFace dataset discovery."),
     single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one judge pass instead of the default double-pass audit."),
     llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto, litellm, or legacy."),
@@ -319,6 +334,12 @@ def generate(
     except ValueError:
         console.print("[red]--benchmark-mode must be one of: auto, static, agent.[/red]")
         raise typer.Exit(1)
+    if search_backend.lower() not in {"auto", "gemini", "keyless", "none"}:
+        console.print("[red]--search-backend must be one of: auto, gemini, keyless, none.[/red]")
+        raise typer.Exit(1)
+    if max_research_iterations < 1:
+        console.print("[red]--max-research-iterations must be at least 1.[/red]")
+        raise typer.Exit(1)
 
     effective_api_key, effective_orch_base = orchestrator_defaults(
         orchestrator_model,
@@ -369,6 +390,9 @@ def generate(
         output_dir=output_dir,
         run_targets=not no_run,
         use_web_research=not no_research,
+        search_backend=search_backend.lower(),
+        use_deep_research=deep_research,
+        max_research_iterations=max_research_iterations,
         use_hf_discovery=not no_hf_discovery,
         judge_double_pass=not single_pass_judge,
         llm_backend=llm_backend,

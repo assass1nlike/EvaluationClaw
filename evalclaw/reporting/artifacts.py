@@ -115,6 +115,7 @@ def write_artifact_manifest(
     report_path: Path,
     frontend_report_path: Path | None = None,
     lm_eval_paths: dict[str, Path],
+    research_brief_paths: dict[str, Path] | None = None,
 ) -> Path:
     """Write a stable machine-readable index of generated artifacts."""
     payload = {
@@ -130,6 +131,11 @@ def write_artifact_manifest(
     }
     if frontend_report_path is not None:
         payload["frontend_report"] = str(frontend_report_path)
+    if research_brief_paths:
+        payload["research_brief"] = {key: str(value) for key, value in research_brief_paths.items()}
+        payload["notes"].append(
+            "research_brief artifacts capture the deep-research grounding used for planning and generation."
+        )
     manifest_path = out_dir / "manifest.json"
     manifest_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2),

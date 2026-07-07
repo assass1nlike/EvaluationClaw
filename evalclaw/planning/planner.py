@@ -18,6 +18,7 @@ from ..protocols.science import (
     SCIENCE_SCHEMA,
     text_requests_science,
 )
+from ..research.deep_research import compact_brief_context
 from ..scaling import scale_budget_target_workload, task_type_workload_weight
 from ..types import (
     BenchmarkConfig,
@@ -478,6 +479,14 @@ def plan_eval_spec(
         "feedback": feedback,
         "previous_spec": previous_spec.model_dump(mode="json") if previous_spec else None,
     }
+    if config.research_brief is not None:
+        context["research_brief"] = compact_brief_context(config.research_brief)
+        context["research_brief_policy"] = (
+            "A deep-research brief for this domain is provided in research_brief. Ground the spec in it: "
+            "derive dimensions from the taxonomy entries, use difficulty_anchors to calibrate "
+            "target_difficulty, and avoid duplicating existing_benchmarks without addressing their "
+            "known weaknesses. Do not invent domain structure that contradicts the brief."
+        )
     if text_requests_multimodal(goal):
         context["multimodal_policy"] = (
             "The user explicitly requested non-text or multimodal evaluation. Create at least one dimension "

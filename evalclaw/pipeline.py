@@ -21,6 +21,7 @@ from .planning_loop import (
 from .quality.qc import run_qc_gate
 from .report_viewer import build_report_viewer_html
 from .reporter import artifact_index_markdown, build_report
+from .research.deep_research import render_brief_markdown, run_deep_research
 from .runner import run_eval, validate_multimodal_target_support
 from .types import BenchmarkConfig, BenchmarkItem, BenchmarkMode, BenchmarkPackage, EvalSpec
 
@@ -60,6 +61,21 @@ def _persist_package(pkg: BenchmarkPackage, output_dir: str, log: Callable[[str]
     md_path = out_dir / f"evalclaw_{stem}.md"
     html_path = out_dir / f"evalclaw_{stem}.html"
     artifacts = write_lm_eval_artifacts(pkg.dataset, out_dir)
+    research_brief_paths: dict[str, Path] = {}
+    if pkg.research_brief is not None:
+        brief_json_path = out_dir / "research_brief.json"
+        brief_md_path = out_dir / "research_brief.md"
+        brief_json_path.write_text(
+            _redact_secrets(
+                json.dumps(pkg.research_brief.model_dump(mode="json"), ensure_ascii=False, indent=2)
+            ),
+            encoding="utf-8",
+        )
+        brief_md_path.write_text(
+            _redact_secrets(render_brief_markdown(pkg.research_brief)),
+            encoding="utf-8",
+        )
+        research_brief_paths = {"json": brief_json_path, "markdown": brief_md_path}
     manifest_path = out_dir / "manifest.json"
     artifact_section = artifact_index_markdown(
         package_path=json_path,
@@ -79,7 +95,11 @@ def _persist_package(pkg: BenchmarkPackage, output_dir: str, log: Callable[[str]
         report_path=md_path,
         frontend_report_path=html_path,
         lm_eval_paths=artifacts,
+        research_brief_paths=research_brief_paths or None,
     )
+    if research_brief_paths:
+        log(f"Saved research brief: {research_brief_paths['json']}")
+        log(f"Saved research brief markdown: {research_brief_paths['markdown']}")
     log(f"Saved package: {json_path}")
     log(f"Saved report: {md_path}")
     log(f"Saved browser report: {html_path}")
@@ -145,6 +165,19 @@ def run_pipeline(
     if goal != original_goal:
         log("\n[Input] Translated non-English evaluation goal to English before planning.")
         log(f"  English goal: {goal}")
+
+    if config.use_deep_research and config.research_brief is None:
+        log("\n[Deep Research] Running bounded research loop before planning...")
+        brief = run_deep_research(goal, config, log=log)
+        if brief is None:
+            log("  Deep research unavailable (no orchestrator key or search disabled); continuing without a brief.")
+        else:
+            config = config.model_copy(update={"research_brief": brief})
+            log(
+                f"  Research brief: {len(brief.taxonomy)} taxonomy entries, "
+                f"{len(brief.existing_benchmarks)} known benchmarks, "
+                f"{len(brief.seed_sources)} seed sources"
+            )
 
     benchmark_mode = _resolve_benchmark_mode(goal, config)
     log(f"\n[Mode] Benchmark mode: {benchmark_mode.value}")
@@ -253,7 +286,7 @@ def run_pipeline(
             run = improved.run
 
     log("\n[Reporter] Building Markdown report...")
-    report = build_report(run)
+    report = build_report(run, research_brief=config.research_brief)
 
     pkg = BenchmarkPackage(
         goal=goal,
@@ -263,6 +296,7 @@ def run_pipeline(
         run=run,
         improvements=improvements,
         report=report,
+        research_brief=config.research_brief,
     )
     if config.output_dir:
         _persist_package(pkg, config.output_dir, log)

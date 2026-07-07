@@ -124,6 +124,21 @@ def target_supports_multimodal_input(target: TargetModelConfig) -> bool:
                 "chatgpt-",
             )
         )
+    if provider == "azure":
+        # Azure deployments are user-named; match on the deployment segment
+        # (model is stored as "azure/<deployment>").
+        deployment = model.split("/", 1)[-1]
+        return deployment.startswith(
+            (
+                "gpt-4o",
+                "gpt-4.1",
+                "gpt-4-turbo",
+                "gpt-5",
+                "o3",
+                "o4",
+                "chatgpt-",
+            )
+        )
     if provider in {"mistral"} or model.startswith(("pixtral-", "mistral-medium")):
         return True
     if provider == "openai_compatible":
