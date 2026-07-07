@@ -12,6 +12,12 @@ DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 
 def infer_provider(model: str, base_url: Optional[str] = None) -> tuple[str, Optional[str]]:
     """Infer provider and default base URL from a model name."""
+    if model.startswith("azure/"):
+        # Azure OpenAI deployments route through LiteLLM's native azure/ support,
+        # which reads AZURE_API_BASE / AZURE_API_VERSION from the environment.
+        # We intentionally keep base_url unset so the model string passes through
+        # to LiteLLM unmangled.
+        return "azure", None
     if base_url:
         return "openai_compatible", base_url
     if model.startswith("deepseek-"):
@@ -29,6 +35,12 @@ def default_api_key(provider: str, model: str, fallback: Optional[str] = None) -
         return os.environ.get("DEEPSEEK_API_KEY") or fallback
     if provider == "openai_compatible" and model.startswith("gemini"):
         return os.environ.get("GEMINI_API_KEY") or fallback
+    if provider == "azure" or model.startswith("azure/"):
+        return (
+            os.environ.get("AZURE_API_KEY")
+            or os.environ.get("AZURE_OPENAI_API_KEY")
+            or fallback
+        )
     if provider == "openai":
         return os.environ.get("OPENAI_API_KEY") or fallback
     return os.environ.get("ANTHROPIC_API_KEY") or fallback

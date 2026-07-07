@@ -1,17 +1,8 @@
-"""Compatibility shim for evalclaw.research.backends.
-
-The web-search implementation moved to ``evalclaw/research/backends.py`` with a
-pluggable :class:`~evalclaw.research.backends.SearchBackend` abstraction
-(``gemini`` / ``keyless`` / ``none``). This module re-exports the historical
-public names so existing imports keep working:
-
-    from evalclaw.search import web_search, fetch_url_text, format_search_result
-"""
+"""EvalClaw research subpackage: pluggable search backends + deep research."""
 from __future__ import annotations
 
-from .research.backends import (
+from .backends import (
     DEFAULT_SEARCH_MODEL,
-    GEMINI_API_BASE,
     GeminiBackend,
     KeylessBackend,
     NoneBackend,
@@ -23,18 +14,21 @@ from .research.backends import (
     resolve_backend_name,
     web_search,
 )
+from .deep_research import compact_brief_context, render_brief_markdown, run_deep_research
 
 __all__ = [
     "DEFAULT_SEARCH_MODEL",
-    "GEMINI_API_BASE",
     "GeminiBackend",
     "KeylessBackend",
     "NoneBackend",
     "SearchBackend",
     "SearchResult",
+    "compact_brief_context",
     "fetch_url_text",
     "format_search_result",
     "get_backend",
+    "render_brief_markdown",
     "resolve_backend_name",
+    "run_deep_research",
     "web_search",
 ]

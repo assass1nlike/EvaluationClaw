@@ -378,7 +378,12 @@ def _select_blueprint_sources(
     sources: list[BenchmarkSource] = []
     seen: set[str] = set()
     for query in queries[:2]:
-        result = web_search(query, api_key=config.orchestrator_api_key, model=config.orchestrator_model)
+        result = web_search(
+            query,
+            api_key=config.orchestrator_api_key,
+            model=config.orchestrator_model,
+            backend=config.search_backend,
+        )
         if not result:
             continue
         notes = format_search_result(result)[:1600]

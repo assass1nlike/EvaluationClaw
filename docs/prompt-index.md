@@ -11,6 +11,15 @@ generation, QC, and improvement stages.
 | Main planning prompt | [evalclaw/planning/planner.py](../evalclaw/planning/planner.py) | 36 | Turn a natural-language goal into a structured `EvalSpec`, including task-agent requirements and optional reference-model pairwise planning. |
 | Task-agent schema guidance | [evalclaw/task_agent.py](../evalclaw/task_agent.py) | 56 | Standardized `metadata.task_agent` generation guidance reused by Planner, Generator, and Planner review prompts. |
 
+## Deep Research
+
+| Stage | File | Line | Purpose |
+| --- | --- | --- | --- |
+| Initial query generation | [evalclaw/prompts/research.py](../evalclaw/prompts/research.py) | 4 | Generate the initial web-search query set from the evaluation goal. |
+| Findings compression | [evalclaw/prompts/research.py](../evalclaw/prompts/research.py) | 22 | Compress raw search syntheses and fetched page text into concise findings. |
+| Gap reflection | [evalclaw/prompts/research.py](../evalclaw/prompts/research.py) | 39 | Check findings against the `ResearchBrief` schema, emit gaps and follow-up queries or declare done. |
+| Brief synthesis | [evalclaw/prompts/research.py](../evalclaw/prompts/research.py) | 64 | Synthesize the final structured `ResearchBrief` JSON from accumulated findings. |
+
 ## Generation
 
 | Stage | File | Line | Purpose |
@@ -52,6 +61,7 @@ the repository root and jump to the listed line:
 | --- | --- |
 | Goal translation | `evalclaw/planning/planner.py`, line 25 |
 | Main planning prompt | `evalclaw/planning/planner.py`, line 36 |
+| Deep-research prompts | `evalclaw/prompts/research.py`, lines 4, 22, 39, 64 |
 | Task-agent schema guidance | `evalclaw/task_agent.py`, line 56 |
 | Dimension item-generation prompt | `evalclaw/generator.py`, line 28 |
 | Planner dataset review prompt | `evalclaw/planning/loop.py`, line 31 |

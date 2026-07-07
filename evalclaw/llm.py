@@ -77,6 +77,32 @@ def _extract_litellm_content(response: object) -> str:
     raise ValueError("LiteLLM response has no text content")
 
 
+_REASONING_MODEL_MARKERS = ("gpt-5", "o1", "o3", "o4", "deepseek-reasoner")
+_REASONING_MAX_TOKENS_FLOOR = 16384
+_MAX_COMPLETION_TOKENS_CAP = 65536
+
+
+def _is_reasoning_model(model: str) -> bool:
+    """Whether a model bills internal reasoning tokens against max_tokens.
+
+    Matches on the deployment/model segment so both ``gpt-5.5`` and
+    ``azure/gpt-5.5`` are recognized.
+    """
+    name = model.split("/", 1)[-1].lower()
+    return name.startswith(_REASONING_MODEL_MARKERS)
+
+
+def _effective_max_tokens(model: str, max_tokens: int) -> int:
+    """Raise (never lower) max_tokens for reasoning models.
+
+    Reasoning models consume the completion budget with internal reasoning
+    tokens first; a 4096 budget routinely yields truncated or empty text.
+    """
+    if _is_reasoning_model(model):
+        return max(max_tokens, _REASONING_MAX_TOKENS_FLOOR)
+    return max_tokens
+
+
 def _call_litellm(
     *,
     model: str,
@@ -87,21 +113,104 @@ def _call_litellm(
 ) -> str:
     import litellm
 
+    # Silence litellm's ANSI "Provider List" banner spam on every exception.
+    litellm.suppress_debug_info = True
+
     litellm_model = model
-    if base_url and not model.startswith(("openai/", "anthropic/", "gemini/")):
+    if base_url and not model.startswith(("openai/", "anthropic/", "gemini/", "azure/")):
         litellm_model = f"openai/{model}"
     kwargs = {
         "model": litellm_model,
         "messages": messages,
-        "max_tokens": max_tokens,
-        "timeout": 120,
+        "timeout": 300,
     }
+    reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
+    if reasoning_effort and _is_reasoning_model(model):
+        kwargs["reasoning_effort"] = reasoning_effort
     if api_key:
         kwargs["api_key"] = api_key
     if base_url:
         kwargs["base_url"] = base_url
-    response = litellm.completion(**kwargs)
-    return _extract_litellm_content(response)
+
+    # A truncated completion (finish_reason=length) would be silently "repaired"
+    # by json-repair downstream, injecting cut-off prompts into datasets. Retry
+    # once with a doubled budget, then fail loudly.
+    budget = _effective_max_tokens(model, max_tokens)
+    for attempt in range(2):
+        kwargs["max_tokens"] = budget
+        response = litellm.completion(**kwargs)
+        finish_reason = getattr(
+            (getattr(response, "choices", None) or [None])[0], "finish_reason", None
+        )
+        if finish_reason == "length":
+            if attempt == 0:
+                budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
+                continue
+            raise RuntimeError(
+                f"LLM output truncated at {budget} completion tokens "
+                f"(finish_reason=length) for model {model}"
+            )
+        return _extract_litellm_content(response)
+    raise AssertionError("unreachable")
+
+
+def _azure_legacy_completion(
+    *,
+    model: str,
+    messages: list[dict],
+    max_tokens: int,
+    api_key: Optional[str] = None,
+) -> str:
+    """Call an Azure OpenAI deployment via httpx (legacy, non-litellm backend).
+
+    Azure OpenAI exposes chat completions at
+    ``{AZURE_API_BASE}/openai/deployments/{deployment}/chat/completions?api-version=...``
+    and authenticates with an ``api-key`` header. When the required Azure
+    environment variables are missing we raise an actionable error telling the
+    user to use the litellm backend instead.
+    """
+    base = os.environ.get("AZURE_API_BASE")
+    version = os.environ.get("AZURE_API_VERSION")
+    key = (
+        api_key
+        or os.environ.get("AZURE_API_KEY")
+        or os.environ.get("AZURE_OPENAI_API_KEY")
+    )
+    if not base or not version:
+        raise RuntimeError(
+            "Azure OpenAI models require either the litellm backend "
+            "(llm_backend='auto' or 'litellm') or, for the legacy backend, "
+            "AZURE_API_BASE and AZURE_API_VERSION to be set. "
+            "Export AZURE_API_BASE, AZURE_API_VERSION, and AZURE_API_KEY, "
+            "or switch to the litellm backend."
+        )
+    deployment = model.split("/", 1)[1] if "/" in model else model
+    url = (
+        f"{base.rstrip('/')}/openai/deployments/{deployment}"
+        f"/chat/completions?api-version={version}"
+    )
+    # Reasoning deployments reject max_tokens and require max_completion_tokens.
+    token_field = "max_completion_tokens" if _is_reasoning_model(model) else "max_tokens"
+    # Same truncation guard as the litellm path: a length-cut completion would
+    # be silently "repaired" by json-repair downstream.
+    budget = _effective_max_tokens(model, max_tokens)
+    for attempt in range(2):
+        data = _post_with_retry(
+            url,
+            headers={"api-key": key or "", "Content-Type": "application/json"},
+            body={"messages": messages, token_field: budget},
+        )
+        choice = data["choices"][0]
+        if choice.get("finish_reason") == "length":
+            if attempt == 0:
+                budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
+                continue
+            raise RuntimeError(
+                f"LLM output truncated at {budget} completion tokens "
+                f"(finish_reason=length) for model {model}"
+            )
+        return choice["message"]["content"]
+    raise AssertionError("unreachable")
 
 
 def _get_anthropic_client(api_key: Optional[str] = None) -> anthropic.Anthropic:
@@ -137,9 +246,22 @@ def call_llm(
                 api_key=api_key,
                 base_url=base_url,
             )
-        except Exception:
+        except Exception as exc:
             if backend == "litellm":
                 raise
+            print(
+                f"  [llm] litellm call failed for {model_name} "
+                f"({type(exc).__name__}: {str(exc)[:160]}); falling back to legacy backend"
+            )
+
+    if model_name.startswith("azure/"):
+        # Legacy backend path for Azure OpenAI deployments.
+        return _azure_legacy_completion(
+            model=model_name,
+            messages=messages_dict,
+            max_tokens=max_tokens,
+            api_key=api_key,
+        )
 
     if base_url:
         # OpenAI-compatible path (covers Gemini, local models, etc.)
@@ -149,12 +271,23 @@ def call_llm(
             or (os.environ.get("GEMINI_API_KEY") if model_name.startswith("gemini") else None)
             or os.environ.get("OPENAI_API_KEY", "")
         )
-        data = _post_with_retry(
-            f"{base_url.rstrip('/')}/chat/completions",
-            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-            body={"model": model_name, "messages": messages_dict, "max_tokens": max_tokens},
-        )
-        return data["choices"][0]["message"]["content"]
+        budget = _effective_max_tokens(model_name, max_tokens)
+        for attempt in range(2):
+            data = _post_with_retry(
+                f"{base_url.rstrip('/')}/chat/completions",
+                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                body={"model": model_name, "messages": messages_dict, "max_tokens": budget},
+            )
+            choice = data["choices"][0]
+            if choice.get("finish_reason") == "length":
+                if attempt == 0:
+                    budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
+                    continue
+                raise RuntimeError(
+                    f"LLM output truncated at {budget} completion tokens "
+                    f"(finish_reason=length) for model {model_name}"
+                )
+            return choice["message"]["content"]
 
     # Native Anthropic path
     client = _get_anthropic_client(api_key)
@@ -213,6 +346,25 @@ def call_target_model(
         for m in history:
             messages.append({"role": m.role, "content": m.content})
         messages.append({"role": "user", "content": user_content})
+        if target.provider == "azure" or target.model.startswith("azure/"):
+            if backend in {"auto", "litellm"}:
+                try:
+                    return _call_litellm(
+                        model=target.model,
+                        messages=messages,
+                        max_tokens=4096,
+                        api_key=target.api_key,
+                        base_url=target.base_url,
+                    )
+                except Exception:
+                    if backend == "litellm":
+                        raise
+            return _azure_legacy_completion(
+                model=target.model,
+                messages=messages,
+                max_tokens=4096,
+                api_key=target.api_key,
+            )
         data = _post_with_retry(
             f"{base_url.rstrip('/')}/chat/completions",
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
@@ -258,6 +410,14 @@ def call_target_model(
         except Exception:
             if backend == "litellm":
                 raise
+
+    if target.provider == "azure" or target.model.startswith("azure/"):
+        return _azure_legacy_completion(
+            model=target.model,
+            messages=messages,
+            max_tokens=4096,
+            api_key=target.api_key,
+        )
 
     data = _post_with_retry(
         f"{base_url.rstrip('/')}/chat/completions",

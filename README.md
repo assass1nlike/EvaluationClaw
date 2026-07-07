@@ -6,36 +6,60 @@ from natural-language goals.
 It currently supports:
 
 - Planner-driven `EvalSpec` generation from vague goals.
+- **Deep research** (`--deep-research`): a bounded search→compress→reflect loop that
+  turns a vague field into a structured `ResearchBrief` (taxonomy, existing benchmarks
+  and their weaknesses, seed sources, difficulty anchors, citations) that grounds the
+  planner and generator.
+- Pluggable web-search backends (`--search-backend auto|gemini|keyless|none`):
+  Gemini Google-Search grounding when `GEMINI_API_KEY` is set, or a key-free
+  combination of arXiv + Wikipedia + DuckDuckGo otherwise.
 - Self-generated benchmark items with optional web research, HuggingFace dataset discovery,
   and lightweight HuggingFace row ingestion.
 - Static and LLM-assisted QC gates.
 - Direct model execution with rule scoring, code execution sandboxing, multi-turn tasks,
   simulated agent interaction tasks, and double-pass LLM judge audit.
 - Loop 3 self-improvement that diagnoses QC/run results and regenerates targeted items.
-- LiteLLM-backed provider calls with a legacy fallback.
+- LiteLLM-backed provider calls with a legacy fallback, including **Azure OpenAI**
+  deployments via `azure/<deployment-name>` model names.
 - lm-eval-harness interoperability via generated JSONL/YAML artifacts and optional runner.
 - Markdown reports with source coverage, canonical JSON packages, and artifact manifests.
+- An A/B experiment harness under `experiments/` (baseline vs deep-research, plus a
+  ranking-preservation check) with dataset-quality metrics.
 
 ## Environment
 
-The project environment used during development is:
-
 ```bash
-/zfspool/zangyihe/conda_envs/evalclaw/bin/python
+python -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]"          # + extras as needed: .[datasets], .[lm-eval], .[swebench]
 ```
 
-Install optional runner dependencies with:
+or with uv:
 
 ```bash
-/zfspool/zangyihe/conda_envs/evalclaw/bin/pip install lm-eval
+uv run --extra dev pytest -q
 ```
+
+Copy `.env.example` to `.env` and fill in the keys for the providers you use.
+Model-name → provider routing is automatic:
+
+| Model name | Provider | Key env vars |
+|---|---|---|
+| `azure/<deployment>` | Azure OpenAI | `AZURE_API_KEY`, `AZURE_API_BASE`, `AZURE_API_VERSION` |
+| `deepseek-*` | DeepSeek | `DEEPSEEK_API_KEY` |
+| `gemini*` | Gemini (OpenAI-compatible) | `GEMINI_API_KEY` |
+| `gpt-*`, `o1/o3/o4*` | OpenAI | `OPENAI_API_KEY` |
+| `claude-*` (default) | Anthropic | `ANTHROPIC_API_KEY` |
+
+For reasoning models (`gpt-5*`, `o1/o3/o4`, `deepseek-reasoner`) the completion budget
+is raised automatically and truncated responses are retried; set
+`EVALCLAW_REASONING_EFFORT=low` to cut latency and cost substantially.
 
 ## Quick Start
 
 Generate a benchmark draft without running target models:
 
 ```bash
-/zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw_cli.py generate \
+python evalclaw_cli.py generate \
   -g "Evaluate strict format following" \
   --no-interactive \
   --no-run \
@@ -44,10 +68,23 @@ Generate a benchmark draft without running target models:
   --qpd 1
 ```
 
+Azure OpenAI end-to-end with deep research (vague field → researched benchmark → run):
+
+```bash
+python evalclaw_cli.py generate \
+  -g "Evaluate LLM truthfulness and deception under pressure" \
+  --orchestrator-model azure/gpt-5.5 \
+  -m azure/gpt-4o \
+  --deep-research \
+  --search-backend keyless \
+  --no-interactive \
+  --scale-budget low
+```
+
 Run DeepSeek V4 Pro as planner/generator/QC/judge against DeepSeek V4 Flash:
 
 ```bash
-DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw_cli.py generate \
+DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   -g "Evaluate whether the model strictly follows specified output formats" \
   --orchestrator-model deepseek-v4-pro \
   -m deepseek-v4-flash \
@@ -60,24 +97,10 @@ DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw
   --llm-backend litellm
 ```
 
-Run both EvaluationClaw direct judging and lm-eval-harness interoperability:
-
-```bash
-DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw_cli.py generate \
-  -g "Evaluate whether the model strictly follows specified output formats" \
-  --orchestrator-model deepseek-v4-pro \
-  -m deepseek-v4-flash \
-  --no-interactive \
-  --no-research \
-  --qpd 1 \
-  --runner auto \
-  --llm-backend litellm
-```
-
 For faster smoke runs that still exercise Loop 3, use local diagnosis:
 
 ```bash
-DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw_cli.py generate \
+DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   -g "Evaluate agent planning, noisy tool correction, code reasoning, and calibration" \
   --orchestrator-model deepseek-v4-pro \
   -m deepseek-v4-flash \
@@ -92,12 +115,27 @@ DEEPSEEK_API_KEY="..." /zfspool/zangyihe/conda_envs/evalclaw/bin/python evalclaw
   --loop3-max-actions 3
 ```
 
+## Experiments
+
+`experiments/` contains a self-contained harness that validates the pipeline on real APIs:
+
+```bash
+python experiments/run_ab_deep_research.py --config experiments/config.json --smoke   # probe first
+python experiments/run_ab_deep_research.py --config experiments/config.json          # full A/B
+python experiments/run_ranking_check.py --package <evalclaw_*.json>                  # ranking check
+```
+
+Per-goal metrics (coverage/validity audits, semantic diversity, strong-vs-weak
+discriminative gap, wall time) land in `experiments/results/`, with the run log
+tee'd to `experiments/results/exp1_run.log`. See `experiments/README.md`.
+
 ## Outputs
 
 Each run writes:
 
 - `evalclaw_<timestamp>.json` - canonical EvaluationClaw package.
 - `evalclaw_<timestamp>.md` - human-readable report.
+- `research_brief.json` / `research_brief.md` - the deep-research brief (when `--deep-research`).
 - `manifest.json` - machine-readable artifact index.
 - `lm-eval/<task>.jsonl` - lm-eval dataset export.
 - `lm-eval/<task>.yaml` - lm-eval task export.

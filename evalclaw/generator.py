@@ -211,8 +211,28 @@ def _select_research_sources(
     config: BenchmarkConfig,
 ) -> list[BenchmarkSource]:
     sources: list[BenchmarkSource] = []
+    if config.research_brief is not None:
+        # Deep-research seed sources take priority over fresh discovery/search.
+        for seed in config.research_brief.seed_sources:
+            if not seed.url:
+                continue
+            sources.append(
+                BenchmarkSource(
+                    kind=SourceKind.web,
+                    uri=seed.url,
+                    title=seed.title or seed.url,
+                    notes=seed.why_useful or "Deep-research seed source.",
+                )
+            )
+            if len(sources) >= config.max_research_sources:
+                return sources
     if config.use_hf_discovery and (dimension.needs_research or config.max_hf_records_per_dimension > 0):
-        sources.extend(discover_hf_datasets(dimension, limit=config.max_research_sources))
+        existing = {source.uri for source in sources}
+        sources.extend(
+            source
+            for source in discover_hf_datasets(dimension, limit=config.max_research_sources)
+            if source.uri not in existing
+        )
     if not config.use_web_research or not dimension.needs_research:
         return sources
 
@@ -223,6 +243,7 @@ def _select_research_sources(
             query,
             api_key=config.orchestrator_api_key,
             model=config.orchestrator_model,
+            backend=config.search_backend,
         )
         if not result:
             continue
