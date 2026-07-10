@@ -5,17 +5,17 @@ import os
 import time
 from pathlib import Path
 
-from evalclaw.agent_benchmark import (
+from evalclaw.agent import (
     build_agent_task_suite,
     plan_agent_benchmark,
     task_suite_to_dataset,
 )
+from evalclaw.execution.runner import run_eval
 from evalclaw.quality.qc import run_qc_gate
 from evalclaw.reporting.artifacts import write_artifact_manifest
 from evalclaw.reporting.reporter import artifact_index_markdown, build_report
 from evalclaw.reporting.viewer import build_report_viewer_html
 from evalclaw.research.deep_research import render_brief_markdown, run_deep_research
-from evalclaw.runner import run_eval
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkMode,

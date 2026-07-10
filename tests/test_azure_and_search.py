@@ -6,9 +6,8 @@ from __future__ import annotations
 
 import pytest
 
-from evalclaw import llm
-from evalclaw import search as search_shim
-from evalclaw.providers import default_api_key, infer_provider, target_from_model
+from evalclaw.models import llm
+from evalclaw.models.providers import default_api_key, infer_provider, target_from_model
 from evalclaw.research import backends
 from evalclaw.research.backends import (
     GeminiBackend,
@@ -389,11 +388,11 @@ def test_fetch_url_text_skips_non_http_urls() -> None:
     assert backends.fetch_url_text("ftp://example.com/x") is None
 
 
-def test_search_shim_reexports() -> None:
-    assert search_shim.web_search is backends.web_search
-    assert search_shim.fetch_url_text is backends.fetch_url_text
-    assert search_shim.format_search_result is backends.format_search_result
-    assert search_shim.SearchResult is backends.SearchResult
+def test_search_backend_public_exports() -> None:
+    assert backends.web_search
+    assert backends.fetch_url_text
+    assert backends.format_search_result
+    assert backends.SearchResult is SearchResult
 
 
 def test_web_search_none_backend_returns_none() -> None:

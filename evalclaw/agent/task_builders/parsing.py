@@ -1,9 +1,9 @@
-"""Parsing helpers for LLM-built and legacy agent tasks."""
+﻿"""Parsing helpers for LLM-built and legacy agent tasks."""
 from __future__ import annotations
 
 from typing import Any
 
-from ...generator import _safe_difficulty as _item_safe_difficulty
+from ...generation.generator import _safe_difficulty as _item_safe_difficulty
 from ...types import (
     AgentEnvironmentSpec,
     AgentScoringSpec,

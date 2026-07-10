@@ -1,4 +1,4 @@
-"""Loop 3 self-improvement: diagnose run outcomes and regenerate targeted items."""
+﻿"""Loop 3 self-improvement: diagnose run outcomes and regenerate targeted items."""
 from __future__ import annotations
 
 import difflib
@@ -10,8 +10,8 @@ from threading import Thread
 from typing import Callable
 
 from ..execution.runner import run_eval
-from ..generator import generate_dimension_items
-from ..llm import call_llm, extract_json
+from ..generation.generator import generate_dimension_items
+from ..models.llm import call_llm, extract_json
 from ..quality.qc import run_qc_gate
 from ..types import (
     BenchmarkConfig,

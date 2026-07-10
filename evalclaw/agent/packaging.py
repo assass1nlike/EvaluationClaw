@@ -1,14 +1,14 @@
-"""Conversion of agent task suites into benchmark datasets."""
+﻿"""Conversion of agent task suites into benchmark datasets."""
 from __future__ import annotations
 
 from typing import Any
 
+from ..core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
 from ..execution.docker_images import apply_docker_image_selection
 from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_METADATA_KEY,
     AGENT_TASK_PACKAGE_SCHEMA_VERSION,
 )
-from ..task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
 from ..types import (
     AgentTask,
     AgentTaskFamily,

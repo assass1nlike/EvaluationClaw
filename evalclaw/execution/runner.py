@@ -1,4 +1,4 @@
-"""Runner: execute accepted benchmark items against one or more target models."""
+﻿"""Runner: execute accepted benchmark items against one or more target models."""
 from __future__ import annotations
 
 import json
@@ -9,7 +9,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any, Callable
 
-from ..llm import call_llm, call_target_model, extract_json
+from ..models.llm import call_llm, call_target_model, extract_json
 from ..protocols.multimodal import (
     build_multimodal_user_content,
     get_multimodal_spec,
@@ -61,8 +61,8 @@ from .swebench import (
 def _score_yes_no(response: str, answer: str | None) -> float:
     expected = (answer or "yes").lower()
     lower = response.lower()
-    has_yes = bool(re.search(r"\byes\b|是|正确", lower))
-    has_no = bool(re.search(r"\bno\b|否|不正确|错误", lower))
+    has_yes = bool(re.search(r"\byes\b|\u662f|\u6b63\u786e", lower))
+    has_no = bool(re.search(r"\bno\b|\u5426|\u4e0d\u6b63\u786e|\u9519\u8bef", lower))
     if has_yes and not has_no:
         return 1.0 if expected == "yes" else 0.0
     if has_no and not has_yes:
@@ -75,7 +75,7 @@ def _parse_choice_options(choices: list[str]) -> dict[str, str]:
     for index, choice in enumerate(choices):
         fallback_label = chr(ord("A") + index)
         text = str(choice).strip()
-        match = re.match(r"^\s*([A-Z])\s*[\).:：]\s*(.+?)\s*$", text, flags=re.IGNORECASE)
+        match = re.match(r"^\s*([A-Z])\s*[\).:\uff1a]\s*(.+?)\s*$", text, flags=re.IGNORECASE)
         if match:
             parsed[match.group(1).upper()] = match.group(2).strip()
         else:
@@ -123,12 +123,12 @@ def _normalize_choice_text(text: str) -> str:
     normalized = re.sub(r"\\sqrt\s*\{([^{}]+)\}", r"sqrt(\1)", normalized)
     normalized = re.sub(r"\\text\s*\{([^{}]+)\}", r"\1", normalized)
     normalized = re.sub(r"\\left|\\right|\\[()[\\]{}$]", " ", normalized)
-    normalized = normalized.replace("√", "sqrt")
+    normalized = normalized.replace("\u221a", "sqrt")
     normalized = re.sub(r"\\+", "", normalized)
     normalized = normalized.replace("*", "")
     normalized = normalized.replace(",", "")
     normalized = re.sub(r"\s+", " ", normalized)
-    normalized = normalized.strip(" .,:;，。；：")
+    normalized = normalized.strip(" .,:;\uff0c\u3002\uff1b\uff1a")
     if normalized.startswith("(") and normalized.endswith(")"):
         normalized = normalized[1:-1].strip()
     return normalized.lower()
@@ -141,9 +141,9 @@ def _choice_answer_candidates(response: str) -> list[str]:
     if len(boxed) > 1:
         candidates.append(" ".join(boxed))
     for pattern in (
-        r"(?:final\s+answer|answer|option|choice|答案|选项)\s*(?:is|为|是)?\s*[:=：]?\s*([A-Z]|\$?[-+]?[\d,]+(?:\.\d+)?%?|\\?[A-Za-z0-9_{}^./%+-]+)",
-        r"\*\*\s*([A-Z])\s*[\).:：]",
-        r"所以\s*(?:答案|结果)?\s*(?:是|为|=|:|：)?\s*([A-Z]|[-+]?\d+(?:\.\d+)?)",
+        r"(?:final\s+answer|answer|option|choice|\u7b54\u6848|\u9009\u9879)\s*(?:is|\u4e3a|\u662f)?\s*[:=\uff1a]?\s*([A-Z]|\$?[-+]?[\d,]+(?:\.\d+)?%?|\\?[A-Za-z0-9_{}^./%+-]+)",
+        r"\*\*\s*([A-Z])\s*[\).:\uff1a]",
+        r"\u6240\u4ee5\s*(?:\u7b54\u6848|\u7ed3\u679c)?\s*(?:\u662f|\u4e3a|=|:|\uff1a)?\s*([A-Z]|[-+]?\d+(?:\.\d+)?)",
     ):
         candidates.extend(match.group(1) for match in re.finditer(pattern, response, flags=re.IGNORECASE))
     nonempty_lines = [line.strip() for line in response.splitlines() if line.strip()]
@@ -161,7 +161,7 @@ def _choice_answer_letter(answer: str, choices: list[str] | None) -> tuple[str |
     if len(stripped) == 1 and "A" <= stripped.upper() <= "Z":
         letter = stripped.upper()
         return letter, options.get(letter)
-    match = re.match(r"^\s*([A-Z])\s*[\).:：]\s*(.+?)\s*$", stripped, flags=re.IGNORECASE)
+    match = re.match(r"^\s*([A-Z])\s*[\).:\uff1a]\s*(.+?)\s*$", stripped, flags=re.IGNORECASE)
     if match:
         letter = match.group(1).upper()
         return letter, options.get(letter) or match.group(2).strip()

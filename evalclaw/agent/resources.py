@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..search import format_search_result, web_search
+from ..research.backends import format_search_result, web_search
 from ..types import (
     AgentResource,
     AgentTaskBlueprint,

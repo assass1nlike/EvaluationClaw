@@ -8,8 +8,8 @@ from typing import Any, Optional
 import anthropic
 import httpx
 
-from .llm_json import extract_json
-from .types import Message, TargetModelConfig
+from ..types import Message, TargetModelConfig
+from .json_utils import extract_json
 
 
 def _post_with_retry(url: str, headers: dict, body: dict, max_retries: int = 6) -> dict:

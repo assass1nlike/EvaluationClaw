@@ -1,4 +1,4 @@
-"""EvaluationClaw CLI."""
+﻿"""EvaluationClaw CLI."""
 from __future__ import annotations
 
 import json
@@ -15,8 +15,8 @@ from .execution.swebench import (
     prepare_proxy_base_image,
     run_swebench_harness,
 )
+from .models.providers import orchestrator_defaults, target_from_model
 from .pipeline import run_pipeline
-from .providers import orchestrator_defaults, target_from_model
 from .types import BenchmarkConfig, BenchmarkMode, BenchmarkPackage, ScaleBudget, TargetModelConfig
 
 app = typer.Typer(

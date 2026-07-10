@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
-from evalclaw.tool_adapters import (
+from evalclaw.protocols.tool import ToolResult, ToolSpec, object_schema
+from evalclaw.protocols.tool_adapters import (
     anthropic_tool_calls_from_response,
     anthropic_tool_spec,
     bedrock_tool_calls_from_response,
@@ -27,7 +28,6 @@ from evalclaw.tool_adapters import (
     openai_tool_spec,
     tool_adapter_for_target,
 )
-from evalclaw.tool_protocol import ToolResult, ToolSpec, object_schema
 from evalclaw.types import TargetModelConfig
 
 

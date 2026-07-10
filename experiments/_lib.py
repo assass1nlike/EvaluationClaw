@@ -15,8 +15,8 @@ import time
 from pathlib import Path
 from typing import Callable, Optional, Sequence
 
-from evalclaw.llm import call_llm
-from evalclaw.llm_json import extract_json
+from evalclaw.models.json_utils import extract_json
+from evalclaw.models.llm import call_llm
 from evalclaw.types import Message
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -390,12 +390,12 @@ class StageTimer:
 
 @contextlib.contextmanager
 def count_llm_calls():
-    """Count LiteLLM/httpx-level LLM calls made through evalclaw.llm.
+    """Count LiteLLM/httpx-level LLM calls made through evalclaw.models.llm.
 
-    Wraps evalclaw.llm internals for the duration of the context. Calls routed
+    Wraps evalclaw.models.llm internals for the duration of the context. Calls routed
     through the native Anthropic SDK path are not counted (noted in reports).
     """
-    import evalclaw.llm as llm_module
+    import evalclaw.models.llm as llm_module
 
     counter = {"litellm": 0, "http": 0}
     original_litellm = llm_module._call_litellm

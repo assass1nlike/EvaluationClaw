@@ -1,7 +1,7 @@
 import pytest
 
-from evalclaw.generator import generate_dimension_items
-from evalclaw.runner import run_eval, run_question
+from evalclaw.execution.runner import run_eval, run_question
+from evalclaw.generation.generator import generate_dimension_items
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkDataset,
@@ -80,8 +80,8 @@ def test_runner_sends_multimodal_content_to_target(monkeypatch) -> None:
         captured.update(kwargs)
         return "yes"
 
-    monkeypatch.setattr("evalclaw.runner._target_has_credentials", fake_has_credentials)
-    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.execution.runner._target_has_credentials", fake_has_credentials)
+    monkeypatch.setattr("evalclaw.execution.runner.call_target_model", fake_call_target_model)
 
     result = run_question(item, config)
 

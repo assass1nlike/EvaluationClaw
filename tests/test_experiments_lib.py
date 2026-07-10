@@ -226,7 +226,7 @@ def test_item_validity_audit() -> None:
 # Cost accounting
 # ---------------------------------------------------------------------------
 def test_count_llm_calls_wraps_and_restores(monkeypatch) -> None:
-    import evalclaw.llm as llm_module
+    import evalclaw.models.llm as llm_module
 
     monkeypatch.setattr(llm_module, "_call_litellm", lambda **kwargs: "ok")
     monkeypatch.setattr(llm_module, "_post_with_retry", lambda *args, **kwargs: {"ok": True})

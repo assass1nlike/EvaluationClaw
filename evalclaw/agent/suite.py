@@ -1,4 +1,4 @@
-"""Agent task-suite construction."""
+﻿"""Agent task-suite construction."""
 from __future__ import annotations
 
 import json
@@ -6,15 +6,15 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
-from ..generator import _source_context
-from ..llm import call_llm, extract_json
+from ..core.task_summary import compact_task_content_summary
+from ..generation.generator import _source_context
+from ..models.llm import call_llm, extract_json
 from ..prompts.agent_benchmark import AGENT_TASK_BUILDER_PROMPT
 from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
     AGENT_TASK_PACKAGE_SCHEMA,
 )
 from ..protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
-from ..task_summary import compact_task_content_summary
 from ..types import (
     AgentResource,
     AgentTask,

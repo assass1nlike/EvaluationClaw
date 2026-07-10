@@ -27,8 +27,8 @@ sys.path.insert(0, str(_HERE.parent))     # repo root for evalclaw when not pip-
 
 import _lib
 
+from evalclaw.models.providers import orchestrator_defaults, target_from_model
 from evalclaw.pipeline import run_pipeline
-from evalclaw.providers import orchestrator_defaults, target_from_model
 from evalclaw.types import BenchmarkConfig, ScaleBudget
 
 
