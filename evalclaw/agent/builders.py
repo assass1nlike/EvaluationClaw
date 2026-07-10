@@ -15,7 +15,7 @@ from ..types import (
     EvalSpec,
     TaskType,
 )
-from .planning import _runtime_task_family
+from .goal_detection import _runtime_task_family
 from .task_builders import (
     _agent_system_prompt,
     _api_tool_task_for_blueprint,

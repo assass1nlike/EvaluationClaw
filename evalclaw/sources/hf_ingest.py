@@ -7,8 +7,8 @@ import uuid
 from itertools import cycle
 from typing import Any
 
-from .task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
-from .types import (
+from ..core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
+from ..types import (
     BenchmarkItem,
     BenchmarkSource,
     Difficulty,

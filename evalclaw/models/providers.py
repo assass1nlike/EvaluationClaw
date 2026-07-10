@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 from typing import Optional
 
-from .types import TargetModelConfig
+from ..types import TargetModelConfig
 
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"

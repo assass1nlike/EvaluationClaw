@@ -1,4 +1,4 @@
-"""Deep research loop: bounded search -> compress -> reflect -> synthesize.
+﻿"""Deep research loop: bounded search -> compress -> reflect -> synthesize.
 
 Produces a structured :class:`~evalclaw.types.ResearchBrief` that grounds the
 planner (taxonomy, difficulty anchors) and the generator (seed sources). The
@@ -11,15 +11,15 @@ from __future__ import annotations
 import json
 from typing import Callable, Optional
 
-from ..hf_discovery import discover_hf_datasets
-from ..llm import call_llm
-from ..llm_json import extract_json
+from ..models.json_utils import extract_json
+from ..models.llm import call_llm
 from ..prompts.research import (
     RESEARCH_COMPRESS_SYSTEM_PROMPT,
     RESEARCH_QUERY_SYSTEM_PROMPT,
     RESEARCH_REFLECT_SYSTEM_PROMPT,
     RESEARCH_SYNTHESIS_SYSTEM_PROMPT,
 )
+from ..sources.hf_discovery import discover_hf_datasets
 from ..types import (
     BenchmarkConfig,
     BenchmarkSource,
@@ -444,7 +444,7 @@ def render_brief_markdown(brief: ResearchBrief) -> str:
         lines.extend(["## Seed Sources", ""])
         for seed in brief.seed_sources:
             url = f" ({seed.url})" if seed.url else ""
-            why = f" — {seed.why_useful}" if seed.why_useful else ""
+            why = f" - {seed.why_useful}" if seed.why_useful else ""
             lines.append(f"- {seed.title}{url}{why}")
         lines.append("")
     if brief.exemplar_items:
@@ -464,7 +464,7 @@ def render_brief_markdown(brief: ResearchBrief) -> str:
     if brief.citations:
         lines.extend(["## Citations", ""])
         for citation in brief.citations:
-            url = f" — {citation.url}" if citation.url else ""
+            url = f" - {citation.url}" if citation.url else ""
             lines.append(f"- {citation.claim}{url}")
         lines.append("")
     if brief.research_notes:

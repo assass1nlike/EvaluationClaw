@@ -9,7 +9,7 @@ from ...types import (
     AgentTaskBlueprint,
     EvalDimension,
 )
-from ..planning import _contains_any
+from ..goal_detection import _contains_any
 from .base import _agent_system_prompt, _task_id, _task_title
 
 

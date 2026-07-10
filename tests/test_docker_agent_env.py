@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from evalclaw.agent_envs import build_agent_environment
+from evalclaw.execution.agent_envs import build_agent_environment
 from evalclaw.execution.docker import DockerStatus
 from evalclaw.execution.docker_agent_env import DockerWorkspaceAgentEnvironment
 from evalclaw.types import BenchmarkItem, TaskType

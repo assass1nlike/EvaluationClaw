@@ -1,12 +1,12 @@
-"""Agent-interaction runner logic."""
+﻿"""Agent-interaction runner logic."""
 from __future__ import annotations
 
 import json
 import re
 from typing import Any
 
-from ..agent_envs import build_agent_environment
-from ..llm import call_target_model, extract_json
+from ..execution.agent_envs import build_agent_environment
+from ..models.llm import call_target_model, extract_json
 from ..protocols.task_agent import task_agent_initial_content_text, task_agent_system_prompt
 from ..protocols.tool import (
     TOOL_PROTOCOL_VERSION,

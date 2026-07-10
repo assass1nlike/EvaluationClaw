@@ -7,30 +7,25 @@ import uuid
 from itertools import cycle
 from typing import Callable
 
-from .generation.fallback import (
-    attach_multimodal_metadata_if_needed,
-    fallback_items,
-    has_programmatic_multimodal_fallback,
-)
-from .hf_discovery import discover_hf_datasets
-from .hf_ingest import import_hf_dataset_items
-from .llm import call_llm, extract_json
-from .prompts.generator import GENERATOR_MULTIMODAL_PROMPT, GENERATOR_SYSTEM_PROMPT
-from .protocols.agent_task_package import (
+from ..core.scaling import is_large_scale_budget
+from ..core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
+from ..models.llm import call_llm, extract_json
+from ..prompts.generator import GENERATOR_MULTIMODAL_PROMPT, GENERATOR_SYSTEM_PROMPT
+from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
     AGENT_TASK_PACKAGE_SCHEMA,
 )
-from .protocols.multimodal import (
+from ..protocols.multimodal import (
     MULTIMODAL_GENERATION_GUIDANCE,
     MULTIMODAL_SCHEMA,
     text_requests_multimodal,
 )
-from .protocols.science import SCIENCE_GENERATION_GUIDANCE, SCIENCE_SCHEMA, text_requests_science
-from .protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
-from .scaling import is_large_scale_budget
-from .search import fetch_url_text, format_search_result, web_search
-from .task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
-from .types import (
+from ..protocols.science import SCIENCE_GENERATION_GUIDANCE, SCIENCE_SCHEMA, text_requests_science
+from ..protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
+from ..research.backends import fetch_url_text, format_search_result, web_search
+from ..sources.hf_discovery import discover_hf_datasets
+from ..sources.hf_ingest import import_hf_dataset_items
+from ..types import (
     BenchmarkBatch,
     BenchmarkConfig,
     BenchmarkDataset,
@@ -42,6 +37,11 @@ from .types import (
     Message,
     SourceKind,
     TaskType,
+)
+from .fallback import (
+    attach_multimodal_metadata_if_needed,
+    fallback_items,
+    has_programmatic_multimodal_fallback,
 )
 
 

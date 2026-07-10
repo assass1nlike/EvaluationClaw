@@ -1,11 +1,12 @@
-"""Planner loop: turn a vague user goal into a structured eval spec."""
+﻿"""Planner loop: turn a vague user goal into a structured eval spec."""
 from __future__ import annotations
 
 import json
 import re
 from typing import Optional
 
-from ..llm import call_llm, extract_json
+from ..core.scaling import scale_budget_target_workload, task_type_workload_weight
+from ..models.llm import call_llm, extract_json
 from ..prompts.planner import PLANNER_SYSTEM_PROMPT, TRANSLATION_SYSTEM_PROMPT
 from ..protocols.multimodal import (
     MULTIMODAL_GENERATION_GUIDANCE,
@@ -19,7 +20,6 @@ from ..protocols.science import (
     text_requests_science,
 )
 from ..research.deep_research import compact_brief_context
-from ..scaling import scale_budget_target_workload, task_type_workload_weight
 from ..types import (
     BenchmarkConfig,
     Difficulty,

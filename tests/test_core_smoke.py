@@ -8,15 +8,20 @@ from pathlib import Path, PureWindowsPath
 
 import pytest
 
-from evalclaw.agent_benchmark import (
+from evalclaw.agent import (
     _default_blueprint_for_dimension,
     build_agent_dataset,
     build_agent_task_suite,
     plan_agent_benchmark,
     task_suite_to_dataset,
 )
-from evalclaw.agent_envs import _platform_test_command, build_agent_environment
-from evalclaw.artifacts import _portable_path, write_lm_eval_artifacts
+from evalclaw.core.scaling import (
+    item_workload_weight,
+    scale_budget_target_workload,
+    simple_equivalent_workload,
+)
+from evalclaw.core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY
+from evalclaw.execution.agent_envs import _platform_test_command, build_agent_environment
 from evalclaw.execution.desktop_agent_env import DesktopBridgeAgentEnvironment, DesktopBridgeStatus
 from evalclaw.execution.docker import DockerStatus
 from evalclaw.execution.docker_images import (
@@ -25,6 +30,14 @@ from evalclaw.execution.docker_images import (
     select_docker_image,
 )
 from evalclaw.execution.environment_claw import run_environment_claw
+from evalclaw.execution.lm_eval import _resolve_lm_eval_executable
+from evalclaw.execution.runner import (
+    _parse_agent_action,
+    _score_choice,
+    _target_prompt,
+    run_question,
+)
+from evalclaw.execution.sandbox import build_code_harness, run_python_sandbox
 from evalclaw.execution.vm_provider import (
     VmProviderStatus,
     VmSession,
@@ -35,39 +48,31 @@ from evalclaw.execution.vm_provider import (
     trust_env_for_url,
 )
 from evalclaw.generation.fallback import fallback_items
-from evalclaw.generator import (
+from evalclaw.generation.generator import (
     _parse_items,
     generate_dataset_with_progress,
     generate_dimension_items,
     target_count_for_dimension,
 )
-from evalclaw.hf_discovery import _expanded_queries
-from evalclaw.hf_ingest import _matches_dimension, item_from_hf_record
-from evalclaw.llm_json import extract_json
-from evalclaw.lm_eval_runner import _resolve_lm_eval_executable
-from evalclaw.multimodal import MULTIMODAL_SCHEMA_VERSION
+from evalclaw.models.json_utils import extract_json
 from evalclaw.pipeline import _persist_package, _resolve_benchmark_mode
-from evalclaw.planner import plan_eval_spec, translate_goal_to_english
-from evalclaw.planning_loop import (
+from evalclaw.planning.loop import (
     _dimension_deficits,
     apply_human_review_feedback,
     format_human_review_overview,
     generate_dataset_with_qc_loop,
 )
-from evalclaw.qc import run_qc_gate
-from evalclaw.report_viewer import build_report_viewer_html
-from evalclaw.reporter import build_report
+from evalclaw.planning.planner import plan_eval_spec, translate_goal_to_english
+from evalclaw.protocols.multimodal import MULTIMODAL_SCHEMA_VERSION
+from evalclaw.protocols.science import SCIENCE_SCHEMA_VERSION, text_requests_science
+from evalclaw.protocols.tool import ToolCall, ToolSpec, object_schema, validate_tool_call
+from evalclaw.quality.qc import run_qc_gate
+from evalclaw.reporting.artifacts import _portable_path, write_lm_eval_artifacts
 from evalclaw.reporting.reporter import _is_source_backed as _report_is_source_backed
-from evalclaw.runner import _parse_agent_action, _score_choice, _target_prompt, run_question
-from evalclaw.sandbox import build_code_harness, run_python_sandbox
-from evalclaw.scaling import (
-    item_workload_weight,
-    scale_budget_target_workload,
-    simple_equivalent_workload,
-)
-from evalclaw.science import SCIENCE_SCHEMA_VERSION, text_requests_science
-from evalclaw.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY
-from evalclaw.tool_protocol import ToolCall, ToolSpec, object_schema, validate_tool_call
+from evalclaw.reporting.reporter import build_report
+from evalclaw.reporting.viewer import build_report_viewer_html
+from evalclaw.sources.hf_discovery import _expanded_queries
+from evalclaw.sources.hf_ingest import _matches_dimension, item_from_hf_record
 from evalclaw.types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
@@ -1779,7 +1784,7 @@ def test_large_scale_generation_caps_model_generated_items(monkeypatch) -> None:
             }
         )
 
-    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.generation.generator.call_llm", fake_call_llm)
     dimension = EvalDimension(
         id="robustness",
         name="Robustness",
@@ -1819,7 +1824,7 @@ def test_large_scale_dataset_generation_creates_batch_manifest(monkeypatch) -> N
             }
         )
 
-    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.generation.generator.call_llm", fake_call_llm)
     dimension = EvalDimension(
         id="batched",
         name="Batched",
@@ -1879,7 +1884,7 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
         captured_payload.update(json.loads(messages[0].content))
         return json.dumps({"issues": []})
 
-    monkeypatch.setattr("evalclaw.qc.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.quality.llm_checks.call_llm", fake_call_llm)
     dim_a = EvalDimension(id="a", name="A", description="A", approach="A")
     dim_b = EvalDimension(id="b", name="B", description="B", approach="B")
     spec = EvalSpec(objective="Large eval", dimensions=[dim_a, dim_b], scale_budget=ScaleBudget.large)
@@ -1978,7 +1983,7 @@ def test_planner_parses_dimension_item_allocation(monkeypatch) -> None:
             }
         )
 
-    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
 
     spec = plan_eval_spec("Evaluate format following", BenchmarkConfig(orchestrator_api_key="dummy"))
 
@@ -2031,7 +2036,7 @@ def test_planner_accepts_pairwise_task_when_reference_is_configured(monkeypatch)
             }
         )
 
-    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
 
     spec = plan_eval_spec(
         "Compare helpfulness",
@@ -2090,7 +2095,7 @@ def test_planner_includes_multimodal_guidance_when_planning(monkeypatch) -> None
             }
         )
 
-    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
 
     spec = plan_eval_spec("Evaluate visual reasoning", BenchmarkConfig(orchestrator_api_key="dummy"))
 
@@ -2140,7 +2145,7 @@ def test_planner_omits_multimodal_guidance_for_text_only_goals(monkeypatch) -> N
             }
         )
 
-    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
 
     plan_eval_spec("Evaluate code engineering ability", BenchmarkConfig(orchestrator_api_key="dummy"))
 
@@ -2191,7 +2196,7 @@ def test_planner_includes_science_guidance_when_requested(monkeypatch) -> None:
             }
         )
 
-    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
 
     spec = plan_eval_spec("Evaluate graduate physics scientific reasoning", BenchmarkConfig(orchestrator_api_key="dummy"))
 
@@ -2241,7 +2246,7 @@ def test_planner_omits_science_guidance_for_non_science_goal(monkeypatch) -> Non
             }
         )
 
-    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
 
     plan_eval_spec("Evaluate instruction following", BenchmarkConfig(orchestrator_api_key="dummy"))
 
@@ -2253,7 +2258,7 @@ def test_chinese_goal_translation_before_planning(monkeypatch) -> None:
     def fake_call_llm(*args, **kwargs):
         return '{"english_goal":"Evaluate complex mathematical reasoning."}'
 
-    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
 
     translated = translate_goal_to_english(
         "评估复杂数学推理能力",
@@ -2267,7 +2272,7 @@ def test_chinese_goal_translation_skips_remote_call_without_key(monkeypatch) -> 
     def fake_call_llm(*args, **kwargs):
         raise AssertionError("remote translation should be skipped without an orchestrator key")
 
-    monkeypatch.setattr("evalclaw.planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
 
     translated = translate_goal_to_english("评估复杂数学推理能力", BenchmarkConfig())
 
@@ -2767,7 +2772,7 @@ def test_llm_generator_omits_multimodal_payload_for_text_only_dimension(monkeypa
             }
         )
 
-    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.generation.generator.call_llm", fake_call_llm)
     dimension = EvalDimension(
         id="code_repair",
         name="Code repair",
@@ -2809,7 +2814,7 @@ def test_llm_generator_includes_multimodal_payload_only_when_required(monkeypatc
             }
         )
 
-    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.generation.generator.call_llm", fake_call_llm)
     dimension = EvalDimension(
         id="visual_reasoning",
         name="Visual reasoning",
@@ -2863,7 +2868,7 @@ def test_llm_generator_includes_science_payload_only_when_required(monkeypatch) 
             }
         )
 
-    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.generation.generator.call_llm", fake_call_llm)
     dimension = EvalDimension(
         id="physics_units",
         name="Physics units",
@@ -2906,7 +2911,7 @@ def test_llm_generator_omits_science_payload_for_non_science_dimension(monkeypat
             }
         )
 
-    monkeypatch.setattr("evalclaw.generator.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.generation.generator.call_llm", fake_call_llm)
     dimension = EvalDimension(
         id="format_following",
         name="Format following",
@@ -2935,7 +2940,7 @@ def test_chart_dimensions_use_programmatic_fallback_without_external_sources(mon
     def fail_call_llm(*args, **kwargs):
         raise AssertionError("chart fallback should avoid LLM media synthesis")
 
-    monkeypatch.setattr("evalclaw.generator.call_llm", fail_call_llm)
+    monkeypatch.setattr("evalclaw.generation.generator.call_llm", fail_call_llm)
     dimension = EvalDimension(
         id="chart_reasoning",
         name="Chart reasoning",
@@ -2957,7 +2962,7 @@ def test_chart_dimensions_use_programmatic_fallback_without_external_sources(mon
 
 
 def test_llm_generator_uses_fallback_when_json_parse_fails(monkeypatch) -> None:
-    monkeypatch.setattr("evalclaw.generator.call_llm", lambda *args, **kwargs: "")
+    monkeypatch.setattr("evalclaw.generation.generator.call_llm", lambda *args, **kwargs: "")
     dimension = EvalDimension(
         id="visual_reasoning",
         name="Visual reasoning",
@@ -2986,8 +2991,8 @@ def test_runner_passes_multimodal_user_content_to_target(monkeypatch) -> None:
         captured.update(kwargs)
         return "A"
 
-    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
-    monkeypatch.setattr("evalclaw.runner._target_has_credentials", lambda *args, **kwargs: (True, "OPENAI_API_KEY"))
+    monkeypatch.setattr("evalclaw.execution.runner.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.execution.runner._target_has_credentials", lambda *args, **kwargs: (True, "OPENAI_API_KEY"))
 
     item = BenchmarkItem(
         id="vision_mc",
@@ -3246,8 +3251,8 @@ def test_multi_turn_runner_uses_task_agent_for_followups_and_scoring(monkeypatch
         task_agent_systems.append(kwargs.get("system"))
         return next(task_agent_responses)
 
-    monkeypatch.setattr("evalclaw.runner.call_target_model", fake_call_target_model)
-    monkeypatch.setattr("evalclaw.runner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.execution.runner.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.execution.runner.call_llm", fake_call_llm)
     item = BenchmarkItem(
         id="dialogue_task_agent",
         dimension_id="dialogue",
@@ -3535,7 +3540,7 @@ def test_agent_interaction_runner_uses_action_observation_loop(monkeypatch) -> N
     def fake_call_target_model(*args, **kwargs):
         return next(responses)
 
-    monkeypatch.setattr("evalclaw.runner_agent.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runners.agent.call_target_model", fake_call_target_model)
     item = BenchmarkItem(
         id="agent_item",
         dimension_id="agent",
@@ -3572,7 +3577,7 @@ def test_agent_interaction_rejects_invalid_tool_arguments(monkeypatch) -> None:
     def fake_call_target_model(*args, **kwargs):
         return next(responses)
 
-    monkeypatch.setattr("evalclaw.runner_agent.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runners.agent.call_target_model", fake_call_target_model)
     item = BenchmarkItem(
         id="agent_item",
         dimension_id="agent",
@@ -3613,7 +3618,7 @@ def test_agent_interaction_uses_task_agent_system_prompt(monkeypatch) -> None:
         captured_systems.append(kwargs.get("system_prompt"))
         return next(responses)
 
-    monkeypatch.setattr("evalclaw.runner_agent.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runners.agent.call_target_model", fake_call_target_model)
     item = BenchmarkItem(
         id="agent_item",
         dimension_id="agent",
@@ -3646,8 +3651,8 @@ def test_agent_interaction_uses_task_agent_system_prompt(monkeypatch) -> None:
 
 
 def test_judge_invalid_json_is_reported_as_evaluator_error(monkeypatch) -> None:
-    monkeypatch.setattr("evalclaw.runner.call_target_model", lambda *args, **kwargs: "A plausible answer.")
-    monkeypatch.setattr("evalclaw.runner.call_llm", lambda *args, **kwargs: "not json")
+    monkeypatch.setattr("evalclaw.execution.runner.call_target_model", lambda *args, **kwargs: "A plausible answer.")
+    monkeypatch.setattr("evalclaw.execution.runner.call_llm", lambda *args, **kwargs: "not json")
     item = BenchmarkItem(
         id="open_item",
         dimension_id="reasoning",
@@ -3681,8 +3686,8 @@ def test_pairwise_preference_runner_compares_target_to_reference(monkeypatch) ->
         assert payload["reference_response"] == "Reference answer."
         return json.dumps({"winner": "target", "score_normalized": 1.0, "reasoning": "Target is more helpful."})
 
-    monkeypatch.setattr("evalclaw.runner_pairwise.call_target_model", fake_call_target_model)
-    monkeypatch.setattr("evalclaw.runner_pairwise.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.runners.pairwise.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runners.pairwise.call_llm", fake_call_llm)
     item = BenchmarkItem(
         id="pairwise_item",
         dimension_id="helpfulness",
@@ -3759,7 +3764,7 @@ def test_code_sandbox_agent_can_revise_after_test_failure(monkeypatch) -> None:
     def fake_call_target_model(*args, **kwargs):
         return next(responses)
 
-    monkeypatch.setattr("evalclaw.runner_agent.call_target_model", fake_call_target_model)
+    monkeypatch.setattr("evalclaw.runners.agent.call_target_model", fake_call_target_model)
     item = BenchmarkItem(
         id="code_agent_item",
         dimension_id="code_agent",
@@ -3831,7 +3836,7 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
             }
         )
 
-    monkeypatch.setattr("evalclaw.qc.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.quality.llm_checks.call_llm", fake_call_llm)
     dimension = EvalDimension(
         id="code_agent",
         name="Code agent",
@@ -4282,8 +4287,8 @@ def test_lm_eval_executable_resolves_from_environment_scripts_dir(tmp_path, monk
     executable = scripts_dir / "lm_eval.exe"
     executable.write_text("", encoding="utf-8")
 
-    monkeypatch.setattr("evalclaw.lm_eval_runner.sysconfig.get_path", lambda name: str(scripts_dir))
-    monkeypatch.setattr("evalclaw.lm_eval_runner.shutil.which", lambda name: None)
+    monkeypatch.setattr("evalclaw.execution.lm_eval.sysconfig.get_path", lambda name: str(scripts_dir))
+    monkeypatch.setattr("evalclaw.execution.lm_eval.shutil.which", lambda name: None)
 
     assert _resolve_lm_eval_executable() == str(executable)
 
@@ -4336,8 +4341,8 @@ def test_generation_qc_loop_refills_dimension_after_rejecting_bad_item(monkeypat
     def fake_generate_dimension_items(*args, **kwargs):
         return next(calls)
 
-    monkeypatch.setattr("evalclaw.generator.generate_dimension_items", fake_generate_dimension_items)
-    monkeypatch.setattr("evalclaw.planning_loop.generate_dimension_items", fake_generate_dimension_items)
+    monkeypatch.setattr("evalclaw.generation.generator.generate_dimension_items", fake_generate_dimension_items)
+    monkeypatch.setattr("evalclaw.planning.loop.generate_dimension_items", fake_generate_dimension_items)
 
     _, dataset, qc = generate_dataset_with_qc_loop(
         spec,
@@ -4395,8 +4400,8 @@ def test_generation_qc_loop_passes_qc_feedback_to_repair_generation(monkeypatch)
         assert kwargs["avoid_prompts"]
         return [replacement], [], "repair"
 
-    monkeypatch.setattr("evalclaw.generator.generate_dimension_items", fake_generate_dimension_items)
-    monkeypatch.setattr("evalclaw.planning_loop.generate_dimension_items", fake_generate_dimension_items)
+    monkeypatch.setattr("evalclaw.generation.generator.generate_dimension_items", fake_generate_dimension_items)
+    monkeypatch.setattr("evalclaw.planning.loop.generate_dimension_items", fake_generate_dimension_items)
 
     _, dataset, qc = generate_dataset_with_qc_loop(
         spec,
@@ -4441,8 +4446,8 @@ def test_generation_qc_loop_raises_when_repair_budget_exhausted(monkeypatch) -> 
     def fake_generate_dimension_items(*args, **kwargs):
         return [bad_item("bad_repair")], [], "still missing rubric"
 
-    monkeypatch.setattr("evalclaw.planning_loop.generate_dataset_with_progress", fake_generate_dataset_with_progress)
-    monkeypatch.setattr("evalclaw.planning_loop.generate_dimension_items", fake_generate_dimension_items)
+    monkeypatch.setattr("evalclaw.planning.loop.generate_dataset_with_progress", fake_generate_dataset_with_progress)
+    monkeypatch.setattr("evalclaw.planning.loop.generate_dimension_items", fake_generate_dimension_items)
 
     with pytest.raises(RuntimeError, match="runner-ready dataset"):
         generate_dataset_with_qc_loop(
@@ -4535,8 +4540,8 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
     def fake_generate_dimension_items(*args, **kwargs):
         return [generated_item], [], "generated"
 
-    monkeypatch.setattr("evalclaw.planning_loop._planner_review", fake_planner_review)
-    monkeypatch.setattr("evalclaw.planning_loop.generate_dimension_items", fake_generate_dimension_items)
+    monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
+    monkeypatch.setattr("evalclaw.planning.loop.generate_dimension_items", fake_generate_dimension_items)
 
     _, revised_dataset, revised_qc = apply_human_review_feedback(
         dataset,
@@ -4578,7 +4583,7 @@ def test_human_review_ignores_destructive_delete_of_qc_passed_items(monkeypatch)
     def fake_planner_review(*args, **kwargs):
         return {"done": False, "delete_item_ids": ["base_item"], "notes": "Prefer another item."}
 
-    monkeypatch.setattr("evalclaw.planning_loop._planner_review", fake_planner_review)
+    monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
 
     _, revised_dataset, revised_qc = apply_human_review_feedback(
         dataset,
