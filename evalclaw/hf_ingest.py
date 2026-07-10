@@ -7,6 +7,7 @@ import uuid
 from itertools import cycle
 from typing import Any
 
+from .task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
 from .types import (
     BenchmarkItem,
     BenchmarkSource,
@@ -408,6 +409,7 @@ def item_from_hf_record(
     if reference_answer:
         rubric += f"\nReference answer or solution: {reference_answer}"
 
+    category = row.get("category") or row.get("subject") or row.get("topic") or row.get("domain")
     return BenchmarkItem(
         id=f"{dimension.id}_hf_{uuid.uuid4().hex[:8]}",
         dimension_id=dimension.id,
@@ -428,11 +430,12 @@ def item_from_hf_record(
         ),
         tags=["hf_dataset", dataset_id] if dataset_id else ["hf_dataset"],
         metadata={
+            TASK_CONTENT_SUMMARY_METADATA_KEY: compact_task_content_summary(category, source.title, prompt),
             "hf_dataset_id": dataset_id,
             "hf_config": config_name,
             "hf_split": split,
             "hf_row_index": row_index,
-            "hf_category": row.get("category") or row.get("subject") or row.get("topic") or row.get("domain"),
+            "hf_category": category,
             "hf_src": row.get("src") or row.get("source"),
             "hf_columns": sorted(map(str, row.keys())),
         },

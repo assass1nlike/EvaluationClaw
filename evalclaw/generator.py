@@ -29,6 +29,7 @@ from .protocols.science import SCIENCE_GENERATION_GUIDANCE, SCIENCE_SCHEMA, text
 from .protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
 from .scaling import is_large_scale_budget
 from .search import fetch_url_text, format_search_result, web_search
+from .task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
 from .types import (
     BenchmarkBatch,
     BenchmarkConfig,
@@ -208,6 +209,18 @@ def _attach_batch_metadata(items: list[BenchmarkItem], batch: BenchmarkBatch | N
         metadata["batch_index"] = index
         updated.append(item.model_copy(update={"metadata": metadata}))
     return updated
+
+
+def _ensure_item_content_summaries(items: list[BenchmarkItem]) -> list[BenchmarkItem]:
+    for item in items:
+        if item.metadata.get(TASK_CONTENT_SUMMARY_METADATA_KEY):
+            continue
+        item.metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = compact_task_content_summary(
+            item.source.title,
+            item.source.notes,
+            item.prompt,
+        )
+    return items
 
 
 def _select_research_sources(
@@ -396,6 +409,13 @@ def _parse_items(
         if not isinstance(choices, list):
             choices = []
         metadata = raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {}
+        if not metadata.get(TASK_CONTENT_SUMMARY_METADATA_KEY):
+            metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = compact_task_content_summary(
+                raw.get("content_summary"),
+                raw.get("title"),
+                raw.get("source_title"),
+                prompt,
+            )
         rubric = raw.get("rubric")
         if rubric is None and metadata.get("judge_rubric") is not None:
             judge_rubric = metadata["judge_rubric"]
@@ -456,13 +476,17 @@ def generate_dimension_items(
         if remaining_count > generated_target:
             remaining_count = generated_target
     if remaining_count == 0:
-        return imported_items[:count], sources, f"Imported {len(imported_items)} item(s) from HuggingFace datasets."
+        return (
+            _ensure_item_content_summaries(imported_items[:count]),
+            sources,
+            f"Imported {len(imported_items)} item(s) from HuggingFace datasets.",
+        )
     if not sources and has_programmatic_multimodal_fallback(dimension):
         fallback = fallback_items(spec, dimension, remaining_count)
-        return imported_items + fallback, sources, "Programmatic multimodal fallback generation."
+        return _ensure_item_content_summaries(imported_items + fallback), sources, "Programmatic multimodal fallback generation."
     if not config.orchestrator_api_key:
         fallback = fallback_items(spec, dimension, remaining_count)
-        return imported_items + fallback, sources, "Local fallback generation."
+        return _ensure_item_content_summaries(imported_items + fallback), sources, "Local fallback generation."
 
     payload = {
         "spec": spec.model_dump(mode="json"),
@@ -513,7 +537,7 @@ def generate_dimension_items(
     except Exception as exc:
         fallback = fallback_items(spec, dimension, remaining_count)
         return (
-            imported_items + fallback,
+            _ensure_item_content_summaries(imported_items + fallback),
             sources,
             f"LLM generation JSON parse failed; local fallback generation used: {exc}",
         )
@@ -527,7 +551,7 @@ def generate_dimension_items(
             f"{notes} Large-scale materialization produced {len(all_items)}/{count} planned item(s); "
             "source-backed shortfall was not replaced with unbounded model generation."
         ).strip()
-    return all_items[:count], sources, notes
+    return _ensure_item_content_summaries(all_items[:count]), sources, notes
 
 
 def generate_dataset(spec: EvalSpec, config: BenchmarkConfig) -> BenchmarkDataset:

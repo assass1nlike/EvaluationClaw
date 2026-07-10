@@ -1,6 +1,8 @@
 import json
 import subprocess
 import sys
+import threading
+import time
 import types
 from pathlib import Path, PureWindowsPath
 
@@ -55,6 +57,7 @@ from evalclaw.planning_loop import (
 from evalclaw.qc import run_qc_gate
 from evalclaw.report_viewer import build_report_viewer_html
 from evalclaw.reporter import build_report
+from evalclaw.reporting.reporter import _is_source_backed as _report_is_source_backed
 from evalclaw.runner import _parse_agent_action, _score_choice, _target_prompt, run_question
 from evalclaw.sandbox import build_code_harness, run_python_sandbox
 from evalclaw.scaling import (
@@ -63,9 +66,13 @@ from evalclaw.scaling import (
     simple_equivalent_workload,
 )
 from evalclaw.science import SCIENCE_SCHEMA_VERSION, text_requests_science
+from evalclaw.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY
 from evalclaw.tool_protocol import ToolCall, ToolSpec, object_schema, validate_tool_call
 from evalclaw.types import (
+    AgentEnvironmentSpec,
     AgentEnvironmentType,
+    AgentScoringSpec,
+    AgentTask,
     AgentTaskBlueprint,
     AgentTaskFamily,
     AgentTaskSuite,
@@ -82,7 +89,10 @@ from evalclaw.types import (
     EvalSpec,
     ItemResult,
     Metric,
+    QcCategory,
+    QcIssue,
     QcReport,
+    QcSeverity,
     ScaleBudget,
     SourceKind,
     TargetModelConfig,
@@ -339,6 +349,7 @@ def test_agent_benchmark_fallback_builds_executable_task_suite() -> None:
         scale_budget=ScaleBudget.low,
         use_web_research=False,
         use_hf_discovery=False,
+        agent_task_builder="local",
     )
 
     dataset = build_agent_dataset("Evaluate code-repair agents that recover from failing tests", config)
@@ -358,6 +369,7 @@ def test_agent_benchmark_honors_blueprint_expected_task_count() -> None:
         scale_budget=ScaleBudget.low,
         use_web_research=False,
         use_hf_discovery=False,
+        agent_task_builder="local",
     )
     spec, blueprints = plan_agent_benchmark("Evaluate agent tool use", config)
     blueprints[0].expected_task_count = 3
@@ -366,6 +378,424 @@ def test_agent_benchmark_honors_blueprint_expected_task_count() -> None:
 
     assert len(suite.tasks) == 3
     assert len({task.id for task in suite.tasks}) == 3
+
+
+def test_agent_benchmark_planner_requires_orchestrator_key_by_default() -> None:
+    with pytest.raises(RuntimeError, match="planner requires orchestrator_api_key"):
+        plan_agent_benchmark("Evaluate tool-using agents.", BenchmarkConfig(benchmark_mode=BenchmarkMode.agent))
+
+
+def test_agent_benchmark_planner_llm_failure_does_not_silently_fallback(monkeypatch) -> None:
+    def fail_call_llm(*args, **kwargs):
+        raise RuntimeError("auth failed")
+
+    monkeypatch.setattr("evalclaw.agent.planning.call_llm", fail_call_llm)
+
+    with pytest.raises(RuntimeError, match="auth failed"):
+        plan_agent_benchmark(
+            "Evaluate tool-using agents.",
+            BenchmarkConfig(benchmark_mode=BenchmarkMode.agent, orchestrator_api_key="dummy"),
+        )
+
+
+def test_agent_task_builder_requires_orchestrator_key_by_default() -> None:
+    dimension = EvalDimension(
+        id="agent_capability",
+        name="Agent capability",
+        description="Evaluate realistic agent task execution.",
+        approach="Use executable tasks.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    blueprint = AgentTaskBlueprint(
+        id="agent_blueprint",
+        dimension_id=dimension.id,
+        title="Agent task",
+        expected_task_count=1,
+    )
+
+    with pytest.raises(RuntimeError, match="missing orchestrator_api_key"):
+        build_agent_task_suite(
+            spec,
+            [blueprint],
+            BenchmarkConfig(benchmark_mode=BenchmarkMode.agent, use_web_research=False, use_hf_discovery=False),
+        )
+
+
+def test_agent_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> None:
+    def fail_call_llm(*args, **kwargs):
+        raise RuntimeError("quota exhausted")
+
+    monkeypatch.setattr("evalclaw.agent.suite.call_llm", fail_call_llm)
+    dimension = EvalDimension(
+        id="agent_capability",
+        name="Agent capability",
+        description="Evaluate realistic agent task execution.",
+        approach="Use executable tasks.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    blueprint = AgentTaskBlueprint(
+        id="agent_blueprint",
+        dimension_id=dimension.id,
+        title="Agent task",
+        expected_task_count=1,
+    )
+
+    with pytest.raises(RuntimeError, match="quota exhausted"):
+        build_agent_task_suite(
+            spec,
+            [blueprint],
+            BenchmarkConfig(
+                benchmark_mode=BenchmarkMode.agent,
+                orchestrator_api_key="dummy",
+                use_web_research=False,
+                use_hf_discovery=False,
+            ),
+        )
+
+
+def test_agent_task_builder_rejects_underfilled_llm_output(monkeypatch) -> None:
+    def underfilled_call_llm(*args, **kwargs):
+        return json.dumps(
+            {
+                "tasks": [
+                    {
+                        "id": "task_1",
+                        "dimension_id": "agent_capability",
+                        "title": "One task",
+                        "prompt": "Complete the task.",
+                        "scoring": {"pass_criteria": "Done."},
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.agent.suite.call_llm", underfilled_call_llm)
+    dimension = EvalDimension(
+        id="agent_capability",
+        name="Agent capability",
+        description="Evaluate realistic agent task execution.",
+        approach="Use executable tasks.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    blueprint = AgentTaskBlueprint(
+        id="agent_blueprint",
+        dimension_id=dimension.id,
+        title="Agent task",
+        expected_task_count=2,
+    )
+
+    with pytest.raises(RuntimeError, match="expected_task_count is 2"):
+        build_agent_task_suite(
+            spec,
+            [blueprint],
+            BenchmarkConfig(
+                benchmark_mode=BenchmarkMode.agent,
+                orchestrator_api_key="dummy",
+                use_web_research=False,
+                use_hf_discovery=False,
+            ),
+        )
+
+
+def test_agent_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
+    def overfilled_call_llm(*args, **kwargs):
+        return json.dumps(
+            {
+                "tasks": [
+                    {
+                        "id": "task_1",
+                        "dimension_id": "agent_capability",
+                        "title": "One task",
+                        "prompt": "Complete the first task.",
+                        "scoring": {"pass_criteria": "Done."},
+                    },
+                    {
+                        "id": "task_2",
+                        "dimension_id": "agent_capability",
+                        "title": "Second task",
+                        "prompt": "Complete the second task.",
+                        "scoring": {"pass_criteria": "Done."},
+                    },
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.agent.suite.call_llm", overfilled_call_llm)
+    dimension = EvalDimension(
+        id="agent_capability",
+        name="Agent capability",
+        description="Evaluate realistic agent task execution.",
+        approach="Use executable tasks.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    blueprint = AgentTaskBlueprint(
+        id="agent_blueprint",
+        dimension_id=dimension.id,
+        title="Agent task",
+        expected_task_count=1,
+    )
+
+    with pytest.raises(RuntimeError, match="returned 2 task object"):
+        build_agent_task_suite(
+            spec,
+            [blueprint],
+            BenchmarkConfig(
+                benchmark_mode=BenchmarkMode.agent,
+                orchestrator_api_key="dummy",
+                use_web_research=False,
+                use_hf_discovery=False,
+            ),
+        )
+
+
+def test_agent_task_builder_raises_task_difficulty_to_dimension_target(monkeypatch) -> None:
+    def call_llm_with_low_difficulty(*args, **kwargs):
+        return json.dumps(
+            {
+                "tasks": [
+                    {
+                        "id": "task_1",
+                        "dimension_id": "agent_capability",
+                        "title": "Hard task",
+                        "prompt": "Complete a realistic multi-file repair task.",
+                        "difficulty": "L4",
+                        "environment": {
+                            "type": "workspace",
+                            "workspace": {
+                                "start_room": "office",
+                                "rooms": {"office": ["brief"], "done": []},
+                                "goal": {"done": ["brief"]},
+                            },
+                        },
+                        "scoring": {"pass_criteria": "Hidden tests pass."},
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.agent.suite.call_llm", call_llm_with_low_difficulty)
+    dimension = EvalDimension(
+        id="agent_capability",
+        name="Agent capability",
+        description="Evaluate realistic agent task execution.",
+        approach="Use executable tasks.",
+        target_difficulty=Difficulty.L5,
+    )
+    spec = EvalSpec(
+        objective="Evaluate agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    blueprint = AgentTaskBlueprint(
+        id="agent_blueprint",
+        dimension_id=dimension.id,
+        title="Agent task",
+        expected_task_count=1,
+    )
+
+    suite = build_agent_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(
+            benchmark_mode=BenchmarkMode.agent,
+            orchestrator_api_key="dummy",
+            use_web_research=False,
+            use_hf_discovery=False,
+        ),
+    )
+
+    assert suite.tasks[0].difficulty == Difficulty.L5
+
+
+def test_agent_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) -> None:
+    active_calls = 0
+    max_active_calls = 0
+    lock = threading.Lock()
+
+    def concurrent_call_llm(messages, *args, **kwargs):
+        nonlocal active_calls, max_active_calls
+        payload = json.loads(messages[0].content)
+        blueprint_id = payload["blueprint"]["id"]
+        dimension_id = payload["dimension"]["id"]
+        with lock:
+            active_calls += 1
+            max_active_calls = max(max_active_calls, active_calls)
+        try:
+            time.sleep(0.15 if blueprint_id == "first_blueprint" else 0.05)
+        finally:
+            with lock:
+                active_calls -= 1
+        return json.dumps(
+            {
+                "tasks": [
+                    {
+                        "id": f"{blueprint_id}_task",
+                        "dimension_id": dimension_id,
+                        "title": f"{blueprint_id} task",
+                        "prompt": f"Complete the task for {blueprint_id}.",
+                        "environment": {
+                            "type": "workspace",
+                            "workspace": {
+                                "start_room": "office",
+                                "rooms": {"office": ["brief"], "done": []},
+                                "goal": {"done": ["brief"]},
+                            },
+                        },
+                        "scoring": {"pass_criteria": "Done."},
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.agent.suite.call_llm", concurrent_call_llm)
+    dimension = EvalDimension(
+        id="agent_capability",
+        name="Agent capability",
+        description="Evaluate realistic agent task execution.",
+        approach="Use executable tasks.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    blueprints = [
+        AgentTaskBlueprint(
+            id="first_blueprint",
+            dimension_id=dimension.id,
+            title="First task",
+            expected_task_count=1,
+        ),
+        AgentTaskBlueprint(
+            id="second_blueprint",
+            dimension_id=dimension.id,
+            title="Second task",
+            expected_task_count=1,
+        ),
+    ]
+
+    suite = build_agent_task_suite(
+        spec,
+        blueprints,
+        BenchmarkConfig(
+            benchmark_mode=BenchmarkMode.agent,
+            orchestrator_api_key="dummy",
+            use_web_research=False,
+            use_hf_discovery=False,
+            agent_task_builder_max_workers=2,
+        ),
+    )
+
+    assert max_active_calls >= 2
+    assert [task.id for task in suite.tasks] == ["first_blueprint_task", "second_blueprint_task"]
+
+
+def test_agent_task_builder_repairs_structural_validation_errors(monkeypatch) -> None:
+    payloads: list[dict] = []
+
+    def repairable_call_llm(messages, *args, **kwargs):
+        payload = json.loads(messages[0].content)
+        payloads.append(payload)
+        if "repair_request" not in payload:
+            return json.dumps(
+                {
+                    "tasks": [
+                        {
+                            "id": "gui_task",
+                            "dimension_id": "desktop_agent",
+                            "title": "GUI task",
+                            "prompt": "Complete the desktop workflow and save the requested artifact.",
+                            "environment": {"type": "gui_desktop"},
+                            "scoring": {"pass_criteria": "The artifact is produced."},
+                        }
+                    ]
+                }
+            )
+        return json.dumps(
+            {
+                "tasks": [
+                    {
+                        "id": "gui_task",
+                        "dimension_id": "desktop_agent",
+                        "title": "GUI task",
+                        "prompt": "Complete the desktop workflow and save the requested artifact.",
+                        "environment": {
+                            "type": "gui_desktop",
+                            "session": {
+                                "application": "spreadsheet",
+                                "entrypoint": "Desktop/input.xlsx",
+                                "expected_artifacts": ["Desktop/output.xlsx"],
+                            },
+                            "evaluation": {
+                                "method": "artifact_check",
+                                "expected_artifacts": ["Desktop/output.xlsx"],
+                                "pass_criteria": "Desktop/output.xlsx exists and matches the hidden checks.",
+                            },
+                        },
+                        "scoring": {
+                            "method": "deterministic",
+                            "pass_criteria": "Desktop/output.xlsx exists and matches the hidden checks.",
+                            "partial_criteria": "The agent creates a related artifact but misses one check.",
+                            "fail_criteria": "No usable artifact is produced.",
+                        },
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.agent.suite.call_llm", repairable_call_llm)
+    dimension = EvalDimension(
+        id="desktop_agent",
+        name="Desktop agent",
+        description="Evaluate GUI desktop task execution.",
+        approach="Use executable GUI tasks.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate desktop agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    blueprint = AgentTaskBlueprint(
+        id="desktop_blueprint",
+        dimension_id=dimension.id,
+        title="Desktop workflow",
+        task_family=AgentTaskFamily.gui_desktop,
+        environment_type=AgentEnvironmentType.gui_desktop,
+        expected_task_count=1,
+    )
+
+    suite = build_agent_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(
+            benchmark_mode=BenchmarkMode.agent,
+            orchestrator_api_key="dummy",
+            use_web_research=False,
+            use_hf_discovery=False,
+            agent_task_builder_repair_attempts=1,
+        ),
+    )
+
+    assert len(payloads) == 2
+    assert payloads[1]["repair_request"]["structure_validation_errors"]
+    assert suite.tasks[0].environment.session["application"] == "spreadsheet"
+    assert suite.tasks[0].environment.evaluation["method"] == "artifact_check"
 
 
 def test_agent_benchmark_local_fallback_covers_common_task_families() -> None:
@@ -410,7 +840,12 @@ def test_agent_benchmark_local_fallback_covers_common_task_families() -> None:
     suite = build_agent_task_suite(
         spec,
         blueprints,
-        BenchmarkConfig(benchmark_mode=BenchmarkMode.agent, use_web_research=False, use_hf_discovery=False),
+        BenchmarkConfig(
+            benchmark_mode=BenchmarkMode.agent,
+            use_web_research=False,
+            use_hf_discovery=False,
+            agent_task_builder="local",
+        ),
     )
     assert [task.task_family for task in suite.tasks] == [family for family, _ in families]
     assert [task.environment.type for task in suite.tasks] == [env_type for _, env_type in families]
@@ -439,6 +874,7 @@ def test_agent_benchmark_gui_blueprint_builds_bridge_task() -> None:
         benchmark_mode=BenchmarkMode.agent,
         use_web_research=False,
         use_hf_discovery=False,
+        agent_task_builder="local",
     )
     dimension = EvalDimension(
         id="desktop_spreadsheet",
@@ -467,7 +903,7 @@ def test_agent_benchmark_gui_blueprint_builds_bridge_task() -> None:
     assert task.environment.requires_vm is True
     assert task.environment.vm["image"] == "evalclaw-libreoffice-gui"
     assert task.environment.session["application"] == "spreadsheet"
-    assert task.environment.evaluation["method"] == "artifact_check"
+    assert task.environment.evaluation["method"] == "office_artifact_check"
     assert item.metadata["agent_env"]["type"] == "gui_desktop"
     assert item.metadata["agent_env"]["requires_vm"] is True
     assert item.metadata["task_agent"]["initial_content"]["vm"]["image"] == "evalclaw-libreoffice-gui"
@@ -481,11 +917,77 @@ def test_agent_benchmark_gui_blueprint_builds_bridge_task() -> None:
     assert qc.rejected_item_ids == []
 
 
+def test_agent_task_content_summary_is_persisted_for_reports() -> None:
+    config = BenchmarkConfig(benchmark_mode=BenchmarkMode.agent, use_web_research=False, use_hf_discovery=False)
+    dimension = EvalDimension(
+        id="code_repair",
+        name="Code repair",
+        description="Evaluate iterative code repair.",
+        approach="Use hidden tests.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate code repair agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    task = AgentTask(
+        id="code_repair_task_1",
+        dimension_id=dimension.id,
+        title="Repair parsing bug",
+        content_summary="CSV parser edge case",
+        description="Fix a parser bug and pass hidden tests.",
+        task_family=AgentTaskFamily.code_repair,
+        prompt="Fix parser.py and run tests until they pass.",
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.code_sandbox,
+            visible_files={"parser.py": "def parse(x):\n    return x\n"},
+            hidden_files={"tests.py": "assert True\n"},
+            test_command="python3 tests.py",
+        ),
+        scoring=AgentScoringSpec(
+            method="deterministic",
+            pass_criteria="Hidden tests pass.",
+            partial_criteria="Meaningful repair attempt.",
+            fail_criteria="No useful change.",
+        ),
+    )
+    suite = AgentTaskSuite(objective=spec.objective, dimensions=[dimension], tasks=[task])
+
+    dataset = task_suite_to_dataset(suite, spec, config)
+    item = dataset.items[0]
+
+    assert item.metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] == "CSV Parser Edge Case"
+    assert item.metadata["agent_task_package"]["capability_target"]["content_summary"] == "CSV Parser Edge Case"
+    assert item.source.kind == SourceKind.self_generated
+    assert item.source.uri == ""
+
+
+def test_report_source_backed_ignores_generated_agent_fixture_provenance() -> None:
+    item = BenchmarkItem(
+        id="generated_agent_task",
+        dimension_id="code_repair",
+        task_type=TaskType.agent_interaction,
+        prompt="Fix the generated fixture.",
+        source=BenchmarkSource(kind=SourceKind.imported, uri="generated_agent_task", title="Generated task"),
+        metadata={
+            "agent_task_package": {
+                "resource_provenance": {
+                    "source_kind": "generated_fixture",
+                    "source_uris": [],
+                }
+            }
+        },
+    )
+
+    assert _report_is_source_backed(item) is False
+
+
 def test_agent_benchmark_blender_gui_blueprint_builds_vm_task() -> None:
     config = BenchmarkConfig(
         benchmark_mode=BenchmarkMode.agent,
         use_web_research=False,
         use_hf_discovery=False,
+        agent_task_builder="local",
     )
     dimension = EvalDimension(
         id="blender_scene_creation",
@@ -542,6 +1044,7 @@ def test_agent_benchmark_multi_industrial_workflow_builds_cross_app_vm_tasks() -
         scale_budget=ScaleBudget.low,
         use_web_research=False,
         use_hf_discovery=False,
+        agent_task_builder="local",
     )
 
     spec, blueprints = plan_agent_benchmark(goal, config)
@@ -602,7 +1105,12 @@ def test_agent_benchmark_runtime_pipeline_defaults_to_docker_task_package() -> N
     suite = build_agent_task_suite(
         spec,
         [blueprint],
-        BenchmarkConfig(benchmark_mode=BenchmarkMode.agent, use_web_research=False, use_hf_discovery=False),
+        BenchmarkConfig(
+            benchmark_mode=BenchmarkMode.agent,
+            use_web_research=False,
+            use_hf_discovery=False,
+            agent_task_builder="local",
+        ),
     )
     dataset = task_suite_to_dataset(suite, spec, BenchmarkConfig(benchmark_mode=BenchmarkMode.agent))
 
@@ -682,7 +1190,12 @@ def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
                 environment_type=AgentEnvironmentType.gui_desktop,
             )
         ],
-        BenchmarkConfig(benchmark_mode=BenchmarkMode.agent, use_web_research=False, use_hf_discovery=False),
+        BenchmarkConfig(
+            benchmark_mode=BenchmarkMode.agent,
+            use_web_research=False,
+            use_hf_discovery=False,
+            agent_task_builder="local",
+        ),
     )
     task = source_suite.tasks[0]
     task.metadata["agent_task_package"] = {"schema_version": "broken"}
@@ -1850,6 +2363,34 @@ def test_generator_treats_self_generated_source_markers_as_self_generated() -> N
 
     assert items[0].source.kind == SourceKind.self_generated
     assert items[0].source.uri == ""
+
+
+def test_generator_persists_item_content_summary_for_reports() -> None:
+    dimension = EvalDimension(
+        id="data_analysis",
+        name="Data analysis",
+        description="Evaluate data analysis tasks.",
+        approach="Use small tables.",
+    )
+    spec = EvalSpec(objective="Evaluate data analysis", dimensions=[dimension])
+
+    items, _ = _parse_items(
+        {
+            "items": [
+                {
+                    "task_type": "open_generation",
+                    "content_summary": "sales margin aggregation",
+                    "prompt": "Compute the gross margin from the supplied sales table.",
+                    "rubric": "Score for correct arithmetic and explanation.",
+                }
+            ]
+        },
+        spec=spec,
+        dimension=dimension,
+        requested_count=1,
+    )
+
+    assert items[0].metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] == "Sales Margin Aggregation"
 
 
 def test_generator_promotes_metadata_judge_rubric_to_top_level() -> None:
@@ -3328,7 +3869,7 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
     assert agent_env["type"] == "code_sandbox"
     assert agent_env["visible_files_names"] == ["solution.py"]
     assert agent_env["hidden_files_names"] == ["tests.py"]
-    assert "tests.py" in agent_env["hidden_files_preview"]
+    assert "Full file contents are omitted" in agent_env["hidden_files_content_note"]
     assert agent_env["test_command"] == "python3 tests.py"
 
 
@@ -3444,9 +3985,10 @@ def test_report_viewer_html_includes_safety_overlay() -> None:
         )
     )
 
-    assert "Safety Audit Overlay" in html
+    assert "Safety Audit Overlay" not in html
+    assert "Weak Dimension" in html
+    assert "Worst Item" in html
     assert "blackmail_or_coercion" in html
-    assert "Human review priority" in html
 
 
 def test_report_viewer_html_includes_agent_trace() -> None:
@@ -3519,10 +4061,142 @@ def test_report_viewer_html_includes_agent_trace() -> None:
         )
     )
 
-    assert "Agent Interaction Diagnostics" in html
-    assert "Code Execution Diagnostics" in html
+    assert "Agent Interaction Diagnostics" not in html
+    assert "Code Execution Diagnostics" not in html
+    assert "Task Designs" in html
     assert "Agent Trace Summary" in html
     assert "write_file" in html
+
+
+def test_report_viewer_task_designs_use_six_unified_task_fields() -> None:
+    dimension = EvalDimension(
+        id="repo_repair",
+        name="Repository repair",
+        description="Evaluate executable repository repair tasks.",
+        approach="Use hidden tests and reference solutions.",
+    )
+    spec = EvalSpec(
+        id="task_design_schema_eval",
+        objective="Evaluate task design report coverage.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    item = BenchmarkItem(
+        id="repo_repair_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.agent_interaction,
+        prompt="Fix the failing parser and leave a patch in the workspace.",
+        rubric="Pass if the hidden tests pass and the parser handles escaped delimiters.",
+        answer="Reference behavior: escaped delimiters remain inside fields.",
+        source=BenchmarkSource(kind=SourceKind.web, uri="https://example.test/issue", title="Parser issue"),
+        metadata={
+            "task_content_summary": "Escaped delimiter parser fix",
+            "agent_env": {
+                "type": "docker_workspace",
+                "image": "python:3.11-slim",
+                "visible_files": {"parser.py": "def parse(x):\n    return x.split(',')\n"},
+                "hidden_files": {"tests/test_parser.py": "def test_hidden():\n    assert True\n"},
+                "test_command": "python -m pytest",
+                "tools": [{"name": "read_file"}, {"name": "write_file"}, {"name": "run_command"}],
+            },
+            "agent_task_package": {
+                "schema_version": "evalclaw.agent_task_package.v1",
+                "style": "ale_executable_task",
+                "capability_target": {"name": "Code repair", "content_summary": "Parser escape handling"},
+                "visible_inputs": {
+                    "instructions": "Inspect parser.py and update the implementation.",
+                    "files": {"README.md": "Parser accepts comma-delimited rows."},
+                },
+                "hidden_references": {
+                    "files": {"reference_solution.py": "def parse(x):\n    return ['fixed']\n"},
+                    "reference_artifacts": ["reference behavior for escaped delimiters"],
+                },
+                "output_contract": {"required_outputs": ["modified parser.py"], "expected_artifacts": ["patch"]},
+                "evaluation": {"method": "deterministic", "pass_criteria": "All hidden tests pass."},
+                "resource_provenance": {"source_kind": "generated_fixture", "construction_notes": "Small fixture."},
+            },
+        },
+    )
+    run = EvalRun(
+        dataset=BenchmarkDataset(spec=spec, items=[item], sources=[item.source]),
+        qc_report=QcReport(passed_item_ids=[item.id]),
+        results=[],
+    )
+    html = build_report_viewer_html(
+        BenchmarkPackage(
+            goal=spec.objective,
+            spec=spec,
+            dataset=run.dataset,
+            qc_report=run.qc_report,
+            run=run,
+            report=build_report(run),
+        )
+    )
+
+    assert "1. Target-visible prompt" in html
+    assert "2. Outputs, scoring, and evaluator materials" in html
+    assert "3. Model-visible context and resources" in html
+    assert "4. Tools, environment, and initial state" in html
+    assert "5. Reference answer or solution" in html
+    assert "6. Source and construction metadata" in html
+    assert "reference_solution.py" in html
+    assert "python:3.11-slim" in html
+
+
+def test_report_viewer_qc_audit_renders_markdown_and_groups_repeated_item_issues() -> None:
+    dimension = EvalDimension(
+        id="qc_dimension",
+        name="QC dimension",
+        description="Evaluate QC reporting.",
+        approach="Use repeated QC issues.",
+    )
+    spec = EvalSpec(id="qc_audit_eval", objective="Evaluate QC audit rendering.", dimensions=[dimension])
+    item = BenchmarkItem(
+        id="qc_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.open_generation,
+        prompt="Explain the fix.",
+        rubric="Score for correctness.",
+    )
+    qc = QcReport(
+        passed_item_ids=[],
+        rejected_item_ids=[item.id],
+        issues=[
+            QcIssue(
+                item_id=item.id,
+                severity=QcSeverity.warning,
+                category=QcCategory.clarity,
+                message="**First pass** found missing detail.",
+                suggested_action="- Add a concrete acceptance criterion.",
+            ),
+            QcIssue(
+                item_id=item.id,
+                severity=QcSeverity.error,
+                category=QcCategory.scoring,
+                message="```text\nsecond pass\n```",
+                suggested_action="Use `deterministic` scoring.",
+            ),
+        ],
+        quality_score=0.5,
+    )
+    run = EvalRun(dataset=BenchmarkDataset(spec=spec, items=[item]), qc_report=qc, results=[])
+    html = build_report_viewer_html(
+        BenchmarkPackage(
+            goal=spec.objective,
+            spec=spec,
+            dataset=run.dataset,
+            qc_report=qc,
+            run=run,
+            report=build_report(run),
+        )
+    )
+
+    assert "function markdownNode" in html
+    assert "function groupedQcIssues" in html
+    assert "Show more (" in html
+    assert "<strong>$1</strong>" in html
+    assert "**First pass** found missing detail." in html
+    assert "Use `deterministic` scoring." in html
 
 
 def test_persist_package_writes_browser_report_and_manifest(tmp_path) -> None:
