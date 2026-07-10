@@ -22,6 +22,7 @@ Return pure JSON only, with no markdown. Format:
   "items": [
     {
       "task_type": "multiple_choice",
+      "content_summary": "3-8 words naming the task content",
       "prompt": "...",
       "choices": ["A. ...", "B. ...", "C. ...", "D. ..."],
       "answer": "A",
@@ -38,6 +39,10 @@ Return pure JSON only, with no markdown. Format:
 
 Requirements:
 - Each item must be independently executable and must not depend on other items.
+- Each item must include content_summary: a short human-readable 3-8 word label
+  for the task content shown in reports between the dimension label and target
+  model name. It should name the concrete task focus, not repeat the dimension,
+  not include random IDs, and not include answer keys.
 - Stay inside the assigned dimension. If a tempting item mainly tests another
   dimension or a different capability, do not include it.
 - Follow the dimension item_requirements, task type plan, source allocation, and

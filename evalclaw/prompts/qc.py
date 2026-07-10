@@ -24,8 +24,27 @@ For task_type=agent_interaction with metadata.agent_env.type=code_sandbox:
 - Do not mark the item unexecutable merely because hidden tests are hidden from
   the target or summarized in metadata, as long as hidden file names/count and a
   test_command are present.
+- metadata.agent_env fields named visible_files_preview, files_preview, or
+  hidden_files_preview are intentionally compact QC excerpts, not the canonical
+  task files. Do not report truncation/omission issues solely because a preview
+  field is abbreviated; only flag truncation when the actual prompt, visible
+  task package, or executable file content explicitly contains placeholders
+  such as "...", "truncated", "same as above", or missing required code.
+
+For task_type=agent_interaction with metadata.agent_env.type=docker_workspace:
+- hidden_files are likewise runner-private evaluator or reference files. Do not
+  reject a task merely because an evaluator script is hidden from the target
+  agent, as long as test_command/evaluation explains that the runner executes
+  it after the agent finishes.
+- Deterministic scoring may be binary or numeric partial-credit scoring such as
+  0/0.5/1. Partial criteria are not incompatible with deterministic scoring
+  when the evaluator has explicit checks for those levels.
 
 For task_type=multi_turn or task_type=agent_interaction:
+- If metadata.agent_structure_validation.status is "passed", the task has
+  already passed builder-level structural validation. Do not report low-level
+  missing-schema issues for task_agent, agent_env, or agent_task_package unless
+  the visible task content itself proves that the task is not executable.
 - Prefer items that include metadata.task_agent with schema_version
   "evalclaw.task_agent.v1".
 - metadata.task_agent should define the task-specific agent system_prompt,

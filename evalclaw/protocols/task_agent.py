@@ -293,9 +293,10 @@ def compact_task_agent_for_qc(spec: dict[str, Any]) -> dict[str, Any]:
         if isinstance(files, dict):
             initial_summary["file_names"] = list(files.keys())[:20]
             initial_summary["file_count"] = len(files)
-            initial_summary["file_preview"] = {
-                name: str(content)[:500] for name, content in list(files.items())[:5]
-            }
+            initial_summary["file_content_note"] = (
+                "Full file contents are omitted from the LLM QC sample to avoid "
+                "confusing compact excerpts with task truncation."
+            )
         session = initial.get("session")
         if isinstance(session, dict):
             initial_summary["session_keys"] = list(session.keys())[:20]
@@ -337,11 +338,28 @@ def compact_task_agent_for_qc(spec: dict[str, Any]) -> dict[str, Any]:
             compact["initial_content"] = initial_summary
     execution = spec.get("execution")
     if isinstance(execution, dict):
-        compact["execution"] = {
-            key: value
-            for key, value in execution.items()
-            if key in {"environment_type", "agent_env"}
-        }
+        compact_execution: dict[str, Any] = {}
+        environment_type = execution.get("environment_type")
+        if isinstance(environment_type, str):
+            compact_execution["environment_type"] = environment_type
+        agent_env = execution.get("agent_env")
+        if isinstance(agent_env, dict):
+            env_summary: dict[str, Any] = {}
+            for key in ("type", "max_steps", "test_command", "timeout", "network", "image"):
+                if key in agent_env:
+                    env_summary[key] = agent_env[key]
+            for key in ("visible_files", "files", "hidden_files"):
+                files = agent_env.get(key)
+                if isinstance(files, dict):
+                    env_summary[f"{key}_count"] = len(files)
+                    env_summary[f"{key}_names"] = list(files.keys())[:20]
+                    env_summary[f"{key}_content_note"] = (
+                        "Full file contents are omitted from the LLM QC sample to avoid "
+                        "confusing compact excerpts with task truncation."
+                    )
+            compact_execution["agent_env"] = env_summary
+        if compact_execution:
+            compact["execution"] = compact_execution
     return compact
 
 

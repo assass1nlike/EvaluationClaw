@@ -201,7 +201,15 @@ def _has_swebench(items: list[BenchmarkItem]) -> bool:
 def _python_module_available(python_executable: str, module: str, timeout_s: int = 20) -> tuple[bool, str]:
     command = [python_executable, "-c", f"import {module}"]
     try:
-        proc = subprocess.run(command, capture_output=True, text=True, timeout=timeout_s, check=False)
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout_s,
+            check=False,
+        )
     except Exception as exc:
         return False, str(exc)
     if proc.returncode == 0:
@@ -214,7 +222,15 @@ def _wsl_available(timeout_s: int = 20) -> tuple[bool, str]:
     if not exe:
         return False, "wsl.exe was not found."
     try:
-        proc = subprocess.run([exe, "--status"], capture_output=True, text=True, timeout=timeout_s, check=False)
+        proc = subprocess.run(
+            [exe, "--status"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout_s,
+            check=False,
+        )
     except Exception as exc:
         return False, str(exc)
     if proc.returncode == 0:
@@ -238,7 +254,15 @@ def _wsl_python_module_available(
         command.extend(["-d", distro])
     command.extend(["--", "bash", "-lc", f"{python_executable} -c 'import {module}'"])
     try:
-        proc = subprocess.run(command, capture_output=True, text=True, timeout=timeout_s, check=False)
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout_s,
+            check=False,
+        )
     except Exception as exc:
         return False, str(exc)
     if proc.returncode == 0:
