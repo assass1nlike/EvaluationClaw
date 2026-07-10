@@ -11,7 +11,11 @@ from typing import Any
 
 from ..protocols.tool import ToolSpec, format_tool_specs_for_prompt, object_schema
 from .docker import docker_status, docker_subprocess_env, resolve_docker_executable
-from .docker_images import apply_docker_image_selection, build_docker_image_if_requested
+from .docker_images import (
+    apply_docker_image_selection,
+    build_docker_image_if_requested,
+    inspect_docker_image,
+)
 
 
 @dataclass
@@ -211,7 +215,16 @@ class DockerWorkspaceAgentEnvironment:
 
         try:
             if self.pull_image:
-                self._require_ok(self._run_docker(["pull", self.image], timeout=max(self.pull_timeout, self.timeout)), "pull")
+                probe = inspect_docker_image(
+                    self.image,
+                    docker_executable=self.docker_executable,
+                    timeout_s=min(30, max(self.timeout, 1)),
+                )
+                if not probe.local:
+                    self._require_ok(
+                        self._run_docker(["pull", self.image], timeout=max(self.pull_timeout, self.timeout)),
+                        "pull",
+                    )
             create = ["create", "--name", self._container_name, "--workdir", self.workdir, "--network", self.network]
             if self.memory:
                 create.extend(["--memory", self.memory])

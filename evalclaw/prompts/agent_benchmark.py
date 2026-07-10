@@ -57,6 +57,7 @@ Return this object:
       "id": "snake_case",
       "dimension_id": "dimension_id",
       "title": "...",
+      "content_summary": "3-8 words naming the concrete task content",
       "description": "...",
       "task_family": "code_repair",
       "environment_type": "code_sandbox",
@@ -86,6 +87,10 @@ Planning requirements:
 - For each dimension, create one or more agent_task_blueprints that say how
   executable tasks should be built from existing resources or compact generated
   fixtures. A blueprint is a task-construction plan, not the final task.
+- If the user specifies an explicit raw task count, distribute that exact count
+  across agent_task_blueprints so that the sum of expected_task_count equals
+  the requested count. Do not reinterpret an explicit "N tasks/items/problems"
+  request as simple-equivalent workload.
 - Use existing resources when they make the task more realistic: repositories,
   issues, docs, CLI/API manuals, bug reports, datasets, notebooks, webpages, or
   benchmark instances. Do not force external resources when a small synthetic
@@ -123,6 +128,10 @@ Planning requirements:
 - Every executable task must have a clear oracle: deterministic tests, state
   assertions, pass/fail criteria, or a task-specific judge rubric. Prefer
   deterministic scoring when the environment can support it.
+- For high-difficulty or expert software-engineering requests, prefer L5 for
+  dimensions/tasks that require multi-file reasoning, dependency diagnosis,
+  migration, refactoring, performance work, or realistic hidden tests; use L4
+  only when the scope is intentionally compact.
 - For ALE-like professional workflows, VM-backed tasks, docker_workspace tasks,
   GUI/browser/desktop-software tasks, and long-horizon executable tasks, require
   metadata.agent_task_package. It must separate visible inputs from hidden
@@ -261,7 +270,7 @@ Return this object:
         "pass_criteria": "...",
         "partial_criteria": "...",
         "fail_criteria": "...",
-        "score_levels": {"1": "fail", "3": "partial", "5": "pass"},
+        "score_levels": {"0": "fail", "0.5": "partial", "1": "pass"},
         "oracle_notes": "..."
       },
       "difficulty": "L4",
@@ -274,8 +283,19 @@ Return this object:
 }
 
 Task-construction requirements:
+- The tasks array length must equal blueprint.expected_task_count exactly.
+  Generate independent task content for each task; do not duplicate prompts or
+  create numbered clones of the same fixture.
 - Each task must be independently executable and complete. Do not use ellipses,
   omitted files, preview fields, or references to unavailable context.
+- Before returning, audit every task prompt, visible file, hidden file,
+  evaluator script, and metadata instruction for completeness. Strings must not
+  stop mid-word, mid-sentence, mid-expression, or before closing punctuation,
+  braces, quotes, code blocks, or JSON/Python/shell syntax.
+- Each task must include content_summary: a short human-readable 3-8 word label
+  used in reports between the dimension label and target model name. It should
+  summarize the concrete task content, not repeat the dimension, not include
+  random IDs, and not include hidden oracle details or answer keys.
 - Preserve the assigned dimension. If a task mainly evaluates a different agent
   ability, do not include it.
 - Use the blueprint's environment_type unless the resource makes that impossible.
@@ -293,6 +313,24 @@ Task-construction requirements:
   algorithm, input paths, threshold/tolerance, and how partial credit is
   computed. Mirror the same concrete values in scoring.pass_criteria,
   scoring.partial_criteria, and metadata.agent_task_package.evaluation.
+- Keep scoring scales consistent across scoring, metadata.task_agent, and
+  metadata.agent_task_package. If metadata.agent_task_package.evaluation uses
+  score_range [0, 1], then use pass=1, partial values between 0 and 1, and
+  fail=0 rather than 1-5 levels.
+- For numeric outputs, floating-point values, performance timings, or
+  platform-sensitive command output, use explicit tolerances or robust
+  predicates instead of exact fragile strings.
+- For dependency, packaging, service, or configuration tasks, use internally
+  consistent real-world failure modes. The visible dependency pins, setup/build
+  commands, import/runtime errors, and hidden evaluator must all agree. Do not
+  invent conflicts between packages that do not actually interact, and do not
+  make success depend on runtime network access unless the environment
+  explicitly enables it.
+- Hidden evaluator behavior should be summarized concretely in scoring and
+  metadata.agent_task_package.evaluation: state what command is run, what app or
+  service is started if any, what endpoint/file/output is checked, and what
+  exit codes or score values mean. Keep hidden reference contents private, but
+  do not leave the execution contract ambiguous.
 - Hidden evaluator files, ground-truth JSON, tests, and reference manifests must
   be complete file contents. Never put ellipses, previews, "same as above",
   omitted logic, or placeholder snippets in hidden_files or

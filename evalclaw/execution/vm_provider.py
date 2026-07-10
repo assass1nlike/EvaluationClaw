@@ -113,7 +113,15 @@ def _local_provider_backend(provider_url: str | None) -> str:
 
 def _run_command(command: list[str], *, timeout: int = 30) -> tuple[bool, str]:
     try:
-        proc = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+            check=False,
+        )
     except Exception as exc:
         return False, str(exc)
     output = (proc.stdout or proc.stderr or "").strip()

@@ -337,6 +337,13 @@ def _judge_failure_count(run: EvalRun) -> int:
 
 
 def _is_source_backed(item: object) -> bool:
+    metadata = getattr(item, "metadata", {})
+    if isinstance(metadata, dict):
+        package = metadata.get("agent_task_package")
+        if isinstance(package, dict):
+            provenance = package.get("resource_provenance")
+            if isinstance(provenance, dict) and provenance.get("source_kind") == "generated_fixture":
+                return False
     source = getattr(item, "source", None)
     if source is None:
         return False

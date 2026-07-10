@@ -99,6 +99,11 @@ def _issue(
     )
 
 
+def _agent_structure_prevalidated(item: BenchmarkItem) -> bool:
+    validation = item.metadata.get("agent_structure_validation") if isinstance(item.metadata, dict) else None
+    return isinstance(validation, dict) and validation.get("status") == "passed"
+
+
 def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
     issues: list[QcIssue] = []
     if not item.prompt.strip():
@@ -178,7 +183,8 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                 "Add a concrete scoring rubric or deterministic environment scoring note.",
             )
         )
-    if item.task_type in {TaskType.multi_turn, TaskType.agent_interaction}:
+    agent_structure_prevalidated = item.task_type == TaskType.agent_interaction and _agent_structure_prevalidated(item)
+    if item.task_type in {TaskType.multi_turn, TaskType.agent_interaction} and not agent_structure_prevalidated:
         task_agent = item.metadata.get(TASK_AGENT_METADATA_KEY)
         if not isinstance(task_agent, dict):
             issues.append(
@@ -304,7 +310,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
         issues.append(
             _issue(item.id, QcSeverity.error, QcCategory.scoring, "Code execution item lacks test_code.")
         )
-    if item.task_type == TaskType.agent_interaction:
+    if item.task_type == TaskType.agent_interaction and not agent_structure_prevalidated:
         env = item.metadata.get("agent_env")
         if env is not None and not isinstance(env, dict):
             issues.append(
@@ -438,7 +444,12 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
 
 
 def _is_source_backed(item: BenchmarkItem) -> bool:
-    return item.source.kind in {SourceKind.web, SourceKind.hf_dataset, SourceKind.lm_eval, SourceKind.imported}
+    package = item.metadata.get("agent_task_package") if isinstance(item.metadata, dict) else None
+    if isinstance(package, dict):
+        provenance = package.get("resource_provenance")
+        if isinstance(provenance, dict) and provenance.get("source_kind") == "generated_fixture":
+            return False
+    return item.source.kind in {SourceKind.web, SourceKind.hf_dataset, SourceKind.lm_eval, SourceKind.imported} and bool(item.source.uri)
 
 
 def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
@@ -601,9 +612,10 @@ def _compact_metadata_for_qc(metadata: dict) -> dict:
             if isinstance(files, dict):
                 env_summary[f"{key}_count"] = len(files)
                 env_summary[f"{key}_names"] = list(files.keys())[:20]
-                env_summary[f"{key}_preview"] = {
-                    name: str(content)[:500] for name, content in list(files.items())[:5]
-                }
+                env_summary[f"{key}_content_note"] = (
+                    "Full file contents are omitted from the LLM QC sample to avoid "
+                    "confusing compact excerpts with task truncation."
+                )
         for key in ("rooms", "goal"):
             value = env.get(key)
             if isinstance(value, dict):
@@ -669,23 +681,78 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
     if not item or item.task_type != TaskType.agent_interaction:
         return issue
     env = item.metadata.get("agent_env")
-    if not isinstance(env, dict) or env.get("type") != "code_sandbox":
+    if not isinstance(env, dict):
         return issue
-    if not isinstance(env.get("hidden_files"), dict) or not env.get("test_command"):
+    env_type = str(env.get("type") or "")
+    if env_type not in {"code_sandbox", "docker_workspace"}:
         return issue
     message = issue.message.lower()
-    false_positive_markers = ("hidden", "not visible", "unverifiable", "unexecutable")
-    if "hidden" in message and any(marker in message for marker in false_positive_markers):
+    if isinstance(env.get("hidden_files"), dict) and env.get("test_command"):
+        false_positive_markers = (
+            "hidden",
+            "not visible",
+            "not accessible",
+            "unverifiable",
+            "unexecutable",
+            "may not be able to run",
+        )
+        if "hidden" in message and any(marker in message for marker in false_positive_markers):
+            return issue.model_copy(
+                update={
+                    "severity": QcSeverity.warning,
+                    "message": (
+                        issue.message
+                        + " Note: EvaluationClaw runner-private hidden files are executable "
+                        "through test_command after the target agent finishes; this was "
+                        "demoted from an LLM QC blocking error."
+                    ),
+                }
+            )
+    if (
+        "deterministic" in message
+        and "partial" in message
+        and any(level in message for level in ("0.5", "partial credit", "partial condition"))
+    ):
         return issue.model_copy(
             update={
                 "severity": QcSeverity.warning,
                 "message": (
                     issue.message
-                    + " Note: EvaluationClaw code_sandbox hidden files are executable by the "
-                    "runner via test_command; this was demoted from an LLM QC blocking error."
+                    + " Note: EvaluationClaw deterministic evaluators may return fixed "
+                    "numeric partial-credit levels such as 0/0.5/1; this was demoted from "
+                    "an LLM QC blocking error."
                 ),
             }
         )
+    task_agent = item.metadata.get("task_agent")
+    scoring = task_agent.get("scoring") if isinstance(task_agent, dict) else None
+    if isinstance(scoring, dict) and ("partial" in message or "0.5" in message):
+        pass_fail = scoring.get("pass_fail") if isinstance(scoring.get("pass_fail"), dict) else {}
+        levels = scoring.get("levels") if isinstance(scoring.get("levels"), dict) else {}
+        partial_text = str(pass_fail.get("partial") or scoring.get("partial_criteria") or "").strip().lower()
+        has_partial = bool(partial_text) and partial_text not in {
+            "not applicable",
+            "n/a",
+            "na",
+            "none",
+            "no partial credit",
+            "not used",
+        }
+        has_partial_level = "0.5" in {str(key) for key in levels} or "partial" in {
+            str(value).lower() for value in levels.values()
+        }
+        if has_partial and has_partial_level:
+            return issue.model_copy(
+                update={
+                    "severity": QcSeverity.warning,
+                    "message": (
+                        issue.message
+                        + " Note: The structured task_agent.scoring metadata includes both "
+                        "partial criteria and a partial score level; this was demoted from "
+                        "an LLM QC blocking error."
+                    ),
+                }
+            )
     return issue
 
 

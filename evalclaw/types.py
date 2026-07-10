@@ -242,6 +242,7 @@ class AgentTask(BaseModel):
     id: str
     dimension_id: str
     title: str
+    content_summary: str = ""
     description: str = ""
     task_family: AgentTaskFamily = AgentTaskFamily.custom
     prompt: str
@@ -489,6 +490,9 @@ class BenchmarkConfig(BaseModel):
     max_research_iterations: int = 3
     research_brief: Optional[ResearchBrief] = None
     use_hf_discovery: bool = True
+    agent_task_builder: str = "llm"  # llm | local | auto
+    agent_task_builder_max_workers: int = 4
+    agent_task_builder_repair_attempts: int = 2
     judge_double_pass: bool = True
     llm_backend: str = "auto"  # auto | litellm | legacy
     runner: str = "direct"  # direct | lm-eval | auto

@@ -15,6 +15,7 @@ AGENT_TASK_PACKAGE_SCHEMA: dict[str, Any] = {
     "style": "ale_executable_task",
     "capability_target": {
         "name": "Agent capability being measured, not a one-off task title.",
+        "content_summary": "Short 3-8 word label for report item titles.",
         "description": "What behavior this task is intended to test.",
     },
     "environment_requirements": {

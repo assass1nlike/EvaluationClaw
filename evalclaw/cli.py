@@ -251,6 +251,21 @@ def generate(
         help="Maximum deep-research search/reflection rounds.",
     ),
     no_hf_discovery: bool = typer.Option(False, "--no-hf-discovery", help="Disable HuggingFace dataset discovery."),
+    agent_task_builder: str = typer.Option(
+        "llm",
+        "--agent-task-builder",
+        help="Agent task materialization mode: llm, local, or auto. Use local only for offline smoke tests.",
+    ),
+    agent_task_builder_max_workers: int = typer.Option(
+        4,
+        "--agent-task-builder-workers",
+        help="Maximum concurrent agent task-builder LLM calls.",
+    ),
+    agent_task_builder_repair_attempts: int = typer.Option(
+        2,
+        "--agent-task-builder-repair-attempts",
+        help="Maximum per-blueprint task-builder structural repair attempts before QC.",
+    ),
     single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one judge pass instead of the default double-pass audit."),
     llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto, litellm, or legacy."),
     runner: str = typer.Option("direct", "--runner", help="Runner mode: direct, lm-eval, or auto."),
@@ -378,6 +393,15 @@ def generate(
     if search_backend.lower() not in {"auto", "gemini", "keyless", "none"}:
         console.print("[red]--search-backend must be one of: auto, gemini, keyless, none.[/red]")
         raise typer.Exit(1)
+    if agent_task_builder.lower() not in {"llm", "local", "auto"}:
+        console.print("[red]--agent-task-builder must be one of: llm, local, auto.[/red]")
+        raise typer.Exit(1)
+    if agent_task_builder_max_workers < 1:
+        console.print("[red]--agent-task-builder-workers must be at least 1.[/red]")
+        raise typer.Exit(1)
+    if agent_task_builder_repair_attempts < 0:
+        console.print("[red]--agent-task-builder-repair-attempts cannot be negative.[/red]")
+        raise typer.Exit(1)
     if max_research_iterations < 1:
         console.print("[red]--max-research-iterations must be at least 1.[/red]")
         raise typer.Exit(1)
@@ -435,6 +459,9 @@ def generate(
         use_deep_research=deep_research,
         max_research_iterations=max_research_iterations,
         use_hf_discovery=not no_hf_discovery,
+        agent_task_builder=agent_task_builder.lower(),
+        agent_task_builder_max_workers=agent_task_builder_max_workers,
+        agent_task_builder_repair_attempts=agent_task_builder_repair_attempts,
         judge_double_pass=not single_pass_judge,
         llm_backend=llm_backend,
         runner=runner,
