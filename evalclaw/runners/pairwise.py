@@ -1,9 +1,9 @@
-"""Pairwise target-vs-reference execution for runner items."""
+﻿"""Pairwise target-vs-reference execution for runner items."""
 from __future__ import annotations
 
 import json
 
-from ..llm import call_llm, call_target_model, extract_json
+from ..models.llm import call_llm, call_target_model, extract_json
 from ..protocols.multimodal import build_multimodal_user_content, get_multimodal_spec
 from ..types import BenchmarkConfig, BenchmarkItem, Message, TargetModelConfig
 from .credentials import target_config_has_credentials

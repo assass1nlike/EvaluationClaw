@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 
 from evalclaw.execution.docker import docker_status, resolve_docker_executable
+from evalclaw.execution.runner import run_eval
 from evalclaw.execution.swebench import (
     SweBenchHarnessConfig,
     SweBenchPrediction,
@@ -16,7 +17,6 @@ from evalclaw.execution.swebench import (
     write_predictions_jsonl,
 )
 from evalclaw.pipeline import _validate_swebench_preflight_with_retry
-from evalclaw.runner import run_eval
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkDataset,

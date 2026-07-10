@@ -6,9 +6,9 @@ import json
 import re
 from pathlib import Path
 
-from evalclaw.planner import plan_eval_spec
-from evalclaw.planning_loop import format_human_review_overview, generate_dataset_with_qc_loop
-from evalclaw.providers import orchestrator_defaults, target_from_model
+from evalclaw.models.providers import orchestrator_defaults, target_from_model
+from evalclaw.planning.loop import format_human_review_overview, generate_dataset_with_qc_loop
+from evalclaw.planning.planner import plan_eval_spec
 from evalclaw.types import BenchmarkConfig, ScaleBudget
 
 _SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]+")

@@ -10,7 +10,7 @@ import json
 from typer.testing import CliRunner
 
 from evalclaw.cli import app
-from evalclaw.generator import _select_research_sources
+from evalclaw.generation.generator import _select_research_sources
 from evalclaw.pipeline import _persist_package, run_pipeline
 from evalclaw.planning import planner as planning_planner
 from evalclaw.prompts.research import (
@@ -19,7 +19,7 @@ from evalclaw.prompts.research import (
     RESEARCH_REFLECT_SYSTEM_PROMPT,
     RESEARCH_SYNTHESIS_SYSTEM_PROMPT,
 )
-from evalclaw.reporter import build_report
+from evalclaw.reporting.reporter import build_report
 from evalclaw.research import deep_research
 from evalclaw.research.backends import SearchResult
 from evalclaw.research.deep_research import (
@@ -333,7 +333,7 @@ def _dimension(needs_research: bool = True) -> EvalDimension:
 
 
 def test_generator_prefers_brief_seed_sources(monkeypatch) -> None:
-    import evalclaw.generator as generator_module
+    import evalclaw.generation.generator as generator_module
 
     def fake_web_search(query, **kwargs):
         return SearchResult(

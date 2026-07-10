@@ -1,4 +1,4 @@
-"""Planner-supervised generation and pre-run QC repair loop."""
+﻿"""Planner-supervised generation and pre-run QC repair loop."""
 from __future__ import annotations
 
 import difflib
@@ -7,17 +7,17 @@ import re
 from collections import Counter, defaultdict
 from typing import Any, Callable
 
+from ..core.scaling import is_large_scale_budget
 from ..generation.fallback import fallback_items
-from ..generator import (
+from ..generation.generator import (
     generate_dataset_with_progress,
     generate_dimension_items,
     target_count_for_dimension,
 )
-from ..llm import call_llm, extract_json
+from ..models.llm import call_llm, extract_json
 from ..prompts.planning_loop import PLANNER_REVIEW_SYSTEM_PROMPT
 from ..protocols.task_agent import compact_task_agent_for_qc
 from ..quality.qc import run_qc_gate
-from ..scaling import is_large_scale_budget
 from ..types import (
     BenchmarkConfig,
     BenchmarkDataset,

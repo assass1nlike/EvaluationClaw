@@ -1,7 +1,7 @@
 """HuggingFace dataset discovery for benchmark reuse signals."""
 from __future__ import annotations
 
-from .types import BenchmarkSource, EvalDimension, SourceKind
+from ..types import BenchmarkSource, EvalDimension, SourceKind
 
 MATH_HINTS = {
     "math",

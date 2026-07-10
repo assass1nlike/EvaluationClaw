@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
-from .types import BenchmarkItem, ScaleBudget, TaskType
+from ..types import BenchmarkItem, ScaleBudget, TaskType
 
 SCALE_BUDGET_SIMPLE_EQUIVALENTS: dict[ScaleBudget, int] = {
     ScaleBudget.low: 100,
