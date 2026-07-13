@@ -1,9 +1,202 @@
 import subprocess
+import sys
 from pathlib import Path
 
+from evalclaw.agent.validation import agent_task_structure_issues
+from evalclaw.execution.docker_agent_env import DockerWorkspaceAgentEnvironment
+from evalclaw.execution.docker_browser import DOCKER_BROWSER_RUNTIME_SCRIPT
 from evalclaw.execution.docker_images import _render_dockerfile, build_docker_image_if_requested
+from evalclaw.execution.vm_materializer import _run_command as _run_vm_materializer_command
 from evalclaw.execution.vm_materializer import materialize_vm_task
-from evalclaw.types import BenchmarkItem, TaskType
+from evalclaw.types import (
+    AgentEnvironmentSpec,
+    AgentEnvironmentType,
+    AgentScoringSpec,
+    AgentTask,
+    AgentTaskBlueprint,
+    BenchmarkItem,
+    TaskType,
+)
+
+
+def test_docker_browser_runtime_script_compiles() -> None:
+    compile(DOCKER_BROWSER_RUNTIME_SCRIPT, "browser_runtime.py", "exec")
+
+
+def test_docker_browser_environment_exposes_browser_tools_and_private_evaluator() -> None:
+    env = DockerWorkspaceAgentEnvironment(
+        image="mcr.microsoft.com/playwright/python:v1.52.0-noble",
+        visible_files={},
+        hidden_files={},
+        browser={
+            "enabled": True,
+            "runtime": "playwright_python",
+            "start_url": "http://localhost:8000",
+            "allowed_origins": ["http://localhost:8000"],
+        },
+        expose_test_tool=False,
+        auto_evaluate_on_final=True,
+    )
+
+    names = [tool.name for tool in env.tool_specs()]
+
+    assert "browser_navigate" in names
+    assert "browser_snapshot" in names
+    assert "browser_fill" in names
+    assert "final" in names
+    assert "run_command" not in names
+    assert "run_tests" not in names
+
+
+def test_docker_browser_environment_can_expose_only_write_file() -> None:
+    env = DockerWorkspaceAgentEnvironment(
+        image="mcr.microsoft.com/playwright/python:v1.52.0-noble",
+        visible_files={},
+        hidden_files={},
+        browser={
+            "enabled": True,
+            "start_url": "http://localhost:8000",
+            "workspace_tools": ["write_file"],
+        },
+        expose_test_tool=False,
+    )
+
+    names = [tool.name for tool in env.tool_specs()]
+
+    assert "write_file" in names
+    assert "read_file" not in names
+    assert "run_command" not in names
+    assert env._clean_path("/workspace/result.csv") == "result.csv"
+    assert env._clean_path("/tmp/result.csv") is None
+
+
+def test_docker_browser_final_runs_private_evaluator(monkeypatch) -> None:
+    env = DockerWorkspaceAgentEnvironment(
+        image="mcr.microsoft.com/playwright/python:v1.52.0-noble",
+        visible_files={},
+        hidden_files={"evaluate.py": "raise SystemExit(0)"},
+        browser={"enabled": True, "start_url": "http://localhost:8000"},
+        expose_test_tool=False,
+        auto_evaluate_on_final=True,
+    )
+    written: list[str] = []
+
+    monkeypatch.setattr(env, "_write_final_answer", lambda answer: written.append(answer))
+
+    def fake_tests() -> str:
+        env.test_runs += 1
+        env.last_test = {
+            "passed": True,
+            "score": 1.0,
+            "returncode": 0,
+            "stdout": "PASS",
+            "stderr": "",
+        }
+        return "Evaluator passed with score=1.0."
+
+    monkeypatch.setattr(env, "_run_configured_tests", fake_tests)
+
+    outcome = env.step({"tool": "final", "args": {"answer": "42"}})
+
+    assert outcome.done is True
+    assert env.score() == 1.0
+    assert env.final_answer == "42"
+    assert written == ["42"]
+    assert env.test_runs == 1
+
+
+def test_browser_blueprint_requires_executable_docker_browser_runtime() -> None:
+    task = AgentTask(
+        id="browser_task",
+        dimension_id="web",
+        title="Browser task",
+        prompt="Use the browser tools to update the local website.",
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.docker_workspace,
+            image="python:3.11-slim",
+            visible_files={"app.py": "print('app')"},
+            hidden_files={"test.py": "raise SystemExit(0)"},
+            test_command="python3 test.py",
+        ),
+        scoring=AgentScoringSpec(pass_criteria="The website is updated."),
+    )
+    blueprint = AgentTaskBlueprint(
+        id="browser_blueprint",
+        dimension_id="web",
+        title="Browser workflow",
+        environment_type=AgentEnvironmentType.docker_workspace,
+        tool_requirements=["Use browser tools to inspect and modify the site."],
+    )
+
+    issues = agent_task_structure_issues(task, blueprint=blueprint)
+
+    assert any("environment.browser.enabled=true" in issue for issue in issues)
+
+
+def test_setup_cannot_reference_evaluator_only_hidden_files() -> None:
+    task = AgentTask(
+        id="invalid_lifecycle",
+        dimension_id="code",
+        title="Invalid lifecycle",
+        prompt="Configure the application and complete the requested code change.",
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.docker_workspace,
+            image="python:3.11-slim",
+            visible_files={"solution.py": "pass\n"},
+            hidden_files={"private/evaluate.py": "raise SystemExit(0)\n"},
+            setup_commands=["python3 private/evaluate.py --serve"],
+            test_command="python3 private/evaluate.py",
+        ),
+        scoring=AgentScoringSpec(pass_criteria="The evaluator accepts the solution."),
+    )
+
+    issues = agent_task_structure_issues(task)
+
+    assert any("reference evaluator-only hidden_files" in issue for issue in issues)
+
+
+def test_browser_file_artifact_requires_write_tool_and_workdir_path() -> None:
+    task = AgentTask(
+        id="browser_artifact_task",
+        dimension_id="web",
+        title="Browser artifact task",
+        prompt="Use browser tools and save the extracted data.",
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.docker_workspace,
+            image="mcr.microsoft.com/playwright/python:v1.52.0-noble",
+            workdir="/workspace",
+            visible_files={"app.py": "print('app')"},
+            hidden_files={"test.py": "raise SystemExit(0)"},
+            test_command="python3 test.py",
+            browser={
+                "enabled": True,
+                "runtime": "playwright_python",
+                "start_url": "http://localhost:8000",
+                "allowed_origins": ["http://localhost:8000"],
+                "workspace_tools": [],
+            },
+        ),
+        scoring=AgentScoringSpec(pass_criteria="The CSV matches expected rows."),
+        metadata={
+            "agent_task_package": {
+                "output_contract": {"expected_artifacts": ["/tmp/result.csv"]}
+            }
+        },
+    )
+
+    issues = agent_task_structure_issues(task)
+
+    assert any("must expose write_file" in issue for issue in issues)
+    assert any("must be inside environment.workdir=/workspace" in issue for issue in issues)
+
+
+def test_vm_materializer_command_replaces_invalid_output_bytes() -> None:
+    success, output = _run_vm_materializer_command(
+        [sys.executable, "-c", "import sys; sys.stdout.buffer.write(b'\\xffseed-ok')"]
+    )
+
+    assert success is True
+    assert "seed-ok" in output
 
 
 def test_docker_image_build_renders_cross_domain_installers(monkeypatch) -> None:
@@ -86,6 +279,46 @@ def test_docker_image_build_renders_cross_domain_installers(monkeypatch) -> None
     assert "gem install bundler" in dockerfile_text
     assert "composer global require phpunit/phpunit" in dockerfile_text
     assert "echo domain-ready >/opt/evalclaw-domain.txt" in dockerfile_text
+
+
+def test_docker_image_build_passes_proxy_and_custom_build_args(monkeypatch) -> None:
+    build_commands: list[list[str]] = []
+    monkeypatch.setattr("evalclaw.execution.docker_images.resolve_docker_executable", lambda executable: "docker")
+    monkeypatch.setattr("evalclaw.execution.docker_images.docker_subprocess_env", lambda executable: {})
+    monkeypatch.setenv("EVALCLAW_DOCKER_HTTP_PROXY", "http://host.docker.internal:7890")
+    monkeypatch.setenv("EVALCLAW_DOCKER_HTTPS_PROXY", "http://host.docker.internal:7890")
+
+    def fake_run(command, **kwargs):
+        if command[1:3] == ["image", "inspect"]:
+            return subprocess.CompletedProcess(command, 1, stdout="", stderr="not found")
+        if command[1] == "build":
+            build_commands.append(command)
+            return subprocess.CompletedProcess(command, 0, stdout="built\n", stderr="")
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr("evalclaw.execution.docker_images.subprocess.run", fake_run)
+
+    build_docker_image_if_requested(
+        {
+            "type": "docker_workspace",
+            "image": "build://auto",
+            "id": "proxy-build",
+            "image_build": {
+                "enabled": True,
+                "base_image": "ubuntu:22.04",
+                "tag": "evalclaw-proxy-build:test",
+                "build_args": {"APT_MIRROR": "archive.ubuntu.com"},
+            },
+        },
+        docker_executable="docker",
+    )
+
+    command = build_commands[0]
+    joined = " ".join(command)
+    assert "--build-arg APT_MIRROR=archive.ubuntu.com" in joined
+    assert "--build-arg HTTP_PROXY=http://host.docker.internal:7890" in joined
+    assert "--build-arg http_proxy=http://host.docker.internal:7890" in joined
+    assert "--build-arg HTTPS_PROXY=http://host.docker.internal:7890" in joined
 
 
 def test_docker_image_build_supports_non_debian_package_managers() -> None:

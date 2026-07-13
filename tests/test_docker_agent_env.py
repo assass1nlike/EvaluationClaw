@@ -1,6 +1,8 @@
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from evalclaw.execution.agent_envs import build_agent_environment
 from evalclaw.execution.docker import DockerStatus
 from evalclaw.execution.docker_agent_env import DockerWorkspaceAgentEnvironment
@@ -49,7 +51,7 @@ def test_docker_workspace_environment_runs_hidden_tests(monkeypatch) -> None:
     try:
         assert env.state()["environment"] == "docker_workspace"
         read_hidden = env.step({"action": "read_file", "args": {"path": "tests.py"}})
-        assert read_hidden.error == "Cannot read hidden test file: tests.py"
+        assert read_hidden.error == "Cannot read protected runtime/evaluator file: tests.py"
 
         result = env.step({"action": "run_tests", "args": {}})
 
@@ -62,6 +64,135 @@ def test_docker_workspace_environment_runs_hidden_tests(monkeypatch) -> None:
         assert any(command[1] == "exec" and "rm -f -- tests.py" in command[-1] for command in calls)
     finally:
         env.cleanup()
+
+
+def test_runtime_files_precede_setup_and_workspace_is_restored_after_evaluation(monkeypatch) -> None:
+    calls: list[list[str]] = []
+    _mock_docker(monkeypatch, calls)
+
+    env = DockerWorkspaceAgentEnvironment.from_config(
+        {
+            "type": "docker_workspace",
+            "image": "python:3.11-slim",
+            "visible_files": {"solution.py": "def solve():\n    return 1\n"},
+            "runtime_files": {"runtime/server.py": "print('ready')\n"},
+            "hidden_files": {"tests.py": "from solution import solve\nassert solve() == 1\n"},
+            "setup_commands": ["python3 runtime/server.py"],
+            "test_command": "pytest -q tests.py",
+            "pull_image": False,
+        }
+    )
+
+    try:
+        protected = env.step({"action": "read_file", "args": {"path": "runtime/server.py"}})
+        assert protected.error == "Cannot read protected runtime/evaluator file: runtime/server.py"
+        assert "run_command" not in {tool.name for tool in env.tool_specs()}
+        shell_bypass = env.step({"action": "run_command", "args": {"command": "cat runtime/server.py"}})
+        assert shell_bypass.error == "Tool is not available in this environment: run_command"
+
+        env.step({"action": "run_tests", "args": {}})
+
+        runtime_copy = next(
+            index
+            for index, command in enumerate(calls)
+            if command[1] == "cp" and command[-1].endswith("/workspace/runtime/server.py")
+        )
+        setup = next(
+            index
+            for index, command in enumerate(calls)
+            if command[1] == "exec" and command[-1] == "python3 runtime/server.py"
+        )
+        snapshot = next(
+            index
+            for index, command in enumerate(calls)
+            if command[1] == "exec" and command[-1].startswith("tar -cf /tmp/evalclaw-workspace-before-eval.tar")
+        )
+        hidden_copy = next(
+            index
+            for index, command in enumerate(calls)
+            if command[1] == "cp" and command[-1].endswith("/workspace/tests.py")
+        )
+        evaluator = next(
+            index
+            for index, command in enumerate(calls)
+            if command[1] == "exec" and command[-1] == "pytest -q tests.py"
+        )
+        remove_hidden = next(
+            index
+            for index, command in enumerate(calls)
+            if command[1] == "exec" and command[-1] == "rm -f -- tests.py"
+        )
+        restore = next(
+            index
+            for index, command in enumerate(calls)
+            if command[1] == "exec" and command[-1].startswith("find /workspace -mindepth 1 -delete")
+        )
+
+        assert runtime_copy < setup
+        assert snapshot < hidden_copy < evaluator < remove_hidden < restore
+    finally:
+        env.cleanup()
+
+
+def test_preflight_rejects_missing_evaluator_file(monkeypatch) -> None:
+    calls: list[list[str]] = []
+    _mock_docker(monkeypatch, calls)
+    env = DockerWorkspaceAgentEnvironment.from_config(
+        {
+            "type": "docker_workspace",
+            "image": "python:3.11-slim",
+            "visible_files": {"solution.py": "pass\n"},
+            "test_command": "python3 missing_evaluator.py",
+            "pull_image": False,
+        }
+    )
+    original_exec = env._exec_shell
+
+    def fake_exec(command, **kwargs):
+        if command == "python3 missing_evaluator.py":
+            return subprocess.CompletedProcess(
+                [command],
+                2,
+                stdout="",
+                stderr="python3: can't open file '/workspace/missing_evaluator.py': [Errno 2] No such file or directory\n",
+            )
+        if command.startswith("cat -- /workspace/"):
+            return subprocess.CompletedProcess([command], 1, stdout="", stderr="not found")
+        return original_exec(command, **kwargs)
+
+    monkeypatch.setattr(env, "_exec_shell", fake_exec)
+
+    try:
+        with pytest.raises(RuntimeError, match="could not be invoked"):
+            env.preflight()
+    finally:
+        env.cleanup()
+
+
+def test_container_setup_failure_is_blocking(monkeypatch) -> None:
+    calls: list[list[str]] = []
+    _mock_docker(monkeypatch, calls)
+    successful_run = subprocess.run
+
+    def fail_setup(command, **kwargs):
+        if command[1] == "exec" and command[-1] == "python3 configure.py":
+            calls.append(command)
+            return subprocess.CompletedProcess(command, 1, stdout="", stderr="configuration failed")
+        return successful_run(command, **kwargs)
+
+    monkeypatch.setattr("evalclaw.execution.docker_agent_env.subprocess.run", fail_setup)
+
+    with pytest.raises(RuntimeError, match="configuration failed"):
+        DockerWorkspaceAgentEnvironment.from_config(
+            {
+                "type": "docker_workspace",
+                "image": "python:3.11-slim",
+                "runtime_files": {"configure.py": "raise SystemExit(1)\n"},
+                "setup_commands": ["python3 configure.py"],
+                "test_command": "python3 evaluate.py",
+                "pull_image": False,
+            }
+        )
 
 
 def test_build_agent_environment_supports_docker_workspace(monkeypatch) -> None:
@@ -88,7 +219,9 @@ def test_build_agent_environment_supports_docker_workspace(monkeypatch) -> None:
 
     try:
         assert isinstance(env, DockerWorkspaceAgentEnvironment)
-        assert env.tool_specs()[3].name == "run_command"
+        tool_names = {tool.name for tool in env.tool_specs()}
+        assert "run_command" not in tool_names
+        assert "run_tests" in tool_names
     finally:
         env.cleanup()
 

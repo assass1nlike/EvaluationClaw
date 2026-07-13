@@ -21,23 +21,18 @@ def _portable_path(value: Path) -> str:
     return value.as_posix()
 
 
-def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[str, Path]:
-    """Write a minimal lm-eval-harness compatible dataset and task YAML.
-
-    The YAML uses local jsonl files. It is intentionally conservative and most
-    useful for MCQ/short-answer style tasks; open-generation items still export
-    with their rubrics in metadata so they can be adapted manually or by a later
-    runner.
-    """
-    artifacts_dir = out_dir / "lm-eval"
-    artifacts_dir.mkdir(parents=True, exist_ok=True)
-    task_name = _safe_task_name(dataset.spec.id)
+def _write_lm_eval_task(
+    *,
+    items: list,
+    task_name: str,
+    output_type: str,
+    metric: str,
+    artifacts_dir: Path,
+) -> tuple[Path, Path]:
     jsonl_path = artifacts_dir / f"{task_name}.jsonl"
     yaml_path = artifacts_dir / f"{task_name}.yaml"
-    metadata_path = artifacts_dir / f"{task_name}.metadata.json"
-
     with jsonl_path.open("w", encoding="utf-8") as handle:
-        for item in dataset.items:
+        for item in items:
             record = {
                 "id": item.id,
                 "dimension_id": item.dimension_id,
@@ -45,7 +40,7 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
                 "choices": item.choices,
                 "answer": item.answer or "",
                 "rubric": item.rubric or "",
-                "difficulty": item.difficulty.value,
+                "challenge_effort": item.challenge_effort.value,
                 "task_type": item.task_type.value,
                 "source": item.source.model_dump(mode="json"),
                 "tags": item.tags,
@@ -53,15 +48,6 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
             }
             handle.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-    output_type = "multiple_choice" if any(
-        item.task_type == TaskType.multiple_choice for item in dataset.items
-    ) else "generate_until"
-    requires_custom_judge = any(
-        item.task_type
-        in {TaskType.open_generation, TaskType.multi_turn, TaskType.agent_interaction, TaskType.pairwise_preference}
-        for item in dataset.items
-    )
-    metric = "acc" if output_type == "multiple_choice" else "exact_match"
     yaml_lines = [
         f"task: {task_name}",
         "dataset_path: json",
@@ -70,11 +56,11 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
         f"    test: {_yaml_scalar(_portable_path(jsonl_path))}",
         "test_split: test",
         f"output_type: {output_type}",
-        "doc_to_text: \"{{question}}\"",
-        "doc_to_target: \"{{answer}}\"",
+        'doc_to_text: "{{question}}"',
+        'doc_to_target: "{{answer}}"',
     ]
     if output_type == "multiple_choice":
-        yaml_lines.append("doc_to_choice: \"{{choices}}\"")
+        yaml_lines.append('doc_to_choice: "{{choices}}"')
     yaml_lines.extend(
         [
             "metric_list:",
@@ -83,21 +69,64 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
             "    higher_is_better: true",
             "metadata:",
             f"  source: {_yaml_scalar('evalclaw')}",
-            f"  objective: {_yaml_scalar(dataset.spec.objective)}",
-            f"  evalclaw_requires_custom_judge: {str(requires_custom_judge).lower()}",
             "",
         ]
     )
-    yaml_text = "\n".join(yaml_lines)
-    yaml_path.write_text(yaml_text, encoding="utf-8")
+    yaml_path.write_text("\n".join(yaml_lines), encoding="utf-8")
+    return jsonl_path, yaml_path
+
+
+def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[str, Path]:
+    """Export only task families that lm-eval can score without changing semantics."""
+    artifacts_dir = out_dir / "lm-eval"
+    artifacts_dir.mkdir(parents=True, exist_ok=True)
+    base_name = _safe_task_name(dataset.spec.id)
+    multiple_choice = [
+        item
+        for item in dataset.items
+        if item.task_type == TaskType.multiple_choice and item.choices and item.answer
+    ]
+    exact_match = [
+        item
+        for item in dataset.items
+        if item.task_type in {TaskType.yes_no, TaskType.short_answer} and item.answer
+    ]
+    supported_ids = {item.id for item in [*multiple_choice, *exact_match]}
+    unsupported_ids = [item.id for item in dataset.items if item.id not in supported_ids]
+
+    artifacts: dict[str, Path] = {}
+    if multiple_choice:
+        jsonl_path, yaml_path = _write_lm_eval_task(
+            items=multiple_choice,
+            task_name=f"{base_name}_multiple_choice",
+            output_type="multiple_choice",
+            metric="acc",
+            artifacts_dir=artifacts_dir,
+        )
+        artifacts["jsonl_multiple_choice"] = jsonl_path
+        artifacts["yaml_multiple_choice"] = yaml_path
+    if exact_match:
+        jsonl_path, yaml_path = _write_lm_eval_task(
+            items=exact_match,
+            task_name=f"{base_name}_exact_match",
+            output_type="generate_until",
+            metric="exact_match",
+            artifacts_dir=artifacts_dir,
+        )
+        artifacts["jsonl_exact_match"] = jsonl_path
+        artifacts["yaml_exact_match"] = yaml_path
+
+    metadata_path = artifacts_dir / f"{base_name}.metadata.json"
     metadata_path.write_text(
         json.dumps(
             {
                 "spec": dataset.spec.model_dump(mode="json"),
-                "item_count": len(dataset.items),
+                "accepted_item_count": len(dataset.items),
+                "exported_item_count": len(supported_ids),
+                "unsupported_item_ids": unsupported_ids,
                 "notes": (
-                    "Generated by EvaluationClaw. Open-generation rubrics are exported "
-                    "as metadata; exact lm-eval judging may require a custom metric."
+                    "Only accepted multiple-choice, yes/no, and answered short-answer items "
+                    "are exported. Rubric-judged and executable tasks remain direct-runner only."
                 ),
             },
             ensure_ascii=False,
@@ -105,7 +134,8 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
         ),
         encoding="utf-8",
     )
-    return {"jsonl": jsonl_path, "yaml": yaml_path, "metadata": metadata_path}
+    artifacts["metadata"] = metadata_path
+    return artifacts
 
 
 def write_artifact_manifest(

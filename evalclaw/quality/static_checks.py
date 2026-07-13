@@ -271,17 +271,48 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
         issues.append(
             _issue(item.id, QcSeverity.error, QcCategory.scoring, "Code execution item lacks test_code.")
         )
-    if item.task_type == TaskType.agent_interaction and not agent_structure_prevalidated:
+    if item.task_type == TaskType.agent_interaction:
         env = item.metadata.get("agent_env")
-        if env is not None and not isinstance(env, dict):
+        if not isinstance(env, dict):
             issues.append(
                 _issue(
                     item.id,
                     QcSeverity.error,
                     QcCategory.schema,
-                    "Agent interaction item metadata.agent_env must be an object when provided.",
+                    "Agent interaction item must define canonical metadata.agent_env.",
                 )
             )
+        else:
+            visible = set(env.get("visible_files") or {}) if isinstance(env.get("visible_files"), dict) else set()
+            runtime = set(env.get("runtime_files") or {}) if isinstance(env.get("runtime_files"), dict) else set()
+            hidden = set(env.get("hidden_files") or {}) if isinstance(env.get("hidden_files"), dict) else set()
+            overlap = (visible & runtime) | (visible & hidden) | (runtime & hidden)
+            if overlap:
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.error,
+                        QcCategory.schema,
+                        "Environment file paths overlap across visible/runtime/evaluation phases: "
+                        + ", ".join(sorted(overlap)),
+                    )
+                )
+            setup_text = "\n".join(str(command) for command in env.get("setup_commands", []))
+            hidden_in_setup = [
+                path for path in hidden if path in setup_text or path.rsplit("/", 1)[-1] in setup_text
+            ]
+            if "/tmp/hidden_files" in setup_text or hidden_in_setup:
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.error,
+                        QcCategory.schema,
+                        "setup_commands reference evaluator-only hidden_files.",
+                        "Move setup-only server/application assets to runtime_files.",
+                    )
+                )
+        if agent_structure_prevalidated:
+            return issues
         if isinstance(env, dict) and env.get("type") == "code_sandbox":
             hidden_files = env.get("hidden_files")
             visible_files = env.get("visible_files") or env.get("files")

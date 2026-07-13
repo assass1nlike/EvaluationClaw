@@ -1,4 +1,4 @@
-"""Workspace fallback agent tasks."""
+﻿"""Workspace fallback agent tasks."""
 from __future__ import annotations
 
 from ...types import (
@@ -79,14 +79,13 @@ def _workspace_task_for_blueprint(
     variant_offset = sum(ord(char) for char in dimension.id) % len(variants)
     variant = variants[(variant_offset + index - 1) % len(variants)]
     return AgentTask(
-        id=_task_id(dimension, blueprint.task_family, index),
+        id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
         title=_task_title(blueprint, index),
         description=(
             "A deterministic stateful workspace task with distractors. The target agent must inspect "
             "observations, choose valid actions, and complete the requested final state."
         ),
-        task_family=blueprint.task_family,
         prompt=str(variant["prompt"]),
         system_prompt=_agent_system_prompt("workspace"),
         environment=AgentEnvironmentSpec(
@@ -113,6 +112,6 @@ def _workspace_task_for_blueprint(
             partial_criteria="Some required items are placed, with penalties for wrong or invalid actions.",
             fail_criteria="No required item is correctly placed.",
         ),
-        difficulty=dimension.target_difficulty,
-        tags=[dimension.id, blueprint.task_family.value, "workspace"],
+        challenge_effort=dimension.challenge_effort,
+        tags=[dimension.id, "workspace"],
     )

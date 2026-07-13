@@ -79,6 +79,8 @@ def docker_status(
         client = subprocess.run(
             [resolved, "version", "--format", "{{.Client.Version}}"],
             text=True,
+            encoding="utf-8",
+            errors="replace",
             capture_output=True,
             timeout=timeout_s,
             check=False,
@@ -87,6 +89,8 @@ def docker_status(
         server = subprocess.run(
             [resolved, "version", "--format", "{{.Server.Version}}"],
             text=True,
+            encoding="utf-8",
+            errors="replace",
             capture_output=True,
             timeout=timeout_s,
             check=False,

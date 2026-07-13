@@ -19,7 +19,6 @@ from ..types import (
     AgentResource,
     AgentTask,
     AgentTaskBlueprint,
-    AgentTaskFamily,
     AgentTaskSuite,
     BenchmarkConfig,
     EvalDimension,
@@ -29,6 +28,7 @@ from ..types import (
 )
 from .builders import _fallback_task_for_blueprint, _task_from_raw
 from .planning import _fallback_dimensions
+from .research import TASK_BUILDER_E4_RESEARCH_PROMPT, run_task_builder_research
 from .resources import (
     _agent_resource_from_source,
     _dedupe_agent_resources,
@@ -38,7 +38,6 @@ from .resources import (
 from .validation import agent_task_structure_issues
 
 _VALID_AGENT_TASK_BUILDERS = {"llm", "local", "auto"}
-_DIFFICULTY_RANK = {"L1": 1, "L2": 2, "L3": 3, "L4": 4, "L5": 5}
 
 
 @dataclass(frozen=True)
@@ -65,10 +64,97 @@ class _ParsedBuilderResponse:
     validation_issues: list[str]
 
 
+def _capability_payload(dimension: EvalDimension) -> dict[str, object]:
+    return {
+        "id": dimension.id,
+        "name": dimension.name,
+        "description": dimension.description,
+        "approach": dimension.approach,
+        "challenge_effort": dimension.challenge_effort.value,
+        "task_types": [task_type.value for task_type in dimension.task_types],
+        "requirements": list(dimension.item_requirements),
+        "coverage": {
+            "target_item_count": dimension.target_item_count,
+            "target_source_backed_count": dimension.target_source_backed_count,
+            "target_generated_count": dimension.target_generated_count,
+        },
+        "research_needed": dimension.needs_research,
+    }
+
+
+def _task_builder_payload(
+    spec: EvalSpec,
+    dimension: EvalDimension,
+    blueprint: AgentTaskBlueprint,
+    resource_context: str,
+    revision_context: dict[str, object] | None = None,
+) -> dict[str, object]:
+    other_capabilities = [
+        {
+            "id": other.id,
+            "name": other.name,
+            "description": other.description,
+            "task_types": [task_type.value for task_type in other.task_types],
+            "requirements": list(other.item_requirements),
+        }
+        for other in spec.dimensions
+        if other.id != dimension.id
+    ]
+    payload: dict[str, object] = {
+        "benchmark_context": {
+            "objective": spec.objective,
+            "task_types": [task_type.value for task_type in spec.task_types],
+            "scale": spec.scale,
+            "metrics": [metric.value for metric in spec.metrics],
+            "constraints": list(spec.constraints),
+            "planner_notes": spec.planner_notes,
+            "other_capabilities": other_capabilities,
+        },
+        "task_plan": {
+            "capability": _capability_payload(dimension),
+            "construction": {
+                "id": blueprint.id,
+                "title": blueprint.title,
+                "description": blueprint.description,
+                "environment_type": blueprint.environment_type.value,
+                "expected_task_count": blueprint.expected_task_count,
+                "tool_requirements": list(blueprint.tool_requirements),
+                "requirements": list(blueprint.construction_requirements),
+                "scoring_strategy": blueprint.scoring_strategy,
+            },
+        },
+        "resources": {
+            "context": resource_context,
+            "selection": {
+                "queries": list(blueprint.resource_queries),
+                "strategy": blueprint.source_strategy,
+            },
+        },
+        "task_builder_contract": {
+            "metadata_protocols": {
+                "task_agent": {
+                    "schema": TASK_AGENT_SCHEMA,
+                    "guidance": TASK_AGENT_GENERATION_GUIDANCE,
+                },
+                "agent_task_package": {
+                    "schema": AGENT_TASK_PACKAGE_SCHEMA,
+                    "guidance": AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
+                },
+            },
+            "response_format": "Return one complete JSON object with construction_notes, resources, and tasks.",
+        },
+    }
+    if revision_context:
+        payload["revision"] = revision_context
+    return payload
+
+
 def build_agent_task_suite(
     spec: EvalSpec,
     blueprints: list[AgentTaskBlueprint],
     config: BenchmarkConfig,
+    *,
+    revision_context_by_dimension: dict[str, dict[str, object]] | None = None,
 ) -> AgentTaskSuite:
     builder_mode = str(config.agent_task_builder or "llm").lower()
     if builder_mode not in _VALID_AGENT_TASK_BUILDERS:
@@ -116,13 +202,6 @@ def build_agent_task_suite(
         )
         return task
 
-    def ensure_task_target_difficulty(task: AgentTask, dimension: EvalDimension) -> AgentTask:
-        task_rank = _DIFFICULTY_RANK.get(task.difficulty.value, 0)
-        target_rank = _DIFFICULTY_RANK.get(dimension.target_difficulty.value, 0)
-        if task_rank < target_rank:
-            task.difficulty = dimension.target_difficulty
-        return task
-
     def strict_error(blueprint: AgentTaskBlueprint, message: str) -> RuntimeError:
         return RuntimeError(
             "Agent task builder LLM generation failed "
@@ -133,7 +212,7 @@ def build_agent_task_suite(
 
     jobs: list[_BlueprintBuildJob] = []
     build_results_by_order: dict[int, _BlueprintBuildResult] = {}
-    fallback_variant_counts: defaultdict[AgentTaskFamily, int] = defaultdict(int)
+    fallback_variant_counts: defaultdict[str, int] = defaultdict(int)
     order = 0
     for dimension in spec.dimensions:
         dim_blueprints = blueprint_by_dimension.get(dimension.id, [])
@@ -148,8 +227,9 @@ def build_agent_task_suite(
             continue
         for blueprint in dim_blueprints:
             target_task_count = max(1, int(blueprint.expected_task_count))
-            fallback_start_index = fallback_variant_counts[blueprint.task_family] + 1
-            fallback_variant_counts[blueprint.task_family] += target_task_count
+            fallback_key = blueprint.environment_type.value
+            fallback_start_index = fallback_variant_counts[fallback_key] + 1
+            fallback_variant_counts[fallback_key] += target_task_count
             jobs.append(
                 _BlueprintBuildJob(
                     order=order,
@@ -205,32 +285,59 @@ def build_agent_task_suite(
                 "orchestrator key for agent task materialization.",
             )
 
-        payload = {
-            "spec": spec.model_dump(mode="json"),
-            "dimension": dimension.model_dump(mode="json"),
-            "blueprint": blueprint.model_dump(mode="json"),
-            "resource_context": _source_context(source_candidates),
-            "task_agent_schema": TASK_AGENT_SCHEMA,
-            "task_agent_generation_guidance": TASK_AGENT_GENERATION_GUIDANCE,
-            "agent_task_package_schema": AGENT_TASK_PACKAGE_SCHEMA,
-            "agent_task_package_generation_guidance": AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
-        }
-        def call_task_builder(call_payload: dict[str, object]) -> tuple[dict[str, object], str]:
-            raw_response = call_llm(
-                [Message(role="user", content=json.dumps(call_payload, ensure_ascii=False, indent=2))],
-                system=AGENT_TASK_BUILDER_PROMPT,
-                model=config.orchestrator_model,
-                api_key=config.orchestrator_api_key,
-                base_url=config.orchestrator_base_url,
-                backend=config.llm_backend,
-                max_tokens=16384,
+        payload = _task_builder_payload(
+            spec,
+            dimension,
+            blueprint,
+            _source_context(source_candidates),
+            (revision_context_by_dimension or {}).get(dimension.id),
+        )
+        def call_task_builder(call_payload: dict[str, object]) -> str:
+            research_enabled = (
+                builder_mode == "llm"
+                and dimension.challenge_effort.value == "E4"
+                and config.use_web_research
+                and str(config.search_backend).lower() != "none"
             )
+            system_prompt = AGENT_TASK_BUILDER_PROMPT
+            if research_enabled:
+                system_prompt += "\n\n" + TASK_BUILDER_E4_RESEARCH_PROMPT
+                try:
+                    raw_response, research_notes = run_task_builder_research(
+                        call_payload,
+                        system_prompt=system_prompt,
+                        config=config,
+                    )
+                    result_notes.extend(research_notes)
+                except Exception as exc:
+                    result_notes.append(
+                        "E4 task-builder research tools were unavailable; continued with the regular "
+                        f"task-builder call ({type(exc).__name__}: {str(exc)[:180]})."
+                    )
+                    raw_response = call_llm(
+                        [Message(role="user", content=json.dumps(call_payload, ensure_ascii=False, indent=2))],
+                        system=system_prompt,
+                        model=config.orchestrator_model,
+                        api_key=config.orchestrator_api_key,
+                        base_url=config.orchestrator_base_url,
+                        provider=config.orchestrator_provider,
+                        backend=config.llm_backend,
+                        max_tokens=16384,
+                    )
+            else:
+                raw_response = call_llm(
+                    [Message(role="user", content=json.dumps(call_payload, ensure_ascii=False, indent=2))],
+                    system=system_prompt,
+                    model=config.orchestrator_model,
+                    api_key=config.orchestrator_api_key,
+                    base_url=config.orchestrator_base_url,
+                    provider=config.orchestrator_provider,
+                    backend=config.llm_backend,
+                    max_tokens=16384,
+                )
             if not raw_response.strip():
                 raise ValueError("empty response")
-            parsed_response = extract_json(raw_response)
-            if not isinstance(parsed_response, dict):
-                raise ValueError(f"expected a JSON object, got {type(parsed_response).__name__}")
-            return parsed_response, raw_response
+            return raw_response
 
         def parse_builder_response(parsed: dict[str, object]) -> _ParsedBuilderResponse:
             attempt_resources: list[AgentResource] = list(local_resources)
@@ -251,6 +358,7 @@ def build_agent_task_suite(
                 )
             parsed_resource_ids: list[str] = []
             parsed_task_resources: list[AgentResource] = []
+            seen_task_prompts: dict[str, str] = {}
             for idx, raw_resource in enumerate(parsed_resources, 1):
                 if not isinstance(raw_resource, dict):
                     if builder_mode != "auto":
@@ -282,9 +390,20 @@ def build_agent_task_suite(
                     task.resource_ids = [local_resources[0].id]
                 elif not task.resource_ids and parsed_resource_ids:
                     task.resource_ids = [parsed_resource_ids[0]]
-                task = ensure_task_target_difficulty(task, dimension)
                 task = ensure_task_content_summary(task, blueprint, local_resources or parsed_task_resources[-1:])
-                task_issues = agent_task_structure_issues(task, dimension=dimension, blueprint=blueprint)
+                task_issues = agent_task_structure_issues(
+                    task,
+                    dimension=dimension,
+                    blueprint=blueprint,
+                    require_challenge_effort_self_assessment=builder_mode == "llm",
+                )
+                normalized_prompt = " ".join(task.prompt.lower().split())
+                if normalized_prompt in seen_task_prompts:
+                    task_issues.append(
+                        f"Task prompt duplicates {seen_task_prompts[normalized_prompt]} within the same blueprint."
+                    )
+                elif normalized_prompt:
+                    seen_task_prompts[normalized_prompt] = task.id
                 validation_issues.extend(f"task #{idx} ({task.id}): {issue}" for issue in task_issues)
                 attempt_tasks.append(task)
                 added_for_blueprint += 1
@@ -310,43 +429,51 @@ def build_agent_task_suite(
                 validation_issues=validation_issues,
             )
 
-        parsed: dict[str, object] | None = None
+        parsed: object | None = None
         raw = ""
         repair_attempts = max(0, int(getattr(config, "agent_task_builder_repair_attempts", 2) or 0))
         last_validation_issues: list[str] = []
         for attempt in range(repair_attempts + 1):
+            call_payload = payload
+            if attempt > 0:
+                previous_response = parsed
+                if previous_response is None and raw:
+                    previous_response = {"raw_response_prefix": raw[:4000]}
+                call_payload = {
+                    **payload,
+                    "repair": {
+                        "reason": "agent_task_structure_validation_failed",
+                        "attempt": attempt,
+                        "max_repair_attempts": repair_attempts,
+                        "issues": last_validation_issues,
+                        "instruction": (
+                            "Return a complete replacement JSON object with resources and tasks. "
+                            "Do not return a patch. Preserve the intended capability target, but repair "
+                            "all malformed JSON, incorrect top-level response types, missing or inconsistent "
+                            "executable environment, scoring, package, challenge_effort, and "
+                            "metadata.challenge_effort_self_assessment fields. The tasks array length must "
+                            "equal task_plan.construction.expected_task_count exactly."
+                        ),
+                        "previous_response": previous_response,
+                    },
+                }
+            raw = ""
+            parsed = None
             try:
-                if attempt == 0:
-                    parsed, raw = call_task_builder(payload)
-                else:
-                    repair_payload = {
-                        **payload,
-                        "repair_request": {
-                            "reason": "agent_task_structure_validation_failed",
-                            "attempt": attempt,
-                            "max_repair_attempts": repair_attempts,
-                            "structure_validation_errors": last_validation_issues,
-                            "instructions": (
-                                "Return a complete replacement JSON object with resources and tasks. "
-                                "Do not return a patch. Preserve the intended capability target, but repair "
-                                "all missing or inconsistent executable environment, scoring, and package fields. "
-                                "The tasks array length must equal blueprint.expected_task_count exactly."
-                            ),
-                        },
-                        "previous_task_builder_response": parsed,
-                    }
-                    parsed, raw = call_task_builder(repair_payload)
+                raw = call_task_builder(call_payload)
+                parsed = extract_json(raw)
+                if not isinstance(parsed, dict):
+                    raise ValueError(f"expected a JSON object, got {type(parsed).__name__}")
                 attempt_result = parse_builder_response(parsed)
             except Exception as exc:
-                if builder_mode == "auto":
+                last_validation_issues = [f"{type(exc).__name__}: {exc}"]
+                if attempt < repair_attempts:
                     result_notes.append(
-                        f"{blueprint.id}: LLM task builder failed or returned unusable JSON; "
-                        f"using local executable fallback ({type(exc).__name__}: {str(exc)[:180]})."
+                        f"{blueprint.id}: task-builder response could not be validated; requesting repair "
+                        f"({last_validation_issues[0][:180]})."
                     )
-                    return add_local_tasks(reason="LLM failure; auto mode used")
-                snippet = raw[:500].replace("\n", " ") if raw else ""
-                context = f" Raw response prefix: {snippet}" if snippet else ""
-                raise strict_error(blueprint, f"{type(exc).__name__}: {exc}.{context}") from exc
+                    continue
+                break
             if not attempt_result.validation_issues:
                 return _BlueprintBuildResult(
                     order=job.order,

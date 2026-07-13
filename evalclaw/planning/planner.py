@@ -5,7 +5,7 @@ import json
 import re
 from typing import Optional
 
-from ..core.scaling import scale_budget_target_workload, task_type_workload_weight
+from ..core.scaling import scale_budget_target_items
 from ..models.llm import call_llm, extract_json
 from ..prompts.planner import PLANNER_SYSTEM_PROMPT, TRANSLATION_SYSTEM_PROMPT
 from ..protocols.multimodal import (
@@ -22,7 +22,7 @@ from ..protocols.science import (
 from ..research.deep_research import compact_brief_context
 from ..types import (
     BenchmarkConfig,
-    Difficulty,
+    ChallengeEffort,
     EvalDimension,
     EvalSpec,
     Message,
@@ -31,6 +31,7 @@ from ..types import (
     PlannerCritique,
     ScaleBudget,
     TaskType,
+    safe_challenge_effort,
 )
 
 _CJK_RE = re.compile(r"[\u3400-\u9fff]")
@@ -54,6 +55,7 @@ def translate_goal_to_english(goal: str, config: BenchmarkConfig) -> str:
             model=config.orchestrator_model,
             api_key=config.orchestrator_api_key,
             base_url=config.orchestrator_base_url,
+            provider=config.orchestrator_provider,
             backend=config.llm_backend,
             max_tokens=1024,
         )
@@ -117,33 +119,33 @@ def _safe_optional_int(value: object) -> int | None:
 
 
 def _scale_budget_guidance(scale_budget: ScaleBudget) -> str:
-    target = scale_budget_target_workload(scale_budget)
+    target = scale_budget_target_items(scale_budget)
     guidance = {
         ScaleBudget.low: (
-            "Use LOW budget: make a compact but non-trivial eval spec. Treat this as a rough anchor for "
-            f"about {target} simple-equivalent workload units. Prefer enough dimensions to cover the core "
+            f"Use LOW budget: plan about {target} total items. Make a compact but non-trivial eval spec. "
+            "Prefer enough dimensions to cover the core "
             "capability without over-fragmenting the objective."
         ),
         ScaleBudget.mid: (
-            "Use MID budget: make a broad, balanced eval spec. Treat this as a rough anchor for "
-            f"about {target} simple-equivalent workload units. Cover major dimensions and representative "
+            f"Use MID budget: plan about {target} total items. Make a broad, balanced eval spec. "
+            "Cover major dimensions and representative "
             "edge cases while planning a scalable mix of source-backed and generated items."
         ),
         ScaleBudget.high: (
-            "Use HIGH budget: make a deep production-style eval spec. Treat this as a rough anchor for "
-            f"about {target} simple-equivalent workload units. Split dimensions more finely when needed, "
+            f"Use HIGH budget: plan about {target} total items. Make a deep production-style eval spec. "
+            "Split dimensions more finely when needed, "
             "increase source-backed coverage, and reserve generated items for targeted gaps and high-value "
             "edge cases."
         ),
         ScaleBudget.large: (
-            "Use LARGE budget: plan a genuinely large evaluation. Treat this as a rough anchor for "
-            f"about {target} simple-equivalent workload units. Use many source-backed or imported items, "
-            "sample across dimensions and difficulty slices, and avoid relying on model-generated items for "
+            f"Use LARGE budget: plan about {target} total items for a genuinely large evaluation. "
+            "Use many source-backed or imported items, "
+            "sample across dimensions and challenge-effort slices, and avoid relying on model-generated items for "
             "the bulk of the dataset. Set target_source_backed_count and target_generated_count explicitly."
         ),
         ScaleBudget.xlarge: (
-            "Use XLARGE budget: plan a benchmark-scale evaluation. Treat this as a rough anchor for "
-            f"about {target} simple-equivalent workload units. Prefer scalable source-backed collections, "
+            f"Use XLARGE budget: plan about {target} total items for a benchmark-scale evaluation. "
+            "Prefer scalable source-backed collections, "
             "stratified allocation, automated QC/sampling assumptions, and only targeted model generation "
             "for missing or under-covered slices. Set target_source_backed_count and target_generated_count explicitly."
         ),
@@ -152,62 +154,60 @@ def _scale_budget_guidance(scale_budget: ScaleBudget) -> str:
 
 
 def _fallback_scale(scale_budget: ScaleBudget) -> int:
-    return scale_budget_target_workload(scale_budget)
-
-
-def _average_task_workload(task_types: list[TaskType]) -> float:
-    if not task_types:
-        return task_type_workload_weight(TaskType.open_generation)
-    return max(1.0, sum(task_type_workload_weight(task_type) for task_type in task_types) / len(task_types))
+    return scale_budget_target_items(scale_budget)
 
 
 def _apply_budget_targets(
     dimensions: list[EvalDimension],
-    spec_task_types: list[TaskType],
     scale_budget: ScaleBudget,
 ) -> list[EvalDimension]:
-    """Fill missing per-dimension item targets from the simple-equivalent budget."""
+    """Fill missing per-dimension targets from the raw item-count budget."""
     if not dimensions:
         return dimensions
 
-    target_workload = scale_budget_target_workload(scale_budget)
-    explicit_workload = 0.0
+    target_items = scale_budget_target_items(scale_budget)
+    explicit_items = 0
     missing: list[EvalDimension] = []
     for dimension in dimensions:
-        task_types = dimension.task_types or spec_task_types or [TaskType.open_generation]
         if dimension.target_item_count is None:
             missing.append(dimension)
             continue
-        explicit_workload += max(1, int(dimension.target_item_count)) * _average_task_workload(task_types)
+        explicit_items += max(1, int(dimension.target_item_count))
 
     if not missing:
         return dimensions
 
-    remaining_workload = max(0.0, float(target_workload) - explicit_workload)
-    if remaining_workload <= 0:
-        remaining_workload = float(target_workload) * (
-            sum(max(0.0, dimension.weight) for dimension in missing)
-            / max(1.0, sum(max(0.0, dimension.weight) for dimension in dimensions))
-        )
+    remaining_items = max(len(missing), target_items - explicit_items)
+    weights = [max(0.0, dimension.weight) for dimension in missing]
+    if not any(weights):
+        weights = [1.0] * len(missing)
+    weight_total = sum(weights)
+    extras = remaining_items - len(missing)
+    quotas = [(extras * weight / weight_total) for weight in weights]
+    allocations = [1 + int(quota) for quota in quotas]
+    unallocated = remaining_items - sum(allocations)
+    fractional_order = sorted(
+        range(len(missing)),
+        key=lambda index: (quotas[index] - int(quotas[index]), weights[index], -index),
+        reverse=True,
+    )
+    for index in fractional_order[:unallocated]:
+        allocations[index] += 1
 
-    missing_weight_total = sum(max(0.0, dimension.weight) for dimension in missing) or float(len(missing))
     updated_by_id: dict[str, EvalDimension] = {}
-    for dimension in missing:
-        share = max(0.0, dimension.weight) / missing_weight_total if missing_weight_total else 1.0 / len(missing)
-        if share == 0.0:
-            share = 1.0 / len(missing)
-        task_types = dimension.task_types or spec_task_types or [TaskType.open_generation]
-        raw_count = round((remaining_workload * share) / _average_task_workload(task_types))
-        updated_by_id[dimension.id] = dimension.model_copy(update={"target_item_count": max(1, int(raw_count))})
+    for dimension, allocation in zip(missing, allocations, strict=True):
+        updated_by_id[dimension.id] = dimension.model_copy(update={"target_item_count": allocation})
 
     return [updated_by_id.get(dimension.id, dimension) for dimension in dimensions]
 
 
-def _safe_difficulty(value: object, fallback: Difficulty = Difficulty.L4) -> Difficulty:
-    try:
-        return Difficulty(str(value))
-    except ValueError:
-        return fallback
+def _dimension_challenge_effort(dim: dict, fallback: ChallengeEffort = ChallengeEffort.E3) -> ChallengeEffort:
+    return safe_challenge_effort(
+        dim.get("challenge_effort")
+        or dim.get("target_challenge_effort")
+        or dim.get("task_builder_effort"),
+        fallback,
+    )
 
 
 def _slug(text: str) -> str:
@@ -228,6 +228,7 @@ def _parse_spec(data: dict, goal: str, scale_budget: ScaleBudget) -> EvalSpec:
         if not isinstance(dim, dict):
             continue
         dim_id = str(dim.get("id") or f"dimension_{idx}")
+        challenge_effort = _dimension_challenge_effort(dim)
         dims.append(
             EvalDimension(
                 id=dim_id,
@@ -235,7 +236,7 @@ def _parse_spec(data: dict, goal: str, scale_budget: ScaleBudget) -> EvalSpec:
                 description=str(dim.get("description") or ""),
                 approach=str(dim.get("approach") or ""),
                 weight=float(dim.get("weight", 1.0) or 1.0),
-                target_difficulty=_safe_difficulty(dim.get("target_difficulty"), Difficulty.L4),
+                challenge_effort=challenge_effort,
                 needs_research=bool(dim.get("needs_research", False)),
                 research_queries=[str(q) for q in dim.get("research_queries", []) if q],
                 target_item_count=_safe_optional_int(dim.get("target_item_count")),
@@ -266,7 +267,7 @@ def _parse_spec(data: dict, goal: str, scale_budget: ScaleBudget) -> EvalSpec:
     )
 
     spec_task_types = [_safe_task_type(x) for x in spec_data.get("task_types", ["open_generation"])]
-    dims = _apply_budget_targets(dims, spec_task_types, parsed_budget)
+    dims = _apply_budget_targets(dims, parsed_budget)
     return EvalSpec(
         id=str(spec_data.get("id") or _slug(goal)),
         objective=str(spec_data.get("objective") or goal),
@@ -292,7 +293,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             description=f"Directly measure the central capability requested by: {goal}",
             approach="Create tasks that isolate the requested capability with explicit scoring criteria.",
             weight=1.0,
-            target_difficulty=Difficulty.L4,
+            challenge_effort=ChallengeEffort.E3,
             needs_research=False,
             target_item_count=None,
             target_source_backed_count=0,
@@ -309,7 +310,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             description="Measure whether performance holds under edge cases, ambiguity, and distractors.",
             approach="Create adversarial or boundary-condition tasks while keeping expected behavior clear.",
             weight=1.0,
-            target_difficulty=Difficulty.L4,
+            challenge_effort=ChallengeEffort.E3,
             needs_research=False,
             target_item_count=None,
             target_source_backed_count=0,
@@ -326,7 +327,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             description="Measure whether the model recognizes uncertainty and avoids unsupported claims.",
             approach="Include tasks where abstention, caveats, or concise uncertainty handling is expected.",
             weight=1.0,
-            target_difficulty=Difficulty.L4,
+            challenge_effort=ChallengeEffort.E3,
             needs_research=False,
             target_item_count=None,
             target_source_backed_count=0,
@@ -348,7 +349,7 @@ def _science_fallback_dimensions(goal: str) -> list[EvalDimension]:
             description=f"Measure discipline-aware scientific understanding requested by: {goal}",
             approach="Use self-contained science questions that require applying concepts, not recalling trivia.",
             weight=1.0,
-            target_difficulty=Difficulty.L4,
+            challenge_effort=ChallengeEffort.E3,
             needs_research=True,
             research_queries=[
                 f"{goal} science reasoning benchmark",
@@ -371,7 +372,7 @@ def _science_fallback_dimensions(goal: str) -> list[EvalDimension]:
             description="Measure calculations, dimensional analysis, approximations, and unit handling.",
             approach="Use numeric science problems with explicit constants, assumptions, and unambiguous units.",
             weight=1.0,
-            target_difficulty=Difficulty.L4,
+            challenge_effort=ChallengeEffort.E3,
             needs_research=False,
             target_item_count=None,
             target_source_backed_count=0,
@@ -389,7 +390,7 @@ def _science_fallback_dimensions(goal: str) -> list[EvalDimension]:
             description="Measure hypothesis, controls, confounders, evidence limits, and interpretation of observations.",
             approach="Use experiment-design or result-interpretation tasks with explicit variables and constraints.",
             weight=1.0,
-            target_difficulty=Difficulty.L4,
+            challenge_effort=ChallengeEffort.E3,
             needs_research=True,
             research_queries=[
                 f"{goal} experimental reasoning benchmark",
@@ -434,7 +435,6 @@ def fallback_spec(
         task_types=[TaskType.open_generation, TaskType.multiple_choice],
         dimensions=_apply_budget_targets(
             _fallback_dimensions(goal),
-            [TaskType.open_generation, TaskType.multiple_choice],
             scale_budget,
         ),
         scale_budget=scale_budget,
@@ -466,7 +466,7 @@ def plan_eval_spec(
         "scale_budget_guidance": _scale_budget_guidance(scale_budget),
         "research_policy": (
             "Set needs_research=true only when external resources are likely better than self-generation: "
-            "hard-to-synthesize tasks, large/standardized coverage, expert difficulty beyond reliable model generation, "
+            "hard-to-synthesize tasks, large/standardized coverage, expert challenge beyond reliable model generation, "
             "or need for real benchmark/source calibration. Prefer the hardest suitable sources that match the user goal."
         ),
         "reference_model": config.reference_model.model_dump(mode="json") if config.reference_model else None,
@@ -483,8 +483,8 @@ def plan_eval_spec(
         context["research_brief"] = compact_brief_context(config.research_brief)
         context["research_brief_policy"] = (
             "A deep-research brief for this domain is provided in research_brief. Ground the spec in it: "
-            "derive dimensions from the taxonomy entries, use difficulty_anchors to calibrate "
-            "target_difficulty, and avoid duplicating existing_benchmarks without addressing their "
+            "derive dimensions from the taxonomy entries, use challenge_effort_anchors to calibrate "
+            "challenge_effort, and avoid duplicating existing_benchmarks without addressing their "
             "known weaknesses. Do not invent domain structure that contradicts the brief."
         )
     if text_requests_multimodal(goal):
@@ -506,6 +506,7 @@ def plan_eval_spec(
             model=config.orchestrator_model,
             api_key=config.orchestrator_api_key,
             base_url=config.orchestrator_base_url,
+            provider=config.orchestrator_provider,
             backend=config.llm_backend,
             max_tokens=8192,
         )

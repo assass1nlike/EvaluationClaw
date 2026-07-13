@@ -6,11 +6,11 @@ import re
 from pathlib import Path
 from typing import Callable, Optional
 
-from .agent import build_agent_dataset
+from .agent import build_agent_dataset_with_qc_loop
 from .execution.environment_claw import format_environment_claw_report, run_environment_claw
 from .execution.lm_eval import run_lm_eval
+from .execution.plan import build_execution_plan
 from .execution.runner import run_eval, validate_multimodal_target_support
-from .execution.swebench import validate_swebench_environment_for_items
 from .planning.loop import (
     apply_human_review_feedback,
     format_human_review_overview,
@@ -18,12 +18,11 @@ from .planning.loop import (
 )
 from .planning.planner import plan_eval_spec, translate_goal_to_english
 from .quality.improver import run_loop3_improvement
-from .quality.qc import run_qc_gate
 from .reporting.artifacts import write_artifact_manifest, write_lm_eval_artifacts
 from .reporting.reporter import artifact_index_markdown, build_report
 from .reporting.viewer import build_report_viewer_html
 from .research.deep_research import render_brief_markdown, run_deep_research
-from .types import BenchmarkConfig, BenchmarkItem, BenchmarkMode, BenchmarkPackage, EvalSpec
+from .types import BenchmarkConfig, BenchmarkMode, BenchmarkPackage, EvalSpec
 
 _SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]+")
 _AGENT_GOAL_PATTERN = re.compile(
@@ -71,14 +70,25 @@ def _redact_secrets(text: str) -> str:
     return _SECRET_PATTERN.sub("[REDACTED]", text)
 
 
-def _persist_package(pkg: BenchmarkPackage, output_dir: str, log: Callable[[str], None]) -> None:
+def _average_qc_issues(qc_report: object, item_count: int) -> float:
+    issues = getattr(qc_report, "issues", [])
+    return len(issues) / max(1, item_count)
+
+
+def _persist_package(
+    pkg: BenchmarkPackage,
+    config: BenchmarkConfig,
+    output_dir: str,
+    log: Callable[[str], None],
+) -> None:
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = pkg.created_at.replace(":", "").replace("+", "_").replace(".", "_")
     json_path = out_dir / f"evalclaw_{stem}.json"
     md_path = out_dir / f"evalclaw_{stem}.md"
     html_path = out_dir / f"evalclaw_{stem}.html"
-    artifacts = write_lm_eval_artifacts(pkg.dataset, out_dir)
+    execution_plan = build_execution_plan(pkg.dataset, pkg.qc_report)
+    artifacts = write_lm_eval_artifacts(execution_plan.dataset, out_dir)
     research_brief_paths: dict[str, Path] = {}
     if pkg.research_brief is not None:
         brief_json_path = out_dir / "research_brief.json"
@@ -106,7 +116,16 @@ def _persist_package(pkg: BenchmarkPackage, output_dir: str, log: Callable[[str]
     json_payload = json.dumps(pkg.model_dump(mode="json"), ensure_ascii=False, indent=2)
     json_path.write_text(_redact_secrets(json_payload), encoding="utf-8")
     md_path.write_text(_redact_secrets(pkg.report.markdown), encoding="utf-8")
-    html_path.write_text(_redact_secrets(build_report_viewer_html(pkg)), encoding="utf-8")
+    html_path.write_text(
+        _redact_secrets(
+            build_report_viewer_html(
+                pkg,
+                item_limit=max(0, config.viewer_item_limit),
+                result_limit=max(0, config.viewer_result_limit),
+            )
+        ),
+        encoding="utf-8",
+    )
     manifest_path = write_artifact_manifest(
         out_dir,
         package_path=json_path,
@@ -121,43 +140,9 @@ def _persist_package(pkg: BenchmarkPackage, output_dir: str, log: Callable[[str]
     log(f"Saved package: {json_path}")
     log(f"Saved report: {md_path}")
     log(f"Saved browser report: {html_path}")
-    log(f"Saved lm-eval JSONL: {artifacts['jsonl']}")
-    log(f"Saved lm-eval YAML: {artifacts['yaml']}")
+    for name, path in artifacts.items():
+        log(f"Saved lm-eval {name}: {path}")
     log(f"Saved manifest: {manifest_path}")
-
-
-def _validate_swebench_preflight_with_retry(
-    accepted_items: list[BenchmarkItem],
-    config: BenchmarkConfig,
-    *,
-    log: Callable[[str], None],
-    ask_user: Optional[Callable[[str], str]],
-    interactive: bool,
-) -> BenchmarkConfig:
-    try:
-        validate_swebench_environment_for_items(accepted_items, config)
-        return config
-    except RuntimeError as exc:
-        if not interactive or ask_user is None:
-            raise
-        log(f"\n[SWE-bench Preflight]\n{exc}")
-
-    while True:
-        answer = ask_user(
-            "\nSWE-bench runtime is not ready. Configure it using the commands above, then press Enter to retry.\n"
-            "Type 'skip' to skip target execution for this run, or 'abort' to stop: "
-        ).strip().lower()
-        if answer in {"skip", "s", "no-run", "norun"}:
-            log("\n[SWE-bench Preflight] Target execution skipped by user.")
-            return config.model_copy(update={"run_targets": False})
-        if answer in {"abort", "stop", "exit", "q", "quit"}:
-            raise RuntimeError("SWE-bench preflight failed and the run was aborted by user.")
-        try:
-            validate_swebench_environment_for_items(accepted_items, config)
-            log("\n[SWE-bench Preflight] Runtime is ready.")
-            return config
-        except RuntimeError as exc:
-            log(f"\n[SWE-bench Preflight] Still not ready.\n{exc}")
 
 
 def _resolve_benchmark_mode(goal: str, config: BenchmarkConfig) -> BenchmarkMode:
@@ -202,9 +187,7 @@ def run_pipeline(
 
     if benchmark_mode == BenchmarkMode.agent:
         log("\n[Agent Planner/Builder] Building executable agent task suite...")
-        dataset = build_agent_dataset(goal, config)
-        spec = dataset.spec
-        qc_report = run_qc_gate(dataset, config)
+        spec, dataset, qc_report = build_agent_dataset_with_qc_loop(goal, config, log=log)
     else:
         log("\n[Planner] Building eval_spec with self-critique...")
         spec = plan_eval_spec(goal, config)
@@ -225,7 +208,7 @@ def run_pipeline(
     log(f"  Final items: {len(dataset.items)}")
     log(f"  Sources used: {len(dataset.sources)}")
     log(f"  {qc_report.summary}")
-    log(f"  Quality score: {qc_report.quality_score * 100:.1f}%")
+    log(f"  Average QC issues: {_average_qc_issues(qc_report, len(dataset.items)):.2f}")
 
     if config.human_review and ask_user is not None:
         for round_index in range(1, 4):
@@ -242,31 +225,29 @@ def run_pipeline(
             spec, dataset, qc_report = apply_human_review_feedback(dataset, qc_report, config, feedback, log=log)
             log(f"  Revised dimensions: {len(spec.dimensions)}")
             log(f"  Revised items: {len(dataset.items)}")
-            log(f"  Revised QC quality: {qc_report.quality_score * 100:.1f}%")
+            log(f"  Revised average QC issues: {_average_qc_issues(qc_report, len(dataset.items)):.2f}")
 
     if interactive and ask_user is not None and not qc_report.is_acceptable:
         answer = ask_user("\nQC has blocking issues. Continue to runner anyway? [y/N]: ").strip().lower()
         if answer not in {"y", "yes"}:
             config = config.model_copy(update={"run_targets": False})
 
+    if (not qc_report.is_acceptable or qc_report.rejected_item_ids) and not config.allow_incomplete_benchmark:
+        raise RuntimeError(
+            "Benchmark is not runner-ready after QC. Set allow_incomplete_benchmark=true only "
+            "when intentionally producing a non-executable draft."
+        )
+
     run_direct = config.runner in {"direct", "auto"}
     direct_config = config if run_direct else config.model_copy(update={"run_targets": False})
-    accepted_for_run = [item for item in dataset.items if item.id in set(qc_report.passed_item_ids)]
+    execution_plan = build_execution_plan(dataset, qc_report)
+    accepted_for_run = execution_plan.dataset.items
     direct_config, environment_claw_report = run_environment_claw(accepted_for_run, direct_config)
     for line in format_environment_claw_report(environment_claw_report):
         log(line)
     if direct_config.run_targets and environment_claw_report.blocking_errors:
         raise RuntimeError("\n\n".join(environment_claw_report.blocking_errors))
     validate_multimodal_target_support(accepted_for_run, config)
-    if run_direct:
-        direct_config = _validate_swebench_preflight_with_retry(
-            accepted_for_run,
-            direct_config,
-            log=log,
-            ask_user=ask_user,
-            interactive=interactive,
-        )
-
     log("\n[Runner] Executing accepted items against target models...")
     if not run_direct and config.runner == "lm-eval":
         log("  Direct runner skipped because --runner=lm-eval.")
@@ -282,7 +263,7 @@ def run_pipeline(
         lm_eval_artifacts: dict[str, object] = {}
         for target in config.targets:
             try:
-                lm_eval_artifacts[target.id] = run_lm_eval(dataset, target, out_dir)
+                lm_eval_artifacts[target.id] = run_lm_eval(execution_plan.dataset, target, out_dir)
                 log(f"  lm-eval completed for {target.id}")
             except Exception as exc:
                 lm_eval_artifacts[target.id] = {"error": str(exc)}
@@ -297,7 +278,8 @@ def run_pipeline(
         improvements.append(improved)
         log(f"  Actions: {len(improved.actions)}")
         if improved.qc_report:
-            log(f"  Improved QC quality: {improved.qc_report.quality_score * 100:.1f}%")
+            improved_item_count = len(improved.dataset.items) if improved.dataset else len(dataset.items)
+            log(f"  Improved average QC issues: {_average_qc_issues(improved.qc_report, improved_item_count):.2f}")
         if improved.run:
             log(f"  Improved results: {len(improved.run.results)} item responses")
         if improved.dataset and improved.qc_report and improved.run:
@@ -319,5 +301,5 @@ def run_pipeline(
         research_brief=config.research_brief,
     )
     if config.output_dir:
-        _persist_package(pkg, config.output_dir, log)
+        _persist_package(pkg, config, config.output_dir, log)
     return pkg

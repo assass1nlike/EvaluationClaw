@@ -28,7 +28,7 @@ Return pure JSON only, with no markdown. Format:
       "answer": "A",
       "rubric": "Scoring rubric; open-generation rubrics must define concrete 1-5 score levels.",
       "test_code": null,
-      "difficulty": "L3",
+      "challenge_effort": "E2",
       "tags": ["..."],
       "source_uri": "...",
       "source_title": "...",
@@ -47,9 +47,16 @@ Requirements:
   dimension or a different capability, do not include it.
 - Follow the dimension item_requirements, task type plan, source allocation, and
   requested_count exactly unless a requirement is impossible.
-- Treat the requested count and budget as workload signals, not rigid quotas. A
-  single multi_turn, agent_interaction, or code_sandbox item can carry more
-  evaluation depth than several simple multiple_choice or open_generation items.
+- Use dimension.challenge_effort as the requested construction effort for making
+  the item challenging, not as a generic quality label:
+  - E1: simple direct item.
+  - E2: moderate planning with meaningful edge cases.
+  - E3: high-effort, carefully designed item that is difficult by your own
+    generation standard.
+  - E4: maximum effort, planning depth, source use when helpful, and robust
+    evaluation design.
+- Treat requested_count as a raw item count. Do not apply task-type, environment,
+  agent, or complexity multipliers to reduce or increase it.
   Choose the item mix that best fits the assigned dimension instead of forcing a
   fixed count for every task type.
 - The item task_type must be one of dimension_task_type_plan. Do not switch a
@@ -139,13 +146,15 @@ Requirements:
   Prefer structured agent_env configuration for environment mechanics; keep
   task_agent.system_prompt focused on role, non-disclosure rules, and turn
   policy instead of embedding a long custom command protocol.
-  When execution.environment_type is "workspace" or "code_sandbox", include the
-  same environment config in metadata.agent_env for runner compatibility. For
+  When execution.environment_type is "workspace" or "code_sandbox", put the
+  sole environment config in metadata.agent_env and set task_agent.execution.environment_ref
+  to "metadata.agent_env". For
   code_sandbox, metadata.agent_env must include type="code_sandbox", a complete
-  visible_files or files object, hidden_files when hidden tests are used, and a
+  visible_files or files object, runtime_files for setup-only assets,
+  hidden_files when hidden tests are used, and a
   test_command that runs the tests.
   For iterative code-repair tasks, prefer a built-in code_sandbox agent_env with
-  visible_files, hidden_files, test_command, and max_steps. Do not create a long
+  visible_files, runtime_files, hidden_files, test_command, and max_steps. Do not create a long
   prose environment-controller protocol when structured agent_env can represent
   the same task.
   For docker_workspace tasks, use image="auto" or omit image when a common Hub
@@ -162,6 +171,9 @@ Requirements:
   cargo, Go, Ruby, or Composer. Use this for specialized CLI tools or native
   packages that should be baked into the image instead of installed
   interactively every run.
+  setup_commands may use visible_files and runtime_files, but must never
+  reference hidden_files or /tmp/hidden_files. Evaluator files are injected
+  only while scoring.
   For VM-backed tasks, put files that should exist inside the guest in
   metadata.agent_env.visible_files or metadata.task_agent.initial_content.files,
   and put session-specific input documents/data in metadata.agent_env.session.asset_files

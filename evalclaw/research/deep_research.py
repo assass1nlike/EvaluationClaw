@@ -1,7 +1,7 @@
 ﻿"""Deep research loop: bounded search -> compress -> reflect -> synthesize.
 
 Produces a structured :class:`~evalclaw.types.ResearchBrief` that grounds the
-planner (taxonomy, difficulty anchors) and the generator (seed sources). The
+planner (taxonomy, challenge-effort anchors) and the generator (seed sources). The
 loop is orchestrator-LLM driven and degrades gracefully: with no orchestrator
 key or with search disabled it returns ``None`` and the pipeline continues on
 the existing single-shot research path.
@@ -53,6 +53,7 @@ def _call_orchestrator_json(
         model=config.orchestrator_model,
         api_key=config.orchestrator_api_key,
         base_url=config.orchestrator_base_url,
+        provider=config.orchestrator_provider,
         backend=config.llm_backend,
         max_tokens=max_tokens,
     )
@@ -229,7 +230,7 @@ def _parse_brief(data: dict) -> ResearchBrief:
                 )
             )
 
-    anchors_raw = data.get("difficulty_anchors") or {}
+    anchors_raw = data.get("challenge_effort_anchors") or {}
     anchors: dict[str, str] = {}
     if isinstance(anchors_raw, dict):
         anchors = {str(k): str(v) for k, v in anchors_raw.items() if v}
@@ -256,7 +257,7 @@ def _parse_brief(data: dict) -> ResearchBrief:
         existing_benchmarks=benchmarks,
         seed_sources=seeds,
         exemplar_items=exemplars,
-        difficulty_anchors=anchors,
+        challenge_effort_anchors=anchors,
         citations=citations,
         research_notes=str(data.get("research_notes") or ""),
     )
@@ -417,7 +418,7 @@ def compact_brief_context(brief: ResearchBrief) -> dict:
             }
             for benchmark in brief.existing_benchmarks[:10]
         ],
-        "difficulty_anchors": dict(list(brief.difficulty_anchors.items())[:5]),
+        "challenge_effort_anchors": dict(list(brief.challenge_effort_anchors.items())[:4]),
     }
 
 
@@ -456,10 +457,10 @@ def render_brief_markdown(brief: ResearchBrief) -> str:
             if exemplar.notes:
                 lines.append(f"  - Notes: {exemplar.notes}")
         lines.append("")
-    if brief.difficulty_anchors:
-        lines.extend(["## Difficulty Anchors", ""])
-        for level in sorted(brief.difficulty_anchors):
-            lines.append(f"- {level}: {brief.difficulty_anchors[level]}")
+    if brief.challenge_effort_anchors:
+        lines.extend(["## Challenge Effort Anchors", ""])
+        for level in sorted(brief.challenge_effort_anchors):
+            lines.append(f"- {level}: {brief.challenge_effort_anchors[level]}")
         lines.append("")
     if brief.citations:
         lines.extend(["## Citations", ""])

@@ -1,4 +1,4 @@
-import json
+﻿import json
 import subprocess
 import sys
 import threading
@@ -15,13 +15,11 @@ from evalclaw.agent import (
     plan_agent_benchmark,
     task_suite_to_dataset,
 )
-from evalclaw.core.scaling import (
-    item_workload_weight,
-    scale_budget_target_workload,
-    simple_equivalent_workload,
-)
+from evalclaw.agent.goal_detection import _goal_mentions_multi_industrial_workflow
+from evalclaw.agent.validation import agent_task_structure_issues
+from evalclaw.core.scaling import scale_budget_target_items
 from evalclaw.core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY
-from evalclaw.execution.agent_envs import _platform_test_command, build_agent_environment
+from evalclaw.execution.agent_envs import build_agent_environment
 from evalclaw.execution.desktop_agent_env import DesktopBridgeAgentEnvironment, DesktopBridgeStatus
 from evalclaw.execution.docker import DockerStatus
 from evalclaw.execution.docker_images import (
@@ -35,7 +33,7 @@ from evalclaw.execution.runner import (
     _parse_agent_action,
     _score_choice,
     _target_prompt,
-    run_question,
+    run_item,
 )
 from evalclaw.execution.sandbox import build_code_harness, run_python_sandbox
 from evalclaw.execution.vm_provider import (
@@ -55,6 +53,7 @@ from evalclaw.generation.generator import (
     target_count_for_dimension,
 )
 from evalclaw.models.json_utils import extract_json
+from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.pipeline import _persist_package, _resolve_benchmark_mode
 from evalclaw.planning.loop import (
     _dimension_deficits,
@@ -63,6 +62,7 @@ from evalclaw.planning.loop import (
     generate_dataset_with_qc_loop,
 )
 from evalclaw.planning.planner import plan_eval_spec, translate_goal_to_english
+from evalclaw.protocols.agent_task_package import compact_agent_task_package
 from evalclaw.protocols.multimodal import MULTIMODAL_SCHEMA_VERSION
 from evalclaw.protocols.science import SCIENCE_SCHEMA_VERSION, text_requests_science
 from evalclaw.protocols.tool import ToolCall, ToolSpec, object_schema, validate_tool_call
@@ -70,7 +70,7 @@ from evalclaw.quality.qc import run_qc_gate
 from evalclaw.reporting.artifacts import _portable_path, write_lm_eval_artifacts
 from evalclaw.reporting.reporter import _is_source_backed as _report_is_source_backed
 from evalclaw.reporting.reporter import build_report
-from evalclaw.reporting.viewer import build_report_viewer_html
+from evalclaw.reporting.viewer import _viewer_payload, build_report_viewer_html
 from evalclaw.sources.hf_discovery import _expanded_queries
 from evalclaw.sources.hf_ingest import _matches_dimension, item_from_hf_record
 from evalclaw.types import (
@@ -79,7 +79,6 @@ from evalclaw.types import (
     AgentScoringSpec,
     AgentTask,
     AgentTaskBlueprint,
-    AgentTaskFamily,
     AgentTaskSuite,
     BenchmarkBatch,
     BenchmarkConfig,
@@ -88,7 +87,7 @@ from evalclaw.types import (
     BenchmarkMode,
     BenchmarkPackage,
     BenchmarkSource,
-    Difficulty,
+    ChallengeEffort,
     EvalDimension,
     EvalRun,
     EvalSpec,
@@ -105,19 +104,26 @@ from evalclaw.types import (
 )
 
 
-def test_sandbox_runs_in_temp_directory() -> None:
+def test_sandbox_runs_in_isolated_container(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.execution.sandbox.docker_status",
+        lambda **kwargs: DockerStatus(available=True, executable="docker"),
+    )
+    monkeypatch.setattr("evalclaw.execution.sandbox.resolve_docker_executable", lambda value: "docker")
+
+    def fake_run(command, **kwargs):
+        assert command[:3] == ["docker", "run", "--rm"]
+        assert "--network" in command and command[command.index("--network") + 1] == "none"
+        assert "--read-only" in command
+        assert kwargs["input"] == 'assert 1 + 1 == 2\nprint("ok")'
+        return subprocess.CompletedProcess(command, 0, "ok\n", "")
+
+    monkeypatch.setattr("evalclaw.execution.sandbox.subprocess.run", fake_run)
     exit_code, stdout, stderr = run_python_sandbox('assert 1 + 1 == 2\nprint("ok")')
 
     assert exit_code == 0
     assert stdout.strip() == "ok"
     assert stderr == ""
-
-
-def test_python3_test_commands_use_current_interpreter() -> None:
-    command = _platform_test_command("python3 tests.py")
-
-    assert command == subprocess.list2cmdline([sys.executable]) + " tests.py"
-    assert _platform_test_command("pytest -q") == "pytest -q"
 
 
 def test_core_models_fill_defaults() -> None:
@@ -145,45 +151,17 @@ def test_planner_fallback_preserves_scale_budget() -> None:
 
     assert spec.scale_budget == ScaleBudget.high
     assert spec.scale == 1000
-    assert all(dimension.target_difficulty == Difficulty.L4 for dimension in spec.dimensions)
-    assert sum(dimension.target_item_count or 0 for dimension in spec.dimensions) > 500
-    assert all((dimension.target_item_count or 0) > 100 for dimension in spec.dimensions)
+    assert all(dimension.challenge_effort == ChallengeEffort.E3 for dimension in spec.dimensions)
+    assert sum(dimension.target_item_count or 0 for dimension in spec.dimensions) == spec.scale
+    assert all((dimension.target_item_count or 0) > 0 for dimension in spec.dimensions)
 
 
-def test_scale_budget_targets_use_simple_equivalent_workload() -> None:
-    assert scale_budget_target_workload(ScaleBudget.low) == 100
-    assert scale_budget_target_workload(ScaleBudget.mid) == 500
-    assert scale_budget_target_workload(ScaleBudget.high) == 1000
-    assert scale_budget_target_workload(ScaleBudget.large) == 5000
-    assert scale_budget_target_workload(ScaleBudget.xlarge) == 20000
-
-
-def test_simple_equivalent_workload_weights_heavy_agent_items() -> None:
-    simple = BenchmarkItem(
-        id="mc",
-        dimension_id="format",
-        task_type=TaskType.multiple_choice,
-        prompt="Pick one.",
-    )
-    docker_agent = BenchmarkItem(
-        id="docker_agent",
-        dimension_id="code",
-        task_type=TaskType.agent_interaction,
-        prompt="Fix the project.",
-        metadata={"agent_env": {"type": "docker_workspace"}},
-    )
-    swebench = BenchmarkItem(
-        id="swebench_item",
-        dimension_id="code",
-        task_type=TaskType.open_generation,
-        prompt="Fix the issue.",
-        metadata={"swebench": {"instance_id": "repo__repo-1"}},
-    )
-
-    assert item_workload_weight(simple) == 1.0
-    assert item_workload_weight(docker_agent) == 15.0
-    assert item_workload_weight(swebench) == 30.0
-    assert simple_equivalent_workload([simple, docker_agent, swebench]) == 46.0
+def test_scale_budget_targets_are_raw_item_counts() -> None:
+    assert scale_budget_target_items(ScaleBudget.low) == 100
+    assert scale_budget_target_items(ScaleBudget.mid) == 500
+    assert scale_budget_target_items(ScaleBudget.high) == 1000
+    assert scale_budget_target_items(ScaleBudget.large) == 5000
+    assert scale_budget_target_items(ScaleBudget.xlarge) == 20000
 
 
 def test_docker_image_selector_prefers_common_runtime_images() -> None:
@@ -306,37 +284,6 @@ def test_environment_claw_reports_custom_docker_image_build(monkeypatch) -> None
     assert not any(action.action.startswith("pull docker image build://auto") for action in report.actions)
 
 
-def test_environment_claw_switches_swebench_to_wsl_when_native_harness_missing(monkeypatch) -> None:
-    monkeypatch.setattr("evalclaw.execution.environment_claw.platform.system", lambda: "Windows")
-    monkeypatch.setattr(
-        "evalclaw.execution.environment_claw.docker_status",
-        lambda **kwargs: DockerStatus(
-            available=True,
-            executable="docker",
-            client_version="1",
-            server_version="1",
-        ),
-    )
-    monkeypatch.setattr(
-        "evalclaw.execution.environment_claw._python_module_available",
-        lambda *args, **kwargs: (False, "missing swebench"),
-    )
-    monkeypatch.setattr("evalclaw.execution.environment_claw._wsl_available", lambda *args, **kwargs: (True, "WSL ok"))
-
-    item = BenchmarkItem(
-        id="swe",
-        dimension_id="code",
-        task_type=TaskType.open_generation,
-        prompt="Fix the repository.",
-        metadata={"swebench": {"instance_id": "repo__repo-1"}},
-    )
-    updated, report = run_environment_claw([item], BenchmarkConfig())
-
-    assert updated.swebench_use_wsl is True
-    assert any(action.applied and action.action == "set swebench_use_wsl=True" for action in report.actions)
-    assert any(probe.name == "swebench_native_harness" and not probe.ok for probe in report.probes)
-
-
 def test_auto_mode_routes_obvious_agent_goals_to_agent_benchmark() -> None:
     config = BenchmarkConfig(benchmark_mode=BenchmarkMode.auto)
 
@@ -346,43 +293,6 @@ def test_auto_mode_routes_obvious_agent_goals_to_agent_benchmark() -> None:
     assert _resolve_benchmark_mode("Evaluate complex math reasoning", config) == BenchmarkMode.static
     assert _resolve_benchmark_mode("评估智能体的工具调用和环境交互能力", config) == BenchmarkMode.agent
     assert _resolve_benchmark_mode("评估多个工业软件协同完成工程工作流的能力", config) == BenchmarkMode.agent
-
-
-def test_agent_benchmark_fallback_builds_executable_task_suite() -> None:
-    config = BenchmarkConfig(
-        benchmark_mode=BenchmarkMode.agent,
-        scale_budget=ScaleBudget.low,
-        use_web_research=False,
-        use_hf_discovery=False,
-        agent_task_builder="local",
-    )
-
-    dataset = build_agent_dataset("Evaluate code-repair agents that recover from failing tests", config)
-    qc = run_qc_gate(dataset, config)
-
-    assert dataset.agent_task_suite is not None
-    assert dataset.items
-    assert all(item.task_type == TaskType.agent_interaction for item in dataset.items)
-    assert all(item.metadata.get("task_agent", {}).get("schema_version") == "evalclaw.task_agent.v1" for item in dataset.items)
-    assert all(isinstance(item.metadata.get("agent_env"), dict) for item in dataset.items)
-    assert qc.rejected_item_ids == []
-
-
-def test_agent_benchmark_honors_blueprint_expected_task_count() -> None:
-    config = BenchmarkConfig(
-        benchmark_mode=BenchmarkMode.agent,
-        scale_budget=ScaleBudget.low,
-        use_web_research=False,
-        use_hf_discovery=False,
-        agent_task_builder="local",
-    )
-    spec, blueprints = plan_agent_benchmark("Evaluate agent tool use", config)
-    blueprints[0].expected_task_count = 3
-
-    suite = build_agent_task_suite(spec, [blueprints[0]], config)
-
-    assert len(suite.tasks) == 3
-    assert len({task.id for task in suite.tasks}) == 3
 
 
 def test_agent_benchmark_planner_requires_orchestrator_key_by_default() -> None:
@@ -569,8 +479,8 @@ def test_agent_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
         )
 
 
-def test_agent_task_builder_raises_task_difficulty_to_dimension_target(monkeypatch) -> None:
-    def call_llm_with_low_difficulty(*args, **kwargs):
+def test_agent_task_builder_uses_challenge_effort(monkeypatch) -> None:
+    def call_llm_with_challenge_effort(*args, **kwargs):
         return json.dumps(
             {
                 "tasks": [
@@ -579,7 +489,7 @@ def test_agent_task_builder_raises_task_difficulty_to_dimension_target(monkeypat
                         "dimension_id": "agent_capability",
                         "title": "Hard task",
                         "prompt": "Complete a realistic multi-file repair task.",
-                        "difficulty": "L4",
+                        "challenge_effort": "E4",
                         "environment": {
                             "type": "workspace",
                             "workspace": {
@@ -589,18 +499,26 @@ def test_agent_task_builder_raises_task_difficulty_to_dimension_target(monkeypat
                             },
                         },
                         "scoring": {"pass_criteria": "Hidden tests pass."},
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": "E4",
+                                "meets_requested_effort": True,
+                                "rationale": "The task uses a realistic repair setup with hidden scoring.",
+                                "effort_actions": ["Added nontrivial workspace state and hidden oracle."],
+                            }
+                        },
                     }
                 ]
             }
         )
 
-    monkeypatch.setattr("evalclaw.agent.suite.call_llm", call_llm_with_low_difficulty)
+    monkeypatch.setattr("evalclaw.agent.suite.call_llm", call_llm_with_challenge_effort)
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
         description="Evaluate realistic agent task execution.",
         approach="Use executable tasks.",
-        target_difficulty=Difficulty.L5,
+        challenge_effort=ChallengeEffort.E4,
     )
     spec = EvalSpec(
         objective="Evaluate agents.",
@@ -625,7 +543,7 @@ def test_agent_task_builder_raises_task_difficulty_to_dimension_target(monkeypat
         ),
     )
 
-    assert suite.tasks[0].difficulty == Difficulty.L5
+    assert suite.tasks[0].challenge_effort == ChallengeEffort.E4
 
 
 def test_agent_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) -> None:
@@ -636,8 +554,9 @@ def test_agent_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypat
     def concurrent_call_llm(messages, *args, **kwargs):
         nonlocal active_calls, max_active_calls
         payload = json.loads(messages[0].content)
-        blueprint_id = payload["blueprint"]["id"]
-        dimension_id = payload["dimension"]["id"]
+        blueprint_id = payload["task_plan"]["construction"]["id"]
+        dimension_id = payload["task_plan"]["capability"]["id"]
+        challenge_effort = payload["task_plan"]["capability"].get("challenge_effort", "E3")
         with lock:
             active_calls += 1
             max_active_calls = max(max_active_calls, active_calls)
@@ -652,6 +571,7 @@ def test_agent_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypat
                     {
                         "id": f"{blueprint_id}_task",
                         "dimension_id": dimension_id,
+                        "challenge_effort": challenge_effort,
                         "title": f"{blueprint_id} task",
                         "prompt": f"Complete the task for {blueprint_id}.",
                         "environment": {
@@ -663,6 +583,13 @@ def test_agent_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypat
                             },
                         },
                         "scoring": {"pass_criteria": "Done."},
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": challenge_effort,
+                                "meets_requested_effort": True,
+                                "rationale": "The task matches the requested construction effort for this test.",
+                            }
+                        },
                     }
                 ]
             }
@@ -717,13 +644,15 @@ def test_agent_task_builder_repairs_structural_validation_errors(monkeypatch) ->
     def repairable_call_llm(messages, *args, **kwargs):
         payload = json.loads(messages[0].content)
         payloads.append(payload)
-        if "repair_request" not in payload:
+        challenge_effort = payload["task_plan"]["capability"].get("challenge_effort", "E3")
+        if "repair" not in payload:
             return json.dumps(
                 {
                     "tasks": [
                         {
                             "id": "gui_task",
                             "dimension_id": "desktop_agent",
+                            "challenge_effort": challenge_effort,
                             "title": "GUI task",
                             "prompt": "Complete the desktop workflow and save the requested artifact.",
                             "environment": {"type": "gui_desktop"},
@@ -738,6 +667,7 @@ def test_agent_task_builder_repairs_structural_validation_errors(monkeypatch) ->
                     {
                         "id": "gui_task",
                         "dimension_id": "desktop_agent",
+                        "challenge_effort": challenge_effort,
                         "title": "GUI task",
                         "prompt": "Complete the desktop workflow and save the requested artifact.",
                         "environment": {
@@ -758,6 +688,13 @@ def test_agent_task_builder_repairs_structural_validation_errors(monkeypatch) ->
                             "pass_criteria": "Desktop/output.xlsx exists and matches the hidden checks.",
                             "partial_criteria": "The agent creates a related artifact but misses one check.",
                             "fail_criteria": "No usable artifact is produced.",
+                        },
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": challenge_effort,
+                                "meets_requested_effort": True,
+                                "rationale": "The repaired task is complete enough for the requested effort level.",
+                            }
                         },
                     }
                 ]
@@ -780,7 +717,6 @@ def test_agent_task_builder_repairs_structural_validation_errors(monkeypatch) ->
         id="desktop_blueprint",
         dimension_id=dimension.id,
         title="Desktop workflow",
-        task_family=AgentTaskFamily.gui_desktop,
         environment_type=AgentEnvironmentType.gui_desktop,
         expected_task_count=1,
     )
@@ -798,128 +734,87 @@ def test_agent_task_builder_repairs_structural_validation_errors(monkeypatch) ->
     )
 
     assert len(payloads) == 2
-    assert payloads[1]["repair_request"]["structure_validation_errors"]
+    assert payloads[1]["repair"]["issues"]
     assert suite.tasks[0].environment.session["application"] == "spreadsheet"
     assert suite.tasks[0].environment.evaluation["method"] == "artifact_check"
 
 
-def test_agent_benchmark_local_fallback_covers_common_task_families() -> None:
+def test_agent_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None:
+    payloads: list[dict] = []
+
+    def repairable_call_llm(messages, *args, **kwargs):
+        payload = json.loads(messages[0].content)
+        payloads.append(payload)
+        if "repair" not in payload:
+            return json.dumps([{"unexpected": "top-level list"}])
+        return json.dumps(
+            {
+                "tasks": [
+                    {
+                        "id": "repaired_workspace_task",
+                        "dimension_id": "tool_use",
+                        "challenge_effort": "E2",
+                        "title": "Repair response shape",
+                        "prompt": "Inspect the workspace and produce the requested result.",
+                        "environment": {
+                            "type": "workspace",
+                            "workspace": {
+                                "start_room": "office",
+                                "rooms": {"office": ["brief"]},
+                            },
+                        },
+                        "scoring": {
+                            "method": "deterministic",
+                            "pass_criteria": "The requested result is complete.",
+                        },
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": "E2",
+                                "meets_requested_effort": True,
+                                "rationale": "The repaired task has a complete state and deterministic oracle.",
+                            }
+                        },
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.agent.suite.call_llm", repairable_call_llm)
     dimension = EvalDimension(
-        id="agent_capability",
-        name="Agent capability",
-        description="Evaluate realistic agent task execution.",
-        approach="Use executable local fixtures.",
-        target_difficulty=Difficulty.L4,
+        id="tool_use",
+        name="Tool use",
+        description="Evaluate stateful tool use.",
+        approach="Use an executable workspace task.",
+        challenge_effort=ChallengeEffort.E2,
     )
     spec = EvalSpec(
-        objective="Evaluate agents on realistic task families.",
+        objective="Evaluate tool-using agents.",
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
-        scale_budget=ScaleBudget.low,
     )
-    families = [
-        (AgentTaskFamily.gui_desktop, AgentEnvironmentType.gui_desktop),
-        (AgentTaskFamily.browser_gui, AgentEnvironmentType.gui_desktop),
-        (AgentTaskFamily.desktop_software, AgentEnvironmentType.gui_desktop),
-        (AgentTaskFamily.code_repair, AgentEnvironmentType.code_sandbox),
-        (AgentTaskFamily.repo_issue, AgentEnvironmentType.code_sandbox),
-        (AgentTaskFamily.shell_debugging, AgentEnvironmentType.docker_workspace),
-        (AgentTaskFamily.api_tool_use, AgentEnvironmentType.code_sandbox),
-        (AgentTaskFamily.web_research, AgentEnvironmentType.code_sandbox),
-        (AgentTaskFamily.data_analysis, AgentEnvironmentType.code_sandbox),
-        (AgentTaskFamily.multi_turn_delegation, AgentEnvironmentType.dialogue),
-        (AgentTaskFamily.safety_tool_use, AgentEnvironmentType.workspace),
-    ]
-    blueprints = [
-        AgentTaskBlueprint(
-            id=f"{family.value}_blueprint",
-            dimension_id=dimension.id,
-            title=family.value.replace("_", " ").title(),
-            task_family=family,
-            environment_type=env_type,
-            expected_task_count=1,
-        )
-        for family, env_type in families
-    ]
+    blueprint = AgentTaskBlueprint(
+        id="tool_use_blueprint",
+        dimension_id=dimension.id,
+        title="Tool-use workflow",
+        expected_task_count=1,
+    )
 
     suite = build_agent_task_suite(
         spec,
-        blueprints,
+        [blueprint],
         BenchmarkConfig(
             benchmark_mode=BenchmarkMode.agent,
+            orchestrator_api_key="dummy",
             use_web_research=False,
             use_hf_discovery=False,
-            agent_task_builder="local",
+            agent_task_builder_repair_attempts=1,
         ),
     )
-    assert [task.task_family for task in suite.tasks] == [family for family, _ in families]
-    assert [task.environment.type for task in suite.tasks] == [env_type for _, env_type in families]
-    assert all(task.prompt.strip() for task in suite.tasks)
-    assert all(task.scoring.pass_criteria for task in suite.tasks)
-    assert suite.tasks[5].environment.image == "python:3.11-slim"
-    assert all(
-        task.environment.session and task.environment.evaluation
-        for task in suite.tasks
-        if task.environment.type == AgentEnvironmentType.gui_desktop
-    )
-    assert all(
-        task.environment.requires_vm and task.environment.vm
-        for task in suite.tasks
-        if task.environment.type == AgentEnvironmentType.gui_desktop
-    )
-    assert all(
-        task.environment.hidden_files
-        for task in suite.tasks
-        if task.environment.type in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
-    )
 
-
-def test_agent_benchmark_gui_blueprint_builds_bridge_task() -> None:
-    config = BenchmarkConfig(
-        benchmark_mode=BenchmarkMode.agent,
-        use_web_research=False,
-        use_hf_discovery=False,
-        agent_task_builder="local",
-    )
-    dimension = EvalDimension(
-        id="desktop_spreadsheet",
-        name="Desktop spreadsheet GUI",
-        description="Evaluate GUI desktop software operation in a spreadsheet application.",
-        approach="Use screenshot, mouse, keyboard, and exported artifacts.",
-        target_difficulty=Difficulty.L4,
-    )
-    spec = EvalSpec(
-        objective="Evaluate desktop software GUI operation.",
-        dimensions=[dimension],
-        task_types=[TaskType.agent_interaction],
-        scale_budget=ScaleBudget.low,
-    )
-
-    blueprint = _default_blueprint_for_dimension(dimension)
-    suite = build_agent_task_suite(spec, [blueprint], config)
-    dataset = task_suite_to_dataset(suite, spec, config)
-    qc = run_qc_gate(dataset, config)
-
-    task = suite.tasks[0]
-    item = dataset.items[0]
-    assert blueprint.task_family == AgentTaskFamily.desktop_software
-    assert blueprint.environment_type == AgentEnvironmentType.gui_desktop
-    assert task.environment.type == AgentEnvironmentType.gui_desktop
-    assert task.environment.requires_vm is True
-    assert task.environment.vm["image"] == "evalclaw-libreoffice-gui"
-    assert task.environment.session["application"] == "spreadsheet"
-    assert task.environment.evaluation["method"] == "office_artifact_check"
-    assert item.metadata["agent_env"]["type"] == "gui_desktop"
-    assert item.metadata["agent_env"]["requires_vm"] is True
-    assert item.metadata["task_agent"]["initial_content"]["vm"]["image"] == "evalclaw-libreoffice-gui"
-    assert item.metadata["task_agent"]["initial_content"]["session"]["application"] == "spreadsheet"
-    package = item.metadata["agent_task_package"]
-    assert package["schema_version"] == "evalclaw.agent_task_package.v1"
-    assert package["environment_requirements"]["requires_vm"] is True
-    assert package["output_contract"]["expected_artifacts"] == ["Desktop/profit_summary.csv"]
-    assert package["hidden_references"]["staging_phase"] == "post_agent_or_runner_private"
-    assert package["artifact_collection"]["collect_trajectory"] is True
-    assert qc.rejected_item_ids == []
+    assert len(payloads) == 2
+    assert payloads[1]["repair"]["issues"] == ["ValueError: expected a JSON object, got list"]
+    assert payloads[1]["repair"]["previous_response"] == [{"unexpected": "top-level list"}]
+    assert suite.tasks[0].id == "repaired_workspace_task"
 
 
 def test_agent_task_content_summary_is_persisted_for_reports() -> None:
@@ -941,7 +836,6 @@ def test_agent_task_content_summary_is_persisted_for_reports() -> None:
         title="Repair parsing bug",
         content_summary="CSV parser edge case",
         description="Fix a parser bug and pass hidden tests.",
-        task_family=AgentTaskFamily.code_repair,
         prompt="Fix parser.py and run tests until they pass.",
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.code_sandbox,
@@ -967,6 +861,77 @@ def test_agent_task_content_summary_is_persisted_for_reports() -> None:
     assert item.source.uri == ""
 
 
+def test_agent_task_structure_validation_flags_truncated_prompt() -> None:
+    task = AgentTask(
+        id="gui_task_1",
+        dimension_id="industrial_gui",
+        title="Industrial GUI task",
+        description="Use desktop applications to produce artifacts.",
+        prompt=(
+            "Use the VM desktop software stack to inspect the provided project files, operate the required "
+            "applications, produce the requested intermediate artifacts, save the final deliverables, and then "
+            "run the bridge evaluation. The design-change propagation requirement must be c"
+        ),
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui_desktop,
+            requires_vm=True,
+            vm={"image": "evalclaw-gui"},
+            session={"application": "desktop", "expected_artifacts": ["Desktop/out.txt"]},
+            evaluation={"method": "hidden_script", "pass_criteria": "Artifact exists."},
+        ),
+        scoring=AgentScoringSpec(
+            method="deterministic",
+            pass_criteria="Artifact exists.",
+            partial_criteria="Partial artifact exists.",
+            fail_criteria="No artifact.",
+        ),
+    )
+
+    issues = agent_task_structure_issues(task)
+
+    assert any("prompt appears truncated" in issue.lower() for issue in issues)
+
+
+def test_workspace_structure_does_not_treat_custom_tool_descriptors_as_executable() -> None:
+    task = AgentTask(
+        id="custom_tool_workspace",
+        dimension_id="tool_use",
+        title="Unsupported custom tool workspace",
+        prompt="Use the supplied website tool to update the application state.",
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.workspace,
+            tools=[
+                {
+                    "name": "update_website",
+                    "description": "Update website state.",
+                    "parameters": {"type": "object", "properties": {}},
+                }
+            ],
+        ),
+        scoring=AgentScoringSpec(pass_criteria="The website state is updated."),
+    )
+
+    issues = agent_task_structure_issues(task)
+
+    assert any("does not define executable custom behavior" in issue for issue in issues)
+
+
+def test_compact_agent_task_package_marks_clipped_visible_instructions() -> None:
+    package = {
+        "schema_version": "evalclaw.agent_task_package.v1",
+        "visible_inputs": {
+            "instructions": "Use the VM workflow. " + ("Record application handoffs and artifacts. " * 80),
+            "files": {"brief.md": "content"},
+        },
+    }
+
+    compact = compact_agent_task_package(package)
+    instructions = compact["visible_inputs"]["instructions"]
+
+    assert "QC summary clipped here" in instructions
+    assert "canonical metadata.agent_task_package contains the full field" in instructions
+
+
 def test_report_source_backed_ignores_generated_agent_fixture_provenance() -> None:
     item = BenchmarkItem(
         id="generated_agent_task",
@@ -987,147 +952,7 @@ def test_report_source_backed_ignores_generated_agent_fixture_provenance() -> No
     assert _report_is_source_backed(item) is False
 
 
-def test_agent_benchmark_blender_gui_blueprint_builds_vm_task() -> None:
-    config = BenchmarkConfig(
-        benchmark_mode=BenchmarkMode.agent,
-        use_web_research=False,
-        use_hf_discovery=False,
-        agent_task_builder="local",
-    )
-    dimension = EvalDimension(
-        id="blender_scene_creation",
-        name="Blender 3D scene creation",
-        description="Evaluate using Blender in a VM to create and render a simple 3D scene.",
-        approach="Use screenshot, mouse, keyboard, Blender artifacts, and bridge evaluation.",
-        target_difficulty=Difficulty.L4,
-    )
-    spec = EvalSpec(
-        objective="Evaluate Blender desktop software operation in a VM.",
-        dimensions=[dimension],
-        task_types=[TaskType.agent_interaction],
-        scale_budget=ScaleBudget.low,
-    )
-
-    blueprint = _default_blueprint_for_dimension(dimension)
-    suite = build_agent_task_suite(spec, [blueprint], config)
-    dataset = task_suite_to_dataset(suite, spec, config)
-    qc = run_qc_gate(dataset, config)
-
-    task = suite.tasks[0]
-    item = dataset.items[0]
-    env = item.metadata["agent_env"]
-
-    assert blueprint.task_family == AgentTaskFamily.desktop_software
-    assert blueprint.environment_type == AgentEnvironmentType.gui_desktop
-    assert any("Blender VM session" in requirement for requirement in blueprint.construction_requirements)
-    assert task.environment.requires_vm is True
-    assert task.environment.vm["image"] == "evalclaw-blender-gui"
-    assert "blender>=4.0" in task.environment.vm["required_software"]
-    assert task.environment.session["application"] == "blender"
-    assert "Desktop/evalclaw_scene.blend" in task.environment.session["expected_artifacts"]
-    assert task.environment.evaluation["method"] == "blender_artifact_check"
-    assert task.environment.evaluation["bridge_evaluator"]["type"] == "blender_python"
-    assert env["requires_vm"] is True
-    assert env["vm"]["image"] == "evalclaw-blender-gui"
-    assert item.metadata["task_agent"]["initial_content"]["vm"]["image"] == "evalclaw-blender-gui"
-    assert item.metadata["agent_task_package"]["output_contract"]["expected_artifacts"] == [
-        "Desktop/evalclaw_scene.blend",
-        "Desktop/evalclaw_render.png",
-    ]
-    assert "screenshot" in item.metadata["agent_task_package"]["trajectory_requirements"]["required_tools"]
-    assert "blender" in item.tags
-    assert qc.rejected_item_ids == []
-
-
-def test_agent_benchmark_multi_industrial_workflow_builds_cross_app_vm_tasks() -> None:
-    goal = (
-        "Build benchmarks for multi-industrial-software collaboration, simulating realistic workflows "
-        "that require several common industrial tools together."
-    )
-    config = BenchmarkConfig(
-        benchmark_mode=BenchmarkMode.agent,
-        scale_budget=ScaleBudget.low,
-        use_web_research=False,
-        use_hf_discovery=False,
-        agent_task_builder="local",
-    )
-
-    spec, blueprints = plan_agent_benchmark(goal, config)
-    dataset = build_agent_dataset(goal, config)
-    qc = run_qc_gate(dataset, config)
-
-    assert [dimension.id for dimension in spec.dimensions] == [
-        "cross_application_artifact_handoff",
-        "engineering_constraint_reconciliation",
-        "end_to_end_industrial_workflow_execution",
-    ]
-    assert all(blueprint.task_family == AgentTaskFamily.desktop_software for blueprint in blueprints)
-    assert all(blueprint.environment_type == AgentEnvironmentType.gui_desktop for blueprint in blueprints)
-    assert any("KiCad, FreeCAD, and Blender" in requirement for blueprint in blueprints for requirement in blueprint.construction_requirements)
-
-    assert len(dataset.items) == 3
-    assert qc.rejected_item_ids == []
-    for item in dataset.items:
-        env = item.metadata["agent_env"]
-        session = env["session"]
-        vm = env["vm"]
-        package = item.metadata["agent_task_package"]
-
-        assert env["type"] == "gui_desktop"
-        assert env["requires_vm"] is True
-        assert env["evaluation"]["method"] == "industrial_multi_app_artifact_check"
-        assert env["vm_provisioning"]["enabled"] is True
-        assert {"kicad", "freecad", "blender"}.issubset(set(env["vm_provisioning"]["apt_packages"]))
-        assert session["application"] == "multi_app_industrial_workflow"
-        assert session["applications"] == ["KiCad", "FreeCAD", "Blender"]
-        assert [stage["application"] for stage in session["workflow_stages"]] == ["KiCad", "FreeCAD", "Blender"]
-        assert "Desktop/exports/pcb_assembly.step" in session["handoff_artifacts"]
-        assert "Desktop/exports/workflow_manifest.json" in session["expected_artifacts"]
-        assert "hidden/evaluate_industrial_workflow.py" in env["hidden_files"]
-        assert {"kicad>=8", "freecad>=0.21", "blender>=4.0"}.issubset(set(vm["required_software"]))
-        assert package["environment_requirements"]["requires_vm"] is True
-        assert "Desktop/exports/product_render.png" in package["output_contract"]["expected_artifacts"]
-        assert "hidden/evaluate_industrial_workflow.py" in package["hidden_references"]["files"]
-        assert "industrial_workflow" in item.tags
-        assert "single application" in env["evaluation"]["fail_criteria"]
-
-
-def test_agent_benchmark_runtime_pipeline_defaults_to_docker_task_package() -> None:
-    dimension = EvalDimension(
-        id="k8s_root_cause",
-        name="Kubernetes incident root cause",
-        description="Evaluate diagnosing a Kubernetes payment API incident from logs, configs, and command output.",
-        approach="Use a Docker workspace with visible incident artifacts and hidden RCA checks.",
-        target_difficulty=Difficulty.L5,
-    )
-    spec = EvalSpec(
-        objective="Evaluate SRE diagnostic agents.",
-        dimensions=[dimension],
-        task_types=[TaskType.agent_interaction],
-    )
-
-    blueprint = _default_blueprint_for_dimension(dimension)
-    suite = build_agent_task_suite(
-        spec,
-        [blueprint],
-        BenchmarkConfig(
-            benchmark_mode=BenchmarkMode.agent,
-            use_web_research=False,
-            use_hf_discovery=False,
-            agent_task_builder="local",
-        ),
-    )
-    dataset = task_suite_to_dataset(suite, spec, BenchmarkConfig(benchmark_mode=BenchmarkMode.agent))
-
-    item = dataset.items[0]
-
-    assert blueprint.environment_type == AgentEnvironmentType.docker_workspace
-    assert blueprint.task_family == AgentTaskFamily.shell_debugging
-    assert item.metadata["agent_env"]["type"] == "docker_workspace"
-    assert item.metadata["agent_task_package"]["schema_version"] == "evalclaw.agent_task_package.v1"
-
-
-def test_qc_rejects_alestyle_gui_item_without_task_package() -> None:
+def test_qc_rejects_complex_gui_item_without_task_package() -> None:
     item = BenchmarkItem(
         id="gui_missing_package",
         dimension_id="gui",
@@ -1191,7 +1016,6 @@ def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
                 id="gui_blueprint",
                 dimension_id=dimension.id,
                 title="GUI task",
-                task_family=AgentTaskFamily.gui_desktop,
                 environment_type=AgentEnvironmentType.gui_desktop,
             )
         ],
@@ -2431,7 +2255,7 @@ def test_generator_promotes_metadata_judge_rubric_to_top_level() -> None:
     assert "Correctly fixes the bug" in items[0].rubric
 
 
-def test_generator_copies_task_agent_execution_agent_env_for_runner_compatibility() -> None:
+def test_generator_uses_only_canonical_agent_env() -> None:
     dimension = EvalDimension(
         id="coding_agent",
         name="Coding agent",
@@ -2449,18 +2273,19 @@ def test_generator_copies_task_agent_execution_agent_env_for_runner_compatibilit
                     "prompt": "Fix solution.py and run tests.",
                     "rubric": "Pass when tests pass.",
                     "metadata": {
+                        "agent_env": {
+                            "type": "code_sandbox",
+                            "visible_files": {"solution.py": "def f():\n    pass\n"},
+                            "hidden_files": {"tests.py": "from solution import f\nassert f() == 1\n"},
+                            "test_command": "python3 tests.py",
+                        },
                         "task_agent": {
                             "schema_version": "evalclaw.task_agent.v1",
                             "agent_role": "environment_controller",
                             "system_prompt": "Run the code sandbox without revealing hidden tests.",
                             "execution": {
                                 "environment_type": "code_sandbox",
-                                "agent_env": {
-                                    "type": "code_sandbox",
-                                    "visible_files": {"solution.py": "def f():\n    pass\n"},
-                                    "hidden_files": {"tests.py": "from solution import f\nassert f() == 1\n"},
-                                    "test_command": "python3 tests.py",
-                                },
+                                "environment_ref": "metadata.agent_env",
                             },
                         }
                     },
@@ -2474,6 +2299,7 @@ def test_generator_copies_task_agent_execution_agent_env_for_runner_compatibilit
 
     assert items[0].metadata["agent_env"]["type"] == "code_sandbox"
     assert "solution.py" in items[0].metadata["agent_env"]["visible_files"]
+    assert "agent_env" not in items[0].metadata["task_agent"]["execution"]
 
 
 def test_generator_enforces_dimension_task_type_plan() -> None:
@@ -3022,7 +2848,7 @@ def test_runner_passes_multimodal_user_content_to_target(monkeypatch) -> None:
     )
     config = BenchmarkConfig(targets=[TargetModelConfig(provider="openai", model="gpt-5")])
 
-    result = run_question(item, config)
+    result = run_item(item, config)
 
     assert result.score == 1.0
     assert isinstance(captured["user_content"], list)
@@ -3050,7 +2876,7 @@ def test_hf_record_ingestion_preserves_provenance() -> None:
         },
         source=source,
         dimension=dimension,
-        difficulty=Difficulty.L4,
+        challenge_effort=ChallengeEffort.E3,
         config_name="main",
         split="train",
         row_index=7,
@@ -3078,7 +2904,7 @@ def test_hf_dimension_filter_rejects_off_dimension_math_rows() -> None:
         },
         source=source,
         dimension=calculus,
-        difficulty=Difficulty.L4,
+        challenge_effort=ChallengeEffort.E3,
         split="train",
         row_index=3,
     )
@@ -3106,7 +2932,7 @@ def test_report_shows_source_coverage() -> None:
             title="example/math",
         ),
         dimension=dimension,
-        difficulty=Difficulty.L4,
+        challenge_effort=ChallengeEffort.E3,
         split="train",
         row_index=1,
     )
@@ -3280,7 +3106,7 @@ def test_multi_turn_runner_uses_task_agent_for_followups_and_scoring(monkeypatch
         targets=[TargetModelConfig(provider="mock", model="mock-target")],
     )
 
-    result = run_question(item, config)
+    result = run_item(item, config)
     transcript = json.loads(result.raw_response)
 
     assert target_prompts == ["Summarize this plan in two bullets.", "Please revise it to be shorter."]
@@ -3354,13 +3180,13 @@ def test_report_omits_safety_audit_summary_for_non_safety_evals() -> None:
     assert "## Safety Audit Summary" not in report.markdown
 
 
-def test_static_qc_checks_target_difficulty_coverage() -> None:
+def test_static_qc_treats_challenge_effort_as_builder_guidance() -> None:
     dimension = EvalDimension(
         id="expert_reasoning",
         name="Expert reasoning",
-        description="Difficult expert tasks",
-        approach="Use high-difficulty prompts",
-        target_difficulty=Difficulty.L5,
+        description="Expert tasks requiring substantial construction effort",
+        approach="Use E4 prompts",
+        challenge_effort=ChallengeEffort.E4,
     )
     spec = EvalSpec(
         objective="Evaluate expert reasoning",
@@ -3369,17 +3195,17 @@ def test_static_qc_checks_target_difficulty_coverage() -> None:
         task_types=[TaskType.open_generation],
     )
     item = BenchmarkItem(
-        id="low_difficulty_item",
+        id="lower_effort_item",
         dimension_id=dimension.id,
         task_type=TaskType.open_generation,
         prompt="Explain a simple concept clearly.",
         rubric="Score correctness and clarity.",
-        difficulty=Difficulty.L3,
+        challenge_effort=ChallengeEffort.E2,
     )
 
     qc = run_qc_gate(BenchmarkDataset(spec=spec, items=[item]), BenchmarkConfig())
 
-    assert any(issue.category.value == "difficulty" for issue in qc.issues)
+    assert not any(issue.category == QcCategory.challenge_effort for issue in qc.issues)
     assert any("High-budget dimension" in issue.message for issue in qc.issues)
 
 
@@ -3456,7 +3282,7 @@ def test_hf_discovery_expands_math_queries() -> None:
     dimension = EvalDimension(
         id="number_theory",
         name="数论",
-        description="高难数学证明题",
+        description="高挑战数学证明题",
         approach="Use rigorous proof",
         research_queries=["challenging number theory proof problems with counterexample"],
     )
@@ -3559,7 +3385,7 @@ def test_agent_interaction_runner_uses_action_observation_loop(monkeypatch) -> N
     )
     config = BenchmarkConfig(targets=[TargetModelConfig(provider="mock", model="mock-agent")])
 
-    result = run_question(item, config)
+    result = run_item(item, config)
     trace = json.loads(result.raw_response)
 
     assert result.score == 1.0
@@ -3596,7 +3422,7 @@ def test_agent_interaction_rejects_invalid_tool_arguments(monkeypatch) -> None:
     )
     config = BenchmarkConfig(targets=[TargetModelConfig(provider="mock", model="mock-agent")])
 
-    result = run_question(item, config)
+    result = run_item(item, config)
     trace = json.loads(result.raw_response)
 
     assert result.score == 0.0
@@ -3643,11 +3469,146 @@ def test_agent_interaction_uses_task_agent_system_prompt(monkeypatch) -> None:
     )
     config = BenchmarkConfig(targets=[TargetModelConfig(provider="mock", model="mock-agent")])
 
-    result = run_question(item, config)
+    result = run_item(item, config)
 
     assert result.score == 1.0
     assert captured_systems
     assert set(captured_systems) == {"Custom per-item agent system prompt. Return JSON only."}
+
+
+def test_agent_interaction_uses_openai_native_tool_result_messages(monkeypatch) -> None:
+    captured_calls: list[dict] = []
+    calls = iter(
+        [
+            ToolCall(id="call_1", name="take", arguments={"item": "blue_notebook"}),
+            ToolCall(id="call_2", name="move", arguments={"room": "mailroom"}),
+            ToolCall(id="call_3", name="place", arguments={"item": "blue_notebook"}),
+        ]
+    )
+
+    def fake_call_target_model_with_tools(messages, target, tools, **kwargs):
+        captured_calls.append(
+            {
+                "messages": json.loads(json.dumps(messages)),
+                "target": target.model,
+                "tool_names": [tool.name for tool in tools],
+                "system_prompt": kwargs.get("system_prompt"),
+            }
+        )
+        call = next(calls)
+        assistant_message = {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": call.id,
+                    "type": "function",
+                    "function": {"name": call.name, "arguments": json.dumps(call.arguments)},
+                }
+            ],
+        }
+        return TargetToolModelResponse(
+            adapter="openai",
+            content="",
+            tool_calls=[call],
+            assistant_message=assistant_message,
+            raw_response={"choices": [{"message": assistant_message}]},
+        )
+
+    monkeypatch.setattr("evalclaw.runners.agent.call_target_model_with_tools", fake_call_target_model_with_tools)
+    item = BenchmarkItem(
+        id="agent_item",
+        dimension_id="agent",
+        task_type=TaskType.agent_interaction,
+        prompt="Put the blue notebook in the outgoing bin.",
+        rubric="Use deterministic environment scoring.",
+        metadata={
+            "agent_env": {
+                "type": "workspace",
+                "start_room": "office",
+                "rooms": {"office": ["blue_notebook"], "mailroom": []},
+                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "max_steps": 5,
+            }
+        },
+    )
+    config = BenchmarkConfig(
+        targets=[TargetModelConfig(provider="openai", model="gpt-5", api_key="test-key")],
+    )
+
+    result = run_item(item, config)
+    trace = json.loads(result.raw_response)
+
+    assert result.score == 1.0
+    assert trace["tool_message_protocol"] == "provider_native"
+    assert trace["tool_adapter"] == "openai"
+    assert captured_calls[0]["tool_names"][:2] == ["look", "move"]
+    assert "Native tool protocol override" in captured_calls[0]["system_prompt"]
+    assert all("Continue with one JSON action" not in str(call["messages"]) for call in captured_calls)
+    assert any(message["role"] == "tool" for message in captured_calls[1]["messages"])
+
+
+def test_agent_interaction_uses_anthropic_tool_result_blocks(monkeypatch) -> None:
+    captured_messages: list[list[dict]] = []
+    calls = iter(
+        [
+            ToolCall(id="toolu_1", name="take", arguments={"item": "blue_notebook"}),
+            ToolCall(id="toolu_2", name="move", arguments={"room": "mailroom"}),
+            ToolCall(id="toolu_3", name="place", arguments={"item": "blue_notebook"}),
+        ]
+    )
+
+    def fake_call_target_model_with_tools(messages, target, tools, **kwargs):
+        captured_messages.append(json.loads(json.dumps(messages)))
+        call = next(calls)
+        assistant_message = {
+            "role": "assistant",
+            "content": [
+                {"type": "text", "text": "I will act."},
+                {"type": "tool_use", "id": call.id, "name": call.name, "input": call.arguments},
+            ],
+        }
+        return TargetToolModelResponse(
+            adapter="anthropic",
+            content="I will act.",
+            tool_calls=[call],
+            assistant_message=assistant_message,
+            raw_response={"content": assistant_message["content"]},
+        )
+
+    monkeypatch.setattr("evalclaw.runners.agent.call_target_model_with_tools", fake_call_target_model_with_tools)
+    item = BenchmarkItem(
+        id="agent_item",
+        dimension_id="agent",
+        task_type=TaskType.agent_interaction,
+        prompt="Put the blue notebook in the outgoing bin.",
+        rubric="Use deterministic environment scoring.",
+        metadata={
+            "agent_env": {
+                "type": "workspace",
+                "start_room": "office",
+                "rooms": {"office": ["blue_notebook"], "mailroom": []},
+                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "max_steps": 5,
+            }
+        },
+    )
+    config = BenchmarkConfig(
+        targets=[TargetModelConfig(provider="anthropic", model="claude-sonnet-4-6", api_key="test-key")],
+    )
+
+    result = run_item(item, config)
+    trace = json.loads(result.raw_response)
+
+    assert result.score == 1.0
+    assert trace["tool_adapter"] == "anthropic"
+    followup_messages = captured_messages[1]
+    assert any(
+        message["role"] == "user"
+        and isinstance(message["content"], list)
+        and message["content"][0]["type"] == "tool_result"
+        for message in followup_messages
+    )
 
 
 def test_judge_invalid_json_is_reported_as_evaluator_error(monkeypatch) -> None:
@@ -3665,7 +3626,7 @@ def test_judge_invalid_json_is_reported_as_evaluator_error(monkeypatch) -> None:
         targets=[TargetModelConfig(provider="mock", model="mock-agent")],
     )
 
-    result = run_question(item, config)
+    result = run_item(item, config)
 
     assert result.error == "Judge returned invalid JSON after retry."
     assert result.judge_reasoning == "Judge returned invalid JSON after retry."
@@ -3701,7 +3662,7 @@ def test_pairwise_preference_runner_compares_target_to_reference(monkeypatch) ->
         reference_model=TargetModelConfig(provider="mock", model="mock-reference"),
     )
 
-    result = run_question(item, config)
+    result = run_item(item, config)
     raw = json.loads(result.raw_response)
 
     assert result.score == 1.0
@@ -3789,12 +3750,12 @@ def test_code_sandbox_agent_can_revise_after_test_failure(monkeypatch) -> None:
     )
     config = BenchmarkConfig(targets=[TargetModelConfig(provider="mock", model="mock-agent")])
 
-    result = run_question(item, config)
+    result = run_item(item, config)
     trace = json.loads(result.raw_response)
 
     assert result.score == 1.0
     assert len(trace["trace"]) == 4
-    assert trace["trace"][1]["score_after_step"] == 0.25
+    assert trace["trace"][1]["score_after_step"] == 0.0
     assert trace["trace"][3]["score_after_step"] == 1.0
     assert trace["final_state"]["last_test"]["passed"] is True
 
@@ -3810,8 +3771,8 @@ def test_complex_code_smoke_requires_second_repair(monkeypatch) -> None:
     assert result["score"] == 1.0
     assert len(trace) == 5
     assert trace[2]["parsed_action"]["action"] == "run_tests"
-    assert trace[2]["score_after_step"] == 0.25
-    assert "Tests failed" in trace[2]["observation"]
+    assert trace[2]["score_after_step"] == 0.0
+    assert "Evaluator not passed" in trace[2]["observation"]
     assert trace[4]["parsed_action"]["action"] == "run_tests"
     assert trace[4]["score_after_step"] == 1.0
 
@@ -3928,23 +3889,38 @@ def test_report_viewer_html_includes_general_diagnostics() -> None:
         results=[result],
     )
     report = build_report(run)
-    html = build_report_viewer_html(
-        BenchmarkPackage(
-            goal=spec.objective,
-            spec=spec,
-            dataset=run.dataset,
-            qc_report=run.qc_report,
-            run=run,
-            report=report,
-        )
+    package = BenchmarkPackage(
+        goal=spec.objective,
+        spec=spec,
+        dataset=run.dataset,
+        qc_report=run.qc_report,
+        run=run,
+        report=report,
     )
+    html = build_report_viewer_html(package)
+    payload = _viewer_payload(package)
 
     assert "EvaluationClaw Diagnostic Report" in html
     assert "Capability Profile" in html
+    assert "Capability By Dimension" in html
+    assert "Capability By Task Type" in html
+    assert "Dataset Composition" not in html
+    assert "Task Composition and QC" in html
+    assert "Generated / QC passed" in html
+    assert "Sourced / QC passed" in html
+    assert "Average QC issues" in html
+    assert "- Average QC issues:" in report.markdown
+    assert "Challenge Effort Distribution" in html
+    assert "QC and Judge Audit" not in html
     assert "Item Explorer" in html
     assert "proof_item_1" in html
     assert "source-backed" in html
     assert "reasoning" in html
+    assert payload["diagnostics"]["judge"]["double_pass_enabled"] is False
+
+    run.runner_artifacts["judge"] = {"double_pass_enabled": True}
+    payload = _viewer_payload(package)
+    assert payload["diagnostics"]["judge"]["double_pass_enabled"] is True
 
 
 def test_report_viewer_html_includes_safety_overlay() -> None:
@@ -4068,12 +4044,19 @@ def test_report_viewer_html_includes_agent_trace() -> None:
 
     assert "Agent Interaction Diagnostics" not in html
     assert "Code Execution Diagnostics" not in html
-    assert "Task Designs" in html
+    assert "Task Designs" not in html
+    assert "Model Performance" not in html
+    assert "Task Content" not in html
+    assert "<h2>Artifacts</h2>" not in html
+    assert 'href="#artifacts"' not in html
+    assert "1. Source and construction metadata" in html
+    assert "2. Target-visible prompt" in html
     assert "Agent Trace Summary" in html
+    assert "Raw response" in html
     assert "write_file" in html
 
 
-def test_report_viewer_task_designs_use_six_unified_task_fields() -> None:
+def test_report_viewer_item_explorer_uses_six_unified_task_fields() -> None:
     dimension = EvalDimension(
         id="repo_repair",
         name="Repository repair",
@@ -4138,14 +4121,19 @@ def test_report_viewer_task_designs_use_six_unified_task_fields() -> None:
         )
     )
 
-    assert "1. Target-visible prompt" in html
-    assert "2. Outputs, scoring, and evaluator materials" in html
-    assert "3. Model-visible context and resources" in html
-    assert "4. Tools, environment, and initial state" in html
-    assert "5. Reference answer or solution" in html
-    assert "6. Source and construction metadata" in html
+    assert "1. Source and construction metadata" in html
+    assert "2. Target-visible prompt" in html
+    assert "3. Outputs, scoring, and evaluator materials" in html
+    assert "4. Model-visible context and resources" in html
+    assert "5. Tools, environment, and initial state" in html
+    assert "6. Reference answer or solution" in html
+    assert "Quality flags" in html
+    assert "Evaluation requirements" in html
+    assert "Model-visible resources" in html
+    assert "Observation and action space" in html
     assert "reference_solution.py" in html
     assert "python:3.11-slim" in html
+    assert "Source URI" not in html
 
 
 def test_report_viewer_qc_audit_renders_markdown_and_groups_repeated_item_issues() -> None:
@@ -4244,7 +4232,7 @@ def test_persist_package_writes_browser_report_and_manifest(tmp_path) -> None:
         report=build_report(run),
     )
 
-    _persist_package(pkg, str(tmp_path), log=lambda _: None)
+    _persist_package(pkg, BenchmarkConfig(), str(tmp_path), log=lambda _: None)
 
     html_files = list(tmp_path.glob("evalclaw_*.html"))
     md_files = list(tmp_path.glob("evalclaw_*.md"))
@@ -4275,10 +4263,10 @@ def test_lm_eval_artifacts_use_portable_data_file_paths(tmp_path) -> None:
     )
 
     artifacts = write_lm_eval_artifacts(BenchmarkDataset(spec=spec, items=[item]), tmp_path)
-    yaml_text = artifacts["yaml"].read_text(encoding="utf-8")
+    yaml_text = artifacts["yaml_exact_match"].read_text(encoding="utf-8")
 
     assert _portable_path(PureWindowsPath("C:/tmp/evalclaw/task.jsonl")) == "C:/tmp/evalclaw/task.jsonl"
-    assert artifacts["jsonl"].as_posix() in yaml_text
+    assert artifacts["jsonl_exact_match"].as_posix() in yaml_text
 
 
 def test_lm_eval_executable_resolves_from_environment_scripts_dir(tmp_path, monkeypatch) -> None:

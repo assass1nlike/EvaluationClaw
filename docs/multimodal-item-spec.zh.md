@@ -2,7 +2,7 @@
 
 `metadata.multimodal` 是 EvaluationClaw 给多模态题目的标准化 JSON 对象。它和 `metadata.task_agent` 一样，不是单独的文件路径，而是写在每道题的 `metadata` 里；导出 benchmark package 时也会原样保存。
 
-当前代码里对应的 schema 常量在 [evalclaw/multimodal.py](../evalclaw/multimodal.py)。
+当前代码里对应的 schema 常量在 [evalclaw/protocols/multimodal.py](../evalclaw/protocols/multimodal.py)。
 
 这个规格主要用于：
 
@@ -72,4 +72,3 @@
 - 在维度说明和 item_requirements 里明确写出需要哪些模态。
 - 在 item 的 `metadata.multimodal` 里写完整的资产、顺序和评分标准。
 - 让 prompt 本身明确指出模型需要看什么、回答什么，以及哪些视觉证据是关键。
-

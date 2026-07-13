@@ -31,12 +31,13 @@ from ..types import (
     BenchmarkDataset,
     BenchmarkItem,
     BenchmarkSource,
-    Difficulty,
+    ChallengeEffort,
     EvalDimension,
     EvalSpec,
     Message,
     SourceKind,
     TaskType,
+    safe_challenge_effort,
 )
 from .fallback import (
     attach_multimodal_metadata_if_needed,
@@ -67,24 +68,6 @@ def _safe_task_type(value: object, fallback: TaskType) -> TaskType:
         return fallback
 
 
-def _safe_difficulty(value: object, fallback: Difficulty = Difficulty.L3) -> Difficulty:
-    aliases = {
-        "low": Difficulty.L2,
-        "medium": Difficulty.L3,
-        "high": Difficulty.L4,
-        "easy": Difficulty.L1,
-        "hard": Difficulty.L4,
-        "difficult": Difficulty.L4,
-    }
-    text = str(value)
-    if text in aliases:
-        return aliases[text]
-    try:
-        return Difficulty(text)
-    except ValueError:
-        return fallback
-
-
 def _normalize_source(source_uri: object, source_title: object = "") -> BenchmarkSource:
     uri = str(source_uri or "").strip()
     title = str(source_title or "").strip()
@@ -100,15 +83,14 @@ def _normalize_source(source_uri: object, source_title: object = "") -> Benchmar
     return BenchmarkSource(kind=SourceKind.web, uri=uri, title=title)
 
 
-def _difficulty_cycle(dimension: EvalDimension) -> cycle[Difficulty]:
-    if not dimension.difficulty_distribution:
-        return cycle([dimension.target_difficulty])
-    # Backward compatibility for old specs. New specs should use target_difficulty.
-    distribution = dimension.difficulty_distribution
-    expanded: list[Difficulty] = []
-    for difficulty, weight in sorted(distribution.items(), key=lambda item: item[0].value):
-        expanded.extend([difficulty] * max(1, round(float(weight) * 10)))
-    return cycle(expanded or [dimension.target_difficulty])
+def _challenge_effort_cycle(dimension: EvalDimension) -> cycle[ChallengeEffort]:
+    distribution = dimension.challenge_effort_distribution
+    if not distribution:
+        return cycle([dimension.challenge_effort])
+    expanded: list[ChallengeEffort] = []
+    for effort, weight in sorted(distribution.items(), key=lambda item: item[0].value):
+        expanded.extend([effort] * max(1, round(float(weight) * 10)))
+    return cycle(expanded or [dimension.challenge_effort])
 
 
 def target_count_for_dimension(dimension: EvalDimension, config: BenchmarkConfig) -> int:
@@ -339,25 +321,23 @@ def _source_context(sources: list[BenchmarkSource]) -> str:
 def _generation_scale_guidance(spec: EvalSpec) -> str:
     guidance = {
         "low": (
-            "LOW budget: generate compact, high-signal items. Treat the budget as about 100 simple-equivalent "
-            "workload units, not a raw item quota. Prefer essential coverage over exhaustive slicing."
+            "LOW budget: plan about 100 raw items. Prefer compact, high-signal coverage of essential slices."
         ),
         "mid": (
-            "MID budget: generate balanced items around a 500 simple-equivalent workload anchor. Cover the main "
-            "dimension and important edge cases while mixing simple and heavier interactive tasks appropriately."
+            "MID budget: plan about 500 raw items. Cover the main dimension and representative edge cases."
         ),
         "high": (
-            "HIGH budget: generate or curate deeper coverage around a 1,000 simple-equivalent workload anchor. "
+            "HIGH budget: generate or curate about 1,000 raw items with deeper coverage. "
             "Prefer source-backed items where available; use generated items for targeted gaps, edge cases, "
             "and complex agent/test metadata."
         ),
         "large": (
-            "LARGE budget: plan for about 5,000 simple-equivalent workload units. Avoid making the bulk of the "
+            "LARGE budget: plan about 5,000 raw items. Avoid making the bulk of the "
             "dimension model-generated; prefer source-backed/imported items, stratified sampling, and generated "
             "items only for scarce or under-covered slices."
         ),
         "xlarge": (
-            "XLARGE budget: plan for about 20,000 simple-equivalent workload units. Treat generation as targeted "
+            "XLARGE budget: plan about 20,000 raw items. Treat generation as targeted "
             "augmentation, not the primary source. Emphasize scalable dataset sourcing, deduplication, and slice "
             "coverage assumptions."
         ),
@@ -394,7 +374,7 @@ def _parse_items(
         raw_items = []
     task_plan = dimension.task_types or spec.task_types
     task_fallback = task_plan[0] if task_plan else TaskType.open_generation
-    difficulties = _difficulty_cycle(dimension)
+    challenge_efforts = _challenge_effort_cycle(dimension)
     items: list[BenchmarkItem] = []
     for raw in raw_items:
         if not isinstance(raw, dict):
@@ -424,12 +404,6 @@ def _parse_items(
                 if isinstance(judge_rubric, str)
                 else json.dumps(judge_rubric, ensure_ascii=False)
             )
-        task_agent = metadata.get("task_agent")
-        if "agent_env" not in metadata and isinstance(task_agent, dict):
-            execution = task_agent.get("execution")
-            agent_env = execution.get("agent_env") if isinstance(execution, dict) else None
-            if isinstance(agent_env, dict):
-                metadata["agent_env"] = agent_env
         task_type = _safe_task_type(raw.get("task_type"), task_fallback)
         if task_plan and task_type not in task_plan:
             task_type = task_fallback
@@ -442,7 +416,10 @@ def _parse_items(
             answer=str(raw["answer"]) if raw.get("answer") is not None else None,
             rubric=str(rubric) if rubric is not None else None,
             test_code=str(raw["test_code"]) if raw.get("test_code") is not None else None,
-            difficulty=_safe_difficulty(raw.get("difficulty"), next(difficulties)),
+            challenge_effort=safe_challenge_effort(
+                raw.get("challenge_effort"),
+                next(challenge_efforts),
+            ),
             source=source,
             tags=[str(tag) for tag in raw.get("tags", []) if tag],
             metadata=metadata,
@@ -524,6 +501,7 @@ def generate_dimension_items(
         model=config.orchestrator_model,
         api_key=config.orchestrator_api_key,
         base_url=config.orchestrator_base_url,
+        provider=config.orchestrator_provider,
         backend=config.llm_backend,
         max_tokens=8192,
     )

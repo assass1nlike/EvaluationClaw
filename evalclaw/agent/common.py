@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 
-from ..types import AgentEnvironmentType, AgentTaskFamily, ScaleBudget
+from ..types import AgentEnvironmentType, ScaleBudget
 
 
 def _slug(text: str) -> str:
@@ -28,13 +28,6 @@ def _safe_optional_int(value: object) -> int | None:
     except (TypeError, ValueError):
         return None
     return parsed if parsed > 0 else None
-
-
-def _safe_task_family(value: object, fallback: AgentTaskFamily = AgentTaskFamily.custom) -> AgentTaskFamily:
-    try:
-        return AgentTaskFamily(str(value))
-    except ValueError:
-        return fallback
 
 
 def _safe_environment_type(

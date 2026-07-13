@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from ..core.scaling import scale_budget_target_workload
+from ..core.scaling import scale_budget_target_items
 from ..models.llm import call_llm, extract_json
 from ..prompts.agent_benchmark import AGENT_BENCHMARK_PLANNER_PROMPT
 from ..protocols.agent_task_package import (
@@ -14,7 +14,6 @@ from ..protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SC
 from ..types import (
     AgentEnvironmentType,
     AgentTaskBlueprint,
-    AgentTaskFamily,
     BenchmarkConfig,
     EvalSpec,
     Message,
@@ -25,7 +24,6 @@ from .common import (
     _safe_environment_type,
     _safe_optional_int,
     _safe_scale_budget,
-    _safe_task_family,
     _slug,
 )
 from .dimensions import _fallback_dimensions, _parse_dimensions
@@ -40,7 +38,7 @@ def plan_agent_benchmark(goal: str, config: BenchmarkConfig) -> tuple[EvalSpec, 
         payload = {
             "goal": goal,
             "scale_budget": scale_budget.value,
-            "scale_budget_workload": scale_budget_target_workload(scale_budget),
+            "scale_budget_items": scale_budget_target_items(scale_budget),
             "reference_model": config.reference_model.model_dump(mode="json") if config.reference_model else None,
             "benchmark_mode": config.benchmark_mode.value,
             "task_agent_schema": TASK_AGENT_SCHEMA,
@@ -55,6 +53,7 @@ def plan_agent_benchmark(goal: str, config: BenchmarkConfig) -> tuple[EvalSpec, 
                 model=config.orchestrator_model,
                 api_key=config.orchestrator_api_key,
                 base_url=config.orchestrator_base_url,
+                provider=config.orchestrator_provider,
                 backend=config.llm_backend,
                 max_tokens=8192,
             )
@@ -80,7 +79,6 @@ def plan_agent_benchmark(goal: str, config: BenchmarkConfig) -> tuple[EvalSpec, 
                         dimension_id=str(raw_blueprint.get("dimension_id") or spec.dimensions[0].id),
                         title=str(raw_blueprint.get("title") or f"Blueprint {idx}"),
                         description=str(raw_blueprint.get("description") or ""),
-                        task_family=_safe_task_family(raw_blueprint.get("task_family")),
                         environment_type=_safe_environment_type(raw_blueprint.get("environment_type")),
                         expected_task_count=_safe_optional_int(raw_blueprint.get("expected_task_count")) or 1,
                         resource_queries=[str(q) for q in raw_blueprint.get("resource_queries", []) if q],
@@ -116,7 +114,7 @@ def plan_agent_benchmark(goal: str, config: BenchmarkConfig) -> tuple[EvalSpec, 
         task_types=[TaskType.agent_interaction, TaskType.multi_turn],
         dimensions=_fallback_dimensions(goal),
         scale_budget=scale_budget,
-        scale=scale_budget_target_workload(scale_budget),
+        scale=scale_budget_target_items(scale_budget),
         metrics=[],
         planner_notes="Local fallback agent benchmark planner output.",
     )
@@ -128,7 +126,6 @@ def plan_agent_benchmark(goal: str, config: BenchmarkConfig) -> tuple[EvalSpec, 
                     update={
                         "id": f"{blueprint.dimension_id}_code_blueprint",
                         "title": f"{blueprint.title} code repair",
-                        "task_family": AgentTaskFamily.code_repair,
                         "environment_type": AgentEnvironmentType.code_sandbox,
                         "tool_requirements": ["read_file", "write_file", "run_tests"],
                         "construction_requirements": [

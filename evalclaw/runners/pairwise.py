@@ -29,6 +29,7 @@ def _call_pairwise_judge_json(prompt: dict, config: BenchmarkConfig) -> dict | N
             model=config.orchestrator_model,
             api_key=config.orchestrator_api_key,
             base_url=config.orchestrator_base_url,
+            provider=config.orchestrator_provider,
             backend=config.llm_backend,
             max_tokens=1024,
         )

@@ -62,52 +62,76 @@ def run_lm_eval(
     *,
     executable: str | None = None,
 ) -> dict:
-    """Run lm-eval-harness for a target using generated artifacts.
-
-    This is an interoperability runner. It is best suited to exact-match and
-    multiple-choice tasks. Open-generation tasks can still be exported, but
-    EvaluationClaw's direct runner remains the source of truth for rubric-based
-    LLM judging.
-    """
+    """Run each semantically supported lm-eval task family independently."""
     exe = _resolve_lm_eval_executable(executable)
     if not exe:
         raise RuntimeError("lm-eval-harness executable not found. Install lm-eval in the active environment.")
 
     artifacts = write_lm_eval_artifacts(dataset, out_dir)
+    yaml_artifacts = {
+        name: path for name, path in artifacts.items() if name.startswith("yaml_")
+    }
+    if not yaml_artifacts:
+        raise ValueError(
+            "The accepted execution plan contains no task family that lm-eval can score "
+            "without changing EvaluationClaw semantics."
+        )
+
     results_dir = out_dir / "lm-eval-results" / target.id
     results_dir.mkdir(parents=True, exist_ok=True)
-    command = [
-        exe,
-        "run",
-        "--model",
-        "openai-chat-completions",
-        "--model_args",
-        _model_args(target),
-        "--tasks",
-        str(artifacts["yaml"]),
-        "--output_path",
-        str(results_dir),
-        "--apply_chat_template",
-    ]
     env = os.environ.copy()
     key = _target_api_key(target)
     if key:
         env["OPENAI_API_KEY"] = key
-    proc = subprocess.run(command, capture_output=True, text=True, timeout=3600, env=env)
+
+    runs: list[dict] = []
+    for family, yaml_path in sorted(yaml_artifacts.items()):
+        family_name = family.removeprefix("yaml_")
+        family_dir = results_dir / family_name
+        family_dir.mkdir(parents=True, exist_ok=True)
+        command = [
+            exe,
+            "run",
+            "--model",
+            "openai-chat-completions",
+            "--model_args",
+            _model_args(target),
+            "--tasks",
+            str(yaml_path),
+            "--output_path",
+            str(family_dir),
+            "--apply_chat_template",
+        ]
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=3600,
+            env=env,
+        )
+        runs.append(
+            {
+                "family": family_name,
+                "command": command,
+                "returncode": proc.returncode,
+                "stdout": proc.stdout[-8000:],
+                "stderr": proc.stderr[-8000:],
+                "results_dir": str(family_dir),
+            }
+        )
+
     payload = {
         "target_id": target.id,
         "model": target.model,
-        "command": command,
-        "returncode": proc.returncode,
-        "stdout": proc.stdout[-8000:],
-        "stderr": proc.stderr[-8000:],
-        "results_dir": str(results_dir),
-        "artifacts": {key: str(value) for key, value in artifacts.items()},
+        "runs": runs,
+        "artifacts": {name: str(path) for name, path in artifacts.items()},
     }
-    (results_dir / "evalclaw-lm-eval-run.json").write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    if proc.returncode != 0:
-        raise RuntimeError(f"lm-eval failed for {target.id}; see {results_dir / 'evalclaw-lm-eval-run.json'}")
+    record_path = results_dir / "evalclaw-lm-eval-run.json"
+    record_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    failed = [run for run in runs if run["returncode"] != 0]
+    if failed:
+        families = ", ".join(run["family"] for run in failed)
+        raise RuntimeError(f"lm-eval failed for {target.id} task families: {families}; see {record_path}")
     return payload

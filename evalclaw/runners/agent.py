@@ -6,14 +6,25 @@ import re
 from typing import Any
 
 from ..execution.agent_envs import build_agent_environment
-from ..models.llm import call_target_model, extract_json
+from ..models.llm import (
+    TargetToolModelResponse,
+    call_target_model,
+    call_target_model_with_tools,
+    extract_json,
+)
 from ..protocols.task_agent import task_agent_initial_content_text, task_agent_system_prompt
 from ..protocols.tool import (
     TOOL_PROTOCOL_VERSION,
+    ToolCall,
     ToolResult,
     action_to_tool_call,
     tool_call_to_action,
     validate_tool_call,
+)
+from ..protocols.tool_adapters import (
+    evalclaw_tool_result_to_anthropic,
+    evalclaw_tool_result_to_openai,
+    tool_adapter_for_target,
 )
 from ..types import BenchmarkConfig, BenchmarkItem, Message, TargetModelConfig
 
@@ -94,7 +105,168 @@ def parse_agent_action(response: str) -> tuple[dict[str, Any] | None, str | None
     return None, "Could not parse an agent action. Expected a JSON object with action and args."
 
 
-def run_agent_interaction(
+def _initial_user_prompt(item: BenchmarkItem, env: Any, *, include_action_schema: bool) -> str:
+    initial_content = task_agent_initial_content_text(item)
+    initial_block = f"\n\nInitial task content:\n{initial_content}\n" if initial_content else ""
+    prompt = (
+        f"Task:\n{item.prompt}\n\n"
+        f"{initial_block}"
+        f"Initial observation:\n{env.observation()}"
+    )
+    if include_action_schema:
+        prompt += f"\n\n{env.action_schema()}"
+    else:
+        prompt += "\n\nUse the provided native tools to inspect and modify the environment. Call final when the task is complete."
+    return prompt
+
+
+def _native_system_prompt(system_prompt: str) -> str:
+    return (
+        f"{system_prompt}\n\n"
+        "Native tool protocol override: the API request exposes the valid tools as native tool definitions. "
+        "Use those native tool calls instead of writing JSON actions in message text. "
+        "Call exactly one environment tool at a time when possible, wait for the tool result, and call final when done."
+    )
+
+
+def _execute_tool_call(
+    env: Any,
+    tool_specs: list[Any],
+    tool_call: ToolCall,
+) -> tuple[dict[str, Any], ToolResult, str, str | None, bool]:
+    validation_errors = validate_tool_call(tool_call, tool_specs)
+    if validation_errors:
+        env.invalid_actions += 1
+        env.steps += 1
+        error = " ".join(validation_errors)
+        observation = f"Error: {error}\n\n{env.observation()}"
+        done = env.steps >= env.max_steps
+        env.done = done
+        tool_result = ToolResult(
+            tool_call_id=tool_call.id,
+            name=tool_call.name,
+            content=observation,
+            error=error,
+        )
+    else:
+        outcome = env.step(tool_call_to_action(tool_call))
+        observation = outcome.observation
+        done = outcome.done
+        error = outcome.error
+        tool_result = ToolResult(
+            tool_call_id=tool_call.id,
+            name=tool_call.name,
+            content=observation,
+            error=error,
+        )
+    return tool_call_to_action(tool_call), tool_result, observation, error, done
+
+
+def _native_tool_result_messages(adapter: str, results: list[ToolResult]) -> list[dict[str, Any]]:
+    if adapter == "anthropic":
+        return [{"role": "user", "content": [evalclaw_tool_result_to_anthropic(result) for result in results]}]
+    return [evalclaw_tool_result_to_openai(result) for result in results]
+
+
+def _run_agent_interaction_native_tools(
+    item: BenchmarkItem,
+    target: TargetModelConfig,
+    config: BenchmarkConfig,
+) -> tuple[str, float, str]:
+    env = build_agent_environment(item, config)
+    try:
+        system_prompt = task_agent_system_prompt(
+            item,
+            (
+                "You are an agent being evaluated in a deterministic simulated environment. "
+                "Choose one valid environment tool per turn. Do not invent tools."
+            ),
+        )
+        native_system_prompt = _native_system_prompt(system_prompt)
+        native_messages: list[dict[str, Any]] = [
+            {"role": "user", "content": _initial_user_prompt(item, env, include_action_schema=False)}
+        ]
+        trace: list[dict[str, Any]] = []
+        tool_specs = env.tool_specs() if hasattr(env, "tool_specs") else []
+
+        while env.steps < env.max_steps and not env.done:
+            response: TargetToolModelResponse = call_target_model_with_tools(
+                native_messages,
+                target,
+                tool_specs,
+                system_prompt=native_system_prompt,
+                backend=config.llm_backend,
+            )
+            native_messages.append(response.assistant_message)
+            if not response.tool_calls:
+                env.invalid_actions += 1
+                env.steps += 1
+                error = "Expected the target model to call one of the provided native tools."
+                observation = f"Error: {error}\n\n{env.observation()}"
+                done = env.steps >= env.max_steps
+                env.done = done
+                trace.append(
+                    {
+                        "step": len(trace) + 1,
+                        "model_output": response.content,
+                        "parsed_action": None,
+                        "tool_call": None,
+                        "tool_result": ToolResult(
+                            tool_call_id=f"native_missing_{len(trace) + 1}",
+                            name="missing_tool_call",
+                            content=observation,
+                            error=error,
+                            raw=response.raw_response,
+                        ).model_dump(mode="json"),
+                        "observation": observation,
+                        "error": error,
+                        "score_after_step": env.score(),
+                        "done": done,
+                    }
+                )
+                break
+
+            results: list[ToolResult] = []
+            for tool_call in response.tool_calls:
+                action, tool_result, observation, error, done = _execute_tool_call(env, tool_specs, tool_call)
+                results.append(tool_result)
+                trace.append(
+                    {
+                        "step": len(trace) + 1,
+                        "model_output": response.content,
+                        "parsed_action": action,
+                        "tool_call": tool_call.model_dump(mode="json"),
+                        "tool_result": tool_result.model_dump(mode="json"),
+                        "observation": observation,
+                        "error": error,
+                        "score_after_step": env.score(),
+                        "done": done,
+                    }
+                )
+                if done or env.steps >= env.max_steps:
+                    break
+            if done or env.steps >= env.max_steps:
+                break
+            native_messages.extend(_native_tool_result_messages(response.adapter, results))
+
+        raw = {
+            "tool_protocol_version": TOOL_PROTOCOL_VERSION,
+            "tool_message_protocol": "provider_native",
+            "tool_adapter": tool_adapter_for_target(target),
+            "environment": env.state().get("environment", env.__class__.__name__),
+            "tool_specs": [spec.model_dump(mode="json") for spec in tool_specs],
+            "trace": trace,
+            "final_state": env.state(),
+            "history": native_messages,
+        }
+        return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
+    finally:
+        cleanup = getattr(env, "cleanup", None)
+        if callable(cleanup):
+            cleanup()
+
+
+def _run_agent_interaction_json_actions(
     item: BenchmarkItem,
     target: TargetModelConfig,
     config: BenchmarkConfig,
@@ -111,14 +283,7 @@ def run_agent_interaction(
         history: list[Message] = []
         trace: list[dict[str, Any]] = []
         tool_specs = env.tool_specs() if hasattr(env, "tool_specs") else []
-        initial_content = task_agent_initial_content_text(item)
-        initial_block = f"\n\nInitial task content:\n{initial_content}\n" if initial_content else ""
-        user_prompt = (
-            f"Task:\n{item.prompt}\n\n"
-            f"{initial_block}"
-            f"Initial observation:\n{env.observation()}\n\n"
-            f"{env.action_schema()}"
-        )
+        user_prompt = _initial_user_prompt(item, env, include_action_schema=True)
 
         for step_index in range(env.max_steps):
             response = call_target_model(
@@ -147,31 +312,7 @@ def run_agent_interaction(
                     raw=response,
                 )
             else:
-                validation_errors = validate_tool_call(tool_call, tool_specs) if tool_call else []
-                if validation_errors:
-                    env.invalid_actions += 1
-                    env.steps += 1
-                    error = " ".join(validation_errors)
-                    observation = f"Error: {error}\n\n{env.observation()}"
-                    done = env.steps >= env.max_steps
-                    env.done = done
-                    tool_result = ToolResult(
-                        tool_call_id=tool_call.id if tool_call else f"call_{step_index + 1}",
-                        name=tool_call.name if tool_call else "invalid",
-                        content=observation,
-                        error=error,
-                    )
-                else:
-                    outcome = env.step(tool_call_to_action(tool_call) if tool_call else action)
-                    observation = outcome.observation
-                    done = outcome.done
-                    error = outcome.error
-                    tool_result = ToolResult(
-                        tool_call_id=tool_call.id if tool_call else f"call_{step_index + 1}",
-                        name=tool_call.name if tool_call else str(action.get("action") or action.get("tool") or ""),
-                        content=observation,
-                        error=error,
-                    )
+                action, tool_result, observation, error, done = _execute_tool_call(env, tool_specs, tool_call)
             trace.append(
                 {
                     "step": step_index + 1,
@@ -202,3 +343,14 @@ def run_agent_interaction(
         cleanup = getattr(env, "cleanup", None)
         if callable(cleanup):
             cleanup()
+
+
+def run_agent_interaction(
+    item: BenchmarkItem,
+    target: TargetModelConfig,
+    config: BenchmarkConfig,
+) -> tuple[str, float, str]:
+    adapter = tool_adapter_for_target(target)
+    if adapter in {"openai", "anthropic"}:
+        return _run_agent_interaction_native_tools(item, target, config)
+    return _run_agent_interaction_json_actions(item, target, config)

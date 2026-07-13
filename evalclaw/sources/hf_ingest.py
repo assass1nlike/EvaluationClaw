@@ -11,7 +11,7 @@ from ..core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_
 from ..types import (
     BenchmarkItem,
     BenchmarkSource,
-    Difficulty,
+    ChallengeEffort,
     EvalDimension,
     SourceKind,
     TaskType,
@@ -274,10 +274,10 @@ def _sanitize_prompt(prompt: str) -> str:
     return re.sub(r"^\s*\d+\s*[\).]\s*", "", prompt).strip()
 
 
-def _dominant_difficulty(dimension: EvalDimension) -> Difficulty:
-    if not dimension.difficulty_distribution:
-        return dimension.target_difficulty
-    return max(dimension.difficulty_distribution.items(), key=lambda item: item[1])[0]
+def _dominant_challenge_effort(dimension: EvalDimension) -> ChallengeEffort:
+    if not dimension.challenge_effort_distribution:
+        return dimension.challenge_effort
+    return max(dimension.challenge_effort_distribution.items(), key=lambda item: item[1])[0]
 
 
 def _dimension_keywords(dimension: EvalDimension) -> tuple[str, ...]:
@@ -377,7 +377,7 @@ def item_from_hf_record(
     *,
     source: BenchmarkSource,
     dimension: EvalDimension,
-    difficulty: Difficulty,
+    challenge_effort: ChallengeEffort,
     split: str,
     row_index: int,
     config_name: str | None = None,
@@ -418,7 +418,7 @@ def item_from_hf_record(
         choices=choices,
         answer=reference_answer or None,
         rubric=rubric,
-        difficulty=difficulty,
+        challenge_effort=challenge_effort,
         source=BenchmarkSource(
             kind=SourceKind.hf_dataset,
             uri=record_uri,
@@ -484,7 +484,7 @@ def import_hf_dataset_items(
     """Import up to ``count`` benchmark items from discovered HF dataset sources."""
     if count <= 0:
         return []
-    difficulties = cycle([_dominant_difficulty(dimension)])
+    challenge_efforts = cycle([_dominant_challenge_effort(dimension)])
     items: list[BenchmarkItem] = []
     skip_viable_rows = sum(ord(ch) for ch in dimension.id) % 25
     skipped_viable_rows = 0
@@ -499,7 +499,7 @@ def import_hf_dataset_items(
                 row,
                 source=source,
                 dimension=dimension,
-                difficulty=next(difficulties),
+                challenge_effort=next(challenge_efforts),
                 config_name=config_name,
                 split=split,
                 row_index=row_index,
