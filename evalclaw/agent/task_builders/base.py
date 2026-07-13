@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import uuid
 
-from ...types import AgentTaskBlueprint, AgentTaskFamily, EvalDimension
+from ...types import AgentTaskBlueprint, EvalDimension
 
 
-def _task_id(dimension: EvalDimension, family: AgentTaskFamily, index: int) -> str:
-    return f"{dimension.id}_{family.value}_{index}_{uuid.uuid4().hex[:8]}"
+def _task_id(dimension: EvalDimension, blueprint: AgentTaskBlueprint, index: int) -> str:
+    return f"{dimension.id}_{blueprint.id}_{index}_{uuid.uuid4().hex[:8]}"
 
 
 def _task_title(blueprint: AgentTaskBlueprint, index: int) -> str:

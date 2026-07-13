@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from ..types import BenchmarkItem, QcCategory, QcIssue, QcSeverity, SourceKind
 
-DIFFICULTY_RANK = {"L1": 1, "L2": 2, "L3": 3, "L4": 4, "L5": 5}
 
 def _issue(
     item_id: str | None,

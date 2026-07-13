@@ -15,7 +15,7 @@ from ..types import (
     QcSeverity,
     SourceKind,
 )
-from .common import DIFFICULTY_RANK, _is_source_backed, _issue
+from .common import _is_source_backed, _issue
 
 
 def _prompt_fingerprint(prompt: str) -> str:
@@ -99,22 +99,6 @@ def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
                     QcCategory.coverage,
                     f"{budget_label}-budget dimension {dimension.id} has only {len(dim_items)} item(s).",
                     "Add more targeted items or Loop 3 expansion before treating this as a deep evaluation.",
-                )
-            )
-        target_rank = DIFFICULTY_RANK.get(dimension.target_difficulty.value, 4)
-        low_items = [
-            item.id
-            for item in dim_items
-            if DIFFICULTY_RANK.get(item.difficulty.value, 3) < target_rank
-        ]
-        if low_items:
-            issues.append(
-                _issue(
-                    None,
-                    QcSeverity.warning,
-                    QcCategory.difficulty,
-                    f"Dimension {dimension.id} has {len(low_items)} item(s) below target difficulty {dimension.target_difficulty.value}.",
-                    "Increase item difficulty without drifting from the user's requested content.",
                 )
             )
         if dimension.needs_research:

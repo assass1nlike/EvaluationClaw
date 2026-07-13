@@ -1,4 +1,4 @@
-"""GUI desktop fallback agent tasks."""
+﻿"""GUI desktop fallback agent tasks."""
 from __future__ import annotations
 
 import json
@@ -9,12 +9,13 @@ from ...types import (
     AgentScoringSpec,
     AgentTask,
     AgentTaskBlueprint,
-    AgentTaskFamily,
     EvalDimension,
 )
 from ..goal_detection import (
     _contains_any,
     _goal_mentions_blender,
+    _goal_mentions_browser_gui,
+    _goal_mentions_desktop_software,
     _goal_mentions_multi_industrial_workflow,
     _mentions_app_state_workflow,
 )
@@ -30,6 +31,122 @@ from .gui_variants import (
 )
 
 
+def _minimal_kicad_pcb_fixture(board: dict[str, object]) -> str:
+    outline = board.get("outline") if isinstance(board.get("outline"), dict) else {}
+    holes = board.get("mounting_holes") if isinstance(board.get("mounting_holes"), list) else []
+    components = board.get("components") if isinstance(board.get("components"), list) else []
+    board_name = str(board.get("board_name") or "evalclaw_board")
+    width = float(outline.get("width", 60.0)) if isinstance(outline, dict) else 60.0
+    height = float(outline.get("height", 40.0)) if isinstance(outline, dict) else 40.0
+    fixture = [
+        "(kicad_pcb (version 20240108) (generator evalclaw)",
+        '  (general (thickness 1.6))',
+        '  (paper "A4")',
+        '  (layers (0 "F.Cu" signal) (31 "B.Cu" signal) (32 "B.Adhes" user) (44 "Edge.Cuts" user))',
+        f'  (title_block (title "{board_name}") (company "EvaluationClaw"))',
+        f'  (gr_line (start 0 0) (end {width:.2f} 0) (layer "Edge.Cuts") (width 0.1))',
+        f'  (gr_line (start {width:.2f} 0) (end {width:.2f} {height:.2f}) (layer "Edge.Cuts") (width 0.1))',
+        f'  (gr_line (start {width:.2f} {height:.2f}) (end 0 {height:.2f}) (layer "Edge.Cuts") (width 0.1))',
+        f'  (gr_line (start 0 {height:.2f}) (end 0 0) (layer "Edge.Cuts") (width 0.1))',
+    ]
+    for idx, hole in enumerate(holes, start=1):
+        if not isinstance(hole, dict):
+            continue
+        x = float(hole.get("x", 5.0))
+        y = float(hole.get("y", 5.0))
+        diameter = float(hole.get("diameter", 3.0))
+        fixture.append(
+            f'  (footprint "MountingHole:MountingHole_{diameter:.1f}mm" (layer "F.Cu") '
+            f'(at {x:.2f} {y:.2f}) (property "Reference" "H{idx}"))'
+        )
+    for idx, component in enumerate(components, start=1):
+        if not isinstance(component, dict):
+            continue
+        ref = str(component.get("ref") or f"U{idx}")
+        x = float(component.get("x", width / 2.0))
+        y = float(component.get("y", height / 2.0))
+        fixture.append(
+            f'  (footprint "EvalClaw:ComponentEnvelope" (layer "F.Cu") (at {x:.2f} {y:.2f}) '
+            f'(property "Reference" "{ref}"))'
+        )
+    fixture.append(")\n")
+    return "\n".join(fixture)
+
+
+def _placeholder_step_fixture(title: str, variant: dict[str, object]) -> str:
+    return (
+        "ISO-10303-21;\n"
+        "HEADER;\n"
+        f"FILE_DESCRIPTION(('EvaluationClaw placeholder fixture: {title}'),'2;1');\n"
+        "FILE_NAME('evalclaw_fixture.step','2026-07-10T00:00:00',('EvaluationClaw'),('EvaluationClaw'),'','','');\n"
+        "FILE_SCHEMA(('AUTOMOTIVE_DESIGN_CC2'));\n"
+        "ENDSEC;\n"
+        "DATA;\n"
+        f"/* Source workflow: {variant.get('title', 'industrial workflow')} */\n"
+        "ENDSEC;\n"
+        "END-ISO-10303-21;\n"
+    )
+
+
+def _industrial_hidden_evaluator(
+    *,
+    required_artifacts: list[str],
+    required_apps: list[str],
+    min_handoffs: int,
+    report_file: str | None = "assembly_clearance_report.json",
+) -> str:
+    required_names = [artifact.removeprefix("Desktop/exports/") for artifact in required_artifacts]
+    return (
+        "import json\n"
+        "import os\n"
+        "import sys\n"
+        "from pathlib import Path\n\n"
+        "desktop = Path(os.environ.get('EVALCLAW_DESKTOP_DIR', str(Path.home() / 'Desktop')))\n"
+        "exports = desktop / 'exports'\n"
+        f"required = {json.dumps(required_names, ensure_ascii=False)}\n"
+        f"required_apps = {json.dumps([app.lower() for app in required_apps], ensure_ascii=False)}\n"
+        f"min_handoffs = {min_handoffs}\n"
+        f"report_file = {json.dumps(report_file, ensure_ascii=False)}\n"
+        "missing = [name for name in required if not (exports / name).is_file() or (exports / name).stat().st_size == 0]\n"
+        "issues = []\n"
+        "score = 1.0\n"
+        "if missing:\n"
+        "    score -= 0.45\n"
+        "    issues.append({'missing_artifacts': missing})\n"
+        "try:\n"
+        "    manifest = json.loads((exports / 'workflow_manifest.json').read_text(encoding='utf-8'))\n"
+        "except Exception as exc:\n"
+        "    manifest = {}\n"
+        "    score -= 0.2\n"
+        "    issues.append({'manifest_error': str(exc)})\n"
+        "apps = {str(app).lower() for app in manifest.get('applications_used', [])}\n"
+        "missing_apps = set(required_apps) - apps\n"
+        "if missing_apps:\n"
+        "    score -= 0.2\n"
+        "    issues.append({'missing_applications': sorted(missing_apps)})\n"
+        "handoffs = manifest.get('handoffs', [])\n"
+        "if not isinstance(handoffs, list) or len(handoffs) < min_handoffs:\n"
+        "    score -= 0.1\n"
+        "    issues.append({'handoffs': f'expected at least {min_handoffs} artifact handoffs'})\n"
+        "if report_file:\n"
+        "    try:\n"
+        "        report = json.loads((exports / report_file).read_text(encoding='utf-8'))\n"
+        "    except Exception as exc:\n"
+        "        report = {}\n"
+        "        score -= 0.1\n"
+        "        issues.append({'report_error': str(exc), 'report_file': report_file})\n"
+        "    if report and report.get('units') != 'mm':\n"
+        "        score -= 0.05\n"
+        "        issues.append({'units': 'expected mm in report'})\n"
+        "    if report and report.get('min_clearance_mm') is not None and float(report.get('min_clearance_mm', 0)) <= 0:\n"
+        "        score -= 0.05\n"
+        "        issues.append({'clearance': 'min_clearance_mm must be positive'})\n"
+        "score = max(0.0, min(1.0, score))\n"
+        "print(json.dumps({'score': score, 'missing': missing, 'issues': issues}, indent=2))\n"
+        "sys.exit(0 if score >= 0.8 else 1)\n"
+    )
+
+
 def _gui_desktop_task_for_blueprint(
     dimension: EvalDimension,
     blueprint: AgentTaskBlueprint,
@@ -43,6 +160,7 @@ def _gui_desktop_task_for_blueprint(
         [
             dimension.id,
             dimension.name,
+            dimension.description,
             dimension.approach,
             " ".join(dimension.item_requirements),
             blueprint.id,
@@ -62,7 +180,7 @@ def _gui_desktop_task_for_blueprint(
         "bridge": {"required": True, "protocol": "evalclaw.gui_bridge.v1"},
     }
     hidden_files: dict[str, str] = {}
-    if blueprint.task_family == AgentTaskFamily.browser_gui:
+    if _goal_mentions_browser_gui(route_text):
         prompt = (
             "Use the GUI browser session to review the local customer portal, update the priority field for "
             "ticket EC-104 to high, save the change, and run the bridge evaluation when finished."
@@ -113,7 +231,7 @@ def _gui_desktop_task_for_blueprint(
             "fail_criteria": "The agent does not use the GUI state or changes the wrong ticket.",
         }
         tags = ["gui_desktop", "browser_gui", "bridge"]
-    elif blueprint.task_family == AgentTaskFamily.gui_desktop and _mentions_app_state_workflow(route_text):
+    elif _mentions_app_state_workflow(route_text):
         app_state_variants = get_app_state_variants()
         variant = app_state_variants[(index - 1) % len(app_state_variants)]
         prompt = variant["prompt"]
@@ -149,121 +267,279 @@ def _gui_desktop_task_for_blueprint(
             },
         }
         tags = ["gui_desktop", "application_state", variant["application"], "bridge"]
-    elif blueprint.task_family == AgentTaskFamily.desktop_software and _goal_mentions_multi_industrial_workflow(route_text):
+    elif _goal_mentions_multi_industrial_workflow(route_text):
         workflow_variants = get_industrial_workflow_variants()
         variant = workflow_variants[(index - 1) % len(workflow_variants)]
-        expected_artifacts = [
-            "Desktop/exports/pcb_assembly.step",
-            "Desktop/exports/enclosure.step",
-            "Desktop/exports/assembly_clearance_report.json",
-            "Desktop/exports/product_render.png",
-            "Desktop/exports/workflow_manifest.json",
-        ]
-        prompt = (
-            "Use the VM desktop industrial software stack to complete the "
-            f"{variant['title']} workflow. Start in KiCad to {variant['eda_goal']}; then use FreeCAD to "
-            f"{variant['cad_goal']}; then use Blender to {variant['render_goal']}. Save the required artifacts "
-            "under Desktop/exports, write Desktop/exports/workflow_manifest.json with application provenance and "
-            "unit assumptions, and run the bridge evaluation. This task must not be solved as a text-only report "
-            "or inside a single application."
+        dimension_focus = f"Dimension focus: {dimension.name}. {dimension.description}".strip()
+        focus_lower = " ".join([dimension.id, dimension.name, dimension.description]).lower()
+        if _contains_any(focus_lower, ("change", "propagation", "parametric", "revision")):
+            focus_instruction = (
+                "Emphasize design-change propagation: a changed board/mechanical constraint must be carried "
+                "through EDA, CAD, and rendering artifacts with the before/after change recorded in the manifest."
+            )
+        elif _contains_any(focus_lower, ("eda", "pcb", "mechanical handoff", "fit verification")):
+            focus_instruction = (
+                "Emphasize the KiCad-to-FreeCAD handoff: exported PCB geometry, mounting holes, component "
+                "keepouts, enclosure fit, and clearance verification must be explicitly recorded."
+            )
+        elif _contains_any(focus_lower, ("render", "photorealistic", "visual")):
+            focus_instruction = (
+                "Emphasize the FreeCAD-to-Blender handoff: imported mechanical geometry, material assignment, "
+                "camera/light setup, and final render review must be explicitly recorded."
+            )
+        else:
+            focus_instruction = (
+                "Emphasize cross-application artifact integrity: each application must consume an artifact from "
+                "the previous stage and produce a checkable artifact for the next stage."
+            )
+        cad_render_focus = _contains_any(
+            focus_lower,
+            ("cad-to-render", "cad to render", "freecad-to-blender", "freecad to blender", "render", "photorealistic", "visual"),
         )
+        normalized_focus = focus_lower.replace("_", " ").replace("-", " ")
+        ecad_focus = f" ecad " in f" {normalized_focus} " or _contains_any(
+            focus_lower,
+            ("eda", "pcb", "kicad", "enclosure", "mechanical handoff", "fit verification"),
+        )
+        full_chain_focus = _contains_any(
+            focus_lower,
+            (
+                "cross-application",
+                "cross_application",
+                "end-to-end",
+                "end_to_end",
+                "multi-software",
+                "multi software",
+                "multi-app",
+                "multi_app",
+                "manufacturing",
+            ),
+        )
+        if _contains_any(focus_lower, ("change", "propagation", "parametric", "revision")) or full_chain_focus:
+            workflow_kind = "eda_cad_render"
+        elif ecad_focus:
+            workflow_kind = "eda_cad"
+        elif cad_render_focus:
+            workflow_kind = "cad_render"
+        else:
+            workflow_kind = "eda_cad_render"
+
+        manifest_template = {
+            "units": "mm",
+            "applications_used": [],
+            "handoffs": [],
+            "artifacts": {},
+            "checks_performed": [],
+            "dimension_focus": dimension.name,
+            "notes": "",
+        }
         visible_files = {
             "Desktop/industrial_workflow/brief.md": (
                 f"# Industrial multi-software workflow\n\nWorkflow: {variant['title']}\n\n"
-                "Required application chain:\n"
-                "1. KiCad: inspect or create the PCB-side geometry and export the board assembly STEP.\n"
-                "2. FreeCAD: import the KiCad STEP, build the mechanical enclosure/bracket, and export a clearance report.\n"
-                "3. Blender: import the CAD outputs, apply review materials/camera, and render the product image.\n\n"
+                f"{dimension_focus}\n\n{focus_instruction}\n\n"
                 "All outputs must be placed in Desktop/exports. Keep units in millimeters and record every "
                 "application handoff in workflow_manifest.json.\n"
             ),
-            "Desktop/industrial_workflow/board_requirements.json": json.dumps(variant["board"], ensure_ascii=False, indent=2),
-            "Desktop/industrial_workflow/mechanical_constraints.json": json.dumps(
-                variant["constraints"],
-                ensure_ascii=False,
-                indent=2,
-            ),
-            "Desktop/industrial_workflow/render_requirements.json": json.dumps(variant["visual"], ensure_ascii=False, indent=2),
             "Desktop/industrial_workflow/workflow_manifest_template.json": json.dumps(
-                {
-                    "units": "mm",
-                    "applications_used": [],
-                    "handoffs": [],
-                    "artifacts": {},
-                    "checks_performed": [],
-                    "notes": "",
-                },
+                manifest_template,
                 ensure_ascii=False,
                 indent=2,
             ),
         }
-        hidden_files = {
-            "hidden/evaluate_industrial_workflow.py": (
-                "import json\n"
-                "import os\n"
-                "import sys\n"
-                "from pathlib import Path\n\n"
-                "desktop = Path(os.environ.get('EVALCLAW_DESKTOP_DIR', str(Path.home() / 'Desktop')))\n"
-                "exports = desktop / 'exports'\n"
-                "required = [\n"
-                "    'pcb_assembly.step',\n"
-                "    'enclosure.step',\n"
-                "    'assembly_clearance_report.json',\n"
-                "    'product_render.png',\n"
-                "    'workflow_manifest.json',\n"
-                "]\n"
-                "missing = [name for name in required if not (exports / name).is_file() or (exports / name).stat().st_size == 0]\n"
-                "issues = []\n"
-                "score = 1.0\n"
-                "if missing:\n"
-                "    score -= 0.45\n"
-                "    issues.append({'missing_artifacts': missing})\n"
-                "try:\n"
-                "    manifest = json.loads((exports / 'workflow_manifest.json').read_text(encoding='utf-8'))\n"
-                "except Exception as exc:\n"
-                "    manifest = {}\n"
-                "    score -= 0.2\n"
-                "    issues.append({'manifest_error': str(exc)})\n"
-                "apps = {str(app).lower() for app in manifest.get('applications_used', [])}\n"
-                "required_apps = {'kicad', 'freecad', 'blender'}\n"
-                "if not required_apps.issubset(apps):\n"
-                "    score -= 0.2\n"
-                "    issues.append({'missing_applications': sorted(required_apps - apps)})\n"
-                "handoffs = manifest.get('handoffs', [])\n"
-                "if not isinstance(handoffs, list) or len(handoffs) < 2:\n"
-                "    score -= 0.1\n"
-                "    issues.append({'handoffs': 'expected at least two artifact handoffs'})\n"
-                "try:\n"
-                "    report = json.loads((exports / 'assembly_clearance_report.json').read_text(encoding='utf-8'))\n"
-                "except Exception as exc:\n"
-                "    report = {}\n"
-                "    score -= 0.1\n"
-                "    issues.append({'clearance_report_error': str(exc)})\n"
-                "if report and report.get('units') != 'mm':\n"
-                "    score -= 0.05\n"
-                "    issues.append({'units': 'expected mm in clearance report'})\n"
-                "if report and report.get('min_clearance_mm') is not None and float(report.get('min_clearance_mm', 0)) <= 0:\n"
-                "    score -= 0.05\n"
-                "    issues.append({'clearance': 'min_clearance_mm must be positive'})\n"
-                "score = max(0.0, min(1.0, score))\n"
-                "print(json.dumps({'score': score, 'missing': missing, 'issues': issues}, indent=2))\n"
-                "sys.exit(0 if score >= 0.8 else 1)\n"
+        workflow_stages: list[dict[str, object]]
+        checks: list[dict[str, object]]
+        report_file: str | None = "assembly_clearance_report.json"
+        if workflow_kind == "cad_render":
+            applications = ["FreeCAD", "Blender"]
+            expected_artifacts = [
+                "Desktop/exports/refined_model.step",
+                "Desktop/exports/render_review_report.json",
+                "Desktop/exports/product_render.png",
+                "Desktop/exports/workflow_manifest.json",
+            ]
+            visible_files.update(
+                {
+                    "Desktop/industrial_workflow/base_model.step": _placeholder_step_fixture(
+                        "starting mechanical model",
+                        variant,
+                    ),
+                    "Desktop/industrial_workflow/mechanical_constraints.json": json.dumps(
+                        variant["constraints"],
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                    "Desktop/industrial_workflow/render_requirements.json": json.dumps(
+                        variant["visual"],
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                }
             )
-        }
-        session = {
-            "kind": "desktop_software_multi_app",
-            "application": "multi_app_industrial_workflow",
-            "applications": ["KiCad", "FreeCAD", "Blender"],
-            "launch_sequence": [
-                {"application": "KiCad", "command": "kicad", "working_directory": "Desktop/industrial_workflow"},
-                {"application": "FreeCAD", "command": "freecad", "working_directory": "Desktop/industrial_workflow"},
-                {"application": "Blender", "command": "blender", "working_directory": "Desktop/industrial_workflow"},
-            ],
-            "workflow_stages": [
+            workflow_stages = [
+                {
+                    "id": "mechanical_model_refinement",
+                    "application": "FreeCAD",
+                    "inputs": [
+                        "Desktop/industrial_workflow/base_model.step",
+                        "Desktop/industrial_workflow/mechanical_constraints.json",
+                    ],
+                    "outputs": ["Desktop/exports/refined_model.step", "Desktop/exports/render_review_report.json"],
+                    "goal": variant["cad_goal"],
+                },
+                {
+                    "id": "visual_review_render",
+                    "application": "Blender",
+                    "inputs": [
+                        "Desktop/exports/refined_model.step",
+                        "Desktop/industrial_workflow/render_requirements.json",
+                    ],
+                    "outputs": ["Desktop/exports/product_render.png"],
+                    "goal": variant["render_goal"],
+                },
+            ]
+            prompt = (
+                "Use the VM desktop industrial software stack to complete a CAD-to-render review workflow. "
+                f"Start in FreeCAD to {variant['cad_goal']}; then use Blender to {variant['render_goal']}. "
+                "Save the required artifacts under Desktop/exports, write workflow_manifest.json with application "
+                "provenance and unit assumptions, and run the bridge evaluation. This task must not be solved as a "
+                f"text-only report or inside a single application. {focus_instruction}"
+            )
+            checks = [
+                {
+                    "name": "cad_model_refinement",
+                    "description": "FreeCAD-stage refined_model.step and render_review_report.json exist and reflect constraints.",
+                    "weight": 0.35,
+                },
+                {
+                    "name": "render_review_artifact",
+                    "description": "Blender-stage product_render.png exists, is non-empty, and reflects requested materials/camera.",
+                    "weight": 0.25,
+                },
+                {
+                    "name": "workflow_manifest_provenance",
+                    "description": "workflow_manifest.json records FreeCAD, Blender, units, handoffs, and artifact dependencies.",
+                    "weight": 0.25,
+                },
+                {
+                    "name": "multi_app_gui_workflow_used",
+                    "description": "The trace shows interaction with both industrial applications.",
+                    "weight": 0.15,
+                },
+            ]
+            report_file = "render_review_report.json"
+            image_name = "evalclaw-industrial-cad-render-gui"
+        elif workflow_kind == "eda_cad":
+            applications = ["KiCad", "FreeCAD"]
+            expected_artifacts = [
+                "Desktop/exports/pcb_assembly.step",
+                "Desktop/exports/enclosure.step",
+                "Desktop/exports/assembly_clearance_report.json",
+                "Desktop/exports/workflow_manifest.json",
+            ]
+            visible_files.update(
+                {
+                    "Desktop/industrial_workflow/source_project.kicad_pcb": _minimal_kicad_pcb_fixture(variant["board"]),
+                    "Desktop/industrial_workflow/board_requirements.json": json.dumps(
+                        variant["board"],
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                    "Desktop/industrial_workflow/mechanical_constraints.json": json.dumps(
+                        variant["constraints"],
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                }
+            )
+            workflow_stages = [
                 {
                     "id": "eda_board_export",
                     "application": "KiCad",
-                    "inputs": ["Desktop/industrial_workflow/board_requirements.json"],
+                    "inputs": [
+                        "Desktop/industrial_workflow/source_project.kicad_pcb",
+                        "Desktop/industrial_workflow/board_requirements.json",
+                    ],
+                    "outputs": ["Desktop/exports/pcb_assembly.step"],
+                    "goal": variant["eda_goal"],
+                },
+                {
+                    "id": "mechanical_enclosure_fit",
+                    "application": "FreeCAD",
+                    "inputs": [
+                        "Desktop/exports/pcb_assembly.step",
+                        "Desktop/industrial_workflow/mechanical_constraints.json",
+                    ],
+                    "outputs": ["Desktop/exports/enclosure.step", "Desktop/exports/assembly_clearance_report.json"],
+                    "goal": variant["cad_goal"],
+                },
+            ]
+            prompt = (
+                "Use the VM desktop industrial software stack to complete an ECAD-to-mechanical enclosure workflow. "
+                f"Start in KiCad to {variant['eda_goal']}; then use FreeCAD to {variant['cad_goal']}. Save the "
+                "required artifacts under Desktop/exports, write workflow_manifest.json with application provenance "
+                "and unit assumptions, and run the bridge evaluation. This task must not be solved as a text-only "
+                f"report or inside a single application. {focus_instruction}"
+            )
+            checks = [
+                {
+                    "name": "eda_step_export",
+                    "description": "KiCad-stage pcb_assembly.step exists and is referenced in the manifest.",
+                    "weight": 0.3,
+                },
+                {
+                    "name": "cad_enclosure_and_clearance",
+                    "description": "FreeCAD-stage enclosure.step and assembly_clearance_report.json satisfy fit checks.",
+                    "weight": 0.35,
+                },
+                {
+                    "name": "workflow_manifest_provenance",
+                    "description": "workflow_manifest.json records KiCad, FreeCAD, units, handoffs, and artifact dependencies.",
+                    "weight": 0.25,
+                },
+                {
+                    "name": "multi_app_gui_workflow_used",
+                    "description": "The trace shows interaction with both industrial applications.",
+                    "weight": 0.1,
+                },
+            ]
+            image_name = "evalclaw-industrial-eda-cad-gui"
+        else:
+            applications = ["KiCad", "FreeCAD", "Blender"]
+            expected_artifacts = [
+                "Desktop/exports/pcb_assembly.step",
+                "Desktop/exports/enclosure.step",
+                "Desktop/exports/assembly_clearance_report.json",
+                "Desktop/exports/product_render.png",
+                "Desktop/exports/workflow_manifest.json",
+            ]
+            visible_files.update(
+                {
+                    "Desktop/industrial_workflow/source_project.kicad_pcb": _minimal_kicad_pcb_fixture(variant["board"]),
+                    "Desktop/industrial_workflow/board_requirements.json": json.dumps(
+                        variant["board"],
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                    "Desktop/industrial_workflow/mechanical_constraints.json": json.dumps(
+                        variant["constraints"],
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                    "Desktop/industrial_workflow/render_requirements.json": json.dumps(
+                        variant["visual"],
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                }
+            )
+            workflow_stages = [
+                {
+                    "id": "eda_board_export",
+                    "application": "KiCad",
+                    "inputs": [
+                        "Desktop/industrial_workflow/source_project.kicad_pcb",
+                        "Desktop/industrial_workflow/board_requirements.json",
+                    ],
                     "outputs": ["Desktop/exports/pcb_assembly.step"],
                     "goal": variant["eda_goal"],
                 },
@@ -288,7 +564,79 @@ def _gui_desktop_task_for_blueprint(
                     "outputs": ["Desktop/exports/product_render.png"],
                     "goal": variant["render_goal"],
                 },
+            ]
+            prompt = (
+                "Use the VM desktop industrial software stack to complete the "
+                f"{variant['title']} workflow. Start in KiCad to {variant['eda_goal']}; then use FreeCAD to "
+                f"{variant['cad_goal']}; then use Blender to {variant['render_goal']}. Save the required artifacts "
+                "under Desktop/exports, write workflow_manifest.json with application provenance and unit assumptions, "
+                "and run the bridge evaluation. This task must not be solved as a text-only report or inside a single "
+                f"application. {focus_instruction}"
+            )
+            checks = [
+                {
+                    "name": "eda_step_export",
+                    "description": "KiCad-stage pcb_assembly.step exists and is referenced in the manifest.",
+                    "weight": 0.2,
+                },
+                {
+                    "name": "cad_enclosure_and_clearance",
+                    "description": "FreeCAD-stage enclosure.step and assembly_clearance_report.json satisfy geometry checks.",
+                    "weight": 0.3,
+                },
+                {
+                    "name": "render_review_artifact",
+                    "description": "Blender-stage product_render.png exists, is non-empty, and reflects requested materials/camera.",
+                    "weight": 0.2,
+                },
+                {
+                    "name": "workflow_manifest_provenance",
+                    "description": "workflow_manifest.json records KiCad, FreeCAD, Blender, units, and handoffs.",
+                    "weight": 0.2,
+                },
+                {
+                    "name": "multi_app_gui_workflow_used",
+                    "description": "The trace shows interaction with multiple industrial applications.",
+                    "weight": 0.1,
+                },
+            ]
+            image_name = "evalclaw-industrial-cad-eda-gui"
+
+        app_commands = {"KiCad": "kicad", "FreeCAD": "freecad", "Blender": "blender"}
+        software_versions = {
+            "KiCad": "kicad>=8",
+            "FreeCAD": "freecad>=0.21",
+            "Blender": "blender>=4.0",
+        }
+        apt_packages = [app_commands[application] for application in applications]
+        hidden_files = {
+            "hidden/evaluate_industrial_workflow.py": _industrial_hidden_evaluator(
+                required_artifacts=expected_artifacts,
+                required_apps=applications,
+                min_handoffs=max(1, len(applications) - 1),
+                report_file=report_file,
+            )
+        }
+        visible_files["Desktop/industrial_workflow/brief.md"] += "\nRequired application chain:\n" + "\n".join(
+            f"{idx}. {stage['application']}: {stage['goal']}" for idx, stage in enumerate(workflow_stages, start=1)
+        )
+        visible_files["Desktop/industrial_workflow/brief.md"] += (
+            "\n\nAll required initial assets are in Desktop/industrial_workflow. "
+            "Do not replace the task with a text-only report.\n"
+        )
+        session = {
+            "kind": "desktop_software_multi_app",
+            "application": "multi_app_industrial_workflow",
+            "applications": applications,
+            "launch_sequence": [
+                {
+                    "application": application,
+                    "command": app_commands[application],
+                    "working_directory": "Desktop/industrial_workflow",
+                }
+                for application in applications
             ],
+            "workflow_stages": workflow_stages,
             "handoff_artifacts": expected_artifacts[:-1],
             "instruction": prompt,
             "assets": list(visible_files.keys()),
@@ -313,26 +661,21 @@ def _gui_desktop_task_for_blueprint(
         }
         vm_spec = {
             **vm_spec,
-            "image": "evalclaw-industrial-cad-eda-gui",
+            "image": image_name,
             "display": {"width": 1600, "height": 1000, "scale": 1.0},
             "gpu": "optional",
-            "required_software": [
-                "kicad>=8",
-                "freecad>=0.21",
-                "blender>=4.0",
-                "python3",
-                "evalclaw-desktop-bridge",
-            ],
+            "required_software": [software_versions[application] for application in applications]
+            + ["python3", "evalclaw-desktop-bridge"],
             "software_stack": {
-                "eda": "KiCad",
-                "mechanical_cad": "FreeCAD",
-                "rendering": "Blender",
+                "eda": "KiCad" if "KiCad" in applications else None,
+                "mechanical_cad": "FreeCAD" if "FreeCAD" in applications else None,
+                "rendering": "Blender" if "Blender" in applications else None,
             },
             "provisioning": {
                 "enabled": True,
                 "strategy": "cloud_init_apt.v1",
                 "base_os": "ubuntu",
-                "apt_packages": ["kicad", "freecad", "blender", "python3", "python3-pip", "xvfb", "xdotool"],
+                "apt_packages": [*apt_packages, "python3", "python3-pip", "xvfb", "xdotool"],
                 "commands": [
                     "mkdir -p /opt/evalclaw/bridge",
                     "if command -v evalclaw-desktop-bridge >/dev/null 2>&1; then "
@@ -346,40 +689,14 @@ def _gui_desktop_task_for_blueprint(
         evaluation = {
             "method": "industrial_multi_app_artifact_check",
             "expected_artifacts": expected_artifacts,
-            "checks": [
-                {
-                    "name": "eda_step_export",
-                    "description": "KiCad-stage Desktop/exports/pcb_assembly.step exists and is referenced in the manifest.",
-                    "weight": 0.2,
-                },
-                {
-                    "name": "cad_enclosure_and_clearance",
-                    "description": "FreeCAD-stage enclosure STEP and assembly_clearance_report.json satisfy geometry and clearance checks.",
-                    "weight": 0.3,
-                },
-                {
-                    "name": "render_review_artifact",
-                    "description": "Blender-stage product_render.png exists, is non-empty, and reflects the requested materials/camera.",
-                    "weight": 0.2,
-                },
-                {
-                    "name": "workflow_manifest_provenance",
-                    "description": "workflow_manifest.json records KiCad, FreeCAD, Blender, units, handoffs, and artifact dependencies.",
-                    "weight": 0.2,
-                },
-                {
-                    "name": "multi_app_gui_workflow_used",
-                    "description": "The trace shows interaction with multiple industrial applications instead of direct text-only completion.",
-                    "weight": 0.1,
-                },
-            ],
+            "checks": checks,
             "pass_criteria": (
-                "All required intermediate and final artifacts exist, the manifest records KiCad -> FreeCAD -> "
-                "Blender provenance with millimeter units, and bridge checks confirm the multi-application workflow."
+                "All required intermediate and final artifacts exist, the manifest records the required application "
+                "chain with millimeter units, and bridge checks confirm the multi-application workflow."
             ),
             "partial_criteria": (
-                "At least two applications are used and most artifacts are produced, but one handoff, clearance "
-                "detail, render requirement, or manifest field is incomplete."
+                "At least two applications are used and most artifacts are produced, but one handoff, report detail, "
+                "render requirement, or manifest field is incomplete."
             ),
             "fail_criteria": (
                 "The task is completed inside a single application, produces only a text report, omits core "
@@ -397,13 +714,11 @@ def _gui_desktop_task_for_blueprint(
             "industrial_workflow",
             "multi_app",
             "artifact_handoff",
-            "kicad",
-            "freecad",
-            "blender",
+            *(application.lower() for application in applications),
             "vm",
             "bridge",
         ]
-    elif blueprint.task_family == AgentTaskFamily.desktop_software and _goal_mentions_blender(route_text):
+    elif _goal_mentions_blender(route_text):
         blender_variants = get_blender_variants()
         scene_summary, requirement_lines = blender_variants[(index - 1) % len(blender_variants)]
         prompt = (
@@ -502,7 +817,7 @@ def _gui_desktop_task_for_blueprint(
             },
         }
         tags = ["gui_desktop", "desktop_software", "blender", "3d_modeling", "vm", "bridge"]
-    elif blueprint.task_family == AgentTaskFamily.desktop_software:
+    elif _goal_mentions_desktop_software(route_text):
         if _contains_any(
             route_text,
             (
@@ -915,14 +1230,13 @@ def _gui_desktop_task_for_blueprint(
         tags = ["gui_desktop", "file_manager", "bridge"]
 
     return AgentTask(
-        id=_task_id(dimension, blueprint.task_family, index),
+        id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
         title=_task_title(blueprint, index),
         description=(
             "A bridge-backed GUI desktop task. The target agent must inspect screenshots and operate the "
             "desktop/browser/software session through the standardized EvaluationClaw tool protocol."
         ),
-        task_family=blueprint.task_family,
         prompt=prompt,
         system_prompt=_agent_system_prompt("gui_desktop"),
         environment=AgentEnvironmentSpec(
@@ -951,9 +1265,9 @@ def _gui_desktop_task_for_blueprint(
             pass_criteria=str(evaluation["pass_criteria"]),
             partial_criteria=str(evaluation["partial_criteria"]),
             fail_criteria=str(evaluation["fail_criteria"]),
-            score_levels={"5": "all bridge checks pass", "3": "partial artifact or GUI progress", "1": "failed"},
+            score_levels={"1": "all bridge checks pass", "0.5": "partial artifact or GUI progress", "0": "failed"},
             oracle_notes="The bridge owns the concrete VM/browser/software runtime and artifact inspection.",
         ),
-        difficulty=dimension.target_difficulty,
-        tags=[dimension.id, blueprint.task_family.value, *tags],
+        challenge_effort=dimension.challenge_effort,
+        tags=[dimension.id, *tags],
     )

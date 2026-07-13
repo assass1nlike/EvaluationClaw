@@ -5,8 +5,6 @@ import json
 import re
 import time
 from collections import defaultdict
-from dataclasses import replace
-from pathlib import Path
 from typing import Any, Callable
 
 from ..models.llm import call_llm, call_target_model, extract_json
@@ -44,18 +42,8 @@ from ..types import (
     TargetSummary,
     TaskType,
 )
+from .plan import build_execution_plan
 from .sandbox import build_code_harness, run_python_sandbox
-from .swebench import (
-    SweBenchHarnessConfig,
-    SweBenchHarnessResult,
-    SweBenchPrediction,
-    is_swebench_item,
-    run_swebench_harness,
-    swebench_harness_config_from_items,
-    swebench_item_metadata,
-    validate_swebench_environment_for_items,
-    write_predictions_jsonl,
-)
 
 
 def _score_yes_no(response: str, answer: str | None) -> float:
@@ -225,6 +213,7 @@ def _call_judge_json(prompt: dict, config: BenchmarkConfig) -> dict | None:
             model=config.orchestrator_model,
             api_key=config.orchestrator_api_key,
             base_url=config.orchestrator_base_url,
+            provider=config.orchestrator_provider,
             backend=config.llm_backend,
             max_tokens=1024,
         )
@@ -307,6 +296,7 @@ def _call_task_agent_json(
         model=settings["model"],
         api_key=settings["api_key"],
         base_url=settings["base_url"],
+        provider=settings["provider"],
         backend=config.llm_backend,
         max_tokens=max_tokens,
     )
@@ -385,12 +375,21 @@ def _judge_item(item: BenchmarkItem, response: str, config: BenchmarkConfig) -> 
     return final_score, reasoning
 
 
-def _run_code(item: BenchmarkItem, response: str) -> tuple[float, str | None]:
+def _run_code(
+    item: BenchmarkItem,
+    response: str,
+    config: BenchmarkConfig,
+) -> tuple[float, str | None]:
     if not item.test_code:
         return 0.0, "Missing test_code."
     code = build_code_harness(item.test_code, response)
     try:
-        returncode, stdout, stderr = run_python_sandbox(code, timeout=10)
+        returncode, stdout, stderr = run_python_sandbox(
+            code,
+            timeout=10,
+            image=config.container_sandbox_image,
+            docker_executable=config.docker_executable,
+        )
         if returncode != 0:
             return 0.0, (stderr or stdout)[:800]
         return 1.0, None
@@ -416,6 +415,7 @@ def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[
         model=config.orchestrator_model,
         api_key=config.orchestrator_api_key,
         base_url=config.orchestrator_base_url,
+        provider=config.orchestrator_provider,
         backend=config.llm_backend,
         max_tokens=1024,
     )
@@ -492,129 +492,6 @@ def _run_multi_turn(item: BenchmarkItem, target: object, config: BenchmarkConfig
     return json.dumps([message.model_dump() for message in history], ensure_ascii=False), score, reasoning
 
 
-def _safe_run_fragment(value: str) -> str:
-    return re.sub(r"[^A-Za-z0-9_.-]+", "_", value).strip("_") or "item"
-
-
-def _extract_swebench_patch(response: str) -> str:
-    fenced = re.search(r"```(?:diff|patch)?\s*\n(.*?)```", response, flags=re.DOTALL | re.IGNORECASE)
-    if fenced:
-        return fenced.group(1).strip() + "\n"
-    diff_index = response.find("diff --git")
-    if diff_index >= 0:
-        return response[diff_index:].strip() + "\n"
-    return response.strip() + ("\n" if response.strip() else "")
-
-
-def _swebench_report_candidates(config: SweBenchHarnessConfig) -> list[Path]:
-    output_dir = Path(config.output_dir)
-    predictions_path = str(config.predictions_path)
-    stem = "gold" if predictions_path == "gold" else Path(predictions_path).stem
-    candidates = [output_dir / f"{stem}.{config.run_id}.json"]
-    if output_dir.exists():
-        candidates.extend(sorted(output_dir.glob(f"*.{config.run_id}.json")))
-        candidates.extend(sorted(output_dir.glob(f"logs/run_evaluation/{config.run_id}/**/report.json")))
-    seen: set[Path] = set()
-    unique: list[Path] = []
-    for candidate in candidates:
-        if candidate not in seen:
-            seen.add(candidate)
-            unique.append(candidate)
-    return unique
-
-
-def _load_swebench_report(config: SweBenchHarnessConfig) -> tuple[dict[str, Any] | None, Path | None]:
-    for candidate in _swebench_report_candidates(config):
-        if candidate.is_file():
-            return json.loads(candidate.read_text(encoding="utf-8")), candidate
-    return None, None
-
-
-def _score_swebench_report(
-    instance_id: str,
-    result: SweBenchHarnessResult,
-    config: SweBenchHarnessConfig,
-) -> tuple[float, str, str | None]:
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout).strip()
-        return 0.0, f"SWE-bench harness failed with exit code {result.returncode}: {detail[-1200:]}", detail[-1200:]
-
-    report, report_path = _load_swebench_report(config)
-    if not report:
-        return 0.0, "SWE-bench harness completed but no report JSON was found.", "Missing SWE-bench report JSON."
-
-    if instance_id in set(report.get("resolved_ids", [])):
-        return 1.0, f"SWE-bench resolved {instance_id}. Report: {report_path}", None
-    if instance_id in set(report.get("error_ids", [])):
-        return 0.0, f"SWE-bench errored on {instance_id}. Report: {report_path}", "SWE-bench harness error for instance."
-    if instance_id in set(report.get("unresolved_ids", [])) or instance_id in set(report.get("empty_patch_ids", [])):
-        return 0.0, f"SWE-bench did not resolve {instance_id}. Report: {report_path}", None
-
-    instance_report = report.get(instance_id)
-    if isinstance(instance_report, dict):
-        resolved = bool(instance_report.get("resolved"))
-        error = None if resolved else instance_report.get("error")
-        return (
-            1.0 if resolved else 0.0,
-            f"SWE-bench per-instance resolved={resolved} for {instance_id}. Report: {report_path}",
-            str(error) if error else None,
-        )
-
-    return 0.0, f"SWE-bench report did not include a result for {instance_id}. Report: {report_path}", None
-
-
-def _run_swebench_item(item: BenchmarkItem, target: object, config: BenchmarkConfig, start: float) -> ItemResult:
-    metadata = swebench_item_metadata(item) or {}
-    harness_config = swebench_harness_config_from_items([item], config)
-    if not harness_config.instance_ids:
-        return ItemResult(
-            item_id=item.id,
-            target_id=target.id,
-            score=0.0,
-            error="SWE-bench item metadata must include swebench.instance_id or swebench.instance_ids.",
-        )
-
-    prompt = _target_prompt(item).rstrip() + (
-        "\n\nReturn only a unified diff patch that can be applied to the repository. "
-        "Do not include markdown fences or explanatory prose."
-    )
-    response = call_target_model(prompt, target, backend=config.llm_backend)
-    model_patch = _extract_swebench_patch(response)
-
-    run_id = str(metadata.get("run_id") or f"evalclaw_{_safe_run_fragment(target.id)}_{_safe_run_fragment(item.id)}")
-    output_dir = Path(harness_config.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    predictions_path = output_dir / f"{run_id}.predictions.jsonl"
-    write_predictions_jsonl(
-        [
-            SweBenchPrediction(
-                instance_id=harness_config.instance_ids[0],
-                model_name_or_path=str(getattr(target, "model", target.id)),
-                model_patch=model_patch,
-            )
-        ],
-        predictions_path,
-    )
-    run_config = replace(
-        harness_config,
-        predictions_path=predictions_path,
-        run_id=run_id,
-        instance_ids=[harness_config.instance_ids[0]],
-    )
-    harness_result = run_swebench_harness(run_config)
-    score, reasoning, error = _score_swebench_report(harness_config.instance_ids[0], harness_result, run_config)
-    latency_ms = round((time.monotonic() - start) * 1000)
-    return ItemResult(
-        item_id=item.id,
-        target_id=target.id,
-        raw_response=response,
-        score=score,
-        judge_reasoning=reasoning,
-        error=error,
-        latency_ms=latency_ms,
-    )
-
-
 def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> ItemResult:
     target = next(target for target in config.targets if target.id == target_id)
     has_credentials, env_name = _target_has_credentials(target_id, config)
@@ -627,8 +504,6 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
         )
     start = time.monotonic()
     try:
-        if is_swebench_item(item):
-            return _run_swebench_item(item, target, config, start)
         if item.task_type == TaskType.multi_turn:
             raw, score, reasoning = _run_multi_turn(item, target, config)
             latency_ms = round((time.monotonic() - start) * 1000)
@@ -686,7 +561,7 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
             score = _score_short_answer(response, item.answer)
             return ItemResult(item_id=item.id, target_id=target.id, raw_response=response, score=score, latency_ms=latency_ms)
         if item.task_type == TaskType.code_execution:
-            score, error = _run_code(item, response)
+            score, error = _run_code(item, response, config)
             return ItemResult(
                 item_id=item.id,
                 target_id=target.id,
@@ -767,9 +642,9 @@ def run_eval(
     on_progress: Callable[[int, int, str, str], None] | None = None,
 ) -> EvalRun:
     """Run accepted items against all configured target models."""
-    accepted = [item for item in dataset.items if item.id in set(qc_report.passed_item_ids)]
+    execution_plan = build_execution_plan(dataset, qc_report)
+    accepted = execution_plan.dataset.items
     validate_multimodal_target_support(accepted, config)
-    validate_swebench_environment_for_items(accepted, config)
     results: list[ItemResult] = []
     if config.run_targets and config.targets:
         total = len(accepted) * len(config.targets)
@@ -781,35 +656,23 @@ def run_eval(
                     on_progress(done, total, target.id, item.id)
                 results.append(_run_item(item, config, target.id))
     summaries = _summarize(dataset, results, config)
-    return EvalRun(dataset=dataset, qc_report=qc_report, results=results, summaries=summaries)
+    return EvalRun(
+        dataset=dataset,
+        qc_report=qc_report,
+        results=results,
+        summaries=summaries,
+        runner_artifacts={
+            "judge": {"double_pass_enabled": bool(config.judge_double_pass)},
+            "execution_plan": {
+                "accepted_item_ids": list(execution_plan.accepted_item_ids),
+                "rejected_item_ids": list(execution_plan.rejected_item_ids),
+            },
+        },
+    )
 
 
-# Compatibility wrappers for older imports.
-def run_question(item: BenchmarkItem, config: BenchmarkConfig) -> ItemResult:
+def run_item(item: BenchmarkItem, config: BenchmarkConfig) -> ItemResult:
     if not config.targets:
         raise ValueError("BenchmarkConfig.targets is empty")
     validate_multimodal_target_support([item], config)
     return _run_item(item, config, config.targets[0].id)
-
-
-def run_benchmark(
-    items: list[BenchmarkItem],
-    config: BenchmarkConfig,
-    on_progress: Callable[[int, int, str, str], None] | None = None,
-) -> list[ItemResult]:
-    dimension_ids = sorted({item.dimension_id for item in items})
-    spec = EvalSpec(
-        objective="Compatibility benchmark",
-        dimensions=[
-            {
-                "id": dimension_id,
-                "name": dimension_id,
-                "description": "",
-                "approach": "",
-            }
-            for dimension_id in dimension_ids
-        ],
-    )
-    dataset = BenchmarkDataset(spec=spec, items=items)
-    qc_report = QcReport(passed_item_ids=[item.id for item in items])
-    return run_eval(dataset, qc_report, config, on_progress=on_progress).results

@@ -13,12 +13,17 @@ coverage. Also perform meta-evaluation:
 - Do the dimensions genuinely match the objective and user need?
 - Are the task types, source strategy, and scoring method appropriate?
 - Are there obvious omissions, content drift, shallow coverage, judge
-  overreliance, or bias introduced by difficulty/source choices?
+  overreliance, or bias introduced by source choices?
+- challenge_effort is a task-builder effort instruction, not an absolute
+  challenge-effort claim. Do not create QC issues merely because an item looks easier
+  than its challenge_effort; builder-level self-assessment handles that before
+  this QC gate.
 - If an existing benchmark/source is needed, did the dataset use appropriate,
   hard, authoritative sources?
 
 For task_type=agent_interaction with metadata.agent_env.type=code_sandbox:
 - visible_files are available to the target through file tools.
+- runtime_files are available to setup/runtime but protected from target file tools.
 - hidden_files are intentionally not readable by the target but are available
   to the EvaluationClaw execution environment through run_tests.
 - Do not mark the item unexecutable merely because hidden tests are hidden from
@@ -39,6 +44,35 @@ For task_type=agent_interaction with metadata.agent_env.type=docker_workspace:
 - Deterministic scoring may be binary or numeric partial-credit scoring such as
   0/0.5/1. Partial criteria are not incompatible with deterministic scoring
   when the evaluator has explicit checks for those levels.
+- Cross-check the complete execution chain rather than accepting populated
+  fields independently: target prompt -> actually exposed tools -> resettable
+  initial environment -> setup/start commands -> target-produced final state or
+  artifact -> runner-private evaluator. Report an error if any link is missing
+  or contradictory.
+- A prompt must not claim that browser, MCP, API, database, or other custom
+  tools are available unless agent_env configures a runtime that actually
+  exposes them. For EvaluationClaw's Docker text-browser runtime, browser.enabled
+  must be true with runtime=playwright_python, start_url, allowed_origins, and a
+  Playwright-ready image or image build.
+- Check that setup_commands are feasible under the declared image and network
+  policy, start required local services before the target begins, use paths
+  consistent with the container workdir, and leave the evaluator runtime
+  available. A network=none task cannot fetch pip/npm/apt dependencies during
+  setup; those dependencies must already exist in the image or image_build.
+- Reject setup_commands that reference hidden_files or /tmp/hidden_files. Any
+  server/application asset needed before target execution belongs in
+  runtime_files.
+- Hidden evaluators may start or inspect services when needed, but must not
+  perform, simulate, or replay the target agent's required state-changing
+  actions. They must score the state/artifacts/final answer actually left by the
+  target. Treat an evaluator that creates the expected state itself as an error.
+- Compare prompt outputs with output_contract, expected_artifacts, scoring, and
+  evaluator inputs. Treat an undeclared required file/state or an instructed
+  output that the evaluator ignores as an error.
+- Metadata file fields may contain explicitly labelled QC review excerpts.
+  Use them to inspect dependency, setup, and evaluator consistency, but do not
+  infer that canonical files are truncated merely because the QC copy is an
+  excerpt.
 
 For task_type=multi_turn or task_type=agent_interaction:
 - If metadata.agent_structure_validation.status is "passed", the task has
@@ -98,7 +132,7 @@ Return pure JSON only, with no markdown. Format:
 }
 
 severity must be one of info/warning/error.
-category must be one of schema/duplicate/scoring/clarity/coverage/difficulty.
+category must be one of schema/duplicate/scoring/clarity/coverage.
 Mark error only for issues that make an item unexecutable or make the answer
 clearly unreliable.
 """

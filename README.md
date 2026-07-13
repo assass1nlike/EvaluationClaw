@@ -8,7 +8,7 @@ It currently supports:
 - Planner-driven `EvalSpec` generation from vague goals.
 - **Deep research** (`--deep-research`): a bounded search→compress→reflect loop that
   turns a vague field into a structured `ResearchBrief` (taxonomy, existing benchmarks
-  and their weaknesses, seed sources, difficulty anchors, citations) that grounds the
+  and their weaknesses, seed sources, challenge-effort anchors, citations) that grounds the
   planner and generator.
 - Pluggable web-search backends (`--search-backend auto|gemini|keyless|none`):
   Gemini Google-Search grounding when `GEMINI_API_KEY` is set, or a key-free
@@ -30,7 +30,7 @@ It currently supports:
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
-pip install -e ".[dev]"          # + extras as needed: .[datasets], .[lm-eval], .[swebench]
+pip install -e ".[dev]"          # + extras as needed: .[datasets], .[lm-eval]
 ```
 
 or with uv:
@@ -114,6 +114,33 @@ DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   --loop3-diagnosis local \
   --loop3-max-actions 3
 ```
+
+### Custom endpoints and multiple targets
+
+An Anthropic-compatible Claude/Claude Code endpoint can be used for the
+orchestrator with its native `/v1/messages` protocol:
+
+```bash
+evalclaw generate \
+  --orchestrator-model claude-sonnet-4-6 \
+  --orchestrator-provider anthropic \
+  --orchestrator-base-url https://claude-gateway.example/v1 \
+  --api-key "$CLAUDE_GATEWAY_KEY"
+```
+
+For multiple targets with independent protocols, endpoints, and credentials,
+repeat `--target-config`. Supplying this option replaces `--model` and
+`--compare` target selection:
+
+```bash
+evalclaw generate \
+  --target-config '{"id":"relay","model":"model-a","provider":"openai_compatible","base_url":"https://relay.example/v1","api_key_env":"RELAY_KEY"}' \
+  --target-config '{"id":"claude","model":"claude-sonnet-4-6","protocol":"anthropic","base_url":"https://claude.example/v1","api_key_env":"CLAUDE_KEY"}'
+```
+
+Use `provider: "openai_compatible"` explicitly when a Claude-named model is
+served by an OpenAI-compatible relay. Without that override, `claude*` models
+with a custom base URL use the native Anthropic protocol.
 
 ## Experiments
 

@@ -1,4 +1,4 @@
-"""Data-analysis fallback agent tasks."""
+﻿"""Data-analysis fallback agent tasks."""
 from __future__ import annotations
 
 import json
@@ -390,14 +390,13 @@ def _data_analysis_task_for_blueprint(
         expected_artifacts.append("workflow_manifest.json")
         expected_artifacts = list(dict.fromkeys(expected_artifacts))
     return AgentTask(
-        id=_task_id(dimension, blueprint.task_family, index),
+        id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
         title=_task_title(blueprint, index),
         description=(
             "A data-analysis task that requires inspecting a local dataset, computing aggregate metrics, "
             "and encoding the result in a deterministic answer function."
         ),
-        task_family=blueprint.task_family,
         prompt=str(variant["prompt"]),
         system_prompt=_agent_system_prompt(env_type.value),
         environment=AgentEnvironmentSpec(
@@ -439,6 +438,6 @@ def _data_analysis_task_for_blueprint(
             partial_criteria="Some metrics are correct but at least one aggregation is wrong.",
             fail_criteria="The agent does not inspect or compute from the dataset.",
         ),
-        difficulty=dimension.target_difficulty,
-        tags=[dimension.id, blueprint.task_family.value, "data_analysis", env_type.value],
+        challenge_effort=dimension.challenge_effort,
+        tags=[dimension.id, "data_analysis", env_type.value],
     )

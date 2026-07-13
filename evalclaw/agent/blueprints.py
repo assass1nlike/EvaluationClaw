@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 
-from ..types import AgentEnvironmentType, AgentTaskBlueprint, AgentTaskFamily, EvalDimension
+from ..types import AgentEnvironmentType, AgentTaskBlueprint, EvalDimension
 from .goal_detection import (
     _contains_any,
     _goal_mentions_blender,
@@ -13,7 +13,6 @@ from .goal_detection import (
     _goal_mentions_multi_industrial_workflow,
     _goal_mentions_runtime_pipeline,
     _mentions_app_state_workflow,
-    _runtime_task_family,
 )
 
 
@@ -34,7 +33,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} industrial multi-app workflow",
             description=f"VM-backed multi-application industrial software workflow tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.desktop_software,
             environment_type=AgentEnvironmentType.gui_desktop,
             expected_task_count=1,
             resource_queries=[
@@ -78,7 +76,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} office desktop workflow",
             description=f"VM-backed office application artifact-editing tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.desktop_software,
             environment_type=AgentEnvironmentType.gui_desktop,
             expected_task_count=1,
             resource_queries=[f"{dimension.name} OSWorld office GUI task", f"{dimension.name} desktop artifact evaluator"],
@@ -109,7 +106,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} creative desktop workflow",
             description=f"VM-backed image/media editing tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.desktop_software,
             environment_type=AgentEnvironmentType.gui_desktop,
             expected_task_count=1,
             resource_queries=[f"{dimension.name} OSWorld GIMP VLC task", f"{dimension.name} desktop media evaluator"],
@@ -136,7 +132,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} application state workflow",
             description=f"VM-backed browser/email/IDE state-management tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.gui_desktop,
             environment_type=AgentEnvironmentType.gui_desktop,
             expected_task_count=1,
             resource_queries=[f"{dimension.name} OSWorld application state task"],
@@ -177,7 +172,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} professional provenance workflow",
             description=f"Docker-backed professional task with provenance and hidden grading for {dimension.name}.",
-            task_family=AgentTaskFamily.data_analysis,
             environment_type=AgentEnvironmentType.docker_workspace,
             expected_task_count=1,
             resource_queries=[
@@ -209,7 +203,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} professional executable pipeline",
             description=f"Docker-backed professional data/workflow pipeline tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.data_analysis,
             environment_type=AgentEnvironmentType.docker_workspace,
             expected_task_count=1,
             resource_queries=[f"{dimension.name} ALE data pipeline task", f"{dimension.name} hidden reference grader"],
@@ -238,7 +231,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} professional artifact workflow",
             description=f"VM-backed professional artifact reconstruction tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.desktop_software,
             environment_type=AgentEnvironmentType.gui_desktop,
             expected_task_count=1,
             resource_queries=[
@@ -270,7 +262,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} industrial multi-app workflow",
             description=f"VM-backed multi-application industrial software workflow tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.desktop_software,
             environment_type=AgentEnvironmentType.gui_desktop,
             expected_task_count=1,
             resource_queries=[
@@ -314,7 +305,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} browser GUI",
             description=f"Browser-mediated GUI tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.browser_gui,
             environment_type=AgentEnvironmentType.gui_desktop,
             expected_task_count=1,
             resource_queries=[f"{dimension.name} browser GUI benchmark"],
@@ -358,7 +348,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} {title_suffix}",
             description=f"Desktop application tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.desktop_software,
             environment_type=AgentEnvironmentType.gui_desktop,
             expected_task_count=1,
             resource_queries=[source_query],
@@ -386,7 +375,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             dimension_id=dimension.id,
             title=f"{dimension.name} GUI desktop",
             description=f"General GUI desktop tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.gui_desktop,
             environment_type=AgentEnvironmentType.gui_desktop,
             expected_task_count=1,
             resource_queries=[f"{dimension.name} GUI desktop benchmark"],
@@ -413,50 +401,12 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             ],
             scoring_strategy="Bridge-backed GUI state scoring or artifact evaluation.",
         )
-    if any(keyword in identity for keyword in ("code", "repo", "debug", "repair", "test", "python")):
-        return AgentTaskBlueprint(
-            id=f"{dimension.id}_code_blueprint",
-            dimension_id=dimension.id,
-            title=f"{dimension.name} code repair",
-            description=f"Executable code-repair tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.code_repair,
-            environment_type=AgentEnvironmentType.code_sandbox,
-            expected_task_count=1,
-            resource_queries=[f"{dimension.name} bug report", f"{dimension.name} failing tests"],
-            source_strategy="Use a compact repository or synthetic repair fixture.",
-            tool_requirements=["read_file", "write_file", "run_tests"],
-            construction_requirements=[
-                "Include complete visible files and hidden tests.",
-                "Make the failure mode discoverable from the visible state.",
-            ],
-            scoring_strategy="Deterministic hidden tests with partial credit for meaningful progress.",
-        )
-    if any(keyword in identity for keyword in ("dialogue", "conversation", "chat", "multi-turn", "multi turn")):
-        return AgentTaskBlueprint(
-            id=f"{dimension.id}_dialogue_blueprint",
-            dimension_id=dimension.id,
-            title=f"{dimension.name} dialogue task",
-            description=f"Multi-turn agent interaction tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.multi_turn_delegation,
-            environment_type=AgentEnvironmentType.dialogue,
-            expected_task_count=1,
-            resource_queries=[f"{dimension.name} dialogue benchmark"],
-            source_strategy="Use a scripted dialogue or task-specific user simulator.",
-            tool_requirements=["multi-turn conversation"],
-            construction_requirements=[
-                "Specify the initial user request and follow-up turns clearly.",
-                "Define pass/fail/partial scoring for the transcript.",
-            ],
-            scoring_strategy="Transcript-based judge scoring.",
-        )
     if _goal_mentions_runtime_pipeline(full_text):
-        task_family = _runtime_task_family(full_text)
         return AgentTaskBlueprint(
-            id=f"{dimension.id}_{task_family.value}_blueprint",
+            id=f"{dimension.id}_runtime_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} executable workflow",
             description=f"Docker-backed executable workflow tasks for {dimension.name}.",
-            task_family=task_family,
             environment_type=AgentEnvironmentType.docker_workspace,
             expected_task_count=1,
             resource_queries=[
@@ -475,13 +425,46 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             ],
             scoring_strategy="Deterministic hidden evaluator over produced files, structured outputs, logs, or numerical tolerances.",
         )
+    if any(keyword in identity for keyword in ("code", "repo", "debug", "repair", "test", "python")):
+        return AgentTaskBlueprint(
+            id=f"{dimension.id}_code_blueprint",
+            dimension_id=dimension.id,
+            title=f"{dimension.name} code repair",
+            description=f"Executable code-repair tasks for {dimension.name}.",
+            environment_type=AgentEnvironmentType.code_sandbox,
+            expected_task_count=1,
+            resource_queries=[f"{dimension.name} bug report", f"{dimension.name} failing tests"],
+            source_strategy="Use a compact repository or synthetic repair fixture.",
+            tool_requirements=["read_file", "write_file", "run_tests"],
+            construction_requirements=[
+                "Include complete visible files and hidden tests.",
+                "Make the failure mode discoverable from the visible state.",
+            ],
+            scoring_strategy="Deterministic hidden tests with partial credit for meaningful progress.",
+        )
+    if any(keyword in identity for keyword in ("dialogue", "conversation", "chat", "multi-turn", "multi turn")):
+        return AgentTaskBlueprint(
+            id=f"{dimension.id}_dialogue_blueprint",
+            dimension_id=dimension.id,
+            title=f"{dimension.name} dialogue task",
+            description=f"Multi-turn agent interaction tasks for {dimension.name}.",
+            environment_type=AgentEnvironmentType.dialogue,
+            expected_task_count=1,
+            resource_queries=[f"{dimension.name} dialogue benchmark"],
+            source_strategy="Use a scripted dialogue or task-specific user simulator.",
+            tool_requirements=[],
+            construction_requirements=[
+                "Specify the initial user request and follow-up turns clearly.",
+                "Define pass/fail/partial scoring for the transcript.",
+            ],
+            scoring_strategy="Transcript-based judge scoring.",
+        )
     if any(keyword in full_text for keyword in ("browser", "web", "search", "research", "api", "tool")):
         return AgentTaskBlueprint(
             id=f"{dimension.id}_tool_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} tool use",
             description=f"Tool-using agent tasks for {dimension.name}.",
-            task_family=AgentTaskFamily.api_tool_use,
             environment_type=AgentEnvironmentType.workspace,
             expected_task_count=1,
             resource_queries=[f"{dimension.name} tool use benchmark"],
@@ -498,7 +481,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
         dimension_id=dimension.id,
         title=dimension.name,
         description=dimension.description,
-        task_family=AgentTaskFamily.custom,
         environment_type=AgentEnvironmentType.workspace,
         expected_task_count=1,
         resource_queries=[f"{dimension.name} agent task"],

@@ -32,7 +32,7 @@ You must cover these 6 checklist items:
 1. objective: what capability or behavior is being evaluated
 2. subjects: which models or model families are being evaluated
 3. format: task types and task forms
-4. content: dimensions, subdomains, and target difficulty
+4. content: dimensions, subdomains, and challenge effort
 5. scale: evaluation size
 6. metrics: metrics such as accuracy, exact_match, judge_score, pass@1
 
@@ -55,7 +55,7 @@ Return pure JSON only, with no markdown. Format:
         "description": "...",
         "approach": "...",
         "weight": 1.0,
-        "target_difficulty": "L4",
+        "challenge_effort": "E3",
         "needs_research": true,
         "research_queries": ["..."],
         "target_item_count": 4,
@@ -99,8 +99,8 @@ Requirements:
 - If you choose search/research_queries, prefer harder, authoritative,
   reproducible benchmarks/sources that match the user need. Do not introduce
   content drift merely to find a source.
-- If the model can reliably generate relevant high-difficulty items and existing
-  resources would reduce relevance or difficulty, set needs_research=false.
+- If the model can reliably generate relevant high-complexity items and existing
+  resources would reduce relevance or task challenge, set needs_research=false.
 - Multi-turn dialogue capabilities may use task_type "multi_turn". Agent or
   tool-interaction capabilities may use task_type "agent_interaction".
 - Only create non-text or multimodal dimensions when the user explicitly asks to
@@ -162,27 +162,25 @@ Requirements:
   checks. If using KiCad/FreeCAD/Blender on a base Ubuntu VM, require
   vm_provisioning for those packages rather than assuming a preinstalled image.
   Do not reduce the request to single-application CAD questions.
-- Do not design a difficulty ladder or drift away from the requested content just
-  to include hard tasks. Within content that matches the user need, target the
-  hardest suitable difficulty.
-- target_difficulty is the intended difficulty for the dimension. Usually use L4;
-  use L5 for expert, long-horizon, or complex interaction evaluations; use L3
-  only for basic smoke dimensions.
+- challenge_effort directly controls the construction and reasoning burden. It tells item builders
+  how much effort to spend making tasks challenging, relative to the builder
+  model's own ability:
+  - E1: easily generate simple, direct tasks.
+  - E2: think and plan moderately; create nontrivial tasks with some edge cases.
+  - E3: use high effort and detailed planning; create tasks the builder itself
+    considers difficult, with realistic constraints and stronger oracles.
+  - E4: use maximum effort, budget, planning depth, and external research/tool
+    use when useful; push to the builder's own upper limit for task challenge.
+- Do not design an artificial ladder or drift away from the requested content
+  just to make tasks hard. Within content that matches the user need, choose
+  the highest suitable challenge_effort.
 - scale_budget is the global relative budget specified by the user and must be
   one of low/mid/high/large/xlarge. Do not change it.
-- scale is your estimate of the simple-equivalent workload, not a raw item count.
-  Simple yes_no/multiple_choice/short_answer items are roughly 1 unit; open_generation
-  is roughly 2; code_execution/pairwise roughly 3; multi_turn roughly 5;
-  agent_interaction roughly 8; docker_workspace roughly 15; SWE-bench-style
-  tasks roughly 30+.
-- Treat the budget as a rough anchor rather than a hard quota: LOW is about 100
-  simple-equivalent units, MID about 500, HIGH about 1,000, LARGE about 5,000,
-  and XLARGE about 20,000. Adjust up or down when the objective naturally needs
-  less or more breadth.
-- Treat task types as having different workload weights. A single multi_turn,
-  agent_interaction, code_sandbox, docker_workspace, or SWE-bench item can represent
-  more evaluation depth than many simple multiple_choice items. Choose the task-type
-  mix that best fits the objective instead of forcing the same count across all types.
+- scale is the planned raw item count. LOW is about 100 items, MID about 500,
+  HIGH about 1,000, LARGE about 5,000, and XLARGE about 20,000. Do not apply
+  task-type, environment, agent, or benchmark-specific multipliers.
+- Allocate the raw item count across dimensions according to coverage needs and
+  weights. If the user gives an explicit item/task count, preserve that count.
 - For LARGE and XLARGE plans, favor source-backed/imported datasets and stratified
   sampling. Use model-generated items mainly for under-covered slices, scarce domains,
   and targeted adversarial or edge-case coverage.

@@ -72,6 +72,7 @@ Return JSON:
       "name": "...",
       "description": "...",
       "approach": "...",
+      "challenge_effort": "E3",
       "target_item_count": 3,
       "target_source_backed_count": 0,
       "target_generated_count": 3,
@@ -85,6 +86,7 @@ Return JSON:
       "name": "...",
       "description": "...",
       "approach": "...",
+      "challenge_effort": "E3",
       "target_item_count": 2,
       "task_types": ["open_generation"],
       "item_requirements": ["..."]

@@ -24,6 +24,14 @@ from ..types import (
 from .common import _issue
 
 
+def _file_review_excerpt(content: object, limit: int = 3000) -> str:
+    text = str(content or "")
+    if len(text) <= limit:
+        return text
+    half = max(1, limit // 2)
+    return text[:half] + "\n... QC REVIEW EXCERPT ...\n" + text[-half:]
+
+
 def _compact_metadata_for_qc(metadata: dict) -> dict:
     """Keep QC context small while preserving executable environment facts."""
     if not metadata:
@@ -32,9 +40,62 @@ def _compact_metadata_for_qc(metadata: dict) -> dict:
     env = metadata.get("agent_env")
     if isinstance(env, dict):
         env_summary: dict = {}
-        for key in ("type", "max_steps", "test_command", "start_room"):
+        for key in (
+            "type",
+            "image",
+            "network",
+            "workdir",
+            "max_steps",
+            "timeout",
+            "test_command",
+            "start_room",
+            "notes",
+        ):
             if key in env:
-                env_summary[key] = env[key]
+                env_summary[key] = str(env[key])[:1600] if key == "notes" else env[key]
+        setup_commands = env.get("setup_commands")
+        if isinstance(setup_commands, list):
+            env_summary["setup_commands"] = [str(command)[:1200] for command in setup_commands[:12]]
+        tools = env.get("tools")
+        if isinstance(tools, list):
+            env_summary["declared_tools"] = [
+                {
+                    "name": str(tool.get("name") or ""),
+                    "description": str(tool.get("description") or "")[:400],
+                }
+                for tool in tools[:20]
+                if isinstance(tool, dict)
+            ]
+        browser = env.get("browser")
+        if isinstance(browser, dict):
+            env_summary["browser"] = {
+                key: browser[key]
+                for key in (
+                    "enabled",
+                    "runtime",
+                    "start_url",
+                    "allowed_origins",
+                    "executable_path",
+                    "workspace_tools",
+                    "allow_workspace_tools",
+                )
+                if key in browser
+            }
+        image_build = env.get("image_build")
+        if isinstance(image_build, dict) and image_build.get("enabled"):
+            env_summary["image_build"] = {
+                key: image_build[key]
+                for key in (
+                    "enabled",
+                    "base_image",
+                    "system_packages",
+                    "python_packages",
+                    "node_packages",
+                    "commands",
+                    "dockerfile",
+                )
+                if key in image_build
+            }
         for key in ("visible_files", "files", "hidden_files"):
             files = env.get(key)
             if isinstance(files, dict):
@@ -44,6 +105,10 @@ def _compact_metadata_for_qc(metadata: dict) -> dict:
                     "Full file contents are omitted from the LLM QC sample to avoid "
                     "confusing compact excerpts with task truncation."
                 )
+                env_summary[f"{key}_review_excerpts"] = {
+                    str(path): _file_review_excerpt(content)
+                    for path, content in list(files.items())[:4]
+                }
         for key in ("rooms", "goal"):
             value = env.get(key)
             if isinstance(value, dict):
@@ -116,15 +181,15 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
         return issue
     message = issue.message.lower()
     if isinstance(env.get("hidden_files"), dict) and env.get("test_command"):
-        false_positive_markers = (
-            "hidden",
-            "not visible",
-            "not accessible",
-            "unverifiable",
-            "unexecutable",
-            "may not be able to run",
+        false_positive_phrases = (
+            "hidden tests are not visible",
+            "hidden files are not visible",
+            "target cannot access the hidden",
+            "agent cannot access the hidden",
+            "hidden tests are not accessible to the target",
+            "hidden files are not accessible to the target",
         )
-        if "hidden" in message and any(marker in message for marker in false_positive_markers):
+        if any(phrase in message for phrase in false_positive_phrases):
             return issue.model_copy(
                 update={
                     "severity": QcSeverity.warning,
@@ -133,51 +198,6 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
                         + " Note: EvaluationClaw runner-private hidden files are executable "
                         "through test_command after the target agent finishes; this was "
                         "demoted from an LLM QC blocking error."
-                    ),
-                }
-            )
-    if (
-        "deterministic" in message
-        and "partial" in message
-        and any(level in message for level in ("0.5", "partial credit", "partial condition"))
-    ):
-        return issue.model_copy(
-            update={
-                "severity": QcSeverity.warning,
-                "message": (
-                    issue.message
-                    + " Note: EvaluationClaw deterministic evaluators may return fixed "
-                    "numeric partial-credit levels such as 0/0.5/1; this was demoted from "
-                    "an LLM QC blocking error."
-                ),
-            }
-        )
-    task_agent = item.metadata.get("task_agent")
-    scoring = task_agent.get("scoring") if isinstance(task_agent, dict) else None
-    if isinstance(scoring, dict) and ("partial" in message or "0.5" in message):
-        pass_fail = scoring.get("pass_fail") if isinstance(scoring.get("pass_fail"), dict) else {}
-        levels = scoring.get("levels") if isinstance(scoring.get("levels"), dict) else {}
-        partial_text = str(pass_fail.get("partial") or scoring.get("partial_criteria") or "").strip().lower()
-        has_partial = bool(partial_text) and partial_text not in {
-            "not applicable",
-            "n/a",
-            "na",
-            "none",
-            "no partial credit",
-            "not used",
-        }
-        has_partial_level = "0.5" in {str(key) for key in levels} or "partial" in {
-            str(value).lower() for value in levels.values()
-        }
-        if has_partial and has_partial_level:
-            return issue.model_copy(
-                update={
-                    "severity": QcSeverity.warning,
-                    "message": (
-                        issue.message
-                        + " Note: The structured task_agent.scoring metadata includes both "
-                        "partial criteria and a partial score level; this was demoted from "
-                        "an LLM QC blocking error."
                     ),
                 }
             )
@@ -232,7 +252,7 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
             "id": item.id,
             "dimension_id": item.dimension_id,
             "task_type": item.task_type.value,
-            "difficulty": item.difficulty.value,
+            "challenge_effort": item.challenge_effort.value,
             "prompt": item.prompt[:1200],
             "choices": item.choices,
             "answer": item.answer,
@@ -268,6 +288,7 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
             model=config.orchestrator_model,
             api_key=config.orchestrator_api_key,
             base_url=config.orchestrator_base_url,
+            provider=config.orchestrator_provider,
             backend=config.llm_backend,
             max_tokens=4096,
         )

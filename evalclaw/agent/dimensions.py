@@ -1,12 +1,18 @@
-"""Agent benchmark dimension parsing and local fallback dimensions."""
+﻿"""Agent benchmark dimension parsing and local fallback dimensions."""
 from __future__ import annotations
 
 from typing import Any
 
-from ..core.scaling import scale_budget_target_workload
-from ..generation.generator import _safe_difficulty as _item_safe_difficulty
+from ..core.scaling import scale_budget_target_items
 from ..generation.generator import _safe_task_type as _item_safe_task_type
-from ..types import Difficulty, EvalDimension, EvalSpec, ScaleBudget, TaskType
+from ..types import (
+    ChallengeEffort,
+    EvalDimension,
+    EvalSpec,
+    ScaleBudget,
+    TaskType,
+    safe_challenge_effort,
+)
 from .common import _safe_optional_int, _safe_scale_budget, _slug
 from .goal_detection import (
     _goal_mentions_ale_style,
@@ -27,13 +33,18 @@ def _parse_dimensions(data: list[dict[str, Any]] | dict[str, Any], goal: str, sc
         dims = spec_data.get("dimensions", []) if isinstance(spec_data.get("dimensions"), list) else []
         task_types = spec_data.get("task_types", ["agent_interaction"])
         objective = str(spec_data.get("objective") or goal)
-        scale = int(spec_data.get("scale") or scale_budget_target_workload(scale_budget))
+        scale = int(spec_data.get("scale") or scale_budget_target_items(scale_budget))
         critique = spec_data.get("critique") if isinstance(spec_data.get("critique"), dict) else {}
         dimensions: list[EvalDimension] = []
         for idx, raw in enumerate(dims, 1):
             if not isinstance(raw, dict):
                 continue
             dim_id = str(raw.get("id") or f"dimension_{idx}")
+            challenge_effort = safe_challenge_effort(
+                raw.get("challenge_effort")
+                or raw.get("target_challenge_effort")
+                or raw.get("task_builder_effort")
+            )
             dimensions.append(
                 EvalDimension(
                     id=dim_id,
@@ -41,7 +52,7 @@ def _parse_dimensions(data: list[dict[str, Any]] | dict[str, Any], goal: str, sc
                     description=str(raw.get("description") or ""),
                     approach=str(raw.get("approach") or ""),
                     weight=float(raw.get("weight", 1.0) or 1.0),
-                    target_difficulty=_item_safe_difficulty(raw.get("target_difficulty"), Difficulty.L4),
+                    challenge_effort=challenge_effort,
                     needs_research=bool(raw.get("needs_research", False)),
                     research_queries=[str(q) for q in raw.get("research_queries", []) if q],
                     target_item_count=_safe_optional_int(raw.get("target_item_count")),
@@ -82,7 +93,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Use VM-backed LibreOffice/office-style tasks with staged files, exact expected values or "
                     "format changes, and hidden artifact checks."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 needs_research=True,
                 research_queries=[
                     "OSWorld LibreOffice Calc Writer Impress task evaluator examples",
@@ -106,7 +117,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Use VM-backed image/media tasks with visible source assets, requested edits/settings, and "
                     "hidden checks over exported files or app preferences."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Construct a desktop image/media editing task with concrete visible assets.",
@@ -125,7 +136,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Use VM-backed browser, Thunderbird, VS Code, or settings tasks with local fixtures and state "
                     "or command-line evaluators."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Define initial application state and exact target preference/extension/page state.",
@@ -147,7 +158,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Use VM-backed engineering, visual-media, or design tasks with staged references, required "
                     "deliverables, and deterministic or calibrated artifact graders."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 needs_research=True,
                 research_queries=[
                     "Agents Last Exam visual media engineering artifact reconstruction task",
@@ -171,7 +182,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Use Docker-backed scientific, financial, security, or health data workflows with compact "
                     "fixtures and hidden reference checks."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Construct a docker_workspace task with visible data/config/docs and a hidden evaluator.",
@@ -190,7 +201,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Require output manifests, logs, and artifacts that the grader can compare against hidden "
                     "reference data, numerical tolerances, or schema rules."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Require a machine-readable workflow manifest or report with artifact provenance.",
@@ -212,7 +223,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Use Docker-backed data-analysis tasks with compact biological fixtures, visible contracts, "
                     "runner-private reference outputs, and deterministic checks."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 needs_research=True,
                 research_queries=[
                     "life science agent benchmark structured data analysis hidden reference outputs",
@@ -236,7 +247,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                 approach=(
                     "Require reproducible manifests, input/output declarations, and hidden schema/numerical checks."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Require a machine-readable workflow manifest or provenance report.",
@@ -258,7 +269,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Use VM-backed or desktop-tool-backed engineering artifact tasks with visible manifests, "
                     "required deliverables, validation reports, and hidden semantic checks."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 needs_research=True,
                 research_queries=[
                     "engineering agent benchmark artifact reconstruction structured metadata hidden checks",
@@ -282,7 +293,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                 approach=(
                     "Require structured validation evidence, provenance records, and hidden artifact/metadata checks."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Require a workflow manifest or validation report tied to the produced engineering artifact.",
@@ -304,7 +315,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Use executable VM/Docker tasks with visible inputs, concrete deliverables, hidden references, "
                     "and artifact/provenance scoring."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 needs_research=True,
                 research_queries=[
                     "professional agent benchmark executable artifact hidden deterministic checks",
@@ -327,7 +338,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                 approach=(
                     "Use Docker-backed fixtures with visible docs/configs, private reference outputs, and reproducible tests."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Construct a docker_workspace task with visible data/config/docs and a hidden evaluator.",
@@ -345,7 +356,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                 approach=(
                     "Require output manifests, logs, artifacts, and hidden schema/numerical/artifact checks."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Require a machine-readable workflow manifest or report with artifact provenance.",
@@ -367,7 +378,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Use VM-backed workflows where one application produces an intermediate artifact that must be "
                     "opened, checked, and transformed by another application."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 needs_research=True,
                 research_queries=[
                     "KiCad FreeCAD Blender PCB enclosure workflow",
@@ -391,7 +402,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Provide compact design briefs and hidden reference constraints; score final artifacts and a "
                     "workflow manifest against clearance, placement, units, and review requirements."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Include design constraints that require cross-checking between EDA/CAD/rendering stages.",
@@ -410,7 +421,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     "Require launch/use of multiple desktop applications, artifact export/import, final review "
                     "outputs, and deterministic bridge or artifact evaluation."
                 ),
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "The environment must declare VM/session/software requirements for the full application stack.",
@@ -426,7 +437,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                 name="Desktop state grounding",
                 description=f"Measure whether the agent can inspect and understand GUI/software state for: {goal}",
                 approach="Use VM/bridge-backed desktop tasks with screenshots, files, assets, and explicit session state.",
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 needs_research=True,
                 research_queries=[f"{goal} desktop agent benchmark task", f"{goal} reference artifact evaluation"],
                 task_types=[TaskType.agent_interaction],
@@ -440,7 +451,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                 name="Artifact workflow execution",
                 description=f"Measure whether the agent can complete a professional software workflow and produce artifacts for: {goal}",
                 approach="Require multi-step GUI/tool use, saved files, exported artifacts, and deterministic artifact checks.",
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Require the target to produce concrete files or GUI state, not only a textual summary.",
@@ -455,7 +466,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     f"the oracle for: {goal}"
                 ),
                 approach="Use hidden references, evaluator scripts, artifact metrics, and trace checks.",
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Keep reference artifacts and evaluator internals runner-private.",
@@ -470,7 +481,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                 name="Resource-grounded pipeline setup",
                 description=f"Measure whether the agent can inspect domain resources, configs, data, and docs for: {goal}",
                 approach="Use Docker-backed tasks with compact source-backed files and realistic setup commands.",
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 needs_research=True,
                 research_queries=[f"{goal} benchmark dataset", f"{goal} reproducible workflow"],
                 task_types=[TaskType.agent_interaction],
@@ -487,7 +498,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     f"the workflow for: {goal}"
                 ),
                 approach="Require command execution, log inspection, edits or parameter choices, and reruns.",
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "The task must require at least one executable run/test/evaluation step.",
@@ -502,7 +513,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
                     f"for: {goal}"
                 ),
                 approach="Use hidden evaluator files or tests over produced JSON/CSV/reports/artifacts.",
-                target_difficulty=Difficulty.L5,
+                challenge_effort=ChallengeEffort.E4,
                 task_types=[TaskType.agent_interaction],
                 item_requirements=[
                     "Define output_contract, hidden_references, evaluation checks, and artifact_collection.",
@@ -516,7 +527,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             name="Tool use and action selection",
             description=f"Measure whether the agent can use tools correctly for: {goal}",
             approach="Create realistic action-observation tasks with clear tool affordances.",
-            target_difficulty=Difficulty.L4,
+            challenge_effort=ChallengeEffort.E3,
             task_types=[TaskType.agent_interaction],
             item_requirements=[
                 "Test valid tool use, state tracking, and recovery from invalid actions.",
@@ -528,7 +539,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             name="Recovery and iteration",
             description="Measure whether the agent can inspect failures and revise its strategy.",
             approach="Use environments where the first attempt often fails and revision is required.",
-            target_difficulty=Difficulty.L4,
+            challenge_effort=ChallengeEffort.E3,
             task_types=[TaskType.agent_interaction],
             item_requirements=[
                 "Require the agent to inspect feedback and adapt.",
@@ -540,7 +551,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             name="Grounding in resources",
             description="Measure whether the agent can exploit real resources or structured task context.",
             approach="Use docs, repositories, or issue-like materials as the basis for tasks.",
-            target_difficulty=Difficulty.L4,
+            challenge_effort=ChallengeEffort.E3,
             needs_research=True,
             task_types=[TaskType.agent_interaction, TaskType.multi_turn],
             item_requirements=[

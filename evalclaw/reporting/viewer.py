@@ -8,7 +8,6 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
-from ..core.scaling import simple_equivalent_workload
 from ..types import BenchmarkItem, BenchmarkPackage, SourceKind, TaskType
 from .reporter import _is_safety_eval, _is_source_backed, _risk_labels, _risk_severity
 from .viewer_template import HTML_TEMPLATE
@@ -167,7 +166,7 @@ def _result_records(pkg: BenchmarkPackage) -> list[dict[str, Any]]:
                 "raw_response": _clip(result.raw_response, 60000),
                 "dimension_id": item.dimension_id if item else "-",
                 "task_type": item.task_type.value if item else "-",
-                "difficulty": item.difficulty.value if item else "-",
+                "challenge_effort": item.challenge_effort.value if item else "-",
                 "prompt": _clip(item.prompt, 30000) if item else "",
                 "rubric": _clip(item.rubric or "", 20000) if item else "",
                 "answer": item.answer if item else None,
@@ -182,6 +181,31 @@ def _result_records(pkg: BenchmarkPackage) -> list[dict[str, Any]]:
             }
         )
     return records
+
+
+def _planned_uses_llm_judge(item: BenchmarkItem) -> bool:
+    """Whether this item's runner path needs an LLM judge for scoring."""
+    if item.task_type in {
+        TaskType.yes_no,
+        TaskType.multiple_choice,
+        TaskType.code_execution,
+        TaskType.agent_interaction,
+    }:
+        return False
+    if item.task_type == TaskType.short_answer:
+        return not bool(item.answer)
+    return item.task_type in {
+        TaskType.open_generation,
+        TaskType.multi_turn,
+        TaskType.pairwise_preference,
+    }
+
+
+def _judge_double_pass_enabled(pkg: BenchmarkPackage, records: list[dict[str, Any]]) -> bool:
+    judge_artifacts = pkg.run.runner_artifacts.get("judge") if isinstance(pkg.run.runner_artifacts, dict) else None
+    if isinstance(judge_artifacts, dict) and "double_pass_enabled" in judge_artifacts:
+        return bool(judge_artifacts.get("double_pass_enabled"))
+    return any("pass1=" in str(record["judge_reasoning"]) and "pass2=" in str(record["judge_reasoning"]) for record in records)
 
 
 def _failure_modes(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -267,40 +291,75 @@ def _safety_diagnostics(records: list[dict[str, Any]]) -> dict[str, Any]:
     return {"priority": priority, "max_severity": max_severity, "risk_rows": rows, "evidence": evidence[:30]}
 
 
-def _viewer_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
+def _viewer_payload(
+    pkg: BenchmarkPackage,
+    *,
+    item_limit: int = 1000,
+    result_limit: int = 2000,
+) -> dict[str, Any]:
     dataset = pkg.dataset
-    records = _result_records(pkg)
-    passed = set(pkg.qc_report.passed_item_ids or [item.id for item in dataset.items])
+    passed = set(pkg.qc_report.passed_item_ids)
+    accepted_results = [result for result in pkg.run.results if result.item_id in passed]
+    records = [
+        record for record in _result_records(pkg) if record.get("item_id") in passed
+    ][: max(0, result_limit)]
     used_items = [item for item in dataset.items if item.id in passed]
     source_backed = sum(1 for item in used_items if _is_source_backed(item))
     item_source_counts = Counter(item.source.kind.value for item in used_items)
     task_counts = Counter(item.task_type.value for item in used_items)
-    difficulty_counts = Counter(item.difficulty.value for item in used_items)
+    challenge_effort_counts = Counter(item.challenge_effort.value for item in used_items)
     agent_records = [record for record in records if record.get("agent_trace")]
     code_items: list[BenchmarkItem] = [
         item
-        for item in dataset.items
+        for item in used_items
         if item.task_type == TaskType.code_execution
         or bool(item.test_code)
         or (isinstance(item.metadata.get("agent_env"), dict) and item.metadata.get("agent_env", {}).get("type") == "code_sandbox")
     ]
-    llm_judged = sum(1 for record in records if record["judge_reasoning"])
-    deterministic = max(0, len(records) - llm_judged)
+    planned_llm_judged = sum(1 for item in used_items if _planned_uses_llm_judge(item))
+    planned_deterministic = max(0, len(used_items) - planned_llm_judged)
+    results_with_reasoning = sum(1 for record in records if record["judge_reasoning"])
+    judge_double_pass_enabled = _judge_double_pass_enabled(pkg, records)
+    embedded_items = dataset.items[: max(0, item_limit)]
+    embedded_ids = {item.id for item in embedded_items}
+    embedded_dataset = dataset.model_copy(update={"items": embedded_items})
+    embedded_results = [
+        result for result in accepted_results if result.item_id in embedded_ids
+    ][: max(0, result_limit)]
+    embedded_run = pkg.run.model_copy(
+        update={"dataset": embedded_dataset, "results": embedded_results}
+    )
+    embedded_improvements = [
+        iteration.model_copy(update={"dataset": None, "qc_report": None, "run": None})
+        for iteration in pkg.improvements
+    ]
+    embedded_pkg = pkg.model_copy(
+        update={
+            "dataset": embedded_dataset,
+            "run": embedded_run,
+            "improvements": embedded_improvements,
+        }
+    )
     payload = {
-        "package": pkg.model_dump(mode="json"),
+        "package": embedded_pkg.model_dump(mode="json"),
         "diagnostics": {
+            "viewer_truncation": {
+                "items_embedded": len(embedded_items),
+                "items_total": len(dataset.items),
+                "results_embedded": len(embedded_results),
+                "results_total": len(accepted_results),
+            },
             "families": _eval_families(pkg),
             "generated_items": len(dataset.items),
             "used_items": len(used_items),
             "rejected_items": len(dataset.items) - len(used_items),
             "batch_count": len(dataset.batches),
-            "simple_equivalent_workload": round(simple_equivalent_workload(used_items), 2),
             "source_candidates": len({(source.kind.value, source.uri, source.title) for source in dataset.sources}),
             "source_backed_items": source_backed,
             "self_generated_items": sum(1 for item in used_items if item.source.kind == SourceKind.self_generated),
             "item_source_counts": dict(item_source_counts),
             "task_counts": dict(task_counts),
-            "difficulty_counts": dict(difficulty_counts),
+            "challenge_effort_counts": dict(challenge_effort_counts),
             "result_records": records,
             "failure_modes": _failure_modes(records),
             "safety": _safety_diagnostics(records) if _is_safety_eval(dataset) else None,
@@ -326,8 +385,12 @@ def _viewer_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
                 ),
             },
             "judge": {
-                "llm_judged_results": llm_judged,
-                "deterministic_or_unjudged_results": deterministic,
+                "planned_llm_judged_items": planned_llm_judged,
+                "planned_deterministic_items": planned_deterministic,
+                "executed_results": len(records),
+                "results_with_judge_reasoning": results_with_reasoning,
+                "results_without_judge_reasoning": max(0, len(records) - results_with_reasoning),
+                "double_pass_enabled": judge_double_pass_enabled,
                 "instability_flags": sum(
                     1 for record in records if "judge_instability=true" in str(record["judge_reasoning"])
                 ),
@@ -337,11 +400,16 @@ def _viewer_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
     return payload
 
 
-def build_report_viewer_html(pkg: BenchmarkPackage) -> str:
+def build_report_viewer_html(
+    pkg: BenchmarkPackage,
+    *,
+    item_limit: int = 1000,
+    result_limit: int = 2000,
+) -> str:
     """Build a self-contained HTML diagnostic report."""
     display_id = _display_label(pkg.spec.id)
     title = f"EvaluationClaw Diagnostic Report: {display_id}"
-    payload = _viewer_payload(pkg)
+    payload = _viewer_payload(pkg, item_limit=item_limit, result_limit=result_limit)
     data = (
         json.dumps(payload, ensure_ascii=False)
         .replace("</", "<\\/")

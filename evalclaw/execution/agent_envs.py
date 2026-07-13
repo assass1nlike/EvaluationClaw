@@ -2,11 +2,7 @@
 from __future__ import annotations
 
 import copy
-import subprocess
-import sys
-import tempfile
 from dataclasses import dataclass, field
-from pathlib import Path, PurePosixPath
 from typing import Any
 
 from ..protocols.tool import ToolSpec, format_tool_specs_for_prompt, object_schema
@@ -32,14 +28,6 @@ DEFAULT_WORKSPACE_ENV: dict[str, Any] = {
     "goal": {"outgoing_bin": ["blue_notebook", "charged_tablet"]},
     "max_steps": 8,
 }
-
-
-def _platform_test_command(command: str) -> str:
-    stripped = command.strip()
-    if stripped == "python3" or stripped.startswith("python3 "):
-        executable = subprocess.list2cmdline([sys.executable])
-        return executable + stripped[len("python3") :]
-    return command
 
 
 @dataclass
@@ -245,291 +233,17 @@ class WorkspaceAgentEnvironment:
         return None
 
 
-@dataclass
-class CodeSandboxAgentEnvironment:
-    """A persistent local code sandbox for multi-step coding agents.
-
-    This is a lightweight execution environment, not a container security
-    boundary. It keeps task files in a temporary directory, exposes controlled
-    file tools, and scores the task by the most recent test run.
-    """
-
-    visible_files: dict[str, str]
-    hidden_files: dict[str, str]
-    test_command: str
-    max_steps: int = 8
-    timeout: int = 10
-    steps: int = 0
-    invalid_actions: int = 0
-    done: bool = False
-    last_test: dict[str, Any] | None = None
-    test_runs: int = 0
-    _tmp: tempfile.TemporaryDirectory[str] | None = None
-    _root: Path | None = None
-    _visible_paths: set[str] = field(default_factory=set)
-    _hidden_paths: set[str] = field(default_factory=set)
-
-    @classmethod
-    def from_config(cls, config: dict[str, Any]) -> "CodeSandboxAgentEnvironment":
-        visible = config.get("visible_files")
-        if not isinstance(visible, dict):
-            visible = config.get("files") if isinstance(config.get("files"), dict) else {}
-        hidden = config.get("hidden_files") if isinstance(config.get("hidden_files"), dict) else {}
-        env = cls(
-            visible_files={str(path): str(content) for path, content in visible.items()},
-            hidden_files={str(path): str(content) for path, content in hidden.items()},
-            test_command=str(config.get("test_command") or "python3 tests.py"),
-            max_steps=max(1, int(config.get("max_steps") or 8)),
-            timeout=max(1, int(config.get("timeout") or 10)),
-        )
-        env._setup()
-        return env
-
-    @property
-    def root(self) -> Path:
-        if self._root is None:
-            self._setup()
-        assert self._root is not None
-        return self._root
-
-    def _setup(self) -> None:
-        if self._root is not None:
-            return
-        self._tmp = tempfile.TemporaryDirectory(prefix="evalclaw-agent-code-")
-        self._root = Path(self._tmp.name)
-        for path, content in self.visible_files.items():
-            clean = self._clean_path(path)
-            if clean is None:
-                continue
-            self._write_file(clean, content)
-            self._visible_paths.add(clean)
-        for path, content in self.hidden_files.items():
-            clean = self._clean_path(path)
-            if clean is None:
-                continue
-            self._write_file(clean, content)
-            self._hidden_paths.add(clean)
-
-    def _clean_path(self, value: object) -> str | None:
-        raw = str(value or "").strip()
-        if not raw:
-            return None
-        path = PurePosixPath(raw)
-        if path.is_absolute() or ".." in path.parts:
-            return None
-        return str(path)
-
-    def _write_file(self, path: str, content: str) -> None:
-        target = self.root / path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
-
-    def _read_file(self, path: str, limit: int = 6000) -> str:
-        content = (self.root / path).read_text(encoding="utf-8")
-        if len(content) <= limit:
-            return content
-        half = max(1, limit // 2)
-        return content[:half] + "\n...\n" + content[-half:]
-
-    def _list_visible_files(self) -> list[str]:
-        files: list[str] = []
-        for path in self.root.rglob("*"):
-            if not path.is_file():
-                continue
-            rel = path.relative_to(self.root).as_posix()
-            if rel in self._hidden_paths or "__pycache__/" in rel or rel.endswith(".pyc"):
-                continue
-            else:
-                files.append(rel)
-        return sorted(files)
-
-    def tool_specs(self) -> list[ToolSpec]:
-        return [
-            ToolSpec(
-                name="list_files",
-                description="List visible files in the sandbox workspace.",
-                parameters=object_schema(),
-            ),
-            ToolSpec(
-                name="read_file",
-                description="Read a visible file by relative path. Hidden files cannot be read.",
-                parameters=object_schema({"path": {"type": "string"}}, required=["path"]),
-            ),
-            ToolSpec(
-                name="write_file",
-                description="Write complete file content to a visible relative path.",
-                parameters=object_schema(
-                    {"path": {"type": "string"}, "content": {"type": "string"}},
-                    required=["path", "content"],
-                ),
-            ),
-            ToolSpec(
-                name="run_tests",
-                description="Run the configured test command, including hidden tests when present.",
-                parameters=object_schema(),
-            ),
-            ToolSpec(
-                name="final",
-                description="Finish the task with a brief completion summary.",
-                parameters=object_schema({"answer": {"type": "string"}}),
-            ),
-        ]
-
-    def action_schema(self) -> str:
-        return format_tool_specs_for_prompt(self.tool_specs())
-
-    def observation(self) -> str:
-        test_summary = "not run"
-        if self.last_test:
-            status = "passed" if self.last_test.get("passed") else "failed"
-            test_summary = f"{status}; returncode={self.last_test.get('returncode')}"
-        return (
-            f"Visible files: {self._list_visible_files() or 'none'}\n"
-            f"Hidden files: {len(self._hidden_paths)} file(s) available only to run_tests.\n"
-            f"Test command: {self.test_command}\n"
-            f"Last test: {test_summary}\n"
-            f"Test runs: {self.test_runs}\n"
-            f"Steps used: {self.steps}/{self.max_steps}"
-        )
-
-    def step(self, action: dict[str, Any]) -> AgentStepOutcome:
-        if self.done:
-            return AgentStepOutcome(self.observation(), done=True)
-        self.steps += 1
-        name = str(action.get("action") or action.get("tool") or "").strip().lower()
-        args = action.get("args") if isinstance(action.get("args"), dict) else {}
-        error: str | None = None
-        detail = ""
-
-        if name == "list_files":
-            detail = "Visible files:\n" + "\n".join(self._list_visible_files())
-        elif name == "read_file":
-            clean = self._clean_path(args.get("path"))
-            if clean is None:
-                error = "Invalid path."
-            elif clean in self._hidden_paths:
-                error = f"Cannot read hidden test file: {clean}"
-            elif not (self.root / clean).is_file():
-                error = f"File not found: {clean}"
-            else:
-                detail = f"File {clean}:\n{self._read_file(clean)}"
-        elif name == "write_file":
-            clean = self._clean_path(args.get("path"))
-            content = args.get("content")
-            if clean is None:
-                error = "Invalid path."
-            elif clean in self._hidden_paths:
-                error = f"Cannot overwrite hidden test file: {clean}"
-            elif not isinstance(content, str):
-                error = "write_file requires string content."
-            else:
-                self._write_file(clean, content)
-                self._visible_paths.add(clean)
-                detail = f"Wrote {clean} ({len(content)} chars)."
-        elif name in {"run_tests", "run_test"}:
-            self.test_runs += 1
-            try:
-                proc = subprocess.run(
-                    _platform_test_command(self.test_command),
-                    shell=True,
-                    cwd=self.root,
-                    input="",
-                    capture_output=True,
-                    text=True,
-                    timeout=self.timeout,
-                )
-                output = (proc.stdout + proc.stderr).strip()
-                if len(output) > 4000:
-                    output = output[:2000] + "\n...\n" + output[-2000:]
-                self.last_test = {
-                    "passed": proc.returncode == 0,
-                    "returncode": proc.returncode,
-                    "stdout": proc.stdout[-2000:],
-                    "stderr": proc.stderr[-2000:],
-                }
-                status = "passed" if proc.returncode == 0 else "failed"
-                detail = f"Tests {status} with returncode {proc.returncode}.\n{output}"
-            except subprocess.TimeoutExpired as exc:
-                self.last_test = {
-                    "passed": False,
-                    "returncode": "timeout",
-                    "stdout": (exc.stdout or "")[-2000:] if isinstance(exc.stdout, str) else "",
-                    "stderr": (exc.stderr or "")[-2000:] if isinstance(exc.stderr, str) else "",
-                }
-                detail = f"Tests timed out after {self.timeout} seconds."
-        elif name == "final":
-            self.done = True
-            detail = str(args.get("answer") or "Final answer received.")
-        else:
-            error = f"Unknown action: {name or '<missing>'}"
-
-        if error:
-            self.invalid_actions += 1
-        if self.score() >= 1.0 or self.steps >= self.max_steps:
-            self.done = True
-        prefix = f"Error: {error}\n\n" if error else ""
-        suffix = f"\n\n{detail}" if detail else ""
-        return AgentStepOutcome(prefix + self.observation() + suffix, done=self.done, error=error)
-
-    def score(self) -> float:
-        if self.last_test and self.last_test.get("passed"):
-            return 1.0
-        if self.test_runs > 0:
-            return 0.25
-        return 0.0
-
-    def summary(self) -> str:
-        status = "not_run"
-        if self.last_test:
-            status = "passed" if self.last_test.get("passed") else "failed"
-        return (
-            f"score={self.score():.2f}; steps={self.steps}/{self.max_steps}; "
-            f"test_status={status}; test_runs={self.test_runs}; invalid_actions={self.invalid_actions}"
-        )
-
-    def state(self) -> dict[str, Any]:
-        return {
-            "environment": "code_sandbox",
-            "visible_files": self._list_visible_files(),
-            "hidden_files": sorted(self._hidden_paths),
-            "steps": self.steps,
-            "max_steps": self.max_steps,
-            "invalid_actions": self.invalid_actions,
-            "test_runs": self.test_runs,
-            "last_test": self.last_test,
-            "done": self.done,
-            "score": self.score(),
-        }
-
-    def cleanup(self) -> None:
-        if self._tmp is not None:
-            self._tmp.cleanup()
-            self._tmp = None
-            self._root = None
-
-
 def build_agent_environment(
     item: BenchmarkItem,
     config: BenchmarkConfig | None = None,
-) -> WorkspaceAgentEnvironment | CodeSandboxAgentEnvironment | DockerWorkspaceAgentEnvironment | DesktopBridgeAgentEnvironment:
+) -> WorkspaceAgentEnvironment | DockerWorkspaceAgentEnvironment | DesktopBridgeAgentEnvironment:
     env_config = item.metadata.get("agent_env")
-    task_agent = item.metadata.get("task_agent")
-    if not isinstance(env_config, dict) and isinstance(task_agent, dict):
-        execution = task_agent.get("execution")
-        if isinstance(execution, dict) and isinstance(execution.get("agent_env"), dict):
-            env_config = execution["agent_env"]
     if not isinstance(env_config, dict):
         env_config = copy.deepcopy(DEFAULT_WORKSPACE_ENV)
     else:
         env_config = copy.deepcopy(env_config)
-    if isinstance(task_agent, dict) and env_config.get("type") == "code_sandbox":
-        initial = task_agent.get("initial_content")
-        if isinstance(initial, dict) and isinstance(initial.get("files"), dict) and not isinstance(
-            env_config.get("visible_files") or env_config.get("files"), dict
-        ):
-            env_config = {**env_config, "visible_files": initial["files"]}
     env_type = str(env_config.get("type") or "workspace")
-    if env_type == "docker_workspace":
+    if env_type in {"code_sandbox", "docker_workspace"}:
         task_text = "\n".join(
             value
             for value in (
@@ -542,9 +256,17 @@ def build_agent_environment(
         )
         if config is not None and not config.docker_auto_select_image:
             env_config["auto_select_image"] = False
+        if env_type == "code_sandbox":
+            env_config.setdefault(
+                "image",
+                config.container_sandbox_image if config is not None else "python:3.11-slim",
+            )
+            env_config.setdefault("workspace_tools", ["list_files", "read_file", "write_file"])
+            env_config.setdefault("expose_test_tool", True)
         env_config, _ = apply_docker_image_selection(env_config, task_text=task_text)
         if config is not None:
             env_config.setdefault("pull_timeout", config.docker_pull_timeout_s)
+            env_config.setdefault("docker_executable", config.docker_executable)
     if env_type == "gui_desktop" and config is not None:
         requires_vm = bool(env_config.get("requires_vm") or env_config.get("vm"))
         env_config = {
@@ -559,9 +281,7 @@ def build_agent_environment(
         }
     if env_type == "workspace":
         return WorkspaceAgentEnvironment.from_config(env_config)
-    if env_type == "code_sandbox":
-        return CodeSandboxAgentEnvironment.from_config(env_config)
-    if env_type == "docker_workspace":
+    if env_type in {"code_sandbox", "docker_workspace"}:
         return DockerWorkspaceAgentEnvironment.from_config(env_config)
     if env_type == "gui_desktop":
         return DesktopBridgeAgentEnvironment.from_config(env_config)

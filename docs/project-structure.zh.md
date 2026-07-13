@@ -21,7 +21,7 @@
 - `evalclaw/planning/`：自然语言需求到结构化 eval spec，以及 planner-loop/human-review 逻辑。
 - `evalclaw/generation/`：按 spec 生成、搜索或导入评测 item，包含程序化 fallback。
 - `evalclaw/quality/`：静态 QC、数据集覆盖 QC、LLM QC 和 Loop 3 改进。
-- `evalclaw/execution/`：runner、sandbox、Docker、VM、SWE-bench、环境 preflight。
+- `evalclaw/execution/`：runner、隔离容器、Docker、VM、桌面桥与通用环境 preflight。
 - `evalclaw/runners/`：具体题型 runner，例如 agent、pairwise、target prompt、credential 检查。
 - `evalclaw/protocols/`：任务协议、工具调用协议、多模态、science metadata、agent task package。
 - `evalclaw/agent/`：agent benchmark 的维度规划、blueprint 路由、资源选择、任务构建和打包。
@@ -36,12 +36,12 @@
 - `planning.py`：agent benchmark 规划入口，负责调用 LLM planner、解析返回、选择 fallback。
 - `dimensions.py`：agent 维度解析和本地 fallback 维度规则。
 - `blueprints.py`：按维度内容选择默认 agent task blueprint。
-- `goal_detection.py`：从自然语言需求中识别 OSWorld/ALE/GUI/VM/工业软件/运行环境等能力目标。
+- `goal_detection.py`：从自然语言需求中识别 GUI、VM、工业软件和运行环境等执行需求。
 - `resources.py`：source-backed 资源选择和去重。
 - `suite.py`：调用 task-builder 或 fallback 构建 `AgentTaskSuite`。
 - `packaging.py`：把 `AgentTaskSuite` 打包成 runner 可执行的 `BenchmarkDataset`。
 - `validation.py`：task-builder 产物进入 QC 前的结构校验。
-- `task_builders/`：按任务族拆分的本地 fallback 构题器。
+- `task_builders/`：按执行环境和基础实现拆分的本地 fallback 构题器。
 - `task_builders/gui_variants.py`：GUI/桌面任务的大块模板数据。
 
 ## Quality 子系统

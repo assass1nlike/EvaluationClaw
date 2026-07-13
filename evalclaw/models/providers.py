@@ -8,16 +8,36 @@ from ..types import TargetModelConfig
 
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+_PROVIDER_ALIASES = {
+    "claude": "anthropic",
+    "claude_code": "anthropic",
+    "anthropic_messages": "anthropic",
+    "openai-compatible": "openai_compatible",
+    "openai_compatible_chat": "openai_compatible",
+}
 
 
-def infer_provider(model: str, base_url: Optional[str] = None) -> tuple[str, Optional[str]]:
+def normalize_provider(provider: str) -> str:
+    normalized = str(provider or "").strip().lower()
+    return _PROVIDER_ALIASES.get(normalized, normalized)
+
+
+def infer_provider(
+    model: str,
+    base_url: Optional[str] = None,
+    provider: Optional[str] = None,
+) -> tuple[str, Optional[str]]:
     """Infer provider and default base URL from a model name."""
+    if provider:
+        return normalize_provider(provider), base_url
     if model.startswith("azure/"):
         # Azure OpenAI deployments route through LiteLLM's native azure/ support,
         # which reads AZURE_API_BASE / AZURE_API_VERSION from the environment.
         # We intentionally keep base_url unset so the model string passes through
         # to LiteLLM unmangled.
         return "azure", None
+    if model.startswith(("claude", "anthropic/")):
+        return "anthropic", base_url
     if base_url:
         return "openai_compatible", base_url
     if model.startswith("deepseek-"):
@@ -50,12 +70,13 @@ def target_from_model(
     model: str,
     *,
     target_id: Optional[str] = None,
+    provider: Optional[str] = None,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
     fallback_key: Optional[str] = None,
 ) -> TargetModelConfig:
     """Build a target config from a model name plus optional overrides."""
-    provider, inferred_base = infer_provider(model, base_url)
+    provider, inferred_base = infer_provider(model, base_url, provider)
     return TargetModelConfig(
         id=target_id or model.replace("/", "_").replace(":", "_"),
         provider=provider,
@@ -70,8 +91,9 @@ def orchestrator_defaults(
     *,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
+    provider: Optional[str] = None,
 ) -> tuple[Optional[str], Optional[str]]:
     """Return effective orchestrator API key and base URL."""
-    provider, inferred_base = infer_provider(model, base_url)
+    provider, inferred_base = infer_provider(model, base_url, provider)
     effective_base_url = inferred_base if provider == "openai_compatible" else base_url
     return api_key or default_api_key(provider, model), effective_base_url

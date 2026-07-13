@@ -3,16 +3,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from ...generation.generator import _safe_difficulty as _item_safe_difficulty
 from ...types import (
     AgentEnvironmentSpec,
     AgentScoringSpec,
     AgentTask,
-    AgentTaskFamily,
     BenchmarkItem,
-    Difficulty,
+    safe_challenge_effort,
 )
-from ..common import _safe_environment_type, _safe_task_family
+from ..common import _safe_environment_type
 
 
 def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_id: str) -> AgentTask:
@@ -24,7 +22,6 @@ def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_i
         title=str(raw.get("title") or fallback_id),
         content_summary=str(raw.get("content_summary") or ""),
         description=str(raw.get("description") or ""),
-        task_family=_safe_task_family(raw.get("task_family")),
         prompt=str(raw.get("prompt") or ""),
         system_prompt=str(raw.get("system_prompt") or ""),
         resource_ids=[str(x) for x in raw.get("resource_ids", []) if x],
@@ -33,6 +30,9 @@ def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_i
             tools=[tool for tool in environment.get("tools", []) if isinstance(tool, dict)],
             visible_files={str(path): str(content) for path, content in (environment.get("visible_files") or {}).items()}
             if isinstance(environment.get("visible_files"), dict)
+            else {},
+            runtime_files={str(path): str(content) for path, content in (environment.get("runtime_files") or {}).items()}
+            if isinstance(environment.get("runtime_files"), dict)
             else {},
             hidden_files={str(path): str(content) for path, content in (environment.get("hidden_files") or {}).items()}
             if isinstance(environment.get("hidden_files"), dict)
@@ -51,7 +51,9 @@ def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_i
             timeout=max(1, int(environment.get("timeout") or 20)),
             network=str(environment.get("network") or "none"),
             resource_limits=environment.get("resource_limits") if isinstance(environment.get("resource_limits"), dict) else {},
+            workdir=str(environment.get("workdir") or "/workspace"),
             workspace=environment.get("workspace") if isinstance(environment.get("workspace"), dict) else {},
+            browser=environment.get("browser") if isinstance(environment.get("browser"), dict) else {},
             bridge_url=str(environment.get("bridge_url") or ""),
             bridge_api_key=str(environment.get("bridge_api_key") or "").strip() or None,
             requires_vm=bool(environment.get("requires_vm", False)),
@@ -83,13 +85,13 @@ def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_i
             else {},
             oracle_notes=str(scoring.get("oracle_notes") or ""),
         ),
-        difficulty=_item_safe_difficulty(raw.get("difficulty"), Difficulty.L4),
+        challenge_effort=safe_challenge_effort(raw.get("challenge_effort")),
         tags=[str(tag) for tag in raw.get("tags", []) if tag],
         metadata=raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {},
     )
 
 
-def _task_from_legacy_item(item: BenchmarkItem, *, title: str, family: AgentTaskFamily) -> AgentTask:
+def _task_from_item(item: BenchmarkItem, *, title: str) -> AgentTask:
     env = item.metadata.get("agent_env") if isinstance(item.metadata.get("agent_env"), dict) else {}
     task_agent = item.metadata.get("task_agent") if isinstance(item.metadata.get("task_agent"), dict) else {}
     scoring = task_agent.get("scoring") if isinstance(task_agent.get("scoring"), dict) else {}
@@ -106,7 +108,6 @@ def _task_from_legacy_item(item: BenchmarkItem, *, title: str, family: AgentTask
         title=title,
         content_summary=str(item.metadata.get("task_content_summary") or item.source.title or ""),
         description=item.prompt,
-        task_family=family,
         prompt=item.prompt,
         system_prompt=str(task_agent.get("system_prompt") or "You are the target agent. Return JSON only."),
         resource_ids=[],
@@ -117,6 +118,9 @@ def _task_from_legacy_item(item: BenchmarkItem, *, title: str, family: AgentTask
             else [],
             visible_files={str(k): str(v) for k, v in (env.get("visible_files") or env.get("files") or {}).items()}
             if isinstance(env.get("visible_files") or env.get("files"), dict)
+            else {},
+            runtime_files={str(k): str(v) for k, v in (env.get("runtime_files") or {}).items()}
+            if isinstance(env.get("runtime_files"), dict)
             else {},
             hidden_files={str(k): str(v) for k, v in (env.get("hidden_files") or {}).items()}
             if isinstance(env.get("hidden_files"), dict)
@@ -135,7 +139,9 @@ def _task_from_legacy_item(item: BenchmarkItem, *, title: str, family: AgentTask
             timeout=max(1, int(env.get("timeout") or 20)),
             network=str(env.get("network") or "none"),
             resource_limits=env.get("resource_limits") if isinstance(env.get("resource_limits"), dict) else {},
+            workdir=str(env.get("workdir") or "/workspace"),
             workspace=workspace,
+            browser=env.get("browser") if isinstance(env.get("browser"), dict) else {},
             bridge_url=str(env.get("bridge_url") or ""),
             bridge_api_key=str(env.get("bridge_api_key") or "").strip() or None,
             requires_vm=bool(env.get("requires_vm", False)),
@@ -159,7 +165,7 @@ def _task_from_legacy_item(item: BenchmarkItem, *, title: str, family: AgentTask
             if isinstance(scoring.get("levels"), dict)
             else {},
         ),
-        difficulty=item.difficulty,
+        challenge_effort=item.challenge_effort,
         tags=item.tags,
         metadata=dict(item.metadata),
     )

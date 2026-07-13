@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 
-from ..core.scaling import simple_equivalent_workload
 from ..types import (
     BenchmarkDataset,
     EvalReport,
@@ -51,7 +50,7 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
         f"- Task types: {', '.join(t.value for t in dataset.spec.task_types)}",
         f"- Metrics: {', '.join(m.value for m in dataset.spec.metrics)}",
         f"- Scale budget: {dataset.spec.scale_budget.value}",
-        f"- Planned simple-equivalent workload: {dataset.spec.scale:g}",
+        f"- Planned item count: {dataset.spec.scale:g}",
         f"- Planner critique score: {dataset.spec.critique.score:.1f}/5",
         "",
         *_research_brief_lines(research_brief),
@@ -65,13 +64,13 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
             dimension.id,
             dimension.name,
             f"{dimension.weight:.2f}",
-            dimension.target_difficulty.value,
+            dimension.challenge_effort.value,
             "yes" if dimension.needs_research else "no",
             dimension.description.replace("\n", " ")[:140],
         ]
         for dimension in dataset.spec.dimensions
     ]
-    lines.append(_markdown_table(["ID", "Name", "Weight", "Target Difficulty", "Research", "Description"], dimension_rows))
+    lines.append(_markdown_table(["ID", "Name", "Weight", "Challenge Effort", "Research", "Description"], dimension_rows))
     used_items = _used_items(dataset, qc)
     rejected_count = len(dataset.items) - len(used_items)
     lines.extend(
@@ -83,7 +82,6 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
             f"- Items accepted for run: {len(used_items)}",
             f"- Items rejected by QC: {rejected_count}",
             f"- Batches: {len(dataset.batches)}",
-            f"- Simple-equivalent workload accepted: {simple_equivalent_workload(used_items):.1f}",
             f"- External source candidates: {len(_dedupe_sources(dataset.sources))}",
             f"- Source-backed used items: {sum(1 for item in used_items if _is_source_backed(item))}/{len(used_items)}",
             f"- Self-generated used items: {sum(1 for item in used_items if item.source.kind == SourceKind.self_generated)}",
@@ -92,18 +90,18 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
     )
     lines.extend(_agent_task_suite_lines(dataset))
     task_counts: dict[str, int] = defaultdict(int)
-    difficulty_counts: dict[str, int] = defaultdict(int)
+    challenge_effort_counts: dict[str, int] = defaultdict(int)
     item_source_counts: Counter[str] = Counter()
     for item in used_items:
         task_counts[item.task_type.value] += 1
-        difficulty_counts[item.difficulty.value] += 1
+        challenge_effort_counts[item.challenge_effort.value] += 1
         item_source_counts[item.source.kind.value] += 1
     deduped_sources = _dedupe_sources(dataset.sources)
     lines.append(
         _markdown_table(
             ["Bucket", "Count"],
             [[f"task:{key}", str(value)] for key, value in sorted(task_counts.items())]
-            + [[f"difficulty:{key}", str(value)] for key, value in sorted(difficulty_counts.items())],
+            + [[f"challenge_effort:{key}", str(value)] for key, value in sorted(challenge_effort_counts.items())],
         )
     )
     lines.extend(["", "### Source Coverage", ""])
@@ -142,15 +140,15 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
         lines.append(_markdown_table(["Kind", "Title", "URI"], source_preview_rows))
         lines.append("")
     lines.extend(_source_mapping_lines(used_items))
+    average_qc_issues = len(qc.issues) / max(1, len(dataset.items))
     lines.extend(
         [
             "",
             "## QC Gate",
             "",
-            f"- Quality score: {_pct(qc.quality_score)}",
             f"- Passed items: {len(qc.passed_item_ids)}",
             f"- Rejected items: {len(qc.rejected_item_ids)}",
-            f"- Issues: {len(qc.issues)}",
+            f"- Average QC issues: {average_qc_issues:.2f}",
             "",
         ]
     )

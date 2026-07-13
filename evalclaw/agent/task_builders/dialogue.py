@@ -1,4 +1,4 @@
-"""Dialogue fallback agent tasks."""
+﻿"""Dialogue fallback agent tasks."""
 from __future__ import annotations
 
 from ...types import (
@@ -19,14 +19,13 @@ def _multi_turn_delegation_task_for_blueprint(
     index: int = 1,
 ) -> AgentTask:
     return AgentTask(
-        id=_task_id(dimension, blueprint.task_family, index),
+        id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
         title=_task_title(blueprint, index),
         description=(
             "A scripted multi-turn delegation task. The target must preserve constraints while adapting to "
             "new user requirements across turns."
         ),
-        task_family=blueprint.task_family,
         prompt=(
             "Draft a three-step rollout plan for a documentation migration. Keep it concise and include one "
             "risk mitigation step."
@@ -61,6 +60,6 @@ def _multi_turn_delegation_task_for_blueprint(
             fail_criteria="The target ignores follow-ups or loses the task objective.",
             score_levels={"5": "complete", "3": "partial", "1": "failed"},
         ),
-        difficulty=dimension.target_difficulty,
-        tags=[dimension.id, blueprint.task_family.value, "multi_turn"],
+        challenge_effort=dimension.challenge_effort,
+        tags=[dimension.id, "multi_turn"],
     )

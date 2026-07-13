@@ -193,7 +193,7 @@ Python SDK agent
 
 ## 已实现的主流模型 adapter
 
-当前代码位置：`evalclaw/tool_adapters.py`。
+当前代码位置：`evalclaw/protocols/tool_adapters.py`。
 
 GPT / OpenAI-compatible adapter：
 
