@@ -50,6 +50,7 @@ HTML_TEMPLATE = """<!doctype html>
     h1 { font-size: 20px; line-height: 1.2; font-weight: 700; }
     h2 { font-size: 16px; margin-bottom: 12px; }
     h3 { font-size: 14px; margin-bottom: 8px; }
+    section > h3 { margin-top: 18px; }
     .objective { color: var(--muted); margin-top: 5px; max-width: 980px; }
     .app {
       display: grid;
@@ -129,6 +130,74 @@ HTML_TEMPLATE = """<!doctype html>
       padding: 5px 0;
       height: 1px;
       background: #fff;
+    }
+    .composition {
+      display: grid;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .composition-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .composition-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      min-height: 76px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+    .composition-card .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .composition-card .value {
+      margin-top: 7px;
+      font-size: 22px;
+      font-weight: 750;
+      overflow-wrap: anywhere;
+    }
+    .composition-distribution {
+      display: grid;
+      gap: 2px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 12px;
+    }
+    .composition-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) minmax(160px, 2fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .composition-row:last-child { border-bottom: 0; }
+    .composition-row .name {
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+    .composition-row .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #e9eef6;
+      overflow: hidden;
+    }
+    .composition-row .fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), #58a6ff);
+      min-width: 4px;
+    }
+    .composition-row .count {
+      color: var(--muted);
+      font-weight: 650;
+      min-width: 36px;
+      text-align: right;
     }
     table { width: 100%; border-collapse: collapse; }
     th, td {
@@ -300,6 +369,8 @@ HTML_TEMPLATE = """<!doctype html>
       .app { grid-template-columns: 1fr; padding: 14px; }
       aside { position: static; }
       .grid.cols-4, .grid.cols-3, .two-col, .filters { grid-template-columns: 1fr; }
+      .composition-summary, .composition-row { grid-template-columns: 1fr; }
+      .composition-row .count { text-align: left; }
       .topbar { grid-template-columns: 1fr; padding: 12px 14px; }
     }
   </style>
@@ -316,33 +387,19 @@ HTML_TEMPLATE = """<!doctype html>
   <div class="app">
     <aside>
       <nav>
-        <div class="nav-label">Model Performance</div>
         <a href="#overview">Overview</a>
         <a href="#capability">Capability Profile</a>
         <a href="#diagnostics">Diagnostics</a>
         <a href="#explorer">Item Explorer</a>
-        <a href="#qc">QC and Judge</a>
-        <div class="nav-label">Task Content</div>
-        <a href="#task-content">Task Designs</a>
-        <a href="#artifacts">Artifacts</a>
+        <a href="#qc">Task Composition and QC</a>
       </nav>
     </aside>
     <main>
-      <section id="performance-part" class="part-heading">
-        <h2>Part 1: Model Performance</h2>
-        <p>Scores, failures, traces, QC decisions, and runtime diagnostics for the target model runs.</p>
-      </section>
       <section id="overview"></section>
       <section id="capability"></section>
       <section id="diagnostics"></section>
       <section id="explorer"></section>
       <section id="qc"></section>
-      <section id="task-part" class="part-heading">
-        <h2>Part 2: Task Content</h2>
-        <p>Human-readable task designs: what the target model can see, what remains hidden for scoring, and what outputs each task requires.</p>
-      </section>
-      <section id="task-content"></section>
-      <section id="artifacts"></section>
     </main>
   </div>
   <script id="eval-data" type="application/json">__DATA__</script>
@@ -539,29 +596,37 @@ HTML_TEMPLATE = """<!doctype html>
       return tbl;
     }
     function compositionTable(summaryRows, distributionRows) {
-      const tbl = node("table");
-      const thead = node("thead");
-      const trh = node("tr");
-      ["Bucket", "Count"].forEach(header => trh.append(node("th", {}, header)));
-      thead.append(trh);
-      tbl.append(thead);
-      const tbody = node("tbody");
-      const appendRow = row => {
-        const tr = node("tr");
-        row.forEach(cell => tr.append(node("td", {}, cell)));
-        tbody.append(tr);
-      };
-      summaryRows.forEach(appendRow);
-      if (distributionRows.length) {
-        const sep = node("tr", {class: "table-separator"});
-        const td = node("td");
-        td.colSpan = 2;
-        sep.append(td);
-        tbody.append(sep);
+      const wrap = node("div", {class: "composition"});
+      if (summaryRows && summaryRows.length) {
+        const summary = node("div", {class: "composition-summary"});
+        summaryRows.forEach(([label, value]) => {
+          const card = node("div", {class: "composition-card"});
+          card.append(node("div", {class: "label"}, label));
+          card.append(node("div", {class: "value"}, value));
+          summary.append(card);
+        });
+        wrap.append(summary);
       }
-      distributionRows.forEach(appendRow);
-      tbl.append(tbody);
-      return tbl;
+
+      if (distributionRows && distributionRows.length) {
+        const distribution = node("div", {class: "composition-distribution"});
+        const maxCount = Math.max(...distributionRows.map(row => Number(row[1] || 0)), 1);
+        distributionRows.forEach(([label, value]) => {
+          const count = Number(value || 0);
+          const width = Math.max(4, Math.round((count / maxCount) * 100));
+          const row = node("div", {class: "composition-row"});
+          row.append(node("div", {class: "name"}, label));
+          const bar = node("div", {class: "bar"});
+          const fill = node("div", {class: "fill"});
+          fill.style.width = `${width}%`;
+          bar.append(fill);
+          row.append(bar);
+          row.append(node("div", {class: "count"}, value));
+          distribution.append(row);
+        });
+        wrap.append(distribution);
+      }
+      return wrap;
     }
     function clipText(value, limit = 12000) {
       const text = value === null || value === undefined ? "" : String(value);
@@ -572,9 +637,6 @@ HTML_TEMPLATE = """<!doctype html>
     function agentEnv(item) {
       const metadata = item.metadata || {};
       if (metadata.agent_env && typeof metadata.agent_env === "object") return metadata.agent_env;
-      const taskAgent = metadata.task_agent || {};
-      const execution = taskAgent.execution || {};
-      if (execution.agent_env && typeof execution.agent_env === "object") return execution.agent_env;
       return {};
     }
     function taskPackage(item) {
@@ -604,6 +666,46 @@ HTML_TEMPLATE = """<!doctype html>
     }
     function taskAnchorId(itemId) {
       return `task-${domId(itemId)}`;
+    }
+    function itemByIdMap() {
+      const map = new Map();
+      (pkg.dataset.items || []).forEach(item => map.set(item.id, item));
+      return map;
+    }
+    const datasetItemById = itemByIdMap();
+    function groupedPerformanceRows(groupKey, labelFn) {
+      const groups = new Map();
+      (pkg.dataset.items || []).forEach(item => {
+        const key = groupKey(item) || "-";
+        if (!groups.has(key)) groups.set(key, {key, plannedTotal: 0, pass: 0, scoreSum: 0, scoreCount: 0});
+        const group = groups.get(key);
+        group.plannedTotal += 1;
+      });
+      (pkg.run.results || []).forEach(result => {
+        const item = datasetItemById.get(result.item_id);
+        if (!item) return;
+        const key = groupKey(item) || "-";
+        if (!groups.has(key)) groups.set(key, {key, plannedTotal: 0, pass: 0, scoreSum: 0, scoreCount: 0});
+        const group = groups.get(key);
+        const score = Number(result.score || 0);
+        if (score >= 0.999) group.pass += 1;
+        group.scoreSum += score;
+        group.scoreCount += 1;
+      });
+      return [...groups.values()]
+        .map(group => ({...group, total: group.scoreCount || group.plannedTotal}))
+        .sort((a, b) => (b.total - a.total) || String(a.key).localeCompare(String(b.key)))
+        .map(group => [
+          labelFn(group.key),
+          `${group.pass}/${group.total}`,
+          group.scoreCount ? pct(group.scoreSum / group.scoreCount) : "not run",
+        ]);
+    }
+    function taskTypePerformanceRows() {
+      return groupedPerformanceRows(item => item.task_type, taskLabel);
+    }
+    function dimensionPerformanceRows() {
+      return groupedPerformanceRows(item => item.dimension_id, dimensionLabel);
     }
     function itemBaseLabel(itemOrId) {
       const id = typeof itemOrId === "object" && itemOrId ? itemOrId.id : itemOrId;
@@ -787,6 +889,361 @@ HTML_TEMPLATE = """<!doctype html>
       });
       return grid;
     }
+    function buildTaskRow(item) {
+      const metadata = item.metadata || {};
+      const env = agentEnv(item);
+      const pack = taskPackage(item);
+      const agent = taskAgent(item);
+      const visibleInputs = isPlainObject(pack.visible_inputs) ? pack.visible_inputs : {};
+      const hiddenRefs = isPlainObject(pack.hidden_references) ? pack.hidden_references : {};
+      const initial = isPlainObject(agent.initial_content) ? agent.initial_content : {};
+      const interaction = isPlainObject(agent.interaction) ? agent.interaction : {};
+      const taskAgentScoring = isPlainObject(agent.scoring) ? agent.scoring : {};
+      const execution = isPlainObject(pack.execution) ? pack.execution : {};
+      const envRequirements = isPlainObject(pack.environment_requirements) ? pack.environment_requirements : {};
+      const artifactCollection = isPlainObject(pack.artifact_collection) ? pack.artifact_collection : {};
+      const trajectoryRequirements = isPlainObject(pack.trajectory_requirements) ? pack.trajectory_requirements : {};
+      const resourceProvenance = isPlainObject(pack.resource_provenance) ? pack.resource_provenance : {};
+      const capabilityTarget = isPlainObject(pack.capability_target) ? pack.capability_target : {};
+      const multimodal = isPlainObject(metadata.multimodal) ? metadata.multimodal : {};
+      const envSession = isPlainObject(env.session) ? env.session : {};
+      const initialSession = isPlainObject(initial.session) ? initial.session : {};
+      const visibleFiles = combinedFileMap([
+        {files: fileMap(env, ["visible_files", "files"]), source: "agent_env"},
+        {files: visibleInputs.files, source: "visible_inputs"},
+        {files: visibleInputs.asset_files, source: "visible_inputs.assets"},
+        {files: initial.files, source: "initial_content"},
+        {files: envSession.asset_files, source: "agent_env.session"},
+        {files: initialSession.asset_files, source: "initial_content.session"},
+      ]);
+      const hiddenFiles = combinedFileMap([
+        {files: fileMap(env, ["hidden_files"]), source: "agent_env"},
+        {files: hiddenRefs.files, source: "hidden_references"},
+      ]);
+      const referenceFiles = matchingFileMap(
+        hiddenFiles,
+        /(?:gold|reference|expected|solution|answer|oracle|fixed|truth)/i,
+      );
+      const output = isPlainObject(pack.output_contract) ? pack.output_contract : {};
+      const evaluation = isPlainObject(pack.evaluation)
+        ? pack.evaluation
+        : (isPlainObject(env.evaluation) ? env.evaluation : {});
+      const status = taskStatus(item);
+      const required = asArray(output.required_outputs);
+      const expectedArtifacts = asArray(output.expected_artifacts || evaluation.expected_artifacts);
+      const search = [
+        item.id,
+        item.dimension_id,
+        item.task_type,
+        item.prompt,
+        item.rubric,
+        env.type,
+        env.test_command,
+        Object.keys(visibleFiles).join(" "),
+        Object.keys(hiddenFiles).join(" "),
+        valueText(required),
+        valueText(expectedArtifacts),
+        evaluation.pass_criteria,
+        valueText(capabilityTarget),
+        valueText(visibleInputs.assets),
+        valueText(envRequirements),
+        valueText(resourceProvenance),
+        valueText(item.answer),
+      ].join(" ").toLowerCase();
+      return {
+        item,
+        metadata,
+        env,
+        pack,
+        agent,
+        visibleInputs,
+        hiddenRefs,
+        initial,
+        interaction,
+        taskAgentScoring,
+        execution,
+        envRequirements,
+        artifactCollection,
+        trajectoryRequirements,
+        resourceProvenance,
+        capabilityTarget,
+        multimodal,
+        visibleFiles,
+        hiddenFiles,
+        referenceFiles,
+        output,
+        evaluation,
+        status,
+        required,
+        expectedArtifacts,
+        search,
+      };
+    }
+    const taskRows = (pkg.dataset.items || []).map(buildTaskRow);
+    function objectWithValues(entries) {
+      const result = {};
+      (entries || []).forEach(([key, value]) => {
+        if (hasRenderableValue(value)) result[key] = redactedValue(value);
+      });
+      return result;
+    }
+    function firstRenderable(...values) {
+      for (const value of values) {
+        if (hasRenderableValue(value)) return value;
+      }
+      return "";
+    }
+    function stripBaseText(fullValue, baseValue) {
+      const full = String(fullValue || "").trim();
+      const base = String(baseValue || "").trim();
+      if (!full || !base) return full;
+      if (full === base) return "";
+      if (full.startsWith(base)) return full.slice(base.length).trim();
+      return full;
+    }
+    function linesFromEntries(entries) {
+      return (entries || [])
+        .filter(([, value]) => hasRenderableValue(value))
+        .map(([label, value]) => `${label}: ${valueText(value)}`)
+        .join("\\n");
+    }
+    function qualityFlagsForTask(row) {
+      const {item, env, pack, hiddenFiles, hiddenRefs, multimodal} = row;
+      const flags = [itemSourceLabel(item)];
+      if (hasRenderableValue(pack)) flags.push("executable task package");
+      if (env.requires_vm || hasRenderableValue(env.vm) || hasRenderableValue((pack.environment_requirements || {}).vm)) {
+        flags.push("requires VM");
+      }
+      if (env.type === "gui_desktop" || (pack.environment_requirements || {}).requires_gui) flags.push("requires GUI");
+      if (Object.keys(hiddenFiles || {}).length || hasRenderableValue(hiddenRefs.reference_artifacts)) {
+        flags.push("requires hidden evaluator");
+      }
+      if (hasRenderableValue(multimodal.assets) || hasRenderableValue(multimodal.content)) flags.push("multimodal");
+      return [...new Set(flags)];
+    }
+    function sourceSummary(row) {
+      const {item, resourceProvenance} = row;
+      if (itemSourceLabel(item) === "generated") return "";
+      return objectWithValues([
+        ["kind", item.source && item.source.kind],
+        ["title", item.source && item.source.title],
+        ["notes", item.source && item.source.notes],
+        ["provenance", resourceProvenance.source_kind],
+      ]);
+    }
+    function referenceMetadata(metadata) {
+      const result = {};
+      [
+        "reference_answer",
+        "reference_solution",
+        "standard_answer",
+        "expected_answer",
+        "gold_answer",
+        "gold_patch",
+        "oracle_answer",
+        "solution",
+      ].forEach(key => {
+        if (hasRenderableValue(metadata[key])) result[key] = metadata[key];
+      });
+      return result;
+    }
+    function buildUnifiedTaskView(row) {
+      const {
+        item,
+        metadata,
+        env,
+        pack,
+        agent,
+        visibleInputs,
+        hiddenRefs,
+        initial,
+        interaction,
+        taskAgentScoring,
+        execution,
+        envRequirements,
+        artifactCollection,
+        trajectoryRequirements,
+        resourceProvenance,
+        capabilityTarget,
+        multimodal,
+        visibleFiles,
+        hiddenFiles,
+        referenceFiles,
+        output,
+        evaluation,
+        required,
+        expectedArtifacts,
+      } = row;
+
+      const capability = objectWithValues([
+        ["name", capabilityTarget.name || capabilityTarget.content_summary],
+        ["description", capabilityTarget.description],
+      ]);
+      const targetUserPrompt = item.prompt || visibleInputs.instructions || "";
+      const initialAddendum = objectWithValues([
+        ["initial_user_message_addendum", stripBaseText(interaction.initial_user_message, targetUserPrompt)],
+        ["initial_task_content", initial.content || initial.summary],
+        ["initial_observation_summary", initial.observation || initial.observation_summary],
+        ["tool_summary", interaction.tool_summary],
+        ["file_list", interaction.file_list],
+      ]);
+      const evaluationRequirements = linesFromEntries([
+        ["Deliverables or final states", required],
+        ["Artifacts or state evidence", expectedArtifacts],
+        ["Structured format", output.schema],
+        ["Constraints", output.constraints],
+        ["Checks", evaluation.checks],
+        ["Pass standard", evaluation.pass_criteria || item.rubric],
+        ["Partial-credit standard", evaluation.partial_criteria],
+        ["Failure standard", evaluation.fail_criteria],
+      ]);
+      const evaluationMetric = linesFromEntries([
+        ["Method", evaluation.method || (item.scoring || {}).method],
+        ["Score range", evaluation.score_range],
+        ["Score levels", evaluation.score_levels || taskAgentScoring.levels],
+        ["Pairwise preference", evaluation.preference_criteria],
+      ]);
+      const evaluatorProcess = objectWithValues([
+        ["setup", execution.setup || env.setup_commands],
+        ["run", execution.run],
+        ["evaluate", execution.evaluate || env.test_command],
+        ["test_command", env.test_command],
+        ["artifact_collection", artifactCollection],
+      ]);
+      const hiddenRefSummary = objectWithout(hiddenRefs, ["files"]);
+      const privateEvaluatorMaterials = objectWithValues([
+        ["hidden_references", hiddenRefSummary],
+        ["hidden_files", hiddenFiles],
+      ]);
+      const modelVisibleResources = objectWithValues([
+        ["files", visibleFiles],
+        ["assets", visibleInputs.assets || visibleInputs.resources || multimodal.assets],
+        ["multimodal_content", multimodal.content],
+        ["session_resources", visibleInputs.session],
+      ]);
+      const repositoryContext = objectWithValues([
+        ["workspace", env.workspace],
+      ]);
+      const observationActionSpace = objectWithValues([
+        ["environment_type", env.type || envRequirements.type],
+        ["observation_channels", env.observation_channels || envRequirements.observation_channels],
+        ["action_channels", env.action_channels || envRequirements.action_channels],
+        ["available_tools", env.tools],
+        ["required_tools", trajectoryRequirements.required_tools],
+      ]);
+      const evaluationEnvironment = objectWithValues([
+        ["type", env.type || envRequirements.type],
+        ["operating_system", env.os || envRequirements.os],
+        ["image", env.image || envRequirements.image],
+        ["pull_image", env.pull_image],
+        ["image_selection", env.image_selection],
+        ["image_build", env.image_build || envRequirements.image_build],
+        ["vm", env.vm || envRequirements.vm],
+        ["vm_materialization", env.vm_materialization],
+        ["vm_provisioning", env.vm_provisioning || envRequirements.vm_provisioning],
+        ["requires_vm", env.requires_vm || envRequirements.requires_vm],
+        ["requires_gui", env.requires_gui || envRequirements.requires_gui],
+        ["setup_commands", env.setup_commands],
+      ]);
+      const environmentTools = objectWithValues([
+        ["tools", env.tools],
+        ["tool_schemas", env.tool_schemas],
+        ["required_software", env.required_software || envRequirements.required_software],
+        ["installed_software", env.installed_software || envRequirements.installed_software],
+        ["runtime_versions", env.runtime_versions || envRequirements.runtime_versions],
+        ["desktop_bridge_url", env.bridge_url],
+        ["vm_provider_url", env.vm_provider_url],
+      ]);
+      const environmentState = objectWithValues([
+        ["workspace", env.workspace],
+        ["session", env.session],
+        ["initial_session", initial.session],
+        ["initial_vm", initial.vm],
+        ["initial_notes", initial.notes],
+      ]);
+      const environmentConstraints = objectWithValues([
+        ["network", env.network || envRequirements.network],
+        ["resource_limits", env.resource_limits || envRequirements.resource_limits],
+        ["max_steps", env.max_steps || execution.max_steps],
+        ["timeout", env.timeout || execution.timeout_s],
+        ["forbidden_shortcuts", trajectoryRequirements.forbidden_shortcuts],
+      ]);
+      const referenceAnswer = objectWithValues([
+        ["answer", item.answer],
+        ["choices", item.choices],
+        ["reference_metadata", referenceMetadata(metadata)],
+        ["reference_artifacts", hiddenRefs.reference_artifacts],
+        ["reference_files", referenceFiles],
+      ]);
+      return [
+        {
+          title: "1. Source and construction metadata",
+          note: "Task source, construction mode, and high-level benchmark metadata.",
+          required: true,
+          rows: [
+            ["Quality flags", qualityFlagsForTask(row)],
+            ["Title", itemContentSummary(item)],
+            ["Dimension", dimensionLabel(item.dimension_id)],
+            ["Capability target", capability],
+            ["Task type", taskLabel(item.task_type)],
+            ["Challenge effort", humanLabel(item.challenge_effort)],
+            ["Source summary", sourceSummary(row)],
+            ["Construction notes", firstRenderable(resourceProvenance.construction_notes, metadata.construction_notes, metadata.generation_notes)],
+          ],
+        },
+        {
+          title: "2. Target-visible prompt",
+          note: "System and first user-facing task instructions supplied to the evaluated model.",
+          required: true,
+          rows: [
+            ["Target system prompt", agent.system_prompt || metadata.target_system_prompt || metadata.system_prompt],
+            ["Target user prompt", targetUserPrompt],
+            ["Target initial user message addendum", initialAddendum],
+          ],
+        },
+        {
+          title: "3. Outputs, scoring, and evaluator materials",
+          note: "What success means, how it is scored, and the private materials used by the evaluator.",
+          rows: [
+            ["Evaluation requirements", evaluationRequirements],
+            ["Evaluation metric", evaluationMetric],
+            ["Evaluator process", evaluatorProcess],
+            ["Private evaluator materials", privateEvaluatorMaterials],
+          ],
+        },
+        {
+          title: "4. Model-visible context and resources",
+          note: "Files, assets, repositories, media, and other resources visible at task start.",
+          rows: [
+            ["Model-visible resources", modelVisibleResources],
+            ["Repository context", repositoryContext],
+          ],
+        },
+        {
+          title: "5. Tools, environment, and initial state",
+          note: "Objective runtime facts about observation/action channels, tools, environment, initial state, and limits.",
+          rows: [
+            ["Observation and action space", observationActionSpace],
+            ["Evaluation environment", evaluationEnvironment],
+            ["Environment tools", environmentTools],
+            ["Environment state", environmentState],
+            ["Environment constraints", environmentConstraints],
+          ],
+        },
+        {
+          title: "6. Reference answer or solution",
+          note: "Reference answer, final state, patch, or artifact when a standalone reference is recorded.",
+          rows: [["Reference answer", referenceAnswer]],
+        },
+      ];
+    }
+    function appendTaskDefinition(body, row) {
+      buildUnifiedTaskView(row).forEach(section => {
+        const rows = (section.rows || []).filter(([, value]) => hasRenderableValue(value));
+        if (!section.required && !rows.length) return;
+        body.append(renderTaskSection(section.title, section.note, rows.length ? [renderRows(rows)] : []));
+      });
+    }
     function objectWithout(value, excludedKeys) {
       if (!isPlainObject(value)) return {};
       const excluded = new Set(excludedKeys || []);
@@ -819,29 +1276,10 @@ HTML_TEMPLATE = """<!doctype html>
     function renderCapability() {
       const section = qs("capability");
       section.innerHTML = "<h2>Capability Profile</h2>";
-      const rows = [];
-      (pkg.run.summaries || []).forEach(summary => {
-        Object.entries(summary.score_by_dimension || {}).forEach(([dimension, score]) => rows.push([
-          humanLabel(summary.target_id),
-          dimensionLabel(dimension),
-          dimensionPassSummary(summary.target_id, dimension),
-          pct(score),
-        ]));
-      });
-      section.append(table(["Target", "Dimension", "Pass / Total", "Score"], rows));
-      const totalItems = diag.generated_items ?? (pkg.dataset.items || []).length;
-      const usedItems = diag.used_items ?? (pkg.dataset.items || []).length;
-      const summaryRows = [
-        ["Task designs", usedItems],
-        ["Generated / QC passed", `${totalItems}/${usedItems}`],
-        ["Sourced / QC passed", `${diag.source_backed_items}/${usedItems}`],
-      ];
-      const distributionRows = [
-        ...Object.entries(diag.task_counts || {}).map(([k, v]) => [bucketLabel(`task:${k}`), v]),
-        ...Object.entries(diag.difficulty_counts || {}).map(([k, v]) => [bucketLabel(`difficulty:${k}`), v]),
-      ];
-      section.append(node("h3", {}, "Dataset Composition"));
-      section.append(compositionTable(summaryRows, distributionRows));
+      section.append(node("h3", {}, "Capability By Dimension"));
+      section.append(table(["Dimension", "Pass / Total", "Score"], dimensionPerformanceRows()));
+      section.append(node("h3", {}, "Capability By Task Type"));
+      section.append(table(["Task Type", "Pass / Total", "Score"], taskTypePerformanceRows()));
     }
     function renderDiagnostics() {
       const section = qs("diagnostics");
@@ -854,59 +1292,111 @@ HTML_TEMPLATE = """<!doctype html>
         itemTaskLink(row.worst_item),
       ]);
       section.append(table(["Target", "Weak Dimension", "Items", "Average", "Worst Item"], failureRows));
-    }
-    function uniqueValues(key) {
-      return [...new Set(records.map(row => row[key]).filter(Boolean))].sort();
+      const recommendations = (pkg.report && pkg.report.recommendations) || [];
+      if (recommendations.length) {
+        section.append(table(["Recommendation"], recommendations.map(recommendation => [recommendation])));
+      }
     }
     function fillSelect(id, values, labelFn = humanLabel) {
       const sel = qs(id);
       values.forEach(value => sel.append(node("option", {value}, labelFn(value))));
     }
-    function recordSearchText(record) {
-      return [record.item_id, record.target_id, record.dimension_id, record.task_type, record.prompt, record.rubric, record.judge_reasoning, record.error, (record.risks || []).join(" ")].join(" ").toLowerCase();
+    const explorerRows = taskRows.flatMap(row => {
+      const itemRecords = resultRecordsByItem.get(row.item.id) || [];
+      if (!itemRecords.length) return [{row, record: null, anchor: true}];
+      return itemRecords.map((record, index) => ({row, record, anchor: index === 0}));
+    });
+    function explorerSearchText(entry) {
+      const record = entry.record || {};
+      return [
+        entry.row.search,
+        record.target_id,
+        record.judge_reasoning,
+        record.error,
+        record.raw_response,
+        (record.risks || []).join(" "),
+      ].join(" ").toLowerCase();
+    }
+    function explorerTarget(entry) {
+      return entry.record ? entry.record.target_id : "not_run";
+    }
+    function explorerSeverity(entry) {
+      return entry.record ? entry.record.severity : entry.row.status.label;
     }
     function renderExplorer() {
       const section = qs("explorer");
       section.innerHTML = `<h2>Item Explorer</h2>
         <div class="filters">
-          <input id="filter-search" placeholder="Search item, prompt, judge evidence, risk">
+          <input id="filter-search" placeholder="Search task, file, output, model result">
           <select id="filter-target"><option value="">All targets</option></select>
           <select id="filter-dimension"><option value="">All dimensions</option></select>
           <select id="filter-task"><option value="">All task types</option></select>
           <select id="filter-severity"><option value="">All outcomes</option></select>
         </div>
         <div id="item-list"></div>`;
-      fillSelect("filter-target", uniqueValues("target_id"), humanLabel);
-      fillSelect("filter-dimension", uniqueValues("dimension_id"), dimensionLabel);
-      fillSelect("filter-task", uniqueValues("task_type"), taskLabel);
-      fillSelect("filter-severity", uniqueValues("severity"));
+      fillSelect(
+        "filter-target",
+        [...new Set(explorerRows.map(explorerTarget).filter(Boolean))].sort(),
+        value => value === "not_run" ? "Not run" : humanLabel(value),
+      );
+      fillSelect(
+        "filter-dimension",
+        [...new Set(explorerRows.map(entry => entry.row.item.dimension_id).filter(Boolean))].sort(),
+        dimensionLabel,
+      );
+      fillSelect(
+        "filter-task",
+        [...new Set(explorerRows.map(entry => entry.row.item.task_type).filter(Boolean))].sort(),
+        taskLabel,
+      );
+      fillSelect(
+        "filter-severity",
+        [...new Set(explorerRows.map(explorerSeverity).filter(Boolean))].sort(),
+        humanLabel,
+      );
       ["filter-search", "filter-target", "filter-dimension", "filter-task", "filter-severity"].forEach(id => qs(id).addEventListener("input", applyFilters));
       applyFilters();
     }
-    function renderRecord(record) {
+    function renderRecord(entry) {
+      const {row, record, anchor} = entry;
+      const itemData = row.item;
       const item = node("details", {class: "item"});
-      item.setAttribute("data-target", record.target_id);
-      item.setAttribute("data-dimension", record.dimension_id);
-      item.setAttribute("data-task", record.task_type);
-      item.setAttribute("data-severity", record.severity);
-      item.setAttribute("data-search", recordSearchText(record));
+      if (anchor) item.id = taskAnchorId(itemData.id);
+      item.setAttribute("data-target", explorerTarget(entry));
+      item.setAttribute("data-dimension", itemData.dimension_id || "");
+      item.setAttribute("data-task", itemData.task_type || "");
+      item.setAttribute("data-severity", explorerSeverity(entry));
+      item.setAttribute("data-search", explorerSearchText(entry));
       const summary = node("summary");
       const left = node("div");
-      left.append(node("strong", {}, itemRunTitle(record)));
-      left.append(node("div", {class: "small"}, `${taskLabel(record.task_type)} | ${humanLabel(record.difficulty)} | ${itemSourceLabel(record)}`));
-      const right = node("div", {class: `tone-${scoreTone(record.score)}`}, `${record.score_label} ${record.severity}`);
+      left.append(node("strong", {}, record ? itemRunTitle(record) : itemDesignTitle(itemData)));
+      left.append(node("div", {class: "small"}, `${taskLabel(itemData.task_type)} | ${humanLabel(itemData.challenge_effort)} | ${itemSourceLabel(record || itemData)}`));
+      const right = record
+        ? node("div", {class: `tone-${scoreTone(record.score)}`}, `${record.score_label} ${record.severity}`)
+        : node("span", {class: `status-pill ${row.status.cls}`}, row.status.label);
       summary.append(left, right);
       item.append(summary);
       const body = node("div", {class: "item-body"});
-      body.append(node("h3", {}, "Prompt"));
-      body.append(pre(record.prompt));
-      if (record.rubric) {
-        body.append(node("h3", {}, "Evaluation Criteria"));
-        body.append(pre(record.rubric));
+      appendTaskDefinition(body, row);
+
+      const resultSection = node("div", {class: "task-section"});
+      resultSection.append(node("h3", {}, "Evaluation result"));
+      if (record) {
+        resultSection.append(renderRows([
+          ["Target", humanLabel(record.target_id)],
+          ["Score", record.score_label],
+          ["Outcome", humanLabel(record.severity)],
+          ["Latency", record.latency_ms === null || record.latency_ms === undefined ? "-" : `${record.latency_ms} ms`],
+          ["Error", displayText(record.error || "-")],
+        ]));
+        resultSection.append(node("h3", {}, "Judge reasoning"));
+        resultSection.append(markdownNode(record.judge_reasoning || record.error || "-"));
+      } else {
+        resultSection.append(node("p", {class: "empty"}, "This task has not been executed against a target model."));
       }
-      body.append(node("h3", {}, "Judge Reasoning"));
-      body.append(pre(displayText(record.error || record.judge_reasoning || "-")));
-      if (record.agent_trace) {
+      body.append(resultSection);
+
+      if (record && record.agent_trace) {
         const traceDetails = node("details", {class: "file-card"});
         traceDetails.append(node("summary", {}, "Agent Trace Summary"));
         traceDetails.append(table(["Step", "Action", "Score", "Done", "Error", "Observation"], (record.agent_trace.trace || []).map(step => [
@@ -921,7 +1411,7 @@ HTML_TEMPLATE = """<!doctype html>
         traceDetails.append(pre(displayText(JSON.stringify(record.agent_trace.final_state || {}, null, 2))));
         body.append(traceDetails);
       }
-      if (record.raw_response) {
+      if (record && record.raw_response) {
         const raw = node("details", {class: "file-card"});
         raw.append(node("summary", {}, "Raw response"));
         raw.append(pre(displayText(record.raw_response)));
@@ -938,408 +1428,39 @@ HTML_TEMPLATE = """<!doctype html>
       const dimension = qs("filter-dimension").value;
       const task = qs("filter-task").value;
       const severity = qs("filter-severity").value;
-      const filtered = records.filter(record =>
-        (!search || recordSearchText(record).includes(search)) &&
-        (!target || record.target_id === target) &&
-        (!dimension || record.dimension_id === dimension) &&
-        (!task || record.task_type === task) &&
-        (!severity || record.severity === severity)
+      const filtered = explorerRows.filter(entry =>
+        (!search || explorerSearchText(entry).includes(search)) &&
+        (!target || explorerTarget(entry) === target) &&
+        (!dimension || entry.row.item.dimension_id === dimension) &&
+        (!task || entry.row.item.task_type === task) &&
+        (!severity || explorerSeverity(entry) === severity)
       );
       if (!filtered.length) {
-        list.append(node("p", {class: "empty"}, "No matching item records."));
+        list.append(node("p", {class: "empty"}, "No matching items."));
         return;
       }
-      filtered.forEach(record => list.append(renderRecord(record)));
-    }
-    function renderTaskContent() {
-      const section = qs("task-content");
-      section.innerHTML = `<h2>Task Designs</h2>
-        <div class="filters">
-          <input id="task-filter-search" placeholder="Search task, file name, output, scoring">
-          <select id="task-filter-status"><option value="">All statuses</option></select>
-          <select id="task-filter-env"><option value="">All environments</option></select>
-          <select id="task-filter-dimension"><option value="">All dimensions</option></select>
-          <select id="task-filter-type"><option value="">All task types</option></select>
-        </div>
-        <div id="task-list"></div>`;
-      const items = pkg.dataset.items || [];
-      const taskRows = items.map(item => {
-        const metadata = item.metadata || {};
-        const env = agentEnv(item);
-        const pack = taskPackage(item);
-        const agent = taskAgent(item);
-        const visibleInputs = isPlainObject(pack.visible_inputs) ? pack.visible_inputs : {};
-        const hiddenRefs = isPlainObject(pack.hidden_references) ? pack.hidden_references : {};
-        const initial = isPlainObject(agent.initial_content) ? agent.initial_content : {};
-        const interaction = isPlainObject(agent.interaction) ? agent.interaction : {};
-        const taskAgentScoring = isPlainObject(agent.scoring) ? agent.scoring : {};
-        const execution = isPlainObject(pack.execution) ? pack.execution : {};
-        const envRequirements = isPlainObject(pack.environment_requirements) ? pack.environment_requirements : {};
-        const artifactCollection = isPlainObject(pack.artifact_collection) ? pack.artifact_collection : {};
-        const trajectoryRequirements = isPlainObject(pack.trajectory_requirements) ? pack.trajectory_requirements : {};
-        const resourceProvenance = isPlainObject(pack.resource_provenance) ? pack.resource_provenance : {};
-        const capabilityTarget = isPlainObject(pack.capability_target) ? pack.capability_target : {};
-        const multimodal = isPlainObject(metadata.multimodal) ? metadata.multimodal : {};
-        const swebench = isPlainObject(metadata.swebench) ? metadata.swebench : {};
-        const envSession = isPlainObject(env.session) ? env.session : {};
-        const initialSession = isPlainObject(initial.session) ? initial.session : {};
-        const visibleFiles = combinedFileMap([
-          {files: fileMap(env, ["visible_files", "files"]), source: "agent_env"},
-          {files: visibleInputs.files, source: "visible_inputs"},
-          {files: visibleInputs.asset_files, source: "visible_inputs.assets"},
-          {files: initial.files, source: "initial_content"},
-          {files: envSession.asset_files, source: "agent_env.session"},
-          {files: initialSession.asset_files, source: "initial_content.session"},
-        ]);
-        const hiddenFiles = combinedFileMap([
-          {files: fileMap(env, ["hidden_files"]), source: "agent_env"},
-          {files: hiddenRefs.files, source: "hidden_references"},
-        ]);
-        const referenceFiles = matchingFileMap(
-          hiddenFiles,
-          /(?:gold|reference|expected|solution|answer|oracle|fixed|truth)/i,
-        );
-        const output = pack.output_contract || {};
-        const evaluation = pack.evaluation || env.evaluation || {};
-        const status = taskStatus(item);
-        const required = asArray(output.required_outputs);
-        const expectedArtifacts = asArray(output.expected_artifacts || evaluation.expected_artifacts);
-        const search = [
-          item.id,
-          item.dimension_id,
-          item.task_type,
-          item.prompt,
-          item.rubric,
-          env.type,
-          env.test_command,
-          Object.keys(visibleFiles).join(" "),
-          Object.keys(hiddenFiles).join(" "),
-          valueText(required),
-          valueText(expectedArtifacts),
-          evaluation.pass_criteria,
-          valueText(capabilityTarget),
-          valueText(visibleInputs.assets),
-          valueText(envRequirements),
-          valueText(resourceProvenance),
-          valueText(item.answer),
-        ].join(" ").toLowerCase();
-        return {
-          item,
-          metadata,
-          env,
-          pack,
-          agent,
-          visibleInputs,
-          hiddenRefs,
-          initial,
-          interaction,
-          taskAgentScoring,
-          execution,
-          envRequirements,
-          artifactCollection,
-          trajectoryRequirements,
-          resourceProvenance,
-          capabilityTarget,
-          multimodal,
-          swebench,
-          visibleFiles,
-          hiddenFiles,
-          referenceFiles,
-          output,
-          evaluation,
-          status,
-          required,
-          expectedArtifacts,
-          search,
-        };
-      });
-      const setOptions = (id, values) => {
-        const sel = qs(id);
-        [...new Set(values.filter(Boolean).map(String))].sort().forEach(value => sel.append(node("option", {value}, humanLabel(value))));
-      };
-      setOptions("task-filter-status", taskRows.map(row => row.status.label));
-      setOptions("task-filter-env", taskRows.map(row => row.env.type || "unknown"));
-      setOptions("task-filter-dimension", taskRows.map(row => row.item.dimension_id));
-      setOptions("task-filter-type", taskRows.map(row => row.item.task_type));
-      ["task-filter-search", "task-filter-status", "task-filter-env", "task-filter-dimension", "task-filter-type"].forEach(id => qs(id).addEventListener("input", applyTaskFilters));
-
-      function renderTask(row) {
-        const {
-          item,
-          metadata,
-          env,
-          pack,
-          agent,
-          visibleInputs,
-          hiddenRefs,
-          initial,
-          interaction,
-          taskAgentScoring,
-          execution,
-          envRequirements,
-          artifactCollection,
-          trajectoryRequirements,
-          resourceProvenance,
-          capabilityTarget,
-          multimodal,
-          swebench,
-          visibleFiles,
-          hiddenFiles,
-          referenceFiles,
-          output,
-          evaluation,
-          status,
-          required,
-          expectedArtifacts,
-        } = row;
-        const details = node("details", {class: "item"});
-        details.id = taskAnchorId(item.id);
-        details.setAttribute("data-search", row.search);
-        details.setAttribute("data-status", status.label);
-        details.setAttribute("data-env", env.type || "unknown");
-        details.setAttribute("data-dimension", item.dimension_id || "");
-        details.setAttribute("data-task", item.task_type || "");
-        const summary = node("summary");
-        const left = node("div");
-        left.append(node("strong", {}, itemDesignTitle(item)));
-        left.append(node("div", {class: "small"}, `${taskLabel(item.task_type)} | ${envLabel(env.type || "unknown")} | ${itemSourceLabel(item)}`));
-        const pill = node("span", {class: `status-pill ${status.cls}`}, status.label);
-        summary.append(left, pill);
-        details.append(summary);
-
-        const body = node("div", {class: "item-body"});
-
-        const promptChildren = [pre(item.prompt || "-")];
-        if (hasRenderableValue(visibleInputs.instructions) && String(visibleInputs.instructions).trim() !== String(item.prompt || "").trim()) {
-          promptChildren.push(renderDataDetails("Visible input instructions", visibleInputs.instructions));
-        }
-        if (hasRenderableValue(interaction.initial_user_message) && String(interaction.initial_user_message).trim() !== String(item.prompt || "").trim()) {
-          promptChildren.push(renderDataDetails("Initial user message", interaction.initial_user_message));
-        }
-        if (hasRenderableValue(interaction.user_turns)) {
-          promptChildren.push(renderDataDetails("Scripted follow-up turns", interaction.user_turns));
-        }
-        if (hasRenderableValue(multimodal.content)) {
-          promptChildren.push(renderDataDetails("Multimodal prompt content blocks", multimodal.content));
-        }
-        if (agent.system_prompt) {
-          promptChildren.push(renderDataDetails("Task-agent system prompt", agent.system_prompt));
-        }
-        body.append(renderTaskSection(
-          "1. Target-visible prompt",
-          "The prompt, interaction messages, and system/task-agent instructions supplied to the evaluated model.",
-          promptChildren,
-        ));
-
-        const contractRows = [
-          ["Required outputs", required],
-          ["Expected artifacts", expectedArtifacts],
-          ["Output schema", output.schema],
-          ["Output constraints", output.constraints],
-          ["Test command", env.test_command],
-          ["Evaluation command/process", execution.evaluate],
-          ["Execution setup", execution.setup],
-          ["Execution run protocol", execution.run],
-          ["Scoring method", evaluation.method || (item.scoring || {}).method || "-"],
-          ["Evaluation checks", evaluation.checks],
-          ["Pass criteria", evaluation.pass_criteria || item.rubric || "-"],
-          ["Partial criteria", evaluation.partial_criteria || "-"],
-          ["Fail criteria", evaluation.fail_criteria || "-"],
-          ["Score levels", evaluation.score_levels || taskAgentScoring.levels],
-          ["Task-agent scoring guidance", taskAgentScoring],
-          ["SWE-bench fail-to-pass tests", swebench.FAIL_TO_PASS],
-          ["SWE-bench pass-to-pass tests", swebench.PASS_TO_PASS],
-        ];
-        const scoringChildren = [renderRows(contractRows)];
-        const hiddenRefSummary = objectWithout(hiddenRefs, ["files"]);
-        if (hasRenderableValue(hiddenRefSummary)) {
-          scoringChildren.push(renderDataDetails("Hidden reference / evaluator metadata", hiddenRefSummary));
-        }
-        if (hasRenderableValue(swebench.test_patch)) {
-          scoringChildren.push(renderDataDetails("SWE-bench hidden test_patch", swebench.test_patch));
-        }
-        if (Object.keys(hiddenFiles).length) {
-          scoringChildren.push(node("p", {class: "small"}, "Runner-private evaluator files and hidden references. The target model does not see these during evaluation."));
-          scoringChildren.push(renderFileCards(hiddenFiles));
-        }
-        body.append(renderTaskSection(
-          "2. Outputs, scoring, and evaluator materials",
-          "Required deliverables, pass/partial/fail criteria, evaluation process, and private evaluator materials.",
-          scoringChildren,
-        ));
-
-        const visibleContextRows = [
-          ["Visible assets/resources", visibleInputs.assets || visibleInputs.resources],
-          ["Initial scenario", initial.scenario],
-          ["Initial session", initial.session],
-          ["Initial VM summary", initial.vm],
-          ["Initial notes", initial.notes],
-          ["Multimodal modalities", multimodal.modalities],
-          ["Multimodal assets", multimodal.assets],
-          ["SWE-bench repository", swebench.repo],
-          ["SWE-bench base commit", swebench.base_commit],
-          ["SWE-bench environment setup commit", swebench.environment_setup_commit],
-          ["SWE-bench problem version", swebench.version],
-        ];
-        const visibleChildren = [renderRows(visibleContextRows)];
-        if (Object.keys(visibleFiles).length) {
-          visibleChildren.push(node("p", {class: "small"}, "Files and resources staged before the run and visible through the target agent's file or desktop tools."));
-          visibleChildren.push(renderFileCards(visibleFiles));
-        }
-        body.append(renderTaskSection(
-          "3. Model-visible context and resources",
-          "Files, assets, repository snapshots, media, session state, and other input resources visible to the model.",
-          visibleChildren,
-        ));
-
-        const environmentRows = [
-          ["Environment type", env.type || envRequirements.type],
-          ["Tools", env.tools],
-          ["Required tools", trajectoryRequirements.required_tools],
-          ["Forbidden shortcuts", trajectoryRequirements.forbidden_shortcuts],
-          ["Required software", env.required_software || envRequirements.required_software],
-          ["Network", env.network || envRequirements.network],
-          ["Docker/VM image", env.image || envRequirements.image],
-          ["Docker image selection", env.image_selection],
-          ["Docker image build", env.image_build || envRequirements.image_build],
-          ["Pull image", env.pull_image],
-          ["Setup commands", env.setup_commands],
-          ["Max steps", env.max_steps || execution.max_steps],
-          ["Timeout", env.timeout || execution.timeout_s],
-          ["Workspace", env.workspace],
-          ["Session", env.session],
-          ["VM", env.vm || envRequirements.vm],
-          ["VM materialization", env.vm_materialization],
-          ["VM provisioning", env.vm_provisioning || envRequirements.vm_provisioning],
-          ["Requires VM", env.requires_vm || envRequirements.requires_vm],
-          ["Resource limits", env.resource_limits || envRequirements.resource_limits],
-          ["Desktop bridge URL", env.bridge_url],
-          ["VM provider URL", env.vm_provider_url],
-          ["Artifact collection", artifactCollection],
-          ["Trajectory audit requirements", trajectoryRequirements],
-          ["Task-agent role", agent.agent_role],
-        ];
-        body.append(renderTaskSection(
-          "4. Tools, environment, and initial state",
-          "Runtime tools, sandbox/VM/desktop environment, setup, limits, and initial state required to execute the task.",
-          [renderRows(environmentRows)],
-        ));
-
-        const referenceMetadata = {};
-        [
-          "reference_answer",
-          "reference_solution",
-          "standard_answer",
-          "expected_answer",
-          "gold_answer",
-          "gold_patch",
-          "oracle_answer",
-          "solution",
-        ].forEach(key => {
-          if (hasRenderableValue(metadata[key])) referenceMetadata[key] = metadata[key];
-        });
-        const referenceRows = [
-          ["Answer key", item.answer],
-          ["Choices", item.choices],
-          ["Reference metadata", referenceMetadata],
-          ["Reference artifacts", hiddenRefs.reference_artifacts],
-          ["Reference notes", hiddenRefs.notes],
-          ["SWE-bench gold patch", swebench.patch],
-        ];
-        const referenceChildren = [];
-        const hasReferenceRows = referenceRows.some(row => hasRenderableValue(row[1]));
-        if (hasReferenceRows) {
-          referenceChildren.push(renderRows(referenceRows));
-        }
-        if (Object.keys(referenceFiles).length) {
-          referenceChildren.push(node("p", {class: "small"}, "Reference-like hidden files inferred from names/content such as gold, expected, solution, oracle, answer, or truth."));
-          referenceChildren.push(renderFileCards(referenceFiles));
-        }
-        if (!hasReferenceRows && !Object.keys(referenceFiles).length) {
-          referenceChildren.push(node("p", {class: "empty"}, "No standalone reference answer is recorded; the evaluator materials and scoring criteria define success."));
-        }
-        body.append(renderTaskSection(
-          "5. Reference answer or solution",
-          "Gold answers, reference outputs, expected artifacts, oracle notes, or reference patches when the task has them.",
-          referenceChildren,
-        ));
-
-        const constructionMetadata = objectWithout(metadata, [
-          "agent_env",
-          "task_agent",
-          "agent_task_package",
-          "multimodal",
-          "swebench",
-        ]);
-        const sourceRows = [
-          ["Item ID", item.id],
-          ["Dimension", item.dimension_id],
-          ["Task type", item.task_type],
-          ["Difficulty", item.difficulty],
-          ["Tags", item.tags],
-          ["Source label", itemSourceLabel(item)],
-          ["Source kind", item.source && item.source.kind],
-          ["Source title", item.source && item.source.title],
-          ["Source URI", item.source && item.source.uri],
-          ["Source notes", item.source && item.source.notes],
-          ["Package schema/style", [pack.schema_version, pack.style].filter(Boolean).join(" / ")],
-          ["Capability target", capabilityTarget],
-          ["Resource provenance", resourceProvenance],
-          ["SWE-bench instance", swebench.instance_id || swebench.instance_ids],
-          ["Additional construction metadata", constructionMetadata],
-        ];
-        body.append(renderTaskSection(
-          "6. Source and construction metadata",
-          "Where the task came from, how it was constructed, and the capability/dimension metadata used for benchmark review.",
-          [renderRows(sourceRows)],
-        ));
-
-        const runRows = (resultRecordsByItem.get(item.id) || []).map(record => [
-          humanLabel(record.target_id),
-          record.score_label,
-          record.error || "-",
-          displayText(record.judge_reasoning || "-"),
-        ]);
-        body.append(node("h3", {}, "Run result for this task"));
-        body.append(table(["Target", "Score", "Error", "Reasoning"], runRows));
-        details.append(body);
-        return details;
-      }
-
-      function applyTaskFilters() {
-        const list = qs("task-list");
-        list.innerHTML = "";
-        const search = (qs("task-filter-search").value || "").toLowerCase();
-        const status = qs("task-filter-status").value;
-        const env = qs("task-filter-env").value;
-        const dimension = qs("task-filter-dimension").value;
-        const task = qs("task-filter-type").value;
-        const filtered = taskRows.filter(row =>
-          (!search || row.search.includes(search)) &&
-          (!status || row.status.label === status) &&
-          (!env || (row.env.type || "unknown") === env) &&
-          (!dimension || row.item.dimension_id === dimension) &&
-          (!task || row.item.task_type === task)
-        );
-        if (!filtered.length) {
-          list.append(node("p", {class: "empty"}, "No matching tasks."));
-          return;
-        }
-        filtered.forEach(row => list.append(renderTask(row)));
-      }
-
-      applyTaskFilters();
+      filtered.forEach(entry => list.append(renderRecord(entry)));
     }
     function renderQc() {
       const section = qs("qc");
-      section.innerHTML = "<h2>QC and Judge Audit</h2>";
+      section.innerHTML = "<h2>Task Composition and QC</h2>";
       const qc = pkg.qc_report || {};
-      const grid = node("div", {class: "grid cols-4"});
-      grid.append(stat("QC quality", pct(qc.quality_score), scoreTone(qc.quality_score)));
-      grid.append(stat("Passed items", (qc.passed_item_ids || []).length));
-      grid.append(stat("Rejected items", (qc.rejected_item_ids || []).length));
-      grid.append(stat("QC issues", (qc.issues || []).length, (qc.issues || []).length ? "warn" : "good"));
+      const totalItems = diag.generated_items ?? (pkg.dataset.items || []).length;
+      const usedItems = diag.used_items ?? (pkg.dataset.items || []).length;
+      const averageQcIssues = (qc.issues || []).length / Math.max(1, totalItems);
+      const averageQcIssueTone = averageQcIssues === 0 ? "good" : averageQcIssues <= 0.25 ? "warn" : "bad";
+      const grid = node("div", {class: "grid cols-3"});
+      grid.append(stat("Generated / QC passed", `${totalItems}/${usedItems}`));
+      grid.append(stat("Sourced / QC passed", `${diag.source_backed_items}/${usedItems}`));
+      grid.append(stat("Average QC issues", averageQcIssues.toFixed(2), averageQcIssueTone));
       section.append(grid);
+      const challengeEffortRows = Object.entries(diag.challenge_effort_counts || {})
+        .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))
+        .map(([effort, count]) => [bucketLabel(`challenge_effort:${effort}`), count]);
+      if (challengeEffortRows.length) {
+        section.append(node("h3", {}, "Challenge Effort Distribution"));
+        section.append(compositionTable([], challengeEffortRows));
+      }
 
       function groupedQcIssues(issues) {
         const groups = [];
@@ -1395,33 +1516,23 @@ HTML_TEMPLATE = """<!doctype html>
       });
       section.append(table(["Severity", "Category", "Item", "Message", "Suggested Action"], qcRows));
       section.append(node("h3", {}, "Judge Signals"));
-      section.append(table(["Metric", "Value"], [
-        ["LLM-judged results", diag.judge.llm_judged_results],
-        ["Deterministic or unjudged results", diag.judge.deterministic_or_unjudged_results],
-        ["Double-pass instability flags", diag.judge.instability_flags],
-      ]));
-    }
-    function renderArtifacts() {
-      const section = qs("artifacts");
-      section.innerHTML = "<h2>Artifacts</h2>";
-      const rows = [
-        ["Canonical JSON", "This HTML embeds a clipped viewer payload; use the package JSON for full raw values."],
-        ["Markdown", "The Markdown report remains generated for terminal and diff-friendly review."],
-        ["lm-eval export", "Interoperability artifacts are generated when the pipeline persists a package."],
+      const judgeRows = [
+        ["Planned LLM-judged items", diag.judge.planned_llm_judged_items],
+        ["Planned deterministic/rule-scored items", diag.judge.planned_deterministic_items],
+        ["Executed results", diag.judge.executed_results],
+        ["Results with judge/evaluator reasoning", diag.judge.results_with_judge_reasoning],
+        ["Results without judge/evaluator reasoning", diag.judge.results_without_judge_reasoning],
       ];
-      section.append(table(["Artifact", "Purpose"], rows));
-      if (pkg.report && pkg.report.recommendations) {
-        section.append(node("h3", {}, "Recommendations"));
-        section.append(table(["Recommendation"], pkg.report.recommendations.map(row => [row])));
+      if (diag.judge.double_pass_enabled) {
+        judgeRows.push(["Double-pass instability flags", diag.judge.instability_flags]);
       }
+      section.append(table(["Metric", "Value"], judgeRows));
     }
     renderOverview();
     renderCapability();
     renderDiagnostics();
     renderExplorer();
     renderQc();
-    renderTaskContent();
-    renderArtifacts();
   </script>
 </body>
 </html>

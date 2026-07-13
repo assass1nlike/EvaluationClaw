@@ -23,13 +23,14 @@ from ..types import (
     BenchmarkDataset,
     BenchmarkItem,
     BenchmarkSource,
-    Difficulty,
+    ChallengeEffort,
     EvalDimension,
     EvalSpec,
     Message,
     QcReport,
     SourceKind,
     TaskType,
+    safe_challenge_effort,
 )
 
 
@@ -52,11 +53,8 @@ def _safe_task_type(value: object) -> TaskType:
         return TaskType.open_generation
 
 
-def _safe_difficulty(value: object, fallback: Difficulty = Difficulty.L4) -> Difficulty:
-    try:
-        return Difficulty(str(value))
-    except ValueError:
-        return fallback
+def _safe_effort(value: object, fallback: ChallengeEffort = ChallengeEffort.E3) -> ChallengeEffort:
+    return safe_challenge_effort(value, fallback)
 
 
 def _safe_positive_int(value: object, fallback: int | None = None) -> int | None:
@@ -71,13 +69,18 @@ def _dimension_from_data(data: dict[str, Any], fallback: EvalDimension | None = 
     base = fallback.model_dump(mode="json") if fallback else {}
     merged = {**base, **data}
     dim_id = str(merged.get("id") or _slug(str(merged.get("name") or "dimension")))
+    challenge_effort = _safe_effort(
+        merged.get("challenge_effort")
+        or merged.get("target_challenge_effort")
+        or merged.get("task_builder_effort")
+    )
     return EvalDimension(
         id=dim_id,
         name=str(merged.get("name") or dim_id),
         description=str(merged.get("description") or ""),
         approach=str(merged.get("approach") or ""),
         weight=float(merged.get("weight", 1.0) or 1.0),
-        target_difficulty=_safe_difficulty(merged.get("target_difficulty"), Difficulty.L4),
+        challenge_effort=challenge_effort,
         needs_research=bool(merged.get("needs_research", False)),
         research_queries=[str(q) for q in merged.get("research_queries", []) if q],
         target_item_count=_safe_positive_int(merged.get("target_item_count")),
@@ -112,7 +115,7 @@ def _item_excerpt(item: BenchmarkItem) -> dict[str, object]:
         "id": item.id,
         "dimension_id": item.dimension_id,
         "task_type": item.task_type.value,
-        "difficulty": item.difficulty.value,
+        "challenge_effort": item.challenge_effort.value,
         "prompt": item.prompt[:700],
         "answer": item.answer,
         "rubric": (item.rubric or "")[:500],
@@ -184,6 +187,7 @@ def _planner_review(
             model=config.orchestrator_model,
             api_key=config.orchestrator_api_key,
             base_url=config.orchestrator_base_url,
+            provider=config.orchestrator_provider,
             backend=config.llm_backend,
             max_tokens=8192,
         )
@@ -545,7 +549,7 @@ def format_human_review_overview(
     config: BenchmarkConfig,
 ) -> str:
     """Build a compact human-review summary before runner execution."""
-    ready_ids = set(qc_report.passed_item_ids or [item.id for item in dataset.items])
+    ready_ids = set(qc_report.passed_item_ids)
     ready_items = [item for item in dataset.items if item.id in ready_ids]
     counts = Counter(item.dimension_id for item in ready_items)
     type_counts: dict[str, Counter[str]] = defaultdict(Counter)

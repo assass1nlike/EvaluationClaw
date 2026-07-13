@@ -1,128 +1,73 @@
-"""ALE-style executable agent task package protocol."""
+"""Executable agent task package protocol."""
 from __future__ import annotations
 
 import copy
 from typing import Any
 
 from ..types import BenchmarkItem, TaskType
-from .task_agent import TASK_AGENT_METADATA_KEY
 
 AGENT_TASK_PACKAGE_SCHEMA_VERSION = "evalclaw.agent_task_package.v1"
 AGENT_TASK_PACKAGE_METADATA_KEY = "agent_task_package"
 
 AGENT_TASK_PACKAGE_SCHEMA: dict[str, Any] = {
     "schema_version": AGENT_TASK_PACKAGE_SCHEMA_VERSION,
-    "style": "ale_executable_task",
     "capability_target": {
-        "name": "Agent capability being measured, not a one-off task title.",
-        "content_summary": "Short 3-8 word label for report item titles.",
-        "description": "What behavior this task is intended to test.",
+        "name": "Agent capability being measured.",
+        "content_summary": "Short report label.",
+        "description": "Behavior tested by the task.",
     },
     "environment_requirements": {
+        "environment_ref": "metadata.agent_env",
         "type": "workspace | code_sandbox | docker_workspace | gui_desktop",
         "os": "linux | windows | macos | any",
         "requires_vm": False,
         "requires_gui": False,
-        "required_software": ["Runtime, desktop app, browser, bridge, plugin, or package requirements."],
+        "required_software": ["Runtime or application requirements, without secrets."],
         "network": "none | restricted | internet",
-        "resource_limits": {},
-        "vm_provisioning": {
-            "enabled": False,
-            "strategy": "cloud_init.v1",
-            "apt_packages": ["Ubuntu apt packages to install at VM first boot."],
-            "pip_packages": ["Python packages to install at VM first boot."],
-            "snap_packages": ["Snap packages to install at VM first boot."],
-            "cran_packages": ["R/CRAN packages to install at VM first boot."],
-            "bioconductor_packages": ["Bioconductor packages to install at VM first boot."],
-            "julia_packages": ["Julia packages to install at VM first boot."],
-            "conda_packages": ["Conda/mamba packages to install when the VM has conda/mamba/micromamba."],
-            "cargo_packages": ["Rust cargo-install packages to install at VM first boot."],
-            "go_packages": ["Go package specs such as module/cmd@version to install at VM first boot."],
-            "gem_packages": ["Ruby gems to install at VM first boot."],
-            "composer_packages": ["Composer packages to install globally at VM first boot."],
-            "install_steps": [
-                {
-                    "manager": "apt | pip | snap | cran | bioconductor | julia | conda | cargo | go | gem | composer | apk | dnf | yum | pacman | shell",
-                    "packages": ["Package specs for the selected manager."],
-                    "command": "Shell command for manager=shell or custom setup.",
-                }
-            ],
-            "commands": ["Additional guest shell commands for software setup or bridge startup."],
-            "desktop_bridge_install_command": "Optional command to install the desktop bridge inside the guest.",
-            "desktop_bridge_start_command": "Optional command to start the desktop bridge inside the guest.",
-        },
-        "image_build": {
-            "enabled": False,
-            "base_image": "Common base image, for example python:3.11-slim or ubuntu:22.04.",
-            "system_packages": ["apt packages to install in the task image."],
-            "python_packages": ["pip packages to install in the task image."],
-            "node_packages": ["global npm packages to install in the task image."],
-            "cran_packages": ["R/CRAN packages to install."],
-            "bioconductor_packages": ["Bioconductor packages to install."],
-            "julia_packages": ["Julia packages to install."],
-            "conda_packages": ["Conda/mamba packages to install when the base image has conda/mamba/micromamba."],
-            "cargo_packages": ["Rust cargo-install packages."],
-            "go_packages": ["Go package specs such as module/cmd@version."],
-            "gem_packages": ["Ruby gems to install."],
-            "composer_packages": ["Composer packages to install globally."],
-            "install_steps": [
-                {
-                    "manager": "apt | pip | npm | cran | bioconductor | julia | conda | cargo | go | gem | composer | apk | dnf | yum | pacman | shell",
-                    "packages": ["Package specs for the selected manager."],
-                    "command": "Shell command for manager=shell or custom setup.",
-                }
-            ],
-            "commands": ["Additional Dockerfile RUN commands."],
-            "dockerfile": "Complete custom Dockerfile content when package lists are insufficient.",
-            "context_files": {"relative/build/path": "Build-time file content."},
-            "tag": "Optional local image tag.",
-            "rebuild": False,
-        },
     },
     "visible_inputs": {
         "instructions": "User-visible task instructions.",
-        "files": {"relative/or/guest/path.ext": "Full visible file content."},
-        "assets": [
-            "Visible datasets, documents, URLs, images, videos, project files, or inline path/content asset objects."
-        ],
-        "session": "Public GUI/browser/VM session state when applicable.",
+        "file_names": ["Paths whose contents live only in metadata.agent_env.visible_files."],
+        "assets": ["Public datasets, documents, URLs, images, or project files."],
     },
     "hidden_references": {
-        "staging_phase": "post_agent_or_runner_private",
-        "files": {"relative/private/path.ext": "Hidden reference or evaluator content."},
-        "reference_artifacts": ["Hidden expected files, outputs, checksums, or reference states."],
-        "notes": "Do not expose to the target agent.",
+        "staging_phase": "evaluation_only",
+        "file_names": ["Paths whose contents live only in metadata.agent_env.hidden_files."],
+        "runtime_file_names": ["Setup-only paths from metadata.agent_env.runtime_files."],
+        "reference_artifacts": ["Runner-private expected outputs or states."],
+        "notes": "Never expose evaluator-only material to the target.",
     },
     "output_contract": {
-        "expected_artifacts": ["Paths or state values the target must produce."],
-        "required_outputs": ["Structured outputs, final states, commands, or GUI artifacts."],
+        "expected_artifacts": ["Paths or states the target must produce."],
+        "required_outputs": ["Structured outputs or final states."],
         "schema": {},
-        "constraints": ["Format, location, reproducibility, and side-effect constraints."],
+        "constraints": ["Format, location, and side-effect constraints."],
     },
     "execution": {
-        "setup": ["Commands or bridge actions to prepare visible state."],
-        "run": "How the target agent interacts with the task.",
-        "evaluate": "Command, bridge evaluator, deterministic checker, or judge process.",
+        "environment_ref": "metadata.agent_env",
+        "setup_command_count": 0,
+        "run": "How the target interacts with the environment.",
+        "evaluate": "Evaluator command or bridge method.",
         "timeout_s": 0,
         "max_steps": 0,
     },
     "evaluation": {
         "method": "deterministic | artifact_check | bridge_state_check | judge",
-        "checks": ["Named scoring checks with weights or exact assertions."],
+        "checks": ["Named scoring checks."],
         "score_range": [0, 1],
         "pass_criteria": "Full-credit standard.",
         "partial_criteria": "Partial-credit standard.",
         "fail_criteria": "Failure standard.",
     },
     "artifact_collection": {
-        "collect_paths": ["Files, directories, logs, renders, notebooks, or exported artifacts to save."],
+        "collect_paths": ["Artifacts to retain."],
         "collect_trajectory": True,
         "logs": ["stdout", "stderr", "tool_trace", "screenshots"],
     },
     "trajectory_requirements": {
-        "required_tools": ["read_file", "write_file", "run_command"],
-        "forbidden_shortcuts": ["Direct access to hidden references or evaluator internals."],
-        "audit_notes": "What the trace should prove about the agent's process.",
+        "required_tools": ["Tools required by the intended workflow."],
+        "forbidden_shortcuts": ["Direct access to protected runtime or evaluator material."],
+        "audit_notes": "What the trace should demonstrate.",
     },
     "resource_provenance": {
         "source_kind": "generated_fixture | imported | web | dataset | repo",
@@ -133,63 +78,33 @@ AGENT_TASK_PACKAGE_SCHEMA: dict[str, Any] = {
 }
 
 AGENT_TASK_PACKAGE_GENERATION_GUIDANCE = """\
-For ALE-style executable agent tasks, add metadata.agent_task_package with
-schema_version "evalclaw.agent_task_package.v1".
+For executable agent tasks, add metadata.agent_task_package with schema_version
+"evalclaw.agent_task_package.v1".
 
-Use this package when a task is a professional workflow, long-horizon agent
-task, docker_workspace task, GUI/browser/desktop-software task, VM-backed task,
-or any task whose quality depends on executable setup, artifacts, hidden
-references, and deterministic evaluation.
+metadata.agent_env is the sole executable environment definition. The package
+must reference it with environment_ref="metadata.agent_env" and must not copy
+file contents, VM configuration, image-build configuration, browser settings,
+setup commands, or hidden evaluator content.
 
-The package complements metadata.task_agent:
-- metadata.task_agent defines the task-specific agent role, interaction rules,
-  initial context summary, and scoring guidance.
-- metadata.agent_task_package defines the executable task package: visible
-  inputs, hidden references, output contract, setup/run/evaluate process,
-  artifact collection, trajectory requirements, environment/software
-  requirements, and provenance.
+Keep three lifecycle phases distinct:
+- visible_files: present before the target starts and available through tools.
+- runtime_files: available to setup/runtime but protected from target file tools.
+- hidden_files: injected only while the evaluator runs.
 
-Package requirements:
-- Keep visible_inputs and hidden_references separate. The target agent may see
-  visible_inputs, but hidden_references are runner-private and should be staged
-  only after the agent finishes or kept under a private evaluator path.
-- Provide a concrete output_contract. Name expected files, exported artifacts,
-  final GUI/page states, JSON schemas, numerical outputs, or other checkable
-  products.
-- Provide execution.setup, execution.run, and execution.evaluate at the right
-  level of abstraction for the environment. For GUI/VM tasks, run/evaluate may
-  point to a desktop bridge evaluator instead of a shell command.
-- Provide evaluation.method, checks, and pass/partial/fail criteria. Prefer
-  deterministic artifact/state checks; use judge scoring only for inherently
-  subjective artifacts and still define score levels.
-- Make evaluation reproducible. If a check uses pHash, SSIM, audio
-  fingerprinting, ffprobe metadata, numerical tolerance, schema validation, or
-  text/RCA matching, state the algorithm or tool, input paths, expected values,
-  thresholds/tolerances, and partial-credit computation explicitly. Do not put
-  concrete thresholds only in one field while leaving scoring.pass_criteria or
-  pass_fail vague.
-- Provide artifact_collection and trajectory_requirements so the runner can
-  save outputs, logs, screenshots, command traces, and evidence that the agent
-  used the intended tools rather than shortcuts.
-- For proprietary or specialized software, put software/licensing assumptions
-  in environment_requirements. Do not embed secrets or local provider URLs.
-- For docker_workspace tasks where no common Hub image is sufficient, set
-  environment_requirements.image_build and metadata.agent_env.image_build with
-  enabled=true. Prefer base_image plus package lists for ordinary dependencies:
-  apt/system, pip/python, npm/node, CRAN/R, Bioconductor, Julia, Conda,
-  Cargo, Go, Ruby gems, Composer, apk/dnf/yum/pacman, and install_steps.
-  Include required language/runtime system packages or choose a suitable
-  base_image when a package manager is not present by default. Use dockerfile
-  only when the package-list form cannot express the setup.
-- For VM-backed tasks where a base OS image exists but task software is not yet
-  installed, set environment_requirements.vm_provisioning and
-  metadata.agent_env.vm_provisioning. EvaluationClaw can write apt/system,
-  pip/python, snap, CRAN/R, Bioconductor, Julia, Conda, Cargo, Go, Ruby gems,
-  Composer, apk/dnf/yum/pacman package fields, install_steps, setup commands,
-  and desktop bridge commands into the per-task cloud-init seed ISO. This can
-  install tools such as KiCad, FreeCAD, Blender, R/Julia analytics stacks,
-  scientific CLIs, and other open/installable software at first boot when the
-  image supports cloud-init.
+Raw shell access must not be exposed when runtime_files or hidden_files are
+present, because it would bypass lifecycle protections or leave a background
+process waiting for evaluator injection. Use structured workspace tools and the
+runner-private evaluator instead.
+
+The package describes capability intent, public input names, private reference
+names, output contracts, evaluator semantics, artifact collection, trajectory
+requirements, and provenance. Evaluators should write
+{"score": 0.0-1.0, "passed": true|false, "details": "..."} to the configured
+evaluation.result_path. Numeric score files are valid for simple evaluators.
+Target-controlled stdout is not a trusted score source and is ignored by
+default; enable evaluation.allow_stdout_score=true only when the evaluator's
+stdout cannot be influenced by the target. Define explicit partial-credit
+behavior and keep all scores within [0, 1].
 """
 
 
@@ -197,13 +112,6 @@ def _env_from_item(item: BenchmarkItem) -> dict[str, Any]:
     env = item.metadata.get("agent_env")
     if isinstance(env, dict):
         return env
-    task_agent = item.metadata.get(TASK_AGENT_METADATA_KEY)
-    if isinstance(task_agent, dict):
-        execution = task_agent.get("execution")
-        if isinstance(execution, dict):
-            agent_env = execution.get("agent_env")
-            if isinstance(agent_env, dict):
-                return agent_env
     return {}
 
 
@@ -233,7 +141,7 @@ def _has_visible_inputs(value: Any) -> bool:
         return False
     if str(value.get("instructions") or "").strip():
         return True
-    for key in ("files", "assets", "resources"):
+    for key in ("file_names", "assets", "resources"):
         child = value.get(key)
         if isinstance(child, (dict, list)) and bool(child):
             return True
@@ -255,7 +163,7 @@ def _has_output_contract(value: Any) -> bool:
 def _has_hidden_reference(value: Any) -> bool:
     if not isinstance(value, dict):
         return False
-    for key in ("files", "reference_artifacts", "checksums", "evaluator"):
+    for key in ("file_names", "runtime_file_names", "reference_artifacts", "checksums", "evaluator"):
         child = value.get(key)
         if isinstance(child, (dict, list)) and bool(child):
             return True
@@ -281,7 +189,7 @@ def agent_task_package_issues(item: BenchmarkItem) -> list[str]:
     if package is None:
         return (
             [
-                "ALE-style executable agent task is missing metadata.agent_task_package.",
+                "Executable agent task is missing metadata.agent_task_package.",
             ]
             if required
             else []
@@ -303,7 +211,7 @@ def agent_task_package_issues(item: BenchmarkItem) -> list[str]:
     env = _env_from_item(item)
     env_type = str(env.get("type") or "").lower()
     if required and not _has_hidden_reference(package.get("hidden_references")):
-        issues.append("ALE-style executable task package must include runner-private hidden_references or evaluator notes.")
+        issues.append("Executable task package must include runner-private hidden_references or evaluator notes.")
     if env_type in {"docker_workspace", "gui_desktop"}:
         artifact_collection = package.get("artifact_collection")
         if not isinstance(artifact_collection, dict) or not (
@@ -316,14 +224,14 @@ def agent_task_package_issues(item: BenchmarkItem) -> list[str]:
 
     visible_files = set()
     visible_inputs = package.get("visible_inputs")
-    if isinstance(visible_inputs, dict) and isinstance(visible_inputs.get("files"), dict):
-        visible_files = {str(path) for path in visible_inputs["files"]}
+    if isinstance(visible_inputs, dict) and isinstance(visible_inputs.get("file_names"), list):
+        visible_files = {str(path) for path in visible_inputs["file_names"]}
     hidden_refs = package.get("hidden_references")
-    if isinstance(hidden_refs, dict) and isinstance(hidden_refs.get("files"), dict):
-        overlap = visible_files & {str(path) for path in hidden_refs["files"]}
+    if isinstance(hidden_refs, dict) and isinstance(hidden_refs.get("file_names"), list):
+        overlap = visible_files & {str(path) for path in hidden_refs["file_names"]}
         if overlap:
             issues.append(
-                "metadata.agent_task_package exposes the same file path in visible_inputs.files and hidden_references.files: "
+                "metadata.agent_task_package exposes the same path as visible and evaluator-only: "
                 + ", ".join(sorted(overlap)[:5])
             )
     return issues
@@ -339,11 +247,21 @@ def public_agent_task_package(package: dict[str, Any]) -> dict[str, Any]:
             "reference_artifacts": hidden.get("reference_artifacts", []),
             "notes": "Hidden references are runner-private and are not exposed to the target agent.",
         }
-        if isinstance(hidden.get("files"), dict):
-            redacted["file_names"] = sorted(str(path) for path in hidden["files"].keys())
-            redacted["file_count"] = len(hidden["files"])
+        if isinstance(hidden.get("file_names"), list):
+            redacted["file_names"] = sorted(str(path) for path in hidden["file_names"])
+            redacted["file_count"] = len(hidden["file_names"])
         public["hidden_references"] = redacted
     return public
+
+
+def _compact_text(value: Any, *, limit: int) -> str:
+    text = str(value)
+    if len(text) <= limit:
+        return text
+    return (
+        text[:limit].rstrip()
+        + "\n[QC summary clipped here; canonical metadata.agent_task_package contains the full field.]"
+    )
 
 
 def compact_agent_task_package(package: dict[str, Any]) -> dict[str, Any]:
@@ -354,7 +272,7 @@ def compact_agent_task_package(package: dict[str, Any]) -> dict[str, Any]:
     capability = package.get("capability_target")
     if isinstance(capability, dict):
         compact["capability_target"] = {
-            key: str(value)[:800]
+            key: _compact_text(value, limit=800)
             for key, value in capability.items()
             if isinstance(value, (str, int, float, bool))
         }
@@ -366,7 +284,7 @@ def compact_agent_task_package(package: dict[str, Any]) -> dict[str, Any]:
     if isinstance(visible, dict):
         compact_visible: dict[str, Any] = {}
         if "instructions" in visible:
-            compact_visible["instructions"] = str(visible["instructions"])[:800]
+            compact_visible["instructions"] = _compact_text(visible["instructions"], limit=2000)
         files = visible.get("files")
         if isinstance(files, dict):
             compact_visible["file_names"] = list(files.keys())[:20]

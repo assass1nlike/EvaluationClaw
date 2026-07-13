@@ -62,25 +62,11 @@ def _agent_env(item: BenchmarkItem) -> dict[str, Any]:
     env = item.metadata.get("agent_env")
     if isinstance(env, dict):
         return env
-    task_agent = item.metadata.get(TASK_AGENT_METADATA_KEY)
-    if isinstance(task_agent, dict):
-        execution = task_agent.get("execution")
-        if isinstance(execution, dict):
-            task_env = execution.get("agent_env")
-            if isinstance(task_env, dict):
-                return task_env
     return {}
 
 
 def _set_agent_env(item: BenchmarkItem, env: dict[str, Any]) -> None:
     item.metadata["agent_env"] = env
-    task_agent = item.metadata.get(TASK_AGENT_METADATA_KEY)
-    if isinstance(task_agent, dict):
-        execution = task_agent.get("execution")
-        if isinstance(execution, dict):
-            execution["agent_env"] = env
-            task_agent["execution"] = execution
-            item.metadata[TASK_AGENT_METADATA_KEY] = task_agent
 
 
 def vm_task_requires_vm(item: BenchmarkItem) -> bool:
@@ -367,19 +353,15 @@ def _collect_guest_files(item: BenchmarkItem, env: dict[str, Any]) -> list[VmGue
     files: dict[str, VmGuestFile] = {}
     initial = _initial_content(item)
     package = _agent_task_package(item)
-    visible_package = package.get("visible_inputs") if isinstance(package.get("visible_inputs"), dict) else {}
-    hidden_package = package.get("hidden_references") if isinstance(package.get("hidden_references"), dict) else {}
     _add_file_mapping(files, env.get("visible_files"), source="metadata.agent_env.visible_files", guest_root=guest_root)
     _add_file_mapping(files, env.get("files"), source="metadata.agent_env.files", guest_root=guest_root)
     _add_file_mapping(files, initial.get("files"), source="metadata.task_agent.initial_content.files", guest_root=guest_root)
-    _add_file_mapping(files, visible_package.get("files"), source="metadata.agent_task_package.visible_inputs.files", guest_root=guest_root)
     _session_asset_files(files, env.get("session"), source="metadata.agent_env.session", guest_root=guest_root)
     _session_asset_files(files, initial.get("session"), source="metadata.task_agent.initial_content.session", guest_root=guest_root)
-    _session_asset_files(files, visible_package, source="metadata.agent_task_package.visible_inputs", guest_root=guest_root)
     _add_private_file_mapping(
         files,
-        hidden_package.get("files"),
-        source="metadata.agent_task_package.hidden_references.files",
+        env.get("hidden_files"),
+        source="metadata.agent_env.hidden_files",
     )
     has_guest_files = bool(files)
     has_provisioning = _vm_provisioning_requested(env)
@@ -519,7 +501,15 @@ def _windows_path_to_wsl(path: str | Path) -> str:
 
 def _run_command(command: list[str], *, timeout: int = 60) -> tuple[bool, str]:
     try:
-        proc = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+            check=False,
+        )
     except Exception as exc:
         return False, str(exc)
     output = (proc.stdout or proc.stderr or "").strip()

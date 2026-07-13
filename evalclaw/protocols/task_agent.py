@@ -73,7 +73,7 @@ TASK_AGENT_SCHEMA: dict[str, Any] = {
     },
     "execution": {
         "environment_type": "dialogue | workspace | code_sandbox | docker_workspace | gui_desktop",
-        "agent_env": "Optional environment config; may mirror metadata.agent_env.",
+        "environment_ref": "metadata.agent_env",
     },
     "agent_task_package": "Optional summary pointer; full executable task package should live at metadata.agent_task_package.",
 }
@@ -119,11 +119,9 @@ Fields:
 - scoring: scoring method plus instructions. For agent_judge, define 1-5 score
   levels. For deterministic or simulated pass/fail tasks, define pass, partial,
   and fail standards.
-- execution: environment_type and optional agent_env config. Keep legacy
-  metadata.agent_env too for runner compatibility when using workspace or
-  code_sandbox or docker_workspace. When using a built-in environment, describe the tool/environment
-  behavior with structured agent_env fields rather than a long custom command
-  protocol in system_prompt.
+- execution: environment_type and environment_ref="metadata.agent_env". The
+  environment itself exists only at metadata.agent_env; never duplicate it in
+  task_agent or agent_task_package.
   For iterative code-repair tasks, prefer environment_type="code_sandbox" with
   metadata.agent_env over a free-form environment_controller dialogue. In those
   tasks, the system_prompt should describe the target model as the coding agent
@@ -131,9 +129,11 @@ Fields:
   as the environment itself or as an environment controller.
   Use environment_type="docker_workspace" only when the task needs realistic
   OS dependencies, non-Python runtimes, package installation, command-line
-  diagnostics, native builds, or container isolation that the lightweight
-  code_sandbox cannot provide. Provide image, visible_files, hidden_files,
-  setup_commands, test_command, timeout, and resource_limits in agent_env.
+  diagnostics, or native builds. Both code_sandbox and docker_workspace run in
+  isolated containers. Provide image, visible_files, runtime_files,
+  hidden_files, setup_commands, test_command, timeout, and resource_limits in
+  metadata.agent_env. Setup-only server/application assets belong in
+  runtime_files; hidden_files are injected only while the evaluator runs.
   Choose a common official runtime image when the requirement is clear, or set
   image to "auto" / leave it empty so EvaluationClaw can select a suitable
   Docker image from task files and commands before execution.
@@ -256,6 +256,7 @@ def task_agent_initial_content_text(item: BenchmarkItem, limit: int = 6000) -> s
 def task_agent_model_settings(config: BenchmarkConfig) -> dict[str, str | None]:
     return {
         "model": config.task_agent_model or config.orchestrator_model,
+        "provider": config.task_agent_provider or config.orchestrator_provider,
         "api_key": config.task_agent_api_key or config.orchestrator_api_key,
         "base_url": config.task_agent_base_url or config.orchestrator_base_url,
     }
@@ -342,22 +343,9 @@ def compact_task_agent_for_qc(spec: dict[str, Any]) -> dict[str, Any]:
         environment_type = execution.get("environment_type")
         if isinstance(environment_type, str):
             compact_execution["environment_type"] = environment_type
-        agent_env = execution.get("agent_env")
-        if isinstance(agent_env, dict):
-            env_summary: dict[str, Any] = {}
-            for key in ("type", "max_steps", "test_command", "timeout", "network", "image"):
-                if key in agent_env:
-                    env_summary[key] = agent_env[key]
-            for key in ("visible_files", "files", "hidden_files"):
-                files = agent_env.get(key)
-                if isinstance(files, dict):
-                    env_summary[f"{key}_count"] = len(files)
-                    env_summary[f"{key}_names"] = list(files.keys())[:20]
-                    env_summary[f"{key}_content_note"] = (
-                        "Full file contents are omitted from the LLM QC sample to avoid "
-                        "confusing compact excerpts with task truncation."
-                    )
-            compact_execution["agent_env"] = env_summary
+        environment_ref = execution.get("environment_ref")
+        if isinstance(environment_ref, str):
+            compact_execution["environment_ref"] = environment_ref
         if compact_execution:
             compact["execution"] = compact_execution
     return compact

@@ -1,4 +1,4 @@
-"""Tests for the deep-research loop and its pipeline integration.
+﻿"""Tests for the deep-research loop and its pipeline integration.
 
 Follows the monkeypatch style of tests/test_core_smoke.py: no real network,
 no real LLM calls.
@@ -33,7 +33,7 @@ from evalclaw.types import (
     BenchmarkDataset,
     BenchmarkItem,
     BenchmarkPackage,
-    Difficulty,
+    ChallengeEffort,
     EvalDimension,
     EvalRun,
     EvalSpec,
@@ -61,7 +61,7 @@ SYNTHESIS_JSON = json.dumps(
             {"title": "IRS Pub 17", "url": "https://ex.com/pub17", "why_useful": "authoritative rules"}
         ],
         "exemplar_items": [{"prompt": "Is X deductible?", "answer": "No", "notes": ""}],
-        "difficulty_anchors": {"L1": "single rule lookup", "L5": "multi-jurisdiction planning"},
+        "challenge_effort_anchors": {"E1": "single rule lookup", "E4": "multi-jurisdiction planning"},
         "citations": [{"claim": "TaxBench exists", "url": "https://ex.com/taxbench"}],
         "research_notes": "coverage is US-centric",
     }
@@ -125,7 +125,7 @@ def _sample_brief() -> ResearchBrief:
             ResearchSeedSource(title="Seed One", url="https://ex.com/seed1", why_useful="grounding"),
             ResearchSeedSource(title="Seed Two", url="https://ex.com/seed2", why_useful="examples"),
         ],
-        difficulty_anchors={"L1": "lookup", "L5": "expert synthesis"},
+        challenge_effort_anchors={"E1": "lookup", "E4": "expert synthesis"},
     )
 
 
@@ -167,7 +167,7 @@ def test_deep_research_stops_when_reflection_reports_no_gaps(monkeypatch) -> Non
     assert search_calls == ["q1", "q2"]
     assert brief.field_overview.startswith("Tax law reasoning")
     assert [t.name for t in brief.taxonomy] == ["statute_interpretation", "deduction_analysis"]
-    assert brief.difficulty_anchors["L5"] == "multi-jurisdiction planning"
+    assert brief.challenge_effort_anchors["E4"] == "multi-jurisdiction planning"
 
 
 def test_deep_research_runs_follow_up_round_then_stops(monkeypatch) -> None:
@@ -247,13 +247,13 @@ def test_parse_brief_tolerates_partial_and_loose_shapes() -> None:
             "field_overview": "x",
             "taxonomy": ["loose_string_entry", {"name": "structured", "description": "d"}],
             "existing_benchmarks": ["NamedOnly"],
-            "difficulty_anchors": [{"level": "L3", "meaning": "intermediate"}],
+            "challenge_effort_anchors": [{"level": "E2", "meaning": "intermediate"}],
             "citations": [{"claim": "c", "url": "u"}],
         }
     )
     assert [t.name for t in brief.taxonomy] == ["loose_string_entry", "structured"]
     assert brief.existing_benchmarks[0].name == "NamedOnly"
-    assert brief.difficulty_anchors == {"L3": "intermediate"}
+    assert brief.challenge_effort_anchors == {"E2": "intermediate"}
     assert brief.seed_sources == []  # missing field validates as empty
 
 
@@ -298,7 +298,7 @@ def test_planner_context_includes_research_brief(monkeypatch) -> None:
     assert context["research_brief"]["field_overview"] == "Overview of the domain."
     assert context["research_brief"]["taxonomy"][0]["name"] == "subskill_a"
     assert context["research_brief"]["existing_benchmarks"][0]["name"] == "BenchA"
-    assert context["research_brief"]["difficulty_anchors"]["L5"] == "expert synthesis"
+    assert context["research_brief"]["challenge_effort_anchors"]["E4"] == "expert synthesis"
     assert "research_brief_policy" in context
 
 
@@ -374,7 +374,7 @@ def test_generator_seed_sources_respect_cap_and_no_research_dimensions() -> None
 # ---------------------------------------------------------------------------
 def _minimal_package(research_brief: ResearchBrief | None) -> BenchmarkPackage:
     dimension = EvalDimension(
-        id="core", name="Core", description="d", approach="a", target_difficulty=Difficulty.L3
+        id="core", name="Core", description="d", approach="a", challenge_effort=ChallengeEffort.E2
     )
     spec = EvalSpec(id="brief_eval", objective="Evaluate the capability.", dimensions=[dimension])
     item = BenchmarkItem(
@@ -410,7 +410,7 @@ def test_report_includes_research_brief_section() -> None:
 
 def test_persist_package_writes_research_brief_artifacts(tmp_path) -> None:
     pkg = _minimal_package(_sample_brief())
-    _persist_package(pkg, str(tmp_path), log=lambda _msg: None)
+    _persist_package(pkg, BenchmarkConfig(), str(tmp_path), log=lambda _msg: None)
 
     brief_json = tmp_path / "research_brief.json"
     brief_md = tmp_path / "research_brief.md"
@@ -427,7 +427,7 @@ def test_persist_package_writes_research_brief_artifacts(tmp_path) -> None:
 
 def test_persist_package_skips_brief_files_when_absent(tmp_path) -> None:
     pkg = _minimal_package(None)
-    _persist_package(pkg, str(tmp_path), log=lambda _msg: None)
+    _persist_package(pkg, BenchmarkConfig(), str(tmp_path), log=lambda _msg: None)
     assert not (tmp_path / "research_brief.json").exists()
     manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
     assert "research_brief" not in manifest
@@ -442,7 +442,7 @@ def test_render_brief_markdown_covers_all_sections() -> None:
         "## Existing Benchmarks",
         "## Seed Sources",
         "## Exemplar Items",
-        "## Difficulty Anchors",
+        "## Challenge Effort Anchors",
         "## Citations",
         "## Research Notes",
     ]:
@@ -452,7 +452,7 @@ def test_render_brief_markdown_covers_all_sections() -> None:
 def test_compact_brief_context_is_compact() -> None:
     brief = _sample_brief()
     context = compact_brief_context(brief)
-    assert set(context) == {"field_overview", "taxonomy", "existing_benchmarks", "difficulty_anchors"}
+    assert set(context) == {"field_overview", "taxonomy", "existing_benchmarks", "challenge_effort_anchors"}
 
 
 # ---------------------------------------------------------------------------

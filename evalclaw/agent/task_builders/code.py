@@ -1,4 +1,4 @@
-"""Code and repository fallback agent tasks."""
+﻿"""Code and repository fallback agent tasks."""
 from __future__ import annotations
 
 from ...types import (
@@ -95,11 +95,10 @@ def _code_repair_task_for_blueprint(
     ]
     variant = variants[(index - 1) % len(variants)]
     return AgentTask(
-        id=_task_id(dimension, blueprint.task_family, index),
+        id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
         title=_task_title(blueprint, index),
         description="A compact repository repair task with hidden deterministic tests.",
-        task_family=blueprint.task_family,
         prompt=str(variant["prompt"]),
         system_prompt=_agent_system_prompt("code_sandbox"),
         environment=AgentEnvironmentSpec(
@@ -124,8 +123,8 @@ def _code_repair_task_for_blueprint(
             partial_criteria="The agent inspects files and runs tests but the final implementation still fails.",
             fail_criteria="The agent does not make meaningful code changes or never runs tests.",
         ),
-        difficulty=dimension.target_difficulty,
-        tags=[dimension.id, blueprint.task_family.value, "code_sandbox", "hidden_tests"],
+        challenge_effort=dimension.challenge_effort,
+        tags=[dimension.id, "code_sandbox", "hidden_tests"],
     )
 
 
@@ -165,14 +164,13 @@ def _repo_issue_task_for_blueprint(
         )
     }
     return AgentTask(
-        id=_task_id(dimension, blueprint.task_family, index),
+        id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
         title=_task_title(blueprint, index),
         description=(
             "A GitHub-style issue resolution task. The target must read issue context, inspect the small "
             "repository, implement the fix, and validate it with hidden tests."
         ),
-        task_family=blueprint.task_family,
         prompt=(
             "Resolve the bug described in issue.md. Inspect README.md and ticket_parser.py, update the "
             "implementation without changing hidden tests, and run tests until they pass."
@@ -197,6 +195,6 @@ def _repo_issue_task_for_blueprint(
             partial_criteria="The agent makes a plausible fix but misses one edge case.",
             fail_criteria="The repository remains broken or the agent does not run tests.",
         ),
-        difficulty=dimension.target_difficulty,
-        tags=[dimension.id, blueprint.task_family.value, "repo_issue", "code_sandbox"],
+        challenge_effort=dimension.challenge_effort,
+        tags=[dimension.id, "repo_issue", "code_sandbox"],
     )

@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
+from ..execution.docker_browser import docker_browser_tool_specs
 from ..execution.docker_images import apply_docker_image_selection
 from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_METADATA_KEY,
@@ -11,7 +12,6 @@ from ..protocols.agent_task_package import (
 )
 from ..types import (
     AgentTask,
-    AgentTaskFamily,
     AgentTaskSuite,
     BenchmarkBatch,
     BenchmarkConfig,
@@ -97,6 +97,8 @@ def _task_agent_metadata_for_task(task: AgentTask, agent_env: dict[str, Any]) ->
         initial_content["vm_provisioning"] = agent_env["vm_provisioning"]
     if agent_env.get("evaluation") and "evaluation" not in initial_content:
         initial_content["evaluation"] = agent_env["evaluation"]
+    if agent_env.get("browser") and "browser" not in initial_content:
+        initial_content["browser"] = agent_env["browser"]
     if agent_env.get("notes") and "notes" not in initial_content:
         initial_content["notes"] = agent_env["notes"]
 
@@ -142,7 +144,7 @@ def _task_agent_metadata_for_task(task: AgentTask, agent_env: dict[str, Any]) ->
         "scoring": scoring,
         "execution": {
             "environment_type": agent_env.get("type", task.environment.type.value),
-            "agent_env": agent_env,
+            "environment_ref": "metadata.agent_env",
         },
     }
     for key, value in existing.items():
@@ -175,7 +177,25 @@ def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
     if env_type == "gui_desktop":
         return ["screenshot", "mouse_move", "click", "key", "type", "read_file", "write_file", "run_command", "evaluate"]
     if env_type == "docker_workspace":
-        return ["list_files", "read_file", "write_file", "run_command", "run_tests"]
+        protected_material = bool(agent_env.get("runtime_files") or agent_env.get("hidden_files"))
+        browser = agent_env.get("browser")
+        if isinstance(browser, dict) and browser.get("enabled"):
+            browser_tools = [tool.name for tool in docker_browser_tool_specs()]
+            configured_workspace_tools = browser.get("workspace_tools")
+            workspace_tools = (
+                [str(name) for name in configured_workspace_tools]
+                if isinstance(configured_workspace_tools, list)
+                else []
+            )
+            if browser.get("allow_workspace_tools"):
+                workspace_tools = ["list_files", "read_file", "write_file", "run_command"]
+            if protected_material:
+                workspace_tools = [name for name in workspace_tools if name != "run_command"]
+            return [*browser_tools, *workspace_tools, "final"]
+        workspace_tools = ["list_files", "read_file", "write_file"]
+        if not protected_material:
+            workspace_tools.append("run_command")
+        return [*workspace_tools, "run_tests"]
     if env_type == "code_sandbox":
         return ["read_file", "write_file", "run_tests"]
     return ["look", "read_file", "write_file"]
@@ -188,8 +208,8 @@ def _agent_task_package_for_task(task: AgentTask, agent_env: dict[str, Any]) -> 
     vm = agent_env.get("vm") if isinstance(agent_env.get("vm"), dict) else {}
     session = agent_env.get("session") if isinstance(agent_env.get("session"), dict) else {}
     evaluation = agent_env.get("evaluation") if isinstance(agent_env.get("evaluation"), dict) else {}
-    vm_provisioning = agent_env.get("vm_provisioning") if isinstance(agent_env.get("vm_provisioning"), dict) else {}
     visible_files = agent_env.get("visible_files") if isinstance(agent_env.get("visible_files"), dict) else {}
+    runtime_files = agent_env.get("runtime_files") if isinstance(agent_env.get("runtime_files"), dict) else {}
     hidden_files = agent_env.get("hidden_files") if isinstance(agent_env.get("hidden_files"), dict) else {}
     expected_artifacts = _expected_artifacts(agent_env)
     required_outputs = expected_artifacts or [task.scoring.pass_criteria or "Task-specific completion state."]
@@ -205,35 +225,31 @@ def _agent_task_package_for_task(task: AgentTask, agent_env: dict[str, Any]) -> 
 
     generated = {
         "schema_version": AGENT_TASK_PACKAGE_SCHEMA_VERSION,
-        "style": "ale_executable_task",
+        "style": "executable_agent_task",
         "capability_target": {
             "name": task.title,
             "content_summary": _task_content_summary(task),
             "description": task.description or task.prompt,
             "dimension_id": task.dimension_id,
-            "task_family": task.task_family.value,
         },
         "environment_requirements": {
+            "environment_ref": "metadata.agent_env",
             "type": env_type,
             "os": "linux" if env_type in {"code_sandbox", "docker_workspace"} else "any",
             "requires_vm": bool(agent_env.get("requires_vm") or vm),
             "requires_gui": env_type == "gui_desktop",
             "required_software": required_software,
             "network": str(agent_env.get("network") or vm.get("network") or "none"),
-            "resource_limits": agent_env.get("resource_limits") if isinstance(agent_env.get("resource_limits"), dict) else {},
-            "vm": vm,
-            "vm_provisioning": vm_provisioning,
-            "image_build": agent_env.get("image_build") if isinstance(agent_env.get("image_build"), dict) else {},
         },
         "visible_inputs": {
             "instructions": task.prompt,
-            "files": visible_files,
+            "file_names": sorted(str(path) for path in visible_files),
             "assets": session.get("assets", []) if isinstance(session.get("assets"), list) else [],
-            "session": session,
         },
         "hidden_references": {
             "staging_phase": "post_agent_or_runner_private",
-            "files": {str(path): str(content) for path, content in hidden_files.items()},
+            "file_names": sorted(str(path) for path in hidden_files),
+            "runtime_file_names": sorted(str(path) for path in runtime_files),
             "reference_artifacts": list(dict.fromkeys(hidden_reference_artifacts)),
             "notes": "Hidden references and evaluator internals are runner-private and must not be exposed to the target agent.",
         },
@@ -247,7 +263,8 @@ def _agent_task_package_for_task(task: AgentTask, agent_env: dict[str, Any]) -> 
             ],
         },
         "execution": {
-            "setup": [str(command) for command in setup_commands],
+            "environment_ref": "metadata.agent_env",
+            "setup_command_count": len(setup_commands),
             "run": f"Target agent acts through the EvaluationClaw {env_type} tool environment.",
             "evaluate": str(agent_env.get("test_command") or evaluation.get("method") or task.scoring.method),
             "timeout_s": int(agent_env.get("timeout") or 0),
@@ -376,7 +393,7 @@ def task_suite_to_dataset(suite: AgentTaskSuite, spec: EvalSpec, config: Benchma
             dimension_id=task.dimension_id,
             task_type=(
                 TaskType.multi_turn
-                if task.task_family == AgentTaskFamily.multi_turn_delegation or agent_env.get("type") == "dialogue"
+                if agent_env.get("type") == "dialogue"
                 else TaskType.agent_interaction
             ),
             prompt=task.prompt,
@@ -384,7 +401,7 @@ def task_suite_to_dataset(suite: AgentTaskSuite, spec: EvalSpec, config: Benchma
                 task.scoring.instructions
                 or f"{task.scoring.pass_criteria} {task.scoring.partial_criteria} {task.scoring.fail_criteria}".strip()
             ),
-            difficulty=task.difficulty,
+            challenge_effort=task.challenge_effort,
             source=item_source,
             tags=task.tags,
             metadata=metadata,

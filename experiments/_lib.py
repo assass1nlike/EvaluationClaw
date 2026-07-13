@@ -547,7 +547,7 @@ def render_exp2_report(
             "",
             "- A positive gap with the expected order suggests the generated benchmark discriminates",
             "  real capability differences. A tiny or negative gap on a known-ordered pair is a red flag",
-            "  for benchmark validity (noise, mis-scored items, or saturated difficulty).",
+            "  for benchmark validity (noise, mis-scored items, or saturated challenge).",
             "",
         ]
     )

@@ -1,6 +1,6 @@
-import pytest
+﻿import pytest
 
-from evalclaw.execution.runner import run_eval, run_question
+from evalclaw.execution.runner import run_eval, run_item
 from evalclaw.generation.generator import generate_dimension_items
 from evalclaw.types import (
     BenchmarkConfig,
@@ -83,7 +83,7 @@ def test_runner_sends_multimodal_content_to_target(monkeypatch) -> None:
     monkeypatch.setattr("evalclaw.execution.runner._target_has_credentials", fake_has_credentials)
     monkeypatch.setattr("evalclaw.execution.runner.call_target_model", fake_call_target_model)
 
-    result = run_question(item, config)
+    result = run_item(item, config)
 
     assert result.score == 1.0
     assert isinstance(captured["user_content"], list)
@@ -119,7 +119,7 @@ def test_deepseek_target_rejects_multimodal_item_before_call() -> None:
     )
 
     with pytest.raises(ValueError, match="not known to support native multimodal input"):
-        run_question(item, config)
+        run_item(item, config)
 
 
 def test_azure_vision_deployments_support_multimodal() -> None:

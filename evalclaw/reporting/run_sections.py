@@ -182,8 +182,6 @@ def _run_provenance_lines(run: EvalRun) -> list[str]:
 
 
 def _used_items(dataset: BenchmarkDataset, qc: QcReport) -> list[object]:
-    if not qc.passed_item_ids:
-        return list(dataset.items)
     passed = set(qc.passed_item_ids)
     return [item for item in dataset.items if item.id in passed]
 
@@ -227,14 +225,13 @@ def _agent_task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
             [
                 blueprint.id,
                 blueprint.dimension_id,
-                blueprint.task_family.value,
                 blueprint.environment_type.value,
                 str(blueprint.expected_task_count),
                 blueprint.title,
             ]
             for blueprint in suite.blueprints
         ]
-        lines.extend([_markdown_table(["Blueprint", "Dimension", "Family", "Env", "Count", "Title"], rows), ""])
+        lines.extend([_markdown_table(["Blueprint", "Dimension", "Env", "Count", "Title"], rows), ""])
     if suite.resources:
         rows = [
             [
@@ -251,13 +248,12 @@ def _agent_task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
             [
                 task.id,
                 task.dimension_id,
-                task.task_family.value,
                 task.environment.type.value if hasattr(task.environment.type, "value") else str(task.environment.type),
                 _escape_cell(task.prompt, 120),
             ]
             for task in suite.tasks[:10]
         ]
-        lines.extend([_markdown_table(["Task", "Dimension", "Family", "Env", "Prompt"], rows), ""])
+        lines.extend([_markdown_table(["Task", "Dimension", "Env", "Prompt"], rows), ""])
     return lines
 
 
@@ -440,7 +436,7 @@ def _detailed_item_lines(run: EvalRun) -> list[str]:
                 "",
                 f"- Dimension: `{item.dimension_id if item else '-'}`",
                 f"- Task type: `{task_type.value}`",
-                f"- Difficulty: `{item.difficulty.value if item else '-'}`",
+                f"- Challenge effort: `{item.challenge_effort.value if item else '-'}`",
                 f"- Source: {_source_label(item) if item else '-'}",
                 f"- Latency: {result.latency_ms if result.latency_ms is not None else '-'} ms",
                 f"- Error: {result.error or '-'}",

@@ -29,12 +29,21 @@ class TaskType(str, Enum):
     pairwise_preference = "pairwise_preference"
 
 
-class Difficulty(str, Enum):
-    L1 = "L1"
-    L2 = "L2"
-    L3 = "L3"
-    L4 = "L4"
-    L5 = "L5"
+class ChallengeEffort(str, Enum):
+    E1 = "E1"
+    E2 = "E2"
+    E3 = "E3"
+    E4 = "E4"
+
+
+def safe_challenge_effort(value: object, fallback: ChallengeEffort = ChallengeEffort.E3) -> ChallengeEffort:
+    text = str(value or "").strip()
+    if not text:
+        return fallback
+    try:
+        return ChallengeEffort(text.upper())
+    except ValueError:
+        return fallback
 
 
 class Metric(str, Enum):
@@ -79,7 +88,7 @@ class QcCategory(str, Enum):
     scoring = "scoring"
     clarity = "clarity"
     coverage = "coverage"
-    difficulty = "difficulty"
+    challenge_effort = "challenge_effort"
 
 
 class Message(BaseModel):
@@ -114,7 +123,7 @@ class EvalDimension(BaseModel):
     description: str
     approach: str
     weight: float = 1.0
-    target_difficulty: Difficulty = Difficulty.L4
+    challenge_effort: ChallengeEffort = ChallengeEffort.E3
     needs_research: bool = False
     research_queries: list[str] = Field(default_factory=list)
     target_item_count: Optional[int] = None
@@ -122,8 +131,7 @@ class EvalDimension(BaseModel):
     target_generated_count: Optional[int] = None
     task_types: list[TaskType] = Field(default_factory=list)
     item_requirements: list[str] = Field(default_factory=list)
-    # Deprecated compatibility field. New specs should use target_difficulty.
-    difficulty_distribution: dict[Difficulty, float] = Field(default_factory=dict)
+    challenge_effort_distribution: dict[ChallengeEffort, float] = Field(default_factory=dict)
 
 
 class EvalSpec(BaseModel):
@@ -145,22 +153,6 @@ class BenchmarkSource(BaseModel):
     uri: str = ""
     title: str = ""
     notes: str = ""
-
-
-class AgentTaskFamily(str, Enum):
-    workspace_navigation = "workspace_navigation"
-    gui_desktop = "gui_desktop"
-    browser_gui = "browser_gui"
-    desktop_software = "desktop_software"
-    code_repair = "code_repair"
-    repo_issue = "repo_issue"
-    shell_debugging = "shell_debugging"
-    api_tool_use = "api_tool_use"
-    web_research = "web_research"
-    data_analysis = "data_analysis"
-    multi_turn_delegation = "multi_turn_delegation"
-    safety_tool_use = "safety_tool_use"
-    custom = "custom"
 
 
 class AgentEnvironmentType(str, Enum):
@@ -187,7 +179,6 @@ class AgentTaskBlueprint(BaseModel):
     dimension_id: str
     title: str
     description: str = ""
-    task_family: AgentTaskFamily = AgentTaskFamily.custom
     environment_type: AgentEnvironmentType = AgentEnvironmentType.workspace
     expected_task_count: int = 1
     resource_queries: list[str] = Field(default_factory=list)
@@ -201,6 +192,7 @@ class AgentEnvironmentSpec(BaseModel):
     type: AgentEnvironmentType = AgentEnvironmentType.workspace
     tools: list[dict[str, Any]] = Field(default_factory=list)
     visible_files: dict[str, str] = Field(default_factory=dict)
+    runtime_files: dict[str, str] = Field(default_factory=dict)
     hidden_files: dict[str, str] = Field(default_factory=dict)
     image: str = ""
     auto_select_image: bool = True
@@ -214,7 +206,9 @@ class AgentEnvironmentSpec(BaseModel):
     timeout: int = 20
     network: str = "none"
     resource_limits: dict[str, Any] = Field(default_factory=dict)
+    workdir: str = "/workspace"
     workspace: dict[str, Any] = Field(default_factory=dict)
+    browser: dict[str, Any] = Field(default_factory=dict)
     bridge_url: str = ""
     bridge_api_key: Optional[str] = None
     requires_vm: bool = False
@@ -244,16 +238,16 @@ class AgentTask(BaseModel):
     title: str
     content_summary: str = ""
     description: str = ""
-    task_family: AgentTaskFamily = AgentTaskFamily.custom
     prompt: str
     system_prompt: str = ""
     resource_ids: list[str] = Field(default_factory=list)
     environment: AgentEnvironmentSpec = Field(default_factory=AgentEnvironmentSpec)
     interaction: dict[str, Any] = Field(default_factory=dict)
     scoring: AgentScoringSpec = Field(default_factory=AgentScoringSpec)
-    difficulty: Difficulty = Difficulty.L4
+    challenge_effort: ChallengeEffort = ChallengeEffort.E3
     tags: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
+
 
 
 class AgentTaskSuite(BaseModel):
@@ -276,12 +270,13 @@ class BenchmarkItem(BaseModel):
     answer: Optional[str] = None
     rubric: Optional[str] = None
     test_code: Optional[str] = None
-    difficulty: Difficulty = Difficulty.L3
+    challenge_effort: ChallengeEffort = ChallengeEffort.E2
     source: BenchmarkSource = Field(
         default_factory=lambda: BenchmarkSource(kind=SourceKind.self_generated)
     )
     tags: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
+
 
 
 class BenchmarkBatch(BaseModel):
@@ -378,7 +373,7 @@ class ResearchBrief(BaseModel):
     existing_benchmarks: list[ResearchBenchmarkNote] = Field(default_factory=list)
     seed_sources: list[ResearchSeedSource] = Field(default_factory=list)
     exemplar_items: list[ResearchExemplarItem] = Field(default_factory=list)
-    difficulty_anchors: dict[str, str] = Field(default_factory=dict)  # L1-L5 -> meaning
+    challenge_effort_anchors: dict[str, str] = Field(default_factory=dict)
     citations: list[ResearchCitation] = Field(default_factory=list)
     research_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
@@ -419,8 +414,8 @@ class TargetSummary(BaseModel):
 
 
 class EvalRun(BaseModel):
-    dataset: BenchmarkDataset
-    qc_report: QcReport
+    dataset: BenchmarkDataset = Field(exclude=True)
+    qc_report: QcReport = Field(exclude=True)
     results: list[ItemResult] = Field(default_factory=list)
     summaries: list[TargetSummary] = Field(default_factory=list)
     runner_artifacts: dict[str, Any] = Field(default_factory=dict)
@@ -462,13 +457,28 @@ class BenchmarkPackage(BaseModel):
     research_brief: Optional[ResearchBrief] = None
     created_at: str = Field(default_factory=utc_now)
 
+    @model_validator(mode="before")
+    @classmethod
+    def hydrate_run_context(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+        run = value.get("run")
+        if isinstance(run, dict):
+            hydrated = dict(run)
+            hydrated.setdefault("dataset", value.get("dataset"))
+            hydrated.setdefault("qc_report", value.get("qc_report"))
+            value = {**value, "run": hydrated}
+        return value
+
 
 class BenchmarkConfig(BaseModel):
     benchmark_mode: BenchmarkMode = BenchmarkMode.auto
     orchestrator_model: str = "claude-opus-4-6"
+    orchestrator_provider: Optional[str] = None
     orchestrator_api_key: Optional[str] = None
     orchestrator_base_url: Optional[str] = None
     task_agent_model: Optional[str] = None
+    task_agent_provider: Optional[str] = None
     task_agent_api_key: Optional[str] = None
     task_agent_base_url: Optional[str] = None
     targets: list[TargetModelConfig] = Field(default_factory=list)
@@ -493,6 +503,8 @@ class BenchmarkConfig(BaseModel):
     agent_task_builder: str = "llm"  # llm | local | auto
     agent_task_builder_max_workers: int = 4
     agent_task_builder_repair_attempts: int = 2
+    agent_task_builder_research_max_calls: int = 6
+    agent_task_builder_research_max_chars: int = 6000
     judge_double_pass: bool = True
     llm_backend: str = "auto"  # auto | litellm | legacy
     runner: str = "direct"  # direct | lm-eval | auto
@@ -505,17 +517,12 @@ class BenchmarkConfig(BaseModel):
     loop3_max_actions: int = 4
     docker_auto_select_image: bool = True
     docker_pull_timeout_s: int = 300
-    swebench_use_wsl: bool = False
-    swebench_wsl_distro: Optional[str] = None
-    swebench_wsl_python_executable: str = ".venv-swebench-wsl/bin/python"
-    swebench_wsl_docker_host: str = "unix:///mnt/wsl/docker-desktop/shared-sockets/guest-services/docker.proxy.sock"
-    swebench_wsl_docker_cli_dir: str = "/mnt/wsl/docker-desktop/cli-tools/usr/bin"
-    swebench_wsl_http_proxy: Optional[str] = None
-    swebench_python_executable: str = "python"
-    swebench_docker_executable: str = "docker"
-    swebench_dataset_name: str = "princeton-nlp/SWE-bench_Lite"
-    swebench_split: str = "test"
-    swebench_predictions_path: str = "gold"
+    docker_executable: str = "docker"
+    container_sandbox_image: str = "python:3.11-slim"
+    environment_preflight: bool = True
+    allow_incomplete_benchmark: bool = False
+    viewer_item_limit: int = 1000
+    viewer_result_limit: int = 2000
     gui_bridge_url: Optional[str] = None
     gui_bridge_api_key: Optional[str] = None
     gui_bridge_timeout_s: int = 30
@@ -523,11 +530,3 @@ class BenchmarkConfig(BaseModel):
     vm_provider_api_key: Optional[str] = None
     vm_provider_timeout_s: int = 120
     vm_provider_destroy_on_cleanup: bool = True
-
-
-# Backwards-compatible aliases for older scripts that import these names.
-QuestionType = TaskType
-Complexity = Difficulty
-Question = BenchmarkItem
-TestDimension = EvalDimension
-ModelResponse = ItemResult

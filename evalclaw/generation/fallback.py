@@ -1,4 +1,4 @@
-"""Deterministic fallback benchmark-item generation."""
+﻿"""Deterministic fallback benchmark-item generation."""
 from __future__ import annotations
 
 import uuid
@@ -10,17 +10,17 @@ from ..protocols.multimodal import (
     text_requests_multimodal,
 )
 from ..protocols.science import SCIENCE_METADATA_KEY, SCIENCE_SCHEMA_VERSION, text_requests_science
-from ..types import BenchmarkItem, Difficulty, EvalDimension, EvalSpec, TaskType
+from ..types import BenchmarkItem, ChallengeEffort, EvalDimension, EvalSpec, TaskType
 
 
-def _difficulty_cycle(dimension: EvalDimension) -> cycle[Difficulty]:
-    if not dimension.difficulty_distribution:
-        return cycle([dimension.target_difficulty])
-    distribution = dimension.difficulty_distribution
-    expanded: list[Difficulty] = []
-    for difficulty, weight in sorted(distribution.items(), key=lambda item: item[0].value):
-        expanded.extend([difficulty] * max(1, round(float(weight) * 10)))
-    return cycle(expanded or [dimension.target_difficulty])
+def _challenge_effort_cycle(dimension: EvalDimension) -> cycle[ChallengeEffort]:
+    if not dimension.challenge_effort_distribution:
+        return cycle([dimension.challenge_effort])
+    distribution = dimension.challenge_effort_distribution
+    expanded: list[ChallengeEffort] = []
+    for challenge_effort, weight in sorted(distribution.items(), key=lambda item: item[0].value):
+        expanded.extend([challenge_effort] * max(1, round(float(weight) * 10)))
+    return cycle(expanded or [dimension.challenge_effort])
 
 
 def _dimension_needs_multimodal(dimension: EvalDimension) -> bool:
@@ -342,7 +342,7 @@ def _science_metadata(
 def _science_fallback_item(
     dimension: EvalDimension,
     task_type: TaskType,
-    difficulty: Difficulty,
+    challenge_effort: ChallengeEffort,
     idx: int,
 ) -> BenchmarkItem:
     text = _dimension_text(dimension)
@@ -515,7 +515,7 @@ def _science_fallback_item(
     }
     prompt = (
         f"Science dimension: {dimension.name}. Science evaluation case {idx + 1} "
-        f"({difficulty.value}). Context: this item uses {context}, framed as {evidence_form}; "
+        f"({challenge_effort.value}). Context: this item uses {context}, framed as {evidence_form}; "
         f"the main distractor should test {pitfall}. {case['prompt']}"
     )
     if task_type == TaskType.multiple_choice:
@@ -527,7 +527,7 @@ def _science_fallback_item(
             choices=[str(choice) for choice in case["choices"]],
             answer=str(case["correct"]),
             rubric=f"Multiple-choice scoring: full credit for answer {case['correct']}. {case['rubric']}",
-            difficulty=difficulty,
+            challenge_effort=challenge_effort,
             metadata=metadata,
         )
     return BenchmarkItem(
@@ -537,14 +537,14 @@ def _science_fallback_item(
         prompt=prompt,
         answer=str(case["answer"]) if task_type == TaskType.short_answer else None,
         rubric=str(case["rubric"]),
-        difficulty=difficulty,
+        challenge_effort=challenge_effort,
         metadata=metadata,
     )
 
 
 def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list[BenchmarkItem]:
     tasks = cycle(dimension.task_types or spec.task_types or [TaskType.open_generation])
-    difficulties = _difficulty_cycle(dimension)
+    challenge_efforts = _challenge_effort_cycle(dimension)
     items: list[BenchmarkItem] = []
     scenario_domains = [
         "a Python package that recently split its configuration across pyproject.toml and setup.cfg",
@@ -609,7 +609,7 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
     seed = int(uuid.uuid4().hex[:8], 16)
     for idx in range(count):
         task_type = next(tasks)
-        difficulty = next(difficulties)
+        challenge_effort = next(challenge_efforts)
         variant_id = uuid.uuid4().hex[:8]
         domain_count = len(scenario_domains)
         failure_count = len(observed_failures)
@@ -630,13 +630,13 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
         base = (
             f"Evaluation dimension: {dimension.name}.\n"
             f"Dimension intent: {dimension.description or dimension.approach}.\n"
-            f"Case {idx + 1} ({difficulty.value}, {focus}, {variant_id}): The target is {domain}. "
+            f"Case {idx + 1} ({challenge_effort.value}, {focus}, {variant_id}): The target is {domain}. "
             f"In this case, {failure}; the response must {constraint}. Ask for {requested_output} "
             "and judge whether the model stays aligned with the engineering evidence.\n"
         )
         chart_kind = _chart_kind(dimension)
         if _dimension_needs_science(dimension):
-            item = _science_fallback_item(dimension, task_type, difficulty, idx + seed % 997)
+            item = _science_fallback_item(dimension, task_type, challenge_effort, idx + seed % 997)
         elif chart_kind and task_type == TaskType.multiple_choice:
             prompt, expected, choices, _ = _chart_question(chart_kind, dimension)
             item = BenchmarkItem(
@@ -650,7 +650,7 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                     f"Multiple-choice scoring: full credit for answer A, which matches the "
                     f"chart-supported answer ({expected}). No credit for B, C, D, or non-choice output."
                 ),
-                difficulty=difficulty,
+                challenge_effort=challenge_effort,
             )
         elif chart_kind:
             prompt, expected, _, rubric = _chart_question(chart_kind, dimension)
@@ -661,7 +661,7 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                 prompt=prompt,
                 answer=expected,
                 rubric=rubric,
-                difficulty=difficulty,
+                challenge_effort=challenge_effort,
             )
         elif task_type == TaskType.multiple_choice:
             item = BenchmarkItem(
@@ -685,7 +685,7 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                     "or a non-choice response. The item is a local fallback smoke-test placeholder "
                     "whose purpose is to preserve schema, scoring, and coverage mechanics."
                 ),
-                difficulty=difficulty,
+                challenge_effort=challenge_effort,
             )
         elif task_type == TaskType.pairwise_preference:
             item = BenchmarkItem(
@@ -702,7 +702,7 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                     "well-calibrated, and aligned with the dimension. Return tie only when both answers "
                     "are materially equivalent or have offsetting strengths."
                 ),
-                difficulty=difficulty,
+                challenge_effort=challenge_effort,
                 tags=["pairwise"],
                 metadata={
                     "pairwise": {
@@ -712,9 +712,9 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                 },
             )
         elif task_type == TaskType.agent_interaction:
-            item = _agent_interaction_fallback_item(spec, dimension, difficulty, base)
+            item = _agent_interaction_fallback_item(spec, dimension, challenge_effort, base)
         elif task_type == TaskType.multi_turn:
-            item = _multi_turn_fallback_item(dimension, difficulty, base)
+            item = _multi_turn_fallback_item(dimension, challenge_effort, base)
         else:
             item = BenchmarkItem(
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
@@ -729,7 +729,7 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                     "Score 5 for a complete, correct, well-calibrated answer; 3 for a partially "
                     "correct answer with omissions; 1 for incorrect, evasive, or unsupported output."
                 ),
-                difficulty=difficulty,
+                challenge_effort=challenge_effort,
             )
         items.append(attach_multimodal_metadata_if_needed(item, dimension, len(items)))
     return items
@@ -738,7 +738,7 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
 def _agent_interaction_fallback_item(
     spec: EvalSpec,
     dimension: EvalDimension,
-    difficulty: Difficulty,
+    challenge_effort: ChallengeEffort,
     base: str,
 ) -> BenchmarkItem:
     agent_text = f"{spec.objective} {dimension.name} {dimension.description} {dimension.approach}".lower()
@@ -756,7 +756,7 @@ def _agent_interaction_fallback_item(
                 "Deterministic environment score: 1.0 when the hidden Python tests pass, "
                 "0.25 after at least one failing test run, 0.0 if tests are never run."
             ),
-            difficulty=difficulty,
+            challenge_effort=challenge_effort,
             metadata={
                 "task_agent": {
                     "schema_version": "evalclaw.task_agent.v1",
@@ -814,7 +814,7 @@ def _agent_interaction_fallback_item(
             "Deterministic environment score: 1.0 if all required items and no wrong items are "
             "placed in the outgoing bin, partial credit for required items placed, penalties for invalid actions."
         ),
-        difficulty=difficulty,
+        challenge_effort=challenge_effort,
         metadata={
             "task_agent": {
                 "schema_version": "evalclaw.task_agent.v1",
@@ -864,7 +864,7 @@ def _agent_interaction_fallback_item(
 
 def _multi_turn_fallback_item(
     dimension: EvalDimension,
-    difficulty: Difficulty,
+    challenge_effort: ChallengeEffort,
     base: str,
 ) -> BenchmarkItem:
     return BenchmarkItem(
@@ -878,7 +878,7 @@ def _multi_turn_fallback_item(
             "partially correct handling with one important missed correction. 1 means the model ignores "
             "the follow-up or becomes inconsistent."
         ),
-        difficulty=difficulty,
+        challenge_effort=challenge_effort,
         metadata={
             "task_agent": {
                 "schema_version": "evalclaw.task_agent.v1",

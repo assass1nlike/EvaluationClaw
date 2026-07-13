@@ -1,4 +1,4 @@
-"""Shell and runtime debugging fallback agent tasks."""
+﻿"""Shell and runtime debugging fallback agent tasks."""
 from __future__ import annotations
 
 from ...types import (
@@ -13,13 +13,195 @@ from ..goal_detection import _contains_any
 from .base import _agent_system_prompt, _task_id, _task_title
 
 
+def _variant_copy(
+    variant: dict[str, object],
+    *,
+    prompt: str | None = None,
+    visible_updates: dict[str, str] | None = None,
+) -> dict[str, object]:
+    copied = {
+        **variant,
+        "scoring": dict(variant["scoring"]),  # type: ignore[arg-type]
+        "visible": dict(variant["visible"]),  # type: ignore[arg-type]
+        "hidden": dict(variant["hidden"]),  # type: ignore[arg-type]
+    }
+    if prompt is not None:
+        copied["prompt"] = prompt
+    if visible_updates:
+        copied["visible"].update(visible_updates)  # type: ignore[union-attr]
+    return copied
+
+
 def _shell_debugging_task_for_blueprint(
     dimension: EvalDimension,
     blueprint: AgentTaskBlueprint,
     *,
     index: int = 1,
 ) -> AgentTask:
+    service_config_variant = {
+        "prompt": (
+            "Diagnose and repair the broken local service workspace. The visible healthcheck fails and the "
+            "service cannot find its expected content. Inspect the README, logs, configuration, and service code; "
+            "apply the minimal runtime repair; then run `sh healthcheck.sh` until it reports status=ok."
+        ),
+        "scoring": {
+            "instructions": "Score by running hidden service healthcheck tests inside the docker_workspace.",
+            "pass": (
+                "The service configuration points to the valid site directory, the healthcheck returns ok, "
+                "and the hidden tests pass."
+            ),
+            "partial": "The agent runs meaningful diagnostics or fixes part of the service setup but hidden tests still fail.",
+            "fail": "The agent does not inspect or repair the runtime configuration failure.",
+        },
+        "visible": {
+            "README.md": (
+                "# Service repair task\n\n"
+                "The local document service should read service_config.json, serve files from the configured "
+                "root, and pass `sh healthcheck.sh`. The current environment is intentionally broken.\n"
+            ),
+            "service.py": (
+                "import json\n"
+                "from pathlib import Path\n\n"
+                "def load_config(path='service_config.json'):\n"
+                "    return json.loads(Path(path).read_text())\n\n"
+                "def healthcheck():\n"
+                "    config = load_config()\n"
+                "    root = Path(config['document_root'])\n"
+                "    index = root / 'index.html'\n"
+                "    if not index.exists():\n"
+                "        raise SystemExit(f'missing index: {index}')\n"
+                "    text = index.read_text(encoding='utf-8')\n"
+                "    if 'EvalClaw service ready' not in text:\n"
+                "        raise SystemExit('unexpected index content')\n"
+                "    print('status=ok root=' + str(root))\n\n"
+                "if __name__ == '__main__':\n"
+                "    healthcheck()\n"
+            ),
+            "service_config.json": "{\n  \"document_root\": \"site_old\"\n}\n",
+            "site/index.html": "<html><body>EvalClaw service ready</body></html>\n",
+            "healthcheck.sh": "#!/bin/sh\nset -eu\npython3 service.py\n",
+        },
+        "hidden": {
+            "tests.py": (
+                "import json\n"
+                "import subprocess\n"
+                "from pathlib import Path\n\n"
+                "proc = subprocess.run(['sh', 'healthcheck.sh'], text=True, capture_output=True)\n"
+                "assert proc.returncode == 0, proc.stdout + proc.stderr\n"
+                "assert 'status=ok' in proc.stdout\n"
+                "config = json.loads(Path('service_config.json').read_text())\n"
+                "assert config['document_root'] == 'site'\n"
+            )
+        },
+    }
+    offline_dependency_variant = {
+        "prompt": (
+            "Diagnose and repair the isolated service workspace. The healthcheck fails because app.py depends on "
+            "a runtime dependency cannot be imported in the current environment. Inspect the files and the offline "
+            "dependency bundle, fix dependency loading without internet access, and run `sh healthcheck.sh` until it passes."
+        ),
+        "scoring": {
+            "instructions": "Score by running hidden offline dependency and healthcheck tests inside the docker_workspace.",
+            "pass": (
+                "The vendored healthlib dependency is loaded without network access, the app health_status returns ok, "
+                "and the hidden tests pass."
+            ),
+            "partial": "The agent identifies the missing offline dependency but does not fully repair import/runtime behavior.",
+            "fail": "The agent does not inspect or repair the offline dependency failure.",
+        },
+        "visible": {
+            "README.md": (
+                "# Offline dependency repair\n\n"
+                "This container has no network access. A required dependency has already been staged under vendor/. "
+                "Run `sh healthcheck.sh`, diagnose the import failure, and repair the runtime so the healthcheck passes.\n"
+            ),
+            "app.py": (
+                "from healthlib import service_status\n\n"
+                "def health_status():\n"
+                "    return service_status()\n\n"
+                "if __name__ == '__main__':\n"
+                "    print(health_status())\n"
+            ),
+            "vendor/healthlib.py": (
+                "def service_status():\n"
+                "    return 'ok'\n"
+            ),
+            "healthcheck.sh": "#!/bin/sh\nset -eu\npython3 app.py | grep '^ok$'\n",
+        },
+        "hidden": {
+            "tests.py": (
+                "import subprocess\n\n"
+                "proc = subprocess.run(['sh', 'healthcheck.sh'], text=True, capture_output=True)\n"
+                "assert proc.returncode == 0, proc.stdout + proc.stderr\n"
+                "from app import health_status\n"
+                "assert health_status() == 'ok'\n"
+            )
+        },
+    }
+    service_startup_variant = {
+        "prompt": (
+            "Diagnose and repair the isolated service startup workspace. The service healthcheck fails because "
+            "the runtime startup state is inconsistent. Inspect service.env, logs, and scripts; fix the startup "
+            "configuration; then run `sh healthcheck.sh` until it reports status=ok."
+        ),
+        "scoring": {
+            "instructions": "Score by running hidden service startup and healthcheck tests inside the docker_workspace.",
+            "pass": (
+                "The startup configuration uses the expected host, port, and health token; healthcheck.sh returns ok; "
+                "and the hidden tests pass."
+            ),
+            "partial": "The agent fixes part of the startup contract or runs useful diagnostics but health checks still fail.",
+            "fail": "The agent does not inspect or repair the service startup failure.",
+        },
+        "visible": {
+            "README.md": (
+                "# Service startup repair\n\n"
+                "Run `sh healthcheck.sh`. The service does not need internet access. The failure is in the local "
+                "startup configuration and can be diagnosed from service.env, server.py, and logs/startup.log.\n"
+            ),
+            "service.env": "HOST=127.0.0.1\nPORT=9090\nHEALTH_TOKEN=dev-token\n",
+            "logs/startup.log": (
+                "expected health endpoint: 127.0.0.1:8080\n"
+                "last run: refused connection on 127.0.0.1:9090\n"
+                "token check: expected evalclaw-ready\n"
+            ),
+            "server.py": (
+                "import os\n"
+                "from pathlib import Path\n\n"
+                "def load_env(path='service.env'):\n"
+                "    data = {}\n"
+                "    for line in Path(path).read_text().splitlines():\n"
+                "        if '=' in line:\n"
+                "            key, value = line.split('=', 1)\n"
+                "            data[key.strip()] = value.strip()\n"
+                "    return data\n\n"
+                "def healthcheck():\n"
+                "    env = load_env()\n"
+                "    assert env.get('HOST') == '127.0.0.1'\n"
+                "    assert env.get('PORT') == '8080'\n"
+                "    assert env.get('HEALTH_TOKEN') == 'evalclaw-ready'\n"
+                "    print('status=ok startup=ready')\n\n"
+                "if __name__ == '__main__':\n"
+                "    healthcheck()\n"
+            ),
+            "healthcheck.sh": "#!/bin/sh\nset -eu\npython3 server.py\n",
+        },
+        "hidden": {
+            "tests.py": (
+                "import subprocess\n"
+                "from pathlib import Path\n\n"
+                "proc = subprocess.run(['sh', 'healthcheck.sh'], text=True, capture_output=True)\n"
+                "assert proc.returncode == 0, proc.stdout + proc.stderr\n"
+                "env_text = Path('service.env').read_text()\n"
+                "assert 'PORT=8080' in env_text\n"
+                "assert 'HEALTH_TOKEN=evalclaw-ready' in env_text\n"
+            )
+        },
+    }
     variants = [
+        service_config_variant,
+        offline_dependency_variant,
+        service_startup_variant,
         {
             "prompt": (
                 "The repository healthcheck fails because app.py mishandles ordinary text files. Use shell "
@@ -146,9 +328,135 @@ def _shell_debugging_task_for_blueprint(
     full_text = " ".join(
         [dimension.id, dimension.name, dimension.description, dimension.approach, blueprint.title, blueprint.description]
     ).lower()
-    if _contains_any(full_text, ("kubernetes", "k8s", "payment api", "root-cause", "root cause", "incident", "manifest")):
+    log_config_variants = [
+        service_config_variant,
+        _variant_copy(
+            service_config_variant,
+            prompt=(
+                "Diagnose and repair the broken local service workspace. The visible healthcheck fails after a "
+                "deployment asset change. Inspect logs and configuration files, update the runtime config or "
+                "service files as needed, and run `sh healthcheck.sh` until it reports status=ok."
+            ),
+            visible_updates={
+                "service_config.json": "{\n  \"document_root\": \"public_old\"\n}\n",
+                "logs/service.log": "startup failed: document_root public_old does not contain index.html\n",
+            },
+        ),
+        _variant_copy(
+            service_config_variant,
+            prompt=(
+                "Diagnose and repair the broken local service workspace. The healthcheck currently fails after a "
+                "configuration migration. Use shell diagnostics over the README, logs, config, and service code; "
+                "apply the minimal repair; and run `sh healthcheck.sh` until it reports status=ok."
+            ),
+            visible_updates={
+                "service_config.json": "{\n  \"document_root\": \"missing_site\"\n}\n",
+                "logs/service.log": "migration warning: configured root missing_site not found; expected site\n",
+            },
+        ),
+    ]
+    offline_dependency_variants = [
+        offline_dependency_variant,
+        _variant_copy(
+            offline_dependency_variant,
+            prompt=(
+                "Diagnose and repair the isolated service workspace. The healthcheck fails because app.py depends on "
+                "an offline runtime dependency cannot be imported. Do not use the network; inspect the staged local "
+                "dependency bundle, repair dependency loading, and run `sh healthcheck.sh` until it passes."
+            ),
+            visible_updates={
+                "vendor/healthlib.py": "",
+                "vendor_bundle/healthlib.py": "def service_status():\n    return 'ok'\n",
+                "README.md": (
+                    "# Offline dependency repair\n\n"
+                    "This container has no network access. A required dependency is staged under vendor_bundle/. "
+                    "Run `sh healthcheck.sh`, diagnose the import failure, and repair the runtime.\n"
+                ),
+            },
+        ),
+        _variant_copy(
+            offline_dependency_variant,
+            prompt=(
+                "Diagnose and repair the isolated service workspace. A required healthlib dependency is available "
+                "in the workspace, but the application cannot import its runtime dependency. Inspect the workspace, "
+                "fix dependency loading without internet access, and run `sh healthcheck.sh` until it passes."
+            ),
+            visible_updates={
+                "vendor/healthlib.py": "",
+                "third_party/healthlib.py": "def service_status():\n    return 'ok'\n",
+                "README.md": (
+                    "# Offline dependency repair\n\n"
+                    "This container has no network access. A required dependency is staged under third_party/. "
+                    "Run `sh healthcheck.sh`, diagnose the import failure, and repair the runtime.\n"
+                ),
+            },
+        ),
+    ]
+    service_startup_variants = [
+        service_startup_variant,
+        _variant_copy(
+            service_startup_variant,
+            prompt=(
+                "Diagnose and repair the isolated service startup workspace. The healthcheck fails because the "
+                "service startup state does not match the expected health endpoint. Inspect service.env, logs, "
+                "and scripts; correct startup configuration; then run `sh healthcheck.sh` until it reports status=ok."
+            ),
+            visible_updates={
+                "service.env": "HOST=127.0.0.1\nPORT=7070\nHEALTH_TOKEN=old-deploy-token\n",
+                "logs/startup.log": (
+                    "expected health endpoint: 127.0.0.1:8080\n"
+                    "last run: refused connection on 127.0.0.1:7070\n"
+                    "token check: expected evalclaw-ready\n"
+                ),
+            },
+        ),
+        _variant_copy(
+            service_startup_variant,
+            prompt=(
+                "Diagnose and repair the isolated service startup workspace. The local service script is present, "
+                "but startup validation fails after a staging copy. Inspect the startup artifacts, repair service.env, "
+                "and run `sh healthcheck.sh` until it reports status=ok."
+            ),
+            visible_updates={
+                "service.env": "HOST=127.0.0.1\nPORT=8080\nHEALTH_TOKEN=staging-token\n",
+                "logs/startup.log": (
+                    "expected health endpoint: 127.0.0.1:8080\n"
+                    "token check: expected evalclaw-ready, got staging-token\n"
+                ),
+            },
+        ),
+    ]
+    if _contains_any(
+        full_text,
+        ("offline", "dependency", "dependencies", "package", "packages", "pip", "npm", "vendor", "vendored"),
+    ) and not _contains_any(full_text, ("kubernetes", "k8s", "pcap", "malware", "ioc", "wireshark", "ghidra")):
+        variant = offline_dependency_variants[(index - 1) % len(offline_dependency_variants)]
+    elif _contains_any(
+        full_text,
+        ("log", "logs", "configuration", "config", "nginx", "document root"),
+    ) and not _contains_any(
+        full_text,
+        ("kubernetes", "k8s", "pcap", "malware", "ioc", "wireshark", "ghidra", "startup", "service startup"),
+    ):
+        variant = log_config_variants[(index - 1) % len(log_config_variants)]
+    elif _contains_any(
+        full_text,
+        (
+            "service_startup",
+            "service startup",
+            "startup",
+            "start service",
+            "start the service",
+            "service health",
+            "healthcheck",
+            "environment repair",
+            "runtime",
+        ),
+    ) and not _contains_any(full_text, ("kubernetes", "k8s", "pcap", "malware", "ioc", "wireshark", "ghidra")):
+        variant = service_startup_variants[(index - 1) % len(service_startup_variants)]
+    elif _contains_any(full_text, ("kubernetes", "k8s", "payment api", "root-cause", "root cause", "incident", "manifest")):
         kubernetes_variants = [
-            variants[1],
+            variants[4],
             {
                 "prompt": (
                     "Diagnose the Kubernetes autoscaling incident and update rca.py so answer() identifies the "
@@ -286,27 +594,26 @@ def _shell_debugging_task_for_blueprint(
         ]
         variant = kubernetes_variants[(index - 1) % len(kubernetes_variants)]
     elif _contains_any(full_text, ("pcap", "malware", "security", "ioc", "wireshark", "ghidra")):
-        variant = variants[2]
+        variant = variants[5]
     else:
         variant = variants[(index - 1) % len(variants)]
     return AgentTask(
-        id=_task_id(dimension, blueprint.task_family, index),
+        id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
         title=_task_title(blueprint, index),
         description=(
             "A shell-oriented debugging task that benefits from command diagnostics and realistic workspace "
             "execution. The agent must inspect files, run commands, and patch the failure."
         ),
-        task_family=blueprint.task_family,
         prompt=str(variant["prompt"]),
         system_prompt=_agent_system_prompt("docker_workspace"),
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.docker_workspace,
-            image="python:3.11-slim",
+            image=str(variant.get("image") or "python:3.11-slim"),
             visible_files=variant["visible"],
             hidden_files=variant["hidden"],
             setup_commands=[],
-            test_command="python3 tests.py",
+            test_command=str(variant.get("test_command") or "python3 tests.py"),
             max_steps=10,
             timeout=20,
             network="none",
@@ -323,6 +630,6 @@ def _shell_debugging_task_for_blueprint(
             partial_criteria=str(variant["scoring"]["partial"]),
             fail_criteria=str(variant["scoring"]["fail"]),
         ),
-        difficulty=dimension.target_difficulty,
-        tags=[dimension.id, blueprint.task_family.value, "docker_workspace", "shell"],
+        challenge_effort=dimension.challenge_effort,
+        tags=[dimension.id, "docker_workspace", "shell"],
     )

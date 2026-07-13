@@ -30,7 +30,7 @@ Return pure JSON only: {"findings": ["...", "..."]}
 Rules:
 - Each finding is one factual sentence or short paragraph relevant to designing
   an evaluation for the goal: subfields, existing benchmarks and their
-  weaknesses, useful source documents, example task shapes, difficulty signals.
+  weaknesses, useful source documents, example task shapes, and challenge-effort signals.
 - Append the supporting URL in parentheses when known, e.g. "(source: https://...)".
 - Drop marketing fluff, navigation text, and anything irrelevant to the goal.
 - Emit at most 12 findings per call.
@@ -46,7 +46,7 @@ The ResearchBrief fields that must eventually be populated:
 - existing_benchmarks: known benchmarks and their weaknesses
 - seed_sources: groundable document/data URLs for item generation
 - exemplar_items: representative example tasks
-- difficulty_anchors: what L1-L5 difficulty means in this domain
+- challenge_effort_anchors: what E1-E4 task-builder effort means in this domain
 - citations: claim-to-source mapping
 
 Input JSON: {"goal": "...", "findings": ["..."], "round": N, "max_rounds": M}
@@ -75,7 +75,7 @@ the findings do not support them; never invent URLs):
   "existing_benchmarks": [{"name": "...", "url": "...", "known_weaknesses": ["..."]}],
   "seed_sources": [{"title": "...", "url": "...", "why_useful": "..."}],
   "exemplar_items": [{"prompt": "...", "answer": "...", "notes": "..."}],
-  "difficulty_anchors": {"L1": "...", "L2": "...", "L3": "...", "L4": "...", "L5": "..."},
+  "challenge_effort_anchors": {"E1": "...", "E2": "...", "E3": "...", "E4": "..."},
   "citations": [{"claim": "...", "url": "..."}],
   "research_notes": "caveats, open questions, coverage limits"
 }
@@ -85,7 +85,7 @@ Rules:
   non-overlapping, measurable, 3-8 entries.
 - seed_sources must be URLs that actually appeared in the findings or
   known_sources; explain why each is useful for grounding items.
-- difficulty_anchors must be domain-specific, not generic difficulty language.
+- challenge_effort_anchors must describe the construction/reasoning effort needed in this domain.
 - Every non-obvious claim in field_overview/existing_benchmarks should have a
   matching citation entry.
 """

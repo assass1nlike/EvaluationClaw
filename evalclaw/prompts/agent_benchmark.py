@@ -14,7 +14,7 @@ You are the EvaluationClaw Agent Benchmark Planner.
 
 The user's request should be turned into an executable benchmark for evaluating
 AI agents, not primarily a collection of static question-answer items. Think
-like a benchmark author: choose realistic task families, identify reusable
+like a benchmark author: choose realistic task designs, identify reusable
 resources, define environments/tools, and specify automatic success criteria.
 
 Use English for JSON fields unless the evaluation explicitly tests another
@@ -39,7 +39,7 @@ Return this object:
         "description": "...",
         "approach": "...",
         "weight": 1.0,
-        "target_difficulty": "L4",
+        "challenge_effort": "E3",
         "needs_research": true,
         "research_queries": ["..."],
         "target_item_count": 3,
@@ -59,7 +59,6 @@ Return this object:
       "title": "...",
       "content_summary": "3-8 words naming the concrete task content",
       "description": "...",
-      "task_family": "code_repair",
       "environment_type": "code_sandbox",
       "expected_task_count": 2,
       "resource_queries": ["..."],
@@ -89,25 +88,28 @@ Planning requirements:
   fixtures. A blueprint is a task-construction plan, not the final task.
 - If the user specifies an explicit raw task count, distribute that exact count
   across agent_task_blueprints so that the sum of expected_task_count equals
-  the requested count. Do not reinterpret an explicit "N tasks/items/problems"
-  request as simple-equivalent workload.
+  the requested count.
 - Use existing resources when they make the task more realistic: repositories,
   issues, docs, CLI/API manuals, bug reports, datasets, notebooks, webpages, or
   benchmark instances. Do not force external resources when a small synthetic
   fixture is more reliable and sufficient.
 - Pick environment_type deliberately:
-  - workspace: stateful toy tool-use, routing, object selection, memory.
+  - workspace: only the built-in deterministic room/inventory simulation for
+    stateful routing, object selection, and memory. It does not execute arbitrary
+    custom tools, websites, MCP servers, APIs, or browser actions.
   - code_sandbox: self-contained Python/file repair with hidden tests.
   - docker_workspace: realistic dependencies, shell diagnostics, non-Python
-    runtimes, package installation, native builds, or OS-sensitive tasks.
+    runtimes, package installation, native builds, OS-sensitive tasks, local
+    web applications, API/MCP services, or headless-browser workflows. For web
+    tasks, include the complete resettable site/service fixture and a hidden
+    state-based evaluator; do not route them to workspace.
   - gui_desktop: GUI/browser/desktop-software tasks executed through a
     bridge that provides screenshot, mouse, keyboard, file, command, and
     evaluation actions. Use this only when real UI operation matters.
   - dialogue: multi-turn user simulation without a file/tool environment.
-- Common task_family values include workspace_navigation, gui_desktop,
-  browser_gui, desktop_software, code_repair, repo_issue, shell_debugging,
-  api_tool_use, web_research, data_analysis, multi_turn_delegation,
-  safety_tool_use, and custom.
+- Describe each construction plan directly through its capability, description,
+  environment, tools, concrete requirements, resources, and scoring strategy.
+  Do not reduce the task to a fixed categorical taxonomy.
 - For gui_desktop blueprints, construction_requirements must tell the task
   builder to write standardized metadata.task_agent JSON plus
   metadata.agent_task_package JSON plus environment.session, environment.vm,
@@ -128,10 +130,18 @@ Planning requirements:
 - Every executable task must have a clear oracle: deterministic tests, state
   assertions, pass/fail criteria, or a task-specific judge rubric. Prefer
   deterministic scoring when the environment can support it.
-- For high-difficulty or expert software-engineering requests, prefer L5 for
-  dimensions/tasks that require multi-file reasoning, dependency diagnosis,
-  migration, refactoring, performance work, or realistic hidden tests; use L4
-  only when the scope is intentionally compact.
+- challenge_effort is the required construction and reasoning effort. It tells task
+  builders how much effort to spend making tasks challenging, relative to the
+  builder model's own ability:
+  - E1: easily generate simple, direct tasks.
+  - E2: think and plan moderately; create nontrivial tasks with some edge cases.
+  - E3: use high effort and detailed planning; create tasks the builder itself
+    considers difficult, with realistic constraints and stronger oracles.
+  - E4: use maximum effort, budget, planning depth, and external research/tool
+    use when useful; push to the builder's own upper limit for task challenge.
+- For expert software-engineering, long-horizon, professional workflow, VM,
+  docker_workspace, or GUI task requests, prefer E4 when the user is asking for
+  genuinely hard benchmark tasks; use E3 when the scope is intentionally compact.
 - For ALE-like professional workflows, VM-backed tasks, docker_workspace tasks,
   GUI/browser/desktop-software tasks, and long-horizon executable tasks, require
   metadata.agent_task_package. It must separate visible inputs from hidden
@@ -143,9 +153,11 @@ Planning requirements:
   output for agent-capability requests should be agent_interaction or multi_turn.
 - Only include multimodal tasks when the user explicitly asks for multimodal
   agent ability.
-- Treat scale as simple-equivalent workload: LOW about 100, MID 500, HIGH 1000,
-  LARGE 5000, XLARGE 20000. Agent tasks are heavier than static items, so raw
-  task counts can be much smaller than the workload number.
+- Treat scale as the planned raw task count: LOW about 100, MID 500, HIGH 1000,
+  LARGE 5000, and XLARGE 20000. Do not reduce the count because tasks are agent,
+  multi-turn, Docker, VM, GUI, or otherwise complex. Distribute the count across
+  agent_task_blueprints so expected_task_count values sum to scale unless the
+  user provided a different explicit count.
 - For LARGE/XLARGE, plan resource-backed task pools and stratified sampling.
   Do not plan thousands of near-identical model-generated fixtures.
 """ + "\n\nStandardized task-agent guidance:\n" + TASK_AGENT_GENERATION_GUIDANCE + "\n\nExecutable agent task package guidance:\n" + AGENT_TASK_PACKAGE_GENERATION_GUIDANCE + "\n\nCanonical metadata.task_agent schema:\n" + json.dumps(
@@ -189,7 +201,6 @@ Return this object:
       "dimension_id": "dimension_id",
       "title": "...",
       "description": "...",
-      "task_family": "code_repair",
       "prompt": "Instruction shown to the target agent.",
       "system_prompt": "Concise per-task system prompt for the target agent.",
       "resource_ids": ["resource_id"],
@@ -197,6 +208,7 @@ Return this object:
         "type": "code_sandbox",
         "tools": [],
         "visible_files": {"relative/path.py": "complete starting file content"},
+        "runtime_files": {"relative/server.py": "complete setup-only runtime content"},
         "hidden_files": {"tests.py": "complete hidden test content"},
         "image": "",
         "auto_select_image": true,
@@ -227,7 +239,18 @@ Return this object:
         "timeout": 20,
         "network": "none",
         "resource_limits": {},
+        "workdir": "/workspace",
         "workspace": {},
+        "browser": {
+          "enabled": false,
+          "runtime": "playwright_python",
+          "start_url": "",
+          "allowed_origins": [],
+          "executable_path": "",
+          "timeout_ms": 15000,
+          "startup_timeout": 45,
+          "workspace_tools": []
+        },
         "bridge_url": "",
         "bridge_api_key": null,
         "requires_vm": false,
@@ -273,9 +296,15 @@ Return this object:
         "score_levels": {"0": "fail", "0.5": "partial", "1": "pass"},
         "oracle_notes": "..."
       },
-      "difficulty": "L4",
+      "challenge_effort": "E3",
       "tags": ["..."],
       "metadata": {
+        "challenge_effort_self_assessment": {
+          "requested_effort": "E3",
+          "meets_requested_effort": true,
+          "rationale": "Why this task satisfies the requested construction effort.",
+          "effort_actions": ["Concrete choices made to increase or calibrate task challenge."]
+        },
         "agent_task_package": {}
       }
     }
@@ -283,7 +312,12 @@ Return this object:
 }
 
 Task-construction requirements:
-- The tasks array length must equal blueprint.expected_task_count exactly.
+- If the payload contains revision, treat revision.previous_tasks as the tasks
+  from the prior builder round and revision.qc_issues as authoritative quality
+  feedback. Return complete replacement tasks for this blueprint, preserving
+  sound content while fixing every blocking issue. Do not return a patch or
+  merely explain the changes.
+- The tasks array length must equal task_plan.construction.expected_task_count exactly.
   Generate independent task content for each task; do not duplicate prompts or
   create numbered clones of the same fixture.
 - Each task must be independently executable and complete. Do not use ellipses,
@@ -296,9 +330,75 @@ Task-construction requirements:
   used in reports between the dimension label and target model name. It should
   summarize the concrete task content, not repeat the dimension, not include
   random IDs, and not include hidden oracle details or answer keys.
-- Preserve the assigned dimension. If a task mainly evaluates a different agent
+- Set task.challenge_effort equal to task_plan.capability.challenge_effort. This field is
+  the requested task-builder challenge effort, not a post-hoc absolute item
+  challenge-effort estimate.
+- Apply the assigned challenge_effort:
+  - E1: generate a simple direct task with a clear oracle.
+  - E2: spend moderate planning effort; add meaningful edge cases, stronger
+    constraints, or a more realistic fixture while keeping the task compact.
+  - E3: spend high effort; design a task that is difficult by your own task
+    builder standard, with detailed scenario planning, realistic failure modes,
+    multiple interacting constraints, and robust hidden evaluation.
+  - E4: spend maximum effort; use the highest useful planning depth, resource
+    search, external evidence, realistic environment construction, adversarial
+    edge cases, and oracle design available to you. Do not perform ceremonial
+    tool use if it adds no value, but push the task to your own capability limit.
+- Challenge effort measures design depth, realism, and evaluator strength, not
+  response length or fixture size. Prefer compact complete fixtures and avoid
+  repeating the same long instructions, code, or criteria across overlapping
+  fields. Do not spend the output budget on irrelevant application boilerplate.
+- Before returning, self-assess whether each task satisfies the requested
+  challenge_effort. If not, revise it. Then include
+  metadata.challenge_effort_self_assessment with requested_effort,
+  meets_requested_effort=true, a concise rationale, and concrete effort_actions.
+- Preserve task_plan.capability. If a task mainly evaluates a different agent
   ability, do not include it.
-- Use the blueprint's environment_type unless the resource makes that impossible.
+- Use task_plan.construction.environment_type unless the resource makes that impossible.
+- The workspace environment is not a generic custom-tool host. It can execute
+  only EvaluationClaw's built-in look/move/inspect/take/place/final room-and-
+  inventory workflow. For a workspace blueprint, populate environment.workspace
+  with start_room, rooms, item_descriptions, and goal.outgoing_bin, and make the
+  task use those built-in actions. Do not claim that entries in environment.tools
+  implement arbitrary website, browser, MCP, database, or API behavior.
+- For browser, website, MCP, or service-state tasks, use a docker_workspace
+  blueprint with a compact but complete local application/service fixture,
+  pinned runnable dependencies, setup/start commands, canonical browser tools,
+  and a deterministic hidden evaluator that checks actual backend/page/artifact
+  state. Set environment.browser.enabled=true, runtime=playwright_python,
+  start_url to the initial local page, and allowed_origins to the local site
+  origins. Use a Python Playwright image such as a pinned
+  mcr.microsoft.com/playwright/python image, or build an equivalent image with
+  Python Playwright and its browser binaries already installed. For an
+  image_build using a system Chromium package, set browser.executable_path to
+  its absolute guest path such as /usr/bin/chromium. The local app
+  must use preinstalled/standard-library dependencies or an image_build; a
+  network=none setup command cannot pip/npm/apt install remote packages. Start
+  put server/application code needed by setup in runtime_files, start the app in
+  setup_commands with a persistent background command, and make it
+  ready before the target's first browser call. EvaluationClaw supplies the
+  browser_navigate/browser_snapshot/browser_click/browser_fill/browser_select/
+  browser_check/browser_press/browser_get_text tools, so do not invent
+  environment.tools entries for them. Use gui_desktop only when visual UI
+  operation itself is part of the capability. Do not substitute a prose-only
+  website mock.
+- Browser tasks expose no shell/file tools by default. If the target must create
+  a file artifact, set browser.workspace_tools to the minimal required subset
+  of list_files/read_file/write_file/run_command, normally ["write_file"] only.
+  File output paths must be relative to environment.workdir or absolute paths
+  inside it. Do not use /tmp or another directory that write_file cannot reach.
+  Do not expose run_command when it would let the target bypass the intended
+  browser workflow by reading application source, databases, or hidden state.
+- The canonical completion tool is named final, not final_answer. The runner
+  privately writes final's answer argument to /tmp/evalclaw_final_answer.json
+  before evaluation.
+- Hidden evaluators must inspect the state or artifacts left by the target.
+  They must never execute, simulate, or replay the target's required actions to
+  create the expected state. For final-answer tasks, the runner stores the
+  target's final tool answer in /tmp/evalclaw_final_answer.json before private
+  evaluation. Keep every output contract consistent with the target prompt: do
+  not require a file or state change that the target was never instructed to
+  produce.
 - For ALE-like professional workflows, VM-backed tasks, docker_workspace tasks,
   GUI/browser/desktop-software tasks, and long-horizon executable tasks, include
   metadata.agent_task_package using schema_version
@@ -343,10 +443,13 @@ Task-construction requirements:
 - For code_sandbox, include complete visible_files, hidden_files or a complete
   deterministic test_command, max_steps, and a concise system_prompt that tells
   the target to use one JSON tool action per turn.
-  - For docker_workspace, include image, setup_commands, visible_files,
-  hidden_files, test_command, timeout, network, and resource_limits. Use it only
-  when realistic OS/runtime behavior matters. If the task clearly requires a
-  runtime, choose a common official image such as python:3.11-slim,
+- For docker_workspace, include image, setup_commands, visible_files,
+  runtime_files, hidden_files, test_command, timeout, network, and resource_limits. Use it only
+  when realistic OS/runtime behavior matters. When the task uses runtime_files
+  or hidden_files, do not request run_command: raw
+  shell access is withheld so the target cannot bypass protected-file phases.
+  Use structured workspace tools and runner-private run_tests instead. If the
+  task clearly requires a runtime, choose a common official image such as python:3.11-slim,
   node:22-bookworm-slim, rust:1.85-slim, golang:1.23-bookworm,
   maven:3.9-eclipse-temurin-21, gradle:8-jdk21, ruby:3.3-slim,
   php:8.3-cli, gcc:14-bookworm, r-base:4.4.1, or ubuntu:22.04.
@@ -372,6 +475,9 @@ Task-construction requirements:
   empty unless the user explicitly supplied non-secret local service URLs;
   runtime config can inject them. Put guest files that should exist before the
   task starts in metadata.agent_env.visible_files or metadata.task_agent.initial_content.files.
+  Setup-only application/server files belong in runtime_files. Never reference
+  hidden_files or /tmp/hidden_files from setup_commands; hidden_files are
+  evaluator-only and do not exist until scoring.
   Put session-specific documents/data in session.asset_files or assets entries
   with path/content objects. EvaluationClaw materializes those files into a
   per-task cloud-init seed ISO before VM startup when no explicit seed ISO is
@@ -384,10 +490,9 @@ Task-construction requirements:
   overwrite_seed_iso=true for unusual images. The evaluation
   object must define deterministic bridge checks when possible: artifact paths,
   UI/page-state checks, trace constraints, pass/partial/fail criteria, and
-  score weights. Use task_family browser_gui for browser UI tasks,
-  desktop_software for applications such as spreadsheets or PDF/document
-  editors, Blender/3D modeling, image editing, and other native applications,
-  and gui_desktop for general desktop operation. For Blender tasks, require a
+  score weights. Describe the concrete browser, native application, or general
+  desktop workflow directly in the session, environment, tools, requirements,
+  and evaluator rather than assigning a fixed category. For Blender tasks, require a
   VM image with Blender and the desktop bridge, specify .blend plus rendered
   image artifacts, and define a bridge evaluator that inspects objects,
   materials, positions, camera/light, and rendered-image validity. Use requires_vm=false
@@ -418,8 +523,4 @@ Task-construction requirements:
   and pass/partial/fail criteria clearly.
 - Diversify tasks within the blueprint by resource, state, failure mode, or tool
   path. Avoid near-duplicates.
-""" + "\n\nExecutable agent task package guidance:\n" + AGENT_TASK_PACKAGE_GENERATION_GUIDANCE + "\n\nCanonical metadata.agent_task_package schema:\n" + json.dumps(
-    AGENT_TASK_PACKAGE_SCHEMA,
-    ensure_ascii=False,
-    indent=2,
-) + "\n"
+"""

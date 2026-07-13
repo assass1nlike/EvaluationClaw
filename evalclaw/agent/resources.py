@@ -50,7 +50,7 @@ def _select_blueprint_sources(
     if not queries:
         queries = [
             f"{dimension.name} {blueprint.title} agent benchmark task resources",
-            f"{dimension.name} {blueprint.task_family.value} benchmark dataset",
+            f"{dimension.name} {blueprint.description} benchmark dataset",
         ]
     sources: list[BenchmarkSource] = []
     seen: set[str] = set()

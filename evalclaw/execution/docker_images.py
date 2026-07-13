@@ -20,6 +20,9 @@ DOCKER_IMAGE_SELECTION_STRATEGY = "evalclaw_builtin_rules.v1"
 DOCKER_IMAGE_BUILD_STRATEGY = "evalclaw_dockerfile_build.v1"
 DOCKER_BUILD_AUTO_IMAGES = {"build://auto", "auto://build", "evalclaw:build"}
 DOCKER_BUILD_DIR_ENV_VAR = "EVALCLAW_DOCKER_BUILD_DIR"
+DOCKER_HTTP_PROXY_ENV_VAR = "EVALCLAW_DOCKER_HTTP_PROXY"
+DOCKER_HTTPS_PROXY_ENV_VAR = "EVALCLAW_DOCKER_HTTPS_PROXY"
+DOCKER_NO_PROXY_ENV_VAR = "EVALCLAW_DOCKER_NO_PROXY"
 
 
 @dataclass(frozen=True)
@@ -360,6 +363,26 @@ def _write_context_files(context_dir: Path, files: Any) -> None:
             target.write_text(str(content), encoding="utf-8")
 
 
+def _docker_build_args(build_config: dict[str, Any]) -> dict[str, str]:
+    """Return explicit docker build args, including proxy args when configured."""
+    args: dict[str, str] = {}
+    configured = build_config.get("build_args") or build_config.get("args")
+    if isinstance(configured, dict):
+        args.update({str(key): str(value) for key, value in configured.items() if str(value).strip()})
+
+    proxy_values = {
+        "HTTP_PROXY": os.environ.get(DOCKER_HTTP_PROXY_ENV_VAR) or os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy"),
+        "HTTPS_PROXY": os.environ.get(DOCKER_HTTPS_PROXY_ENV_VAR) or os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy"),
+        "NO_PROXY": os.environ.get(DOCKER_NO_PROXY_ENV_VAR) or os.environ.get("NO_PROXY") or os.environ.get("no_proxy"),
+    }
+    for key, value in proxy_values.items():
+        if not value:
+            continue
+        args.setdefault(key, value)
+        args.setdefault(key.lower(), value)
+    return args
+
+
 def _build_tag(env_config: dict[str, Any], dockerfile: str, *, task_text: str = "") -> str:
     build_config = env_config.get("image_build") if isinstance(env_config.get("image_build"), dict) else {}
     explicit_tag = str(build_config.get("tag") or build_config.get("image") or "").strip()
@@ -420,7 +443,10 @@ def build_docker_image_if_requested(
         context_dir,
         build_config.get("context_files") or build_config.get("build_context_files"),
     )
-    command = [resolved, "build", "-t", tag, str(context_dir)]
+    command = [resolved, "build"]
+    for key, value in _docker_build_args(build_config).items():
+        command.extend(["--build-arg", f"{key}={value}"])
+    command.extend(["-t", tag, str(context_dir)])
     proc = subprocess.run(
         command,
         text=True,

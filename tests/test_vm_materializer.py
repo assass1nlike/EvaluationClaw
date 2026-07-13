@@ -23,11 +23,11 @@ def test_materialize_vm_task_creates_seed_iso_and_updates_agent_env(monkeypatch,
                 "capability_target": {"name": "VM file setup"},
                 "visible_inputs": {
                     "instructions": "Use visible VM files.",
-                    "files": {"Desktop/package_visible.txt": "visible package file"},
+                    "file_names": ["Desktop/package_visible.txt"],
                 },
                 "hidden_references": {
                     "staging_phase": "post_agent_or_runner_private",
-                    "files": {"reference/answer.txt": "private answer"},
+                    "file_names": ["reference/answer.txt"],
                     "reference_artifacts": ["Desktop/output.txt"],
                 },
                 "output_contract": {"expected_artifacts": ["Desktop/output.txt"]},
@@ -37,20 +37,26 @@ def test_materialize_vm_task_creates_seed_iso_and_updates_agent_env(monkeypatch,
                 "trajectory_requirements": {"required_tools": ["screenshot", "write_file"]},
                 "environment_requirements": {"type": "gui_desktop", "requires_vm": True},
             },
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "evalclaw-gui"},
+                "visible_files": {
+                    "Desktop/readme.md": "# Read me\n",
+                    "Desktop/package_visible.txt": "visible package file",
+                },
+                "hidden_files": {"reference/answer.txt": "private answer"},
+                "session": {"application": "file_manager"},
+                "evaluation": {"method": "artifact_check", "pass_criteria": "done"},
+            },
             "task_agent": {
                 "initial_content": {
                     "files": {"Desktop/input.txt": "hello from initial content"},
                     "session": {"asset_files": {"Desktop/session.csv": "region,profit\nNA,3\n"}},
                 },
                 "execution": {
-                    "agent_env": {
-                        "type": "gui_desktop",
-                        "requires_vm": True,
-                        "vm": {"image": "evalclaw-gui"},
-                        "visible_files": {"Desktop/readme.md": "# Read me\n"},
-                        "session": {"application": "file_manager"},
-                        "evaluation": {"method": "artifact_check", "pass_criteria": "done"},
-                    }
+                    "environment_type": "gui_desktop",
+                    "environment_ref": "metadata.agent_env",
                 },
             }
         },
@@ -59,11 +65,10 @@ def test_materialize_vm_task_creates_seed_iso_and_updates_agent_env(monkeypatch,
     result = materialize_vm_task(item, work_dir=tmp_path)
 
     env = item.metadata["agent_env"]
-    nested_env = item.metadata["task_agent"]["execution"]["agent_env"]
     assert result.applied is True
     assert Path(result.seed_iso).read_bytes() == b"fake iso"
     assert env["vm"]["seed_iso"] == result.seed_iso
-    assert nested_env["vm"]["seed_iso"] == result.seed_iso
+    assert "agent_env" not in item.metadata["task_agent"]["execution"]
     assert env["vm_materialization"]["file_count"] >= 5
 
     user_data = Path(result.work_dir, "seed", "user-data").read_text(encoding="utf-8")

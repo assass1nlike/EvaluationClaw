@@ -27,7 +27,7 @@ from evalclaw.types import (
 GOALS = [
     (
         "01_engineering",
-        "Design a set of high-difficulty agent benchmarks to evaluate whether models can complete professional engineering workflows in real engineering software and file environments. The tasks should cover starting from input specifications, drawings, configurations, or assets; using CAD, EDA, simulation, or modeling tools; producing checkable engineering artifacts; and being scored by hidden checkers for correctness, completeness, and process documentation.",
+        "Design a set of E4 agent benchmarks to evaluate whether models can complete professional engineering workflows in real engineering software and file environments. The tasks should cover starting from input specifications, drawings, configurations, or assets; using CAD, EDA, simulation, or modeling tools; producing checkable engineering artifacts; and being scored by hidden checkers for correctness, completeness, and process documentation.",
     ),
     (
         "02_life_sciences",

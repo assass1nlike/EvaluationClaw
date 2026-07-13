@@ -1,14 +1,25 @@
-"""Goal text detection and task-family routing for agent benchmark planning."""
+"""Goal text detection for agent benchmark planning."""
+
 from __future__ import annotations
 
 import re
 
-from ..types import AgentTaskFamily
-
 
 def _goal_mentions_code(goal: str) -> bool:
     text = goal.lower()
-    return any(keyword in text for keyword in ("code", "repo", "repository", "debug", "repair", "test", "python", "program"))
+    return any(
+        keyword in text
+        for keyword in (
+            "code",
+            "repo",
+            "repository",
+            "debug",
+            "repair",
+            "test",
+            "python",
+            "program",
+        )
+    )
 
 
 def _contains_any(text: str, keywords: tuple[str, ...]) -> bool:
@@ -41,8 +52,9 @@ def _mentioned_industrial_apps(full_text: str) -> list[str]:
 
 
 def _goal_mentions_multi_industrial_workflow(full_text: str) -> bool:
-    normalized_text = re.sub(r"[-_/]+", " ", full_text)
-    search_text = f"{full_text} {normalized_text}"
+    base_text = full_text.lower()
+    normalized_text = re.sub(r"[-_/]+", " ", base_text)
+    search_text = f"{base_text} {normalized_text}"
     multi_markers = (
         "multi software",
         "multi-software",
@@ -56,13 +68,10 @@ def _goal_mentions_multi_industrial_workflow(full_text: str) -> bool:
         "toolchain",
         "interoperability",
         "handoff",
-        "workflow",
-        "pipeline",
         "\u591a\u8f6f\u4ef6",
         "\u591a\u4e2a\u8f6f\u4ef6",
         "\u534f\u540c",
         "\u5171\u540c\u53c2\u4e0e",
-        "\u5de5\u4f5c\u6d41",
     )
     industrial_markers = (
         "industrial software",
@@ -91,9 +100,8 @@ def _goal_mentions_multi_industrial_workflow(full_text: str) -> bool:
         "\u5e38\u7528\u5de5\u4e1a\u8f6f\u4ef6",
     )
     mentioned_apps = _mentioned_industrial_apps(search_text)
-    return (
-        len(mentioned_apps) >= 2
-        or (_contains_any(search_text, multi_markers) and _contains_any(search_text, industrial_markers))
+    return len(mentioned_apps) >= 2 or (
+        _contains_any(search_text, multi_markers) and _contains_any(search_text, industrial_markers)
     )
 
 
@@ -136,13 +144,21 @@ def _goal_mentions_osworld_style(full_text: str) -> bool:
     )
     broad_desktop_benchmark = (
         _goal_mentions_gui_desktop(search_text)
-        and _contains_any(search_text, ("benchmark", "evaluation", "evaluate", "test whether", "measure whether"))
-        and _contains_any(search_text, ("save", "saved", "output file", "artifact", "state change", "hidden check"))
+        and _contains_any(
+            search_text, ("benchmark", "evaluation", "evaluate", "test whether", "measure whether")
+        )
+        and _contains_any(
+            search_text,
+            ("save", "saved", "output file", "artifact", "state change", "hidden check"),
+        )
     )
     return (
         _contains_any(search_text, explicit_markers)
         or broad_desktop_benchmark
-        or (_goal_mentions_gui_desktop(search_text) and sum(1 for marker in app_markers if marker in search_text) >= 3)
+        or (
+            _goal_mentions_gui_desktop(search_text)
+            and sum(1 for marker in app_markers if marker in search_text) >= 3
+        )
     )
 
 
@@ -226,7 +242,9 @@ def _goal_mentions_professional_executable_benchmark(full_text: str) -> bool:
 def _goal_mentions_professional_life_science_analysis(full_text: str) -> bool:
     normalized_text = re.sub(r"[-_/]+", " ", full_text)
     search_text = f"{full_text} {normalized_text}"
-    return _contains_any(search_text, ("life science", "life sciences", "biomedical", "biology", "omics")) and _contains_any(
+    return _contains_any(
+        search_text, ("life science", "life sciences", "biomedical", "biology", "omics")
+    ) and _contains_any(
         search_text,
         (
             "data analysis",
@@ -244,7 +262,9 @@ def _goal_mentions_professional_life_science_analysis(full_text: str) -> bool:
 def _goal_mentions_professional_engineering_artifact(full_text: str) -> bool:
     normalized_text = re.sub(r"[-_/]+", " ", full_text)
     search_text = f"{full_text} {normalized_text}"
-    return _contains_any(search_text, ("engineering", "mechanical", "robot", "robotics", "design asset")) and _contains_any(
+    return _contains_any(
+        search_text, ("engineering", "mechanical", "robot", "robotics", "design asset")
+    ) and _contains_any(
         search_text,
         (
             "assets",
@@ -260,10 +280,22 @@ def _goal_mentions_professional_engineering_artifact(full_text: str) -> bool:
 
 
 def _mentions_app_state_workflow(text: str) -> bool:
-    return _contains_any(
-        text,
-        ("browser", "email", "mail", "thunderbird", "vscode", "vs code", "extension", "state management"),
-    ) or re.search(r"\bide\b", text) is not None
+    return (
+        _contains_any(
+            text,
+            (
+                "browser",
+                "email",
+                "mail",
+                "thunderbird",
+                "vscode",
+                "vs code",
+                "extension",
+                "state management",
+            ),
+        )
+        or re.search(r"\bide\b", text) is not None
+    )
 
 
 def _goal_mentions_gui_desktop(full_text: str) -> bool:
@@ -304,9 +336,13 @@ def _goal_mentions_browser_gui(full_text: str) -> bool:
         "page interaction",
         "click through",
     )
-    return _contains_any(full_text, browser_keywords) or ("browser" in full_text and any(
-        keyword in full_text for keyword in ("click", "scroll", "screenshot", "form", "page", "ui")
-    ))
+    return _contains_any(full_text, browser_keywords) or (
+        "browser" in full_text
+        and any(
+            keyword in full_text
+            for keyword in ("click", "scroll", "screenshot", "form", "page", "ui")
+        )
+    )
 
 
 def _goal_mentions_desktop_software(full_text: str) -> bool:
@@ -410,16 +446,25 @@ def _goal_mentions_runtime_pipeline(full_text: str) -> bool:
         "ghidra",
         "malware",
         "cloud cost",
+        "environment repair",
+        "runtime repair",
+        "runtime environment",
+        "service repair",
+        "service environment",
+        "service startup",
+        "service health",
+        "startup configuration",
+        "offline dependency",
+        "offline dependencies",
+        "runtime dependency",
+        "runtime dependencies",
+        "dependency management",
+        "healthcheck",
+        "health check",
+        "nginx",
         "chemistry",
         "materials",
         "phonon",
         "vqe",
     )
     return _contains_any(full_text, runtime_keywords)
-
-
-def _runtime_task_family(full_text: str) -> AgentTaskFamily:
-    diagnostic_keywords = ("kubernetes", "k8s", "sre", "root cause", "incident", "pcap", "wireshark", "ghidra", "malware")
-    if _contains_any(full_text, diagnostic_keywords):
-        return AgentTaskFamily.shell_debugging
-    return AgentTaskFamily.data_analysis

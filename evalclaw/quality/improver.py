@@ -112,7 +112,7 @@ def _loop3_budget_guidance(config: BenchmarkConfig) -> str:
         "mid": "MID budget: repair issues and add targeted boundary items for clear weak dimensions.",
         "high": (
             "HIGH budget: dig deeper into weak dimensions. Prefer multiple targeted actions that isolate failure "
-            "patterns, confirm persistent weaknesses, and increase difficulty without drifting from the user goal."
+            "patterns, confirm persistent weaknesses, and increase task complexity without drifting from the user goal."
         ),
         "large": (
             "LARGE budget: prioritize systematic weak-slice expansion, source-backed replenishment, and targeted "
@@ -188,7 +188,7 @@ def _diagnosis_payload(
                 "id": item.id,
                 "dimension_id": item.dimension_id,
                 "task_type": item.task_type.value,
-                "difficulty": item.difficulty.value,
+                "challenge_effort": item.challenge_effort.value,
                 "prompt_excerpt": _shorten(item.prompt, 900),
                 "answer": item.answer,
                 "rubric_excerpt": _shorten(item.rubric, 600),
@@ -206,7 +206,7 @@ def _diagnosis_payload(
                 "name": dimension.name,
                 "description": _shorten(dimension.description, 500),
                 "approach": _shorten(dimension.approach, 500),
-                "target_difficulty": dimension.target_difficulty.value,
+                "challenge_effort": dimension.challenge_effort.value,
             }
             for dimension in dataset.spec.dimensions
         ],
@@ -228,6 +228,7 @@ def _call_loop3_llm_json(payload: dict, config: BenchmarkConfig) -> dict:
                 model=config.orchestrator_model,
                 api_key=config.orchestrator_api_key,
                 base_url=config.orchestrator_base_url,
+                provider=config.orchestrator_provider,
                 backend=config.llm_backend,
                 max_tokens=2048,
             )

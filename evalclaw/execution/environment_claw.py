@@ -1,15 +1,12 @@
 """Controlled environment probing and lightweight runtime decisions."""
 from __future__ import annotations
 
-import platform
-import shutil
-import subprocess
-import sys
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from ..execution.lm_eval import _resolve_lm_eval_executable
 from ..types import BenchmarkConfig, BenchmarkItem
+from .agent_envs import build_agent_environment
 from .desktop_agent_env import desktop_bridge_setup_message, probe_desktop_bridge
 from .docker import docker_status
 from .docker_images import (
@@ -18,7 +15,6 @@ from .docker_images import (
     inspect_docker_image,
 )
 from .installers import package_list
-from .swebench import is_swebench_item
 from .vm_materializer import (
     VmTaskMaterializationError,
     materialize_vm_task,
@@ -91,19 +87,11 @@ def _agent_env_type(item: BenchmarkItem) -> str:
     env = item.metadata.get("agent_env")
     if isinstance(env, dict):
         return str(env.get("type") or "").lower()
-    task_agent = item.metadata.get("task_agent")
-    if isinstance(task_agent, dict):
-        execution = task_agent.get("execution")
-        if isinstance(execution, dict):
-            task_env = execution.get("agent_env")
-            if isinstance(task_env, dict):
-                return str(task_env.get("type") or execution.get("environment_type") or "").lower()
-            return str(execution.get("environment_type") or "").lower()
     return ""
 
 
 def _has_docker_workspace(items: list[BenchmarkItem]) -> bool:
-    return any(_agent_env_type(item) == "docker_workspace" for item in items)
+    return any(_agent_env_type(item) in {"code_sandbox", "docker_workspace"} for item in items)
 
 
 def _has_gui_desktop(items: list[BenchmarkItem]) -> bool:
@@ -117,15 +105,6 @@ def _first_gui_bridge_url(items: list[BenchmarkItem]) -> str | None:
             value = env.get("bridge_url")
             if isinstance(value, str) and value.strip():
                 return value.strip()
-        task_agent = item.metadata.get("task_agent")
-        if isinstance(task_agent, dict):
-            execution = task_agent.get("execution")
-            if isinstance(execution, dict):
-                task_env = execution.get("agent_env")
-                if isinstance(task_env, dict) and str(task_env.get("type") or "").lower() == "gui_desktop":
-                    value = task_env.get("bridge_url")
-                    if isinstance(value, str) and value.strip():
-                        return value.strip()
     return None
 
 
@@ -133,25 +112,11 @@ def _agent_env(item: BenchmarkItem) -> dict[str, Any]:
     env = item.metadata.get("agent_env")
     if isinstance(env, dict):
         return env
-    task_agent = item.metadata.get("task_agent")
-    if isinstance(task_agent, dict):
-        execution = task_agent.get("execution")
-        if isinstance(execution, dict):
-            task_env = execution.get("agent_env")
-            if isinstance(task_env, dict):
-                return task_env
     return {}
 
 
 def _set_agent_env(item: BenchmarkItem, env: dict[str, Any]) -> None:
     item.metadata["agent_env"] = env
-    task_agent = item.metadata.get("task_agent")
-    if isinstance(task_agent, dict):
-        execution = task_agent.get("execution")
-        if isinstance(execution, dict):
-            execution["agent_env"] = env
-            task_agent["execution"] = execution
-            item.metadata["task_agent"] = task_agent
 
 
 def _docker_task_text(item: BenchmarkItem) -> str:
@@ -194,84 +159,8 @@ def _first_vm_provider_url(items: list[BenchmarkItem]) -> str | None:
     return None
 
 
-def _has_swebench(items: list[BenchmarkItem]) -> bool:
-    return any(is_swebench_item(item) for item in items)
-
-
-def _python_module_available(python_executable: str, module: str, timeout_s: int = 20) -> tuple[bool, str]:
-    command = [python_executable, "-c", f"import {module}"]
-    try:
-        proc = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout_s,
-            check=False,
-        )
-    except Exception as exc:
-        return False, str(exc)
-    if proc.returncode == 0:
-        return True, ""
-    return False, (proc.stderr or proc.stdout or f"exit code {proc.returncode}").strip()
-
-
-def _wsl_available(timeout_s: int = 20) -> tuple[bool, str]:
-    exe = shutil.which("wsl.exe") or shutil.which("wsl")
-    if not exe:
-        return False, "wsl.exe was not found."
-    try:
-        proc = subprocess.run(
-            [exe, "--status"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout_s,
-            check=False,
-        )
-    except Exception as exc:
-        return False, str(exc)
-    if proc.returncode == 0:
-        return True, (proc.stdout or "").strip()
-    detail = (proc.stderr or proc.stdout or f"exit code {proc.returncode}").strip()
-    return False, detail
-
-
-def _wsl_python_module_available(
-    python_executable: str,
-    module: str,
-    *,
-    distro: str | None = None,
-    timeout_s: int = 30,
-) -> tuple[bool, str]:
-    exe = shutil.which("wsl.exe") or shutil.which("wsl")
-    if not exe:
-        return False, "wsl.exe was not found."
-    command = [exe]
-    if distro:
-        command.extend(["-d", distro])
-    command.extend(["--", "bash", "-lc", f"{python_executable} -c 'import {module}'"])
-    try:
-        proc = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout_s,
-            check=False,
-        )
-    except Exception as exc:
-        return False, str(exc)
-    if proc.returncode == 0:
-        return True, ""
-    return False, (proc.stderr or proc.stdout or f"exit code {proc.returncode}").strip()
-
-
 def _probe_docker(report: EnvironmentClawReport, config: BenchmarkConfig) -> None:
-    status = docker_status(executable=config.swebench_docker_executable, timeout_s=15)
+    status = docker_status(executable=config.docker_executable, timeout_s=15)
     report.probes.append(
         EnvironmentProbe(
             name="docker",
@@ -340,7 +229,7 @@ def _probe_docker_images(
             continue
         probe = inspect_docker_image(
             selection.image,
-            docker_executable=config.swebench_docker_executable,
+            docker_executable=config.docker_executable,
             timeout_s=15,
         )
         report.probes.append(
@@ -417,6 +306,52 @@ def _probe_lm_eval(report: EnvironmentClawReport) -> None:
     )
 
 
+def _preflight_executable_items(
+    report: EnvironmentClawReport,
+    items: list[BenchmarkItem],
+    config: BenchmarkConfig,
+) -> None:
+    for item in items:
+        if _agent_env_type(item) not in {"code_sandbox", "docker_workspace"}:
+            continue
+        environment = None
+        try:
+            environment = build_agent_environment(item, config)
+            preflight = getattr(environment, "preflight", None)
+            if not callable(preflight):
+                raise RuntimeError("Executable environment does not implement preflight().")
+            outcome = preflight()
+            report.probes.append(
+                EnvironmentProbe(
+                    name="task_preflight",
+                    ok=True,
+                    detail="Container setup and evaluator invocation completed.",
+                    data={
+                        "item_id": item.id,
+                        "environment": _agent_env_type(item),
+                        "baseline_score": outcome.score,
+                        "evaluator_source": outcome.source,
+                        "structured_score": outcome.structured,
+                    },
+                )
+            )
+        except Exception as exc:
+            detail = f"Task {item.id} failed executable preflight: {exc}"
+            report.probes.append(
+                EnvironmentProbe(
+                    name="task_preflight",
+                    ok=False,
+                    detail=str(exc),
+                    data={"item_id": item.id, "environment": _agent_env_type(item)},
+                )
+            )
+            report.blocking_errors.append(detail)
+        finally:
+            cleanup = getattr(environment, "cleanup", None)
+            if callable(cleanup):
+                cleanup()
+
+
 def run_environment_claw(
     items: list[BenchmarkItem],
     config: BenchmarkConfig,
@@ -426,13 +361,11 @@ def run_environment_claw(
         return config, EnvironmentClawReport(enabled=False)
 
     report = EnvironmentClawReport(enabled=True)
-    updated = config
-    has_swebench = _has_swebench(items)
     has_docker_workspace = _has_docker_workspace(items)
     has_vm_required = _has_vm_required(items)
     has_gui_desktop_without_vm = _has_gui_desktop_without_vm(items)
 
-    if has_swebench or has_docker_workspace:
+    if has_docker_workspace:
         _probe_docker(report, config)
     if has_docker_workspace:
         _probe_docker_images(report, items, config)
@@ -478,65 +411,10 @@ def run_environment_claw(
     if config.runner in {"lm-eval", "auto"}:
         _probe_lm_eval(report)
 
-    if has_swebench:
-        if config.swebench_use_wsl:
-            ok, detail = _wsl_python_module_available(
-                config.swebench_wsl_python_executable,
-                "swebench.harness.run_evaluation",
-                distro=config.swebench_wsl_distro,
-            )
-            report.probes.append(
-                EnvironmentProbe(
-                    name="swebench_wsl_harness",
-                    ok=ok,
-                    detail=detail or "SWE-bench harness import succeeded inside WSL.",
-                    data={"python_executable": config.swebench_wsl_python_executable},
-                )
-            )
-        else:
-            ok, detail = _python_module_available(
-                config.swebench_python_executable,
-                "swebench.harness.run_evaluation",
-            )
-            report.probes.append(
-                EnvironmentProbe(
-                    name="swebench_native_harness",
-                    ok=ok,
-                    detail=detail or "SWE-bench harness import succeeded.",
-                    data={"python_executable": config.swebench_python_executable},
-                )
-            )
-            if not ok and platform.system().lower().startswith("win"):
-                wsl_ok, wsl_detail = _wsl_available()
-                report.probes.append(
-                    EnvironmentProbe(
-                        name="wsl",
-                        ok=wsl_ok,
-                        detail=wsl_detail or "WSL is available.",
-                    )
-                )
-                if wsl_ok and config.environment_claw_auto_configure:
-                    updated = updated.model_copy(update={"swebench_use_wsl": True})
-                    report.actions.append(
-                        EnvironmentAction(
-                            action="set swebench_use_wsl=True",
-                            reason=(
-                                "Native SWE-bench harness is unavailable on Windows and WSL is available; "
-                                "use the WSL preflight path before runner execution."
-                            ),
-                            applied=True,
-                        )
-                    )
-                elif wsl_ok:
-                    report.actions.append(
-                        EnvironmentAction(
-                            action="recommend swebench_use_wsl=True",
-                            reason="Native SWE-bench harness is unavailable on Windows, but WSL is available.",
-                            applied=False,
-                        )
-                    )
+    if config.environment_preflight and config.run_targets and has_docker_workspace:
+        _preflight_executable_items(report, items, config)
 
-    return updated, report
+    return config, report
 
 
 def format_environment_claw_report(report: EnvironmentClawReport) -> list[str]:

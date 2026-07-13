@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from typing import Optional
 
@@ -10,12 +11,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from .execution.swebench import (
-    SweBenchHarnessConfig,
-    prepare_proxy_base_image,
-    run_swebench_harness,
-)
-from .models.providers import orchestrator_defaults, target_from_model
+from .models.providers import normalize_provider, orchestrator_defaults, target_from_model
 from .pipeline import run_pipeline
 from .types import BenchmarkConfig, BenchmarkMode, BenchmarkPackage, ScaleBudget, TargetModelConfig
 
@@ -44,6 +40,7 @@ def _parse_targets(
     target_api_key: Optional[str],
     base_url: Optional[str],
     fallback_key: Optional[str],
+    target_provider: Optional[str] = None,
 ) -> list[TargetModelConfig]:
     target_models = [model, *compare]
     targets: list[TargetModelConfig] = []
@@ -55,11 +52,54 @@ def _parse_targets(
         targets.append(
             target_from_model(
                 target_model,
+                provider=target_provider if target_model == model else None,
                 api_key=target_api_key if target_model == model else None,
                 base_url=base_url if target_model == model else None,
                 fallback_key=fallback_key,
             )
         )
+    return targets
+
+
+def _parse_target_configs(
+    values: list[str],
+    *,
+    fallback_key: Optional[str],
+) -> list[TargetModelConfig]:
+    targets: list[TargetModelConfig] = []
+    seen_ids: set[str] = set()
+    for index, value in enumerate(values, 1):
+        try:
+            raw = json.loads(value)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"--target-config #{index} is not valid JSON: {exc.msg}") from exc
+        if not isinstance(raw, dict):
+            raise ValueError(f"--target-config #{index} must be a JSON object.")
+        model = str(raw.get("model") or "").strip()
+        if not model:
+            raise ValueError(f"--target-config #{index} requires a non-empty model.")
+        provider_value = raw.get("provider") or raw.get("protocol")
+        provider = normalize_provider(str(provider_value)) if provider_value else None
+        api_key = str(raw.get("api_key") or "").strip() or None
+        api_key_env = str(raw.get("api_key_env") or "").strip()
+        if api_key_env:
+            api_key = os.environ.get(api_key_env)
+            if not api_key:
+                raise ValueError(
+                    f"--target-config #{index} references unset or empty environment variable {api_key_env}."
+                )
+        target = target_from_model(
+            model,
+            target_id=str(raw.get("id") or "").strip() or None,
+            provider=provider,
+            api_key=api_key,
+            base_url=str(raw.get("base_url") or "").strip() or None,
+            fallback_key=fallback_key,
+        )
+        if target.id in seen_ids:
+            raise ValueError(f"--target-config target id must be unique: {target.id}")
+        seen_ids.add(target.id)
+        targets.append(target)
     return targets
 
 
@@ -76,7 +116,7 @@ def _parse_reference_model(
     if reference_provider:
         return TargetModelConfig(
             id=reference_id,
-            provider=reference_provider,
+            provider=normalize_provider(reference_provider),
             model=reference_model,
             api_key=reference_api_key or fallback_key,
             base_url=reference_base_url,
@@ -98,8 +138,8 @@ def _print_summary(pkg: BenchmarkPackage) -> None:
     console.print(f"Dimensions: {len(pkg.spec.dimensions)}")
     console.print(f"Scale budget: {pkg.spec.scale_budget.value}")
     console.print(f"Items: {len(pkg.dataset.items)}")
-    console.print(f"QC quality: {pkg.qc_report.quality_score * 100:.1f}%")
-    console.print(f"QC issues: {len(pkg.qc_report.issues)}")
+    average_qc_issues = len(pkg.qc_report.issues) / max(1, len(pkg.dataset.items))
+    console.print(f"Average QC issues: {average_qc_issues:.2f}")
 
     if pkg.report.summaries:
         table = Table(title="Target Results")
@@ -142,6 +182,14 @@ def generate(
         "--compare",
         help="Additional target model to compare. May be repeated.",
     ),
+    target_config: list[str] = typer.Option(
+        [],
+        "--target-config",
+        help=(
+            "Per-target JSON; may be repeated. Fields: id, model, provider or protocol, base_url, "
+            "api_key or api_key_env. Replaces --model/--compare target selection when supplied."
+        ),
+    ),
     reference_model: Optional[str] = typer.Option(
         None,
         "--reference-model",
@@ -157,10 +205,20 @@ def generate(
         "--orchestrator-model",
         help="Model used for planner/generator/QC/judge.",
     ),
+    orchestrator_provider: Optional[str] = typer.Option(
+        None,
+        "--orchestrator-provider",
+        help="Explicit orchestrator protocol/provider, such as anthropic or openai_compatible.",
+    ),
     task_agent_model: Optional[str] = typer.Option(
         None,
         "--task-agent-model",
         help="Optional model for per-item task agents in complex interactive evaluations. Defaults to the orchestrator model.",
+    ),
+    task_agent_provider: Optional[str] = typer.Option(
+        None,
+        "--task-agent-provider",
+        help="Explicit protocol/provider for --task-agent-model.",
     ),
     api_key: Optional[str] = typer.Option(
         None,
@@ -177,6 +235,11 @@ def generate(
         "--target-api-key",
         help="Primary target API key. Compare targets use provider environment defaults.",
     ),
+    target_provider: Optional[str] = typer.Option(
+        None,
+        "--target-provider",
+        help="Explicit protocol/provider for the primary target.",
+    ),
     reference_api_key: Optional[str] = typer.Option(
         None,
         "--reference-api-key",
@@ -185,22 +248,22 @@ def generate(
     base_url: Optional[str] = typer.Option(
         None,
         "--base-url",
-        help="OpenAI-compatible base URL for the primary target.",
+        help="Base URL for the primary target's inferred protocol.",
     ),
     reference_base_url: Optional[str] = typer.Option(
         None,
         "--reference-base-url",
-        help="OpenAI-compatible base URL for --reference-model.",
+        help="Base URL for --reference-model using its selected protocol.",
     ),
     orchestrator_base_url: Optional[str] = typer.Option(
         None,
         "--orchestrator-base-url",
-        help="OpenAI-compatible base URL for the orchestrator.",
+        help="Base URL for the orchestrator's selected protocol.",
     ),
     task_agent_base_url: Optional[str] = typer.Option(
         None,
         "--task-agent-base-url",
-        help="OpenAI-compatible base URL for --task-agent-model.",
+        help="Base URL for --task-agent-model using its selected protocol.",
     ),
     questions_per_dimension: int = typer.Option(5, "--qpd", help="Items per dimension."),
     max_planner_iterations: int = typer.Option(5, "--max-planner-iterations", help="Planner self-critique iterations."),
@@ -266,6 +329,16 @@ def generate(
         "--agent-task-builder-repair-attempts",
         help="Maximum per-blueprint task-builder structural repair attempts before QC.",
     ),
+    agent_task_builder_research_max_calls: int = typer.Option(
+        6,
+        "--agent-task-builder-research-max-calls",
+        help="Maximum public research tool calls for an E4 task-builder invocation.",
+    ),
+    agent_task_builder_research_max_chars: int = typer.Option(
+        6000,
+        "--agent-task-builder-research-max-chars",
+        help="Maximum characters retained from each E4 task-builder research result.",
+    ),
     single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one judge pass instead of the default double-pass audit."),
     llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto, litellm, or legacy."),
     runner: str = typer.Option("direct", "--runner", help="Runner mode: direct, lm-eval, or auto."),
@@ -288,27 +361,25 @@ def generate(
     loop3_diagnosis: str = typer.Option("llm", "--loop3-diagnosis", help="Loop 3 diagnosis mode: llm or local."),
     loop3_timeout: int = typer.Option(90, "--loop3-timeout", help="Loop 3 LLM diagnosis timeout in seconds."),
     loop3_max_actions: int = typer.Option(4, "--loop3-max-actions", help="Maximum Loop 3 actions per iteration."),
-    swebench_use_wsl: bool = typer.Option(False, "--swebench-use-wsl", help="Run SWE-bench harness commands through WSL when selected items require SWE-bench."),
-    swebench_wsl_distro: Optional[str] = typer.Option(None, "--swebench-wsl-distro", help="WSL distribution for SWE-bench harness preflight/run."),
-    swebench_wsl_python_executable: str = typer.Option(
-        ".venv-swebench-wsl/bin/python",
-        "--swebench-wsl-python",
-        help="Python executable inside WSL with the official SWE-bench harness installed.",
-    ),
-    swebench_wsl_http_proxy: Optional[str] = typer.Option(
-        None,
-        "--swebench-wsl-http-proxy",
-        help="HTTP/HTTPS proxy URL exported inside WSL for SWE-bench network access.",
-    ),
-    swebench_python_executable: str = typer.Option(
-        "python",
-        "--swebench-python",
-        help="Python executable with the official SWE-bench harness installed for non-WSL runs.",
-    ),
-    swebench_docker_executable: str = typer.Option(
+    docker_executable: str = typer.Option(
         "docker",
-        "--swebench-docker",
-        help="Docker CLI executable for non-WSL SWE-bench runs.",
+        "--docker-executable",
+        help="Docker CLI used by all containerized benchmark environments.",
+    ),
+    container_sandbox_image: str = typer.Option(
+        "python:3.11-slim",
+        "--container-sandbox-image",
+        help="Default isolated image for code_sandbox and code-execution tasks.",
+    ),
+    no_environment_preflight: bool = typer.Option(
+        False,
+        "--no-environment-preflight",
+        help="Skip executable task setup/evaluator preflight before target execution.",
+    ),
+    allow_incomplete_benchmark: bool = typer.Option(
+        False,
+        "--allow-incomplete-benchmark",
+        help="Permit a QC-incomplete draft package; target execution still uses accepted items only.",
     ),
     gui_bridge_url: Optional[str] = typer.Option(
         None,
@@ -410,6 +481,7 @@ def generate(
         orchestrator_model,
         api_key=api_key,
         base_url=orchestrator_base_url,
+        provider=orchestrator_provider,
     )
     effective_task_agent_key = None
     effective_task_agent_base = None
@@ -418,15 +490,25 @@ def generate(
             task_agent_model,
             api_key=task_agent_api_key or effective_api_key,
             base_url=task_agent_base_url,
+            provider=task_agent_provider,
         )
 
-    targets = _parse_targets(
-        model,
-        compare,
-        target_api_key,
-        base_url,
-        fallback_key=effective_api_key,
-    )
+    try:
+        targets = (
+            _parse_target_configs(target_config, fallback_key=effective_api_key)
+            if target_config
+            else _parse_targets(
+                model,
+                compare,
+                target_api_key,
+                base_url,
+                fallback_key=effective_api_key,
+                target_provider=target_provider,
+            )
+        )
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
     reference = _parse_reference_model(
         reference_model,
         reference_provider,
@@ -437,9 +519,11 @@ def generate(
     config = BenchmarkConfig(
         benchmark_mode=parsed_benchmark_mode,
         orchestrator_model=orchestrator_model,
+        orchestrator_provider=normalize_provider(orchestrator_provider) if orchestrator_provider else None,
         orchestrator_api_key=effective_api_key,
         orchestrator_base_url=effective_orch_base,
         task_agent_model=task_agent_model,
+        task_agent_provider=normalize_provider(task_agent_provider) if task_agent_provider else None,
         task_agent_api_key=effective_task_agent_key,
         task_agent_base_url=effective_task_agent_base,
         targets=targets,
@@ -462,6 +546,8 @@ def generate(
         agent_task_builder=agent_task_builder.lower(),
         agent_task_builder_max_workers=agent_task_builder_max_workers,
         agent_task_builder_repair_attempts=agent_task_builder_repair_attempts,
+        agent_task_builder_research_max_calls=agent_task_builder_research_max_calls,
+        agent_task_builder_research_max_chars=agent_task_builder_research_max_chars,
         judge_double_pass=not single_pass_judge,
         llm_backend=llm_backend,
         runner=runner,
@@ -472,12 +558,10 @@ def generate(
         loop3_diagnosis=loop3_diagnosis,
         loop3_diagnosis_timeout_s=loop3_timeout,
         loop3_max_actions=loop3_max_actions,
-        swebench_use_wsl=swebench_use_wsl,
-        swebench_wsl_distro=swebench_wsl_distro,
-        swebench_wsl_python_executable=swebench_wsl_python_executable,
-        swebench_wsl_http_proxy=swebench_wsl_http_proxy,
-        swebench_python_executable=swebench_python_executable,
-        swebench_docker_executable=swebench_docker_executable,
+        docker_executable=docker_executable,
+        container_sandbox_image=container_sandbox_image,
+        environment_preflight=not no_environment_preflight,
+        allow_incomplete_benchmark=allow_incomplete_benchmark,
         gui_bridge_url=gui_bridge_url,
         gui_bridge_api_key=gui_bridge_api_key,
         gui_bridge_timeout_s=gui_bridge_timeout,
@@ -517,197 +601,6 @@ def generate(
         typer.echo(json.dumps(pkg.model_dump(mode="json"), ensure_ascii=False, indent=2))
     else:
         _print_summary(pkg)
-
-
-@app.command("swebench-run")
-def swebench_run(
-    predictions_path: str = typer.Option(
-        "gold",
-        "--predictions-path",
-        help="Official SWE-bench predictions JSONL path, or 'gold' for gold patches.",
-    ),
-    dataset_name: str = typer.Option(
-        "princeton-nlp/SWE-bench_Lite",
-        "--dataset-name",
-        help="SWE-bench dataset name.",
-    ),
-    split: str = typer.Option("test", "--split", help="Dataset split to run."),
-    instance_id: list[str] = typer.Option(
-        [],
-        "--instance-id",
-        help="Limit execution to one instance id. May be repeated.",
-    ),
-    output_dir: str = typer.Option(
-        "benchmark-output/swebench",
-        "-o",
-        "--output-dir",
-        help="Directory where the SWE-bench harness writes outputs.",
-    ),
-    run_id: str = typer.Option("evalclaw_swebench", "--run-id", help="SWE-bench run id."),
-    max_workers: int = typer.Option(1, "--max-workers", help="SWE-bench harness workers."),
-    cache_level: Optional[str] = typer.Option(
-        "env",
-        "--cache-level",
-        help="SWE-bench cache level, such as env, instance, or none.",
-    ),
-    clean: Optional[bool] = typer.Option(
-        None,
-        "--clean/--no-clean",
-        help="Pass clean mode to the SWE-bench harness.",
-    ),
-    force_rebuild: Optional[bool] = typer.Option(
-        None,
-        "--force-rebuild/--no-force-rebuild",
-        help="Force the SWE-bench harness to rebuild Docker images instead of using cached or pulled images.",
-    ),
-    timeout: Optional[int] = typer.Option(None, "--timeout", help="Per-instance timeout."),
-    namespace: Optional[str] = typer.Option(None, "--namespace", help="Docker image namespace."),
-    instance_image_tag: Optional[str] = typer.Option(
-        None,
-        "--instance-image-tag",
-        help="SWE-bench instance image tag.",
-    ),
-    env_image_tag: Optional[str] = typer.Option(
-        None,
-        "--env-image-tag",
-        help="SWE-bench environment image tag.",
-    ),
-    python_executable: str = typer.Option(
-        sys.executable,
-        "--python-executable",
-        help="Python executable with the official swebench package installed.",
-    ),
-    docker_executable: str = typer.Option("docker", "--docker-executable", help="Docker CLI executable."),
-    use_wsl: bool = typer.Option(
-        False,
-        "--use-wsl",
-        help="Run the official SWE-bench harness inside WSL. Useful on Windows because the harness depends on Unix APIs.",
-    ),
-    wsl_distro: Optional[str] = typer.Option(
-        None,
-        "--wsl-distro",
-        help="WSL distribution for --use-wsl, for example Ubuntu-24.04. Defaults to the WSL default distro.",
-    ),
-    wsl_python_executable: Optional[str] = typer.Option(
-        None,
-        "--wsl-python-executable",
-        help="Python executable inside WSL with the official swebench package installed.",
-    ),
-    wsl_docker_host: str = typer.Option(
-        "unix:///mnt/wsl/docker-desktop/shared-sockets/guest-services/docker.proxy.sock",
-        "--wsl-docker-host",
-        help="Docker socket URI exposed by Docker Desktop inside WSL.",
-    ),
-    wsl_docker_cli_dir: str = typer.Option(
-        "/mnt/wsl/docker-desktop/cli-tools/usr/bin",
-        "--wsl-docker-cli-dir",
-        help="Directory containing Docker Desktop's Linux docker CLI inside WSL.",
-    ),
-    wsl_http_proxy: Optional[str] = typer.Option(
-        None,
-        "--wsl-http-proxy",
-        help="Optional HTTP(S) proxy URL exported inside WSL for dataset and image downloads.",
-    ),
-    skip_docker_check: bool = typer.Option(
-        False,
-        "--skip-docker-check",
-        help="Skip EvaluationClaw's preflight Docker check and let the SWE-bench harness fail directly.",
-    ),
-    skip_harness_check: bool = typer.Option(
-        False,
-        "--skip-harness-check",
-        help="Skip EvaluationClaw's preflight import check for swebench.harness.run_evaluation.",
-    ),
-) -> None:
-    """Run the official Docker-based SWE-bench harness from EvaluationClaw."""
-    if max_workers < 1:
-        console.print("[red]--max-workers must be at least 1.[/red]")
-        raise typer.Exit(1)
-    if timeout is not None and timeout < 1:
-        console.print("[red]--timeout must be at least 1 second.[/red]")
-        raise typer.Exit(1)
-    config = SweBenchHarnessConfig(
-        predictions_path=predictions_path,
-        output_dir=output_dir,
-        dataset_name=dataset_name,
-        split=split,
-        max_workers=max_workers,
-        run_id=run_id,
-        instance_ids=instance_id,
-        cache_level=cache_level,
-        clean=clean,
-        force_rebuild=force_rebuild,
-        timeout=timeout,
-        namespace=namespace,
-        instance_image_tag=instance_image_tag,
-        env_image_tag=env_image_tag,
-        python_executable=(
-            wsl_python_executable
-            or (".venv-swebench-wsl/bin/python" if use_wsl and python_executable == sys.executable else python_executable)
-        ),
-        docker_executable=docker_executable,
-        use_wsl=use_wsl,
-        wsl_distro=wsl_distro,
-        wsl_docker_host=wsl_docker_host,
-        wsl_docker_cli_dir=wsl_docker_cli_dir,
-        wsl_http_proxy=wsl_http_proxy,
-    )
-    try:
-        result = run_swebench_harness(
-            config,
-            check_docker=not skip_docker_check,
-            check_harness=not skip_harness_check,
-        )
-    except Exception as exc:
-        console.print(f"[red]SWE-bench run failed before harness execution: {_console_safe(exc)}[/red]")
-        raise typer.Exit(1)
-
-    console.print("[bold]SWE-bench command[/bold]")
-    console.print(" ".join(result.command))
-    if result.stdout:
-        console.print("[bold]stdout[/bold]")
-        console.print(_console_safe(result.stdout))
-    if result.stderr:
-        console.print("[bold]stderr[/bold]")
-        console.print(_console_safe(result.stderr))
-    if result.returncode != 0:
-        raise typer.Exit(result.returncode)
-
-
-@app.command("swebench-prepare-proxy-base")
-def swebench_prepare_proxy_base(
-    proxy_url: str = typer.Option(
-        ...,
-        "--proxy-url",
-        help="Proxy URL to inject into the SWE-bench base image, for example http://host.docker.internal:7891.",
-    ),
-    base_image: str = typer.Option(
-        "sweb.base.py.x86_64:latest",
-        "--base-image",
-        help="Existing SWE-bench base image to retag with proxy environment.",
-    ),
-    docker_executable: str = typer.Option("docker", "--docker-executable", help="Docker CLI executable."),
-) -> None:
-    """Inject proxy environment into an existing SWE-bench base image."""
-    try:
-        result = prepare_proxy_base_image(
-            proxy_url=proxy_url,
-            base_image=base_image,
-            docker_executable=docker_executable,
-        )
-    except Exception as exc:
-        console.print(f"[red]SWE-bench proxy base preparation failed: {_console_safe(exc)}[/red]")
-        raise typer.Exit(1)
-    console.print("[bold]SWE-bench proxy base command[/bold]")
-    console.print(" ".join(result.command))
-    if result.stdout:
-        console.print("[bold]stdout[/bold]")
-        console.print(_console_safe(result.stdout))
-    if result.stderr:
-        console.print("[bold]stderr[/bold]")
-        console.print(_console_safe(result.stderr))
-    if result.returncode != 0:
-        raise typer.Exit(result.returncode)
 
 
 def main() -> None:

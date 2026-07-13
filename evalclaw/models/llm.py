@@ -3,13 +3,23 @@ from __future__ import annotations
 
 import os
 import time
+from dataclasses import dataclass
 from typing import Any, Optional
 
 import anthropic
 import httpx
 
+from ..protocols.tool import ToolCall, ToolSpec
+from ..protocols.tool_adapters import (
+    anthropic_tool_calls_from_response,
+    anthropic_tools,
+    openai_tool_calls_from_response,
+    openai_tools,
+    tool_adapter_for_target,
+)
 from ..types import Message, TargetModelConfig
 from .json_utils import extract_json
+from .providers import infer_provider
 
 
 def _post_with_retry(url: str, headers: dict, body: dict, max_retries: int = 6) -> dict:
@@ -38,8 +48,8 @@ def _post_with_retry(url: str, headers: dict, body: dict, max_retries: int = 6) 
 
 DEFAULT_ORCHESTRATOR_MODEL = "claude-opus-4-6"
 
-# Module-level Anthropic clients, keyed by api_key to avoid re-creating
-_anthropic_clients: dict[str, anthropic.Anthropic] = {}
+# Module-level Anthropic clients, isolated by credential and endpoint.
+_anthropic_clients: dict[tuple[str, str], anthropic.Anthropic] = {}
 
 
 def _message_dicts(messages: list[Message], system: Optional[str] = None) -> list[dict]:
@@ -80,6 +90,54 @@ def _extract_litellm_content(response: object) -> str:
         if parts:
             return "\n".join(parts)
     raise ValueError("LiteLLM response has no text content")
+
+
+def _jsonable(value: Any) -> Any:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dict):
+        return {str(key): _jsonable(inner) for key, inner in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_jsonable(inner) for inner in value]
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        return _jsonable(model_dump())
+    to_dict = getattr(value, "to_dict", None)
+    if callable(to_dict):
+        return _jsonable(to_dict())
+    if hasattr(value, "__dict__"):
+        return {
+            key: _jsonable(inner)
+            for key, inner in vars(value).items()
+            if not key.startswith("_")
+        }
+    return repr(value)
+
+
+def _anthropic_text(response: Any) -> str:
+    blocks = getattr(response, "content", None)
+    if blocks is None and isinstance(response, dict):
+        blocks = response.get("content")
+    parts: list[str] = []
+    for block in blocks or []:
+        block_type = getattr(block, "type", None) if not isinstance(block, dict) else block.get("type")
+        if block_type != "text":
+            continue
+        text = getattr(block, "text", None) if not isinstance(block, dict) else block.get("text")
+        if isinstance(text, str) and text:
+            parts.append(text)
+    return "\n".join(parts)
+
+
+@dataclass(frozen=True)
+class TargetToolModelResponse:
+    """Provider-native target response containing canonical tool calls."""
+
+    adapter: str
+    content: str
+    tool_calls: list[ToolCall]
+    assistant_message: dict[str, Any]
+    raw_response: Any
 
 
 _REASONING_MODEL_MARKERS = ("gpt-5", "o1", "o3", "o4", "deepseek-reasoner")
@@ -218,11 +276,45 @@ def _azure_legacy_completion(
     raise AssertionError("unreachable")
 
 
-def _get_anthropic_client(api_key: Optional[str] = None) -> anthropic.Anthropic:
+def _get_anthropic_client(
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+) -> anthropic.Anthropic:
     key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
-    if key not in _anthropic_clients:
-        _anthropic_clients[key] = anthropic.Anthropic(api_key=key)
-    return _anthropic_clients[key]
+    endpoint = str(base_url or "").rstrip("/")
+    cache_key = (key, endpoint)
+    if cache_key not in _anthropic_clients:
+        kwargs: dict[str, Any] = {"api_key": key}
+        if endpoint:
+            kwargs["base_url"] = endpoint
+        _anthropic_clients[cache_key] = anthropic.Anthropic(**kwargs)
+    return _anthropic_clients[cache_key]
+
+
+def _anthropic_model_name(model: str) -> str:
+    return model.removeprefix("anthropic/")
+
+
+def _call_anthropic_text(
+    messages: list[Message],
+    *,
+    system: Optional[str],
+    model: str,
+    max_tokens: int,
+    api_key: Optional[str],
+    base_url: Optional[str],
+) -> str:
+    client = _get_anthropic_client(api_key, base_url)
+    response = client.messages.create(
+        model=_anthropic_model_name(model),
+        max_tokens=max_tokens,
+        system=system or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
+        messages=[{"role": message.role, "content": message.content} for message in messages],
+    )
+    for block in response.content:
+        if block.type == "text":
+            return block.text
+    raise ValueError("No text content in LLM response")
 
 
 def call_llm(
@@ -233,15 +325,27 @@ def call_llm(
     max_tokens: int = 4096,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
+    provider: Optional[str] = None,
     backend: str = "auto",
 ) -> str:
     """Call the orchestrator LLM.
 
-    When base_url is set (e.g. Gemini OpenAI-compatible endpoint), uses httpx.
-    Otherwise falls back to the native Anthropic SDK.
+    The explicit provider selects the wire protocol. Claude models with a
+    custom base URL use the native Anthropic SDK; other custom endpoints
+    default to the OpenAI-compatible protocol.
     """
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
+    resolved_provider, _ = infer_provider(model_name, base_url, provider)
     messages_dict = _message_dicts(messages, system)
+    if resolved_provider == "anthropic" and (provider is not None or base_url):
+        return _call_anthropic_text(
+            messages,
+            system=system,
+            model=model_name,
+            max_tokens=max_tokens,
+            api_key=api_key,
+            base_url=base_url,
+        )
     if backend in {"auto", "litellm"}:
         try:
             return _call_litellm(
@@ -268,7 +372,7 @@ def call_llm(
             api_key=api_key,
         )
 
-    if base_url:
+    if base_url and resolved_provider != "anthropic":
         # OpenAI-compatible path (covers Gemini, local models, etc.)
         key = (
             api_key
@@ -304,18 +408,265 @@ def call_llm(
             reasoning = message.get("reasoning_content")
             return reasoning if isinstance(reasoning, str) else ""
 
-    # Native Anthropic path
-    client = _get_anthropic_client(api_key)
-    response = client.messages.create(
-        model=model or DEFAULT_ORCHESTRATOR_MODEL,
-        max_tokens=max_tokens,
-        system=system or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
-        messages=[{"role": m.role, "content": m.content} for m in messages],
+    if resolved_provider == "anthropic":
+        return _call_anthropic_text(
+            messages,
+            system=system,
+            model=model_name,
+            max_tokens=max_tokens,
+            api_key=api_key,
+            base_url=base_url,
+        )
+    raise RuntimeError(f"No LLM backend is configured for provider {resolved_provider}.")
+
+
+def call_orchestrator_with_tools(
+    messages: list[dict[str, Any]],
+    *,
+    system_prompt: Optional[str] = None,
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    provider: Optional[str] = None,
+    backend: str = "auto",
+    tools: list[ToolSpec] | None = None,
+    max_tokens: int = 4096,
+) -> TargetToolModelResponse:
+    """Call the orchestrator with provider-native tools.
+
+    This is separate from ``call_llm`` because a tool round must preserve the
+    provider-native assistant message and tool-result message structure. The
+    task-builder research loop uses this for bounded external retrieval.
+    """
+    model_name = model or DEFAULT_ORCHESTRATOR_MODEL
+    resolved_provider, _ = infer_provider(model_name, base_url, provider)
+    tool_specs = tools or []
+
+    if resolved_provider == "anthropic" and (provider is not None or base_url):
+        client = _get_anthropic_client(api_key, base_url)
+        response = client.messages.create(
+            model=_anthropic_model_name(model_name),
+            max_tokens=_effective_max_tokens(model_name, max_tokens),
+            system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
+            messages=messages,
+            tools=anthropic_tools(tool_specs),
+        )
+        content_blocks = _jsonable(getattr(response, "content", []))
+        return TargetToolModelResponse(
+            adapter="anthropic",
+            content=_anthropic_text(response),
+            tool_calls=anthropic_tool_calls_from_response(response),
+            assistant_message={"role": "assistant", "content": content_blocks},
+            raw_response=_jsonable(response),
+        )
+
+    if backend in {"auto", "litellm"}:
+        try:
+            import litellm
+
+            litellm.suppress_debug_info = True
+            request_messages = list(messages)
+            if system_prompt:
+                request_messages.insert(0, {"role": "system", "content": system_prompt})
+            budget = _effective_max_tokens(model_name, max_tokens)
+            for attempt in range(2):
+                kwargs: dict[str, Any] = {
+                    "model": model_name,
+                    "messages": request_messages,
+                    "timeout": 300,
+                    "max_tokens": budget,
+                }
+                if tool_specs:
+                    kwargs["tools"] = openai_tools(tool_specs)
+                    kwargs["tool_choice"] = "auto"
+                elif model_name.startswith("deepseek-v4") and _messages_request_json(request_messages):
+                    kwargs["response_format"] = {"type": "json_object"}
+                if api_key:
+                    kwargs["api_key"] = api_key
+                if base_url:
+                    kwargs["base_url"] = base_url
+                reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
+                if reasoning_effort and _is_reasoning_model(model_name):
+                    kwargs["reasoning_effort"] = reasoning_effort
+                response = litellm.completion(**kwargs)
+                choices = getattr(response, "choices", None)
+                if choices is None and isinstance(response, dict):
+                    choices = response.get("choices")
+                first = (choices or [None])[0]
+                finish_reason = getattr(first, "finish_reason", None)
+                if finish_reason is None and isinstance(first, dict):
+                    finish_reason = first.get("finish_reason")
+                if finish_reason == "length":
+                    if attempt == 0:
+                        budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
+                        continue
+                    raise RuntimeError(
+                        f"Orchestrator tool response truncated at {budget} completion tokens "
+                        f"(finish_reason=length) for model {model_name}."
+                    )
+                message = getattr(first, "message", None)
+                if message is None and isinstance(first, dict):
+                    message = first.get("message")
+                assistant_message = _jsonable(message) if message is not None else {}
+                tool_calls = openai_tool_calls_from_response(response)
+                return TargetToolModelResponse(
+                    adapter="litellm",
+                    content=_extract_litellm_content(response) if message and not tool_calls else "",
+                    tool_calls=tool_calls,
+                    assistant_message=assistant_message,
+                    raw_response=_jsonable(response),
+                )
+        except Exception:
+            if backend == "litellm":
+                raise
+
+    if resolved_provider == "anthropic":
+        client = _get_anthropic_client(api_key, base_url)
+        response = client.messages.create(
+            model=_anthropic_model_name(model_name),
+            max_tokens=_effective_max_tokens(model_name, max_tokens),
+            system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
+            messages=messages,
+            tools=anthropic_tools(tool_specs),
+        )
+        content_blocks = _jsonable(getattr(response, "content", []))
+        return TargetToolModelResponse(
+            adapter="anthropic",
+            content=_anthropic_text(response),
+            tool_calls=anthropic_tool_calls_from_response(response),
+            assistant_message={"role": "assistant", "content": content_blocks},
+            raw_response=_jsonable(response),
+        )
+
+    if not base_url:
+        raise RuntimeError(
+            f"No tool-capable orchestrator backend is configured for model {model_name}."
+        )
+    key = (
+        api_key
+        or (os.environ.get("DEEPSEEK_API_KEY") if model_name.startswith("deepseek-") else None)
+        or os.environ.get("OPENAI_API_KEY", "")
     )
-    for block in response.content:
-        if block.type == "text":
-            return block.text
-    raise ValueError("No text content in LLM response")
+    request_messages = list(messages)
+    if system_prompt:
+        request_messages.insert(0, {"role": "system", "content": system_prompt})
+    budget = _effective_max_tokens(model_name, max_tokens)
+    for attempt in range(2):
+        body: dict[str, Any] = {
+            "model": model_name,
+            "messages": request_messages,
+            "max_tokens": budget,
+        }
+        if tool_specs:
+            body["tools"] = openai_tools(tool_specs)
+            body["tool_choice"] = "auto"
+        if "api.deepseek.com" in base_url and model_name.startswith("deepseek-v4"):
+            body["thinking"] = {"type": "disabled"}
+            if not tool_specs and _messages_request_json(request_messages):
+                body["response_format"] = {"type": "json_object"}
+        data = _post_with_retry(
+            f"{base_url.rstrip('/')}/chat/completions",
+            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+            body=body,
+        )
+        choice = data["choices"][0]
+        if choice.get("finish_reason") == "length":
+            if attempt == 0:
+                budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
+                continue
+            raise RuntimeError(
+                f"Orchestrator tool response truncated at {budget} completion tokens "
+                f"(finish_reason=length) for model {model_name}."
+            )
+        message = choice["message"]
+        content = message.get("content")
+        return TargetToolModelResponse(
+            adapter="openai",
+            content=content if isinstance(content, str) else "",
+            tool_calls=openai_tool_calls_from_response(data),
+            assistant_message=message,
+            raw_response=data,
+        )
+    raise RuntimeError(f"Orchestrator tool call failed for model {model_name}.")
+
+
+def call_target_model_with_tools(
+    messages: list[dict[str, Any]],
+    target: TargetModelConfig,
+    tools: list[ToolSpec],
+    *,
+    system_prompt: Optional[str] = None,
+    backend: str = "auto",
+    max_tokens: int = 4096,
+) -> TargetToolModelResponse:
+    """Call a target model with provider-native tool declarations.
+
+    This is intentionally separate from ``call_target_model`` because native
+    tool calls return structured assistant messages, not just text. The caller
+    owns the provider-native message history so tool result messages can be
+    appended without lossy conversion through EvalClaw's simple ``Message``
+    model.
+    """
+    adapter = tool_adapter_for_target(target)
+    if adapter == "anthropic":
+        client = _get_anthropic_client(target.api_key, target.base_url)
+        response = client.messages.create(
+            model=_anthropic_model_name(target.model),
+            max_tokens=max_tokens,
+            system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
+            messages=messages,
+            tools=anthropic_tools(tools),
+        )
+        content_blocks = _jsonable(getattr(response, "content", []))
+        return TargetToolModelResponse(
+            adapter="anthropic",
+            content=_anthropic_text(response),
+            tool_calls=anthropic_tool_calls_from_response(response),
+            assistant_message={"role": "assistant", "content": content_blocks},
+            raw_response=_jsonable(response),
+        )
+
+    if adapter != "openai":
+        raise RuntimeError(f"Native target tool calls are not implemented for adapter {adapter or '<none>'}.")
+
+    base_url = target.base_url or "https://api.openai.com/v1"
+    api_key = (
+        target.api_key
+        or (os.environ.get("DEEPSEEK_API_KEY") if target.model.startswith("deepseek-") else None)
+        or os.environ.get("OPENAI_API_KEY", "")
+    )
+    request_messages: list[dict[str, Any]] = []
+    if system_prompt:
+        request_messages.append({"role": "system", "content": system_prompt})
+    request_messages.extend(messages)
+    body: dict[str, Any] = {
+        "model": target.model,
+        "messages": request_messages,
+        "tools": openai_tools(tools),
+        "tool_choice": "auto",
+        "max_tokens": _effective_max_tokens(target.model, max_tokens),
+    }
+    if "api.deepseek.com" in base_url and target.model.startswith("deepseek-v4"):
+        body["thinking"] = {"type": "disabled"}
+    if backend == "litellm":
+        # LiteLLM can route tool calls for many providers, but the rest of the
+        # runner needs the native assistant message. For now, keep this path
+        # explicit instead of silently returning a lossy text-only response.
+        raise RuntimeError("Native agent tool calls currently require the direct OpenAI-compatible backend.")
+    data = _post_with_retry(
+        f"{base_url.rstrip('/')}/chat/completions",
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        body=body,
+    )
+    message = data["choices"][0]["message"]
+    content = message.get("content")
+    return TargetToolModelResponse(
+        adapter="openai",
+        content=content if isinstance(content, str) else "",
+        tool_calls=openai_tool_calls_from_response(data),
+        assistant_message=message,
+        raw_response=data,
+    )
 
 
 def call_target_model(
@@ -332,9 +683,9 @@ def call_target_model(
 
     if user_content is not None:
         if target.provider == "anthropic":
-            client = _get_anthropic_client(target.api_key)
+            client = _get_anthropic_client(target.api_key, target.base_url)
             response = client.messages.create(
-                model=target.model,
+                model=_anthropic_model_name(target.model),
                 max_tokens=4096,
                 system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
                 messages=[
@@ -394,6 +745,8 @@ def call_target_model(
             system=system_prompt,
             model=target.model,
             api_key=target.api_key,
+            base_url=target.base_url,
+            provider=target.provider,
             backend=backend,
         )
 
