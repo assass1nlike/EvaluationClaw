@@ -276,3 +276,35 @@ def test_task_builder_contract_matches_short_answer_and_code_runners() -> None:
 
     assert "rubric/scoring contract" in requirements["short_answer"][0]
     assert "{model_output}" in requirements["code_execution"][0]
+
+
+def test_multi_turn_builder_contract_names_the_runtime_fields_exactly() -> None:
+    dimension = EvalDimension(
+        id="dialogue",
+        name="Dialogue",
+        description="Evaluate multi-turn behavior.",
+        approach="Use scripted dialogue pressure.",
+        task_types=[TaskType.multi_turn],
+    )
+    spec = EvalSpec(
+        objective="Evaluate multi-turn behavior.",
+        dimensions=[dimension],
+        task_types=[TaskType.multi_turn],
+    )
+    blueprint = make_blueprint(
+        "dialogue_blueprint",
+        dimension.id,
+        "Dialogue tasks",
+        task_type=TaskType.multi_turn,
+        content="Several bounded dialogues.",
+        environment_type=AgentEnvironmentType.dialogue,
+    )
+
+    payload = _task_builder_payload(spec, dimension, blueprint, "No external sources.")
+    requirements = payload["task_builder_contract"]["task_schema"]["type_requirements"]["multi_turn"]
+    skill_prompt = environment_skill_system_prompt(blueprint)
+
+    assert "interaction.user_turns" in requirements[0]
+    assert "non-empty strings" in requirements[0]
+    assert "do not rename it to `scripted_user_turns`" in skill_prompt
+    assert '"environment": {"type": "dialogue"}' in skill_prompt

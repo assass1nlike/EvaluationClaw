@@ -189,9 +189,22 @@ def test_dialogue_contract_requires_bounded_scripted_or_dynamic_followups() -> N
     valid = invalid.model_copy(
         update={"interaction": {"max_turns": 3, "user_turns": ["Please revise the answer."]}}
     )
+    structured_turns = invalid.model_copy(
+        update={
+            "interaction": {
+                "max_turns": 3,
+                "user_turns": [{"message": "Please revise the answer."}],
+            }
+        }
+    )
+    excessive_turns = invalid.model_copy(
+        update={"interaction": {"max_turns": 8, "followup_instruction": "Keep probing."}}
+    )
 
-    assert any("user_turns or a followup_instruction" in issue for issue in task_structure_issues(invalid))
+    assert any("interaction.user_turns" in issue for issue in task_structure_issues(invalid))
     assert task_structure_issues(valid) == []
+    assert any("non-empty strings" in issue for issue in task_structure_issues(structured_turns))
+    assert any("between 1 and 5" in issue for issue in task_structure_issues(excessive_turns))
 
 
 def test_pairwise_reference_model_is_required_only_when_execution_is_requested() -> None:

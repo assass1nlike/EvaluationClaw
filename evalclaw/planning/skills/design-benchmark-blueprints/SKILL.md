@@ -78,6 +78,7 @@ Before placing tasks into the same Blueprint, determine:
 - Whether they share a relatively consistent content topic or case.
 - Whether the Builder can maintain sufficient quality and diversity in one call.
 - Whether the total construction workload, environment complexity, and so on are reasonable.
+- Whether the expected serialized task objects fit comfortably in one Builder response. Account for long prompts, multi-turn scripts, fixtures, evaluator code, embedded files, and other large fields; split the work when these make one completion likely to approach its output budget, even if the raw task count looks modest.
 
 Merge tasks only when doing so forms a natural, cohesive work package with a reasonable workload. There is no need to design a fixed rule for how many tasks each Blueprint contains.
 
