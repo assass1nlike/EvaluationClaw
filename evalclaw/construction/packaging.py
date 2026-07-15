@@ -1,4 +1,4 @@
-﻿"""Conversion of agent task suites into benchmark datasets."""
+﻿"""Conversion of general task suites into benchmark datasets."""
 from __future__ import annotations
 
 from typing import Any
@@ -11,8 +11,6 @@ from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_SCHEMA_VERSION,
 )
 from ..types import (
-    AgentTask,
-    AgentTaskSuite,
     BenchmarkBatch,
     BenchmarkConfig,
     BenchmarkDataset,
@@ -20,14 +18,16 @@ from ..types import (
     BenchmarkSource,
     EvalSpec,
     SourceKind,
+    TaskDefinition,
+    TaskSuite,
     TaskType,
 )
-from .planning import plan_agent_benchmark
-from .suite import build_agent_task_suite
-from .validation import agent_structure_validation_metadata, agent_task_structure_issues
+from .validation import task_structure_issues, task_structure_validation_metadata
 
 
-def _agent_env_for_runner(task: AgentTask) -> dict[str, Any]:
+def _environment_for_runner(task: TaskDefinition) -> dict[str, Any]:
+    if task.environment is None:
+        return {}
     env = task.environment.model_dump(mode="json")
     env_type = str(env.get("type") or "workspace")
     env["type"] = env_type
@@ -74,7 +74,7 @@ def _agent_env_for_runner(task: AgentTask) -> dict[str, Any]:
     return env
 
 
-def _task_agent_metadata_for_task(task: AgentTask, agent_env: dict[str, Any]) -> dict[str, Any]:
+def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any]) -> dict[str, Any]:
     existing = task.metadata.get("task_agent") if isinstance(task.metadata.get("task_agent"), dict) else {}
     initial_content: dict[str, Any] = {}
     if isinstance(existing.get("initial_content"), dict):
@@ -201,7 +201,7 @@ def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
     return ["look", "read_file", "write_file"]
 
 
-def _agent_task_package_for_task(task: AgentTask, agent_env: dict[str, Any]) -> dict[str, Any]:
+def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]) -> dict[str, Any]:
     existing = task.metadata.get(AGENT_TASK_PACKAGE_METADATA_KEY)
 
     env_type = str(agent_env.get("type") or task.environment.type.value)
@@ -295,7 +295,7 @@ def _agent_task_package_for_task(task: AgentTask, agent_env: dict[str, Any]) -> 
             "source_kind": "generated_fixture" if not task.resource_ids else "imported",
             "source_uris": list(task.resource_ids),
             "license": "",
-            "construction_notes": "Generated or normalized by EvaluationClaw agent benchmark builder.",
+            "construction_notes": "Generated or normalized by the EvaluationClaw task builder.",
         },
     }
     if not isinstance(existing, dict):
@@ -316,7 +316,7 @@ def _agent_task_package_for_task(task: AgentTask, agent_env: dict[str, Any]) -> 
     return merged
 
 
-def _task_content_summary(task: AgentTask) -> str:
+def _task_content_summary(task: TaskDefinition) -> str:
     return compact_task_content_summary(
         task.content_summary,
         task.metadata.get(TASK_CONTENT_SUMMARY_METADATA_KEY) if isinstance(task.metadata, dict) else "",
@@ -326,7 +326,7 @@ def _task_content_summary(task: AgentTask) -> str:
     )
 
 
-def _agent_source_kind(kind: str) -> SourceKind:
+def _resource_source_kind(kind: str) -> SourceKind:
     normalized = str(kind or "").strip().lower()
     if normalized in {"generated_fixture", "self_generated", "synthetic"}:
         return SourceKind.self_generated
@@ -344,10 +344,11 @@ def _has_real_source_uri(uri: str) -> bool:
     return bool(normalized) and normalized not in {"self_generated", "generated", "none", "n/a"}
 
 
-def _item_source_for_agent_task(task: AgentTask, package: dict[str, Any]) -> BenchmarkSource:
+def _item_source_for_task(task: TaskDefinition, package: dict[str, Any] | None = None) -> BenchmarkSource:
+    package = package or {}
     provenance = package.get("resource_provenance") if isinstance(package.get("resource_provenance"), dict) else {}
     provenance_kind = str(provenance.get("source_kind") or "")
-    source_kind = _agent_source_kind(provenance_kind)
+    source_kind = _resource_source_kind(provenance_kind)
     source_uris = [str(uri) for uri in provenance.get("source_uris", []) if _has_real_source_uri(str(uri))]
     if source_kind == SourceKind.self_generated or not source_uris:
         return BenchmarkSource(
@@ -364,11 +365,11 @@ def _item_source_for_agent_task(task: AgentTask, package: dict[str, Any]) -> Ben
     )
 
 
-def task_suite_to_dataset(suite: AgentTaskSuite, spec: EvalSpec, config: BenchmarkConfig) -> BenchmarkDataset:
+def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkConfig) -> BenchmarkDataset:
     items: list[BenchmarkItem] = []
     sources: list[BenchmarkSource] = [
         BenchmarkSource(
-            kind=_agent_source_kind(resource.kind),
+            kind=_resource_source_kind(resource.kind),
             uri=resource.uri if _has_real_source_uri(resource.uri) else "",
             title=resource.title or resource.id,
             notes=resource.content_summary or resource.notes,
@@ -376,31 +377,53 @@ def task_suite_to_dataset(suite: AgentTaskSuite, spec: EvalSpec, config: Benchma
         for resource in suite.resources
     ]
     batches: list[BenchmarkBatch] = []
+    resource_by_id = {resource.id: resource for resource in suite.resources}
     dimension_by_id = {dimension.id: dimension for dimension in suite.dimensions}
     for index, task in enumerate(suite.tasks, 1):
-        agent_env = _agent_env_for_runner(task)
         metadata = dict(task.metadata)
-        structure_issues = agent_task_structure_issues(task, dimension=dimension_by_id.get(task.dimension_id))
-        metadata["agent_structure_validation"] = agent_structure_validation_metadata(structure_issues)
+        blueprint = next(
+            (candidate for candidate in suite.blueprints if candidate.id == metadata.get("builder_blueprint_id")),
+            None,
+        )
+        structure_issues = task_structure_issues(
+            task,
+            dimension=dimension_by_id.get(task.dimension_id),
+            blueprint=blueprint,
+        )
+        metadata["task_structure_validation"] = task_structure_validation_metadata(structure_issues)
         metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = _task_content_summary(task)
-        metadata["task_agent"] = _task_agent_metadata_for_task(task, agent_env)
-        metadata["agent_env"] = agent_env
-        task_package = _agent_task_package_for_task(task, agent_env)
-        metadata[AGENT_TASK_PACKAGE_METADATA_KEY] = task_package
-        item_source = _item_source_for_agent_task(task, task_package)
+        metadata.setdefault("builder_blueprint_id", task.metadata.get("builder_blueprint_id", ""))
+        metadata.setdefault("builder_task_index", task.metadata.get("builder_task_index", index))
+        metadata.setdefault("builder_blueprint_task_count", task.metadata.get("builder_blueprint_task_count", 1))
+        task_package: dict[str, Any] | None = None
+        if task.environment is not None:
+            agent_env = _environment_for_runner(task)
+            metadata["task_agent"] = _task_agent_metadata_for_task(task, agent_env)
+            metadata["agent_env"] = agent_env
+            task_package = _agent_task_package_for_task(task, agent_env)
+            metadata[AGENT_TASK_PACKAGE_METADATA_KEY] = task_package
+        item_source = _item_source_for_task(task, task_package)
+        if task_package is None and task.resource_ids:
+            resource = resource_by_id.get(task.resource_ids[0])
+            if resource is not None:
+                item_source = BenchmarkSource(
+                    kind=_resource_source_kind(resource.kind),
+                    uri=resource.uri if _has_real_source_uri(resource.uri) else "",
+                    title=resource.title or task.title,
+                    notes=resource.content_summary or resource.notes,
+                )
         item = BenchmarkItem(
             id=task.id,
             dimension_id=task.dimension_id,
-            task_type=(
-                TaskType.multi_turn
-                if agent_env.get("type") == "dialogue"
-                else TaskType.agent_interaction
-            ),
+            task_type=task.task_type,
             prompt=task.prompt,
-            rubric=(
-                task.scoring.instructions
-                or f"{task.scoring.pass_criteria} {task.scoring.partial_criteria} {task.scoring.fail_criteria}".strip()
+            choices=task.choices,
+            answer=task.answer,
+            rubric=task.rubric or task.scoring.instructions or (
+                f"{task.scoring.pass_criteria} {task.scoring.partial_criteria} {task.scoring.fail_criteria}".strip()
+                or None
             ),
+            test_code=task.test_code,
             challenge_effort=task.challenge_effort,
             source=item_source,
             tags=task.tags,
@@ -414,31 +437,38 @@ def task_suite_to_dataset(suite: AgentTaskSuite, spec: EvalSpec, config: Benchma
             dim_count = sum(1 for item in items if item.dimension_id == dimension.id)
             batches.append(
                 BenchmarkBatch(
-                    id=f"{dimension.id}_agent_batch",
+                    id=f"{dimension.id}_task_batch",
                     dimension_id=dimension.id,
-                    description=f"Agent benchmark batch for {dimension.name}.",
+                    description=f"Constructed task batch for {dimension.name}.",
                     planned_item_count=dimension.target_item_count or dim_count,
                     materialized_item_count=dim_count,
                     source_backed_target=dimension.target_source_backed_count,
                     generated_target=dimension.target_generated_count or 0,
-                    task_types=[TaskType.agent_interaction],
-                    source_strategy="Resource-backed executable agent tasks.",
+                    task_types=list(
+                        dict.fromkeys(
+                            item.task_type
+                            for item in items
+                            if item.dimension_id == dimension.id
+                        )
+                    ) or dimension.task_types or spec.task_types,
+                    source_strategy="Blueprint-driven task construction.",
                     qc_sample_size=max(1, min(dim_count, 8)),
-                    notes="Agent-mode benchmark batch.",
+                    notes="General task-builder batch.",
                 )
             )
 
     return BenchmarkDataset(
-        spec=spec.model_copy(update={"task_types": [TaskType.agent_interaction]}),
+        spec=spec.model_copy(
+            update={
+                "task_types": list(
+                    dict.fromkeys(item.task_type for item in items)
+                ) or spec.task_types
+            }
+        ),
         items=items,
+        blueprints=list(suite.blueprints),
         sources=sources,
         batches=batches,
-        agent_task_suite=suite,
+        task_suite=suite,
         generation_notes=suite.construction_notes,
     )
-
-
-def build_agent_dataset(goal: str, config: BenchmarkConfig) -> BenchmarkDataset:
-    spec, blueprints = plan_agent_benchmark(goal, config)
-    suite = build_agent_task_suite(spec, blueprints, config)
-    return task_suite_to_dataset(suite, spec, config)

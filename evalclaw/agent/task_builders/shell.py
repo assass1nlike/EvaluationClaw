@@ -4,10 +4,11 @@ from __future__ import annotations
 from ...types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
-    AgentScoringSpec,
-    AgentTask,
-    AgentTaskBlueprint,
     EvalDimension,
+    TaskBlueprint,
+    TaskDefinition,
+    TaskScoringSpec,
+    TaskType,
 )
 from ..goal_detection import _contains_any
 from .base import _agent_system_prompt, _task_id, _task_title
@@ -34,10 +35,10 @@ def _variant_copy(
 
 def _shell_debugging_task_for_blueprint(
     dimension: EvalDimension,
-    blueprint: AgentTaskBlueprint,
+    blueprint: TaskBlueprint,
     *,
     index: int = 1,
-) -> AgentTask:
+) -> TaskDefinition:
     service_config_variant = {
         "prompt": (
             "Diagnose and repair the broken local service workspace. The visible healthcheck fails and the "
@@ -597,9 +598,10 @@ def _shell_debugging_task_for_blueprint(
         variant = variants[5]
     else:
         variant = variants[(index - 1) % len(variants)]
-    return AgentTask(
+    return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
+        task_type=TaskType.agent_interaction,
         title=_task_title(blueprint, index),
         description=(
             "A shell-oriented debugging task that benefits from command diagnostics and realistic workspace "
@@ -623,7 +625,7 @@ def _shell_debugging_task_for_blueprint(
             "max_turns": 10,
             "stop_condition": "Stop when hidden tests pass or the docker_workspace step limit is reached.",
         },
-        scoring=AgentScoringSpec(
+        scoring=TaskScoringSpec(
             method="deterministic",
             instructions=str(variant["scoring"]["instructions"]),
             pass_criteria=str(variant["scoring"]["pass"]),

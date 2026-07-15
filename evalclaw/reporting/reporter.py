@@ -14,7 +14,6 @@ from ..types import (
 )
 from .markdown import _markdown_table, _pct
 from .run_sections import (
-    _agent_task_suite_lines,
     _dedupe_sources,
     _detailed_item_lines,
     _failure_mode_rows,
@@ -27,6 +26,7 @@ from .run_sections import (
     _run_provenance_lines,
     _score_semantics_lines,
     _source_mapping_lines,
+    _task_suite_lines,
     _used_items,
     artifact_index_markdown,
 )
@@ -88,7 +88,7 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
             "",
         ]
     )
-    lines.extend(_agent_task_suite_lines(dataset))
+    lines.extend(_task_suite_lines(dataset))
     task_counts: dict[str, int] = defaultdict(int)
     challenge_effort_counts: dict[str, int] = defaultdict(int)
     item_source_counts: Counter[str] = Counter()

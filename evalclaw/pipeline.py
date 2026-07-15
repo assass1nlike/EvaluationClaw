@@ -6,66 +6,22 @@ import re
 from pathlib import Path
 from typing import Callable, Optional
 
-from .agent import build_agent_dataset_with_qc_loop
+from .benchmark import build_benchmark_dataset_with_qc_loop
 from .execution.environment_claw import format_environment_claw_report, run_environment_claw
 from .execution.lm_eval import run_lm_eval
 from .execution.plan import build_execution_plan
 from .execution.runner import run_eval, validate_multimodal_target_support
-from .planning.loop import (
-    apply_human_review_feedback,
-    format_human_review_overview,
-    generate_dataset_with_qc_loop,
-)
-from .planning.planner import plan_eval_spec, translate_goal_to_english
+from .planning.loop import apply_human_review_feedback, format_human_review_overview
+from .planning.planner import translate_goal_to_english
 from .quality.improver import run_loop3_improvement
 from .reporting.artifacts import write_artifact_manifest, write_lm_eval_artifacts
 from .reporting.reporter import artifact_index_markdown, build_report
 from .reporting.viewer import build_report_viewer_html
+from .research.backends import reset_network_state
 from .research.deep_research import render_brief_markdown, run_deep_research
-from .types import BenchmarkConfig, BenchmarkMode, BenchmarkPackage, EvalSpec
+from .types import BenchmarkConfig, BenchmarkPackage
 
 _SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]+")
-_AGENT_GOAL_PATTERN = re.compile(
-    r"\b(agent|tool\s*use|tool[- ]calling|tools?|environment|sandbox|docker|workspace|"
-    r"terminal|shell|browser|gui|desktop|computer\s*use|cua|mouse|keyboard|screenshot|"
-    r"screen|click|desktop\s*software|multi[- ]?industrial[- ]?software|"
-    r"industrial[- ]?software|engineering[- ]?software|"
-    r"cad|eda|cae|cam|pcb|kicad|freecad|blender|api|multi[- ]?step|"
-    r"long[- ]?horizon|code\s*agent|repo|repository|issue|debug|repair|run\s+tests?)\b",
-    re.IGNORECASE,
-)
-_AGENT_GOAL_CJK_TERMS = (
-    "智能体",
-    "代理",
-    "工具调用",
-    "调用工具",
-    "环境交互",
-    "沙盒",
-    "浏览器",
-    "终端",
-    "命令行",
-    "代码修复",
-    "仓库",
-    "多步",
-    "长程",
-)
-
-
-_AGENT_GOAL_CJK_TERMS += (
-    "\u667a\u80fd\u4f53",
-    "\u5de5\u5177\u8c03\u7528",
-    "\u73af\u5883\u4ea4\u4e92",
-    "\u684c\u9762",
-    "\u5de5\u4e1a\u8f6f\u4ef6",
-    "\u591a\u8f6f\u4ef6",
-    "\u534f\u540c",
-    "\u5de5\u4f5c\u6d41",
-    "\u5de5\u7a0b\u8f6f\u4ef6",
-    "\u673a\u68b0\u8bbe\u8ba1",
-    "\u7535\u8def\u677f",
-)
-
-
 def _redact_secrets(text: str) -> str:
     return _SECRET_PATTERN.sub("[REDACTED]", text)
 
@@ -145,14 +101,6 @@ def _persist_package(
     log(f"Saved manifest: {manifest_path}")
 
 
-def _resolve_benchmark_mode(goal: str, config: BenchmarkConfig) -> BenchmarkMode:
-    if config.benchmark_mode != BenchmarkMode.auto:
-        return config.benchmark_mode
-    if _AGENT_GOAL_PATTERN.search(goal) or any(term in goal for term in _AGENT_GOAL_CJK_TERMS):
-        return BenchmarkMode.agent
-    return BenchmarkMode.static
-
-
 def run_pipeline(
     goal: str,
     config: BenchmarkConfig,
@@ -162,7 +110,8 @@ def run_pipeline(
     ask_user: Optional[Callable[[str], str]] = None,
     interactive: bool = True,
 ) -> BenchmarkPackage:
-    """Run Planner -> Generator -> QC Gate -> Runner -> Reporter."""
+    """Run preparation -> unified construction/QC -> execution -> reporting."""
+    reset_network_state()
     original_goal = goal
     goal = translate_goal_to_english(goal, config)
     if goal != original_goal:
@@ -173,7 +122,7 @@ def run_pipeline(
         log("\n[Deep Research] Running bounded research loop before planning...")
         brief = run_deep_research(goal, config, log=log)
         if brief is None:
-            log("  Deep research unavailable (no orchestrator key or search disabled); continuing without a brief.")
+            log("  Deep research unavailable (no research-role key or search disabled); continuing without a brief.")
         else:
             config = config.model_copy(update={"research_brief": brief})
             log(
@@ -182,28 +131,12 @@ def run_pipeline(
                 f"{len(brief.seed_sources)} seed sources"
             )
 
-    benchmark_mode = _resolve_benchmark_mode(goal, config)
-    log(f"\n[Mode] Benchmark mode: {benchmark_mode.value}")
-
-    if benchmark_mode == BenchmarkMode.agent:
-        log("\n[Agent Planner/Builder] Building executable agent task suite...")
-        spec, dataset, qc_report = build_agent_dataset_with_qc_loop(goal, config, log=log)
-    else:
-        log("\n[Planner] Building eval_spec with self-critique...")
-        spec = plan_eval_spec(goal, config)
-        log(f"  Objective: {spec.objective}")
-        log(f"  Dimensions: {len(spec.dimensions)}")
-        log(f"  Planner critique: {spec.critique.score:.1f}/5")
-
-        if interactive and ask_user is not None:
-            feedback = ask_user("\nPress Enter to accept the eval_spec, or enter revision feedback: ").strip()
-            if feedback:
-                log("\n[Planner] Revising eval_spec from feedback...")
-                spec = plan_eval_spec(goal, config, feedback=feedback, previous_spec=spec)
-                log(f"  Revised dimensions: {len(spec.dimensions)}")
-
-        log("\n[Planner/Generator/QC] Building benchmark dataset with pre-run self-check...")
-        spec, dataset, qc_report = generate_dataset_with_qc_loop(spec, config, log=log)
+    log("\n[Planner/Builder/QC] Building benchmark through the single task-construction pipeline...")
+    spec, dataset, qc_report = build_benchmark_dataset_with_qc_loop(
+        goal,
+        config,
+        log=log,
+    )
     log(f"  Final dimensions: {len(spec.dimensions)}")
     log(f"  Final items: {len(dataset.items)}")
     log(f"  Sources used: {len(dataset.sources)}")

@@ -5,21 +5,23 @@ from natural-language goals.
 
 It currently supports:
 
-- Planner-driven `EvalSpec` generation from vague goals.
+- Planner-driven `EvalSpec` and general `TaskBlueprint` generation from vague goals.
 - **Deep research** (`--deep-research`): a bounded search→compress→reflect loop that
   turns a vague field into a structured `ResearchBrief` (taxonomy, existing benchmarks
   and their weaknesses, seed sources, challenge-effort anchors, citations) that grounds the
-  planner and generator.
+  planner and task builder.
 - Pluggable web-search backends (`--search-backend auto|gemini|keyless|none`):
   Gemini Google-Search grounding when `GEMINI_API_KEY` is set, or a key-free
   combination of arXiv + Wikipedia + DuckDuckGo otherwise.
-- Self-generated benchmark items with optional web research, HuggingFace dataset discovery,
-  and lightweight HuggingFace row ingestion.
-- Static and LLM-assisted QC gates.
+- One blueprint-driven construction route for multiple-choice, open-generation, code,
+  multimodal, multi-turn, and environment-interaction tasks. Execution fields are optional.
+- Self-generated benchmark tasks with optional web research, HuggingFace support, and
+  programmatic local fallbacks.
+- Deterministic and LLM-assisted QC gates with targeted task-slot repair.
 - Direct model execution with rule scoring, code execution sandboxing, multi-turn tasks,
   simulated agent interaction tasks, and double-pass LLM judge audit.
 - Loop 3 self-improvement that diagnoses QC/run results and regenerates targeted items.
-- LiteLLM-backed provider calls with a legacy fallback, including **Azure OpenAI**
+- LiteLLM-backed provider calls with a protocol/adapter-only legacy fallback, including **Azure OpenAI**
   deployments via `azure/<deployment-name>` model names.
 - lm-eval-harness interoperability via generated JSONL/YAML artifacts and optional runner.
 - Markdown reports with source coverage, canonical JSON packages, and artifact manifests.
@@ -62,8 +64,8 @@ Generate a benchmark draft without running target models:
 python evalclaw_cli.py generate \
   -g "Evaluate strict format following" \
   --no-interactive \
-  --no-run \
   --no-research \
+  --task-builder local \
   --scale-budget low \
   --qpd 1
 ```
@@ -81,7 +83,7 @@ python evalclaw_cli.py generate \
   --scale-budget low
 ```
 
-Run DeepSeek V4 Pro as planner/generator/QC/judge against DeepSeek V4 Flash:
+Use DeepSeek V4 Pro as the default orchestration model against DeepSeek V4 Flash:
 
 ```bash
 DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
@@ -115,7 +117,30 @@ DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   --loop3-max-actions 3
 ```
 
+`--model`, `--compare`, and `--target-config` are optional. When none is
+provided, EvalClaw plans, builds, QC-checks, and exports the benchmark without
+running a target. Use `--no-run` when targets are configured but should be
+recorded without being called in the current run.
+
 ### Custom endpoints and multiple targets
+
+Each orchestration role can override the default model and connection with
+`--planner-*`, `--task-builder-*`, `--qc-*`, `--judge-*`, `--research-*`, and
+`--loop3-*`. Unspecified role fields fall back to the corresponding
+`--orchestrator-*` setting. For example:
+
+```bash
+evalclaw generate \
+  --planner-model claude-opus-4-6 \
+  --task-builder-model claude-sonnet-4-6 \
+  --qc-model gpt-5-mini \
+  --judge-model gpt-5 \
+  --research-model gemini-2.5-pro \
+  --loop3-model claude-sonnet-4-6
+```
+
+When a role uses a different provider or endpoint, configure that role's
+`--*-provider`, `--*-api-key`, and `--*-base-url` explicitly.
 
 An Anthropic-compatible Claude/Claude Code endpoint can be used for the
 orchestrator with its native `/v1/messages` protocol:
@@ -177,6 +202,7 @@ standard exact-match or multiple-choice tasks unless a custom metric is added.
 `agent_interaction` tasks run through the EvaluationClaw direct runner because
 they require a stateful action/observation environment and deterministic
 environment scoring.
-The built-in agent environments currently include `workspace` for toy
-state-manipulation tasks and `code_sandbox` for multi-step coding tasks where
-the model writes files, runs tests, reads failures, and revises code.
+Tasks that need interaction may optionally request built-in environments such as
+`workspace`, `code_sandbox`, `docker_workspace`, `dialogue`, or `gui_desktop`.
+Tasks that do not need an environment omit these fields entirely and still pass
+through the same planner, builder, QC, execution, and reporting pipeline.

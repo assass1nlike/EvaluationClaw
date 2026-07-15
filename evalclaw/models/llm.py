@@ -22,25 +22,105 @@ from .json_utils import extract_json
 from .providers import infer_provider
 
 
-def _post_with_retry(url: str, headers: dict, body: dict, max_retries: int = 6) -> dict:
-    """POST with exponential backoff on 429 / 5xx."""
-    delay = 15.0
+class LLMOutputTruncatedError(RuntimeError):
+    """The provider ended a completion because its output budget was exhausted."""
+
+
+class LLMProtocolAdapterError(RuntimeError):
+    """LiteLLM could not adapt the request or response for the selected provider."""
+
+
+def _is_litellm_protocol_adapter_failure(exc: Exception) -> bool:
+    """Whether direct protocol fallback can plausibly bypass a LiteLLM failure."""
+    if isinstance(exc, (ImportError, ModuleNotFoundError, LLMProtocolAdapterError)):
+        return True
+    try:
+        import litellm
+    except ImportError:
+        return True
+
+    unsupported = getattr(litellm, "UnsupportedParamsError", None)
+    if isinstance(unsupported, type) and isinstance(exc, unsupported):
+        return True
+
+    bad_request = getattr(litellm, "BadRequestError", None)
+    if not isinstance(bad_request, type) or not isinstance(exc, bad_request):
+        return False
+    message = str(exc).lower()
+    adapter_markers = (
+        "llm provider not provided",
+        "unsupported parameter",
+        "unsupported param",
+        "parameter is not supported",
+        "provider not supported",
+        "unknown provider",
+        "unrecognized request argument",
+    )
+    return any(marker in message for marker in adapter_markers)
+
+
+def _post_with_retry(
+    url: str,
+    headers: dict,
+    body: dict,
+    max_retries: int = 3,
+    *,
+    request_timeout_s: float = 120.0,
+    total_timeout_s: float = 300.0,
+) -> dict:
+    """POST with bounded retries for transient transport, 429, and 5xx errors."""
+    delay = 5.0
+    started = time.monotonic()
+    endpoint = httpx.URL(url).host or "model endpoint"
     for attempt in range(max_retries):
+        remaining = total_timeout_s - (time.monotonic() - started)
+        if remaining <= 0:
+            raise TimeoutError(
+                f"Model request to {endpoint} exceeded {total_timeout_s:.0f}s overall deadline."
+            )
         try:
-            resp = httpx.post(url, headers=headers, json=body, timeout=120.0)
-        except (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError) as exc:
+            resp = httpx.post(
+                url,
+                headers=headers,
+                json=body,
+                timeout=min(request_timeout_s, remaining),
+            )
+        except httpx.TransportError as exc:
             if attempt == max_retries - 1:
                 raise
-            print(f"  [retry {attempt + 1}/{max_retries}] network error ({exc}), waiting {delay:.0f}s…")
-            time.sleep(delay)
-            delay = min(delay * 2, 120.0)
+            wait_s = min(delay, max(0.0, total_timeout_s - (time.monotonic() - started)))
+            if wait_s <= 0:
+                raise TimeoutError(
+                    f"Model request to {endpoint} exceeded {total_timeout_s:.0f}s overall deadline."
+                ) from exc
+            print(
+                f"  [llm network] {endpoint} attempt {attempt + 1}/{max_retries} "
+                f"failed ({type(exc).__name__}); retrying in {wait_s:.0f}s."
+            )
+            time.sleep(wait_s)
+            delay = min(delay * 2, 30.0)
             continue
         if resp.status_code == 429 or resp.status_code >= 500:
             if attempt == max_retries - 1:
                 resp.raise_for_status()
-            print(f"  [retry {attempt + 1}/{max_retries}] HTTP {resp.status_code}, waiting {delay:.0f}s…")
-            time.sleep(delay)
-            delay = min(delay * 2, 120.0)
+            retry_after = resp.headers.get("retry-after")
+            try:
+                requested_wait = float(retry_after) if retry_after else delay
+            except ValueError:
+                requested_wait = delay
+            wait_s = min(
+                max(0.0, requested_wait),
+                30.0,
+                max(0.0, total_timeout_s - (time.monotonic() - started)),
+            )
+            if wait_s <= 0:
+                resp.raise_for_status()
+            print(
+                f"  [llm network] {endpoint} returned HTTP {resp.status_code} "
+                f"on attempt {attempt + 1}/{max_retries}; retrying in {wait_s:.0f}s."
+            )
+            time.sleep(wait_s)
+            delay = min(delay * 2, 30.0)
             continue
         resp.raise_for_status()
         return resp.json()
@@ -173,6 +253,8 @@ def _call_litellm(
     max_tokens: int,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
+    reduce_reasoning_effort: bool = False,
+    retry_on_truncation: bool = True,
 ) -> str:
     import litellm
 
@@ -187,9 +269,15 @@ def _call_litellm(
         "messages": messages,
         "timeout": 300,
     }
-    reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
-    if reasoning_effort and _is_reasoning_model(model):
-        kwargs["reasoning_effort"] = reasoning_effort
+    if reduce_reasoning_effort:
+        if model.startswith("deepseek-v4"):
+            kwargs["thinking"] = {"type": "disabled"}
+        elif _is_reasoning_model(model):
+            kwargs["reasoning_effort"] = "low"
+    else:
+        reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
+        if reasoning_effort and _is_reasoning_model(model):
+            kwargs["reasoning_effort"] = reasoning_effort
     if api_key:
         kwargs["api_key"] = api_key
     if base_url:
@@ -199,21 +287,26 @@ def _call_litellm(
     # by json-repair downstream, injecting cut-off prompts into datasets. Retry
     # once with a doubled budget, then fail loudly.
     budget = _effective_max_tokens(model, max_tokens)
-    for attempt in range(2):
+    for attempt in range(2 if retry_on_truncation else 1):
         kwargs["max_tokens"] = budget
         response = litellm.completion(**kwargs)
         finish_reason = getattr(
             (getattr(response, "choices", None) or [None])[0], "finish_reason", None
         )
         if finish_reason == "length":
-            if attempt == 0:
+            if retry_on_truncation and attempt == 0:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
-            raise RuntimeError(
+            raise LLMOutputTruncatedError(
                 f"LLM output truncated at {budget} completion tokens "
                 f"(finish_reason=length) for model {model}"
             )
-        return _extract_litellm_content(response)
+        try:
+            return _extract_litellm_content(response)
+        except ValueError as exc:
+            raise LLMProtocolAdapterError(
+                f"LiteLLM returned an unsupported response shape for model {model}."
+            ) from exc
     raise AssertionError("unreachable")
 
 
@@ -223,6 +316,7 @@ def _azure_legacy_completion(
     messages: list[dict],
     max_tokens: int,
     api_key: Optional[str] = None,
+    retry_on_truncation: bool = True,
 ) -> str:
     """Call an Azure OpenAI deployment via httpx (legacy, non-litellm backend).
 
@@ -257,7 +351,7 @@ def _azure_legacy_completion(
     # Same truncation guard as the litellm path: a length-cut completion would
     # be silently "repaired" by json-repair downstream.
     budget = _effective_max_tokens(model, max_tokens)
-    for attempt in range(2):
+    for attempt in range(2 if retry_on_truncation else 1):
         data = _post_with_retry(
             url,
             headers={"api-key": key or "", "Content-Type": "application/json"},
@@ -265,10 +359,10 @@ def _azure_legacy_completion(
         )
         choice = data["choices"][0]
         if choice.get("finish_reason") == "length":
-            if attempt == 0:
+            if retry_on_truncation and attempt == 0:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
-            raise RuntimeError(
+            raise LLMOutputTruncatedError(
                 f"LLM output truncated at {budget} completion tokens "
                 f"(finish_reason=length) for model {model}"
             )
@@ -327,6 +421,8 @@ def call_llm(
     base_url: Optional[str] = None,
     provider: Optional[str] = None,
     backend: str = "auto",
+    reduce_reasoning_effort: bool = False,
+    retry_on_truncation: bool = True,
 ) -> str:
     """Call the orchestrator LLM.
 
@@ -337,7 +433,11 @@ def call_llm(
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
     resolved_provider, _ = infer_provider(model_name, base_url, provider)
     messages_dict = _message_dicts(messages, system)
-    if resolved_provider == "anthropic" and (provider is not None or base_url):
+    if (
+        resolved_provider == "anthropic"
+        and (provider is not None or base_url)
+        and backend != "litellm"
+    ):
         return _call_anthropic_text(
             messages,
             system=system,
@@ -354,12 +454,14 @@ def call_llm(
                 max_tokens=max_tokens,
                 api_key=api_key,
                 base_url=base_url,
+                reduce_reasoning_effort=reduce_reasoning_effort,
+                retry_on_truncation=retry_on_truncation,
             )
         except Exception as exc:
-            if backend == "litellm":
+            if backend == "litellm" or not _is_litellm_protocol_adapter_failure(exc):
                 raise
             print(
-                f"  [llm] litellm call failed for {model_name} "
+                f"  [llm] litellm adapter failed for {model_name} "
                 f"({type(exc).__name__}: {str(exc)[:160]}); falling back to legacy backend"
             )
 
@@ -370,6 +472,7 @@ def call_llm(
             messages=messages_dict,
             max_tokens=max_tokens,
             api_key=api_key,
+            retry_on_truncation=retry_on_truncation,
         )
 
     if base_url and resolved_provider != "anthropic":
@@ -381,7 +484,7 @@ def call_llm(
             or os.environ.get("OPENAI_API_KEY", "")
         )
         budget = _effective_max_tokens(model_name, max_tokens)
-        for attempt in range(2):
+        for attempt in range(2 if retry_on_truncation else 1):
             body: dict[str, Any] = {"model": model_name, "messages": messages_dict, "max_tokens": budget}
             if "api.deepseek.com" in base_url and model_name.startswith("deepseek-v4"):
                 body["thinking"] = {"type": "disabled"}
@@ -394,10 +497,10 @@ def call_llm(
             )
             choice = data["choices"][0]
             if choice.get("finish_reason") == "length":
-                if attempt == 0:
+                if retry_on_truncation and attempt == 0:
                     budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                     continue
-                raise RuntimeError(
+                raise LLMOutputTruncatedError(
                     f"LLM output truncated at {budget} completion tokens "
                     f"(finish_reason=length) for model {model_name}"
                 )
@@ -431,6 +534,7 @@ def call_orchestrator_with_tools(
     backend: str = "auto",
     tools: list[ToolSpec] | None = None,
     max_tokens: int = 4096,
+    retry_on_truncation: bool = True,
 ) -> TargetToolModelResponse:
     """Call the orchestrator with provider-native tools.
 
@@ -442,7 +546,11 @@ def call_orchestrator_with_tools(
     resolved_provider, _ = infer_provider(model_name, base_url, provider)
     tool_specs = tools or []
 
-    if resolved_provider == "anthropic" and (provider is not None or base_url):
+    if (
+        resolved_provider == "anthropic"
+        and (provider is not None or base_url)
+        and backend != "litellm"
+    ):
         client = _get_anthropic_client(api_key, base_url)
         response = client.messages.create(
             model=_anthropic_model_name(model_name),
@@ -469,7 +577,7 @@ def call_orchestrator_with_tools(
             if system_prompt:
                 request_messages.insert(0, {"role": "system", "content": system_prompt})
             budget = _effective_max_tokens(model_name, max_tokens)
-            for attempt in range(2):
+            for attempt in range(2 if retry_on_truncation else 1):
                 kwargs: dict[str, Any] = {
                     "model": model_name,
                     "messages": request_messages,
@@ -492,21 +600,29 @@ def call_orchestrator_with_tools(
                 choices = getattr(response, "choices", None)
                 if choices is None and isinstance(response, dict):
                     choices = response.get("choices")
+                if not choices:
+                    raise LLMProtocolAdapterError(
+                        f"LiteLLM returned no choices for model {model_name}."
+                    )
                 first = (choices or [None])[0]
                 finish_reason = getattr(first, "finish_reason", None)
                 if finish_reason is None and isinstance(first, dict):
                     finish_reason = first.get("finish_reason")
                 if finish_reason == "length":
-                    if attempt == 0:
+                    if retry_on_truncation and attempt == 0:
                         budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                         continue
-                    raise RuntimeError(
+                    raise LLMOutputTruncatedError(
                         f"Orchestrator tool response truncated at {budget} completion tokens "
                         f"(finish_reason=length) for model {model_name}."
                     )
                 message = getattr(first, "message", None)
                 if message is None and isinstance(first, dict):
                     message = first.get("message")
+                if message is None:
+                    raise LLMProtocolAdapterError(
+                        f"LiteLLM returned no assistant message for model {model_name}."
+                    )
                 assistant_message = _jsonable(message) if message is not None else {}
                 tool_calls = openai_tool_calls_from_response(response)
                 return TargetToolModelResponse(
@@ -516,8 +632,8 @@ def call_orchestrator_with_tools(
                     assistant_message=assistant_message,
                     raw_response=_jsonable(response),
                 )
-        except Exception:
-            if backend == "litellm":
+        except Exception as exc:
+            if backend == "litellm" or not _is_litellm_protocol_adapter_failure(exc):
                 raise
 
     if resolved_provider == "anthropic":
@@ -551,7 +667,7 @@ def call_orchestrator_with_tools(
     if system_prompt:
         request_messages.insert(0, {"role": "system", "content": system_prompt})
     budget = _effective_max_tokens(model_name, max_tokens)
-    for attempt in range(2):
+    for attempt in range(2 if retry_on_truncation else 1):
         body: dict[str, Any] = {
             "model": model_name,
             "messages": request_messages,
@@ -571,10 +687,10 @@ def call_orchestrator_with_tools(
         )
         choice = data["choices"][0]
         if choice.get("finish_reason") == "length":
-            if attempt == 0:
+            if retry_on_truncation and attempt == 0:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
-            raise RuntimeError(
+            raise LLMOutputTruncatedError(
                 f"Orchestrator tool response truncated at {budget} completion tokens "
                 f"(finish_reason=length) for model {model_name}."
             )
@@ -722,8 +838,8 @@ def call_target_model(
                         api_key=target.api_key,
                         base_url=target.base_url,
                     )
-                except Exception:
-                    if backend == "litellm":
+                except Exception as exc:
+                    if backend == "litellm" or not _is_litellm_protocol_adapter_failure(exc):
                         raise
             return _azure_legacy_completion(
                 model=target.model,
@@ -775,8 +891,8 @@ def call_target_model(
                 api_key=api_key,
                 base_url=base_url,
             )
-        except Exception:
-            if backend == "litellm":
+        except Exception as exc:
+            if backend == "litellm" or not _is_litellm_protocol_adapter_failure(exc):
                 raise
 
     if target.provider == "azure" or target.model.startswith("azure/"):

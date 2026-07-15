@@ -5,11 +5,11 @@ import json
 import re
 import uuid
 from itertools import cycle
-from typing import Callable
 
 from ..core.scaling import is_large_scale_budget
 from ..core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
 from ..models.llm import call_llm, extract_json
+from ..models.roles import role_model_settings
 from ..prompts.generator import GENERATOR_MULTIMODAL_PROMPT, GENERATOR_SYSTEM_PROMPT
 from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
@@ -26,9 +26,7 @@ from ..research.backends import fetch_url_text, format_search_result, web_search
 from ..sources.hf_discovery import discover_hf_datasets
 from ..sources.hf_ingest import import_hf_dataset_items
 from ..types import (
-    BenchmarkBatch,
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     BenchmarkSource,
     ChallengeEffort,
@@ -146,53 +144,6 @@ def _planned_count_for_dimension(dimension: EvalDimension, config: BenchmarkConf
     return max(1, int(dimension.target_item_count or config.questions_per_dimension))
 
 
-def _batch_for_dimension(
-    spec: EvalSpec,
-    dimension: EvalDimension,
-    config: BenchmarkConfig,
-    materialized_count: int,
-) -> BenchmarkBatch | None:
-    if not is_large_scale_budget(spec.scale_budget):
-        return None
-    planned_count = _planned_count_for_dimension(dimension, config)
-    source_target = _source_backed_target_for_dimension(dimension, materialized_count, config)
-    generated_target = min(
-        max(0, materialized_count - source_target),
-        max(0, int(config.large_scale_generated_item_cap_per_dimension)),
-    )
-    return BenchmarkBatch(
-        id=f"{dimension.id}_batch_1",
-        dimension_id=dimension.id,
-        description=f"Large-scale materialized batch for dimension {dimension.id}.",
-        planned_item_count=planned_count,
-        materialized_item_count=materialized_count,
-        source_backed_target=source_target,
-        generated_target=generated_target,
-        task_types=dimension.task_types or spec.task_types,
-        source_strategy=(
-            "Prefer source-backed/imported items for the bulk of this dimension; "
-            "use generated items only for scarce slices, edge cases, or targeted augmentation."
-        ),
-        qc_sample_size=max(1, int(config.large_scale_llm_qc_sample_size)),
-        notes=(
-            "Batch count is a materialized representative subset when source-backed data is unavailable; "
-            "do not replace source-backed shortfall with unbounded model generation."
-        ),
-    )
-
-
-def _attach_batch_metadata(items: list[BenchmarkItem], batch: BenchmarkBatch | None) -> list[BenchmarkItem]:
-    if batch is None:
-        return items
-    updated: list[BenchmarkItem] = []
-    for index, item in enumerate(items, 1):
-        metadata = dict(item.metadata)
-        metadata["batch_id"] = batch.id
-        metadata["batch_index"] = index
-        updated.append(item.model_copy(update={"metadata": metadata}))
-    return updated
-
-
 def _ensure_item_content_summaries(items: list[BenchmarkItem]) -> list[BenchmarkItem]:
     for item in items:
         if item.metadata.get(TASK_CONTENT_SUMMARY_METADATA_KEY):
@@ -210,6 +161,7 @@ def _select_research_sources(
     config: BenchmarkConfig,
 ) -> list[BenchmarkSource]:
     sources: list[BenchmarkSource] = []
+    settings = role_model_settings(config, "research")
     if config.research_brief is not None:
         # Deep-research seed sources take priority over fresh discovery/search.
         for seed in config.research_brief.seed_sources:
@@ -240,8 +192,8 @@ def _select_research_sources(
     for query in queries[:2]:
         result = web_search(
             query,
-            api_key=config.orchestrator_api_key,
-            model=config.orchestrator_model,
+            api_key=settings.api_key,
+            model=settings.model,
             backend=config.search_backend,
         )
         if not result:
@@ -261,46 +213,6 @@ def _select_research_sources(
             )
             if len(sources) >= config.max_research_sources:
                 return sources
-    return sources
-
-
-def _research_tokens(dimension: EvalDimension) -> set[str]:
-    text = " ".join([dimension.name, dimension.description, *dimension.research_queries]).lower()
-    return {
-        token
-        for token in re.findall(r"[a-z0-9_]{4,}", text)
-        if token
-        not in {
-            "evaluate",
-            "evaluation",
-            "model",
-            "models",
-            "ability",
-            "capability",
-            "tasks",
-            "benchmark",
-        }
-    }
-
-
-def _find_shared_research_sources(
-    dimension: EvalDimension,
-    config: BenchmarkConfig,
-    research_cache: list[tuple[set[str], list[BenchmarkSource]]],
-) -> list[BenchmarkSource] | None:
-    if not (config.use_hf_discovery or config.use_web_research):
-        return None
-    if not (dimension.needs_research or config.max_hf_records_per_dimension > 0):
-        return None
-    tokens = _research_tokens(dimension)
-    for cached_tokens, cached_sources in research_cache:
-        if not tokens or not cached_tokens:
-            continue
-        overlap = len(tokens & cached_tokens) / max(1, min(len(tokens), len(cached_tokens)))
-        if overlap >= 0.5:
-            return cached_sources
-    sources = _select_research_sources(dimension, config)
-    research_cache.append((tokens, sources))
     return sources
 
 
@@ -461,7 +373,8 @@ def generate_dimension_items(
     if not sources and has_programmatic_multimodal_fallback(dimension):
         fallback = fallback_items(spec, dimension, remaining_count)
         return _ensure_item_content_summaries(imported_items + fallback), sources, "Programmatic multimodal fallback generation."
-    if not config.orchestrator_api_key:
+    settings = role_model_settings(config, "task_builder")
+    if not settings.configured:
         fallback = fallback_items(spec, dimension, remaining_count)
         return _ensure_item_content_summaries(imported_items + fallback), sources, "Local fallback generation."
 
@@ -498,10 +411,7 @@ def generate_dimension_items(
     raw = call_llm(
         [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
         system=system_prompt,
-        model=config.orchestrator_model,
-        api_key=config.orchestrator_api_key,
-        base_url=config.orchestrator_base_url,
-        provider=config.orchestrator_provider,
+        **settings.call_kwargs(),
         backend=config.llm_backend,
         max_tokens=8192,
     )
@@ -530,77 +440,3 @@ def generate_dimension_items(
             "source-backed shortfall was not replaced with unbounded model generation."
         ).strip()
     return _ensure_item_content_summaries(all_items[:count]), sources, notes
-
-
-def generate_dataset(spec: EvalSpec, config: BenchmarkConfig) -> BenchmarkDataset:
-    """Generate and synthesize the full benchmark dataset."""
-    return generate_dataset_with_progress(spec, config)
-
-
-def _dedupe_sources(sources: list[BenchmarkSource]) -> list[BenchmarkSource]:
-    deduped: list[BenchmarkSource] = []
-    seen: set[tuple[str, str, str]] = set()
-    for source in sources:
-        key = (source.kind.value, source.uri, source.title)
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(source)
-    return deduped
-
-
-def generate_dataset_with_progress(
-    spec: EvalSpec,
-    config: BenchmarkConfig,
-    *,
-    log: Callable[[str], None] | None = None,
-) -> BenchmarkDataset:
-    """Generate and synthesize the full benchmark dataset with optional progress logs."""
-    all_items: list[BenchmarkItem] = []
-    all_sources: list[BenchmarkSource] = []
-    batches: list[BenchmarkBatch] = []
-    notes: list[str] = []
-    research_cache: list[tuple[set[str], list[BenchmarkSource]]] = []
-    for index, dimension in enumerate(spec.dimensions, 1):
-        target_count = target_count_for_dimension(dimension, config)
-        batch = _batch_for_dimension(spec, dimension, config, target_count)
-        if batch:
-            batches.append(batch)
-        if log:
-            mode = "batch-materializing" if batch else "generating"
-            log(f"  [{index}/{len(spec.dimensions)}] {dimension.id}: {mode} {target_count} item(s)...")
-        research_sources = _find_shared_research_sources(dimension, config, research_cache)
-        items, sources, note = generate_dimension_items(
-            spec,
-            dimension,
-            target_count,
-            config,
-            research_sources=research_sources,
-        )
-        items = _attach_batch_metadata(items, batch)
-        all_items.extend(items)
-        all_sources.extend(sources)
-        if log:
-            log(f"    -> {len(items)} item(s), {len(sources)} source(s)")
-        if note:
-            notes.append(f"{dimension.id}: {note}")
-    return BenchmarkDataset(
-        spec=spec,
-        items=all_items,
-        sources=_dedupe_sources(all_sources),
-        batches=batches,
-        generation_notes="\n".join(notes),
-    )
-
-
-# Compatibility helper for older scripts.
-def generate_questions(dimension: EvalDimension, count: int, config: BenchmarkConfig) -> list[BenchmarkItem]:
-    spec = EvalSpec(
-        objective=dimension.description or dimension.name,
-        dimensions=[dimension],
-        task_types=[TaskType.open_generation, TaskType.multiple_choice],
-        scale=count,
-    )
-    items, _, _ = generate_dimension_items(spec, dimension, count, config)
-    return items
-

@@ -7,6 +7,7 @@ from typing import Optional
 
 from ..core.scaling import scale_budget_target_items
 from ..models.llm import call_llm, extract_json
+from ..models.roles import role_model_settings
 from ..prompts.planner import PLANNER_SYSTEM_PROMPT, TRANSLATION_SYSTEM_PROMPT
 from ..protocols.multimodal import (
     MULTIMODAL_GENERATION_GUIDANCE,
@@ -44,18 +45,16 @@ def translate_goal_to_english(goal: str, config: BenchmarkConfig) -> str:
     """Translate non-English evaluation goals to English before planning."""
     if not _contains_cjk(goal):
         return goal
-    if not config.orchestrator_api_key:
-        base_url = (config.orchestrator_base_url or "").lower()
+    settings = role_model_settings(config, "planner")
+    if not settings.configured:
+        base_url = (settings.base_url or "").lower()
         if not any(host in base_url for host in ("localhost", "127.0.0.1", "0.0.0.0")):
             return goal
     try:
         raw = call_llm(
             [Message(role="user", content=goal)],
             system=TRANSLATION_SYSTEM_PROMPT,
-            model=config.orchestrator_model,
-            api_key=config.orchestrator_api_key,
-            base_url=config.orchestrator_base_url,
-            provider=config.orchestrator_provider,
+            **settings.call_kwargs(),
             backend=config.llm_backend,
             max_tokens=1024,
         )
@@ -415,7 +414,7 @@ def fallback_spec(
     target_ids: Optional[list[str]] = None,
     scale_budget: ScaleBudget = ScaleBudget.mid,
 ) -> EvalSpec:
-    """Build a deterministic local spec when no orchestrator key is available."""
+    """Build a deterministic local spec when no Planner-role key is available."""
     critique = PlannerCritique(
         checklist=PlannerChecklist(
             objective=True,
@@ -426,7 +425,7 @@ def fallback_spec(
             metrics=True,
         ),
         score=4.0,
-        notes="Fallback spec generated locally because no orchestrator call was available.",
+        notes="Fallback spec generated locally because no Planner call was available.",
     )
     return EvalSpec(
         id=_slug(goal),
@@ -455,7 +454,8 @@ def plan_eval_spec(
     """Run the Planner self-critique loop and return the best eval spec."""
     target_ids = [target.id for target in config.targets] or ["user_supplied_targets"]
     scale_budget = _safe_scale_budget(config.scale_budget)
-    if not config.orchestrator_api_key:
+    settings = role_model_settings(config, "planner")
+    if not settings.configured:
         return fallback_spec(goal, target_ids, scale_budget)
 
     best: Optional[EvalSpec] = None
@@ -503,10 +503,7 @@ def plan_eval_spec(
         raw = call_llm(
             [Message(role="user", content=json.dumps(context, ensure_ascii=False, indent=2))],
             system=PLANNER_SYSTEM_PROMPT,
-            model=config.orchestrator_model,
-            api_key=config.orchestrator_api_key,
-            base_url=config.orchestrator_base_url,
-            provider=config.orchestrator_provider,
+            **settings.call_kwargs(),
             backend=config.llm_backend,
             max_tokens=8192,
         )

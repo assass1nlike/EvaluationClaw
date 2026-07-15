@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 900" role="img" aria-labelledby="title desc">
+  <title id="title">EvaluationClaw unified benchmark workflow</title>
+  <desc id="desc">A conference-paper-style diagram of one unified planning, task construction, quality control, execution, scoring, and reporting pipeline.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#425466"/>
+    </marker>
+    <marker id="repair-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b44c43"/>
+    </marker>
+    <style>
+      .title { font: 700 32px Inter, Helvetica, Arial, sans-serif; fill: #17212b; }
+      .subtitle { font: 400 19px Inter, Helvetica, Arial, sans-serif; fill: #607080; }
+      .stage { font: 700 22px Inter, Helvetica, Arial, sans-serif; fill: #18232d; }
+      .stage-small { font: 700 20px Inter, Helvetica, Arial, sans-serif; fill: #18232d; }
+      .detail { font: 400 17px Inter, Helvetica, Arial, sans-serif; fill: #526271; }
+      .module { font: 700 18px Inter, Helvetica, Arial, sans-serif; fill: #24313c; }
+      .module-detail { font: 400 16px Inter, Helvetica, Arial, sans-serif; fill: #607080; }
+      .annotation { font: 600 18px Inter, Helvetica, Arial, sans-serif; fill: #a23f37; }
+      .flow { fill: none; stroke: #425466; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .connector { fill: none; stroke: #8a99a8; stroke-width: 2; stroke-linecap: round; }
+      .repair { fill: none; stroke: #b44c43; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 7; marker-end: url(#repair-arrow); }
+      .box { stroke-width: 1.8; rx: 5; }
+    </style>
+  </defs>
+
+  <rect width="1920" height="900" fill="#ffffff"/>
+  <text x="60" y="54" class="title">EvaluationClaw: From User Goal to Evaluation Results</text>
+  <text x="60" y="86" class="subtitle">Planning → task construction → quality control → optional execution → reporting</text>
+
+  <!-- All connectors stay in whitespace and are drawn behind the modules. -->
+  <path d="M300 240 H348" class="flow"/>
+  <path d="M600 240 H648" class="flow"/>
+  <path d="M900 240 H948" class="flow"/>
+  <path d="M1220 240 H1268" class="flow"/>
+  <path d="M1520 240 H1568" class="flow"/>
+
+  <!-- Targeted repair runs above the main row and re-enters the builder from the top. -->
+  <path d="M1700 180 V142 H1090 V168" class="repair"/>
+  <text x="1395" y="130" class="annotation" text-anchor="middle">Repair only quality-control failures</text>
+
+  <!-- Main construction path. -->
+  <rect x="60" y="180" width="240" height="120" class="box" fill="#f5f7f9" stroke="#9aa8b5"/>
+  <text x="180" y="228" class="stage" text-anchor="middle">User Request</text>
+  <text x="180" y="260" class="detail" text-anchor="middle">intent + settings</text>
+
+  <rect x="360" y="180" width="240" height="120" class="box" fill="#eef4fb" stroke="#7397bd"/>
+  <text x="480" y="228" class="stage" text-anchor="middle">Evaluation Planning</text>
+  <text x="480" y="260" class="detail" text-anchor="middle">structured specification</text>
+
+  <rect x="660" y="180" width="240" height="120" class="box" fill="#eef4fb" stroke="#7397bd"/>
+  <text x="780" y="228" class="stage" text-anchor="middle">Construction Plan</text>
+  <text x="780" y="260" class="detail" text-anchor="middle">task form + count</text>
+
+  <rect x="960" y="180" width="260" height="120" class="box" fill="#eaf6f2" stroke="#5c9b86"/>
+  <text x="1090" y="226" class="stage" text-anchor="middle">One-task Construction</text>
+  <text x="1090" y="260" class="detail" text-anchor="middle">one task per call</text>
+
+  <rect x="1280" y="180" width="240" height="120" class="box" fill="#eaf6f2" stroke="#5c9b86"/>
+  <text x="1400" y="222" class="stage" text-anchor="middle">Constructed Tasks</text>
+  <text x="1400" y="258" class="detail" text-anchor="middle">packaged dataset</text>
+
+  <rect x="1580" y="180" width="240" height="120" class="box" fill="#fbefee" stroke="#bd7771"/>
+  <text x="1700" y="228" class="stage" text-anchor="middle">Quality Control</text>
+  <text x="1700" y="260" class="detail" text-anchor="middle">audit + slot repair</text>
+
+  <!-- Composed field modules sit below the builder; no process arrow crosses them. -->
+  <path d="M1090 300 V374" class="connector"/>
+  <rect x="430" y="380" width="1030" height="190" class="box" fill="#fafbfc" stroke="#b7c1ca"/>
+  <text x="945" y="416" class="module" text-anchor="middle">TASK CONTENT ADDED ONLY WHEN REQUIRED</text>
+
+  <rect x="465" y="444" width="175" height="94" class="box" fill="#ffffff" stroke="#a7b3be"/>
+  <text x="552" y="478" class="module" text-anchor="middle">Basic task</text>
+  <text x="552" y="510" class="module-detail" text-anchor="middle">instruction · scoring</text>
+
+  <rect x="660" y="444" width="175" height="94" class="box" fill="#f3f7fc" stroke="#8ca8c4"/>
+  <text x="748" y="478" class="module" text-anchor="middle">Answer-based</text>
+  <text x="748" y="510" class="module-detail" text-anchor="middle">options · reference</text>
+
+  <rect x="855" y="444" width="175" height="94" class="box" fill="#f3f7fc" stroke="#8ca8c4"/>
+  <text x="942" y="478" class="module" text-anchor="middle">Open-ended</text>
+  <text x="942" y="510" class="module-detail" text-anchor="middle">criteria · tests</text>
+
+  <rect x="1050" y="444" width="175" height="94" class="box" fill="#f1f7f5" stroke="#83a99c"/>
+  <text x="1138" y="478" class="module" text-anchor="middle">Grounding</text>
+  <text x="1138" y="510" class="module-detail" text-anchor="middle">sources · media</text>
+
+  <rect x="1245" y="444" width="180" height="94" class="box" fill="#fff8ea" stroke="#c8a568" stroke-dasharray="7 5"/>
+  <text x="1335" y="478" class="module" text-anchor="middle">Execution</text>
+  <text x="1335" y="510" class="module-detail" text-anchor="middle">environment · tools</text>
+
+  <!-- Accepted tasks leave QC through the outer lower route, below all field modules. -->
+  <path d="M1700 300 V626 H1090 V668" class="flow"/>
+  <text x="1395" y="614" class="detail" text-anchor="middle">Quality-approved tasks only</text>
+
+  <!-- Runtime and reporting path. -->
+  <path d="M1230 740 H1298" class="flow"/>
+  <path d="M1530 740 H1598" class="flow"/>
+
+  <rect x="950" y="680" width="280" height="120" class="box" fill="#f2f0f8" stroke="#8d82ae"/>
+  <text x="1090" y="726" class="stage" text-anchor="middle">Runtime Preparation</text>
+  <text x="1090" y="760" class="detail" text-anchor="middle">accepted tasks only</text>
+
+  <rect x="1310" y="680" width="220" height="120" class="box" fill="#f2f0f8" stroke="#8d82ae"/>
+  <text x="1420" y="726" class="stage" text-anchor="middle">Target Evaluation</text>
+  <text x="1420" y="760" class="detail" text-anchor="middle">responses + scores</text>
+
+  <rect x="1610" y="680" width="240" height="120" class="box" fill="#f5f7f9" stroke="#9aa8b5"/>
+  <text x="1730" y="726" class="stage" text-anchor="middle">Final Outputs</text>
+  <text x="1730" y="760" class="detail" text-anchor="middle">report + artifacts</text>
+
+  <text x="60" y="858" class="subtitle">Only quality-approved tasks continue to optional target execution and scoring.</text>
+</svg>

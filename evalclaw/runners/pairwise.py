@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 
 from ..models.llm import call_llm, call_target_model, extract_json
+from ..models.roles import role_model_settings
 from ..protocols.multimodal import build_multimodal_user_content, get_multimodal_spec
 from ..types import BenchmarkConfig, BenchmarkItem, Message, TargetModelConfig
 from .credentials import target_config_has_credentials
@@ -16,20 +17,18 @@ def _is_pairwise_judge_failure(reasoning: str | None) -> bool:
     lowered = reasoning.lower()
     return (
         "pairwise judge returned invalid json" in lowered
-        or "no orchestrator configured for pairwise judge" in lowered
+        or "no judge model configured for pairwise judge" in lowered
     )
 
 
 def _call_pairwise_judge_json(prompt: dict, config: BenchmarkConfig) -> dict | None:
+    settings = role_model_settings(config, "judge")
     messages = [Message(role="user", content=json.dumps(prompt, ensure_ascii=False, indent=2))]
     data: dict | None = None
     for _ in range(2):
         raw = call_llm(
             messages,
-            model=config.orchestrator_model,
-            api_key=config.orchestrator_api_key,
-            base_url=config.orchestrator_base_url,
-            provider=config.orchestrator_provider,
+            **settings.call_kwargs(),
             backend=config.llm_backend,
             max_tokens=1024,
         )
@@ -61,8 +60,8 @@ def judge_pairwise_preference(
     reference_response: str,
     config: BenchmarkConfig,
 ) -> tuple[float, str, str]:
-    if not config.orchestrator_api_key:
-        return 0.0, "reference", "No orchestrator configured for pairwise judge."
+    if not role_model_settings(config, "judge").configured:
+        return 0.0, "reference", "No judge model configured for pairwise judge."
     prompt = {
         "instruction": (
             "Judge a pairwise model comparison for one EvaluationClaw item. "

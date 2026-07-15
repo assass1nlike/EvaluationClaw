@@ -7,10 +7,11 @@ from typing import Any
 from ...types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
-    AgentScoringSpec,
-    AgentTask,
-    AgentTaskBlueprint,
     EvalDimension,
+    TaskBlueprint,
+    TaskDefinition,
+    TaskScoringSpec,
+    TaskType,
 )
 from ..goal_detection import _contains_any
 from .base import _agent_system_prompt, _task_id, _task_title
@@ -18,10 +19,10 @@ from .base import _agent_system_prompt, _task_id, _task_title
 
 def _data_analysis_task_for_blueprint(
     dimension: EvalDimension,
-    blueprint: AgentTaskBlueprint,
+    blueprint: TaskBlueprint,
     *,
     index: int = 1,
-) -> AgentTask:
+) -> TaskDefinition:
     env_type = (
         AgentEnvironmentType.docker_workspace
         if blueprint.environment_type == AgentEnvironmentType.docker_workspace
@@ -389,9 +390,10 @@ def _data_analysis_task_for_blueprint(
     if "workflow_manifest.json" in str(variant["prompt"]):
         expected_artifacts.append("workflow_manifest.json")
         expected_artifacts = list(dict.fromkeys(expected_artifacts))
-    return AgentTask(
+    return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
+        task_type=TaskType.agent_interaction,
         title=_task_title(blueprint, index),
         description=(
             "A data-analysis task that requires inspecting a local dataset, computing aggregate metrics, "
@@ -431,7 +433,7 @@ def _data_analysis_task_for_blueprint(
             "max_turns": 8,
             "stop_condition": "Stop when the computed analysis passes hidden tests.",
         },
-        scoring=AgentScoringSpec(
+        scoring=TaskScoringSpec(
             method="deterministic",
             instructions="Score by hidden tests checking exact computed metrics.",
             pass_criteria="All aggregate metrics are correct and derived from the provided dataset.",

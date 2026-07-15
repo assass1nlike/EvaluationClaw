@@ -1,22 +1,28 @@
-"""Resource discovery and normalization for agent benchmarks."""
+"""Resource discovery and normalization for task construction."""
 from __future__ import annotations
 
+import re
 from typing import Any
 
+from ..models.roles import role_model_settings
 from ..research.backends import format_search_result, web_search
 from ..types import (
-    AgentResource,
-    AgentTaskBlueprint,
     BenchmarkConfig,
     BenchmarkSource,
     EvalDimension,
     SourceKind,
+    TaskBlueprint,
+    TaskResource,
 )
-from .common import _slug
 
 
-def _resource_from_raw(raw: dict[str, Any], fallback_id: str) -> AgentResource:
-    return AgentResource(
+def _slug(text: str) -> str:
+    slug = re.sub(r"[^a-zA-Z0-9]+", "_", text.lower()).strip("_")
+    return slug[:48] or "task_resource"
+
+
+def _resource_from_raw(raw: dict[str, Any], fallback_id: str) -> TaskResource:
+    return TaskResource(
         id=str(raw.get("id") or fallback_id),
         kind=str(raw.get("kind") or "web"),
         uri=str(raw.get("uri") or ""),
@@ -28,28 +34,33 @@ def _resource_from_raw(raw: dict[str, Any], fallback_id: str) -> AgentResource:
     )
 
 
-def _agent_resource_from_source(source: BenchmarkSource, fallback_id: str) -> AgentResource:
-    return AgentResource(
+def _resource_from_source(source: BenchmarkSource, fallback_id: str) -> TaskResource:
+    return TaskResource(
         id=_slug(fallback_id),
         kind=source.kind.value,
         uri=source.uri,
         title=source.title,
         content_summary=source.notes[:1000],
-        notes="Discovered by agent benchmark resource search.",
+        notes="Discovered by task resource search.",
     )
 
 
 def _select_blueprint_sources(
     dimension: EvalDimension,
-    blueprint: AgentTaskBlueprint,
+    blueprint: TaskBlueprint,
     config: BenchmarkConfig,
 ) -> list[BenchmarkSource]:
-    if not config.use_web_research or not config.orchestrator_api_key:
+    settings = role_model_settings(config, "research")
+    if (
+        not dimension.needs_research
+        or not config.use_web_research
+        or not settings.configured
+    ):
         return []
     queries = blueprint.resource_queries or dimension.research_queries
     if not queries:
         queries = [
-            f"{dimension.name} {blueprint.title} agent benchmark task resources",
+            f"{dimension.name} {blueprint.title} benchmark task resources",
             f"{dimension.name} {blueprint.description} benchmark dataset",
         ]
     sources: list[BenchmarkSource] = []
@@ -57,8 +68,8 @@ def _select_blueprint_sources(
     for query in queries[:2]:
         result = web_search(
             query,
-            api_key=config.orchestrator_api_key,
-            model=config.orchestrator_model,
+            api_key=settings.api_key,
+            model=settings.model,
             backend=config.search_backend,
         )
         if not result:
@@ -82,8 +93,8 @@ def _select_blueprint_sources(
     return sources
 
 
-def _dedupe_agent_resources(resources: list[AgentResource]) -> list[AgentResource]:
-    deduped: list[AgentResource] = []
+def _dedupe_resources(resources: list[TaskResource]) -> list[TaskResource]:
+    deduped: list[TaskResource] = []
     seen: set[tuple[str, str, str]] = set()
     used_ids: set[str] = set()
     for resource in resources:

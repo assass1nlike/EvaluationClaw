@@ -6,10 +6,11 @@ import json
 from ...types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
-    AgentScoringSpec,
-    AgentTask,
-    AgentTaskBlueprint,
     EvalDimension,
+    TaskBlueprint,
+    TaskDefinition,
+    TaskScoringSpec,
+    TaskType,
 )
 from ..goal_detection import (
     _contains_any,
@@ -149,10 +150,10 @@ def _industrial_hidden_evaluator(
 
 def _gui_desktop_task_for_blueprint(
     dimension: EvalDimension,
-    blueprint: AgentTaskBlueprint,
+    blueprint: TaskBlueprint,
     *,
     index: int = 1,
-) -> AgentTask:
+) -> TaskDefinition:
     blueprint_text = " ".join(
         [dimension.id, dimension.name, dimension.description, dimension.approach, blueprint.title, blueprint.description]
     ).lower()
@@ -1229,9 +1230,10 @@ def _gui_desktop_task_for_blueprint(
         }
         tags = ["gui_desktop", "file_manager", "bridge"]
 
-    return AgentTask(
+    return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
+        task_type=TaskType.agent_interaction,
         title=_task_title(blueprint, index),
         description=(
             "A bridge-backed GUI desktop task. The target agent must inspect screenshots and operate the "
@@ -1259,7 +1261,7 @@ def _gui_desktop_task_for_blueprint(
             "max_turns": 24,
             "stop_condition": "Stop when the bridge evaluation reports completion or the step limit is reached.",
         },
-        scoring=AgentScoringSpec(
+        scoring=TaskScoringSpec(
             method="deterministic",
             instructions="Score using the GUI desktop bridge evaluation contract in environment.evaluation.",
             pass_criteria=str(evaluation["pass_criteria"]),

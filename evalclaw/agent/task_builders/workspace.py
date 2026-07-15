@@ -4,20 +4,21 @@ from __future__ import annotations
 from ...types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
-    AgentScoringSpec,
-    AgentTask,
-    AgentTaskBlueprint,
     EvalDimension,
+    TaskBlueprint,
+    TaskDefinition,
+    TaskScoringSpec,
+    TaskType,
 )
 from .base import _agent_system_prompt, _task_id, _task_title
 
 
 def _workspace_task_for_blueprint(
     dimension: EvalDimension,
-    blueprint: AgentTaskBlueprint,
+    blueprint: TaskBlueprint,
     *,
     index: int = 1,
-) -> AgentTask:
+) -> TaskDefinition:
     variants = [
         {
             "prompt": (
@@ -78,9 +79,10 @@ def _workspace_task_for_blueprint(
     ]
     variant_offset = sum(ord(char) for char in dimension.id) % len(variants)
     variant = variants[(variant_offset + index - 1) % len(variants)]
-    return AgentTask(
+    return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
+        task_type=TaskType.agent_interaction,
         title=_task_title(blueprint, index),
         description=(
             "A deterministic stateful workspace task with distractors. The target agent must inspect "
@@ -102,7 +104,7 @@ def _workspace_task_for_blueprint(
             "max_turns": 8,
             "stop_condition": "Stop when required items are in the outgoing bin or the step limit is reached.",
         },
-        scoring=AgentScoringSpec(
+        scoring=TaskScoringSpec(
             method="deterministic",
             instructions=(
                 "Use deterministic environment scoring: full credit for placing all required items and no wrong "

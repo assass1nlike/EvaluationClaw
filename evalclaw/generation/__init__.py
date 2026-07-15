@@ -1,17 +1,11 @@
-"""Dataset and item generation support modules."""
+"""Item-generation support used by the general task constructor."""
 
 from .generator import (
-    generate_dataset,
-    generate_dataset_with_progress,
     generate_dimension_items,
-    generate_questions,
     target_count_for_dimension,
 )
 
 __all__ = [
-    "generate_dataset",
-    "generate_dataset_with_progress",
     "generate_dimension_items",
-    "generate_questions",
     "target_count_for_dimension",
 ]

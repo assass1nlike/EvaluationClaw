@@ -8,6 +8,7 @@ from collections import defaultdict
 from typing import Any, Callable
 
 from ..models.llm import call_llm, call_target_model, extract_json
+from ..models.roles import role_model_settings
 from ..protocols.multimodal import (
     build_multimodal_user_content,
     get_multimodal_spec,
@@ -189,7 +190,7 @@ def _is_judge_failure(reasoning: str | None) -> bool:
     if not reasoning:
         return False
     lowered = reasoning.lower()
-    return "judge returned invalid json" in lowered or "no orchestrator configured for llm judge" in lowered
+    return "judge returned invalid json" in lowered or "no judge model configured" in lowered
 
 
 def _score_short_answer(response: str, answer: str | None) -> float:
@@ -205,15 +206,13 @@ def _score_short_answer(response: str, answer: str | None) -> float:
 
 
 def _call_judge_json(prompt: dict, config: BenchmarkConfig) -> dict | None:
+    settings = role_model_settings(config, "judge")
     messages = [Message(role="user", content=json.dumps(prompt, ensure_ascii=False, indent=2))]
     data: dict | None = None
     for _ in range(2):
         raw = call_llm(
             messages,
-            model=config.orchestrator_model,
-            api_key=config.orchestrator_api_key,
-            base_url=config.orchestrator_base_url,
-            provider=config.orchestrator_provider,
+            **settings.call_kwargs(),
             backend=config.llm_backend,
             max_tokens=1024,
         )
@@ -332,8 +331,8 @@ def _judge_item(item: BenchmarkItem, response: str, config: BenchmarkConfig) -> 
             return 0.0, "Task agent judge returned invalid JSON."
         score, reason = _score_from_judge_data(data)
         return score, f"task_agent_judge: {reason}"
-    if not config.orchestrator_api_key:
-        return 0.0, "No orchestrator configured for LLM judge."
+    if not role_model_settings(config, "judge").configured:
+        return 0.0, "No judge model configured."
 
     base_prompt = {
         "instruction": "Score the model response from 1 to 5 using the rubric. Return JSON only.",
@@ -403,7 +402,8 @@ def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[
         return scripted
     if get_task_agent_spec(item):
         return []
-    if not config.orchestrator_api_key:
+    settings = role_model_settings(config, "judge")
+    if not settings.configured:
         return []
     prompt = {
         "instruction": "Generate 1-3 short user follow-up turns for this multi-turn evaluation. Return JSON only.",
@@ -412,10 +412,7 @@ def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[
     }
     raw = call_llm(
         [Message(role="user", content=json.dumps(prompt, ensure_ascii=False, indent=2))],
-        model=config.orchestrator_model,
-        api_key=config.orchestrator_api_key,
-        base_url=config.orchestrator_base_url,
-        provider=config.orchestrator_provider,
+        **settings.call_kwargs(),
         backend=config.llm_backend,
         max_tokens=1024,
     )

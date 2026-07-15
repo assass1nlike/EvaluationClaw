@@ -62,7 +62,7 @@ Return pure JSON only, with no markdown. Format:
         "target_source_backed_count": 1,
         "target_generated_count": 3,
         "task_types": ["multiple_choice", "open_generation"],
-        "item_requirements": ["What the item-generation worker must test and avoid."]
+        "item_requirements": ["What the task builder must test and avoid."]
       }
     ]
   },
@@ -80,7 +80,7 @@ Requirements:
   dimensions, MID around 3-5, and HIGH around 4-7 when justified.
 - For every dimension, plan the desired item count, source-backed/generated
   allocation, task types, and concrete item_requirements. These requirements are
-  handed to item-generation/search workers, so be specific about what each
+  handed to the task builder and resource discovery, so be specific about what each
   dimension must test, what counts as off-target, and what scoring metadata is
   required.
 - Keep task_types feasible for the planned item count. If a dimension has only
@@ -112,7 +112,7 @@ Requirements:
   wins, ties, or loses against the reference. Use pairwise_preference only when
   target-vs-reference comparison is meaningful for the user's objective.
 - If a dimension uses multi_turn or agent_interaction, its item_requirements
-  must explicitly tell the item-generation worker to create metadata.task_agent
+  must explicitly tell the task builder to create metadata.task_agent
   as the standardized task-agent JSON object. Keep requirements compatible with
   the schema: system_prompt should be concise and limited to role, secrecy, and
   turn policy; files, repository state, environment config, tests, commands, and
