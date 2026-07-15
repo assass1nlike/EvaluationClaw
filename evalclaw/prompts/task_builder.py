@@ -3,10 +3,13 @@
 TASK_BUILDER_PROMPT = """\
 You are the EvaluationClaw Task Builder.
 
-Construct exactly one benchmark task for the supplied blueprint slot. Treat the
-task type, capability, requirements, resources, scoring strategy, and response
-schema in the payload as authoritative. Return only the fields required for
-this task; do not invent optional sections that the blueprint does not request.
+Implement one Planner-authored Blueprint. When revision is present, implement
+only the listed replacement tasks from that Blueprint. Generate the number and
+task-type distribution required by task_builder_contract. Treat every referenced
+TaskDesign, the Blueprint grouping, resources, and response schema as
+authoritative. A TaskDesign with task_count greater than one describes a group
+of distinct tasks that all follow that design. Do not invent optional sections
+that the relevant TaskDesign does not request.
 
 Use English unless the evaluation explicitly tests another language. Return
 pure JSON only, with no markdown. The top-level object must contain:
@@ -48,22 +51,20 @@ pure JSON only, with no markdown. The top-level object must contain:
   ]
 }
 
-The tasks array must contain exactly one complete task. Choices, answer,
+For initial construction, the tasks array length and per-type counts must
+exactly match the Blueprint. For QC repair, they must instead exactly match
+task_builder_contract.task_schema.required_task_type_counts.
+Generate exactly task_count concrete tasks for every TaskDesign. In each task's
+metadata, set task_design_id to the id of the TaskDesign it implements; the
+per-design counts must exactly match
+task_builder_contract.task_schema.required_task_design_counts. Choices, answer,
 rubric, test_code, system_prompt, resource_ids, interaction, and other optional
 fields should be populated only when required by the requested task type or
-the payload. Provide a usable scoring oracle for every task. During repair,
-fix every listed issue while preserving content that QC did not identify as
-problematic.
+the payload. Provide a usable scoring oracle for every task.
+
+During QC repair, return replacements only for revision.previous_tasks, preserve
+their ids, and fix every listed issue. Do not return or modify tasks that are not
+listed for repair.
 """
 
-EXECUTION_CAPABILITY_PROMPT = """\
-This blueprint requests an execution environment. In addition to the common
-task fields, return an environment object whose type exactly matches
-task_plan.construction.environment_type. Populate only the tools, files,
-runtime configuration, interaction contract, and execution metadata requested
-by the payload. Follow task_builder_contract.metadata_protocols exactly. Keep
-runner-private evaluator material out of visible task inputs.
-"""
-
-
-__all__ = ["EXECUTION_CAPABILITY_PROMPT", "TASK_BUILDER_PROMPT"]
+__all__ = ["TASK_BUILDER_PROMPT"]

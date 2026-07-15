@@ -56,6 +56,12 @@ def _manager(value: Any) -> str:
         "shell": "command",
         "sh": "command",
         "bash": "command",
+        "powershell": "powershell",
+        "pwsh": "powershell",
+        "ps1": "powershell",
+        "chocolatey": "choco",
+        "windows-feature": "windows_feature",
+        "windows-features": "windows_feature",
     }
     return aliases.get(raw, raw)
 
@@ -275,6 +281,91 @@ def render_install_commands(config: dict[str, Any]) -> list[str]:
             commands.append(f"composer global require {_quoted_packages(packages)}")
 
     commands.extend(string_list(config.get("desktop_bridge_install_command") or config.get("bridge_install_command")))
+    commands.extend(string_list(config.get("commands") or config.get("run_commands")))
+    commands.extend(string_list(config.get("bootstrap_commands") or config.get("runcmd")))
+    commands.extend(string_list(config.get("desktop_bridge_start_command") or config.get("bridge_start_command")))
+    return list(dict.fromkeys(commands))
+
+
+def _powershell_quote(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
+
+
+def render_windows_install_commands(config: dict[str, Any]) -> list[str]:
+    """Render Windows VM provisioning as PowerShell commands."""
+    commands: list[str] = []
+    winget_packages = packages_for_manager(config, "winget", "winget_packages")
+    choco_packages = packages_for_manager(
+        config,
+        "choco",
+        "choco_packages",
+        "chocolatey_packages",
+    )
+    windows_features = packages_for_manager(config, "windows_feature", "windows_features")
+    pip_packages = packages_for_manager(config, "pip", "pip_packages", "python_packages")
+    npm_packages = packages_for_manager(config, "npm", "npm_packages", "node_packages")
+
+    for package in winget_packages:
+        quoted = _powershell_quote(package)
+        commands.append(
+            f"winget install --id {quoted} --exact --silent "
+            "--accept-package-agreements --accept-source-agreements"
+        )
+    if choco_packages:
+        commands.append("choco install -y " + " ".join(_powershell_quote(p) for p in choco_packages))
+    for feature in windows_features:
+        commands.append(
+            "Enable-WindowsOptionalFeature -Online -All -NoRestart -FeatureName "
+            + _powershell_quote(feature)
+        )
+    if pip_packages:
+        args = " ".join(_powershell_quote(package) for package in pip_packages)
+        commands.append(
+            "if (Get-Command py -ErrorAction SilentlyContinue) { "
+            f"& py -3 -m pip install {args} "
+            "} elseif (Get-Command python -ErrorAction SilentlyContinue) { "
+            f"& python -m pip install {args} "
+            "} else { throw 'Python is required for pip_packages' }"
+        )
+    if npm_packages:
+        commands.append("npm install -g " + " ".join(_powershell_quote(p) for p in npm_packages))
+
+    rendered_managers = {
+        manager
+        for manager, packages in (
+            ("winget", winget_packages),
+            ("choco", choco_packages),
+            ("windows_feature", windows_features),
+            ("pip", pip_packages),
+            ("npm", npm_packages),
+        )
+        if packages
+    }
+    for step in _install_steps(config):
+        manager = _manager(step.get("manager") or step.get("type"))
+        if manager in {"command", "powershell"}:
+            commands.extend(_step_commands(step))
+            continue
+        packages = _step_packages(step)
+        if not packages or manager in rendered_managers:
+            continue
+        if manager == "winget":
+            for package in packages:
+                commands.append(
+                    f"winget install --id {_powershell_quote(package)} --exact --silent "
+                    "--accept-package-agreements --accept-source-agreements"
+                )
+        elif manager == "choco":
+            commands.append("choco install -y " + " ".join(_powershell_quote(p) for p in packages))
+        elif manager == "windows_feature":
+            commands.extend(
+                "Enable-WindowsOptionalFeature -Online -All -NoRestart -FeatureName "
+                + _powershell_quote(package)
+                for package in packages
+            )
+
+    commands.extend(string_list(config.get("desktop_bridge_install_command") or config.get("bridge_install_command")))
+    commands.extend(string_list(config.get("powershell_commands") or config.get("powershell_script")))
     commands.extend(string_list(config.get("commands") or config.get("run_commands")))
     commands.extend(string_list(config.get("bootstrap_commands") or config.get("runcmd")))
     commands.extend(string_list(config.get("desktop_bridge_start_command") or config.get("bridge_start_command")))

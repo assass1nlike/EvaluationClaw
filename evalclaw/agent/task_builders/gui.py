@@ -174,6 +174,7 @@ def _gui_desktop_task_for_blueprint(
     vm_spec = {
         "isolation": "fresh_snapshot",
         "image": "evalclaw-gui-ubuntu-22.04",
+        "guest_os": "linux",
         "snapshot": "clean",
         "display": {"width": 1280, "height": 900, "scale": 1.0},
         "network": "restricted",
@@ -687,6 +688,19 @@ def _gui_desktop_task_for_blueprint(
             },
             "artifacts_dir": "Desktop/exports",
         }
+        session["baseline_checks"] = [
+            {
+                "id": "industrial_software_available",
+                "method": "command_succeeds",
+                "command": " && ".join(f"command -v {app_commands[application]}" for application in applications),
+            },
+            {
+                "id": "desktop_bridge_ready",
+                "method": "file_contains",
+                "path": "/opt/evalclaw/bridge/status.txt",
+                "expected": "bridge-ready",
+            },
+        ]
         evaluation = {
             "method": "industrial_multi_app_artifact_check",
             "expected_artifacts": expected_artifacts,

@@ -67,7 +67,7 @@ metadata.multimodal as a JSON object using schema_version evalclaw.multimodal.v1
 
 Required fields:
 - schema_version: evalclaw.multimodal.v1
-- modalities: list such as ["image"], ["image", "text"], ["audio"], or ["video"]
+- modalities: ["image"] or ["image", "text"]; the current target adapter does not send audio or video natively
 - assets: list of media assets with stable ids and source information
 - content: ordered multimodal prompt parts; use text parts and asset references
 - scoring: the scoring guidance for the item, including rubric or pass/fail rules

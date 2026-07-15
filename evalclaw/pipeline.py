@@ -112,6 +112,14 @@ def run_pipeline(
 ) -> BenchmarkPackage:
     """Run preparation -> unified construction/QC -> execution -> reporting."""
     reset_network_state()
+    if config.output_dir and not config.task_builder_debug_dir:
+        config = config.model_copy(
+            update={
+                "task_builder_debug_dir": str(
+                    Path(config.output_dir) / "debug" / "task-builder"
+                )
+            }
+        )
     original_goal = goal
     goal = translate_goal_to_english(goal, config)
     if goal != original_goal:
@@ -137,6 +145,7 @@ def run_pipeline(
         config,
         log=log,
     )
+    benchmark_plan = dataset.plan
     log(f"  Final dimensions: {len(spec.dimensions)}")
     log(f"  Final items: {len(dataset.items)}")
     log(f"  Sources used: {len(dataset.sources)}")
@@ -156,6 +165,7 @@ def run_pipeline(
                 break
             log("\n[Human Review] Applying user feedback...")
             spec, dataset, qc_report = apply_human_review_feedback(dataset, qc_report, config, feedback, log=log)
+            benchmark_plan = dataset.plan or benchmark_plan
             log(f"  Revised dimensions: {len(spec.dimensions)}")
             log(f"  Revised items: {len(dataset.items)}")
             log(f"  Revised average QC issues: {_average_qc_issues(qc_report, len(dataset.items)):.2f}")
@@ -226,6 +236,7 @@ def run_pipeline(
     pkg = BenchmarkPackage(
         goal=goal,
         spec=spec,
+        plan=benchmark_plan,
         dataset=dataset,
         qc_report=qc_report,
         run=run,

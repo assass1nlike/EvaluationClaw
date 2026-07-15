@@ -2,7 +2,11 @@ import base64
 from pathlib import Path
 
 from evalclaw.execution.environment_claw import run_environment_claw
-from evalclaw.execution.vm_materializer import VmTaskMaterializationResult, materialize_vm_task
+from evalclaw.execution.vm_materializer import (
+    VmTaskMaterializationError,
+    VmTaskMaterializationResult,
+    materialize_vm_task,
+)
 from evalclaw.execution.vm_provider import VmProviderStatus
 from evalclaw.types import BenchmarkConfig, BenchmarkItem, TaskType
 
@@ -111,7 +115,83 @@ def test_materialize_vm_task_preserves_explicit_seed_iso(monkeypatch, tmp_path) 
     assert result.applied is False
     assert result.seed_iso == str(existing_seed)
     assert item.metadata["agent_env"]["vm"]["seed_iso"] == str(existing_seed)
-    assert item.metadata["agent_env"]["vm_materialization"]["skipped_reason"] == "existing vm.seed_iso/cloud_init_iso preserved"
+    assert item.metadata["agent_env"]["vm_materialization"]["skipped_reason"] == "existing VM config-drive ISO preserved"
+
+
+def test_materialize_windows_vm_uses_cloudbase_init_powershell(monkeypatch, tmp_path) -> None:
+    def fake_build_seed_iso(seed_dir: Path, iso_path: Path, *, timeout: int = 60) -> None:
+        iso_path.write_bytes(b"fake windows iso")
+
+    monkeypatch.setattr("evalclaw.execution.vm_materializer._build_seed_iso", fake_build_seed_iso)
+    item = BenchmarkItem(
+        id="windows_hidden_fault",
+        dimension_id="vm",
+        task_type=TaskType.agent_interaction,
+        prompt="Repair the hidden Windows configuration fault.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "windows-11-cloudbase", "guest_os": "windows"},
+                "visible_files": {"Desktop/readme.txt": "Inspect the workstation."},
+                "hidden_files": {"expected/registry.json": '{"enabled": true}'},
+                "vm_provisioning": {
+                    "choco_packages": ["sysinternals"],
+                    "windows_features": ["TelnetClient"],
+                    "powershell_commands": [
+                        "New-Item -Path 'HKLM:\\Software\\EvalClaw' -Force | Out-Null",
+                        "Set-ItemProperty -Path 'HKLM:\\Software\\EvalClaw' -Name Broken -Value 1",
+                    ],
+                },
+            }
+        },
+    )
+
+    result = materialize_vm_task(item, work_dir=tmp_path)
+    user_data = Path(result.work_dir, "seed", "user-data").read_text(encoding="utf-8")
+
+    assert result.applied is True
+    assert result.guest_os == "windows"
+    assert result.strategy == "cloudbase_init.nocloud.v1"
+    assert user_data.startswith("#ps1_sysnative")
+    assert r"C:\Users\Public\Desktop\readme.txt" in user_data
+    assert r"C:\ProgramData\EvalClaw\task\private\hidden_references\expected\registry.json" in user_data
+    assert base64.b64encode(b"Inspect the workstation.").decode("ascii") in user_data
+    assert "choco install -y 'sysinternals'" in user_data
+    assert "Enable-WindowsOptionalFeature" in user_data
+    assert "Set-ItemProperty -Path 'HKLM:\\Software\\EvalClaw'" in user_data
+    assert r"C:\ProgramData\EvalClaw\vm-provisioned" in user_data
+    assert r"C:\ProgramData\EvalClaw\vm-materialized" in user_data
+    env = item.metadata["agent_env"]
+    assert env["vm"]["seed_iso"] == result.seed_iso
+    assert env["vm"]["config_drive_type"] == "nocloud"
+    baseline_paths = {check["path"] for check in env["session"]["baseline_checks"]}
+    assert r"C:\ProgramData\EvalClaw\vm-materialized" in baseline_paths
+    assert r"C:\ProgramData\EvalClaw\vm-provisioned" in baseline_paths
+
+
+def test_windows_vm_rejects_linux_only_provisioning(tmp_path) -> None:
+    item = BenchmarkItem(
+        id="windows_bad_packages",
+        dimension_id="vm",
+        task_type=TaskType.agent_interaction,
+        prompt="Use the Windows VM.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "windows-base", "guest_os": "windows"},
+                "vm_provisioning": {"apt_packages": ["curl"]},
+            }
+        },
+    )
+
+    try:
+        materialize_vm_task(item, work_dir=tmp_path)
+    except VmTaskMaterializationError as exc:
+        assert "apt_packages" in str(exc)
+    else:
+        raise AssertionError("Windows provisioning should reject Linux-only package fields")
 
 
 def test_materialize_vm_task_adds_cloud_init_vm_provisioning(monkeypatch, tmp_path) -> None:

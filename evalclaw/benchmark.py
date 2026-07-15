@@ -74,54 +74,38 @@ def _revision_contexts(
                 if task.dimension_id == dimension_id
             ],
             "instruction": (
-                "Repair only task slots named by the listed QC issues. Fix every listed problem, "
-                "but preserve prompts, answers, rubrics, tests, resources, optional execution fields, "
-                "scoring, and metadata that QC did not identify as problematic."
+                "Return replacements only for task ids named by the listed QC issues. Fix every "
+                "listed problem and preserve each affected task id. Do not return or modify any "
+                "QC-passed task, including other tasks from the same Blueprint."
             ),
         }
     return contexts
 
 
-def _dedupe_resources(resources: list[TaskResource]) -> list[TaskResource]:
-    result: list[TaskResource] = []
-    seen: set[tuple[str, str, str]] = set()
-    for resource in resources:
-        key = (resource.kind, resource.uri, resource.title)
-        if key not in seen:
-            seen.add(key)
-            result.append(resource)
-    return result
+def _merge_repaired_resources(
+    previous: list[TaskResource],
+    repaired: list[TaskResource],
+) -> list[TaskResource]:
+    replacements = {resource.id: resource for resource in repaired}
+    merged = [replacements.pop(resource.id, resource) for resource in previous]
+    merged.extend(replacements.values())
+    return merged
 
 
 def _merge_repaired_suite(
     previous: TaskSuite,
     repaired: TaskSuite,
-    affected_ids: set[str],
 ) -> TaskSuite:
-    tasks = [
-        task
-        for task in previous.tasks
-        if task.metadata.get("builder_blueprint_id") not in affected_ids
-    ]
-    tasks.extend(repaired.tasks)
-    blueprint_order = {
-        blueprint.id: index
-        for index, blueprint in enumerate(previous.blueprints)
-    }
-    tasks.sort(
-        key=lambda task: (
-            blueprint_order.get(
-                str(task.metadata.get("builder_blueprint_id") or ""),
-                len(blueprint_order),
-            ),
-            int(task.metadata.get("builder_task_index") or 0),
-            task.id,
-        )
-    )
+    replacements = {task.id: task for task in repaired.tasks}
+    tasks = [replacements.pop(task.id, task) for task in previous.tasks]
+    tasks.extend(replacements.values())
     return previous.model_copy(
         update={
             "tasks": tasks,
-            "resources": _dedupe_resources([*previous.resources, *repaired.resources]),
+            "resources": _merge_repaired_resources(
+                previous.resources,
+                repaired.resources,
+            ),
             "construction_notes": (
                 previous.construction_notes.rstrip()
                 + "\nQC repair: "
@@ -137,14 +121,16 @@ def build_benchmark_dataset_with_qc_loop(
     *,
     log: Callable[[str], None] = print,
 ) -> tuple[EvalSpec, BenchmarkDataset, QcReport]:
-    """Plan and build every task through the same one-task-per-call builder."""
-    spec, blueprints = plan_benchmark(goal, config, log=log)
+    """Plan adaptive Blueprints and build each through one Builder call."""
+    plan = plan_benchmark(goal, config, log=log)
+    spec = plan.to_eval_spec()
     dataset, qc_report = build_dataset_from_spec_with_qc_loop(
         spec,
-        blueprints,
+        plan.blueprints,
         config,
         log=log,
     )
+    dataset.plan = plan
     return spec, dataset, qc_report
 
 
@@ -187,7 +173,7 @@ def build_dataset_from_spec_with_qc_loop(
             ),
             log=log,
         )
-        suite = _merge_repaired_suite(suite, repaired, affected_ids)
+        suite = _merge_repaired_suite(suite, repaired)
         dataset = task_suite_to_dataset(suite, spec, config)
         qc_report = run_qc_gate(dataset, config)
         log(f"  QC after repair round {repair_round}: {qc_report.summary}")

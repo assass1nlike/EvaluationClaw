@@ -60,6 +60,43 @@ def _rubric_answer_letter(rubric: str | None) -> str | None:
             return match.group(1).upper()
     return None
 
+
+def _rubric_has_explicit_self_correction(rubric: str | None) -> bool:
+    if not rubric:
+        return False
+    return bool(
+        re.search(
+            r"\bcorrect\s+answer\b[\s\S]*?\bactually\b[\s\S]*?\b(?:so|therefore)\b[\s\S]*?\banswer\b",
+            rubric,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _item_environment_has_evaluator(item: BenchmarkItem) -> bool:
+    env = item.metadata.get("agent_env") if isinstance(item.metadata, dict) else None
+    if not isinstance(env, dict):
+        return False
+    env_type = str(env.get("type") or "")
+    if env_type in {"code_sandbox", "docker_workspace"}:
+        return bool(str(env.get("test_command") or "").strip())
+    if env_type == "workspace":
+        workspace = env.get("workspace") if isinstance(env.get("workspace"), dict) else env
+        goal = workspace.get("goal") if isinstance(workspace, dict) else None
+        return isinstance(goal, dict) and bool(goal.get("outgoing_bin"))
+    if env_type == "gui_desktop":
+        evaluation = env.get("evaluation")
+        if not isinstance(evaluation, dict):
+            return False
+        if isinstance(evaluation.get("checks"), list) and evaluation["checks"]:
+            return True
+        return any(
+            str(evaluation.get(key) or "").strip()
+            for key in ("method", "evaluator", "command", "pass_criteria", "fail_criteria")
+        )
+    return False
+
+
 def _task_structure_prevalidated(item: BenchmarkItem) -> bool:
     validation = item.metadata.get("task_structure_validation") if isinstance(item.metadata, dict) else None
     return isinstance(validation, dict) and validation.get("status") == "passed"
@@ -126,22 +163,44 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     "Fix the answer key or rewrite the rubric before running this item.",
                 )
             )
-    if item.task_type == TaskType.yes_no and (item.answer or "").lower() not in {"yes", "no"}:
+    if item.task_type == TaskType.yes_no and (item.answer or "").strip().lower() not in {"yes", "no"}:
         issues.append(
             _issue(item.id, QcSeverity.error, QcCategory.scoring, "Yes/no item answer must be yes or no.")
         )
-    if (
-        item.task_type
-        in {TaskType.open_generation, TaskType.multi_turn, TaskType.agent_interaction, TaskType.pairwise_preference}
-        and not item.rubric
+    if item.task_type in {TaskType.open_generation, TaskType.multi_turn} and not (
+        item.rubric or item.answer
     ):
         issues.append(
             _issue(
                 item.id,
                 QcSeverity.error,
                 QcCategory.scoring,
-                "Open, multi-turn, agent, or pairwise item lacks a rubric.",
-                "Add a concrete scoring rubric or deterministic environment scoring note.",
+                "Open or multi-turn item lacks a reference answer or scoring rubric.",
+                "Add a concrete reference answer or rubric for the judge.",
+            )
+        )
+    if item.task_type == TaskType.pairwise_preference and not item.rubric:
+        issues.append(
+            _issue(
+                item.id,
+                QcSeverity.error,
+                QcCategory.scoring,
+                "Pairwise preference item lacks comparison criteria.",
+                "Add a rubric that tells the judge how to compare target and reference responses.",
+            )
+        )
+    if (
+        item.task_type == TaskType.agent_interaction
+        and not item.rubric
+        and not _item_environment_has_evaluator(item)
+    ):
+        issues.append(
+            _issue(
+                item.id,
+                QcSeverity.error,
+                QcCategory.scoring,
+                "Agent interaction item has neither scoring guidance nor an executable environment evaluator.",
+                "Add task scoring criteria or a runtime evaluator that scores the resulting state or artifacts.",
             )
         )
     task_structure_prevalidated = _task_structure_prevalidated(item)
@@ -213,6 +272,25 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     "List the modalities used by this item, such as image, audio, or video.",
                 )
             )
+        else:
+            unsupported_modalities = sorted(
+                {
+                    str(modality).strip().lower()
+                    for modality in modalities
+                    if str(modality).strip().lower() not in {"text", "image"}
+                }
+            )
+            if unsupported_modalities:
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.error,
+                        QcCategory.schema,
+                        "Native multimodal execution currently supports image assets, not: "
+                        + ", ".join(unsupported_modalities),
+                        "Use image/text input or add a runner adapter that sends the requested modality natively.",
+                    )
+                )
         assets = multimodal.get("assets")
         if not isinstance(assets, list) or not assets:
             issues.append(
@@ -224,6 +302,63 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     "Add at least one media asset with an id and source information.",
                 )
             )
+            asset_ids: set[str] = set()
+        else:
+            asset_ids = set()
+            for index, asset in enumerate(assets, 1):
+                if not isinstance(asset, dict):
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.schema,
+                            f"Multimodal asset #{index} must be an object.",
+                        )
+                    )
+                    continue
+                asset_id = str(asset.get("id") or "").strip()
+                if not asset_id:
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.schema,
+                            f"Multimodal asset #{index} lacks a stable id.",
+                        )
+                    )
+                elif asset_id in asset_ids:
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.schema,
+                            f"Multimodal asset id {asset_id!r} is duplicated.",
+                        )
+                    )
+                else:
+                    asset_ids.add(asset_id)
+                if not str(asset.get("kind") or "").strip():
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.schema,
+                            f"Multimodal asset {asset_id or index!r} lacks a kind.",
+                        )
+                    )
+                if not any(
+                    str(asset.get(key) or "").strip()
+                    for key in ("uri", "path", "data_uri")
+                ):
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.schema,
+                            f"Multimodal asset {asset_id or index!r} has no resolvable source.",
+                            "Set uri, path, or data_uri so the runner can load the asset.",
+                        )
+                    )
         content = multimodal.get("content")
         if content is not None and not isinstance(content, list):
             issues.append(
@@ -235,19 +370,31 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     "Use ordered multimodal content blocks with text and asset references.",
                 )
             )
-    if item.rubric:
-        rubric_lower = item.rubric.lower()
-        contradiction_markers = ("actually", "careful", "extraneous", "undefined", "not in domain", "however")
-        if "correct answer" in rubric_lower and any(marker in rubric_lower for marker in contradiction_markers):
-            issues.append(
-                _issue(
-                    item.id,
-                    QcSeverity.error,
-                    QcCategory.scoring,
-                    "Rubric appears to contain a self-correction or contradictory reference answer.",
-                    "Rewrite the rubric so the reference answer is unambiguous and domain restrictions are explicit.",
-                )
+        elif isinstance(content, list):
+            for part in content:
+                if not isinstance(part, dict) or str(part.get("type") or "").lower() != "asset":
+                    continue
+                asset_id = str(part.get("asset_id") or part.get("assetId") or "").strip()
+                if not asset_id or asset_id not in asset_ids:
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.schema,
+                            f"Multimodal content references unknown asset {asset_id or '<missing>'!r}.",
+                            "Reference one of metadata.multimodal.assets by its stable id.",
+                        )
+                    )
+    if _rubric_has_explicit_self_correction(item.rubric):
+        issues.append(
+            _issue(
+                item.id,
+                QcSeverity.error,
+                QcCategory.scoring,
+                "Rubric appears to contain a self-correction or contradictory reference answer.",
+                "Rewrite the rubric so the reference answer is unambiguous and domain restrictions are explicit.",
             )
+        )
     for message in science_metadata_issues(item):
         issues.append(
             _issue(
@@ -267,10 +414,21 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                 "Short-answer item needs an exact answer or rubric.",
             )
         )
-    if item.task_type == TaskType.code_execution and not item.test_code:
-        issues.append(
-            _issue(item.id, QcSeverity.error, QcCategory.scoring, "Code execution item lacks test_code.")
-        )
+    if item.task_type == TaskType.code_execution:
+        if not item.test_code:
+            issues.append(
+                _issue(item.id, QcSeverity.error, QcCategory.scoring, "Code execution item lacks test_code.")
+            )
+        elif "{model_output}" not in item.test_code:
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.scoring,
+                    "Code execution test_code does not consume the model response.",
+                    "Reference the response through the literal {model_output} placeholder.",
+                )
+            )
     if item.task_type == TaskType.agent_interaction:
         env = item.metadata.get("agent_env")
         if not isinstance(env, dict):
@@ -311,64 +469,85 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                         "Move setup-only server/application assets to runtime_files.",
                     )
                 )
-        if task_structure_prevalidated:
-            return issues
-        if isinstance(env, dict) and env.get("type") == "code_sandbox":
-            hidden_files = env.get("hidden_files")
-            visible_files = env.get("visible_files") or env.get("files")
-            if not isinstance(visible_files, dict):
+        if not task_structure_prevalidated and isinstance(env, dict):
+            env_type = str(env.get("type") or "")
+            if env.get("tools"):
                 issues.append(
                     _issue(
                         item.id,
                         QcSeverity.error,
                         QcCategory.schema,
-                        "Code sandbox agent item needs metadata.agent_env.visible_files or files.",
+                        "metadata.agent_env.tools cannot create executable custom tools.",
+                        "Use the selected runtime's supported structured configuration and tool surface.",
                     )
                 )
-            if not isinstance(hidden_files, dict) and not env.get("test_command"):
-                issues.append(
-                    _issue(
-                        item.id,
-                        QcSeverity.warning,
-                        QcCategory.scoring,
-                        "Code sandbox item has no hidden_files and no explicit test_command.",
-                        "Add hidden tests or a deterministic test command.",
-                    )
-                )
-        if isinstance(env, dict) and env.get("type") == "gui_desktop":
-            session = env.get("session")
-            evaluation = env.get("evaluation")
-            vm = env.get("vm")
-            if not isinstance(session, dict) or not session:
-                issues.append(
-                    _issue(
-                        item.id,
-                        QcSeverity.error,
-                        QcCategory.schema,
-                        "GUI desktop agent item needs metadata.agent_env.session.",
-                        "Add session.application, launch/start state, input assets, expected artifacts, and task restrictions.",
-                    )
-                )
-            if not isinstance(evaluation, dict) or not evaluation:
+            if env_type in {"code_sandbox", "docker_workspace"} and not str(
+                env.get("test_command") or ""
+            ).strip():
                 issues.append(
                     _issue(
                         item.id,
                         QcSeverity.error,
                         QcCategory.scoring,
-                        "GUI desktop agent item needs metadata.agent_env.evaluation.",
-                        "Add bridge artifact/state checks with pass, partial, and fail criteria.",
+                        f"{env_type} item lacks an explicit test_command.",
+                        "Add the deterministic evaluator command that the runner should invoke.",
                     )
                 )
-            if bool(env.get("requires_vm")) and (not isinstance(vm, dict) or not vm):
-                issues.append(
-                    _issue(
-                        item.id,
-                        QcSeverity.error,
-                        QcCategory.schema,
-                        "GUI desktop item with requires_vm=true needs metadata.agent_env.vm.",
-                        "Add VM image/template, snapshot/reset behavior, display, required software, network, and locale requirements.",
+            if env_type == "workspace":
+                workspace = env.get("workspace") if isinstance(env.get("workspace"), dict) else env
+                rooms = workspace.get("rooms") if isinstance(workspace, dict) else None
+                goal = workspace.get("goal") if isinstance(workspace, dict) else None
+                if not isinstance(rooms, dict) or not rooms or not (
+                    isinstance(goal, dict) and goal.get("outgoing_bin")
+                ):
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.schema,
+                            "Workspace item needs room state and a non-empty outgoing-bin goal.",
+                            "Define the built-in room/inventory state instead of file or custom-tool behavior.",
+                        )
                     )
-                )
+            if env_type == "gui_desktop":
+                session = env.get("session")
+                vm = env.get("vm")
+                if not isinstance(session, dict) or not session:
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.schema,
+                            "GUI desktop agent item needs metadata.agent_env.session.",
+                            "Add the application/desktop surface and launch state.",
+                        )
+                    )
+                if not _item_environment_has_evaluator(item):
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.scoring,
+                            "GUI desktop agent item needs executable evaluation checks or a method.",
+                            "Add bridge artifact/state checks or a concrete evaluator method.",
+                        )
+                    )
+                if bool(env.get("requires_vm")) and (
+                    not isinstance(vm, dict)
+                    or not any(
+                        str(vm.get(key) or "").strip()
+                        for key in ("template", "template_name", "image", "disk_image", "disk_path")
+                    )
+                ):
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.schema,
+                            "GUI desktop item with requires_vm=true lacks a resolvable VM source.",
+                            "Set a template, image, or disk identifier; keep descriptive prose in notes.",
+                        )
+                    )
         for package_issue in agent_task_package_issues(item):
             severity = QcSeverity.error if "missing metadata.agent_task_package" in package_issue else QcSeverity.warning
             issues.append(

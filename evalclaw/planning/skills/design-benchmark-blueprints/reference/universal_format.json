@@ -1,0 +1,135 @@
+{
+  "plan": {
+    "id": "benchmark_plan_id",
+    "objective": "What the benchmark as a whole measures.",
+    "metrics": ["judge_score"],
+    "constraints": ["Benchmark-wide requirements and exclusions."],
+    "planner_notes": "Optional decisions that apply across the plan.",
+    "dimensions": [
+      {
+        "id": "dimension_id",
+        "name": "Dimension name",
+        "measurement_target": "The capability or behavior measured independently by this dimension.",
+        "boundary": "What this dimension includes and how it differs from adjacent dimensions.",
+        "approach": "How tasks in this dimension should elicit and measure the target capability.",
+        "content_requirements": ["Content that this dimension must cover."],
+        "exclusions": ["Content or confounds that this dimension must avoid."],
+        "task_designs": [
+          {
+            "id": "task_design_id",
+            "task_type": "multiple_choice",
+            "task_count": 10,
+            "challenge_effort": "E3",
+            "content_design": {
+              "purpose": "What the covered task or tasks measure within the dimension.",
+              "description": "A concrete concept for one complex task, or a shared content description for multiple simpler tasks.",
+              "coverage_requirements": ["Required content coverage within these tasks."],
+              "variation_requirements": ["How multiple tasks using this description must differ."],
+              "task_relationships": ["Optional relationships or dependencies among the covered tasks."],
+              "exclusions": ["Content, shortcuts, or confounds these tasks must avoid."]
+            },
+            "input_requirements": {
+              "description": "What information or materials the covered tasks receive.",
+              "modalities": ["text", "image", "audio", "video", "table", "files"],
+              "format_or_schema": "Required input format, structure, or schema.",
+              "shared_inputs": ["Inputs shared by the covered tasks."],
+              "per_task_variation": "How inputs should vary among concrete tasks.",
+              "asset_requirements": [
+                {
+                  "id": "input_asset_id",
+                  "kind": "dataset",
+                  "role": "Why the asset is needed by the task.",
+                  "visibility": "task_visible or runner_private",
+                  "properties": {
+                    "domain_specific_property": "Required value"
+                  }
+                }
+              ]
+            },
+            "interaction_requirements": {
+              "mode": "single_turn, multi_turn, tool_use, environment_interaction, or mixed",
+              "roles": ["Roles participating in the interaction."],
+              "statefulness": "What state persists and how it may change.",
+              "turn_or_step_policy": "Expected turn structure, step policy, or interaction horizon.",
+              "allowed_action_or_tool_categories": ["Capabilities the evaluated subject may use."],
+              "observation_model": "What feedback or observations actions should produce.",
+              "completion_condition": "How the interaction reaches a successful or terminal state.",
+              "trajectory_requirements": ["Required, forbidden, or score-relevant process behavior."]
+            },
+            "environment_requirements": {
+              "category": "workspace, code sandbox, container, browser, desktop, simulator, physical system, or another environment class",
+              "purpose": "Why an execution environment is necessary.",
+              "initial_state": "The high-level state in which each task must begin.",
+              "required_capabilities": ["Capabilities the environment must expose."],
+              "required_software_or_services": ["Software or services needed to make the task possible."],
+              "network_requirements": "Whether and why network access is needed.",
+              "fixture_asset_ids": ["input_asset_id"],
+              "constraints": ["Environment properties the Builder must preserve or avoid."]
+            },
+            "output_requirements": {
+              "response_modes": ["choice", "text", "structured_data", "code", "artifact", "state_change", "trajectory"],
+              "description": "What a successful response or completed task should produce.",
+              "format_or_schema": "Required output format, schema, or interface.",
+              "required_components": ["Required parts of the response or result."],
+              "artifacts": [
+                {
+                  "kind": "file, dataset, report, media, repository change, or another deliverable",
+                  "description": "What the artifact must contain or accomplish.",
+                  "format": "Required format or extension.",
+                  "required": true
+                }
+              ],
+              "constraints": ["Output properties, limits, or forbidden shortcuts."]
+            },
+            "scoring_contract": {
+              "components": [
+                {
+                  "method": "exact answer, rubric, executable test, artifact inspection, final-state check, trajectory check, comparison, or another method",
+                  "oracle_type": "The kind of reference, evaluator, invariant, or expected state used as the oracle.",
+                  "criteria": ["The substantive criteria that determine correctness or quality."],
+                  "partial_credit": "Whether partial credit is allowed and what it should represent.",
+                  "required_evidence": ["Evidence the evaluator must inspect."],
+                  "verification_direction": "How the Builder should make scoring deterministic or reproducible."
+                }
+              ],
+              "aggregation": "How multiple checks, turns, artifacts, trials, or sub-scores combine.",
+              "trial_policy": "Optional repetition, sampling, or stochastic-evaluation requirements.",
+              "failure_conditions": ["Conditions that must result in task failure."]
+            },
+            "source_plan": {
+              "strategy": "self_contained, generated, source_backed, imported_dataset, or mixed",
+              "search_queries": ["Queries the Builder may use to find suitable material."],
+              "suggested_urls": ["https://example.com/verified-source"],
+              "requirements": ["Authority, recency, reproducibility, licensing, or provenance requirements."],
+              "asset_source_overrides": [
+                {
+                  "asset_id": "input_asset_id",
+                  "strategy": "generated, provided, imported, or source-backed"
+                }
+              ],
+              "usage_guidance": ["How sources should inform tasks without being copied mechanically."]
+            },
+            "construction_requirements": ["Requirements for turning this description into the requested number of complete tasks."],
+            "type_specific_requirements": {
+              "protocol": "Optional namespaced protocol or task-type extension identifier.",
+              "requirements": {
+                "extension_field": "Only requirements that cannot be expressed by the universal fields above."
+              }
+            },
+            "metadata": {}
+          }
+        ],
+        "blueprints": [
+          {
+            "id": "blueprint_id",
+            "title": "Blueprint title",
+            "task_design_ids": ["task_design_id"],
+            "grouping_rationale": "Why these task designs naturally belong in one Builder job.",
+            "workload_reason": "Why one Task Builder call can implement all referenced tasks at sufficient quality.",
+            "metadata": {}
+          }
+        ]
+      }
+    ]
+  }
+}

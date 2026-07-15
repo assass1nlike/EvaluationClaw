@@ -14,9 +14,9 @@ from evalclaw.types import (
     ChallengeEffort,
     EvalDimension,
     EvalSpec,
-    TaskBlueprint,
     TaskType,
 )
+from tests.blueprint_factory import make_blueprint
 
 
 def _openai_tool_response(call: ToolCall) -> TargetToolModelResponse:
@@ -58,11 +58,13 @@ def test_blueprint_source_search_requires_explicit_research_need(monkeypatch) ->
         approach="Generate the fixture locally.",
         needs_research=False,
     )
-    blueprint = TaskBlueprint(
-        id="self_contained_blueprint",
-        dimension_id=dimension.id,
-        title="Self contained",
-        resource_queries=["this query must not run"],
+    blueprint = make_blueprint(
+        "self_contained_blueprint",
+        dimension.id,
+        "Self contained",
+        task_type=TaskType.open_generation,
+        content="Self-contained task.",
+        source_plan={"search_queries": ["this query must not run"]},
     )
 
     sources = _select_blueprint_sources(
@@ -73,6 +75,35 @@ def test_blueprint_source_search_requires_explicit_research_need(monkeypatch) ->
 
     assert sources == []
     assert calls == 0
+
+
+def test_planner_suggested_urls_are_available_without_an_extra_search() -> None:
+    dimension = EvalDimension(
+        id="grounded",
+        name="Grounded",
+        description="Use a Planner-vetted source.",
+        approach="Build questions from the supplied source.",
+        needs_research=False,
+    )
+    blueprint = make_blueprint(
+        "grounded_blueprint",
+        dimension.id,
+        "Grounded questions",
+        task_type=TaskType.short_answer,
+        content="One source-grounded question.",
+        source_plan={
+            "strategy": "source_backed",
+            "suggested_urls": ["https://example.com/reference"],
+        },
+    )
+
+    sources = _select_blueprint_sources(
+        dimension,
+        blueprint,
+        BenchmarkConfig(use_web_research=False),
+    )
+
+    assert [source.uri for source in sources] == ["https://example.com/reference"]
 
 
 def test_task_builder_research_executes_search_and_returns_final_json(monkeypatch) -> None:
@@ -202,7 +233,11 @@ def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
                             "prompt": "Inspect the workspace and produce the requested result.",
                             "environment": {
                                 "type": "workspace",
-                                "workspace": {"start_room": "office", "rooms": {"office": ["brief"]}},
+                                "workspace": {
+                                    "start_room": "office",
+                                    "rooms": {"office": ["brief"], "mailroom": []},
+                                    "goal": {"outgoing_bin": ["brief"]},
+                                },
                             },
                             "scoring": {"pass_criteria": "The requested result is complete."},
                             "metadata": {
@@ -233,12 +268,13 @@ def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="research_blueprint",
-        dimension_id=dimension.id,
-        title="Research workflow",
-        task_types=[TaskType.agent_interaction],
-        expected_task_count=1,
+    blueprint = make_blueprint(
+        "research_blueprint",
+        dimension.id,
+        "Research workflow",
+        task_type=TaskType.agent_interaction,
+        content="Research workflow.",
+        challenge_effort=ChallengeEffort.E4,
         environment_type=AgentEnvironmentType.workspace,
     )
 
@@ -253,7 +289,7 @@ def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
     )
 
     assert suite.tasks[0].challenge_effort == ChallengeEffort.E4
-    assert captured["payload"]["task_plan"]["construction"]["id"] == "research_blueprint"
+    assert captured["payload"]["task_plan"]["blueprint"]["id"] == "research_blueprint"
     assert "E4 construction effort" in captured["system_prompt"]
 
 
@@ -273,15 +309,13 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
                 "type": "workspace",
                 "workspace": {
                     "start_room": "office",
-                    "rooms": {"office": [f"brief_{task_index}"], "done": []},
-                    "goal": {"done": [f"brief_{task_index}"]},
+                    "rooms": {"office": [f"brief_{task_index}"], "mailroom": []},
+                    "goal": {"outgoing_bin": [f"brief_{task_index}"]},
                 },
             },
             "scoring": {"pass_criteria": "The requested result is complete."},
             "metadata": {
-                "builder_blueprint_id": "research_blueprint",
-                "builder_task_index": task_index,
-                "builder_blueprint_task_count": 2,
+                "builder_blueprint_id": f"research_blueprint_{task_index}",
                 "challenge_effort_self_assessment": {
                     "requested_effort": "E4",
                     "meets_requested_effort": True,
@@ -332,14 +366,19 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="research_blueprint",
-        dimension_id=dimension.id,
-        title="Research workflow",
-        task_types=[TaskType.agent_interaction],
-        expected_task_count=2,
-        environment_type=AgentEnvironmentType.workspace,
-    )
+    blueprints = [
+        make_blueprint(
+            f"research_blueprint_{index}",
+            dimension.id,
+            f"Research workflow {index}",
+            task_type=TaskType.agent_interaction,
+            content=f"Research workflow scenario {index}.",
+            challenge_effort=ChallengeEffort.E4,
+            environment_type=AgentEnvironmentType.workspace,
+            metadata={"content_focus": f"scenario {index}"},
+        )
+        for index in (1, 2)
+    ]
     revision = {
         dimension.id: {
             "previous_tasks": previous_tasks,
@@ -354,7 +393,7 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
 
     suite = build_task_suite(
         spec,
-        [blueprint],
+        blueprints,
         BenchmarkConfig(
             orchestrator_api_key="dummy",
             use_web_research=True,
@@ -367,5 +406,5 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
     assert research_calls == 0
     assert len(llm_payloads) == 1
     assert llm_payloads[0]["revision"]["previous_tasks"][0]["id"] == "task_1"
-    assert [task.id for task in suite.tasks] == ["task_1", "task_2"]
-    assert suite.tasks[1].prompt == "Keep this prompt byte-for-byte."
+    assert [task.id for task in suite.tasks] == ["task_1"]
+    assert suite.tasks[0].prompt == "Original prompt with the scoring defect repaired."

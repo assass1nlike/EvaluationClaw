@@ -26,7 +26,11 @@ def run_qc_gate(dataset: BenchmarkDataset, config: BenchmarkConfig) -> QcReport:
     issues: list[QcIssue] = []
     for item in dataset.items:
         issues.extend(_static_item_issues(item))
-        if item.task_type == TaskType.pairwise_preference and config.reference_model is None:
+        if (
+            item.task_type == TaskType.pairwise_preference
+            and config.run_targets
+            and config.reference_model is None
+        ):
             issues.append(
                 _issue(
                     item.id,
