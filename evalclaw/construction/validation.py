@@ -537,15 +537,29 @@ def task_structure_issues(
                 max_turns = int(task.interaction.get("max_turns", 0))
             except (TypeError, ValueError):
                 max_turns = 0
-            if max_turns < 1:
-                issues.append("multi_turn dialogue tasks must define a positive interaction.max_turns.")
-            scripted_turns = task.interaction.get("user_turns")
-            if not (
-                isinstance(scripted_turns, list)
-                and any(_has_text(turn) for turn in scripted_turns)
-            ) and not _has_text(task.interaction.get("followup_instruction")):
+            if not 1 <= max_turns <= 5:
                 issues.append(
-                    "multi_turn dialogue tasks must provide scripted user_turns or a followup_instruction."
+                    "multi_turn dialogue tasks must define interaction.max_turns between 1 and 5, "
+                    "matching the runtime turn bound."
+                )
+            scripted_turns = task.interaction.get("user_turns")
+            scripted_turns_valid = bool(
+                isinstance(scripted_turns, list)
+                and 1 <= len(scripted_turns) <= 5
+                and all(isinstance(turn, str) and turn.strip() for turn in scripted_turns)
+            )
+            if scripted_turns is not None and not scripted_turns_valid:
+                issues.append(
+                    "interaction.user_turns must contain 1 to 5 non-empty strings; structured turn "
+                    "objects are not consumed by the runtime."
+                )
+            elif not scripted_turns_valid and not _has_text(
+                task.interaction.get("followup_instruction")
+            ):
+                issues.append(
+                    "multi_turn dialogue tasks must provide interaction.user_turns as a non-empty list "
+                    "of strings, or interaction.followup_instruction. The field name must be exactly "
+                    "user_turns; aliases such as scripted_user_turns or turns are not part of the runtime contract."
                 )
         if any(
             (
