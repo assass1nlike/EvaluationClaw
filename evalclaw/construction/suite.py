@@ -194,6 +194,16 @@ def _task_builder_payload(
             "Provide deterministic test_code that consumes the response through the literal "
             "{model_output} placeholder."
         ]
+    if TaskType.multi_turn in task_types:
+        optional_fields.extend(["system_prompt", "interaction", "environment", "rubric"])
+        type_requirements[TaskType.multi_turn.value] = [
+            "Provide a dialogue environment and top-level interaction object. interaction.max_turns "
+            "must be between 1 and 5. Use exactly interaction.user_turns as a list of 1 to 5 "
+            "non-empty strings for "
+            "scripted follow-ups, or interaction.followup_instruction for adaptive follow-ups; aliases "
+            "such as scripted_user_turns, turns, and follow_up_policy are invalid.",
+            "Provide task-specific transcript scoring criteria.",
+        ]
     if any(
         task_type not in {
             TaskType.multiple_choice,
