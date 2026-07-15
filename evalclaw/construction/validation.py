@@ -1,12 +1,13 @@
-"""Structural validation for generated agent benchmark tasks."""
+"""Structural validation for tasks built by the general constructor."""
 from __future__ import annotations
 
 from pathlib import PurePosixPath
 
 from ..protocols.agent_task_package import AGENT_TASK_PACKAGE_METADATA_KEY
-from ..types import AgentEnvironmentType, AgentTask, AgentTaskBlueprint, EvalDimension
+from ..types import AgentEnvironmentType, EvalDimension, TaskBlueprint, TaskDefinition, TaskType
 
-AGENT_STRUCTURE_VALIDATION_VERSION = "evalclaw.agent_task_structure.v1"
+TASK_STRUCTURE_VALIDATION_VERSION = "evalclaw.task_structure.v1"
+CHALLENGE_EFFORT_FIDELITY_METADATA_KEY = "challenge_effort_fidelity"
 _COMPLETE_PROMPT_ENDINGS = (".", "!", "?", ")", "]", "}", '"', "'")
 _DANGLING_PROMPT_ENDINGS = (
     " and",
@@ -46,20 +47,110 @@ def _prompt_looks_truncated(prompt: str) -> bool:
     return len(last_word) <= 2 or lower.endswith(_DANGLING_PROMPT_ENDINGS)
 
 
-def agent_task_structure_issues(
-    task: AgentTask,
+def task_structure_issues(
+    task: TaskDefinition,
     *,
     dimension: EvalDimension | None = None,
-    blueprint: AgentTaskBlueprint | None = None,
+    blueprint: TaskBlueprint | None = None,
     require_challenge_effort_self_assessment: bool = False,
 ) -> list[str]:
     """Return blocking structural issues that should be fixed before global QC.
 
     This is intentionally narrower than content QC. It checks whether the task
-    has the fields needed to materialize and execute the intended environment.
+    has the fields needed for its task type and optional execution capabilities.
     """
     issues: list[str] = []
+    if not _has_text(task.id):
+        issues.append("Task id is empty.")
+    if not _has_text(task.title):
+        issues.append("Task title is empty.")
+    if not _has_text(task.prompt):
+        issues.append("Task prompt is empty.")
+    elif _prompt_looks_truncated(task.prompt):
+        issues.append("Task prompt appears truncated or ends with an incomplete instruction.")
+    if dimension is not None and task.dimension_id != dimension.id:
+        issues.append(f"Task dimension_id must be {dimension.id}.")
+    if dimension is not None and task.challenge_effort != dimension.challenge_effort:
+        issues.append(
+            f"Task challenge_effort must be {dimension.challenge_effort.value}; "
+            f"got {task.challenge_effort.value}."
+        )
+    if require_challenge_effort_self_assessment:
+        fidelity = task.metadata.get(CHALLENGE_EFFORT_FIDELITY_METADATA_KEY)
+        effort_fidelity_uncertain = (
+            isinstance(fidelity, dict)
+            and fidelity.get("status") == "uncertain"
+            and fidelity.get("recovery_strategy") == "reduced_effort_litellm_retry"
+        )
+        assessment = task.metadata.get("challenge_effort_self_assessment")
+        if not isinstance(assessment, dict):
+            issues.append(
+                "Task metadata.challenge_effort_self_assessment is required for LLM-built tasks."
+            )
+        else:
+            requested = str(assessment.get("requested_effort") or "").strip()
+            if dimension is not None and requested and requested != dimension.challenge_effort.value:
+                issues.append(
+                    "Task metadata.challenge_effort_self_assessment.requested_effort must match "
+                    f"{dimension.challenge_effort.value}."
+                )
+            if (
+                assessment.get("meets_requested_effort") is not True
+                and not effort_fidelity_uncertain
+            ):
+                issues.append(
+                    "Task metadata.challenge_effort_self_assessment.meets_requested_effort must be true; "
+                    "revise the task until the builder judges it satisfies the requested challenge effort."
+                )
+            if not _has_text(assessment.get("rationale")):
+                issues.append("Task metadata.challenge_effort_self_assessment.rationale must explain the self-check.")
+
+    if task.task_type == TaskType.multiple_choice:
+        if len(task.choices) < 2:
+            issues.append("multiple_choice tasks must provide at least two choices.")
+        if not _has_text(task.answer):
+            issues.append("multiple_choice tasks must provide the correct answer.")
+    elif task.task_type in {TaskType.yes_no, TaskType.short_answer} and not _has_text(task.answer):
+        issues.append(f"{task.task_type.value} tasks must provide a reference answer.")
+    elif task.task_type == TaskType.code_execution and not (
+        _has_text(task.test_code)
+        or _has_any_text(task.rubric, task.scoring.instructions, task.scoring.pass_criteria)
+    ):
+        issues.append("code_execution tasks must provide test_code or deterministic scoring criteria.")
+
+    if not _has_any_text(
+        task.scoring.instructions,
+        task.scoring.pass_criteria,
+        task.scoring.partial_criteria,
+        task.scoring.fail_criteria,
+        task.scoring.oracle_notes,
+    ) and not task.scoring.score_levels:
+        if not _has_any_text(task.rubric, task.answer, task.test_code):
+            issues.append(
+                "Task scoring must define an answer, rubric, test_code, instructions, criteria, oracle notes, or levels."
+            )
+
+    expected_environment = blueprint.environment_type if blueprint is not None else None
+    if blueprint is not None:
+        if expected_environment is None:
+            if task.environment is not None:
+                issues.append("Task must omit environment because the blueprint does not request one.")
+            return issues
+        if task.environment is None:
+            issues.append(
+                f"Task must provide environment because blueprint.environment_type={expected_environment.value}."
+            )
+            return issues
+    elif task.environment is None:
+        return issues
+    else:
+        expected_environment = task.environment.type
+
     env = task.environment
+    if env.type != expected_environment:
+        issues.append(
+            f"Task environment.type must match blueprint.environment_type={expected_environment.value}."
+        )
 
     visible_paths = set(env.visible_files)
     runtime_paths = set(env.runtime_files)
@@ -85,55 +176,6 @@ def agent_task_structure_issues(
             "setup_commands reference evaluator-only hidden_files. Move setup assets to runtime_files: "
             + ", ".join(sorted(referenced_hidden))
         )
-
-    if not _has_text(task.id):
-        issues.append("Task id is empty.")
-    if not _has_text(task.title):
-        issues.append("Task title is empty.")
-    if not _has_text(task.prompt):
-        issues.append("Task prompt is empty.")
-    elif _prompt_looks_truncated(task.prompt):
-        issues.append("Task prompt appears truncated or ends with an incomplete instruction.")
-    if dimension is not None and task.dimension_id != dimension.id:
-        issues.append(f"Task dimension_id must be {dimension.id}.")
-    if dimension is not None and task.challenge_effort != dimension.challenge_effort:
-        issues.append(
-            f"Task challenge_effort must be {dimension.challenge_effort.value}; "
-            f"got {task.challenge_effort.value}."
-        )
-    if require_challenge_effort_self_assessment:
-        assessment = task.metadata.get("challenge_effort_self_assessment")
-        if not isinstance(assessment, dict):
-            issues.append(
-                "Task metadata.challenge_effort_self_assessment is required for LLM-built tasks."
-            )
-        else:
-            requested = str(assessment.get("requested_effort") or "").strip()
-            if dimension is not None and requested and requested != dimension.challenge_effort.value:
-                issues.append(
-                    "Task metadata.challenge_effort_self_assessment.requested_effort must match "
-                    f"{dimension.challenge_effort.value}."
-                )
-            if assessment.get("meets_requested_effort") is not True:
-                issues.append(
-                    "Task metadata.challenge_effort_self_assessment.meets_requested_effort must be true; "
-                    "revise the task until the builder judges it satisfies the requested challenge effort."
-                )
-            if not _has_text(assessment.get("rationale")):
-                issues.append("Task metadata.challenge_effort_self_assessment.rationale must explain the self-check.")
-    if blueprint is not None and env.type != blueprint.environment_type:
-        issues.append(
-            f"Task environment.type must match blueprint.environment_type={blueprint.environment_type.value}."
-        )
-
-    if not _has_any_text(
-        task.scoring.instructions,
-        task.scoring.pass_criteria,
-        task.scoring.partial_criteria,
-        task.scoring.fail_criteria,
-        task.scoring.oracle_notes,
-    ) and not task.scoring.score_levels:
-        issues.append("Task scoring must define instructions, pass/fail criteria, oracle notes, or score levels.")
 
     if env.type == AgentEnvironmentType.code_sandbox:
         if not env.visible_files:
@@ -289,9 +331,9 @@ def agent_task_structure_issues(
     return issues
 
 
-def agent_structure_validation_metadata(issues: list[str]) -> dict[str, object]:
+def task_structure_validation_metadata(issues: list[str]) -> dict[str, object]:
     return {
-        "schema_version": AGENT_STRUCTURE_VALIDATION_VERSION,
+        "schema_version": TASK_STRUCTURE_VALIDATION_VERSION,
         "status": "passed" if not issues else "failed",
         "issues": issues,
     }

@@ -4,20 +4,21 @@ from __future__ import annotations
 from ...types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
-    AgentScoringSpec,
-    AgentTask,
-    AgentTaskBlueprint,
     EvalDimension,
+    TaskBlueprint,
+    TaskDefinition,
+    TaskScoringSpec,
+    TaskType,
 )
 from .base import _agent_system_prompt, _task_id, _task_title
 
 
 def _code_repair_task_for_blueprint(
     dimension: EvalDimension,
-    blueprint: AgentTaskBlueprint,
+    blueprint: TaskBlueprint,
     *,
     index: int = 1,
-) -> AgentTask:
+) -> TaskDefinition:
     variants = [
         {
             "prompt": (
@@ -94,9 +95,10 @@ def _code_repair_task_for_blueprint(
         },
     ]
     variant = variants[(index - 1) % len(variants)]
-    return AgentTask(
+    return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
+        task_type=TaskType.agent_interaction,
         title=_task_title(blueprint, index),
         description="A compact repository repair task with hidden deterministic tests.",
         prompt=str(variant["prompt"]),
@@ -113,7 +115,7 @@ def _code_repair_task_for_blueprint(
             "max_turns": 8,
             "stop_condition": "Stop when hidden tests pass or the code_sandbox step limit is reached.",
         },
-        scoring=AgentScoringSpec(
+        scoring=TaskScoringSpec(
             method="deterministic",
             instructions=(
                 "Use deterministic hidden-test scoring: full credit when hidden tests pass, partial credit "
@@ -130,10 +132,10 @@ def _code_repair_task_for_blueprint(
 
 def _repo_issue_task_for_blueprint(
     dimension: EvalDimension,
-    blueprint: AgentTaskBlueprint,
+    blueprint: TaskBlueprint,
     *,
     index: int = 1,
-) -> AgentTask:
+) -> TaskDefinition:
     visible = {
         "README.md": (
             "# Ticket Parser\n\n"
@@ -163,9 +165,10 @@ def _repo_issue_task_for_blueprint(
             "assert parse_ticket('bad-segment; id=9') == {'id': '9'}\n"
         )
     }
-    return AgentTask(
+    return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
+        task_type=TaskType.agent_interaction,
         title=_task_title(blueprint, index),
         description=(
             "A GitHub-style issue resolution task. The target must read issue context, inspect the small "
@@ -188,7 +191,7 @@ def _repo_issue_task_for_blueprint(
             "max_turns": 9,
             "stop_condition": "Stop when the issue is resolved and hidden tests pass.",
         },
-        scoring=AgentScoringSpec(
+        scoring=TaskScoringSpec(
             method="deterministic",
             instructions="Score by hidden tests that encode the issue's acceptance criteria.",
             pass_criteria="The parser handles whitespace, empty segments, and malformed segments as specified.",

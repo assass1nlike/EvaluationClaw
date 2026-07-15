@@ -1,16 +1,16 @@
-"""Shared helpers for fallback agent task builders."""
+"""Shared helpers for fallback interaction task builders."""
 from __future__ import annotations
 
 import uuid
 
-from ...types import AgentTaskBlueprint, EvalDimension
+from ...types import EvalDimension, TaskBlueprint
 
 
-def _task_id(dimension: EvalDimension, blueprint: AgentTaskBlueprint, index: int) -> str:
+def _task_id(dimension: EvalDimension, blueprint: TaskBlueprint, index: int) -> str:
     return f"{dimension.id}_{blueprint.id}_{index}_{uuid.uuid4().hex[:8]}"
 
 
-def _task_title(blueprint: AgentTaskBlueprint, index: int) -> str:
+def _task_title(blueprint: TaskBlueprint, index: int) -> str:
     return blueprint.title if index == 1 else f"{blueprint.title} {index}"
 
 

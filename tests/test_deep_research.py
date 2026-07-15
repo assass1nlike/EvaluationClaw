@@ -464,6 +464,7 @@ def test_pipeline_attaches_and_persists_brief(monkeypatch, tmp_path) -> None:
         use_deep_research=True,
         use_web_research=False,
         use_hf_discovery=False,
+        task_builder="local",
         run_targets=False,
         environment_claw=False,
         scale_budget=ScaleBudget.low,  # keep the fallback dataset small so QC stays fast
@@ -509,6 +510,39 @@ def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
     result = runner.invoke(app, ["generate", "-g", "goal", "--no-interactive"])
     assert result.exit_code == 0
     assert captured["config"].use_deep_research is False
+    assert captured["config"].targets == []
+    assert captured["config"].run_targets is False
+
+    result = runner.invoke(
+        app,
+        [
+            "generate", "-g", "goal", "--no-interactive",
+            "--planner-model", "planner-model", "--planner-api-key", "planner-key",
+            "--task-builder-model", "builder-model", "--task-builder-api-key", "builder-key",
+            "--qc-model", "qc-model", "--qc-api-key", "qc-key",
+            "--judge-model", "judge-model", "--judge-api-key", "judge-key",
+            "--research-model", "research-model", "--research-api-key", "research-key",
+            "--loop3-model", "loop3-model", "--loop3-api-key", "loop3-key",
+        ],
+    )
+    assert result.exit_code == 0
+    assert captured["config"].planner_model == "planner-model"
+    assert captured["config"].task_builder_model == "builder-model"
+    assert captured["config"].qc_model == "qc-model"
+    assert captured["config"].judge_model == "judge-model"
+    assert captured["config"].research_model == "research-model"
+    assert captured["config"].loop3_model == "loop3-model"
+
+    result = runner.invoke(
+        app,
+        [
+            "generate", "-g", "goal", "--no-interactive",
+            "--model", "mock-target", "--target-provider", "mock",
+        ],
+    )
+    assert result.exit_code == 0
+    assert [target.model for target in captured["config"].targets] == ["mock-target"]
+    assert captured["config"].run_targets is True
 
     result = runner.invoke(
         app,

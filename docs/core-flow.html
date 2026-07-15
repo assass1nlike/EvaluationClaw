@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EvalClaw 主干流程</title>
+  <style>
+    :root {
+      --ink: #18222c;
+      --muted: #5f6b76;
+      --line: #d6dce2;
+      --soft: #f6f8fa;
+      --accent: #245b8f;
+      --accepted: #236b45;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #fff;
+      font: 17px/1.72 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+    main { max-width: 900px; margin: 0 auto; padding: 52px 26px 84px; }
+    header { padding-bottom: 26px; border-bottom: 2px solid var(--ink); }
+    h1 { margin: 0 0 12px; font-size: 38px; line-height: 1.25; }
+    h2 { margin: 44px 0 16px; padding-top: 9px; border-top: 1px solid var(--line); font-size: 26px; }
+    h3 { margin: 0 0 8px; font-size: 21px; }
+    p { margin: 9px 0; }
+    .lead { margin: 0; color: var(--muted); font-size: 19px; }
+    .thesis {
+      margin: 26px 0 0;
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: var(--soft);
+      font-size: 19px;
+      font-weight: 650;
+    }
+    .flow { margin: 28px 0; }
+    .step { padding: 18px 20px; border: 1px solid var(--line); }
+    .step.final-benchmark { border-color: var(--accepted); border-width: 2px; }
+    .number { color: var(--accent); font-weight: 750; }
+    .label { display: inline-block; min-width: 54px; color: var(--muted); font-weight: 650; }
+    .arrow { height: 34px; text-align: center; color: var(--muted); font-size: 25px; line-height: 34px; }
+    .optional { color: var(--muted); font-weight: 600; }
+    .boundary {
+      margin: 28px 0;
+      padding: 17px 19px;
+      border: 2px solid var(--accepted);
+      background: #f3faf6;
+    }
+    .boundary strong { color: var(--accepted); }
+    ul { padding-left: 25px; }
+    li + li { margin-top: 7px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 11px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--soft); }
+    footer { margin-top: 44px; padding-top: 18px; border-top: 2px solid var(--ink); }
+    @media (max-width: 640px) {
+      main { padding: 30px 15px 60px; }
+      h1 { font-size: 31px; }
+      .label { display: block; margin-bottom: 2px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>EvalClaw 最主干的运行流程</h1>
+    <p class="lead">先不考虑具体题型、环境、模型配置和失败恢复，只看整个框架最不可缺少的转换过程。</p>
+    <p class="thesis">EvalClaw 首先把“我想测什么”变成一套经过质量检查的 benchmark；只有用户需要时，才继续用这套 benchmark 测试目标模型。</p>
+  </header>
+
+  <section>
+    <h2>一条主线</h2>
+    <div class="flow">
+      <article class="step">
+        <h3><span class="number">1.</span> 用户提出评测需求</h3>
+        <p><span class="label">输入</span>用户用自然语言说明想评估什么能力。</p>
+        <p><span class="label">此时</span>它只是一个目标，可能很模糊，还没有题目，也没有可执行的 benchmark。</p>
+      </article>
+      <div class="arrow">↓</div>
+
+      <article class="step">
+        <h3><span class="number">2.</span> 明确整套评测应该怎样组成</h3>
+        <p><span class="label">处理</span>规划器把用户目标拆成要覆盖的能力、题目形式、题目数量和评分方式。</p>
+        <p><span class="label">输出</span>一份结构化评测方案。它回答“这套 benchmark 应该测哪些方面”，但仍然不是具体题目。</p>
+      </article>
+      <div class="arrow">↓</div>
+
+      <article class="step">
+        <h3><span class="number">3.</span> 把评测方案展开成逐题构建位置</h3>
+        <p><span class="label">处理</span>框架根据每个能力需要的题型和数量，列出所有待构建位置。每个位置只负责一种能力、一种题型和一道题。</p>
+        <p><span class="label">输出</span>一张具体的构题任务清单。清单中的位置描述“应该造一道什么题”，但位置本身仍然不是题目。</p>
+      </article>
+      <div class="arrow">↓</div>
+
+      <article class="step">
+        <h3><span class="number">4.</span> 逐个位置构建完整题目</h3>
+        <p><span class="label">处理</span>构题器一次只接收一个位置，并生成一道完整任务，包括题面以及该题实际需要的答案、评分标准、测试、材料或交互要求。</p>
+        <p><span class="label">输出</span>一组候选题目。到这里题目已经存在，但还不能默认认为它们可靠或可执行。</p>
+      </article>
+      <div class="arrow">↓</div>
+
+      <article class="step">
+        <h3><span class="number">5.</span> 检查题目并重做有问题的位置</h3>
+        <p><span class="label">处理</span>质量检查确认每道题是否完整、能否评分、是否重复，以及整套题是否覆盖了原计划。发现阻塞问题时，只把相关构题位置交回上一步重做，然后再次检查。</p>
+        <p><span class="label">输出</span>通过检查的题目集合，以及哪些题通过、哪些题被拒绝的记录。</p>
+      </article>
+      <div class="arrow">↓</div>
+
+      <article class="step final-benchmark">
+        <h3><span class="number">6.</span> 得到正式 benchmark</h3>
+        <p><span class="label">内容</span>通过质量检查的题目、评测方案、题目来源、评分契约和质量检查结果。</p>
+        <p><span class="label">意义</span>到这里，“自动生成 benchmark”已经完成。即使没有任何待测模型，这套 benchmark 也可以保存并在以后使用。</p>
+      </article>
+      <div class="arrow">↓ <span class="optional">可选</span></div>
+
+      <article class="step">
+        <h3><span class="number">7.</span> 用 benchmark 测试目标模型并输出结果</h3>
+        <p><span class="label">处理</span>如果配置了待测模型，框架只把通过质量检查的题目交给它们，根据每道题的评分方式得到分数，并汇总不同能力和题型的表现。</p>
+        <p><span class="label">输出</span>最终运行包：正式 benchmark、质量检查记录，以及存在时的模型回答、分数、错误、汇总和可读报告。</p>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>最关键的三个边界</h2>
+    <table>
+      <thead><tr><th>边界</th><th>应当怎样理解</th></tr></thead>
+      <tbody>
+        <tr><td>评测方案 ≠ 题目</td><td>评测方案只决定测什么、用什么题型、造多少题和怎样评分。</td></tr>
+        <tr><td>构题位置 ≠ 题目</td><td>构题位置是给构题器的一份单题订单；构题器执行后才产生真实题目。</td></tr>
+        <tr><td>生成 benchmark ≠ 测试模型</td><td>质量检查完成时 benchmark 已经生成。目标模型执行是其后的可选阶段。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>其他能力怎样接入主线</h2>
+    <p>以下能力不会替换上面的主线，只会在特定位置提供额外输入或形成回路：</p>
+    <ul>
+      <li><strong>领域研究：</strong>在规划或构题前补充外部知识和来源。</li>
+      <li><strong>人工复核：</strong>在开始执行 benchmark 前修改评测方案，然后重新经过构题和质量检查。</li>
+      <li><strong>结果驱动改进：</strong>根据首轮质量问题和模型表现补题或换题，再次质量检查并重新测评。</li>
+      <li><strong>执行环境：</strong>只有某道题确实需要工具、文件、软件或状态操作时，才随该题进入构建和执行。</li>
+    </ul>
+  </section>
+
+  <footer>
+    <strong>用一句话记住：</strong>用户说明想测什么，规划器决定整套评测怎样组成，框架把计划展开成单题订单，构题器逐题生产，质量检查决定哪些题成为正式 benchmark，最后才可选择运行目标模型。
+  </footer>
+</main>
+</body>
+</html>

@@ -1,31 +1,43 @@
-﻿"""Parsing helpers for LLM-built and legacy agent tasks."""
+﻿"""Parsing helpers for general tasks with optional execution environments."""
 from __future__ import annotations
 
 from typing import Any
 
 from ...types import (
     AgentEnvironmentSpec,
-    AgentScoringSpec,
-    AgentTask,
+    AgentEnvironmentType,
     BenchmarkItem,
+    TaskDefinition,
+    TaskScoringSpec,
+    TaskType,
     safe_challenge_effort,
 )
-from ..common import _safe_environment_type
 
 
-def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_id: str) -> AgentTask:
+def _safe_environment_type(
+    value: object,
+    fallback: AgentEnvironmentType = AgentEnvironmentType.workspace,
+) -> AgentEnvironmentType:
+    try:
+        return AgentEnvironmentType(str(value))
+    except ValueError:
+        return fallback
+
+
+def _task_from_raw(
+    raw: dict[str, Any],
+    fallback_id: str,
+    *,
+    default_dimension_id: str,
+    default_task_type: TaskType = TaskType.open_generation,
+) -> TaskDefinition:
     environment = raw.get("environment") if isinstance(raw.get("environment"), dict) else {}
     scoring = raw.get("scoring") if isinstance(raw.get("scoring"), dict) else {}
-    return AgentTask(
-        id=str(raw.get("id") or fallback_id),
-        dimension_id=str(raw.get("dimension_id") or default_dimension_id),
-        title=str(raw.get("title") or fallback_id),
-        content_summary=str(raw.get("content_summary") or ""),
-        description=str(raw.get("description") or ""),
-        prompt=str(raw.get("prompt") or ""),
-        system_prompt=str(raw.get("system_prompt") or ""),
-        resource_ids=[str(x) for x in raw.get("resource_ids", []) if x],
-        environment=AgentEnvironmentSpec(
+    try:
+        task_type = TaskType(str(raw.get("task_type") or default_task_type.value))
+    except ValueError:
+        task_type = default_task_type
+    environment_spec = AgentEnvironmentSpec(
             type=_safe_environment_type(environment.get("type")),
             tools=[tool for tool in environment.get("tools", []) if isinstance(tool, dict)],
             visible_files={str(path): str(content) for path, content in (environment.get("visible_files") or {}).items()}
@@ -69,9 +81,26 @@ def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_i
             session=environment.get("session") if isinstance(environment.get("session"), dict) else {},
             evaluation=environment.get("evaluation") if isinstance(environment.get("evaluation"), dict) else {},
             notes=str(environment.get("notes") or ""),
-        ),
+        ) if environment else None
+    return TaskDefinition(
+        id=str(raw.get("id") or fallback_id),
+        dimension_id=str(raw.get("dimension_id") or default_dimension_id),
+        task_type=task_type,
+        title=str(raw.get("title") or fallback_id),
+        content_summary=str(raw.get("content_summary") or ""),
+        description=str(raw.get("description") or ""),
+        prompt=str(raw.get("prompt") or ""),
+        choices=[str(choice) for choice in raw.get("choices", []) if str(choice).strip()]
+        if isinstance(raw.get("choices"), list)
+        else [],
+        answer=str(raw["answer"]) if raw.get("answer") is not None else None,
+        rubric=str(raw["rubric"]) if raw.get("rubric") is not None else None,
+        test_code=str(raw["test_code"]) if raw.get("test_code") is not None else None,
+        system_prompt=str(raw.get("system_prompt") or ""),
+        resource_ids=[str(x) for x in raw.get("resource_ids", []) if x],
+        environment=environment_spec,
         interaction=raw.get("interaction") if isinstance(raw.get("interaction"), dict) else {},
-        scoring=AgentScoringSpec(
+        scoring=TaskScoringSpec(
             method=str(scoring.get("method") or "deterministic"),
             instructions=str(scoring.get("instructions") or ""),
             pass_criteria=str(scoring.get("pass_criteria") or scoring.get("pass_fail", {}).get("pass") or ""),
@@ -91,7 +120,7 @@ def _task_from_raw(raw: dict[str, Any], fallback_id: str, *, default_dimension_i
     )
 
 
-def _task_from_item(item: BenchmarkItem, *, title: str) -> AgentTask:
+def _task_from_item(item: BenchmarkItem, *, title: str) -> TaskDefinition:
     env = item.metadata.get("agent_env") if isinstance(item.metadata.get("agent_env"), dict) else {}
     task_agent = item.metadata.get("task_agent") if isinstance(item.metadata.get("task_agent"), dict) else {}
     scoring = task_agent.get("scoring") if isinstance(task_agent.get("scoring"), dict) else {}
@@ -102,14 +131,19 @@ def _task_from_item(item: BenchmarkItem, *, title: str) -> AgentTask:
         for key in ("start_room", "rooms", "item_descriptions", "goal")
         if key in env
     }
-    return AgentTask(
+    return TaskDefinition(
         id=item.id,
         dimension_id=item.dimension_id,
+        task_type=item.task_type,
         title=title,
         content_summary=str(item.metadata.get("task_content_summary") or item.source.title or ""),
         description=item.prompt,
         prompt=item.prompt,
-        system_prompt=str(task_agent.get("system_prompt") or "You are the target agent. Return JSON only."),
+        choices=item.choices,
+        answer=item.answer,
+        rubric=item.rubric,
+        test_code=item.test_code,
+        system_prompt=(str(task_agent.get("system_prompt") or "") if env else ""),
         resource_ids=[],
         environment=AgentEnvironmentSpec(
             type=env_type,
@@ -152,10 +186,10 @@ def _task_from_item(item: BenchmarkItem, *, title: str) -> AgentTask:
             vm_provisioning=env.get("vm_provisioning") if isinstance(env.get("vm_provisioning"), dict) else {},
             session=env.get("session") if isinstance(env.get("session"), dict) else {},
             evaluation=env.get("evaluation") if isinstance(env.get("evaluation"), dict) else {},
-            notes="Converted from EvaluationClaw fallback agent item.",
-        ),
+            notes="Converted from an EvaluationClaw fallback item.",
+        ) if env else None,
         interaction=task_agent.get("interaction") if isinstance(task_agent.get("interaction"), dict) else {},
-        scoring=AgentScoringSpec(
+        scoring=TaskScoringSpec(
             method=str(scoring.get("method") or "deterministic"),
             instructions=item.rubric or str(scoring.get("instructions") or ""),
             pass_criteria=str(pass_fail.get("pass") or ""),

@@ -17,6 +17,8 @@ from __future__ import annotations
 import html as _html
 import os
 import re
+import threading
+import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from urllib.parse import parse_qs, quote_plus, urlsplit
@@ -31,7 +33,15 @@ WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
 WIKIPEDIA_SUMMARY = "https://en.wikipedia.org/api/rest_v1/page/summary"
 DUCKDUCKGO_HTML = "https://html.duckduckgo.com/html/"
 
-_USER_AGENT = "Mozilla/5.0 (compatible; evalclaw/1.0)"
+_USER_AGENT = (
+    "EvaluationClaw/0.1 "
+    "(+https://github.com/assassinlike/EvaluationClaw; automated benchmark research)"
+)
+_TERMINAL_SOURCE_STATUSES = {401, 403, 407, 429}
+_FETCH_STATE_LOCK = threading.RLock()
+_FETCH_CACHE: dict[tuple[str, int], str | None] = {}
+_FETCH_BLOCKED_ORIGINS: dict[str, int] = {}
+_FETCH_ORIGIN_LOCKS: dict[str, threading.Lock] = {}
 
 
 @dataclass
@@ -52,21 +62,53 @@ def fetch_url_text(url: str, max_chars: int = 4000, timeout: float = 10.0) -> st
     """
     if not url.startswith(("http://", "https://")):
         return None
-    try:
-        resp = httpx.get(
-            url,
-            follow_redirects=True,
-            timeout=timeout,
-            headers={"User-Agent": _USER_AGENT},
-        )
-        resp.raise_for_status()
-        content_type = resp.headers.get("content-type", "")
-        if "text" not in content_type and "html" not in content_type:
+    cache_key = (url, max_chars)
+    origin = urlsplit(url).netloc.lower()
+    with _FETCH_STATE_LOCK:
+        if cache_key in _FETCH_CACHE:
+            return _FETCH_CACHE[cache_key]
+        if origin in _FETCH_BLOCKED_ORIGINS:
             return None
-        html = resp.text
-    except Exception as exc:
-        print(f"  [fetch] {url} failed: {exc}")
-        return None
+        origin_lock = _FETCH_ORIGIN_LOCKS.setdefault(origin, threading.Lock())
+    with origin_lock:
+        with _FETCH_STATE_LOCK:
+            if cache_key in _FETCH_CACHE:
+                return _FETCH_CACHE[cache_key]
+            if origin in _FETCH_BLOCKED_ORIGINS:
+                return None
+        try:
+            resp = httpx.get(
+                url,
+                follow_redirects=True,
+                timeout=timeout,
+                headers={"User-Agent": _USER_AGENT},
+            )
+            resp.raise_for_status()
+            content_type = resp.headers.get("content-type", "")
+            if "text" not in content_type and "html" not in content_type:
+                with _FETCH_STATE_LOCK:
+                    _FETCH_CACHE[cache_key] = None
+                return None
+            html = resp.text
+        except httpx.HTTPStatusError as exc:
+            status = exc.response.status_code
+            with _FETCH_STATE_LOCK:
+                _FETCH_CACHE[cache_key] = None
+                if status in _TERMINAL_SOURCE_STATUSES:
+                    first_block = origin not in _FETCH_BLOCKED_ORIGINS
+                    _FETCH_BLOCKED_ORIGINS[origin] = status
+                else:
+                    first_block = False
+            if first_block:
+                print(f"  [fetch] disabled {origin} for this run after HTTP {status}.")
+            else:
+                print(f"  [fetch] {origin} returned HTTP {status}; skipping this URL.")
+            return None
+        except Exception as exc:
+            with _FETCH_STATE_LOCK:
+                _FETCH_CACHE[cache_key] = None
+            print(f"  [fetch] {origin} failed once ({type(exc).__name__}); skipping this URL.")
+            return None
 
     # Strip <script> and <style> blocks first
     html = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html, flags=re.DOTALL | re.IGNORECASE)
@@ -78,7 +120,10 @@ def fetch_url_text(url: str, max_chars: int = 4000, timeout: float = 10.0) -> st
         text = text.replace(entity, char)
     # Collapse whitespace
     text = re.sub(r"\s+", " ", text).strip()
-    return text[:max_chars]
+    result = text[:max_chars]
+    with _FETCH_STATE_LOCK:
+        _FETCH_CACHE[cache_key] = result
+    return result
 
 
 def format_search_result(result: SearchResult) -> str:
@@ -216,21 +261,90 @@ class KeylessBackend(SearchBackend):
 
     name = "keyless"
 
-    def __init__(self, *, max_results: int = 4, timeout: float = 15.0) -> None:
+    def __init__(
+        self,
+        *,
+        max_results: int = 4,
+        timeout: float = 15.0,
+        min_source_interval_s: float = 0.5,
+    ) -> None:
         self.max_results = max_results
         self.timeout = timeout
+        self.min_source_interval_s = max(0.0, min_source_interval_s)
+        self._state_lock = threading.RLock()
+        self._source_locks = {
+            name: threading.Lock() for name in ("arxiv", "wikipedia", "duckduckgo")
+        }
+        self._query_cache: dict[tuple[str, str], list[dict]] = {}
+        self._disabled_sources: dict[str, int] = {}
+        self._last_source_request: dict[str, float] = {}
+
+    def reset(self) -> None:
+        """Clear per-process cache and circuit-breaker state."""
+        with self._state_lock:
+            self._query_cache.clear()
+            self._disabled_sources.clear()
+            self._last_source_request.clear()
+
+    def _run_source(self, name: str, source, query: str) -> list[dict]:
+        normalized_query = " ".join(query.lower().split())
+        cache_key = (name, normalized_query)
+        with self._state_lock:
+            if cache_key in self._query_cache:
+                return self._query_cache[cache_key]
+            if name in self._disabled_sources:
+                return []
+        with self._source_locks[name]:
+            with self._state_lock:
+                if cache_key in self._query_cache:
+                    return self._query_cache[cache_key]
+                if name in self._disabled_sources:
+                    return []
+                elapsed = time.monotonic() - self._last_source_request.get(name, 0.0)
+            if elapsed < self.min_source_interval_s:
+                time.sleep(self.min_source_interval_s - elapsed)
+            try:
+                entries = source(query)
+            except httpx.HTTPStatusError as exc:
+                status = exc.response.status_code
+                with self._state_lock:
+                    self._query_cache[cache_key] = []
+                    self._last_source_request[name] = time.monotonic()
+                    if status in _TERMINAL_SOURCE_STATUSES:
+                        first_block = name not in self._disabled_sources
+                        self._disabled_sources[name] = status
+                    else:
+                        first_block = False
+                if first_block:
+                    print(f"  [search] disabled keyless source {name} for this run after HTTP {status}.")
+                else:
+                    print(f"  [search] keyless source {name} returned HTTP {status}; query skipped.")
+                return []
+            except Exception as exc:
+                with self._state_lock:
+                    self._query_cache[cache_key] = []
+                    self._last_source_request[name] = time.monotonic()
+                print(
+                    f"  [search] keyless source {name} failed once "
+                    f"({type(exc).__name__}); query skipped."
+                )
+                return []
+            with self._state_lock:
+                self._query_cache[cache_key] = entries
+                self._last_source_request[name] = time.monotonic()
+            return entries
 
     def search(self, query: str) -> SearchResult | None:
         snippets: list[str] = []
         citations: list[dict] = []
         seen: set[str] = set()
 
-        for source in (self._arxiv, self._wikipedia, self._duckduckgo):
-            try:
-                entries = source(query)
-            except Exception as exc:  # degrade silently per source
-                print(f"  [search] keyless source {source.__name__} failed: {exc}")
-                entries = []
+        for name, source in (
+            ("arxiv", self._arxiv),
+            ("wikipedia", self._wikipedia),
+            ("duckduckgo", self._duckduckgo),
+        ):
+            entries = self._run_source(name, source, query)
             for entry in entries:
                 url = entry.get("url", "")
                 if not url or url in seen:
@@ -374,6 +488,8 @@ class KeylessBackend(SearchBackend):
 # Selection helpers
 # ---------------------------------------------------------------------------
 _VALID_BACKENDS = {"auto", "gemini", "keyless", "none"}
+_KEYLESS_BACKEND = KeylessBackend()
+_NONE_BACKEND = NoneBackend()
 
 
 def resolve_backend_name(setting: str | None, *, gemini_key: str | None = None) -> str:
@@ -401,9 +517,9 @@ def get_backend(
     """Instantiate a backend from a setting name using the auto precedence."""
     name = resolve_backend_name(setting, gemini_key=gemini_api_key)
     if name == "none":
-        return NoneBackend()
+        return _NONE_BACKEND
     if name == "keyless":
-        return KeylessBackend()
+        return _KEYLESS_BACKEND
     return GeminiBackend(
         api_key=gemini_api_key,
         model=gemini_model,
@@ -438,3 +554,21 @@ def web_search(
         resolve_redirects=resolve_redirects,
     )
     return impl.search(query)
+
+
+def reset_network_state() -> None:
+    """Start a fresh research run with empty caches and circuit breakers.
+
+    Call this only when no research requests are active. Requests made during
+    one pipeline run still share cache and source-health state.
+    """
+    _KEYLESS_BACKEND.reset()
+    with _FETCH_STATE_LOCK:
+        _FETCH_CACHE.clear()
+        _FETCH_BLOCKED_ORIGINS.clear()
+        _FETCH_ORIGIN_LOCKS.clear()
+
+
+def _reset_network_state_for_tests() -> None:
+    """Backward-compatible test helper for resetting research network state."""
+    reset_network_state()

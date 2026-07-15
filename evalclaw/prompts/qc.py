@@ -18,8 +18,23 @@ coverage. Also perform meta-evaluation:
   challenge-effort claim. Do not create QC issues merely because an item looks easier
   than its challenge_effort; builder-level self-assessment handles that before
   this QC gate.
+- metadata.challenge_effort_fidelity.status=uncertain means the builder had to
+  regenerate after output truncation with reduced effort. Preserve this marker
+  and do not reject an otherwise sound item solely for effort-label uncertainty;
+  continue to report any concrete execution, scoring, or content defect.
 - If an existing benchmark/source is needed, did the dataset use appropriate,
   hard, authoritative sources?
+
+Perform a complete audit in one pass. For every reviewed item, inspect every
+applicable link in its task, environment, tools, files, output contract,
+evaluator, scoring, and metadata, and report all independently actionable
+problems you can substantiate rather than stopping after the first or most
+salient issue. This instruction is about completeness, not criticism: do not
+invent hypothetical defects, duplicate the same root cause under several
+wordings, penalize harmless stylistic choices, or report an issue for a part
+that is sound. An item with no substantiated problem should receive no issue.
+Suggestions must be scoped to the reported defect and should preserve
+unaffected task content.
 
 For task_type=agent_interaction with metadata.agent_env.type=code_sandbox:
 - visible_files are available to the target through file tools.
@@ -75,7 +90,7 @@ For task_type=agent_interaction with metadata.agent_env.type=docker_workspace:
   excerpt.
 
 For task_type=multi_turn or task_type=agent_interaction:
-- If metadata.agent_structure_validation.status is "passed", the task has
+- If metadata.task_structure_validation.status is "passed", the task has
   already passed builder-level structural validation. Do not report low-level
   missing-schema issues for task_agent, agent_env, or agent_task_package unless
   the visible task content itself proves that the task is not executable.

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EvaluationClaw 完整运行流程</title>
+  <style>
+    :root {
+      --ink: #17212b;
+      --muted: #5e6b78;
+      --line: #d8dee5;
+      --soft: #f6f8fa;
+      --accent: #245b8f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #fff;
+      font: 17px/1.75 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+    main { max-width: 980px; margin: 0 auto; padding: 48px 28px 88px; }
+    header { padding-bottom: 28px; border-bottom: 2px solid var(--ink); }
+    h1, h2, h3 { line-height: 1.3; }
+    h1 { margin: 0 0 14px; font-size: 38px; }
+    h2 { margin: 48px 0 18px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 27px; }
+    h3 { margin: 28px 0 10px; font-size: 20px; }
+    p { margin: 10px 0; }
+    .lead { max-width: 850px; margin: 0; color: var(--muted); font-size: 18px; }
+    .flow {
+      margin: 24px 0 0;
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: var(--soft);
+      font-weight: 650;
+    }
+    nav { margin: 28px 0 8px; }
+    nav h2 { margin: 0 0 10px; padding: 0; border: 0; font-size: 21px; }
+    nav ol { margin: 0; padding-left: 24px; columns: 2; column-gap: 44px; }
+    nav li { break-inside: avoid; margin: 3px 0; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    figure { margin: 34px 0 10px; overflow-x: auto; }
+    figure img { display: block; width: 100%; min-width: 900px; height: auto; border: 1px solid var(--line); }
+    figcaption { margin-top: 8px; color: var(--muted); font-size: 14px; text-align: center; }
+    .io { margin: 16px 0; padding: 14px 18px; border-left: 3px solid #8ba8c2; background: var(--soft); }
+    .io p { margin: 5px 0; }
+    .branch { margin: 16px 0; padding: 13px 16px; border: 1px solid var(--line); }
+    .branch > :first-child { margin-top: 0; }
+    .branch > :last-child { margin-bottom: 0; }
+    ul, ol { padding-left: 25px; }
+    li + li { margin-top: 6px; }
+    code {
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: #edf1f4;
+      font: .92em ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+    table { width: 100%; margin: 15px 0; border-collapse: collapse; font-size: 15px; }
+    th, td { padding: 9px 10px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--soft); }
+    footer { margin-top: 52px; padding-top: 18px; border-top: 2px solid var(--ink); }
+    @media (max-width: 720px) {
+      main { padding: 28px 16px 60px; }
+      h1 { font-size: 31px; }
+      nav ol { columns: 1; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>EvaluationClaw 一次完整运行</h1>
+    <p class="lead">本文从上到下严格按照一次运行的先后顺序讲解。每一步只说明它接收什么、实际做什么、产生什么，以及什么情况下会跳过、重试或停止。</p>
+    <p class="flow">用户需求 → 配置解析 → 需求规范化 → 可选领域研究 → 评测规划 → 构题计划 → 单题构建 → 数据集包装 → 质量检查与修复 → 可选人工复核 → 执行准备 → 可选目标测评与评分 → 可选结果驱动改进 → 报告与产物</p>
+  </header>
+
+  <figure>
+    <img src="assets/evalclaw-figure-1.svg" alt="EvaluationClaw 从用户需求到构题、质量检查、可选执行评分和报告产物的流程图。">
+    <figcaption>Figure 1. 主流程概览。正文按照更完整的实际运行顺序展开。</figcaption>
+  </figure>
+
+  <nav aria-label="运行顺序">
+    <h2>运行顺序</h2>
+    <ol>
+      <li><a href="#start">接收需求并确定本次运行方式</a></li>
+      <li><a href="#normalize">规范化用户需求</a></li>
+      <li><a href="#research">执行可选的规划前研究</a></li>
+      <li><a href="#plan">把需求转成评测规格</a></li>
+      <li><a href="#blueprints">把规格拆成构题计划</a></li>
+      <li><a href="#jobs">展开单题任务并准备来源</a></li>
+      <li><a href="#build">逐题构建和结构修复</a></li>
+      <li><a href="#package">包装成可检查、可执行的数据集</a></li>
+      <li><a href="#qc">执行质量检查和定点重构</a></li>
+      <li><a href="#human">执行可选的人工复核</a></li>
+      <li><a href="#prepare-run">确定真正进入执行的题目</a></li>
+      <li><a href="#run">调用目标模型并评分</a></li>
+      <li><a href="#improve">执行可选的结果驱动改进</a></li>
+      <li><a href="#output">生成报告并保存全部产物</a></li>
+    </ol>
+  </nav>
+
+  <section id="start">
+    <h2>1. 接收需求并确定本次运行方式</h2>
+    <div class="io">
+      <p><strong>进入：</strong>一段自然语言评测需求，以及本次运行的模型、规模、研究、构题、QC、人工复核、执行和输出设置。</p>
+      <p><strong>离开：</strong>一份完成校验的运行配置和原始用户需求。</p>
+    </div>
+    <p>框架先检查必需输入和所有有限范围设置。需求为空时不会继续；不合法的规模等级、构题模式、并发数、修复次数、超时或比例会在任何构题工作开始前直接报错。</p>
+
+    <h3>1.1 框架内部模型和待测模型是两类对象</h3>
+    <p>框架内部有六种模型职责：理解需求并制定规格、构建题目、检查题目质量、为开放答案评分、完成领域研究、根据首轮结果提出改进。它们分别称为 Planner、TaskBuilder、QC、Judge、Research 和 Loop 3 角色。每个角色都可以使用独立的模型和连接；没有单独配置的部分使用默认编排连接。</p>
+    <p>待测模型只负责回答最终通过 QC 的题目，不参与构题。某些多轮或交互任务还可以使用一个独立的任务代理模型来生成后续轮次或执行任务专属评分；它也不是待测模型。</p>
+
+    <h3>1.2 不配置待测模型时仍然可以完整出题</h3>
+    <p>如果本次没有提供任何待测模型，只要构题和 QC 本身成功，框架仍会继续完成需求理解、研究、规划、构题、QC、报告和导出，但不会发送任何待测请求，最终逐题结果和目标汇总为空。如果提供了待测模型但明确关闭执行，同样不会调用它们；区别是这些模型配置仍会保存在本次运行上下文中。</p>
+    <p>参考模型只在需要比较两个回答的题目中使用。没有参考模型时，这种比较题会在 QC 阶段被判定为不可执行。</p>
+  </section>
+
+  <section id="normalize">
+    <h2>2. 规范化用户需求</h2>
+    <div class="io">
+      <p><strong>进入：</strong>原始自然语言需求。</p>
+      <p><strong>离开：</strong>交给后续研究和规划的规范化需求。</p>
+    </div>
+    <p>框架检测需求中是否含有中日韩统一表意文字。若存在且 Planner 连接可用，就请求 Planner 只返回一份英文等义需求，并要求保留模型名、领域术语、规模、约束和被测语言能力。</p>
+    <p>不需要翻译、Planner 不可用、翻译调用失败、返回为空或无法解析时，后续步骤直接使用原始需求，不会自行补写另一份需求。</p>
+  </section>
+
+  <section id="research">
+    <h2>3. 执行可选的规划前研究</h2>
+    <div class="io">
+      <p><strong>进入：</strong>规范化需求，以及是否启用规划前研究的设置。</p>
+      <p><strong>离开：</strong>原需求，加上一份可选的领域研究摘要。</p>
+    </div>
+    <p>只有用户启用了规划前研究，并且没有直接提供现成研究摘要时，才会进入这一步。Research 角色不可用、网络研究被关闭或搜索后端被禁用时，这一步不产生摘要，Planner 继续只根据用户需求工作。</p>
+    <p>启用后，每一轮依次进行：</p>
+    <ol>
+      <li>根据评测需求产生互补的搜索问题。</li>
+      <li>搜索网页和可选的公开数据集，抓取有限数量的候选页面。</li>
+      <li>把原始搜索内容压缩成与评测设计直接相关的事实。</li>
+      <li>检查领域结构、已有评测、可用来源、代表性题形和构题投入标尺是否仍有缺口。</li>
+      <li>如果缺口已经补齐就停止；否则生成下一轮定向查询，直到达到轮数上限。</li>
+    </ol>
+    <p>最后，框架把已收集内容整理成一份研究摘要，包含领域能力结构、已有 benchmark 及其不足、可引用来源、代表性题目、E1–E4 构题投入参照和引用。整理失败时，会尽量用已经获得的事实和来源形成不完整但可用的摘要。</p>
+    <p>下一步 Planner 实际接收的是这份摘要的压缩版本：领域概览、能力结构、已有 benchmark 及其不足、构题投入参照。完整来源、示例和引用仍保留，供最终产物和报告使用。</p>
+  </section>
+
+  <section id="plan">
+    <h2>4. 把需求转成评测规格</h2>
+    <div class="io">
+      <p><strong>进入：</strong>规范化需求、目标模型信息、规模设置、可选参考模型，以及可选的研究摘要。</p>
+      <p><strong>离开：</strong>一份结构化评测规格，后文称为 <code>EvalSpec</code>。</p>
+    </div>
+    <p>Planner 必须把模糊需求落实为六项内容：评测目标、评测对象、题目形式、能力内容、题目规模和评分指标。它随后把能力拆成若干互不重复的维度，并为每个维度明确：</p>
+    <ul>
+      <li>这个维度测什么，以及准备怎样测；</li>
+      <li>它在整套评测中的权重；</li>
+      <li>需要哪些题型和多少道题；</li>
+      <li>是否必须依赖外部来源，以及应搜索什么；</li>
+      <li>TaskBuilder 必须满足和避免的具体要求；</li>
+      <li>构建这些题目时应投入多少努力。</li>
+    </ul>
+    <p>E1–E4 表示 TaskBuilder 构造题目时应投入的规划、推理、材料和验证工作量，不表示题目已经被客观证明为某个难度等级。用户给出明确题数时保留该题数；没有明确题数时，Planner 结合规模设置分配总量，并由框架为缺少数量的维度按权重补齐。</p>
+    <p>如果用户明确要求非文本输入或其他专门能力，Planner 才会加入相应的任务契约。若没有待测模型，Planner 仍然制定与具体模型无关的评测规格。</p>
+
+    <h3>4.1 Planner 自检</h3>
+    <p>每次 Planner 返回规格时，还必须同时检查上述六项是否完整并给出 0–5 分。只有六项全部通过且评分至少为 4，规划循环才提前结束。未通过时，上一版规格和缺失项会再次交给 Planner 修订，直到通过或达到配置的最大次数。达到上限时使用最后一份成功解析的规格；Planner 连接不可用时使用本地的确定性规格。</p>
+  </section>
+
+  <section id="blueprints">
+    <h2>5. 把评测规格拆成构题计划</h2>
+    <div class="io">
+      <p><strong>进入：</strong>结构化评测规格。</p>
+      <p><strong>离开：</strong>一组可独立构建的题目计划，后文称为 <code>TaskBlueprint</code>。</p>
+    </div>
+    <p>框架逐个处理能力维度。每个维度优先使用自己指定的题型；没有指定时使用整套评测的题型；仍然没有时使用开放回答题。</p>
+    <p>一个维度同时要求多种题型时，框架为每种实际能够被题目数量覆盖的题型建立一份构题计划。例如一个维度只有一道题时，只能保留第一种题型；有足够题目时，总数在各题型之间尽量均分，余数按原顺序分配。</p>
+    <p>每份构题计划只对应一个维度和一种题型，并记录要生成的题数、构题要求、来源策略和评分方式。普通问答题不附带执行环境。只有多轮、工具调用或状态操作等交互要求存在时，框架才根据该维度的实际需求确定所需环境和工具。</p>
+  </section>
+
+  <section id="jobs">
+    <h2>6. 展开单题任务并准备来源</h2>
+    <div class="io">
+      <p><strong>进入：</strong>全部构题计划。</p>
+      <p><strong>离开：</strong>一组一一对应具体题目的构建任务。</p>
+    </div>
+    <p>每份构题计划中的题数会被展开为独立的单题任务。每个任务都知道自己所属的能力维度、唯一题型、在该计划中的序号以及该计划总题数。因此，无论整套 benchmark 有多少题，每次 TaskBuilder 调用都只负责一道题。</p>
+
+    <h3>6.1 只在明确需要时准备外部来源</h3>
+    <p>如果 Planner 明确判断某个维度需要外部来源，并且研究功能与 Research 连接可用，框架会使用该构题计划的查询寻找有限数量的来源，把标题、地址和内容摘要交给 TaskBuilder。没有明确研究需求的维度不会执行这项搜索。</p>
+    <p>这里的来源搜索服务于一道具体题目的构建，与第 3 步面向整个领域的规划前研究不同。</p>
+
+    <h3>6.2 并发不改变结果顺序</h3>
+    <p>不同单题任务可以由配置数量的并发执行单元同时构建。框架为每个任务记录开始和完成进度；全部完成后仍按原始规划顺序合并，而不是按网络请求返回顺序排列。</p>
+  </section>
+
+  <section id="build">
+    <h2>7. 逐题构建和结构修复</h2>
+    <div class="io">
+      <p><strong>进入：</strong>一个单题任务、相应能力要求、可选来源和可选修订意见。</p>
+      <p><strong>离开：</strong>一道结构完整的任务，或者一个明确的构题失败。</p>
+    </div>
+
+    <h3>7.1 TaskBuilder 实际收到什么</h3>
+    <p>TaskBuilder 收到整套评测的目标、当前能力维度、当前唯一题型、当前题号、必须满足的构题要求、评分策略、可用来源和返回格式。不同题型只要求完成自身需要的内容：</p>
+    <ul>
+      <li>选择题必须给出选项和正确答案；</li>
+      <li>简答题必须给出参考答案；</li>
+      <li>开放回答题必须给出可执行的评分标准；</li>
+      <li>代码题必须给出测试或等价的确定性判定方式；</li>
+      <li>交互题还必须给出环境、工具、初始状态、完成条件和评分方式。</li>
+    </ul>
+    <p>如果当前构题计划没有执行环境，TaskBuilder 的请求中不会出现环境、工具、文件生命周期或任务代理协议。</p>
+
+    <h3>7.2 三种构题方式</h3>
+    <ul>
+      <li><strong>远程严格构题：</strong>必须由 TaskBuilder 模型生成并通过结构检查；失败后不会静默换成本地模板。</li>
+      <li><strong>本地构题：</strong>不调用 TaskBuilder 模型，直接使用程序化构题实现。</li>
+      <li><strong>自动构题：</strong>优先调用 TaskBuilder；没有可用连接或修复用尽时允许回退到本地构题。</li>
+    </ul>
+    <p>当构题投入为 E4、这是该题第一次生成且网络研究已启用时，TaskBuilder 可以在有限调用次数内自行搜索或抓取公开材料。QC 修订和截断恢复不会再次开放这项工具。</p>
+
+    <h3>7.3 返回解析和单题修复</h3>
+    <p>远程 TaskBuilder 必须返回一个 JSON 对象，其中恰好包含一道可用任务。框架随后检查题目是否属于正确维度和题型，答案类字段是否齐全，评分是否可执行，构题投入自检是否存在，以及可选环境契约是否完整。</p>
+    <p>如果返回无法解析或结构检查失败，框架把本次发现的全部问题和上一份返回一起交回 TaskBuilder，要求返回完整替代对象。修订提示明确要求修完列出的所有问题，同时尽量原样保留没有被指出的问题部分。修订次数达到上限后，严格构题直接失败，自动构题才允许使用本地任务。</p>
+
+    <h3>7.4 输出被截断时</h3>
+    <p>如果模型因为输出预算耗尽而没有返回完整题目，框架不会把残缺 JSON 当成题目，也不会从截断位置续写。它会从头发起一次新调用，要求降低构题和推理投入，优先保留完整任务和确定性评分。第二次仍被截断时，该单题构建失败。</p>
+    <p>截断恢复生成的题目继续使用原先请求的 E1–E4 标签，但会记录“该投入等级未必忠实”。只有它之后通过全部结构检查和 QC，才可能进入最终数据集。</p>
+
+    <h3>7.5 合并本轮构题结果</h3>
+    <p>所有成功单题按规划顺序合并，并与本轮使用的来源、构题计划和构建说明组成完整构题集合，后文称为 <code>TaskSuite</code>。</p>
+  </section>
+
+  <section id="package">
+    <h2>8. 包装成可检查、可执行的数据集</h2>
+    <div class="io">
+      <p><strong>进入：</strong>完整构题集合。</p>
+      <p><strong>离开：</strong>供 QC、执行和导出共同使用的 benchmark 数据集，后文称为 <code>BenchmarkDataset</code>。</p>
+    </div>
+    <p>框架把每道构建任务转换成统一的 benchmark item，保留题面、题型、答案或评分标准、测试、来源、构题投入等级，以及它来自哪个构题计划和第几个单题任务。</p>
+    <p>只有任务确实带有执行环境时，才会在这里补全三类运行信息：</p>
+    <ul>
+      <li>执行器应怎样准备环境、文件、镜像、会话和隐藏材料；</li>
+      <li>交互过程怎样开始、怎样继续以及怎样评分；</li>
+      <li>哪些输入对目标可见、哪些参考必须隐藏、需要收集什么产物和轨迹。</li>
+    </ul>
+    <p>没有执行环境的题目不会获得这些信息。数据集同时保存每个维度的计划数量与实际数量、题型分布、来源列表、构题计划和完整构题集合，供后续 QC 定位原始单题位置。</p>
+  </section>
+
+  <section id="qc">
+    <h2>9. 执行 QC 和定点重构</h2>
+    <div class="io">
+      <p><strong>进入：</strong>完整 benchmark 数据集。</p>
+      <p><strong>离开：</strong>更新后的数据集和一份 QC 结果，后文称为 <code>QcReport</code>。</p>
+    </div>
+
+    <h3>9.1 一轮 QC 怎样进行</h3>
+    <ol>
+      <li><strong>逐题检查：</strong>检查题面、答案、选项、评分、测试、构题结构，以及存在时的环境、多模态输入和可执行任务契约。</li>
+      <li><strong>整套检查：</strong>检查完全重复和近似重复、能力维度覆盖、题型覆盖，以及各维度计划数量与实际数量。</li>
+      <li><strong>可选 LLM 检查：</strong>QC 角色对分层样本进行审查，必须报告样本中全部有证据的问题，但不能为了显得严格而编造问题。普通规模最多审查 50 道；大规模评测使用配置的抽样上限。QC 角色不可用时跳过；调用失败时记录 warning，程序化检查结果仍然有效。</li>
+    </ol>
+    <p>每个问题分为 error 或 warning。带有 error 的题目进入拒绝列表，其余题目进入通过列表。质量分从 1 开始，按题目数量归一化扣除问题影响：每个 error 扣 0.2，每个 warning 扣 0.05。没有 error 且质量分至少为 0.8，整套数据才被视为可接受。</p>
+
+    <h3>9.2 error 如何触发定点重构</h3>
+    <p>框架根据 error 所属题目找到原构题计划。只选择存在 error 的计划重新构建；没有指向具体题目的全局 error 会影响全部计划。warning 不会单独触发重构，但仍会降低质量分。</p>
+    <p>进入重构时，每个单题任务会收到与自己有关的 QC 问题和上一版任务。没有 QC 问题的单题直接保留；有问题的单题由同一个 TaskBuilder 修订，而且不再开放 E4 网络研究。重构结果替换原计划中的对应内容，其他计划保持不变。随后重新包装整个数据集并重新执行完整 QC。</p>
+    <p>这个“重构 → 重新 QC”循环最多执行配置的次数。达到上限后仍有任何 error、仍有拒绝题，或虽然没有 error 但质量分低于 0.8，默认行为是停止运行，不进入目标模型执行。</p>
+
+    <div class="branch">
+      <p><strong>允许不完整 benchmark 时：</strong>框架可以带着未通过的 QC 结果继续。后续执行计划仍然只包含通过列表中的题目，拒绝题保留在审计信息中，不会发送给目标模型。</p>
+    </div>
+  </section>
+
+  <section id="human">
+    <h2>10. 执行可选的人工复核</h2>
+    <div class="io">
+      <p><strong>进入：</strong>已经完成自动 QC 的数据集和 QC 结果。</p>
+      <p><strong>离开：</strong>人工批准的数据集，或按反馈重新规划、构建和 QC 的新数据集。</p>
+    </div>
+    <p>只有启用了人工复核并且当前调用方能够接收用户输入时，才进入这一步。框架展示当前能力维度、题目数量和 QC 概况。用户直接批准时继续；用户提出修改时，Planner 根据当前规格、题目摘要、QC 问题和人工反馈决定怎样调整能力维度、覆盖范围和题目分配。</p>
+    <p>调整后的规格重新经过第 5–9 步：重新产生构题计划、构建题目、包装数据集并完成 QC。最多进行三轮人工复核。</p>
+    <p>如果不完整 benchmark 被允许继续，并且此时仍有阻塞 QC 问题，交互模式会再次询问是否执行目标；用户不确认时，只关闭目标执行，不影响后续报告和导出。</p>
+  </section>
+
+  <section id="prepare-run">
+    <h2>11. 确定真正进入执行的题目</h2>
+    <div class="io">
+      <p><strong>进入：</strong>最终数据集和最终 QC 结果。</p>
+      <p><strong>离开：</strong>只含 QC 通过题目的执行视图，后文称为 <code>ExecutionPlan</code>。</p>
+    </div>
+    <p>框架先确认所有题目 ID 唯一，并检查 QC 的通过列表和拒绝列表没有重复、未知题目或相互重叠。执行视图严格按照通过列表选题；拒绝题只保留在审计记录中。</p>
+
+    <h3>11.1 环境准备只依据通过题目</h3>
+    <p>如果环境检查功能开启，框架检查通过题目实际要求的运行能力：容器和镜像、虚拟机材料与服务、桌面桥，以及可选外部评测工具。需要直接执行目标且题目使用容器时，框架会在正式调用目标前试跑任务设置和评分程序。</p>
+    <p>即使没有配置待测模型，环境检查函数仍会处理通过题目所声明的环境；但不会执行目标请求，且只有直接目标执行开启时，环境阻塞才会在这里终止运行。环境检查被关闭时，这一步只建立执行视图。</p>
+    <p>如果通过题目包含多模态输入且目标执行开启，框架还会在调用目标前确认每个目标以及必要的参考模型能够接收对应输入；不兼容时整次执行在首个目标请求前停止。</p>
+  </section>
+
+  <section id="run">
+    <h2>12. 调用目标模型并评分</h2>
+    <div class="io">
+      <p><strong>进入：</strong>执行视图、可选待测模型、可选参考模型和评分配置。</p>
+      <p><strong>离开：</strong>逐题结果、目标汇总和执行审计信息，合称 <code>EvalRun</code>。</p>
+    </div>
+    <p>没有待测模型时，不发生目标调用，逐题结果与目标汇总都为空，但仍然产生一份运行记录。已经配置待测模型但明确关闭执行时，逐题结果为空，同时为每个已配置目标保留一份题目数为 0 的汇总。启用直接执行时，框架按“每个目标 × 每道通过题目”逐一运行，并持续报告完成数量、目标和题目。</p>
+
+    <h3>12.1 不同题型怎样执行和评分</h3>
+    <table>
+      <thead><tr><th>题目形式</th><th>执行和评分过程</th></tr></thead>
+      <tbody>
+        <tr><td>是非、选择、简答</td><td>调用目标一次，然后按规范化答案、选项或参考答案直接计算分数。</td></tr>
+        <tr><td>开放回答</td><td>调用目标一次，再由 Judge 按题目评分标准打分。默认评分两次并取平均，同时记录两次分歧；第二次失败时保留第一次。</td></tr>
+        <tr><td>代码执行</td><td>调用目标一次，把模型输出放入测试程序，在隔离环境运行并按测试结果评分。</td></tr>
+        <tr><td>多轮对话</td><td>按题目预设轮次，或由配置的内部模型产生后续轮次，继续调用目标，最后对完整对话记录评分。</td></tr>
+        <tr><td>工具或环境交互</td><td>建立题目指定环境，目标在“执行动作—接收观察”的循环中操作工具；结束后检查最终状态、测试、产物或轨迹。</td></tr>
+        <tr><td>目标与参考模型比较</td><td>把同一道题分别发送给目标和参考模型，再由 Judge 判定目标获胜、平局或失败。</td></tr>
+        <tr><td>多模态题</td><td>先把媒体和文字转换为目标模型接口支持的原生输入，再按该题型对应方式评分。</td></tr>
+      </tbody>
+    </table>
+    <p>某些题目可以明确要求任务代理执行专属评分；此时使用任务代理模型，而不是通用 Judge。任何单题中的目标调用、环境操作或评分异常都会被记录为该题 error 和 0 分，其他题目继续运行。缺少某个目标的凭据也会记录为逐题 error。</p>
+
+    <h3>12.2 汇总</h3>
+    <p>每个目标的汇总包含有效结果平均分、各能力维度平均分、各题型平均分、结果总数和 error 数。error 结果不进入平均分分母。</p>
+
+    <h3>12.3 三种执行方式</h3>
+    <ul>
+      <li><strong>direct：</strong>执行上述内置流程。</li>
+      <li><strong>lm-eval：</strong>不执行内置目标循环，而是把 QC 通过的数据集交给 lm-eval；其结果保存在运行记录的附加产物中。</li>
+      <li><strong>auto：</strong>先执行内置流程，再尝试 lm-eval。</li>
+    </ul>
+    <p>lm-eval 只在存在目标和输出目录时逐目标运行。某个目标的 lm-eval 失败会记录错误并继续处理其他目标。</p>
+  </section>
+
+  <section id="improve">
+    <h2>13. 执行可选的结果驱动改进</h2>
+    <div class="io">
+      <p><strong>进入：</strong>当前数据集、QC 结果和目标运行结果。</p>
+      <p><strong>离开：</strong>零个或多个改进记录，以及可能更新的数据集、QC 结果和运行结果。</p>
+    </div>
+    <p>只有配置了改进轮数时才进入 Loop 3。每一轮先读取 QC 问题、目标汇总、低分或出错结果以及相应题目摘要，然后由 Loop 3 角色或本地规则提出有限数量的具体动作：</p>
+    <ul>
+      <li>题目或评分本身有问题时，替换该题；</li>
+      <li>某个能力维度暴露出稳定弱点时，增加一题用于确认边界。</li>
+    </ul>
+    <p>每个动作被缩小成一道题的临时规格，再通过同一个 TaskBuilder 构建。新题若与已有题过于相似会被丢弃并重试，最多尝试三次。成功的新题与原数据集合并，然后重新执行完整 QC，并只对 QC 通过题目重新运行目标。</p>
+    <p>Loop 3 内部的重新运行不会再次执行第 11 步的环境检查。若本轮成功产生了新数据集、QC 结果和运行结果，它们会替换当前版本，下一轮和最终报告都使用更新后的版本。每轮的动作和结果同时保留在改进记录中。</p>
+  </section>
+
+  <section id="output">
+    <h2>14. 生成报告并保存全部产物</h2>
+    <div class="io">
+      <p><strong>进入：</strong>最后一版数据集、QC、运行结果、全部改进记录和可选研究摘要。</p>
+      <p><strong>离开：</strong>内存中的完整运行包，以及可选的输出目录。</p>
+    </div>
+    <p>框架先根据最后一版运行结果生成可读报告。报告包含评测目标和规格、能力维度、实际数据集、QC、来源、评分语义、逐题结果、目标汇总、失败情况、Judge 审计，以及存在时的研究摘要。Loop 3 的各轮动作和中间结果保存在最终运行包的改进记录中。</p>
+    <p>随后把以下内容组合成完整运行包，后文简称 package：规范化需求、评测规格、最终数据集、最终 QC、最终运行结果、每轮改进、可读报告和可选研究摘要。无论是否配置待测模型，这个 package 都会返回给调用方。</p>
+
+    <h3>14.1 配置了输出目录时</h3>
+    <p>框架再次根据最终 QC 生成只含通过题目的导出视图，然后保存：</p>
+    <ul>
+      <li>包含全部结构化内容的 package JSON；</li>
+      <li>可阅读的 Markdown 报告；</li>
+      <li>可在浏览器中查看的运行报告；</li>
+      <li>供 lm-eval 使用的任务定义和相关导出；</li>
+      <li>存在规划前研究时的研究摘要 JSON 和 Markdown；</li>
+      <li>列出本次所有产物及路径的产物清单（manifest）。</li>
+    </ul>
+    <p>最终返回值与输出目录表达的是同一次运行：前者供程序继续处理，后者供检查、复现和外部评测工具使用。</p>
+  </section>
+
+  <footer>
+    <strong>完整结束条件：</strong>最终 package 已建立；如果配置了输出目录，全部导出文件和 manifest 也已写入。到此一次 EvaluationClaw 运行结束。
+  </footer>
+</main>
+</body>
+</html>
