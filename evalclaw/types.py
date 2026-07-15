@@ -70,12 +70,6 @@ class SourceKind(str, Enum):
     imported = "imported"
 
 
-class BenchmarkMode(str, Enum):
-    auto = "auto"
-    static = "static"
-    agent = "agent"
-
-
 class QcSeverity(str, Enum):
     info = "info"
     warning = "warning"
@@ -163,7 +157,7 @@ class AgentEnvironmentType(str, Enum):
     gui_desktop = "gui_desktop"
 
 
-class AgentResource(BaseModel):
+class TaskResource(BaseModel):
     id: str
     kind: str = "web"
     uri: str = ""
@@ -174,18 +168,21 @@ class AgentResource(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
-class AgentTaskBlueprint(BaseModel):
+class TaskBlueprint(BaseModel):
+    """Plan for one independently materialized task slice."""
+
     id: str
     dimension_id: str
     title: str
     description: str = ""
-    environment_type: AgentEnvironmentType = AgentEnvironmentType.workspace
+    task_types: list[TaskType] = Field(default_factory=list)
     expected_task_count: int = 1
     resource_queries: list[str] = Field(default_factory=list)
     source_strategy: str = ""
-    tool_requirements: list[str] = Field(default_factory=list)
     construction_requirements: list[str] = Field(default_factory=list)
     scoring_strategy: str = ""
+    environment_type: Optional[AgentEnvironmentType] = None
+    tool_requirements: list[str] = Field(default_factory=list)
 
 
 class AgentEnvironmentSpec(BaseModel):
@@ -222,7 +219,7 @@ class AgentEnvironmentSpec(BaseModel):
     notes: str = ""
 
 
-class AgentScoringSpec(BaseModel):
+class TaskScoringSpec(BaseModel):
     method: str = "deterministic"
     instructions: str = ""
     pass_criteria: str = ""
@@ -232,31 +229,36 @@ class AgentScoringSpec(BaseModel):
     oracle_notes: str = ""
 
 
-class AgentTask(BaseModel):
+class TaskDefinition(BaseModel):
     id: str
     dimension_id: str
+    task_type: TaskType
     title: str
     content_summary: str = ""
     description: str = ""
     prompt: str
+    choices: list[str] = Field(default_factory=list)
+    answer: Optional[str] = None
+    rubric: Optional[str] = None
+    test_code: Optional[str] = None
     system_prompt: str = ""
     resource_ids: list[str] = Field(default_factory=list)
-    environment: AgentEnvironmentSpec = Field(default_factory=AgentEnvironmentSpec)
+    environment: Optional[AgentEnvironmentSpec] = None
     interaction: dict[str, Any] = Field(default_factory=dict)
-    scoring: AgentScoringSpec = Field(default_factory=AgentScoringSpec)
+    scoring: TaskScoringSpec = Field(default_factory=TaskScoringSpec)
     challenge_effort: ChallengeEffort = ChallengeEffort.E3
     tags: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 
-class AgentTaskSuite(BaseModel):
-    id: str = "agent_task_suite"
+class TaskSuite(BaseModel):
+    id: str = "task_suite"
     objective: str
     dimensions: list[EvalDimension] = Field(default_factory=list)
-    blueprints: list[AgentTaskBlueprint] = Field(default_factory=list)
-    resources: list[AgentResource] = Field(default_factory=list)
-    tasks: list[AgentTask] = Field(default_factory=list)
+    blueprints: list[TaskBlueprint] = Field(default_factory=list)
+    resources: list[TaskResource] = Field(default_factory=list)
+    tasks: list[TaskDefinition] = Field(default_factory=list)
     construction_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
 
@@ -296,9 +298,10 @@ class BenchmarkBatch(BaseModel):
 class BenchmarkDataset(BaseModel):
     spec: EvalSpec
     items: list[BenchmarkItem]
+    blueprints: list[TaskBlueprint] = Field(default_factory=list)
     sources: list[BenchmarkSource] = Field(default_factory=list)
     batches: list[BenchmarkBatch] = Field(default_factory=list)
-    agent_task_suite: Optional[AgentTaskSuite] = None
+    task_suite: Optional[TaskSuite] = None
     generation_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
 
@@ -472,11 +475,34 @@ class BenchmarkPackage(BaseModel):
 
 
 class BenchmarkConfig(BaseModel):
-    benchmark_mode: BenchmarkMode = BenchmarkMode.auto
     orchestrator_model: str = "claude-opus-4-6"
     orchestrator_provider: Optional[str] = None
     orchestrator_api_key: Optional[str] = None
     orchestrator_base_url: Optional[str] = None
+    planner_model: Optional[str] = None
+    planner_provider: Optional[str] = None
+    planner_api_key: Optional[str] = None
+    planner_base_url: Optional[str] = None
+    task_builder_model: Optional[str] = None
+    task_builder_provider: Optional[str] = None
+    task_builder_api_key: Optional[str] = None
+    task_builder_base_url: Optional[str] = None
+    qc_model: Optional[str] = None
+    qc_provider: Optional[str] = None
+    qc_api_key: Optional[str] = None
+    qc_base_url: Optional[str] = None
+    judge_model: Optional[str] = None
+    judge_provider: Optional[str] = None
+    judge_api_key: Optional[str] = None
+    judge_base_url: Optional[str] = None
+    research_model: Optional[str] = None
+    research_provider: Optional[str] = None
+    research_api_key: Optional[str] = None
+    research_base_url: Optional[str] = None
+    loop3_model: Optional[str] = None
+    loop3_provider: Optional[str] = None
+    loop3_api_key: Optional[str] = None
+    loop3_base_url: Optional[str] = None
     task_agent_model: Optional[str] = None
     task_agent_provider: Optional[str] = None
     task_agent_api_key: Optional[str] = None
@@ -500,11 +526,11 @@ class BenchmarkConfig(BaseModel):
     max_research_iterations: int = 3
     research_brief: Optional[ResearchBrief] = None
     use_hf_discovery: bool = True
-    agent_task_builder: str = "llm"  # llm | local | auto
-    agent_task_builder_max_workers: int = 4
-    agent_task_builder_repair_attempts: int = 2
-    agent_task_builder_research_max_calls: int = 6
-    agent_task_builder_research_max_chars: int = 6000
+    task_builder: str = "llm"  # llm | local | auto
+    task_builder_max_workers: int = 4
+    task_builder_repair_attempts: int = 2
+    task_builder_research_max_calls: int = 6
+    task_builder_research_max_chars: int = 6000
     judge_double_pass: bool = True
     llm_backend: str = "auto"  # auto | litellm | legacy
     runner: str = "direct"  # direct | lm-eval | auto

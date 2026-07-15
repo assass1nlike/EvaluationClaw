@@ -2,7 +2,7 @@
 
 Produces a structured :class:`~evalclaw.types.ResearchBrief` that grounds the
 planner (taxonomy, challenge-effort anchors) and the generator (seed sources). The
-loop is orchestrator-LLM driven and degrades gracefully: with no orchestrator
+loop is research-role-LLM driven and degrades gracefully: with no research-role
 key or with search disabled it returns ``None`` and the pipeline continues on
 the existing single-shot research path.
 """
@@ -13,6 +13,7 @@ from typing import Callable, Optional
 
 from ..models.json_utils import extract_json
 from ..models.llm import call_llm
+from ..models.roles import role_model_settings
 from ..prompts.research import (
     RESEARCH_COMPRESS_SYSTEM_PROMPT,
     RESEARCH_QUERY_SYSTEM_PROMPT,
@@ -47,13 +48,11 @@ def _call_orchestrator_json(
     *,
     max_tokens: int = 4096,
 ) -> dict:
+    settings = role_model_settings(config, "research")
     raw = call_llm(
         [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
         system=system,
-        model=config.orchestrator_model,
-        api_key=config.orchestrator_api_key,
-        base_url=config.orchestrator_base_url,
-        provider=config.orchestrator_provider,
+        **settings.call_kwargs(),
         backend=config.llm_backend,
         max_tokens=max_tokens,
     )
@@ -88,11 +87,12 @@ def _gather_round(
     """
     material: list[dict] = []
     citations: list[dict] = []
+    settings = role_model_settings(config, "research")
     for query in queries[:MAX_QUERIES_PER_ROUND]:
         result = web_search(
             query,
-            api_key=config.orchestrator_api_key,
-            model=config.orchestrator_model,
+            api_key=settings.api_key,
+            model=settings.model,
             backend=config.search_backend,
         )
         if not result:
@@ -361,12 +361,12 @@ def run_deep_research(
 ) -> Optional[ResearchBrief]:
     """Run the bounded deep-research loop and return a ResearchBrief.
 
-    Returns ``None`` when the loop cannot run (no orchestrator key, web
+    Returns ``None`` when the loop cannot run (no research-role key, web
     research disabled, or the ``none`` search backend), so callers can fall
     back to the existing single-shot research path.
     """
     _log = log or (lambda _msg: None)
-    if not config.orchestrator_api_key:
+    if not role_model_settings(config, "research").configured:
         return None
     if not config.use_web_research or (config.search_backend or "auto").lower() == "none":
         return None

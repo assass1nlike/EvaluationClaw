@@ -1,4 +1,4 @@
-"""Bounded external research tools for high-effort agent task builders."""
+"""Bounded external research tools for high-effort task construction."""
 from __future__ import annotations
 
 import json
@@ -6,6 +6,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from ..models.llm import TargetToolModelResponse, call_orchestrator_with_tools
+from ..models.roles import role_model_settings
 from ..protocols.tool import ToolCall, ToolResult, ToolSpec
 from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_anthropic,
@@ -179,17 +180,18 @@ def run_task_builder_research(
 ) -> tuple[str, list[str]]:
     """Run a bounded E4 research/tool loop and return final builder JSON text."""
     max_calls = _bounded_int(
-        config.agent_task_builder_research_max_calls,
+        config.task_builder_research_max_calls,
         default=6,
         minimum=1,
         maximum=12,
     )
     max_chars = _bounded_int(
-        config.agent_task_builder_research_max_chars,
+        config.task_builder_research_max_chars,
         default=6000,
         minimum=1000,
         maximum=16000,
     )
+    settings = role_model_settings(config, "task_builder")
     messages: list[dict[str, Any]] = [
         {
             "role": "user",
@@ -221,13 +223,11 @@ def run_task_builder_research(
         response = call_orchestrator_with_tools(
             messages,
             system_prompt=system_prompt,
-            model=config.orchestrator_model,
-            api_key=config.orchestrator_api_key,
-            base_url=config.orchestrator_base_url,
-            provider=config.orchestrator_provider,
+            **settings.call_kwargs(),
             backend=config.llm_backend,
             tools=TASK_BUILDER_RESEARCH_TOOLS,
             max_tokens=16384,
+            retry_on_truncation=False,
         )
         if not response.tool_calls:
             return response.content, notes
@@ -243,13 +243,11 @@ def run_task_builder_research(
             response = call_orchestrator_with_tools(
                 messages,
                 system_prompt=system_prompt,
-                model=config.orchestrator_model,
-                api_key=config.orchestrator_api_key,
-                base_url=config.orchestrator_base_url,
-                provider=config.orchestrator_provider,
+                **settings.call_kwargs(),
                 backend=config.llm_backend,
                 tools=[],
                 max_tokens=16384,
+                retry_on_truncation=False,
             )
             return response.content, notes + [f"research tool budget exhausted at {calls_used} call(s)"]
         selected_calls = response.tool_calls[:remaining]
@@ -276,13 +274,11 @@ def run_task_builder_research(
             response = call_orchestrator_with_tools(
                 messages,
                 system_prompt=system_prompt,
-                model=config.orchestrator_model,
-                api_key=config.orchestrator_api_key,
-                base_url=config.orchestrator_base_url,
-                provider=config.orchestrator_provider,
+                **settings.call_kwargs(),
                 backend=config.llm_backend,
                 tools=[],
                 max_tokens=16384,
+                retry_on_truncation=False,
             )
             return response.content, notes + [f"research tool budget exhausted at {calls_used} call(s)"]
 

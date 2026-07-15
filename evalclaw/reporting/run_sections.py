@@ -207,17 +207,17 @@ def _source_mapping_lines(items: list[object]) -> list[str]:
     return lines
 
 
-def _agent_task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
-    suite = dataset.agent_task_suite
+def _task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
+    suite = dataset.task_suite
     if suite is None:
         return []
     lines = [
-        "## Agent Benchmark",
+        "## Task Construction",
         "",
-        f"- Agent task suite: {suite.id}",
-        f"- Agent tasks: {len(suite.tasks)}",
-        f"- Agent resources: {len(suite.resources)}",
-        f"- Agent blueprints: {len(suite.blueprints)}",
+        f"- Task suite: {suite.id}",
+        f"- Tasks: {len(suite.tasks)}",
+        f"- Resources: {len(suite.resources)}",
+        f"- Blueprints: {len(suite.blueprints)}",
         "",
     ]
     if suite.blueprints:
@@ -225,7 +225,7 @@ def _agent_task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
             [
                 blueprint.id,
                 blueprint.dimension_id,
-                blueprint.environment_type.value,
+                blueprint.environment_type.value if blueprint.environment_type else "-",
                 str(blueprint.expected_task_count),
                 blueprint.title,
             ]
@@ -248,12 +248,13 @@ def _agent_task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
             [
                 task.id,
                 task.dimension_id,
-                task.environment.type.value if hasattr(task.environment.type, "value") else str(task.environment.type),
+                task.task_type.value,
+                task.environment.type.value if task.environment else "-",
                 _escape_cell(task.prompt, 120),
             ]
             for task in suite.tasks[:10]
         ]
-        lines.extend([_markdown_table(["Task", "Dimension", "Env", "Prompt"], rows), ""])
+        lines.extend([_markdown_table(["Task", "Dimension", "Type", "Env", "Prompt"], rows), ""])
     return lines
 
 

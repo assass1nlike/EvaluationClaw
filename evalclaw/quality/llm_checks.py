@@ -5,6 +5,7 @@ import json
 
 from ..core.scaling import is_large_scale_budget
 from ..models.llm import call_llm, extract_json
+from ..models.roles import role_model_settings
 from ..prompts.qc import QC_SYSTEM_PROMPT
 from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_METADATA_KEY,
@@ -241,7 +242,8 @@ def _llm_qc_sample(dataset: BenchmarkDataset, limit: int) -> tuple[list[Benchmar
 
 
 def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]:
-    if not config.orchestrator_api_key:
+    settings = role_model_settings(config, "qc")
+    if not settings.configured:
         return []
     limit = 50
     if is_large_scale_budget(dataset.spec.scale_budget):
@@ -285,10 +287,7 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
                 )
             ],
             system=QC_SYSTEM_PROMPT,
-            model=config.orchestrator_model,
-            api_key=config.orchestrator_api_key,
-            base_url=config.orchestrator_base_url,
-            provider=config.orchestrator_provider,
+            **settings.call_kwargs(),
             backend=config.llm_backend,
             max_tokens=4096,
         )

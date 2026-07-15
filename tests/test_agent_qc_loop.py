@@ -1,14 +1,10 @@
 import pytest
 
-from evalclaw.agent.qc_loop import build_agent_dataset_with_qc_loop
+from evalclaw.benchmark import build_benchmark_dataset_with_qc_loop
 from evalclaw.quality.llm_checks import _stabilize_llm_issue
 from evalclaw.types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
-    AgentScoringSpec,
-    AgentTask,
-    AgentTaskBlueprint,
-    AgentTaskSuite,
     BenchmarkConfig,
     BenchmarkItem,
     EvalDimension,
@@ -17,67 +13,111 @@ from evalclaw.types import (
     QcIssue,
     QcReport,
     QcSeverity,
+    TaskBlueprint,
+    TaskDefinition,
+    TaskScoringSpec,
+    TaskSuite,
     TaskType,
 )
 
 
-def _workspace_task(task_id: str, dimension_id: str) -> AgentTask:
-    return AgentTask(
+def _task(
+    task_id: str,
+    dimension_id: str,
+    blueprint_id: str,
+    *,
+    interactive: bool = False,
+) -> TaskDefinition:
+    return TaskDefinition(
         id=task_id,
         dimension_id=dimension_id,
+        task_type=TaskType.agent_interaction if interactive else TaskType.short_answer,
         title=task_id,
-        prompt="Inspect the workspace and place the requested item in the outgoing bin.",
-        environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.workspace,
-            workspace={
-                "start_room": "office",
-                "rooms": {"office": ["item"], "mailroom": []},
-                "goal": {"outgoing_bin": ["item"]},
-            },
+        prompt=(
+            "Inspect the workspace and place the requested item in the outgoing bin."
+            if interactive
+            else "State the requested result from the supplied evidence."
         ),
-        scoring=AgentScoringSpec(pass_criteria="The item is in the outgoing bin."),
+        answer=None if interactive else "result",
+        environment=(
+            AgentEnvironmentSpec(
+                type=AgentEnvironmentType.workspace,
+                workspace={
+                    "start_room": "office",
+                    "rooms": {"office": ["item"], "mailroom": []},
+                    "goal": {"outgoing_bin": ["item"]},
+                },
+            )
+            if interactive
+            else None
+        ),
+        scoring=TaskScoringSpec(pass_criteria="The requested result is correct."),
+        metadata={
+            "builder_blueprint_id": blueprint_id,
+            "builder_task_index": 1,
+            "builder_blueprint_task_count": 1,
+        },
     )
 
 
-def test_agent_qc_loop_repairs_only_rejected_dimensions(monkeypatch) -> None:
+def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
     dimensions = [
         EvalDimension(
-            id="first",
-            name="First",
-            description="First capability.",
-            approach="Use an executable task.",
+            id="knowledge",
+            name="Knowledge",
+            description="Evaluate grounded knowledge.",
+            approach="Use a short-answer task.",
+            task_types=[TaskType.short_answer],
         ),
         EvalDimension(
-            id="second",
-            name="Second",
-            description="Second capability.",
+            id="tool_use",
+            name="Tool use",
+            description="Evaluate stateful tool use.",
             approach="Use an executable task.",
+            task_types=[TaskType.agent_interaction],
         ),
     ]
     spec = EvalSpec(
-        objective="Evaluate two agent capabilities.",
+        objective="Evaluate knowledge and tool use.",
         dimensions=dimensions,
-        task_types=[TaskType.agent_interaction],
+        task_types=[TaskType.short_answer, TaskType.agent_interaction],
     )
     blueprints = [
-        AgentTaskBlueprint(id="first_blueprint", dimension_id="first", title="First"),
-        AgentTaskBlueprint(id="second_blueprint", dimension_id="second", title="Second"),
+        TaskBlueprint(
+            id="knowledge_blueprint",
+            dimension_id="knowledge",
+            title="Knowledge",
+            task_types=[TaskType.short_answer],
+        ),
+        TaskBlueprint(
+            id="tool_blueprint",
+            dimension_id="tool_use",
+            title="Tool use",
+            task_types=[TaskType.agent_interaction],
+            environment_type=AgentEnvironmentType.workspace,
+        ),
     ]
-    initial_suite = AgentTaskSuite(
+    initial_suite = TaskSuite(
         objective=spec.objective,
         dimensions=dimensions,
         blueprints=blueprints,
-        tasks=[_workspace_task("first_old", "first"), _workspace_task("second_kept", "second")],
+        tasks=[
+            _task("knowledge_old", "knowledge", "knowledge_blueprint"),
+            _task("tool_kept", "tool_use", "tool_blueprint", interactive=True),
+        ],
     )
-    repaired_suite = AgentTaskSuite(
+    repaired_suite = TaskSuite(
         objective=spec.objective,
         dimensions=dimensions,
         blueprints=[blueprints[0]],
-        tasks=[_workspace_task("first_repaired", "first")],
+        tasks=[_task("knowledge_repaired", "knowledge", "knowledge_blueprint")],
     )
     builder_calls: list[dict] = []
 
-    monkeypatch.setattr("evalclaw.agent.qc_loop.plan_agent_benchmark", lambda goal, config: (spec, blueprints))
+    monkeypatch.setattr(
+        "evalclaw.benchmark.plan_benchmark",
+        lambda goal, config, **kwargs: (spec, blueprints),
+    )
 
     def fake_build(spec_arg, selected_blueprints, config, **kwargs):
         builder_calls.append(
@@ -88,7 +128,7 @@ def test_agent_qc_loop_repairs_only_rejected_dimensions(monkeypatch) -> None:
         )
         return initial_suite if len(builder_calls) == 1 else repaired_suite
 
-    monkeypatch.setattr("evalclaw.agent.qc_loop.build_agent_task_suite", fake_build)
+    monkeypatch.setattr("evalclaw.benchmark.build_task_suite", fake_build)
     qc_calls = 0
 
     def fake_qc(dataset, config):
@@ -98,15 +138,15 @@ def test_agent_qc_loop_repairs_only_rejected_dimensions(monkeypatch) -> None:
             return QcReport(
                 issues=[
                     QcIssue(
-                        item_id="first_old",
+                        item_id="knowledge_old",
                         severity=QcSeverity.error,
                         category=QcCategory.scoring,
-                        message="The evaluator does not check the requested final state.",
-                        suggested_action="Repair the evaluator.",
+                        message="The reference answer is not supported by the evidence.",
+                        suggested_action="Repair the answer and oracle.",
                     )
                 ],
-                passed_item_ids=["second_kept"],
-                rejected_item_ids=["first_old"],
+                passed_item_ids=["tool_kept"],
+                rejected_item_ids=["knowledge_old"],
                 quality_score=0.8,
                 summary="One rejected item.",
             )
@@ -118,22 +158,23 @@ def test_agent_qc_loop_repairs_only_rejected_dimensions(monkeypatch) -> None:
             summary="All items passed.",
         )
 
-    monkeypatch.setattr("evalclaw.agent.qc_loop.run_qc_gate", fake_qc)
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", fake_qc)
 
-    _, dataset, qc_report = build_agent_dataset_with_qc_loop(
-        "Evaluate two agent capabilities.",
+    _, dataset, qc_report = build_benchmark_dataset_with_qc_loop(
+        spec.objective,
         BenchmarkConfig(max_qc_iterations=2),
         log=lambda message: None,
     )
 
-    assert [item.id for item in dataset.items] == ["first_repaired", "second_kept"]
+    assert [item.id for item in dataset.items] == ["knowledge_repaired", "tool_kept"]
     assert qc_report.rejected_item_ids == []
-    assert builder_calls[1]["blueprints"] == ["first_blueprint"]
-    revision = builder_calls[1]["revision"]["first"]
-    assert revision["previous_tasks"][0]["id"] == "first_old"
+    assert builder_calls[1]["blueprints"] == ["knowledge_blueprint"]
+    revision = builder_calls[1]["revision"]["knowledge"]
+    assert revision["previous_tasks"][0]["id"] == "knowledge_old"
     assert revision["qc_issues"][0]["message"] == (
-        "The evaluator does not check the requested final state."
+        "The reference answer is not supported by the evidence."
     )
+    assert "preserve prompts, answers, rubrics" in revision["instruction"]
 
 
 def test_real_partial_credit_evaluator_error_is_not_demoted() -> None:
@@ -166,24 +207,30 @@ def test_real_partial_credit_evaluator_error_is_not_demoted() -> None:
     assert stabilized.severity == QcSeverity.error
 
 
-def test_agent_qc_loop_fails_closed_after_repair_exhaustion(monkeypatch) -> None:
+def _rejected_fixture():
     dimension = EvalDimension(
         id="core",
         name="Core",
         description="Core capability.",
-        approach="Use an executable workspace task.",
+        approach="Use a short-answer task.",
+        task_types=[TaskType.short_answer],
     )
     spec = EvalSpec(
         objective="Evaluate core capability.",
         dimensions=[dimension],
-        task_types=[TaskType.agent_interaction],
+        task_types=[TaskType.short_answer],
     )
-    blueprint = AgentTaskBlueprint(id="core_blueprint", dimension_id="core", title="Core")
-    suite = AgentTaskSuite(
+    blueprint = TaskBlueprint(
+        id="core_blueprint",
+        dimension_id="core",
+        title="Core",
+        task_types=[TaskType.short_answer],
+    )
+    suite = TaskSuite(
         objective=spec.objective,
         dimensions=[dimension],
         blueprints=[blueprint],
-        tasks=[_workspace_task("rejected_task", "core")],
+        tasks=[_task("rejected_task", "core", "core_blueprint")],
     )
     rejected = QcReport(
         issues=[
@@ -197,51 +244,46 @@ def test_agent_qc_loop_fails_closed_after_repair_exhaustion(monkeypatch) -> None
         passed_item_ids=[],
         rejected_item_ids=["rejected_task"],
         quality_score=0.0,
+        summary="One item rejected.",
     )
+    return spec, blueprint, suite, rejected
 
-    monkeypatch.setattr("evalclaw.agent.qc_loop.plan_agent_benchmark", lambda goal, config: (spec, [blueprint]))
-    monkeypatch.setattr("evalclaw.agent.qc_loop.build_agent_task_suite", lambda *args, **kwargs: suite)
-    monkeypatch.setattr("evalclaw.agent.qc_loop.run_qc_gate", lambda dataset, config: rejected)
 
+def test_unified_qc_loop_fails_closed_after_repair_exhaustion(monkeypatch) -> None:
+    spec, blueprint, suite, rejected = _rejected_fixture()
+    monkeypatch.setattr(
+        "evalclaw.benchmark.plan_benchmark",
+        lambda goal, config, **kwargs: (spec, [blueprint]),
+    )
+    monkeypatch.setattr("evalclaw.benchmark.build_task_suite", lambda *args, **kwargs: suite)
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", lambda dataset, config: rejected)
+
+    progress: list[str] = []
     with pytest.raises(RuntimeError, match="runner-ready dataset"):
-        build_agent_dataset_with_qc_loop(
-            "Evaluate core capability.",
+        build_benchmark_dataset_with_qc_loop(
+            spec.objective,
             BenchmarkConfig(max_qc_iterations=0),
-            log=lambda message: None,
+            log=progress.append,
         )
 
-
-def test_agent_qc_loop_allows_explicit_incomplete_draft(monkeypatch) -> None:
-    dimension = EvalDimension(
-        id="core",
-        name="Core",
-        description="Core capability.",
-        approach="Use an executable workspace task.",
-    )
-    spec = EvalSpec(
-        objective="Evaluate core capability.",
-        dimensions=[dimension],
-        task_types=[TaskType.agent_interaction],
-    )
-    blueprint = AgentTaskBlueprint(id="core_blueprint", dimension_id="core", title="Core")
-    suite = AgentTaskSuite(
-        objective=spec.objective,
-        dimensions=[dimension],
-        blueprints=[blueprint],
-        tasks=[_workspace_task("rejected_task", "core")],
-    )
-    rejected = QcReport(
-        passed_item_ids=[],
-        rejected_item_ids=["rejected_task"],
-        quality_score=0.0,
+    assert any("reviewing 1 constructed task" in message for message in progress)
+    assert any(
+        "rejected_task" in message and "Evaluator is incomplete" in message
+        for message in progress
     )
 
-    monkeypatch.setattr("evalclaw.agent.qc_loop.plan_agent_benchmark", lambda goal, config: (spec, [blueprint]))
-    monkeypatch.setattr("evalclaw.agent.qc_loop.build_agent_task_suite", lambda *args, **kwargs: suite)
-    monkeypatch.setattr("evalclaw.agent.qc_loop.run_qc_gate", lambda dataset, config: rejected)
 
-    _, dataset, qc_report = build_agent_dataset_with_qc_loop(
-        "Evaluate core capability.",
+def test_unified_qc_loop_allows_explicit_incomplete_draft(monkeypatch) -> None:
+    spec, blueprint, suite, rejected = _rejected_fixture()
+    monkeypatch.setattr(
+        "evalclaw.benchmark.plan_benchmark",
+        lambda goal, config, **kwargs: (spec, [blueprint]),
+    )
+    monkeypatch.setattr("evalclaw.benchmark.build_task_suite", lambda *args, **kwargs: suite)
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", lambda dataset, config: rejected)
+
+    _, dataset, qc_report = build_benchmark_dataset_with_qc_loop(
+        spec.objective,
         BenchmarkConfig(max_qc_iterations=0, allow_incomplete_benchmark=True),
         log=lambda message: None,
     )

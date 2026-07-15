@@ -4,23 +4,25 @@ from __future__ import annotations
 from ...types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
-    AgentScoringSpec,
-    AgentTask,
-    AgentTaskBlueprint,
     EvalDimension,
+    TaskBlueprint,
+    TaskDefinition,
+    TaskScoringSpec,
+    TaskType,
 )
 from .base import _task_id, _task_title
 
 
 def _multi_turn_delegation_task_for_blueprint(
     dimension: EvalDimension,
-    blueprint: AgentTaskBlueprint,
+    blueprint: TaskBlueprint,
     *,
     index: int = 1,
-) -> AgentTask:
-    return AgentTask(
+) -> TaskDefinition:
+    return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
+        task_type=TaskType.multi_turn,
         title=_task_title(blueprint, index),
         description=(
             "A scripted multi-turn delegation task. The target must preserve constraints while adapting to "
@@ -48,7 +50,7 @@ def _multi_turn_delegation_task_for_blueprint(
             ],
             "stop_condition": "Stop after the scripted follow-up turns are answered.",
         },
-        scoring=AgentScoringSpec(
+        scoring=TaskScoringSpec(
             method="agent_judge",
             instructions=(
                 "Score the full transcript for constraint tracking across turns: 5 for satisfying the original "

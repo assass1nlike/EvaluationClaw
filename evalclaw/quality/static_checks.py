@@ -60,8 +60,8 @@ def _rubric_answer_letter(rubric: str | None) -> str | None:
             return match.group(1).upper()
     return None
 
-def _agent_structure_prevalidated(item: BenchmarkItem) -> bool:
-    validation = item.metadata.get("agent_structure_validation") if isinstance(item.metadata, dict) else None
+def _task_structure_prevalidated(item: BenchmarkItem) -> bool:
+    validation = item.metadata.get("task_structure_validation") if isinstance(item.metadata, dict) else None
     return isinstance(validation, dict) and validation.get("status") == "passed"
 
 
@@ -144,8 +144,8 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                 "Add a concrete scoring rubric or deterministic environment scoring note.",
             )
         )
-    agent_structure_prevalidated = item.task_type == TaskType.agent_interaction and _agent_structure_prevalidated(item)
-    if item.task_type in {TaskType.multi_turn, TaskType.agent_interaction} and not agent_structure_prevalidated:
+    task_structure_prevalidated = _task_structure_prevalidated(item)
+    if item.task_type in {TaskType.multi_turn, TaskType.agent_interaction} and not task_structure_prevalidated:
         task_agent = item.metadata.get(TASK_AGENT_METADATA_KEY)
         if not isinstance(task_agent, dict):
             issues.append(
@@ -311,7 +311,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                         "Move setup-only server/application assets to runtime_files.",
                     )
                 )
-        if agent_structure_prevalidated:
+        if task_structure_prevalidated:
             return issues
         if isinstance(env, dict) and env.get("type") == "code_sandbox":
             hidden_files = env.get("hidden_files")

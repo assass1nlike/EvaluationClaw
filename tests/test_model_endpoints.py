@@ -17,6 +17,252 @@ def _clear_anthropic_client_cache():
     llm._anthropic_clients.clear()
 
 
+def test_post_with_retry_bounds_transport_failures(monkeypatch) -> None:
+    calls = 0
+    waits: list[float] = []
+
+    def fail_post(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        raise llm.httpx.ConnectError("offline")
+
+    monkeypatch.setattr(llm.httpx, "post", fail_post)
+    monkeypatch.setattr(llm.time, "sleep", waits.append)
+
+    with pytest.raises(llm.httpx.ConnectError):
+        llm._post_with_retry(
+            "https://model.example/v1/chat/completions",
+            {},
+            {},
+            max_retries=3,
+        )
+
+    assert calls == 3
+    assert waits == [5.0, 10.0]
+
+
+def test_post_with_retry_honors_retry_after(monkeypatch) -> None:
+    responses = iter(
+        [
+            llm.httpx.Response(
+                429,
+                headers={"retry-after": "2"},
+                request=llm.httpx.Request("POST", "https://model.example/v1"),
+            ),
+            llm.httpx.Response(
+                200,
+                json={"ok": True},
+                request=llm.httpx.Request("POST", "https://model.example/v1"),
+            ),
+        ]
+    )
+    waits: list[float] = []
+    monkeypatch.setattr(llm.httpx, "post", lambda *args, **kwargs: next(responses))
+    monkeypatch.setattr(llm.time, "sleep", waits.append)
+
+    result = llm._post_with_retry("https://model.example/v1", {}, {})
+
+    assert result == {"ok": True}
+    assert waits == [2.0]
+
+
+def test_post_with_retry_enforces_total_deadline(monkeypatch) -> None:
+    now = 0.0
+    calls = 0
+    request_timeouts: list[float] = []
+
+    def monotonic() -> float:
+        return now
+
+    def sleep(seconds: float) -> None:
+        nonlocal now
+        now += seconds
+
+    def fail_post(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        request_timeouts.append(kwargs["timeout"])
+        raise llm.httpx.ReadTimeout("stalled")
+
+    monkeypatch.setattr(llm.time, "monotonic", monotonic)
+    monkeypatch.setattr(llm.time, "sleep", sleep)
+    monkeypatch.setattr(llm.httpx, "post", fail_post)
+
+    with pytest.raises(TimeoutError, match="overall deadline"):
+        llm._post_with_retry(
+            "https://model.example/v1",
+            {},
+            {},
+            max_retries=5,
+            request_timeout_s=120,
+            total_timeout_s=6,
+        )
+
+    assert calls == 2
+    assert request_timeouts == [6.0, 1.0]
+
+
+def test_call_llm_does_not_fallback_to_legacy_after_truncation(monkeypatch) -> None:
+    legacy_calls = 0
+
+    def truncated(**kwargs):
+        raise llm.LLMOutputTruncatedError("output truncated")
+
+    def legacy(*args, **kwargs):
+        nonlocal legacy_calls
+        legacy_calls += 1
+        return {}
+
+    monkeypatch.setattr(llm, "_call_litellm", truncated)
+    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+
+    with pytest.raises(llm.LLMOutputTruncatedError):
+        llm.call_llm(
+            [Message(role="user", content="build one task")],
+            model="deepseek-v4-pro",
+            api_key="test-key",
+            base_url="https://api.deepseek.com",
+            backend="auto",
+        )
+
+    assert legacy_calls == 0
+
+
+def test_call_llm_does_not_fallback_to_legacy_after_network_error(monkeypatch) -> None:
+    legacy_calls = 0
+
+    def disconnected(**kwargs):
+        raise llm.httpx.ConnectError("disconnected")
+
+    def legacy(*args, **kwargs):
+        nonlocal legacy_calls
+        legacy_calls += 1
+        return {}
+
+    monkeypatch.setattr(llm, "_call_litellm", disconnected)
+    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+
+    with pytest.raises(llm.httpx.ConnectError):
+        llm.call_llm(
+            [Message(role="user", content="build one task")],
+            model="deepseek-v4-pro",
+            api_key="test-key",
+            base_url="https://api.deepseek.com",
+            backend="auto",
+        )
+
+    assert legacy_calls == 0
+
+
+def test_orchestrator_tool_truncation_does_not_fallback_to_legacy(monkeypatch) -> None:
+    import litellm as _litellm
+
+    completion_calls = 0
+    legacy_calls = 0
+
+    def truncated(**kwargs):
+        nonlocal completion_calls
+        completion_calls += 1
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    finish_reason="length",
+                    message=SimpleNamespace(content="partial"),
+                )
+            ]
+        )
+
+    def legacy(*args, **kwargs):
+        nonlocal legacy_calls
+        legacy_calls += 1
+        return {}
+
+    monkeypatch.setattr(_litellm, "completion", truncated)
+    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+
+    with pytest.raises(llm.LLMOutputTruncatedError):
+        llm.call_orchestrator_with_tools(
+            [{"role": "user", "content": "build one task"}],
+            model="deepseek-v4-pro",
+            api_key="test-key",
+            base_url="https://api.deepseek.com",
+            backend="auto",
+            tools=[],
+        )
+
+    assert completion_calls == 2
+    assert legacy_calls == 0
+
+
+def test_call_llm_uses_legacy_for_litellm_adapter_failure(monkeypatch) -> None:
+    import litellm as _litellm
+
+    def unsupported(**kwargs):
+        raise _litellm.UnsupportedParamsError(
+            "unsupported parameter",
+            llm_provider="openai",
+            model="deepseek-v4-pro",
+        )
+
+    legacy_calls = 0
+
+    def legacy(*args, **kwargs):
+        nonlocal legacy_calls
+        legacy_calls += 1
+        return {
+            "choices": [
+                {"finish_reason": "stop", "message": {"content": "legacy response"}}
+            ]
+        }
+
+    monkeypatch.setattr(llm, "_call_litellm", unsupported)
+    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+
+    result = llm.call_llm(
+        [Message(role="user", content="hello")],
+        model="deepseek-v4-pro",
+        api_key="test-key",
+        base_url="https://api.deepseek.com",
+        backend="auto",
+    )
+
+    assert result == "legacy response"
+    assert legacy_calls == 1
+
+
+def test_call_llm_uses_legacy_for_unadaptable_litellm_response(monkeypatch) -> None:
+    import litellm as _litellm
+
+    monkeypatch.setattr(
+        _litellm,
+        "completion",
+        lambda **kwargs: SimpleNamespace(choices=[]),
+    )
+    legacy_calls = 0
+
+    def legacy(*args, **kwargs):
+        nonlocal legacy_calls
+        legacy_calls += 1
+        return {
+            "choices": [
+                {"finish_reason": "stop", "message": {"content": "adapted directly"}}
+            ]
+        }
+
+    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+
+    result = llm.call_llm(
+        [Message(role="user", content="hello")],
+        model="deepseek-v4-pro",
+        api_key="test-key",
+        base_url="https://api.deepseek.com",
+        backend="auto",
+    )
+
+    assert result == "adapted directly"
+    assert legacy_calls == 1
+
+
 class _FakeAnthropicMessages:
     def __init__(self) -> None:
         self.calls: list[dict] = []
@@ -86,6 +332,43 @@ def test_orchestrator_uses_native_anthropic_protocol_for_custom_base_url(monkeyp
     assert requested_clients == [("claude-key", "https://claude-code.example/v1")]
     assert client.messages.calls[0]["model"] == "claude-sonnet-4-6"
     assert client.messages.calls[0]["messages"] == [{"role": "user", "content": "hello"}]
+
+
+def test_explicit_litellm_backend_does_not_use_native_anthropic_client(monkeypatch) -> None:
+    import litellm as _litellm
+
+    native_calls = 0
+
+    def fail_native(*args, **kwargs):
+        nonlocal native_calls
+        native_calls += 1
+        raise AssertionError("native Anthropic client should not run for backend=litellm")
+
+    monkeypatch.setattr(llm, "_get_anthropic_client", fail_native)
+    monkeypatch.setattr(
+        _litellm,
+        "completion",
+        lambda **kwargs: SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    finish_reason="stop",
+                    message=SimpleNamespace(content="litellm response"),
+                )
+            ]
+        ),
+    )
+
+    result = llm.call_llm(
+        [Message(role="user", content="hello")],
+        model="anthropic/claude-sonnet-4-6",
+        provider="anthropic",
+        api_key="claude-key",
+        base_url="https://claude-gateway.example/v1",
+        backend="litellm",
+    )
+
+    assert result == "litellm response"
+    assert native_calls == 0
 
 
 def test_target_native_tools_use_target_specific_anthropic_endpoint(monkeypatch) -> None:

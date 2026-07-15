@@ -2,18 +2,19 @@ from __future__ import annotations
 
 import json
 
-from evalclaw.agent.research import run_task_builder_research
-from evalclaw.agent.suite import build_agent_task_suite
+from evalclaw.construction.research import run_task_builder_research
+from evalclaw.construction.resources import _select_blueprint_sources
+from evalclaw.construction.suite import build_task_suite
 from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.protocols.tool import ToolCall
 from evalclaw.research.backends import SearchResult
 from evalclaw.types import (
-    AgentTaskBlueprint,
+    AgentEnvironmentType,
     BenchmarkConfig,
-    BenchmarkMode,
     ChallengeEffort,
     EvalDimension,
     EvalSpec,
+    TaskBlueprint,
     TaskType,
 )
 
@@ -41,6 +42,39 @@ def _openai_tool_response(call: ToolCall) -> TargetToolModelResponse:
     )
 
 
+def test_blueprint_source_search_requires_explicit_research_need(monkeypatch) -> None:
+    calls = 0
+
+    def fake_search(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return SearchResult(content="unused", citations=[])
+
+    monkeypatch.setattr("evalclaw.construction.resources.web_search", fake_search)
+    dimension = EvalDimension(
+        id="self_contained",
+        name="Self contained",
+        description="Evaluate a self-contained capability.",
+        approach="Generate the fixture locally.",
+        needs_research=False,
+    )
+    blueprint = TaskBlueprint(
+        id="self_contained_blueprint",
+        dimension_id=dimension.id,
+        title="Self contained",
+        resource_queries=["this query must not run"],
+    )
+
+    sources = _select_blueprint_sources(
+        dimension,
+        blueprint,
+        BenchmarkConfig(orchestrator_api_key="dummy", use_web_research=True),
+    )
+
+    assert sources == []
+    assert calls == 0
+
+
 def test_task_builder_research_executes_search_and_returns_final_json(monkeypatch) -> None:
     captured: list[dict] = []
     responses = iter(
@@ -66,9 +100,9 @@ def test_task_builder_research_executes_search_and_returns_final_json(monkeypatc
         captured.append({"messages": json.loads(json.dumps(messages)), "kwargs": kwargs})
         return next(responses)
 
-    monkeypatch.setattr("evalclaw.agent.research.call_orchestrator_with_tools", fake_call)
+    monkeypatch.setattr("evalclaw.construction.research.call_orchestrator_with_tools", fake_call)
     monkeypatch.setattr(
-        "evalclaw.agent.research.web_search",
+        "evalclaw.construction.research.web_search",
         lambda query, **kwargs: SearchResult(
             content=f"Evidence for {query}",
             citations=[{"url": "https://example.com/benchmark", "title": "Benchmark"}],
@@ -83,7 +117,7 @@ def test_task_builder_research_executes_search_and_returns_final_json(monkeypatc
             orchestrator_api_key="test-key",
             use_web_research=True,
             search_backend="keyless",
-            agent_task_builder_research_max_calls=2,
+            task_builder_research_max_calls=2,
         ),
     )
 
@@ -125,9 +159,9 @@ def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) ->
         captured.append(json.loads(json.dumps(messages)))
         return next(responses)
 
-    monkeypatch.setattr("evalclaw.agent.research.call_orchestrator_with_tools", fake_call)
+    monkeypatch.setattr("evalclaw.construction.research.call_orchestrator_with_tools", fake_call)
     monkeypatch.setattr(
-        "evalclaw.agent.research.fetch_url_text",
+        "evalclaw.construction.research.fetch_url_text",
         lambda url, **kwargs: "Public source text.",
     )
 
@@ -139,7 +173,7 @@ def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) ->
             orchestrator_api_key="test-key",
             use_web_research=True,
             search_backend="keyless",
-            agent_task_builder_research_max_calls=2,
+            task_builder_research_max_calls=2,
         ),
     )
 
@@ -150,7 +184,7 @@ def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) ->
     assert captured[1][2]["content"][0]["tool_use_id"] == "fetch_1"
 
 
-def test_e4_agent_task_builder_enables_research_loop(monkeypatch) -> None:
+def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
     captured: dict = {}
 
     def fake_research(payload, *, system_prompt, config):
@@ -185,8 +219,8 @@ def test_e4_agent_task_builder_enables_research_loop(monkeypatch) -> None:
             ["task-builder research used 1 tool call(s), total=1"],
         )
 
-    monkeypatch.setattr("evalclaw.agent.suite.run_task_builder_research", fake_research)
-    monkeypatch.setattr("evalclaw.agent.suite._select_blueprint_sources", lambda *args, **kwargs: [])
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_research", fake_research)
+    monkeypatch.setattr("evalclaw.construction.suite._select_blueprint_sources", lambda *args, **kwargs: [])
     dimension = EvalDimension(
         id="agent_research",
         name="Agent research",
@@ -199,18 +233,19 @@ def test_e4_agent_task_builder_enables_research_loop(monkeypatch) -> None:
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = AgentTaskBlueprint(
+    blueprint = TaskBlueprint(
         id="research_blueprint",
         dimension_id=dimension.id,
         title="Research workflow",
+        task_types=[TaskType.agent_interaction],
         expected_task_count=1,
+        environment_type=AgentEnvironmentType.workspace,
     )
 
-    suite = build_agent_task_suite(
+    suite = build_task_suite(
         spec,
         [blueprint],
         BenchmarkConfig(
-            benchmark_mode=BenchmarkMode.agent,
             orchestrator_api_key="dummy",
             use_web_research=True,
             search_backend="keyless",
@@ -220,3 +255,117 @@ def test_e4_agent_task_builder_enables_research_loop(monkeypatch) -> None:
     assert suite.tasks[0].challenge_effort == ChallengeEffort.E4
     assert captured["payload"]["task_plan"]["construction"]["id"] == "research_blueprint"
     assert "E4 construction effort" in captured["system_prompt"]
+
+
+def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> None:
+    llm_payloads: list[dict] = []
+    research_calls = 0
+
+    def task_payload(task_id: str, task_index: int, prompt: str) -> dict:
+        return {
+            "id": task_id,
+            "dimension_id": "agent_research",
+            "task_type": "agent_interaction",
+            "challenge_effort": "E4",
+            "title": f"Task {task_index}",
+            "prompt": prompt,
+            "environment": {
+                "type": "workspace",
+                "workspace": {
+                    "start_room": "office",
+                    "rooms": {"office": [f"brief_{task_index}"], "done": []},
+                    "goal": {"done": [f"brief_{task_index}"]},
+                },
+            },
+            "scoring": {"pass_criteria": "The requested result is complete."},
+            "metadata": {
+                "builder_blueprint_id": "research_blueprint",
+                "builder_task_index": task_index,
+                "builder_blueprint_task_count": 2,
+                "challenge_effort_self_assessment": {
+                    "requested_effort": "E4",
+                    "meets_requested_effort": True,
+                    "rationale": "The task uses a realistic state and deterministic oracle.",
+                },
+            },
+        }
+
+    previous_tasks = [
+        task_payload("task_1", 1, "Original prompt with a scoring defect."),
+        task_payload("task_2", 2, "Keep this prompt byte-for-byte."),
+    ]
+
+    def fake_research(*args, **kwargs):
+        nonlocal research_calls
+        research_calls += 1
+        raise AssertionError("QC repair must not repeat web research")
+
+    def fake_call_llm(messages, *args, **kwargs):
+        payload = json.loads(messages[0].content)
+        llm_payloads.append(payload)
+        return json.dumps(
+            {
+                "tasks": [
+                    task_payload(
+                        "task_1",
+                        1,
+                        "Original prompt with the scoring defect repaired.",
+                    )
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_research", fake_research)
+    monkeypatch.setattr("evalclaw.construction.suite.call_llm", fake_call_llm)
+    monkeypatch.setattr(
+        "evalclaw.construction.suite._select_blueprint_sources", lambda *args, **kwargs: []
+    )
+    dimension = EvalDimension(
+        id="agent_research",
+        name="Agent research",
+        description="Evaluate evidence-grounded agent work.",
+        approach="Use executable tasks.",
+        challenge_effort=ChallengeEffort.E4,
+    )
+    spec = EvalSpec(
+        objective="Evaluate evidence-grounded agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    blueprint = TaskBlueprint(
+        id="research_blueprint",
+        dimension_id=dimension.id,
+        title="Research workflow",
+        task_types=[TaskType.agent_interaction],
+        expected_task_count=2,
+        environment_type=AgentEnvironmentType.workspace,
+    )
+    revision = {
+        dimension.id: {
+            "previous_tasks": previous_tasks,
+            "qc_issues": [
+                {
+                    "item_id": "task_1",
+                    "message": "The scoring contract does not check the requested result.",
+                }
+            ],
+        }
+    }
+
+    suite = build_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(
+            orchestrator_api_key="dummy",
+            use_web_research=True,
+            search_backend="keyless",
+            task_builder_max_workers=1,
+        ),
+        revision_context_by_dimension=revision,
+    )
+
+    assert research_calls == 0
+    assert len(llm_payloads) == 1
+    assert llm_payloads[0]["revision"]["previous_tasks"][0]["id"] == "task_1"
+    assert [task.id for task in suite.tasks] == ["task_1", "task_2"]
+    assert suite.tasks[1].prompt == "Keep this prompt byte-for-byte."

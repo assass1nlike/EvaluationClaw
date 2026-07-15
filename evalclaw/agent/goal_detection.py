@@ -1,4 +1,4 @@
-"""Goal text detection for agent benchmark planning."""
+"""Goal text detection for optional execution capabilities."""
 
 from __future__ import annotations
 

@@ -9,9 +9,12 @@ from queue import Empty, Queue
 from threading import Thread
 from typing import Callable
 
+from ..construction.packaging import task_suite_to_dataset
+from ..construction.suite import build_task_suite
 from ..execution.runner import run_eval
-from ..generation.generator import generate_dimension_items
 from ..models.llm import call_llm, extract_json
+from ..models.roles import role_model_settings
+from ..planning.task_planner import blueprints_for_spec
 from ..quality.qc import run_qc_gate
 from ..types import (
     BenchmarkConfig,
@@ -23,6 +26,8 @@ from ..types import (
     Message,
     QcReport,
     QcSeverity,
+    TaskResource,
+    TaskSuite,
 )
 
 _SYSTEM = """\
@@ -219,16 +224,14 @@ def _diagnosis_payload(
 
 def _call_loop3_llm_json(payload: dict, config: BenchmarkConfig) -> dict:
     result_queue: Queue[tuple[dict | None, BaseException | None]] = Queue(maxsize=1)
+    settings = role_model_settings(config, "loop3")
 
     def _worker() -> None:
         try:
             raw = call_llm(
                 [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
                 system=_SYSTEM,
-                model=config.orchestrator_model,
-                api_key=config.orchestrator_api_key,
-                base_url=config.orchestrator_base_url,
-                provider=config.orchestrator_provider,
+                **settings.call_kwargs(),
                 backend=config.llm_backend,
                 max_tokens=2048,
             )
@@ -256,7 +259,7 @@ def _diagnose_with_llm(
     run: EvalRun,
     config: BenchmarkConfig,
 ) -> tuple[list[ImprovementAction], str]:
-    if config.loop3_diagnosis == "local" or not config.orchestrator_api_key:
+    if config.loop3_diagnosis == "local" or not role_model_settings(config, "loop3").configured:
         return _diagnose_locally(dataset, qc_report, run), "Local Loop 3 diagnosis."
     payload = _diagnosis_payload(dataset, qc_report, run, config)
     try:
@@ -293,6 +296,11 @@ def _replace_or_expand_items(
     by_dimension = {dimension.id: dimension for dimension in dataset.spec.dimensions}
     replace_ids = {action.item_id for action in actions if action.action_type == "regenerate_item" and action.item_id}
     new_items: list[BenchmarkItem] = [item for item in dataset.items if item.id not in replace_ids]
+    item_by_id = {item.id: item for item in dataset.items}
+    base_suite = dataset.task_suite
+    merged_tasks = [task for task in base_suite.tasks if task.id not in replace_ids] if base_suite else []
+    merged_blueprints = list(base_suite.blueprints if base_suite else dataset.blueprints)
+    merged_resources = list(base_suite.resources if base_suite else [])
     generated_by_dimension: defaultdict[str, int] = defaultdict(int)
     per_dimension_limit = _loop3_per_dimension_limit(config)
 
@@ -316,33 +324,96 @@ def _replace_or_expand_items(
                 log(f"  [Loop 3] Skipping {action.dimension_id}; per-dimension generation limit reached.")
             continue
         dimension = by_dimension[action.dimension_id]
+        replaced_item = item_by_id.get(action.item_id or "")
+        task_type = (
+            replaced_item.task_type
+            if replaced_item is not None
+            else (dimension.task_types or dataset.spec.task_types)[0]
+        )
+        scoped_dimension = dimension.model_copy(
+            update={"task_types": [task_type], "target_item_count": 1}
+        )
+        scoped_spec = dataset.spec.model_copy(
+            update={"dimensions": [scoped_dimension], "task_types": [task_type], "scale": 1}
+        )
         if log:
             log(f"  [Loop 3] Generating 1 improved item for {dimension.id} ({action.action_type})...")
-        accepted: list[BenchmarkItem] = []
+        accepted_item: BenchmarkItem | None = None
+        accepted_suite: TaskSuite | None = None
         for _ in range(3):
-            items, _, _ = generate_dimension_items(dataset.spec, dimension, 1, config)
-            for item in items:
-                if is_duplicate(item):
-                    if log:
-                        log(f"  [Loop 3] Discarding duplicate generated item for {dimension.id}.")
-                    continue
-                item.id = f"{dimension.id}_loop3_{uuid.uuid4().hex[:8]}"
-                item.metadata["loop3_reason"] = action.reason
-                item.metadata["loop3_guidance"] = action.guidance
-                accepted.append(item)
+            blueprints = blueprints_for_spec(scoped_spec, config)
+            blueprints = [
+                blueprint.model_copy(
+                    update={
+                        "construction_requirements": [
+                            *blueprint.construction_requirements,
+                            f"Loop 3 reason: {action.reason}",
+                            f"Loop 3 guidance: {action.guidance}",
+                        ]
+                    }
+                )
+                for blueprint in blueprints
+            ]
+            partial_suite = build_task_suite(scoped_spec, blueprints, config, log=log)
+            partial_dataset = task_suite_to_dataset(partial_suite, scoped_spec, config)
+            if not partial_dataset.items:
+                continue
+            candidate = partial_dataset.items[0]
+            if is_duplicate(candidate):
+                if log:
+                    log(f"  [Loop 3] Discarding duplicate generated item for {dimension.id}.")
+                continue
+            new_id = f"{dimension.id}_loop3_{uuid.uuid4().hex[:8]}"
+            metadata = {
+                **candidate.metadata,
+                "loop3_reason": action.reason,
+                "loop3_guidance": action.guidance,
+            }
+            accepted_item = candidate.model_copy(update={"id": new_id, "metadata": metadata})
+            partial_suite.tasks[0] = partial_suite.tasks[0].model_copy(
+                update={"id": new_id, "metadata": metadata}
+            )
+            accepted_suite = partial_suite
+            if accepted_item:
                 break
-            if accepted:
-                break
-        new_items.extend(accepted)
-        generated_by_dimension[action.dimension_id] += len(accepted)
+        if accepted_item is not None and accepted_suite is not None:
+            new_items.append(accepted_item)
+            merged_tasks.extend(accepted_suite.tasks)
+            merged_blueprints.extend(accepted_suite.blueprints)
+            merged_resources.extend(accepted_suite.resources)
+            generated_by_dimension[action.dimension_id] += 1
 
-    return BenchmarkDataset(
-        spec=dataset.spec,
-        items=new_items,
-        sources=dataset.sources,
-        batches=dataset.batches,
-        generation_notes=dataset.generation_notes + "\nLoop 3 improvement applied.",
+    if base_suite is None:
+        return dataset.model_copy(
+            update={
+                "items": new_items,
+                "generation_notes": dataset.generation_notes + "\nLoop 3 improvement applied.",
+            }
+        )
+
+    def dedupe_resources(resources: list[TaskResource]) -> list[TaskResource]:
+        deduped: list[TaskResource] = []
+        seen: set[tuple[str, str, str]] = set()
+        for resource in resources:
+            key = (resource.kind, resource.uri, resource.title)
+            if key not in seen:
+                seen.add(key)
+                deduped.append(resource)
+        return deduped
+
+    blueprint_by_id = {blueprint.id: blueprint for blueprint in merged_blueprints}
+    merged_suite = base_suite.model_copy(
+        update={
+            "dimensions": dataset.spec.dimensions,
+            "blueprints": list(blueprint_by_id.values()),
+            "resources": dedupe_resources(merged_resources),
+            "tasks": merged_tasks,
+            "construction_notes": (
+                base_suite.construction_notes.rstrip() + "\nLoop 3 improvement applied."
+            ).strip(),
+        }
     )
+    return task_suite_to_dataset(merged_suite, dataset.spec, config)
 
 
 def run_loop3_improvement(

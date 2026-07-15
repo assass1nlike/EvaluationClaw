@@ -1,10 +1,9 @@
-"""Default agent task blueprint routing rules."""
+"""Default blueprint construction for every task type."""
 from __future__ import annotations
 
 import re
 
-from ..types import AgentEnvironmentType, AgentTaskBlueprint, EvalDimension
-from .goal_detection import (
+from ..agent.goal_detection import (
     _contains_any,
     _goal_mentions_blender,
     _goal_mentions_browser_gui,
@@ -14,9 +13,31 @@ from .goal_detection import (
     _goal_mentions_runtime_pipeline,
     _mentions_app_state_workflow,
 )
+from ..types import AgentEnvironmentType, EvalDimension, TaskBlueprint, TaskType
 
 
-def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBlueprint:
+def _default_blueprint_for_dimension(dimension: EvalDimension) -> TaskBlueprint:
+    task_types = dimension.task_types or [TaskType.open_generation]
+    interactive = any(
+        task_type in {TaskType.agent_interaction, TaskType.multi_turn}
+        for task_type in task_types
+    )
+    if not interactive:
+        return TaskBlueprint(
+            id=f"{dimension.id}_blueprint",
+            dimension_id=dimension.id,
+            title=dimension.name,
+            description=dimension.description,
+            task_types=task_types,
+            expected_task_count=max(1, int(dimension.target_item_count or 1)),
+            resource_queries=list(dimension.research_queries),
+            source_strategy=(
+                "Use authoritative sources when the dimension requests research; otherwise construct "
+                "a self-contained task."
+            ),
+            construction_requirements=list(dimension.item_requirements),
+            scoring_strategy="Use the task type's answer, rubric, tests, or judge criteria.",
+        )
     identity = " ".join([dimension.id, dimension.name]).lower()
     full_text = " ".join([dimension.id, dimension.name, dimension.description, dimension.approach]).lower()
     category_text = " ".join(
@@ -28,7 +49,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
         ]
     ).lower()
     if _goal_mentions_multi_industrial_workflow(full_text):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_industrial_multi_app_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} industrial multi-app workflow",
@@ -71,7 +92,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             ),
         )
     if any(keyword in category_text for keyword in ("office", "spreadsheet", "document", "presentation", "libreoffice")):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_office_desktop_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} office desktop workflow",
@@ -101,7 +122,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
         any(keyword in category_text for keyword in ("image", "photo", "gimp", "vlc", "creative"))
         or re.search(r"\bmedia\b", category_text) is not None
     ):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_creative_desktop_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} creative desktop workflow",
@@ -127,7 +148,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             scoring_strategy="Hidden artifact/state checks plus GUI trace evidence.",
         )
     if _mentions_app_state_workflow(category_text):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_app_state_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} application state workflow",
@@ -167,7 +188,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
         )
     )
     if provenance_only:
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_professional_provenance_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} professional provenance workflow",
@@ -198,7 +219,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             "structured result tables",
         )
     ):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_professional_pipeline_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} professional executable pipeline",
@@ -226,7 +247,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             "visual media",
         )
     ):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_professional_artifact_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} professional artifact workflow",
@@ -257,7 +278,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             scoring_strategy="Artifact similarity/structure checks with hidden references and provenance scoring.",
         )
     if _goal_mentions_multi_industrial_workflow(full_text):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_industrial_multi_app_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} industrial multi-app workflow",
@@ -300,7 +321,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             ),
         )
     if _goal_mentions_browser_gui(full_text):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_browser_gui_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} browser GUI",
@@ -343,7 +364,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
                 "Provide scene requirements, starter assets or scripts, and expected .blend/render artifacts.",
                 "Make the oracle inspect object types, materials, positions, camera/light setup, and rendered PNG validity.",
             ]
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_desktop_software_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} {title_suffix}",
@@ -370,7 +391,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             scoring_strategy="Bridge-backed artifact scoring with deterministic checks when possible.",
         )
     if _goal_mentions_gui_desktop(full_text):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_gui_desktop_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} GUI desktop",
@@ -402,7 +423,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             scoring_strategy="Bridge-backed GUI state scoring or artifact evaluation.",
         )
     if _goal_mentions_runtime_pipeline(full_text):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_runtime_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} executable workflow",
@@ -426,7 +447,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             scoring_strategy="Deterministic hidden evaluator over produced files, structured outputs, logs, or numerical tolerances.",
         )
     if any(keyword in identity for keyword in ("code", "repo", "debug", "repair", "test", "python")):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_code_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} code repair",
@@ -443,7 +464,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             scoring_strategy="Deterministic hidden tests with partial credit for meaningful progress.",
         )
     if any(keyword in identity for keyword in ("dialogue", "conversation", "chat", "multi-turn", "multi turn")):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_dialogue_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} dialogue task",
@@ -460,7 +481,7 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             scoring_strategy="Transcript-based judge scoring.",
         )
     if any(keyword in full_text for keyword in ("browser", "web", "search", "research", "api", "tool")):
-        return AgentTaskBlueprint(
+        return TaskBlueprint(
             id=f"{dimension.id}_tool_blueprint",
             dimension_id=dimension.id,
             title=f"{dimension.name} tool use",
@@ -476,18 +497,18 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> AgentTaskBluep
             ],
             scoring_strategy="Deterministic environment or judge scoring.",
         )
-    return AgentTaskBlueprint(
-        id=f"{dimension.id}_agent_blueprint",
+    return TaskBlueprint(
+        id=f"{dimension.id}_interaction_blueprint",
         dimension_id=dimension.id,
         title=dimension.name,
         description=dimension.description,
         environment_type=AgentEnvironmentType.workspace,
         expected_task_count=1,
-        resource_queries=[f"{dimension.name} agent task"],
+        resource_queries=[f"{dimension.name} interactive task"],
         source_strategy="Use the simplest executable environment that still reflects the requested capability.",
         tool_requirements=["look", "read_file", "write_file"],
         construction_requirements=[
-            "Build one executable agent task for the dimension.",
+            "Build one executable interaction task for the dimension.",
             "Keep the oracle explicit and deterministic.",
         ],
         scoring_strategy="Deterministic environment or judge scoring.",

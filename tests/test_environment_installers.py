@@ -2,7 +2,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from evalclaw.agent.validation import agent_task_structure_issues
+from evalclaw.construction.validation import task_structure_issues
 from evalclaw.execution.docker_agent_env import DockerWorkspaceAgentEnvironment
 from evalclaw.execution.docker_browser import DOCKER_BROWSER_RUNTIME_SCRIPT
 from evalclaw.execution.docker_images import _render_dockerfile, build_docker_image_if_requested
@@ -11,10 +11,10 @@ from evalclaw.execution.vm_materializer import materialize_vm_task
 from evalclaw.types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
-    AgentScoringSpec,
-    AgentTask,
-    AgentTaskBlueprint,
     BenchmarkItem,
+    TaskBlueprint,
+    TaskDefinition,
+    TaskScoringSpec,
     TaskType,
 )
 
@@ -106,9 +106,10 @@ def test_docker_browser_final_runs_private_evaluator(monkeypatch) -> None:
 
 
 def test_browser_blueprint_requires_executable_docker_browser_runtime() -> None:
-    task = AgentTask(
+    task = TaskDefinition(
         id="browser_task",
         dimension_id="web",
+        task_type=TaskType.agent_interaction,
         title="Browser task",
         prompt="Use the browser tools to update the local website.",
         environment=AgentEnvironmentSpec(
@@ -118,25 +119,27 @@ def test_browser_blueprint_requires_executable_docker_browser_runtime() -> None:
             hidden_files={"test.py": "raise SystemExit(0)"},
             test_command="python3 test.py",
         ),
-        scoring=AgentScoringSpec(pass_criteria="The website is updated."),
+        scoring=TaskScoringSpec(pass_criteria="The website is updated."),
     )
-    blueprint = AgentTaskBlueprint(
+    blueprint = TaskBlueprint(
         id="browser_blueprint",
         dimension_id="web",
         title="Browser workflow",
+        task_types=[TaskType.agent_interaction],
         environment_type=AgentEnvironmentType.docker_workspace,
         tool_requirements=["Use browser tools to inspect and modify the site."],
     )
 
-    issues = agent_task_structure_issues(task, blueprint=blueprint)
+    issues = task_structure_issues(task, blueprint=blueprint)
 
     assert any("environment.browser.enabled=true" in issue for issue in issues)
 
 
 def test_setup_cannot_reference_evaluator_only_hidden_files() -> None:
-    task = AgentTask(
+    task = TaskDefinition(
         id="invalid_lifecycle",
         dimension_id="code",
+        task_type=TaskType.agent_interaction,
         title="Invalid lifecycle",
         prompt="Configure the application and complete the requested code change.",
         environment=AgentEnvironmentSpec(
@@ -147,18 +150,19 @@ def test_setup_cannot_reference_evaluator_only_hidden_files() -> None:
             setup_commands=["python3 private/evaluate.py --serve"],
             test_command="python3 private/evaluate.py",
         ),
-        scoring=AgentScoringSpec(pass_criteria="The evaluator accepts the solution."),
+        scoring=TaskScoringSpec(pass_criteria="The evaluator accepts the solution."),
     )
 
-    issues = agent_task_structure_issues(task)
+    issues = task_structure_issues(task)
 
     assert any("reference evaluator-only hidden_files" in issue for issue in issues)
 
 
 def test_browser_file_artifact_requires_write_tool_and_workdir_path() -> None:
-    task = AgentTask(
+    task = TaskDefinition(
         id="browser_artifact_task",
         dimension_id="web",
+        task_type=TaskType.agent_interaction,
         title="Browser artifact task",
         prompt="Use browser tools and save the extracted data.",
         environment=AgentEnvironmentSpec(
@@ -176,7 +180,7 @@ def test_browser_file_artifact_requires_write_tool_and_workdir_path() -> None:
                 "workspace_tools": [],
             },
         ),
-        scoring=AgentScoringSpec(pass_criteria="The CSV matches expected rows."),
+        scoring=TaskScoringSpec(pass_criteria="The CSV matches expected rows."),
         metadata={
             "agent_task_package": {
                 "output_contract": {"expected_artifacts": ["/tmp/result.csv"]}
@@ -184,7 +188,7 @@ def test_browser_file_artifact_requires_write_tool_and_workdir_path() -> None:
         },
     )
 
-    issues = agent_task_structure_issues(task)
+    issues = task_structure_issues(task)
 
     assert any("must expose write_file" in issue for issue in issues)
     assert any("must be inside environment.workdir=/workspace" in issue for issue in issues)

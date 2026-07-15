@@ -20,6 +20,13 @@ from evalclaw.research.backends import (
 from evalclaw.types import Message, TargetModelConfig
 
 
+@pytest.fixture(autouse=True)
+def _isolate_research_network_state():
+    backends._reset_network_state_for_tests()
+    yield
+    backends._reset_network_state_for_tests()
+
+
 # ---------------------------------------------------------------------------
 # Azure provider inference / credentials
 # ---------------------------------------------------------------------------
@@ -170,6 +177,28 @@ def test_call_litellm_raises_when_still_truncated(monkeypatch) -> None:
             messages=[{"role": "user", "content": "x"}],
             max_tokens=1024,
         )
+
+
+def test_call_litellm_reduced_effort_disables_deepseek_thinking(monkeypatch) -> None:
+    import litellm as _litellm
+
+    requests: list[dict] = []
+
+    def fake_completion(**kwargs):
+        requests.append(kwargs)
+        return _FakeLitellmResponse("stop", "complete task")
+
+    monkeypatch.setattr(_litellm, "completion", fake_completion)
+
+    result = llm._call_litellm(
+        model="deepseek-v4-pro",
+        messages=[{"role": "user", "content": "build one task"}],
+        max_tokens=16384,
+        reduce_reasoning_effort=True,
+    )
+
+    assert result == "complete task"
+    assert requests[0]["thinking"] == {"type": "disabled"}
 
 
 def test_azure_legacy_retries_then_raises_on_truncation(monkeypatch) -> None:
@@ -380,12 +409,133 @@ def test_keyless_backend_returns_none_when_all_fail(monkeypatch) -> None:
     assert KeylessBackend().search("tax law") is None
 
 
+def test_keyless_backend_caches_repeated_queries(monkeypatch) -> None:
+    calls: list[str] = []
+    fake_get = _fake_get_factory()
+
+    def counted_get(url, *args, **kwargs):
+        calls.append(url)
+        return fake_get(url, *args, **kwargs)
+
+    monkeypatch.setattr(backends.httpx, "get", counted_get)
+    backend = KeylessBackend(min_source_interval_s=0)
+
+    first = backend.search("tax law")
+    second = backend.search("  TAX   law ")
+
+    assert first == second
+    assert len(calls) == 3
+
+
+def test_keyless_backend_disables_forbidden_source_for_run(monkeypatch) -> None:
+    calls: list[str] = []
+    fake_get = _fake_get_factory()
+
+    def wikipedia_forbidden(url, *args, **kwargs):
+        calls.append(url)
+        if "wikipedia.org" in url:
+            return backends.httpx.Response(
+                403,
+                request=backends.httpx.Request("GET", url),
+            )
+        return fake_get(url, *args, **kwargs)
+
+    monkeypatch.setattr(backends.httpx, "get", wikipedia_forbidden)
+    backend = KeylessBackend(min_source_interval_s=0)
+
+    assert backend.search("first query") is not None
+    assert backend.search("second query") is not None
+    wikipedia_calls = [url for url in calls if "wikipedia.org" in url]
+    assert len(wikipedia_calls) == 1
+
+
+def test_process_keyless_backend_shares_query_cache(monkeypatch) -> None:
+    calls: list[str] = []
+    fake_get = _fake_get_factory()
+
+    def counted_get(url, *args, **kwargs):
+        calls.append(url)
+        return fake_get(url, *args, **kwargs)
+
+    monkeypatch.setattr(backends.httpx, "get", counted_get)
+
+    assert backends.web_search("shared query", backend="keyless") is not None
+    assert backends.web_search("shared query", backend="keyless") is not None
+    assert len(calls) == 3
+
+
+def test_reset_network_state_reenables_source_for_next_run(monkeypatch) -> None:
+    wikipedia_blocked = True
+    wikipedia_calls = 0
+    fake_get = _fake_get_factory()
+
+    def toggle_wikipedia(url, *args, **kwargs):
+        nonlocal wikipedia_calls
+        if "wikipedia.org" in url:
+            wikipedia_calls += 1
+            if wikipedia_blocked:
+                return backends.httpx.Response(
+                    403,
+                    request=backends.httpx.Request("GET", url),
+                )
+        return fake_get(url, *args, **kwargs)
+
+    monkeypatch.setattr(backends.httpx, "get", toggle_wikipedia)
+
+    assert backends.web_search("first run", backend="keyless") is not None
+    wikipedia_blocked = False
+    backends.reset_network_state()
+    second = backends.web_search("second run", backend="keyless")
+
+    assert second is not None
+    assert wikipedia_calls == 2
+    assert any("wikipedia.org" in citation["url"] for citation in second.citations)
+
+
 # ---------------------------------------------------------------------------
 # search.py shim compatibility + web_search routing
 # ---------------------------------------------------------------------------
 def test_fetch_url_text_skips_non_http_urls() -> None:
     assert backends.fetch_url_text("hf://datasets/foo/bar") is None
     assert backends.fetch_url_text("ftp://example.com/x") is None
+
+
+def test_fetch_url_text_caches_success(monkeypatch) -> None:
+    calls = 0
+
+    def fake_get(url, **kwargs):
+        nonlocal calls
+        calls += 1
+        return backends.httpx.Response(
+            200,
+            text="<html><body>Stable source text</body></html>",
+            headers={"content-type": "text/html"},
+            request=backends.httpx.Request("GET", url),
+        )
+
+    monkeypatch.setattr(backends.httpx, "get", fake_get)
+
+    assert backends.fetch_url_text("https://docs.example/source") == "Stable source text"
+    assert backends.fetch_url_text("https://docs.example/source") == "Stable source text"
+    assert calls == 1
+
+
+def test_fetch_url_text_disables_forbidden_origin_for_run(monkeypatch) -> None:
+    calls = 0
+
+    def fake_get(url, **kwargs):
+        nonlocal calls
+        calls += 1
+        return backends.httpx.Response(
+            403,
+            request=backends.httpx.Request("GET", url),
+        )
+
+    monkeypatch.setattr(backends.httpx, "get", fake_get)
+
+    assert backends.fetch_url_text("https://blocked.example/first") is None
+    assert backends.fetch_url_text("https://blocked.example/second") is None
+    assert calls == 1
 
 
 def test_search_backend_public_exports() -> None:

@@ -1,34 +1,27 @@
 ﻿"""Planner-supervised generation and pre-run QC repair loop."""
 from __future__ import annotations
 
-import difflib
 import json
 import re
 from collections import Counter, defaultdict
 from typing import Any, Callable
 
-from ..core.scaling import is_large_scale_budget
-from ..generation.fallback import fallback_items
-from ..generation.generator import (
-    generate_dataset_with_progress,
-    generate_dimension_items,
-    target_count_for_dimension,
-)
+from ..benchmark import build_dataset_from_spec_with_qc_loop
+from ..generation.generator import target_count_for_dimension
 from ..models.llm import call_llm, extract_json
+from ..models.roles import role_model_settings
+from ..planning.task_planner import blueprints_for_spec
 from ..prompts.planning_loop import PLANNER_REVIEW_SYSTEM_PROMPT
 from ..protocols.task_agent import compact_task_agent_for_qc
-from ..quality.qc import run_qc_gate
 from ..types import (
     BenchmarkConfig,
     BenchmarkDataset,
     BenchmarkItem,
-    BenchmarkSource,
     ChallengeEffort,
     EvalDimension,
     EvalSpec,
     Message,
     QcReport,
-    SourceKind,
     TaskType,
     safe_challenge_effort,
 )
@@ -156,7 +149,8 @@ def _planner_review(
     *,
     human_feedback: str | None = None,
 ) -> dict[str, Any]:
-    if not config.orchestrator_api_key:
+    settings = role_model_settings(config, "planner")
+    if not settings.configured:
         return {"done": True, "notes": "Local mode: planner dataset review skipped."}
     system = PLANNER_REVIEW_SYSTEM_PROMPT
     if human_feedback:
@@ -184,17 +178,14 @@ def _planner_review(
         raw = call_llm(
             [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
             system=system,
-            model=config.orchestrator_model,
-            api_key=config.orchestrator_api_key,
-            base_url=config.orchestrator_base_url,
-            provider=config.orchestrator_provider,
+            **settings.call_kwargs(),
             backend=config.llm_backend,
             max_tokens=8192,
         )
         data = extract_json(raw)
         return data if isinstance(data, dict) else {"done": True, "notes": "Planner review returned non-object JSON."}
     except Exception as exc:
-        return {"done": True, "notes": f"Planner dataset review failed; static repair used: {exc}"}
+        return {"done": True, "notes": f"Planner dataset review failed; task rebuild used: {exc}"}
 
 
 def _apply_review(
@@ -346,203 +337,6 @@ def _apply_review(
     ), notes
 
 
-def _remove_qc_rejected_items(dataset: BenchmarkDataset, qc_report: QcReport) -> tuple[BenchmarkDataset, int]:
-    rejected = set(qc_report.rejected_item_ids)
-    if not rejected:
-        return dataset, 0
-    items = [item for item in dataset.items if item.id not in rejected]
-    notes = f"Removed {len(rejected)} QC-rejected item(s) before runner execution."
-    generation_notes = (dataset.generation_notes.rstrip() + "\n" + notes).strip()
-    return dataset.model_copy(update={"items": items, "generation_notes": generation_notes}), len(rejected)
-
-
-def _dimension_deficits(
-    dataset: BenchmarkDataset,
-    config: BenchmarkConfig,
-    review: dict[str, Any] | None = None,
-) -> dict[str, int]:
-    counts = Counter(item.dimension_id for item in dataset.items)
-    deficits: dict[str, int] = {}
-    for dimension in dataset.spec.dimensions:
-        target = target_count_for_dimension(dimension, config)
-        if is_large_scale_budget(config.scale_budget):
-            generated_items = [
-                item
-                for item in dataset.items
-                if item.dimension_id == dimension.id and item.source.kind == SourceKind.self_generated
-            ]
-            generated_target = dimension.target_generated_count
-            if generated_target is None:
-                generated_target = min(target, max(0, int(config.large_scale_generated_item_cap_per_dimension)))
-            generated_target = min(max(0, int(generated_target)), max(0, int(config.large_scale_generated_item_cap_per_dimension)))
-            missing = max(0, generated_target - len(generated_items))
-        else:
-            missing = max(0, target - counts[dimension.id])
-        if missing:
-            deficits[dimension.id] = missing
-    for raw_need in (review or {}).get("needs_more_items", []) or []:
-        if not isinstance(raw_need, dict):
-            continue
-        dimension_id = str(raw_need.get("dimension_id") or "")
-        count = _safe_positive_int(raw_need.get("count"), 0) or 0
-        if is_large_scale_budget(config.scale_budget):
-            count = min(count, max(0, int(config.large_scale_generated_item_cap_per_dimension)))
-        if dimension_id and count:
-            deficits[dimension_id] = max(deficits.get(dimension_id, 0), count)
-    return deficits
-
-
-def _runner_ready(dataset: BenchmarkDataset, qc_report: QcReport, config: BenchmarkConfig) -> bool:
-    return (
-        qc_report.is_acceptable
-        and not qc_report.rejected_item_ids
-        and not _dimension_deficits(dataset, config, None)
-    )
-
-
-def _raise_not_ready(
-    stage: str,
-    dataset: BenchmarkDataset,
-    qc_report: QcReport,
-    config: BenchmarkConfig,
-) -> None:
-    deficits = _dimension_deficits(dataset, config, None)
-    issue_preview = "; ".join(issue.message for issue in qc_report.issues[:3]) or "no issue details"
-    raise RuntimeError(
-        f"{stage} did not produce a runner-ready dataset after "
-        f"{max(1, int(config.max_qc_iterations))} repair iteration(s): "
-        f"{len(qc_report.rejected_item_ids)} rejected item(s), "
-        f"{len(deficits)} dimension deficit(s), quality={qc_report.quality_score:.2f}. "
-        f"First issues: {issue_preview}"
-    )
-
-
-def _dedupe_sources(sources: list[BenchmarkSource]) -> list[BenchmarkSource]:
-    deduped: list[BenchmarkSource] = []
-    seen: set[tuple[str, str, str]] = set()
-    for source in sources:
-        key = (source.kind.value, source.uri, source.title)
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(source)
-    return deduped
-
-
-def _is_duplicate(candidate: BenchmarkItem, existing_items: list[BenchmarkItem]) -> bool:
-    candidate_fingerprint = re.sub(r"\s+", " ", candidate.prompt.strip().lower())
-    if any(re.sub(r"\s+", " ", existing.prompt.strip().lower()) == candidate_fingerprint for existing in existing_items):
-        return True
-    near_duplicate_window = existing_items if len(existing_items) <= 100 else existing_items[-50:]
-    return any(
-        difflib.SequenceMatcher(None, candidate.prompt.lower(), existing.prompt.lower()).ratio() >= 0.92
-        for existing in near_duplicate_window
-    )
-
-
-def _repair_guidance_by_dimension(
-    dataset: BenchmarkDataset,
-    qc_report: QcReport,
-) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
-    item_dimensions = {item.id: item.dimension_id for item in dataset.items}
-    item_prompts = {item.id: item.prompt[:700] for item in dataset.items}
-    guidance: defaultdict[str, list[str]] = defaultdict(list)
-    avoid_prompts: defaultdict[str, list[str]] = defaultdict(list)
-    for issue in qc_report.issues:
-        if not issue.item_id:
-            continue
-        dimension_id = item_dimensions.get(issue.item_id)
-        if not dimension_id:
-            continue
-        text = issue.message
-        if issue.suggested_action:
-            text = f"{text} Suggested action: {issue.suggested_action}"
-        if text not in guidance[dimension_id]:
-            guidance[dimension_id].append(text)
-        prompt = item_prompts.get(issue.item_id)
-        if prompt and prompt not in avoid_prompts[dimension_id]:
-            avoid_prompts[dimension_id].append(prompt)
-    return dict(guidance), dict(avoid_prompts)
-
-
-def _fill_dimension_deficits(
-    dataset: BenchmarkDataset,
-    deficits: dict[str, int],
-    config: BenchmarkConfig,
-    log: Callable[[str], None] | None,
-    *,
-    repair_guidance: dict[str, list[str]] | None = None,
-    avoid_prompts: dict[str, list[str]] | None = None,
-) -> BenchmarkDataset:
-    if not deficits:
-        return dataset
-    by_dimension = {dimension.id: dimension for dimension in dataset.spec.dimensions}
-    batch_by_dimension = {batch.dimension_id: batch for batch in dataset.batches}
-    items = list(dataset.items)
-    sources = list(dataset.sources)
-    notes: list[str] = []
-    generated_by_dimension: defaultdict[str, int] = defaultdict(int)
-    for dimension_id, count in deficits.items():
-        dimension = by_dimension.get(dimension_id)
-        if not dimension or count <= 0:
-            continue
-        if log:
-            log(f"  [Generation/QC] Filling {dimension_id}: {count} item(s)...")
-        attempts = 0
-        local_avoid_prompts = list((avoid_prompts or {}).get(dimension_id, []))
-        while generated_by_dimension[dimension_id] < count and attempts < count * 3:
-            attempts += 1
-            generated_items, generated_sources, note = generate_dimension_items(
-                dataset.spec,
-                dimension,
-                1,
-                config,
-                repair_guidance=(repair_guidance or {}).get(dimension_id, []),
-                avoid_prompts=local_avoid_prompts,
-            )
-            for item in generated_items:
-                if _is_duplicate(item, items):
-                    prompt_excerpt = item.prompt[:700]
-                    if prompt_excerpt not in local_avoid_prompts:
-                        local_avoid_prompts.append(prompt_excerpt)
-                    continue
-                batch = batch_by_dimension.get(dimension_id)
-                if batch:
-                    metadata = dict(item.metadata)
-                    metadata["batch_id"] = batch.id
-                    metadata["batch_index"] = len([x for x in items if x.dimension_id == dimension_id]) + 1
-                    item = item.model_copy(update={"metadata": metadata})
-                sources.extend(generated_sources)
-                items.append(item)
-                generated_by_dimension[dimension_id] += 1
-                if note:
-                    notes.append(f"{dimension_id}: {note}")
-                break
-        if generated_by_dimension[dimension_id] < count:
-            remaining = count - generated_by_dimension[dimension_id]
-            fallback_candidates = fallback_items(dataset.spec, dimension, remaining)
-            for candidate in fallback_candidates:
-                if _is_duplicate(candidate, items):
-                    continue
-                items.append(candidate)
-                generated_by_dimension[dimension_id] += 1
-                notes.append(
-                    f"{dimension_id}: Used local fallback item after repeated duplicate generation attempts."
-                )
-                if generated_by_dimension[dimension_id] >= count:
-                    break
-    generation_notes = dataset.generation_notes
-    if notes:
-        generation_notes = (generation_notes.rstrip() + "\nPre-run repair generation:\n" + "\n".join(notes)).strip()
-    return BenchmarkDataset(
-        spec=dataset.spec,
-        items=items,
-        sources=_dedupe_sources(sources),
-        batches=dataset.batches,
-        generation_notes=generation_notes,
-    )
-
-
 def format_human_review_overview(
     dataset: BenchmarkDataset,
     qc_report: QcReport,
@@ -623,78 +417,17 @@ def apply_human_review_feedback(
         for note in notes:
             log(f"  {note}")
 
-    max_iterations = max(1, int(config.max_qc_iterations))
-    for _ in range(max_iterations):
-        repair_guidance, avoid_prompts = _repair_guidance_by_dimension(dataset, qc_report)
-        deficits = _dimension_deficits(dataset, config, review)
-        dataset = _fill_dimension_deficits(
-            dataset,
-            deficits,
-            config,
-            log,
-            repair_guidance=repair_guidance,
-            avoid_prompts=avoid_prompts,
-        )
-        qc_report = run_qc_gate(dataset, config)
-        repair_guidance, avoid_prompts = _repair_guidance_by_dimension(dataset, qc_report)
-        dataset, removed = _remove_qc_rejected_items(dataset, qc_report)
-        if log and removed:
-            log(f"  Removed {removed} QC-rejected item(s) after human review.")
-        qc_report = run_qc_gate(dataset, config)
-        if _runner_ready(dataset, qc_report, config):
-            break
-
-    if not _runner_ready(dataset, qc_report, config):
-        _raise_not_ready("Human-review repair", dataset, qc_report, config)
-
-    return dataset.spec, dataset, qc_report
-
-
-def generate_dataset_with_qc_loop(
-    spec: EvalSpec,
-    config: BenchmarkConfig,
-    *,
-    log: Callable[[str], None] | None = None,
-) -> tuple[EvalSpec, BenchmarkDataset, QcReport]:
-    """Generate items, repair QC/planner issues, and return runner-ready items."""
-    dataset = generate_dataset_with_progress(spec, config, log=log)
-    qc_report = run_qc_gate(dataset, config)
-    max_iterations = max(0, int(config.max_qc_iterations))
-    if max_iterations == 0:
-        return dataset.spec, dataset, qc_report
-
-    for iteration in range(1, max_iterations + 1):
-        if log:
-            log(f"\n[Generation/QC] Pre-run self-check iteration {iteration}/{max_iterations}...")
-            log(f"  {qc_report.summary}")
-        repair_guidance, avoid_prompts = _repair_guidance_by_dimension(dataset, qc_report)
-        dataset, removed = _remove_qc_rejected_items(dataset, qc_report)
-        if log and removed:
-            log(f"  Removed {removed} QC-rejected item(s).")
-
-        review = _planner_review(dataset, qc_report, config)
-        dataset, review_notes = _apply_review(dataset, review, qc_report, config)
-        if log and review_notes:
-            for note in review_notes:
-                log(f"  {note}")
-
-        deficits = _dimension_deficits(dataset, config, review)
-        dataset = _fill_dimension_deficits(
-            dataset,
-            deficits,
-            config,
-            log,
-            repair_guidance=repair_guidance,
-            avoid_prompts=avoid_prompts,
-        )
-        next_qc = run_qc_gate(dataset, config)
-        next_deficits = _dimension_deficits(dataset, config, None)
-        stable = next_qc.is_acceptable and not next_qc.rejected_item_ids and not next_deficits and not review_notes and not deficits
-        qc_report = next_qc
-        if stable or (review.get("done") is True and not next_qc.rejected_item_ids and not next_deficits):
-            break
-
-    if not _runner_ready(dataset, qc_report, config):
-        _raise_not_ready("Pre-run generation/QC loop", dataset, qc_report, config)
-
-    return dataset.spec, dataset, qc_report
+    blueprints = blueprints_for_spec(dataset.spec, config)
+    rebuilt, qc_report = build_dataset_from_spec_with_qc_loop(
+        dataset.spec,
+        blueprints,
+        config,
+        log=log or (lambda _message: None),
+    )
+    if notes:
+        rebuilt.generation_notes = (
+            rebuilt.generation_notes.rstrip()
+            + "\nHuman review changes:\n"
+            + "\n".join(notes)
+        ).strip()
+    return rebuilt.spec, rebuilt, qc_report

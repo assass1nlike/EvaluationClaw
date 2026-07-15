@@ -1,4 +1,4 @@
-"""Fallback task builders used by the agent benchmark constructor."""
+"""Fallback implementations for tasks that request interaction environments."""
 from __future__ import annotations
 
 from .base import _agent_system_prompt, _task_id, _task_title

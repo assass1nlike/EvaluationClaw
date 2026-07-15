@@ -13,7 +13,7 @@ from rich.table import Table
 
 from .models.providers import normalize_provider, orchestrator_defaults, target_from_model
 from .pipeline import run_pipeline
-from .types import BenchmarkConfig, BenchmarkMode, BenchmarkPackage, ScaleBudget, TargetModelConfig
+from .types import BenchmarkConfig, BenchmarkPackage, ScaleBudget, TargetModelConfig
 
 app = typer.Typer(
     name="evalclaw",
@@ -35,14 +35,14 @@ def _ask_user(prompt: str) -> str:
 
 
 def _parse_targets(
-    model: str,
+    model: Optional[str],
     compare: list[str],
     target_api_key: Optional[str],
     base_url: Optional[str],
     fallback_key: Optional[str],
     target_provider: Optional[str] = None,
 ) -> list[TargetModelConfig]:
-    target_models = [model, *compare]
+    target_models = ([model] if model else []) + compare
     targets: list[TargetModelConfig] = []
     seen: set[str] = set()
     for target_model in target_models:
@@ -52,9 +52,9 @@ def _parse_targets(
         targets.append(
             target_from_model(
                 target_model,
-                provider=target_provider if target_model == model else None,
-                api_key=target_api_key if target_model == model else None,
-                base_url=base_url if target_model == model else None,
+                provider=target_provider if model and target_model == model else None,
+                api_key=target_api_key if model and target_model == model else None,
+                base_url=base_url if model and target_model == model else None,
                 fallback_key=fallback_key,
             )
         )
@@ -176,7 +176,12 @@ def _console_safe(text: object) -> str:
 @app.command("generate")
 def generate(
     goal: Optional[str] = typer.Option(None, "-g", "--goal", help="Evaluation goal."),
-    model: str = typer.Option("claude-sonnet-4-6", "-m", "--model", help="Primary target model."),
+    model: Optional[str] = typer.Option(
+        None,
+        "-m",
+        "--model",
+        help="Optional primary target model. Omit all target options to build without evaluation.",
+    ),
     compare: list[str] = typer.Option(
         [],
         "--compare",
@@ -203,13 +208,37 @@ def generate(
     orchestrator_model: str = typer.Option(
         "claude-opus-4-6",
         "--orchestrator-model",
-        help="Model used for planner/generator/QC/judge.",
+        help="Default model for orchestration roles that have no role-specific override.",
     ),
     orchestrator_provider: Optional[str] = typer.Option(
         None,
         "--orchestrator-provider",
         help="Explicit orchestrator protocol/provider, such as anthropic or openai_compatible.",
     ),
+    planner_model: Optional[str] = typer.Option(None, "--planner-model", help="Optional Planner model override."),
+    planner_provider: Optional[str] = typer.Option(None, "--planner-provider", help="Protocol/provider for --planner-model."),
+    planner_api_key: Optional[str] = typer.Option(None, "--planner-api-key", help="API key for the Planner role."),
+    planner_base_url: Optional[str] = typer.Option(None, "--planner-base-url", help="Base URL for the Planner role."),
+    task_builder_model: Optional[str] = typer.Option(None, "--task-builder-model", help="Optional TaskBuilder model override."),
+    task_builder_provider: Optional[str] = typer.Option(None, "--task-builder-provider", help="Protocol/provider for --task-builder-model."),
+    task_builder_api_key: Optional[str] = typer.Option(None, "--task-builder-api-key", help="API key for the TaskBuilder role."),
+    task_builder_base_url: Optional[str] = typer.Option(None, "--task-builder-base-url", help="Base URL for the TaskBuilder role."),
+    qc_model: Optional[str] = typer.Option(None, "--qc-model", help="Optional LLM QC model override."),
+    qc_provider: Optional[str] = typer.Option(None, "--qc-provider", help="Protocol/provider for --qc-model."),
+    qc_api_key: Optional[str] = typer.Option(None, "--qc-api-key", help="API key for the LLM QC role."),
+    qc_base_url: Optional[str] = typer.Option(None, "--qc-base-url", help="Base URL for the LLM QC role."),
+    judge_model: Optional[str] = typer.Option(None, "--judge-model", help="Optional scoring judge model override."),
+    judge_provider: Optional[str] = typer.Option(None, "--judge-provider", help="Protocol/provider for --judge-model."),
+    judge_api_key: Optional[str] = typer.Option(None, "--judge-api-key", help="API key for the scoring judge role."),
+    judge_base_url: Optional[str] = typer.Option(None, "--judge-base-url", help="Base URL for the scoring judge role."),
+    research_model: Optional[str] = typer.Option(None, "--research-model", help="Optional Deep Research model override."),
+    research_provider: Optional[str] = typer.Option(None, "--research-provider", help="Protocol/provider for --research-model."),
+    research_api_key: Optional[str] = typer.Option(None, "--research-api-key", help="API key for the research role."),
+    research_base_url: Optional[str] = typer.Option(None, "--research-base-url", help="Base URL for the research role."),
+    loop3_model: Optional[str] = typer.Option(None, "--loop3-model", help="Optional Loop 3 diagnosis model override."),
+    loop3_provider: Optional[str] = typer.Option(None, "--loop3-provider", help="Protocol/provider for --loop3-model."),
+    loop3_api_key: Optional[str] = typer.Option(None, "--loop3-api-key", help="API key for the Loop 3 diagnosis role."),
+    loop3_base_url: Optional[str] = typer.Option(None, "--loop3-base-url", help="Base URL for the Loop 3 diagnosis role."),
     task_agent_model: Optional[str] = typer.Option(
         None,
         "--task-agent-model",
@@ -289,11 +318,6 @@ def generate(
         "--scale-budget",
         help="Relative eval budget: low, mid, high, large, or xlarge.",
     ),
-    benchmark_mode: str = typer.Option(
-        "auto",
-        "--benchmark-mode",
-        help="Benchmark construction mode: auto, static, or agent.",
-    ),
     output_dir: str = typer.Option("./benchmark-output", "-o", "--output-dir", help="Output directory."),
     no_interactive: bool = typer.Option(False, "--no-interactive", help="Skip confirmation prompts."),
     no_run: bool = typer.Option(False, "--no-run", help="Build and QC the benchmark without running targets."),
@@ -314,29 +338,29 @@ def generate(
         help="Maximum deep-research search/reflection rounds.",
     ),
     no_hf_discovery: bool = typer.Option(False, "--no-hf-discovery", help="Disable HuggingFace dataset discovery."),
-    agent_task_builder: str = typer.Option(
+    task_builder: str = typer.Option(
         "llm",
-        "--agent-task-builder",
-        help="Agent task materialization mode: llm, local, or auto. Use local only for offline smoke tests.",
+        "--task-builder",
+        help="Task construction mode: llm, local, or auto. Use local only for offline smoke tests.",
     ),
-    agent_task_builder_max_workers: int = typer.Option(
+    task_builder_max_workers: int = typer.Option(
         4,
-        "--agent-task-builder-workers",
-        help="Maximum concurrent agent task-builder LLM calls.",
+        "--task-builder-workers",
+        help="Maximum concurrent task-builder LLM calls.",
     ),
-    agent_task_builder_repair_attempts: int = typer.Option(
+    task_builder_repair_attempts: int = typer.Option(
         2,
-        "--agent-task-builder-repair-attempts",
+        "--task-builder-repair-attempts",
         help="Maximum per-blueprint task-builder structural repair attempts before QC.",
     ),
-    agent_task_builder_research_max_calls: int = typer.Option(
+    task_builder_research_max_calls: int = typer.Option(
         6,
-        "--agent-task-builder-research-max-calls",
+        "--task-builder-research-max-calls",
         help="Maximum public research tool calls for an E4 task-builder invocation.",
     ),
-    agent_task_builder_research_max_chars: int = typer.Option(
+    task_builder_research_max_chars: int = typer.Option(
         6000,
-        "--agent-task-builder-research-max-chars",
+        "--task-builder-research-max-chars",
         help="Maximum characters retained from each E4 task-builder research result.",
     ),
     single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one judge pass instead of the default double-pass audit."),
@@ -456,22 +480,17 @@ def generate(
     except ValueError:
         console.print("[red]--scale-budget must be one of: low, mid, high, large, xlarge.[/red]")
         raise typer.Exit(1)
-    try:
-        parsed_benchmark_mode = BenchmarkMode(benchmark_mode.lower())
-    except ValueError:
-        console.print("[red]--benchmark-mode must be one of: auto, static, agent.[/red]")
-        raise typer.Exit(1)
     if search_backend.lower() not in {"auto", "gemini", "keyless", "none"}:
         console.print("[red]--search-backend must be one of: auto, gemini, keyless, none.[/red]")
         raise typer.Exit(1)
-    if agent_task_builder.lower() not in {"llm", "local", "auto"}:
-        console.print("[red]--agent-task-builder must be one of: llm, local, auto.[/red]")
+    if task_builder.lower() not in {"llm", "local", "auto"}:
+        console.print("[red]--task-builder must be one of: llm, local, auto.[/red]")
         raise typer.Exit(1)
-    if agent_task_builder_max_workers < 1:
-        console.print("[red]--agent-task-builder-workers must be at least 1.[/red]")
+    if task_builder_max_workers < 1:
+        console.print("[red]--task-builder-workers must be at least 1.[/red]")
         raise typer.Exit(1)
-    if agent_task_builder_repair_attempts < 0:
-        console.print("[red]--agent-task-builder-repair-attempts cannot be negative.[/red]")
+    if task_builder_repair_attempts < 0:
+        console.print("[red]--task-builder-repair-attempts cannot be negative.[/red]")
         raise typer.Exit(1)
     if max_research_iterations < 1:
         console.print("[red]--max-research-iterations must be at least 1.[/red]")
@@ -483,6 +502,37 @@ def generate(
         base_url=orchestrator_base_url,
         provider=orchestrator_provider,
     )
+    role_options = {
+        "planner": (planner_model, planner_provider, planner_api_key, planner_base_url),
+        "task_builder": (
+            task_builder_model,
+            task_builder_provider,
+            task_builder_api_key,
+            task_builder_base_url,
+        ),
+        "qc": (qc_model, qc_provider, qc_api_key, qc_base_url),
+        "judge": (judge_model, judge_provider, judge_api_key, judge_base_url),
+        "research": (research_model, research_provider, research_api_key, research_base_url),
+        "loop3": (loop3_model, loop3_provider, loop3_api_key, loop3_base_url),
+    }
+    role_config: dict[str, Optional[str]] = {}
+    for role, (role_model, role_provider, role_key, role_base) in role_options.items():
+        if not any((role_model, role_provider, role_key, role_base)):
+            continue
+        resolved_key, resolved_base = orchestrator_defaults(
+            role_model or orchestrator_model,
+            api_key=role_key,
+            base_url=role_base,
+            provider=role_provider,
+        )
+        role_config.update(
+            {
+                f"{role}_model": role_model,
+                f"{role}_provider": normalize_provider(role_provider) if role_provider else None,
+                f"{role}_api_key": resolved_key,
+                f"{role}_base_url": resolved_base,
+            }
+        )
     effective_task_agent_key = None
     effective_task_agent_base = None
     if task_agent_model:
@@ -517,11 +567,11 @@ def generate(
         fallback_key=effective_api_key,
     )
     config = BenchmarkConfig(
-        benchmark_mode=parsed_benchmark_mode,
         orchestrator_model=orchestrator_model,
         orchestrator_provider=normalize_provider(orchestrator_provider) if orchestrator_provider else None,
         orchestrator_api_key=effective_api_key,
         orchestrator_base_url=effective_orch_base,
+        **role_config,
         task_agent_model=task_agent_model,
         task_agent_provider=normalize_provider(task_agent_provider) if task_agent_provider else None,
         task_agent_api_key=effective_task_agent_key,
@@ -537,17 +587,17 @@ def generate(
         large_scale_min_source_backed_ratio=large_scale_source_ratio,
         large_scale_llm_qc_sample_size=large_scale_qc_sample,
         output_dir=output_dir,
-        run_targets=not no_run,
+        run_targets=bool(targets) and not no_run,
         use_web_research=not no_research,
         search_backend=search_backend.lower(),
         use_deep_research=deep_research,
         max_research_iterations=max_research_iterations,
         use_hf_discovery=not no_hf_discovery,
-        agent_task_builder=agent_task_builder.lower(),
-        agent_task_builder_max_workers=agent_task_builder_max_workers,
-        agent_task_builder_repair_attempts=agent_task_builder_repair_attempts,
-        agent_task_builder_research_max_calls=agent_task_builder_research_max_calls,
-        agent_task_builder_research_max_chars=agent_task_builder_research_max_chars,
+        task_builder=task_builder.lower(),
+        task_builder_max_workers=task_builder_max_workers,
+        task_builder_repair_attempts=task_builder_repair_attempts,
+        task_builder_research_max_calls=task_builder_research_max_calls,
+        task_builder_research_max_chars=task_builder_research_max_chars,
         judge_double_pass=not single_pass_judge,
         llm_backend=llm_backend,
         runner=runner,
