@@ -33,6 +33,23 @@ def _file_review_excerpt(content: object, limit: int = 3000) -> str:
     return text[:half] + "\n... QC REVIEW EXCERPT ...\n" + text[-half:]
 
 
+def _compact_qc_value(value: object, *, depth: int = 0) -> object:
+    if isinstance(value, str):
+        return value if len(value) <= 1200 else value[:1200] + "\n[QC excerpt clipped]"
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    if depth >= 3:
+        return str(value)[:1200]
+    if isinstance(value, list):
+        return [_compact_qc_value(item, depth=depth + 1) for item in value[:16]]
+    if isinstance(value, dict):
+        return {
+            str(key): _compact_qc_value(child, depth=depth + 1)
+            for key, child in list(value.items())[:24]
+        }
+    return str(value)[:1200]
+
+
 def _compact_metadata_for_qc(metadata: dict) -> dict:
     """Keep QC context small while preserving executable environment facts."""
     if not metadata:
@@ -116,35 +133,58 @@ def _compact_metadata_for_qc(metadata: dict) -> dict:
                 env_summary[key] = value
         session = env.get("session")
         if isinstance(session, dict):
-            env_summary["session_keys"] = list(session.keys())[:20]
-            for key in ("kind", "application", "entrypoint", "start_url"):
-                if key in session:
-                    env_summary[f"session_{key}"] = session[key]
-            assets = session.get("assets")
-            if isinstance(assets, list):
-                env_summary["session_assets"] = assets[:20]
-            expected_artifacts = session.get("expected_artifacts")
-            if isinstance(expected_artifacts, list):
-                env_summary["session_expected_artifacts"] = expected_artifacts[:20]
+            session_keys = (
+                "kind",
+                "application",
+                "applications",
+                "entrypoint",
+                "start_url",
+                "launch_state",
+                "start_state",
+                "initial_state",
+                "workflow",
+                "workflow_stages",
+                "input_assets",
+                "assets",
+                "handoff_artifacts",
+                "expected_artifacts",
+            )
+            env_summary["session"] = {
+                key: _compact_qc_value(session[key])
+                for key in session_keys
+                if key in session
+            }
         evaluation = env.get("evaluation")
         if isinstance(evaluation, dict):
-            env_summary["evaluation_keys"] = list(evaluation.keys())[:20]
-            for key in ("method", "pass_criteria", "partial_criteria", "fail_criteria"):
-                if key in evaluation:
-                    env_summary[f"evaluation_{key}"] = str(evaluation[key])[:800]
+            env_summary["evaluation"] = _compact_qc_value(evaluation)
         vm = env.get("vm")
         if isinstance(vm, dict):
             env_summary["requires_vm"] = bool(env.get("requires_vm"))
-            env_summary["vm_keys"] = list(vm.keys())[:20]
-            for key in ("isolation", "image", "snapshot", "network", "locale"):
-                if key in vm:
-                    env_summary[f"vm_{key}"] = vm[key]
-            required_software = vm.get("required_software")
-            if isinstance(required_software, list):
-                env_summary["vm_required_software"] = required_software[:20]
-            display = vm.get("display")
-            if isinstance(display, dict):
-                env_summary["vm_display"] = display
+            vm_keys = (
+                "isolation",
+                "image",
+                "template",
+                "template_name",
+                "snapshot",
+                "reset_behavior",
+                "disk_image",
+                "disk_path",
+                "network",
+                "network_policy",
+                "locale",
+                "display",
+                "required_software",
+                "guest_user",
+                "os",
+            )
+            env_summary["vm"] = {
+                key: _compact_qc_value(vm[key])
+                for key in vm_keys
+                if key in vm
+            }
+        vm_provisioning = env.get("vm_provisioning")
+        if isinstance(vm_provisioning, dict) and vm_provisioning:
+            env_summary["vm_provisioning"] = _compact_qc_value(vm_provisioning)
         compact["agent_env"] = env_summary
     task_agent = metadata.get(TASK_AGENT_METADATA_KEY)
     if isinstance(task_agent, dict):
@@ -249,6 +289,24 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
     if is_large_scale_budget(dataset.spec.scale_budget):
         limit = max(1, int(config.large_scale_llm_qc_sample_size))
     sampled_items, sampling = _llm_qc_sample(dataset, limit)
+    task_design_by_id = {
+        design.id: design
+        for blueprint in dataset.blueprints
+        for design in blueprint.task_designs
+    }
+    if dataset.task_suite is not None:
+        task_design_by_id.update(
+            {
+                design.id: design
+                for blueprint in dataset.task_suite.blueprints
+                for design in blueprint.task_designs
+            }
+        )
+    sampled_design_ids = {
+        str(item.metadata.get("task_design_id") or "")
+        for item in sampled_items
+        if str(item.metadata.get("task_design_id") or "")
+    }
     sample = [
         {
             "id": item.id,
@@ -278,6 +336,11 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
                             "planner_notes": dataset.spec.planner_notes,
                             "dimensions": [d.model_dump(mode="json") for d in dataset.spec.dimensions],
                             "batches": [batch.model_dump(mode="json") for batch in dataset.batches],
+                            "task_designs": [
+                                task_design_by_id[design_id].model_dump(mode="json")
+                                for design_id in sorted(sampled_design_ids)
+                                if design_id in task_design_by_id
+                            ],
                             "llm_qc_sampling": sampling,
                             "items": sample,
                         },

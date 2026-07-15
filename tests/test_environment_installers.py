@@ -12,11 +12,11 @@ from evalclaw.types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
     BenchmarkItem,
-    TaskBlueprint,
     TaskDefinition,
     TaskScoringSpec,
     TaskType,
 )
+from tests.blueprint_factory import make_blueprint
 
 
 def test_docker_browser_runtime_script_compiles() -> None:
@@ -121,13 +121,14 @@ def test_browser_blueprint_requires_executable_docker_browser_runtime() -> None:
         ),
         scoring=TaskScoringSpec(pass_criteria="The website is updated."),
     )
-    blueprint = TaskBlueprint(
-        id="browser_blueprint",
-        dimension_id="web",
-        title="Browser workflow",
-        task_types=[TaskType.agent_interaction],
+    blueprint = make_blueprint(
+        "browser_blueprint",
+        "web",
+        "Browser workflow",
+        task_type=TaskType.agent_interaction,
+        content="One browser workflow.",
         environment_type=AgentEnvironmentType.docker_workspace,
-        tool_requirements=["Use browser tools to inspect and modify the site."],
+        allowed_tools=["browser"],
     )
 
     issues = task_structure_issues(task, blueprint=blueprint)

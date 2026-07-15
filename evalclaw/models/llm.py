@@ -269,9 +269,16 @@ def _call_litellm(
         "messages": messages,
         "timeout": 300,
     }
-    if reduce_reasoning_effort:
+    requests_json = _messages_request_json(messages)
+    if model.startswith("deepseek-v4") and requests_json:
+        # DeepSeek V4's thinking mode can consume the entire response window
+        # before emitting the JSON body. Match the direct OpenAI-compatible
+        # path for framework calls that explicitly require structured JSON.
+        kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
+        kwargs["response_format"] = {"type": "json_object"}
+    elif reduce_reasoning_effort:
         if model.startswith("deepseek-v4"):
-            kwargs["thinking"] = {"type": "disabled"}
+            kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
         elif _is_reasoning_model(model):
             kwargs["reasoning_effort"] = "low"
     else:

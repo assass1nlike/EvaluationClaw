@@ -198,7 +198,29 @@ def test_call_litellm_reduced_effort_disables_deepseek_thinking(monkeypatch) -> 
     )
 
     assert result == "complete task"
-    assert requests[0]["thinking"] == {"type": "disabled"}
+    assert requests[0]["extra_body"] == {"thinking": {"type": "disabled"}}
+
+
+def test_call_litellm_deepseek_json_matches_direct_structured_mode(monkeypatch) -> None:
+    import litellm as _litellm
+
+    requests: list[dict] = []
+
+    def fake_completion(**kwargs):
+        requests.append(kwargs)
+        return _FakeLitellmResponse("stop", '{"plan": {}}')
+
+    monkeypatch.setattr(_litellm, "completion", fake_completion)
+
+    result = llm._call_litellm(
+        model="deepseek-v4-pro",
+        messages=[{"role": "user", "content": "Return pure JSON only."}],
+        max_tokens=16384,
+    )
+
+    assert result == '{"plan": {}}'
+    assert requests[0]["extra_body"] == {"thinking": {"type": "disabled"}}
+    assert requests[0]["response_format"] == {"type": "json_object"}
 
 
 def test_azure_legacy_retries_then_raises_on_truncation(monkeypatch) -> None:

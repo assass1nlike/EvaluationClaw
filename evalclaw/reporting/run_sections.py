@@ -225,13 +225,23 @@ def _task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
             [
                 blueprint.id,
                 blueprint.dimension_id,
+                ", ".join(
+                    f"{item.task_type.value}×{item.count}"
+                    for item in blueprint.task_type_allocation
+                ),
+                str(blueprint.planned_task_count),
                 blueprint.environment_type.value if blueprint.environment_type else "-",
-                str(blueprint.expected_task_count),
                 blueprint.title,
             ]
             for blueprint in suite.blueprints
         ]
-        lines.extend([_markdown_table(["Blueprint", "Dimension", "Env", "Count", "Title"], rows), ""])
+        lines.extend([
+            _markdown_table(
+                ["Blueprint", "Dimension", "Types", "Tasks", "Env", "Title"],
+                rows,
+            ),
+            "",
+        ])
     if suite.resources:
         rows = [
             [

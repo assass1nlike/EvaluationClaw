@@ -222,6 +222,31 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
         hidden_reference_artifacts.extend(sorted(str(path) for path in hidden_files.keys()))
     if not hidden_reference_artifacts and evaluation:
         hidden_reference_artifacts.append("runner-private evaluation contract")
+    declared_os = str(
+        vm.get("guest_os")
+        or vm.get("os")
+        or vm.get("os_type")
+        or vm.get("platform")
+        or ""
+    ).strip().lower()
+    if declared_os == "win" or declared_os.startswith("windows"):
+        environment_os = "windows"
+    elif declared_os.startswith("linux") or declared_os in {
+        "ubuntu",
+        "debian",
+        "fedora",
+        "rhel",
+        "centos",
+        "alpine",
+        "arch",
+    }:
+        environment_os = "linux"
+    elif env_type in {"code_sandbox", "docker_workspace"}:
+        environment_os = "linux"
+    elif declared_os:
+        environment_os = declared_os
+    else:
+        environment_os = "any"
 
     generated = {
         "schema_version": AGENT_TASK_PACKAGE_SCHEMA_VERSION,
@@ -235,7 +260,7 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
         "environment_requirements": {
             "environment_ref": "metadata.agent_env",
             "type": env_type,
-            "os": "linux" if env_type in {"code_sandbox", "docker_workspace"} else "any",
+            "os": environment_os,
             "requires_vm": bool(agent_env.get("requires_vm") or vm),
             "requires_gui": env_type == "gui_desktop",
             "required_software": required_software,
@@ -385,16 +410,34 @@ def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkCon
             (candidate for candidate in suite.blueprints if candidate.id == metadata.get("builder_blueprint_id")),
             None,
         )
+        task_design_id = str(metadata.get("task_design_id") or "")
+        task_design = next(
+            (
+                candidate
+                for candidate in (blueprint.task_designs if blueprint is not None else [])
+                if candidate.id == task_design_id
+            ),
+            None,
+        )
+        validation_blueprint = (
+            blueprint.model_copy(
+                update={
+                    "task_design_ids": [task_design.id],
+                    "task_designs": [task_design],
+                }
+            )
+            if blueprint is not None and task_design is not None
+            else blueprint
+        )
         structure_issues = task_structure_issues(
             task,
             dimension=dimension_by_id.get(task.dimension_id),
-            blueprint=blueprint,
+            blueprint=validation_blueprint,
+            task_design=task_design,
         )
         metadata["task_structure_validation"] = task_structure_validation_metadata(structure_issues)
         metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = _task_content_summary(task)
         metadata.setdefault("builder_blueprint_id", task.metadata.get("builder_blueprint_id", ""))
-        metadata.setdefault("builder_task_index", task.metadata.get("builder_task_index", index))
-        metadata.setdefault("builder_blueprint_task_count", task.metadata.get("builder_blueprint_task_count", 1))
         task_package: dict[str, Any] | None = None
         if task.environment is not None:
             agent_env = _environment_for_runner(task)

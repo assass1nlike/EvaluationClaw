@@ -160,18 +160,6 @@ def _has_output_contract(value: Any) -> bool:
     return False
 
 
-def _has_hidden_reference(value: Any) -> bool:
-    if not isinstance(value, dict):
-        return False
-    for key in ("file_names", "runtime_file_names", "reference_artifacts", "checksums", "evaluator"):
-        child = value.get(key)
-        if isinstance(child, (dict, list)) and bool(child):
-            return True
-        if isinstance(child, str) and child.strip():
-            return True
-    return bool(str(value.get("notes") or "").strip())
-
-
 def _has_evaluation(value: Any) -> bool:
     if not isinstance(value, dict):
         return False
@@ -210,8 +198,6 @@ def agent_task_package_issues(item: BenchmarkItem) -> list[str]:
 
     env = _env_from_item(item)
     env_type = str(env.get("type") or "").lower()
-    if required and not _has_hidden_reference(package.get("hidden_references")):
-        issues.append("Executable task package must include runner-private hidden_references or evaluator notes.")
     if env_type in {"docker_workspace", "gui_desktop"}:
         artifact_collection = package.get("artifact_collection")
         if not isinstance(artifact_collection, dict) or not (

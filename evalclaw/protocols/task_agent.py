@@ -98,8 +98,9 @@ Fields:
   initial_content.files, metadata.agent_env.visible_files, and/or
   metadata.agent_env.session.asset_files/assets with path/content objects to
   describe task-specific guest files. EvaluationClaw materializes these into a
-  per-task cloud-init seed ISO before VM startup when no explicit seed ISO is
-  supplied. For GUI/browser/desktop-software tasks,
+  per-task NoCloud config-drive ISO before VM startup when no explicit seed ISO
+  is supplied. Linux guests consume it with cloud-init; Windows guests consume
+  PowerShell user data with Cloudbase-Init. For GUI/browser/desktop-software tasks,
   include initial_content.session, initial_content.vm, and
   initial_content.evaluation summaries: application/window, start state,
   assets/input files/URLs, expected artifacts, VM isolation/image/snapshot,
@@ -112,7 +113,10 @@ Fields:
   conda_channels, cargo_packages, go_packages, gem_packages,
   composer_packages, apk/dnf/yum/pacman package fields for non-Ubuntu bases,
   install_steps, commands, and optional desktop_bridge_install_command/
-  desktop_bridge_start_command. EvaluationClaw writes these into cloud-init so
+  desktop_bridge_start_command. For Windows guests, set vm.guest_os="windows",
+  use winget/choco, Windows features, pip/npm, PowerShell commands or PowerShell
+  install steps, and select a base template with Cloudbase-Init NoCloud support.
+  EvaluationClaw writes the selected OS-specific setup into the config drive so
   the VM installs task software at first boot.
 - interaction: max_turns, optional initial_user_message, optional deterministic
   user_turns, followup_instruction, and stop_condition for multi-turn execution.
@@ -156,8 +160,9 @@ Fields:
   should describe application type, launch/start state, assets/input files/URLs,
   and expected artifacts. The vm object should describe image/template,
   snapshot/reset behavior, display, required software, network policy, and
-  locale. Optional agent_env.vm_materialization can set guest_user, guest_root,
-  enabled=false, or overwrite_seed_iso=true. The evaluation should describe artifact, UI-state, page-state, and
+  locale, and set vm.guest_os to linux or windows for OS-specific setup. Optional
+  agent_env.vm_materialization can set guest_user, guest_root, enabled=false, or
+  overwrite_seed_iso=true. The evaluation should describe artifact, UI-state, page-state, and
   trace checks with pass/partial/fail criteria. Do not put bridge or VM-provider
   secrets in task metadata; bridge_url, bridge_api_key, vm_provider_url, and
   vm_provider_api_key can be supplied by runtime config.

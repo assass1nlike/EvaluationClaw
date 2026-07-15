@@ -1,16 +1,17 @@
 """EvaluationClaw shared data models.
 
 The models describe the product architecture from the design doc:
-natural-language goal -> structured eval spec -> benchmark dataset -> QC gate
--> multi-model run -> report package.
+natural-language goal -> skill-driven benchmark plan -> benchmark dataset ->
+QC gate -> optional multi-model run -> report package.
 """
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 def utc_now() -> str:
@@ -111,9 +112,16 @@ class PlannerCritique(BaseModel):
         return all(checks) and self.score >= 4.0
 
 
+class TaskTypeAllocation(BaseModel):
+    task_type: TaskType
+    count: int = Field(ge=1)
+
+
 class EvalDimension(BaseModel):
     id: str
     name: str
+    measurement_target: str = ""
+    boundary: str = ""
     description: str
     approach: str
     weight: float = 1.0
@@ -124,6 +132,7 @@ class EvalDimension(BaseModel):
     target_source_backed_count: int = 0
     target_generated_count: Optional[int] = None
     task_types: list[TaskType] = Field(default_factory=list)
+    task_type_allocation: list[TaskTypeAllocation] = Field(default_factory=list)
     item_requirements: list[str] = Field(default_factory=list)
     challenge_effort_distribution: dict[ChallengeEffort, float] = Field(default_factory=dict)
 
@@ -168,21 +177,283 @@ class TaskResource(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
-class TaskBlueprint(BaseModel):
-    """Plan for one independently materialized task slice."""
+class BlueprintSourcePlan(BaseModel):
+    strategy: str = "self_contained"
+    search_queries: list[str] = Field(default_factory=list)
+    suggested_urls: list[str] = Field(default_factory=list)
+    requirements: list[str] = Field(default_factory=list)
+
+
+class TaskDesign(BaseModel):
+    """Planner-authored design for one task or a group of similar tasks."""
+
+    model_config = ConfigDict(extra="forbid")
 
     id: str
-    dimension_id: str
-    title: str
-    description: str = ""
-    task_types: list[TaskType] = Field(default_factory=list)
-    expected_task_count: int = 1
-    resource_queries: list[str] = Field(default_factory=list)
-    source_strategy: str = ""
+    task_type: TaskType
+    task_count: int = Field(ge=1)
+    challenge_effort: ChallengeEffort = ChallengeEffort.E3
+    content_design: dict[str, Any] = Field(default_factory=dict)
+    input_requirements: dict[str, Any] = Field(default_factory=dict)
+    interaction_requirements: dict[str, Any] = Field(default_factory=dict)
+    environment_requirements: dict[str, Any] = Field(default_factory=dict)
+    output_requirements: dict[str, Any] = Field(default_factory=dict)
+    scoring_contract: dict[str, Any] = Field(default_factory=dict)
+    source_plan: dict[str, Any] = Field(default_factory=dict)
     construction_requirements: list[str] = Field(default_factory=list)
-    scoring_strategy: str = ""
-    environment_type: Optional[AgentEnvironmentType] = None
-    tool_requirements: list[str] = Field(default_factory=list)
+    type_specific_requirements: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @property
+    def description(self) -> str:
+        return str(
+            self.content_design.get("description")
+            or self.content_design.get("purpose")
+            or ""
+        )
+
+
+class TaskBlueprint(BaseModel):
+    """Planner-authored work package for one Task Builder call."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    dimension_id: str = ""
+    title: str
+    task_design_ids: list[str] = Field(default_factory=list)
+    task_designs: list[TaskDesign] = Field(default_factory=list)
+    grouping_rationale: str = ""
+    workload_reason: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @property
+    def planned_task_count(self) -> int:
+        return sum(design.task_count for design in self.task_designs)
+
+    @property
+    def task_type_allocation(self) -> list[TaskTypeAllocation]:
+        counts: dict[TaskType, int] = {}
+        for design in self.task_designs:
+            counts[design.task_type] = counts.get(design.task_type, 0) + design.task_count
+        return [
+            TaskTypeAllocation(task_type=task_type, count=count)
+            for task_type, count in counts.items()
+        ]
+
+    @property
+    def description(self) -> str:
+        return "; ".join(design.description for design in self.task_designs if design.description)
+
+    @property
+    def source_plan(self) -> BlueprintSourcePlan:
+        strategies: list[str] = []
+        queries: list[str] = []
+        urls: list[str] = []
+        requirements: list[str] = []
+        for design in self.task_designs:
+            source = design.source_plan
+            strategy = str(source.get("strategy") or "").strip()
+            if strategy:
+                strategies.append(strategy)
+            queries.extend(str(item) for item in source.get("search_queries", []) if item)
+            urls.extend(str(item) for item in source.get("suggested_urls", []) if item)
+            requirements.extend(str(item) for item in source.get("requirements", []) if item)
+        unique_strategies = list(dict.fromkeys(strategies))
+        return BlueprintSourcePlan(
+            strategy=(unique_strategies[0] if len(unique_strategies) == 1 else "mixed"),
+            search_queries=list(dict.fromkeys(queries)),
+            suggested_urls=list(dict.fromkeys(urls)),
+            requirements=list(dict.fromkeys(requirements)),
+        )
+
+    @property
+    def construction_requirements(self) -> list[str]:
+        return list(
+            dict.fromkeys(
+                requirement
+                for design in self.task_designs
+                for requirement in design.construction_requirements
+            )
+        )
+
+    @property
+    def scoring_strategy(self) -> str:
+        contracts = [design.scoring_contract for design in self.task_designs if design.scoring_contract]
+        return json.dumps(contracts, ensure_ascii=False) if contracts else ""
+
+    @property
+    def environment_type(self) -> Optional[AgentEnvironmentType]:
+        aliases = {
+            "dialogue": AgentEnvironmentType.dialogue,
+            "workspace": AgentEnvironmentType.workspace,
+            "code_sandbox": AgentEnvironmentType.code_sandbox,
+            "code sandbox": AgentEnvironmentType.code_sandbox,
+            "container": AgentEnvironmentType.docker_workspace,
+            "docker_workspace": AgentEnvironmentType.docker_workspace,
+            "browser": AgentEnvironmentType.gui_desktop,
+            "desktop": AgentEnvironmentType.gui_desktop,
+            "gui_desktop": AgentEnvironmentType.gui_desktop,
+        }
+        categories = {
+            aliases[str(design.environment_requirements.get("category") or "").strip().lower()]
+            for design in self.task_designs
+            if str(design.environment_requirements.get("category") or "").strip().lower()
+            in aliases
+        }
+        return next(iter(categories)) if len(categories) == 1 else None
+
+    @property
+    def requires_environment(self) -> bool:
+        return any(design.environment_requirements for design in self.task_designs)
+
+    @property
+    def environment_requirements(self) -> dict[str, Any]:
+        environments = [
+            design.environment_requirements
+            for design in self.task_designs
+            if design.environment_requirements
+        ]
+        return environments[0] if len(environments) == 1 else {}
+
+    @property
+    def tool_requirements(self) -> list[str]:
+        return list(
+            dict.fromkeys(
+                str(tool)
+                for design in self.task_designs
+                for tool in design.interaction_requirements.get(
+                    "allowed_action_or_tool_categories", []
+                )
+                if tool
+            )
+        )
+
+    @property
+    def resource_queries(self) -> list[str]:
+        return self.source_plan.search_queries
+
+    @property
+    def source_strategy(self) -> str:
+        return self.source_plan.strategy
+
+
+class BenchmarkPlanAudit(BaseModel):
+    passed: bool = False
+    issues: list[str] = Field(default_factory=list)
+    coverage_summary: str = ""
+    workload_summary: str = ""
+
+
+class BenchmarkPlanDimension(BaseModel):
+    """One Planner-owned measurement dimension and its Builder work packages."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    name: str
+    measurement_target: str
+    boundary: str
+    approach: str
+    content_requirements: list[str] = Field(default_factory=list)
+    exclusions: list[str] = Field(default_factory=list)
+    task_designs: list[TaskDesign] = Field(default_factory=list)
+    blueprints: list[TaskBlueprint] = Field(default_factory=list)
+
+
+class BenchmarkPlan(BaseModel):
+    """Planner output containing suite-wide intent and adaptive Blueprints."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = "evalclaw_plan"
+    objective: str
+    metrics: list[Metric] = Field(default_factory=lambda: [Metric.judge_score])
+    constraints: list[str] = Field(default_factory=list)
+    planner_notes: str = ""
+    dimensions: list[BenchmarkPlanDimension] = Field(default_factory=list)
+    subjects: list[str] = Field(default_factory=list, exclude=True)
+    scale_budget: ScaleBudget = Field(default=ScaleBudget.mid, exclude=True)
+    audit: BenchmarkPlanAudit = Field(default_factory=BenchmarkPlanAudit, exclude=True)
+
+    @property
+    def blueprints(self) -> list[TaskBlueprint]:
+        resolved: list[TaskBlueprint] = []
+        for dimension in self.dimensions:
+            designs = {design.id: design for design in dimension.task_designs}
+            for blueprint in dimension.blueprints:
+                resolved.append(
+                    blueprint.model_copy(
+                        update={
+                            "dimension_id": dimension.id,
+                            "task_designs": [designs[design_id] for design_id in blueprint.task_design_ids],
+                        }
+                    )
+                )
+        return resolved
+
+    def to_eval_spec(self) -> EvalSpec:
+        """Derive the dataset-level evaluation metadata used after planning."""
+        dimensions: list[EvalDimension] = []
+        all_task_types: list[TaskType] = []
+        for dimension in self.dimensions:
+            allocations: dict[TaskType, int] = {}
+            queries: list[str] = []
+            source_backed_count = 0
+            efforts: dict[ChallengeEffort, int] = {}
+            for design in dimension.task_designs:
+                allocations[design.task_type] = allocations.get(design.task_type, 0) + design.task_count
+                efforts[design.challenge_effort] = efforts.get(design.challenge_effort, 0) + design.task_count
+                queries.extend(
+                    str(item) for item in design.source_plan.get("search_queries", []) if item
+                )
+                if str(design.source_plan.get("strategy") or "") in {
+                    "source_backed",
+                    "imported_dataset",
+                    "mixed",
+                }:
+                    source_backed_count += design.task_count
+            task_types = list(allocations)
+            all_task_types.extend(task_types)
+            count = sum(allocations.values())
+            highest_effort = max(efforts, key=lambda effort: int(effort.value[1:]))
+            dimensions.append(
+                EvalDimension(
+                    id=dimension.id,
+                    name=dimension.name,
+                    measurement_target=dimension.measurement_target,
+                    boundary=dimension.boundary,
+                    description=dimension.measurement_target,
+                    approach=dimension.approach,
+                    challenge_effort=highest_effort,
+                    needs_research=bool(queries or source_backed_count),
+                    research_queries=list(dict.fromkeys(queries)),
+                    target_item_count=count,
+                    target_source_backed_count=source_backed_count,
+                    target_generated_count=count - source_backed_count,
+                    task_types=task_types,
+                    task_type_allocation=[
+                        TaskTypeAllocation(task_type=task_type, count=task_count)
+                        for task_type, task_count in allocations.items()
+                    ],
+                    item_requirements=dimension.content_requirements,
+                    challenge_effort_distribution={
+                        effort: effort_count / count for effort, effort_count in efforts.items()
+                    },
+                )
+            )
+        return EvalSpec(
+            id=self.id,
+            objective=self.objective,
+            subjects=self.subjects,
+            task_types=list(dict.fromkeys(all_task_types)),
+            dimensions=dimensions,
+            scale_budget=self.scale_budget,
+            scale=sum(design.task_count for dim in self.dimensions for design in dim.task_designs),
+            metrics=self.metrics,
+            constraints=self.constraints,
+            planner_notes=self.planner_notes,
+        )
 
 
 class AgentEnvironmentSpec(BaseModel):
@@ -297,6 +568,7 @@ class BenchmarkBatch(BaseModel):
 
 class BenchmarkDataset(BaseModel):
     spec: EvalSpec
+    plan: Optional[BenchmarkPlan] = Field(default=None, exclude=True)
     items: list[BenchmarkItem]
     blueprints: list[TaskBlueprint] = Field(default_factory=list)
     sources: list[BenchmarkSource] = Field(default_factory=list)
@@ -452,6 +724,7 @@ class EvalReport(BaseModel):
 class BenchmarkPackage(BaseModel):
     goal: str
     spec: EvalSpec
+    plan: Optional[BenchmarkPlan] = None
     dataset: BenchmarkDataset
     qc_report: QcReport
     run: EvalRun
@@ -519,6 +792,7 @@ class BenchmarkConfig(BaseModel):
     large_scale_min_source_backed_ratio: float = 0.8
     large_scale_llm_qc_sample_size: int = 120
     output_dir: str = "./benchmark-output"
+    task_builder_debug_dir: Optional[str] = None
     run_targets: bool = True
     use_web_research: bool = True
     search_backend: str = "auto"  # auto | gemini | keyless | none

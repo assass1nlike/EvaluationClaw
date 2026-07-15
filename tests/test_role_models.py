@@ -16,9 +16,9 @@ from evalclaw.types import (
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
-    TaskBlueprint,
     TaskType,
 )
+from tests.blueprint_factory import make_blueprint
 
 
 def _config_for(role: str) -> BenchmarkConfig:
@@ -128,11 +128,12 @@ def test_planner_uses_planner_role(monkeypatch) -> None:
 def test_task_builder_uses_task_builder_role(monkeypatch) -> None:
     captured: dict = {}
     dataset = _dataset()
-    blueprint = TaskBlueprint(
-        id="analysis_blueprint",
-        dimension_id="analysis",
-        title="Analysis task",
-        task_types=[TaskType.open_generation],
+    blueprint = make_blueprint(
+        "analysis_blueprint",
+        "analysis",
+        "Analysis task",
+        task_type=TaskType.open_generation,
+        content="One analysis task.",
     )
 
     def fake_call_llm(*args, **kwargs):

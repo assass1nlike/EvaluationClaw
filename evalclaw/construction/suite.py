@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 import json
-from collections import defaultdict
+import re
+import uuid
+from collections import Counter, defaultdict
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
 from threading import Lock
 
 from ..core.task_summary import compact_task_content_summary
@@ -13,12 +17,7 @@ from ..generation.generator import _source_context
 from ..models.llm import LLMOutputTruncatedError, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..planning.planner import _fallback_dimensions
-from ..prompts.task_builder import EXECUTION_CAPABILITY_PROMPT, TASK_BUILDER_PROMPT
-from ..protocols.agent_task_package import (
-    AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
-    AGENT_TASK_PACKAGE_SCHEMA,
-)
-from ..protocols.task_agent import TASK_AGENT_GENERATION_GUIDANCE, TASK_AGENT_SCHEMA
+from ..prompts.task_builder import TASK_BUILDER_PROMPT
 from ..types import (
     BenchmarkConfig,
     EvalDimension,
@@ -38,6 +37,7 @@ from .resources import (
     _resource_from_source,
     _select_blueprint_sources,
 )
+from .skill_loader import environment_skill_payload, environment_skill_system_prompt
 from .validation import (
     CHALLENGE_EFFORT_FIDELITY_METADATA_KEY,
     task_structure_issues,
@@ -46,15 +46,17 @@ from .validation import (
 _VALID_TASK_BUILDERS = {"llm", "local", "auto"}
 
 
+def _debug_slug(value: str) -> str:
+    slug = re.sub(r"[^A-Za-z0-9_.-]+", "-", value).strip("-")
+    return slug[:100] or "unnamed"
+
+
 @dataclass(frozen=True)
 class _BlueprintBuildJob:
     order: int
     dimension: EvalDimension
     blueprint: TaskBlueprint
-    task_type: TaskType
     fallback_start_index: int
-    task_index: int
-    total_task_count: int
 
 
 @dataclass
@@ -81,6 +83,9 @@ def _capability_payload(dimension: EvalDimension) -> dict[str, object]:
         "approach": dimension.approach,
         "challenge_effort": dimension.challenge_effort.value,
         "task_types": [task_type.value for task_type in dimension.task_types],
+        "task_type_allocation": [
+            item.model_dump(mode="json") for item in dimension.task_type_allocation
+        ],
         "requirements": list(dimension.item_requirements),
         "coverage": {
             "target_item_count": dimension.target_item_count,
@@ -97,11 +102,38 @@ def _task_builder_payload(
     blueprint: TaskBlueprint,
     resource_context: str,
     revision_context: dict[str, object] | None = None,
-    *,
-    task_index: int = 1,
-    total_task_count: int = 1,
-    task_type: TaskType,
 ) -> dict[str, object]:
+    required_type_counts = {
+        item.task_type.value: item.count for item in blueprint.task_type_allocation
+    }
+    required_task_design_counts = {
+        design.id: design.task_count for design in blueprint.task_designs
+    }
+    required_return_count = blueprint.planned_task_count
+    if revision_context:
+        repair_types = Counter(
+            str(task.get("task_type") or "")
+            for task in revision_context.get("previous_tasks", [])
+            if isinstance(task, dict) and str(task.get("task_type") or "")
+        )
+        required_type_counts = dict(repair_types)
+        required_task_design_counts = dict(
+            Counter(
+                str(task.get("metadata", {}).get("task_design_id") or "")
+                for task in revision_context.get("previous_tasks", [])
+                if isinstance(task, dict)
+                and isinstance(task.get("metadata"), dict)
+                and str(task.get("metadata", {}).get("task_design_id") or "")
+            )
+        )
+        required_return_count = int(
+            revision_context.get("expected_replacement_count") or 0
+        )
+        if not required_task_design_counts and len(blueprint.task_designs) == 1:
+            required_task_design_counts = {
+                blueprint.task_designs[0].id: required_return_count
+            }
+    task_types = [_task_type for _task_type in TaskType if _task_type.value in required_type_counts]
     other_capabilities = [
         {
             "id": other.id,
@@ -116,57 +148,76 @@ def _task_builder_payload(
     construction: dict[str, object] = {
         "id": blueprint.id,
         "title": blueprint.title,
-        "description": blueprint.description,
-        "task_type": task_type.value,
-        "expected_task_count": 1,
-        "task_index": task_index,
-        "blueprint_task_count": total_task_count,
-        "task_slot_instruction": (
-            "Generate exactly one task for this slot. Make it materially distinct from "
-            "the other slots in the same blueprint while preserving the capability target."
-        ),
-        "requirements": list(blueprint.construction_requirements),
-        "scoring_strategy": blueprint.scoring_strategy,
+        "planned_task_count": blueprint.planned_task_count,
+        "required_return_task_count": required_return_count,
+        "task_design_ids": list(blueprint.task_design_ids),
+        "task_designs": [
+            {
+                **design.model_dump(mode="json", exclude_defaults=True),
+                "challenge_effort": design.challenge_effort.value,
+            }
+            for design in blueprint.task_designs
+        ],
+        "grouping_rationale": blueprint.grouping_rationale,
+        "workload_reason": blueprint.workload_reason,
+        "planner_metadata": blueprint.metadata,
     }
-    if blueprint.environment_type is not None:
-        construction["environment_type"] = blueprint.environment_type.value
-        construction["tool_requirements"] = list(blueprint.tool_requirements)
-
     optional_fields = ["content_summary", "description", "resource_ids", "tags"]
     task_schema: dict[str, object] = {
         "required": ["id", "dimension_id", "task_type", "title", "prompt", "challenge_effort", "scoring", "metadata"],
         "optional": optional_fields,
-        "task_type": task_type.value,
+        "allowed_task_types": [task_type.value for task_type in task_types],
+        "required_task_type_counts": {
+            **required_type_counts
+        },
+        "required_task_design_counts": required_task_design_counts,
+        "task_design_metadata_field": "task_design_id",
     }
-    if task_type == TaskType.multiple_choice:
+    type_requirements: dict[str, list[str]] = {}
+    if TaskType.multiple_choice in task_types:
         optional_fields.extend(["choices", "answer", "rubric"])
-        task_schema["type_requirements"] = ["Provide non-empty choices and the correct answer."]
-    elif task_type in {TaskType.yes_no, TaskType.short_answer}:
+        type_requirements[TaskType.multiple_choice.value] = [
+            "Provide non-empty choices and the correct answer."
+        ]
+    if any(task_type in {TaskType.yes_no, TaskType.short_answer} for task_type in task_types):
         optional_fields.extend(["answer", "rubric"])
-        task_schema["type_requirements"] = ["Provide the reference answer."]
-    elif task_type == TaskType.code_execution:
+        if TaskType.yes_no in task_types:
+            type_requirements[TaskType.yes_no.value] = ["Provide a yes or no reference answer."]
+        if TaskType.short_answer in task_types:
+            type_requirements[TaskType.short_answer.value] = [
+                "Provide the reference answer, or a task-specific rubric/scoring contract when multiple "
+                "phrasings are valid."
+            ]
+    if TaskType.code_execution in task_types:
         optional_fields.extend(["test_code", "rubric"])
-        task_schema["type_requirements"] = ["Provide deterministic test_code or an equivalent scoring oracle."]
-    else:
+        type_requirements[TaskType.code_execution.value] = [
+            "Provide deterministic test_code that consumes the response through the literal "
+            "{model_output} placeholder."
+        ]
+    if any(
+        task_type not in {
+            TaskType.multiple_choice,
+            TaskType.yes_no,
+            TaskType.short_answer,
+            TaskType.code_execution,
+        }
+        for task_type in task_types
+    ):
         optional_fields.append("rubric")
-        task_schema["type_requirements"] = ["Provide a task-specific rubric or scoring criteria."]
+        for task_type in task_types:
+            type_requirements.setdefault(
+                task_type.value,
+                ["Provide a task-specific rubric or scoring criteria."],
+            )
+    task_schema["type_requirements"] = type_requirements
 
     contract: dict[str, object] = {
         "task_schema": task_schema,
         "response_format": "Return one complete JSON object with construction_notes, resources, and tasks.",
     }
-    if blueprint.environment_type is not None:
+    if blueprint.requires_environment:
         optional_fields.extend(["environment", "system_prompt", "interaction"])
-        contract["metadata_protocols"] = {
-            "task_agent": {
-                "schema": TASK_AGENT_SCHEMA,
-                "guidance": TASK_AGENT_GENERATION_GUIDANCE,
-            },
-            "agent_task_package": {
-                "schema": AGENT_TASK_PACKAGE_SCHEMA,
-                "guidance": AGENT_TASK_PACKAGE_GENERATION_GUIDANCE,
-            },
-        }
+        contract["environment_skill"] = environment_skill_payload(blueprint)
 
     payload: dict[str, object] = {
         "benchmark_context": {
@@ -180,13 +231,15 @@ def _task_builder_payload(
         },
         "task_plan": {
             "capability": _capability_payload(dimension),
-            "construction": construction,
+            "blueprint": construction,
         },
         "resources": {
             "context": resource_context,
             "selection": {
-                "queries": list(blueprint.resource_queries),
-                "strategy": blueprint.source_strategy,
+                "queries": list(blueprint.source_plan.search_queries),
+                "suggested_urls": list(blueprint.source_plan.suggested_urls),
+                "strategy": blueprint.source_plan.strategy,
+                "requirements": list(blueprint.source_plan.requirements),
             },
         },
         "task_builder_contract": contract,
@@ -200,7 +253,6 @@ def _revision_context_for_job(
     revision_context: dict[str, object] | None,
     *,
     blueprint_id: str,
-    task_index: int,
 ) -> dict[str, object] | None:
     if not revision_context:
         return None
@@ -219,29 +271,36 @@ def _revision_context_for_job(
         if isinstance(task.get("metadata"), dict)
         and task["metadata"].get("builder_blueprint_id") == blueprint_id
     ]
-    candidates = matched or previous_tasks
-    previous_task = candidates[task_index - 1] if task_index <= len(candidates) else None
-    previous_id = str(previous_task.get("id") or "") if previous_task else ""
     raw_issues = revision_context.get("qc_issues")
     issues = (
         [issue for issue in raw_issues if isinstance(issue, dict)]
         if isinstance(raw_issues, list)
         else []
     )
-    relevant_issues = [
+    blueprint_issues = [
         issue
         for issue in issues
-        if issue.get("item_id") in {None, "", previous_id}
+        if issue.get("item_id") in {None, ""}
+        or any(str(task.get("id") or "") == issue.get("item_id") for task in matched)
     ]
+    affected_ids = {
+        str(issue.get("item_id") or "")
+        for issue in blueprint_issues
+        if str(issue.get("item_id") or "")
+    }
+    affected_tasks = [
+        task for task in matched if str(task.get("id") or "") in affected_ids
+    ]
+    if blueprint_issues and not affected_ids:
+        affected_tasks = matched
     return {
         **revision_context,
-        "previous_tasks": [previous_task] if previous_task else [],
-        "qc_issues": relevant_issues,
+        "previous_tasks": affected_tasks,
+        "qc_issues": blueprint_issues,
+        "expected_replacement_count": len(affected_tasks),
         "instruction": (
-            "Return one complete replacement task for this slot. Fix every QC issue listed for "
-            "this task, but do not redesign or extensively modify any prompt, fixture, file, "
-            "environment, output contract, evaluator, or scoring behavior that QC did not identify "
-            "as problematic. Preserve unaffected content byte-for-byte where practical."
+            "Return replacements only for the tasks listed in previous_tasks. Preserve each task id. "
+            "Fix every listed QC issue, but do not return or modify any other task from the Blueprint."
         ),
     }
 
@@ -261,6 +320,17 @@ def build_task_suite(
             return
         with progress_lock:
             log(message)
+
+    debug_root = (
+        Path(config.task_builder_debug_dir).expanduser()
+        if config.task_builder_debug_dir
+        else None
+    )
+    debug_invocation_id = (
+        datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+        + "-"
+        + uuid.uuid4().hex[:8]
+    )
 
     builder_mode = str(config.task_builder or "llm").lower()
     if builder_mode not in _VALID_TASK_BUILDERS:
@@ -334,44 +404,90 @@ def build_task_suite(
             order += 1
             continue
         for blueprint in dim_blueprints:
-            target_task_count = max(1, int(blueprint.expected_task_count))
-            task_types = blueprint.task_types or dimension.task_types or spec.task_types
-            task_types = task_types or [TaskType.open_generation]
-            fallback_key = blueprint.environment_type.value if blueprint.environment_type else "no_environment"
+            fallback_key = (
+                blueprint.environment_type.value
+                if blueprint.environment_type
+                else ("mixed_environment" if blueprint.requires_environment else "no_environment")
+            )
             fallback_start_index = fallback_variant_counts[fallback_key] + 1
-            fallback_variant_counts[fallback_key] += target_task_count
-            for task_index in range(1, target_task_count + 1):
-                jobs.append(
-                    _BlueprintBuildJob(
-                        order=order,
-                        dimension=dimension,
-                        blueprint=blueprint,
-                        task_type=task_types[(task_index - 1) % len(task_types)],
-                        fallback_start_index=fallback_start_index + task_index - 1,
-                        task_index=task_index,
-                        total_task_count=target_task_count,
-                    )
+            fallback_variant_counts[fallback_key] += blueprint.planned_task_count
+            jobs.append(
+                _BlueprintBuildJob(
+                    order=order,
+                    dimension=dimension,
+                    blueprint=blueprint,
+                    fallback_start_index=fallback_start_index,
                 )
-                order += 1
+            )
+            order += 1
 
     if jobs:
         emit(
-            f"  Task builder: {len(jobs)} one-task job(s) across "
+            f"  Task builder: {len(jobs)} Blueprint job(s) covering "
+            f"{sum(job.blueprint.planned_task_count for job in jobs)} planned task(s) across "
             f"{len({job.dimension.id for job in jobs})} dimension(s)."
         )
 
     job_progress_index = {job.order: index for index, job in enumerate(jobs, 1)}
 
     def job_label(job: _BlueprintBuildJob) -> str:
-        return (
-            f"{job.dimension.id} {job.task_type.value} task "
-            f"{job.task_index}/{job.total_task_count} ({job.blueprint.id})"
+        allocation = ", ".join(
+            f"{item.task_type.value}×{item.count}"
+            for item in job.blueprint.task_type_allocation
         )
+        return f"{job.dimension.id} {job.blueprint.planned_task_count} task(s) [{allocation}] ({job.blueprint.id})"
 
     def build_blueprint_job(job: _BlueprintBuildJob) -> _BlueprintBuildResult:
         dimension = job.dimension
         blueprint = job.blueprint
         label = job_label(job)
+        debug_job_dir = (
+            debug_root
+            / f"{_debug_slug(dimension.id)}__{_debug_slug(blueprint.id)}"
+            / debug_invocation_id
+            if debug_root is not None
+            else None
+        )
+
+        def persist_builder_debug(
+            *,
+            attempt: int,
+            status: str,
+            raw_response: str | None = None,
+            validation_issues: list[str] | None = None,
+            error: Exception | None = None,
+            parsed_keys: list[str] | None = None,
+        ) -> None:
+            if debug_job_dir is None:
+                return
+            phase = "initial" if attempt == 0 else "structural-repair"
+            stem = f"attempt-{attempt + 1:02d}-{phase}"
+            debug_job_dir.mkdir(parents=True, exist_ok=True)
+            response_path = debug_job_dir / f"{stem}.response.txt"
+            if raw_response is not None:
+                response_path.write_text(raw_response, encoding="utf-8")
+                emit(f"  Task builder: saved raw response debug: {response_path}.")
+            diagnostics = {
+                "invocation_id": debug_invocation_id,
+                "dimension_id": dimension.id,
+                "blueprint_id": blueprint.id,
+                "model": builder_settings.model,
+                "backend": "litellm" if force_litellm else config.llm_backend,
+                "attempt": attempt + 1,
+                "phase": phase,
+                "status": status,
+                "response_file": response_path.name if response_path.exists() else None,
+                "response_bytes": response_path.stat().st_size if response_path.exists() else 0,
+                "parsed_top_level_keys": parsed_keys or [],
+                "validation_issues": validation_issues or [],
+                "error_type": type(error).__name__ if error is not None else None,
+                "error": str(error) if error is not None else None,
+            }
+            (debug_job_dir / f"{stem}.diagnostics.json").write_text(
+                json.dumps(diagnostics, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+
         emit(
             f"  Task builder: starting {job_progress_index[job.order]}/{len(jobs)} - "
             f"{label}."
@@ -379,19 +495,13 @@ def build_task_suite(
         job_revision = _revision_context_for_job(
             (revision_context_by_dimension or {}).get(dimension.id),
             blueprint_id=blueprint.id,
-            task_index=job.task_index,
         )
-        if (
-            job_revision
-            and job_revision.get("previous_tasks")
-            and not job_revision.get("qc_issues")
-        ):
-            previous = job_revision["previous_tasks"][0]
+        if job_revision and not job_revision.get("qc_issues"):
             return _BlueprintBuildResult(
                 order=job.order,
                 resources=[],
-                tasks=[TaskDefinition.model_validate(previous)],
-                notes=[f"{label}: preserved unchanged because QC reported no issue for this task."],
+                tasks=[],
+                notes=[f"{label}: no task in this Blueprint requires repair."],
             )
         source_candidates = _select_blueprint_sources(dimension, blueprint, config)
         local_resources = [
@@ -401,20 +511,70 @@ def build_task_suite(
         result_resources: list[TaskResource] = list(local_resources)
         result_tasks: list[TaskDefinition] = []
         result_notes: list[str] = []
-        target_task_count = 1
+        target_task_count = (
+            int(job_revision.get("expected_replacement_count") or 0)
+            if job_revision
+            else blueprint.planned_task_count
+        )
+        planned_task_designs = [
+            design
+            for design in blueprint.task_designs
+            for _ in range(design.task_count)
+        ]
+        planned_task_types = [design.task_type for design in planned_task_designs]
+        if job_revision:
+            planned_task_types = [
+                TaskType(str(task.get("task_type")))
+                for task in job_revision.get("previous_tasks", [])
+                if isinstance(task, dict)
+            ]
+            design_by_id = {design.id: design for design in blueprint.task_designs}
+            planned_task_designs = []
+            for previous_task in job_revision.get("previous_tasks", []):
+                if not isinstance(previous_task, dict):
+                    continue
+                metadata = previous_task.get("metadata")
+                task_design_id = (
+                    str(metadata.get("task_design_id") or "")
+                    if isinstance(metadata, dict)
+                    else ""
+                )
+                if task_design_id in design_by_id:
+                    planned_task_designs.append(design_by_id[task_design_id])
+                elif len(blueprint.task_designs) == 1:
+                    planned_task_designs.append(blueprint.task_designs[0])
         effort_fidelity_uncertain = False
 
-        def tag_task(task: TaskDefinition) -> TaskDefinition:
+        def tag_task(task: TaskDefinition, task_design_id: str | None = None) -> TaskDefinition:
+            if not task_design_id:
+                matching_designs = [
+                    design
+                    for design in blueprint.task_designs
+                    if design.task_type == task.task_type
+                ]
+                if len(matching_designs) == 1:
+                    task_design_id = matching_designs[0].id
             task.metadata = {
                 **task.metadata,
                 "builder_blueprint_id": blueprint.id,
-                "builder_task_index": job.task_index,
-                "builder_blueprint_task_count": job.total_task_count,
+                "planner_blueprint_metadata": blueprint.metadata,
             }
+            if task_design_id:
+                task.metadata["task_design_id"] = task_design_id
             if effort_fidelity_uncertain:
+                design = next(
+                    (
+                        candidate
+                        for candidate in blueprint.task_designs
+                        if candidate.id == task.metadata.get("task_design_id")
+                    ),
+                    None,
+                )
                 task.metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY] = {
                     "status": "uncertain",
-                    "requested_effort": dimension.challenge_effort.value,
+                    "requested_effort": (
+                        design.challenge_effort.value if design else task.challenge_effort.value
+                    ),
                     "recovery_strategy": "reduced_effort_litellm_retry",
                     "reason": (
                         "The original task-builder completion exhausted its output budget; "
@@ -424,16 +584,30 @@ def build_task_suite(
             return task
 
         def add_local_tasks(*, reason: str) -> _BlueprintBuildResult:
-            task = _fallback_task_for_blueprint(
-                spec,
-                dimension,
-                blueprint,
-                index=job.fallback_start_index,
-                task_type=job.task_type,
-            )
-            result_tasks.append(
-                ensure_task_content_summary(tag_task(task), blueprint, local_resources)
-            )
+            for offset, task_design in enumerate(planned_task_designs[:target_task_count]):
+                single_design_blueprint = blueprint.model_copy(
+                    update={
+                        "task_design_ids": [task_design.id],
+                        "task_designs": [task_design],
+                    }
+                )
+                task = _fallback_task_for_blueprint(
+                    spec,
+                    dimension,
+                    single_design_blueprint,
+                    index=job.fallback_start_index + offset,
+                    task_type=task_design.task_type,
+                )
+                task.challenge_effort = task_design.challenge_effort
+                if job_revision:
+                    previous_tasks = job_revision.get("previous_tasks", [])
+                    if offset < len(previous_tasks) and isinstance(previous_tasks[offset], dict):
+                        task.id = str(previous_tasks[offset].get("id") or task.id)
+                result_tasks.append(
+                    ensure_task_content_summary(
+                        tag_task(task, task_design.id), blueprint, local_resources
+                    )
+                )
             result_notes.append(
                 f"{blueprint.id}: {reason} local task(s), "
                 f"count={target_task_count}."
@@ -463,9 +637,6 @@ def build_task_suite(
             blueprint,
             _source_context(source_candidates),
             job_revision,
-            task_index=job.task_index,
-            total_task_count=job.total_task_count,
-            task_type=job.task_type,
         )
 
         def call_task_builder(
@@ -483,8 +654,8 @@ def build_task_suite(
                 and not reduce_effort
             )
             system_prompt = TASK_BUILDER_PROMPT
-            if blueprint.environment_type is not None:
-                system_prompt += "\n\n" + EXECUTION_CAPABILITY_PROMPT
+            if blueprint.requires_environment:
+                system_prompt += "\n\n" + environment_skill_system_prompt(blueprint)
             if research_enabled:
                 system_prompt += "\n\n" + TASK_BUILDER_E4_RESEARCH_PROMPT
                 try:
@@ -539,7 +710,7 @@ def build_task_suite(
             if builder_mode != "auto" and len(parsed_tasks) > target_task_count:
                 raise ValueError(
                     f"LLM returned {len(parsed_tasks)} task object(s), "
-                    f"but blueprint.expected_task_count is {target_task_count}."
+                    f"but this Blueprint call requires {target_task_count}."
                 )
             parsed_resource_ids: list[str] = []
             parsed_task_resources: list[TaskResource] = []
@@ -553,6 +724,19 @@ def build_task_suite(
                 attempt_resources.append(resource)
                 parsed_task_resources.append(resource)
                 parsed_resource_ids.append(resource.id)
+            duplicate_resource_ids = sorted(
+                resource_id
+                for resource_id, count in Counter(
+                    resource.id for resource in attempt_resources
+                ).items()
+                if count > 1
+            )
+            if duplicate_resource_ids:
+                validation_issues.append(
+                    "Resource ids must be unique within this Blueprint call: "
+                    + ", ".join(duplicate_resource_ids)
+                )
+            known_resource_ids = {resource.id for resource in attempt_resources}
             added_for_blueprint = 0
             for idx, raw_task in enumerate(parsed_tasks, 1):
                 if not isinstance(raw_task, dict):
@@ -564,7 +748,9 @@ def build_task_suite(
                         raw_task,
                         f"{blueprint.id}_task_{idx}",
                         default_dimension_id=dimension.id,
-                        default_task_type=job.task_type,
+                        default_task_type=planned_task_types[
+                            min(idx - 1, len(planned_task_types) - 1)
+                        ],
                     )
                 except Exception as exc:
                     if builder_mode != "auto":
@@ -585,15 +771,52 @@ def build_task_suite(
                     blueprint,
                     local_resources or parsed_task_resources[-1:],
                 )
+                unknown_resource_ids = sorted(set(task.resource_ids) - known_resource_ids)
+                if unknown_resource_ids:
+                    validation_issues.append(
+                        f"task #{idx} ({task.id}): resource_ids reference unknown resources: "
+                        + ", ".join(unknown_resource_ids)
+                    )
+                task_design_id = str(task.metadata.get("task_design_id") or "")
+                task_design = next(
+                    (
+                        candidate
+                        for candidate in blueprint.task_designs
+                        if candidate.id == task_design_id
+                    ),
+                    None,
+                )
+                validation_blueprint = (
+                    blueprint.model_copy(
+                        update={
+                            "task_design_ids": [task_design.id],
+                            "task_designs": [task_design],
+                        }
+                    )
+                    if task_design is not None
+                    else blueprint
+                )
                 task_issues = task_structure_issues(
                     task,
                     dimension=dimension,
-                    blueprint=blueprint,
+                    blueprint=validation_blueprint,
+                    task_design=task_design,
                     require_challenge_effort_self_assessment=builder_mode == "llm",
                 )
-                if task.task_type != job.task_type:
+                if not task_design_id:
+                    task_issues.append("Task metadata.task_design_id is required.")
+                elif task_design is None:
                     task_issues.append(
-                        f"Task task_type must be {job.task_type.value}; got {task.task_type.value}."
+                        f"Task metadata.task_design_id {task_design_id!r} is not in this Blueprint."
+                    )
+                elif task.task_type != task_design.task_type:
+                    task_issues.append(
+                        f"Task task_type must match TaskDesign {task_design.id}: "
+                        f"expected {task_design.task_type.value}, got {task.task_type.value}."
+                    )
+                if task.task_type not in set(planned_task_types):
+                    task_issues.append(
+                        f"Task task_type {task.task_type.value} is not allowed by this Blueprint call."
                     )
                 normalized_prompt = " ".join(task.prompt.lower().split())
                 if normalized_prompt in seen_task_prompts:
@@ -609,20 +832,60 @@ def build_task_suite(
                 if builder_mode != "auto":
                     raise ValueError(
                         f"LLM produced {added_for_blueprint} usable task(s), "
-                        f"but blueprint.expected_task_count is {target_task_count}."
+                        f"but this Blueprint requires {target_task_count} usable task(s)."
                     )
+                task_design = planned_task_designs[added_for_blueprint]
+                single_design_blueprint = blueprint.model_copy(
+                    update={
+                        "task_design_ids": [task_design.id],
+                        "task_designs": [task_design],
+                    }
+                )
                 task = _fallback_task_for_blueprint(
                     spec,
                     dimension,
-                    blueprint,
+                    single_design_blueprint,
                     index=job.fallback_start_index + added_for_blueprint,
-                    task_type=job.task_type,
+                    task_type=task_design.task_type,
                 )
+                task.challenge_effort = task_design.challenge_effort
                 attempt_tasks.append(
-                    ensure_task_content_summary(tag_task(task), blueprint, local_resources)
+                    ensure_task_content_summary(
+                        tag_task(task, task_design.id), blueprint, local_resources
+                    )
                 )
                 attempt_notes.append(f"{blueprint.id}: Filled missing task with local fallback.")
                 added_for_blueprint += 1
+            actual_type_counts = Counter(task.task_type for task in attempt_tasks)
+            expected_type_counts = Counter(planned_task_types[:target_task_count])
+            if actual_type_counts != expected_type_counts:
+                validation_issues.append(
+                    "Task type counts do not match this Blueprint call: "
+                    f"expected {dict(expected_type_counts)}, got {dict(actual_type_counts)}."
+                )
+            actual_design_counts = Counter(
+                str(task.metadata.get("task_design_id") or "") for task in attempt_tasks
+            )
+            expected_design_counts = Counter(
+                design.id for design in planned_task_designs[:target_task_count]
+            )
+            if actual_design_counts != expected_design_counts:
+                validation_issues.append(
+                    "TaskDesign counts do not match this Blueprint call: "
+                    f"expected {dict(expected_design_counts)}, got {dict(actual_design_counts)}."
+                )
+            if job_revision:
+                expected_ids = {
+                    str(task.get("id") or "")
+                    for task in job_revision.get("previous_tasks", [])
+                    if isinstance(task, dict)
+                }
+                returned_ids = {task.id for task in attempt_tasks}
+                if returned_ids != expected_ids:
+                    validation_issues.append(
+                        "Repair must preserve exactly the affected task ids: "
+                        f"expected {sorted(expected_ids)}, got {sorted(returned_ids)}."
+                    )
             return _ParsedBuilderResponse(
                 resources=attempt_resources,
                 tasks=attempt_tasks,
@@ -648,7 +911,10 @@ def build_task_suite(
                 force_litellm = True
                 recovery = {
                     "reason": "task_builder_output_truncated",
-                    "requested_effort": dimension.challenge_effort.value,
+                    "requested_effort_by_task_design": {
+                        design.id: design.challenge_effort.value
+                        for design in blueprint.task_designs
+                    },
                     "reduce_construction_effort": True,
                     "instruction": (
                         "Regenerate this task from the beginning using less construction effort. "
@@ -682,7 +948,7 @@ def build_task_suite(
         repair_fields = (
             "missing or inconsistent choices, answer, rubric, tests, scoring, challenge_effort, and "
             "metadata.challenge_effort_self_assessment fields"
-            if blueprint.environment_type is None
+            if not blueprint.requires_environment
             else
             "missing or inconsistent execution fields, scoring, package, challenge_effort, and "
             "metadata.challenge_effort_self_assessment fields"
@@ -707,28 +973,48 @@ def build_task_suite(
                             f"{repair_fields} that the listed issues identify. "
                             "Do not redesign or extensively modify unaffected task content. Preserve sound "
                             "prompts, fixtures, files, environment behavior, evaluator checks, scoring, and "
-                            "metadata byte-for-byte where practical. The tasks array length must equal "
-                            "task_plan.construction.expected_task_count exactly."
+                            "metadata byte-for-byte where practical. The tasks array must contain "
+                            f"exactly {target_task_count} complete task(s) with the required type counts."
                         ),
                         "previous_response": previous_response,
                     },
                 }
             raw = ""
             parsed = None
+            parsed_keys: list[str] = []
             try:
                 raw = request_builder_response(call_payload)
+                persist_builder_debug(
+                    attempt=attempt,
+                    status="response_received",
+                    raw_response=raw,
+                )
                 parsed = extract_json(raw)
                 if not isinstance(parsed, dict):
                     raise ValueError(f"expected a JSON object, got {type(parsed).__name__}")
+                parsed_keys = sorted(str(key) for key in parsed)
                 attempt_result = parse_builder_response(parsed)
             except LLMOutputTruncatedError as exc:
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
+                persist_builder_debug(
+                    attempt=attempt,
+                    status="output_truncated",
+                    validation_issues=last_validation_issues,
+                    error=exc,
+                )
                 emit(
                     f"  Task builder: reduced-effort LiteLLM retry also truncated for {label}."
                 )
                 break
             except Exception as exc:
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
+                persist_builder_debug(
+                    attempt=attempt,
+                    status="invalid_response",
+                    validation_issues=last_validation_issues,
+                    error=exc,
+                    parsed_keys=parsed_keys,
+                )
                 if attempt < repair_attempts:
                     emit(
                         f"  Task builder: retrying {label} "
@@ -741,6 +1027,11 @@ def build_task_suite(
                     continue
                 break
             if not attempt_result.validation_issues:
+                persist_builder_debug(
+                    attempt=attempt,
+                    status="accepted",
+                    parsed_keys=parsed_keys,
+                )
                 return _BlueprintBuildResult(
                     order=job.order,
                     resources=attempt_result.resources,
@@ -748,6 +1039,12 @@ def build_task_suite(
                     notes=result_notes + attempt_result.notes,
                 )
             last_validation_issues = attempt_result.validation_issues
+            persist_builder_debug(
+                attempt=attempt,
+                status="structural_validation_failed",
+                validation_issues=last_validation_issues,
+                parsed_keys=parsed_keys,
+            )
             if attempt < repair_attempts:
                 emit(
                     f"  Task builder: retrying {label} "

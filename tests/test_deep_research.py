@@ -12,7 +12,7 @@ from typer.testing import CliRunner
 from evalclaw.cli import app
 from evalclaw.generation.generator import _select_research_sources
 from evalclaw.pipeline import _persist_package, run_pipeline
-from evalclaw.planning import planner as planning_planner
+from evalclaw.planning.task_planner import _planner_resources
 from evalclaw.prompts.research import (
     RESEARCH_COMPRESS_SYSTEM_PROMPT,
     RESEARCH_QUERY_SYSTEM_PROMPT,
@@ -260,62 +260,26 @@ def test_parse_brief_tolerates_partial_and_loose_shapes() -> None:
 # ---------------------------------------------------------------------------
 # Planner integration
 # ---------------------------------------------------------------------------
-def test_planner_context_includes_research_brief(monkeypatch) -> None:
-    captured: dict = {}
-
-    def fake_call_llm(messages, **kwargs):
-        captured["context"] = json.loads(messages[0].content)
-        return json.dumps(
-            {
-                "spec": {
-                    "id": "tax_eval",
-                    "objective": "Evaluate tax law reasoning",
-                    "dimensions": [
-                        {"id": "statute_interpretation", "name": "Statutes", "description": "d", "approach": "a"}
-                    ],
-                },
-                "critique": {
-                    "checklist": {
-                        "objective": True, "subjects": True, "format": True,
-                        "content": True, "scale": True, "metrics": True,
-                    },
-                    "score": 4.5,
-                },
-            }
-        )
-
-    monkeypatch.setattr(planning_planner, "call_llm", fake_call_llm)
+def test_planner_resources_include_research_brief() -> None:
     config = BenchmarkConfig(
-        orchestrator_api_key="dummy",
-        max_planner_iterations=1,
         research_brief=_sample_brief(),
     )
 
-    spec = planning_planner.plan_eval_spec("Evaluate tax law reasoning", config)
+    resources = _planner_resources("Evaluate tax law reasoning", config)
 
-    assert spec.id == "tax_eval"
-    context = captured["context"]
-    assert context["research_brief"]["field_overview"] == "Overview of the domain."
-    assert context["research_brief"]["taxonomy"][0]["name"] == "subskill_a"
-    assert context["research_brief"]["existing_benchmarks"][0]["name"] == "BenchA"
-    assert context["research_brief"]["challenge_effort_anchors"]["E4"] == "expert synthesis"
-    assert "research_brief_policy" in context
+    assert 'path="resources/instruction.md"' in resources
+    assert 'path="resources/deepresearch/brief.json"' in resources
+    assert '"field_overview": "Overview of the domain."' in resources
+    assert '"name": "subskill_a"' in resources
+    assert '"name": "BenchA"' in resources
+    assert '"E4": "expert synthesis"' in resources
 
 
-def test_planner_context_omits_brief_when_absent(monkeypatch) -> None:
-    captured: dict = {}
+def test_planner_resources_mark_deepresearch_directory_empty_when_absent() -> None:
+    resources = _planner_resources("goal", BenchmarkConfig())
 
-    def fake_call_llm(messages, **kwargs):
-        captured["context"] = json.loads(messages[0].content)
-        raise RuntimeError("stop after capture")
-
-    monkeypatch.setattr(planning_planner, "call_llm", fake_call_llm)
-    config = BenchmarkConfig(orchestrator_api_key="dummy", max_planner_iterations=1)
-    try:
-        planning_planner.plan_eval_spec("goal", config)
-    except RuntimeError:
-        pass
-    assert "research_brief" not in captured["context"]
+    assert '<DIRECTORY path="resources/deepresearch" empty="true" />' in resources
+    assert 'path="resources/deepresearch/brief.json"' not in resources
 
 
 # ---------------------------------------------------------------------------

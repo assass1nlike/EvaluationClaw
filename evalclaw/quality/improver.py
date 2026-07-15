@@ -14,7 +14,7 @@ from ..construction.suite import build_task_suite
 from ..execution.runner import run_eval
 from ..models.llm import call_llm, extract_json
 from ..models.roles import role_model_settings
-from ..planning.task_planner import blueprints_for_spec
+from ..planning.task_planner import plan_blueprints_for_spec
 from ..quality.qc import run_qc_gate
 from ..types import (
     BenchmarkConfig,
@@ -28,6 +28,7 @@ from ..types import (
     QcSeverity,
     TaskResource,
     TaskSuite,
+    TaskTypeAllocation,
 )
 
 _SYSTEM = """\
@@ -331,7 +332,13 @@ def _replace_or_expand_items(
             else (dimension.task_types or dataset.spec.task_types)[0]
         )
         scoped_dimension = dimension.model_copy(
-            update={"task_types": [task_type], "target_item_count": 1}
+            update={
+                "task_types": [task_type],
+                "task_type_allocation": [
+                    TaskTypeAllocation(task_type=task_type, count=1)
+                ],
+                "target_item_count": 1,
+            }
         )
         scoped_spec = dataset.spec.model_copy(
             update={"dimensions": [scoped_dimension], "task_types": [task_type], "scale": 1}
@@ -341,14 +348,21 @@ def _replace_or_expand_items(
         accepted_item: BenchmarkItem | None = None
         accepted_suite: TaskSuite | None = None
         for _ in range(3):
-            blueprints = blueprints_for_spec(scoped_spec, config)
+            blueprints = plan_blueprints_for_spec(scoped_spec, config, log=log)
             blueprints = [
                 blueprint.model_copy(
                     update={
-                        "construction_requirements": [
-                            *blueprint.construction_requirements,
-                            f"Loop 3 reason: {action.reason}",
-                            f"Loop 3 guidance: {action.guidance}",
+                        "task_designs": [
+                            design.model_copy(
+                                update={
+                                    "construction_requirements": [
+                                        *design.construction_requirements,
+                                        f"Loop 3 reason: {action.reason}",
+                                        f"Loop 3 guidance: {action.guidance}",
+                                    ]
+                                }
+                            )
+                            for design in blueprint.task_designs
                         ]
                     }
                 )

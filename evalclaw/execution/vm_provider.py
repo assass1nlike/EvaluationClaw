@@ -71,7 +71,8 @@ def vm_provider_setup_message() -> str:
         "- POST /vms\n"
         "- DELETE /vms/{vm_id}\n\n"
         "POST /vms receives {vm, session} and should create or reset an isolated VM, start the "
-        "desktop/CUA bridge for that VM, and return vm_id plus bridge_url. The provider can wrap "
+        "desktop/CUA bridge for that VM, mount any vm.seed_iso/config_drive_iso before boot, and "
+        "return vm_id plus bridge_url. The provider can wrap "
         "VirtualBox, Hyper-V, VMware, QEMU, cloud VMs, or an internal VM farm.\n\n"
         "Built-in local provider supports VirtualBox when VBoxManage is installed and a GUI template VM exists. "
         "It also supports QEMU when qemu-system-x86_64 and qemu-img are installed and vm.disk_image points to a "
@@ -268,11 +269,13 @@ def local_vm_setup_message() -> str:
         "1. Install VirtualBox so VBoxManage is on PATH.\n"
         f"2. Create a GUI template VM, e.g. {VM_TEMPLATE_ENV_VAR}=evalclaw-gui-ubuntu-22.04.\n"
         "3. Install a desktop session and evalclaw-desktop-bridge inside the VM.\n"
-        "4. Make the bridge listen inside the guest, default port 7766.\n"
-        "5. Run EvalClaw with --vm-provider-url local://virtualbox, or leave provider URL empty to allow local auto-detect.\n\n"
+        "4. Install cloud-init for Linux templates or Cloudbase-Init with the NoCloud service for Windows templates.\n"
+        "5. Make the bridge listen inside the guest, default port 7766.\n"
+        "6. Run EvalClaw with --vm-provider-url local://virtualbox, or leave provider URL empty to allow local auto-detect.\n\n"
         "QEMU setup:\n"
         "1. Install qemu-system-x86_64 and qemu-img.\n"
-        "2. Prepare a qcow2/raw GUI disk image with evalclaw-desktop-bridge installed.\n"
+        "2. Prepare a qcow2/raw GUI disk image with evalclaw-desktop-bridge and cloud-init (Linux) "
+        "or Cloudbase-Init NoCloud (Windows) installed.\n"
         "3. Set vm.disk_image, vm.template, vm.image, or "
         f"{VM_TEMPLATE_ENV_VAR}=<disk-image-path>.\n"
         "4. Run EvalClaw with --vm-provider-url local://qemu.\n\n"
@@ -386,9 +389,9 @@ def _qemu_accel(vm_spec: dict[str, Any]) -> str:
     return "tcg"
 
 
-def _qemu_cdrom_paths(vm_spec: dict[str, Any]) -> list[Path]:
+def _vm_cdrom_paths(vm_spec: dict[str, Any]) -> list[Path]:
     paths: list[Path] = []
-    for key in ("seed_iso", "cloud_init_iso", "cdrom", "iso"):
+    for key in ("seed_iso", "cloud_init_iso", "config_drive_iso", "cdrom", "iso"):
         value = vm_spec.get(key)
         if isinstance(value, str) and value.strip():
             candidate = Path(value.strip()).expanduser()
@@ -400,7 +403,53 @@ def _qemu_cdrom_paths(vm_spec: dict[str, Any]) -> list[Path]:
                     candidate = Path(item.strip()).expanduser()
                     if candidate.is_file():
                         paths.append(candidate.resolve())
-    return paths
+    return list(dict.fromkeys(paths))
+
+
+def _virtualbox_config_drive_commands(
+    executable: str,
+    vm_id: str,
+    vm_spec: dict[str, Any],
+) -> list[list[str]]:
+    paths = _vm_cdrom_paths(vm_spec)
+    if not paths:
+        return []
+    configured_controller = str(vm_spec.get("config_drive_controller") or "").strip()
+    controller = configured_controller or "EvalClawConfigDrive"
+    commands: list[list[str]] = []
+    if not configured_controller:
+        commands.append(
+            [
+                executable,
+                "storagectl",
+                vm_id,
+                "--name",
+                controller,
+                "--add",
+                "sata",
+                "--controller",
+                "IntelAhci",
+            ]
+        )
+    for port, path in enumerate(paths):
+        commands.append(
+            [
+                executable,
+                "storageattach",
+                vm_id,
+                "--storagectl",
+                controller,
+                "--port",
+                str(port),
+                "--device",
+                "0",
+                "--type",
+                "dvddrive",
+                "--medium",
+                str(path),
+            ]
+        )
+    return commands
 
 
 def _wait_for_bridge(url: str, *, timeout: int, api_key: str | None = None) -> tuple[bool, str]:
@@ -500,6 +549,7 @@ def _virtualbox_clone_and_start(
     ]
     if snapshot:
         commands.append([executable, "snapshot", vm_id, "restore", snapshot])
+    commands.extend(_virtualbox_config_drive_commands(executable, vm_id, vm_spec))
     commands.extend(
         [
             [
@@ -535,6 +585,7 @@ def _virtualbox_clone_and_start(
         bridge_url=bridge_url,
         data={
             "provider": "local",
+            "provider_url": provider_url,
             "backend": "virtualbox",
             "template": template,
             "snapshot": snapshot,
@@ -594,7 +645,7 @@ def _qemu_clone_and_start(
         "-nic",
         f"user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:{host_port}-:{guest_port}",
     ]
-    for cdrom_path in _qemu_cdrom_paths(vm_spec):
+    for cdrom_path in _vm_cdrom_paths(vm_spec):
         qemu_command.extend(["-drive", f"file={cdrom_path},if=ide,media=cdrom,readonly=on"])
     vnc = vm_spec.get("vnc")
     if isinstance(vnc, str) and vnc.strip():
@@ -635,6 +686,7 @@ def _qemu_clone_and_start(
         bridge_url=bridge_url,
         data={
             "provider": "local",
+            "provider_url": provider_url,
             "backend": "qemu",
             "disk_image": str(disk_image),
             "overlay_path": str(overlay_path),
@@ -777,6 +829,7 @@ def create_vm_session(
         data = response.json() if response.content else {}
     if not isinstance(data, dict):
         data = {"result": data}
+    data.setdefault("provider_url", url)
     vm_id = _payload_vm_id(data)
     if not vm_id:
         raise RuntimeError("VM provider did not return vm_id from POST /vms.")

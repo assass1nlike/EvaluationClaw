@@ -10,7 +10,7 @@ from ..benchmark import build_dataset_from_spec_with_qc_loop
 from ..generation.generator import target_count_for_dimension
 from ..models.llm import call_llm, extract_json
 from ..models.roles import role_model_settings
-from ..planning.task_planner import blueprints_for_spec
+from ..planning.task_planner import plan_from_spec
 from ..prompts.planning_loop import PLANNER_REVIEW_SYSTEM_PROMPT
 from ..protocols.task_agent import compact_task_agent_for_qc
 from ..types import (
@@ -23,6 +23,7 @@ from ..types import (
     Message,
     QcReport,
     TaskType,
+    TaskTypeAllocation,
     safe_challenge_effort,
 )
 
@@ -67,9 +68,25 @@ def _dimension_from_data(data: dict[str, Any], fallback: EvalDimension | None = 
         or merged.get("target_challenge_effort")
         or merged.get("task_builder_effort")
     )
+    raw_allocation = merged.get("task_type_allocation", [])
+    task_type_allocation = [
+        TaskTypeAllocation(
+            task_type=_safe_task_type(item.get("task_type")),
+            count=count,
+        )
+        for item in raw_allocation
+        if isinstance(item, dict)
+        and (count := _safe_positive_int(item.get("count"))) is not None
+    ]
+    if "task_type_allocation" not in data and (
+        "task_types" in data or "target_item_count" in data
+    ):
+        task_type_allocation = []
     return EvalDimension(
         id=dim_id,
         name=str(merged.get("name") or dim_id),
+        measurement_target=str(merged.get("measurement_target") or ""),
+        boundary=str(merged.get("boundary") or ""),
         description=str(merged.get("description") or ""),
         approach=str(merged.get("approach") or ""),
         weight=float(merged.get("weight", 1.0) or 1.0),
@@ -80,6 +97,7 @@ def _dimension_from_data(data: dict[str, Any], fallback: EvalDimension | None = 
         target_source_backed_count=max(0, _safe_positive_int(merged.get("target_source_backed_count"), 0) or 0),
         target_generated_count=_safe_positive_int(merged.get("target_generated_count")),
         task_types=[_safe_task_type(x) for x in merged.get("task_types", [])],
+        task_type_allocation=task_type_allocation,
         item_requirements=[str(x) for x in merged.get("item_requirements", []) if x],
     )
 
@@ -324,7 +342,24 @@ def _apply_review(
         if moved:
             notes.append(f"Moved item {item_id} to dimension {target_dim}.")
 
-    spec = dataset.spec.model_copy(update={"dimensions": dimensions})
+    planned_task_types = list(
+        dict.fromkeys(
+            task_type
+            for dimension in dimensions
+            for task_type in dimension.task_types
+        )
+    )
+    planned_scale = sum(
+        max(1, int(dimension.target_item_count or 1))
+        for dimension in dimensions
+    )
+    spec = dataset.spec.model_copy(
+        update={
+            "dimensions": dimensions,
+            "task_types": planned_task_types or dataset.spec.task_types,
+            "scale": planned_scale,
+        }
+    )
     generation_notes = dataset.generation_notes
     if notes:
         generation_notes = (generation_notes.rstrip() + "\nPlanner pre-run review:\n" + "\n".join(notes)).strip()
@@ -417,13 +452,14 @@ def apply_human_review_feedback(
         for note in notes:
             log(f"  {note}")
 
-    blueprints = blueprints_for_spec(dataset.spec, config)
+    plan = plan_from_spec(dataset.spec, config, log=log)
     rebuilt, qc_report = build_dataset_from_spec_with_qc_loop(
         dataset.spec,
-        blueprints,
+        plan.blueprints,
         config,
         log=log or (lambda _message: None),
     )
+    rebuilt.plan = plan
     if notes:
         rebuilt.generation_notes = (
             rebuilt.generation_notes.rstrip()
