@@ -16,7 +16,7 @@ import shlex
 import shutil
 import subprocess
 from dataclasses import asdict, dataclass, field
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 from ..protocols.agent_task_package import (
@@ -25,9 +25,43 @@ from ..protocols.agent_task_package import (
 )
 from ..protocols.task_agent import TASK_AGENT_METADATA_KEY
 from ..types import BenchmarkItem
-from .installers import apt_packages, package_list, render_install_commands
+from .installers import (
+    apt_packages,
+    package_list,
+    render_install_commands,
+    render_windows_install_commands,
+)
 
 VM_MATERIALIZATION_DIR_ENV_VAR = "EVALCLAW_VM_MATERIALIZATION_DIR"
+_LINUX = "linux"
+_WINDOWS = "windows"
+_LINUX_PROVISIONING_FIELDS = {
+    "apt_packages",
+    "apk_packages",
+    "dnf_packages",
+    "yum_packages",
+    "pacman_packages",
+    "snap_packages",
+    "cran_packages",
+    "r_packages",
+    "bioconductor_packages",
+    "bioc_packages",
+    "julia_packages",
+    "conda_packages",
+    "cargo_packages",
+    "go_packages",
+    "gem_packages",
+    "ruby_gems",
+    "composer_packages",
+}
+_WINDOWS_PROVISIONING_FIELDS = {
+    "winget_packages",
+    "choco_packages",
+    "chocolatey_packages",
+    "windows_features",
+    "powershell_commands",
+    "powershell_script",
+}
 
 
 @dataclass(frozen=True)
@@ -47,6 +81,8 @@ class VmTaskMaterializationResult:
     work_dir: str = ""
     file_count: int = 0
     skipped_reason: str = ""
+    guest_os: str = ""
+    strategy: str = ""
     provisioning: dict[str, Any] = field(default_factory=dict)
     mappings: list[dict[str, str]] = field(default_factory=list)
 
@@ -95,7 +131,41 @@ def _safe_slug(value: str) -> str:
     return slug[:80] or "evalclaw-vm-task"
 
 
-def _guest_user(env: dict[str, Any]) -> str:
+def _guest_os(env: dict[str, Any]) -> str:
+    materialization = env.get("vm_materialization")
+    vm = env.get("vm")
+    candidates = []
+    if isinstance(materialization, dict):
+        candidates.extend((materialization.get("guest_os"), materialization.get("os")))
+    if isinstance(vm, dict):
+        candidates.extend((vm.get("guest_os"), vm.get("os"), vm.get("os_type"), vm.get("platform")))
+    candidates.append(env.get("guest_os"))
+    raw = next((str(value).strip().lower() for value in candidates if str(value or "").strip()), "")
+    normalized = raw.replace("_", "-")
+    if not normalized:
+        return _LINUX
+    if normalized == "win" or normalized.startswith("windows"):
+        return _WINDOWS
+    if normalized.startswith("linux") or normalized in {
+        "ubuntu",
+        "debian",
+        "fedora",
+        "rhel",
+        "centos",
+        "alpine",
+        "arch",
+    }:
+        return _LINUX
+    raise VmTaskMaterializationError(
+        f"Unsupported VM guest OS {raw!r}; built-in materialization supports linux and windows."
+    )
+
+
+def _materialization_strategy(guest_os: str) -> str:
+    return "cloudbase_init.nocloud.v1" if guest_os == _WINDOWS else "cloud_init.nocloud.v1"
+
+
+def _guest_user(env: dict[str, Any], guest_os: str) -> str:
     materialization = env.get("vm_materialization")
     if isinstance(materialization, dict):
         value = materialization.get("guest_user")
@@ -106,21 +176,40 @@ def _guest_user(env: dict[str, Any]) -> str:
         value = vm.get("guest_user") or vm.get("user")
         if isinstance(value, str) and value.strip():
             return value.strip()
-    return "ubuntu"
+    return "Public" if guest_os == _WINDOWS else "ubuntu"
 
 
-def _guest_root(env: dict[str, Any], guest_user: str) -> str:
+def _guest_root(env: dict[str, Any], guest_user: str, guest_os: str) -> str:
     materialization = env.get("vm_materialization")
     if isinstance(materialization, dict):
         value = materialization.get("guest_root") or materialization.get("file_root")
         if isinstance(value, str) and value.strip():
-            return _normalize_guest_path(value.strip())
+            root = _normalize_guest_path(value.strip(), guest_os)
+            if guest_os == _WINDOWS and not PureWindowsPath(root).is_absolute():
+                raise VmTaskMaterializationError("Windows vm_materialization.guest_root must be absolute.")
+            return root
+    if guest_os == _WINDOWS:
+        if guest_user in {".", ".."} or any(separator in guest_user for separator in ("/", "\\")):
+            raise VmTaskMaterializationError("Windows VM guest_user must be a local profile name.")
+        return rf"C:\Users\{guest_user}"
     if guest_user == "root":
         return "/root"
     return f"/home/{guest_user}"
 
 
-def _normalize_guest_path(raw_path: str) -> str:
+def _normalize_guest_path(raw_path: str, guest_os: str = _LINUX) -> str:
+    if guest_os == _WINDOWS:
+        path = raw_path.strip().replace("/", "\\")
+        if not path or "\x00" in path:
+            raise VmTaskMaterializationError("VM materialization received an empty or invalid guest path.")
+        pure = PureWindowsPath(path)
+        if any(part == ".." for part in pure.parts):
+            raise VmTaskMaterializationError(f"Unsafe VM guest path with traversal component: {raw_path}")
+        if pure.drive and not re.fullmatch(r"[A-Za-z]:", pure.drive):
+            raise VmTaskMaterializationError(f"Unsupported Windows VM guest path: {raw_path}")
+        if pure.drive and not pure.is_absolute():
+            raise VmTaskMaterializationError(f"Windows VM guest path must not be drive-relative: {raw_path}")
+        return str(pure)
     path = raw_path.strip().replace("\\", "/")
     if not path or "\x00" in path:
         raise VmTaskMaterializationError("VM materialization received an empty or invalid guest path.")
@@ -133,8 +222,15 @@ def _normalize_guest_path(raw_path: str) -> str:
     return "/".join(parts)
 
 
-def _map_guest_path(raw_path: str, *, guest_root: str) -> str:
-    normalized = _normalize_guest_path(raw_path)
+def _map_guest_path(raw_path: str, *, guest_root: str, guest_os: str = _LINUX) -> str:
+    normalized = _normalize_guest_path(raw_path, guest_os)
+    if guest_os == _WINDOWS:
+        path = PureWindowsPath(normalized)
+        if path.is_absolute():
+            return str(path)
+        if not path.parts:
+            raise VmTaskMaterializationError(f"Unsafe VM guest path: {raw_path}")
+        return str(PureWindowsPath(guest_root, path))
     if normalized.startswith("/"):
         return normalized
     parts = [part for part in PurePosixPath(normalized).parts if part not in {"", "."}]
@@ -200,29 +296,105 @@ def _vm_provisioning_requested(env: dict[str, Any]) -> bool:
         "runcmd",
         "desktop_bridge_install_command",
         "desktop_bridge_start_command",
+        "winget_packages",
+        "choco_packages",
+        "chocolatey_packages",
+        "windows_features",
+        "powershell_commands",
+        "powershell_script",
     )
     return any(bool(provisioning.get(key)) for key in keys) or bool(provisioning.get("enabled"))
+
+
+def _validate_provisioning_platform(provisioning: dict[str, Any], guest_os: str) -> None:
+    unsupported_fields = (
+        _LINUX_PROVISIONING_FIELDS if guest_os == _WINDOWS else _WINDOWS_PROVISIONING_FIELDS
+    )
+    used_fields = sorted(key for key in unsupported_fields if provisioning.get(key))
+    raw_steps = (
+        provisioning.get("install_steps")
+        or provisioning.get("package_manager_steps")
+        or provisioning.get("software_install_steps")
+    )
+    steps = [raw_steps] if isinstance(raw_steps, dict) else raw_steps
+    managers = {
+        str(step.get("manager") or step.get("type") or "").strip().lower().replace("_", "-")
+        for step in steps or []
+        if isinstance(step, dict)
+    }
+    unsupported_managers = (
+        managers
+        & {
+            "apt",
+            "apt-get",
+            "apk",
+            "dnf",
+            "yum",
+            "pacman",
+            "snap",
+            "cran",
+            "bioconductor",
+            "julia",
+            "conda",
+            "cargo",
+            "go",
+            "gem",
+            "composer",
+        }
+        if guest_os == _WINDOWS
+        else managers & {"winget", "choco", "chocolatey", "windows-feature", "windows-features"}
+    )
+    if used_fields or unsupported_managers:
+        details = used_fields + sorted(unsupported_managers)
+        raise VmTaskMaterializationError(
+            f"VM provisioning for {guest_os} contains unsupported platform-specific fields or managers: "
+            + ", ".join(details)
+        )
 
 
 def _provisioning_apt_packages(provisioning: dict[str, Any]) -> list[str]:
     return apt_packages(provisioning)
 
 
-def _provisioning_commands(provisioning: dict[str, Any]) -> list[str]:
+def _linux_provisioning_commands(provisioning: dict[str, Any]) -> list[str]:
     commands: list[str] = render_install_commands(provisioning)
     if commands:
         commands.append("mkdir -p /opt/evalclaw && touch /opt/evalclaw/vm-provisioned")
     return commands
 
 
-def _provisioning_summary(env: dict[str, Any]) -> dict[str, Any]:
+def _windows_provisioning_commands(provisioning: dict[str, Any]) -> list[str]:
+    commands = render_windows_install_commands(provisioning)
+    if commands:
+        commands.extend(
+            [
+                "$marker = 'C:\\ProgramData\\EvalClaw\\vm-provisioned'",
+                "New-Item -ItemType Directory -Force -Path (Split-Path -Parent $marker) | Out-Null",
+                "Set-Content -LiteralPath $marker -Value 'ready' -Encoding ASCII",
+            ]
+        )
+    return commands
+
+
+def _provisioning_summary(env: dict[str, Any], guest_os: str) -> dict[str, Any]:
     provisioning = _vm_provisioning(env)
     if not _vm_provisioning_requested(env):
         return {}
+    commands = (
+        _windows_provisioning_commands(provisioning)
+        if guest_os == _WINDOWS
+        else _linux_provisioning_commands(provisioning)
+    )
     return {
         "enabled": True,
-        "strategy": str(provisioning.get("strategy") or "cloud_init.v1"),
-        "apt_packages": _provisioning_apt_packages(provisioning),
+        "strategy": str(provisioning.get("strategy") or _materialization_strategy(guest_os)),
+        "guest_os": guest_os,
+        "apt_packages": _provisioning_apt_packages(provisioning) if guest_os == _LINUX else [],
+        "winget_packages": package_list(provisioning.get("winget_packages")),
+        "choco_packages": package_list(
+            provisioning.get("choco_packages") or provisioning.get("chocolatey_packages")
+        ),
+        "windows_features": package_list(provisioning.get("windows_features")),
         "pip_packages": package_list(provisioning.get("pip_packages") or provisioning.get("python_packages")),
         "snap_packages": package_list(provisioning.get("snap_packages")),
         "cran_packages": package_list(provisioning.get("cran_packages") or provisioning.get("r_packages")),
@@ -235,7 +407,7 @@ def _provisioning_summary(env: dict[str, Any]) -> dict[str, Any]:
         "go_packages": package_list(provisioning.get("go_packages")),
         "gem_packages": package_list(provisioning.get("gem_packages") or provisioning.get("ruby_gems")),
         "composer_packages": package_list(provisioning.get("composer_packages")),
-        "command_count": len(_provisioning_commands(provisioning)),
+        "command_count": len(commands),
     }
 
 
@@ -246,10 +418,11 @@ def _add_file(
     content: Any,
     source: str,
     guest_root: str,
+    guest_os: str,
     permissions: str = "0644",
     root_only: bool = False,
 ) -> None:
-    guest_path = _map_guest_path(raw_path, guest_root=guest_root)
+    guest_path = _map_guest_path(raw_path, guest_root=guest_root, guest_os=guest_os)
     files[guest_path] = VmGuestFile(
         guest_path=guest_path,
         content=_text_content(content),
@@ -265,20 +438,30 @@ def _add_file_mapping(
     *,
     source: str,
     guest_root: str,
+    guest_os: str,
 ) -> None:
     if not isinstance(mapping, dict):
         return
     for raw_path, content in mapping.items():
         if isinstance(raw_path, str) and raw_path.strip():
-            _add_file(files, raw_path=raw_path, content=content, source=source, guest_root=guest_root)
+            _add_file(
+                files,
+                raw_path=raw_path,
+                content=content,
+                source=source,
+                guest_root=guest_root,
+                guest_os=guest_os,
+            )
 
 
-def _safe_private_suffix(raw_path: str) -> str:
-    normalized = _normalize_guest_path(raw_path)
-    parts = [part for part in PurePosixPath(normalized).parts if part not in {"", "/", "."}]
+def _safe_private_suffix(raw_path: str, guest_os: str) -> str:
+    normalized = _normalize_guest_path(raw_path, guest_os)
+    path_type = PureWindowsPath if guest_os == _WINDOWS else PurePosixPath
+    path = path_type(normalized)
+    parts = [part for part in path.parts if part not in {"", "/", "\\", ".", path.anchor}]
     if not parts:
         raise VmTaskMaterializationError(f"Unsafe private guest path: {raw_path}")
-    return str(PurePosixPath(*parts))
+    return str(path_type(*parts))
 
 
 def _add_private_file_mapping(
@@ -286,13 +469,19 @@ def _add_private_file_mapping(
     mapping: Any,
     *,
     source: str,
+    guest_os: str,
 ) -> None:
     if not isinstance(mapping, dict):
         return
     for raw_path, content in mapping.items():
         if not isinstance(raw_path, str) or not raw_path.strip():
             continue
-        private_path = str(PurePosixPath("/opt/evalclaw/task/private/hidden_references", _safe_private_suffix(raw_path)))
+        private_root = (
+            PureWindowsPath(r"C:\ProgramData\EvalClaw\task\private\hidden_references")
+            if guest_os == _WINDOWS
+            else PurePosixPath("/opt/evalclaw/task/private/hidden_references")
+        )
+        private_path = str(private_root / _safe_private_suffix(raw_path, guest_os))
         files[private_path] = VmGuestFile(
             guest_path=private_path,
             content=_text_content(content),
@@ -308,14 +497,27 @@ def _session_asset_files(
     *,
     source: str,
     guest_root: str,
+    guest_os: str,
 ) -> None:
     if not isinstance(session, dict):
         return
     for key in ("files", "input_files", "asset_files"):
-        _add_file_mapping(files, session.get(key), source=f"{source}.{key}", guest_root=guest_root)
+        _add_file_mapping(
+            files,
+            session.get(key),
+            source=f"{source}.{key}",
+            guest_root=guest_root,
+            guest_os=guest_os,
+        )
     assets = session.get("assets")
     if isinstance(assets, dict):
-        _add_file_mapping(files, assets, source=f"{source}.assets", guest_root=guest_root)
+        _add_file_mapping(
+            files,
+            assets,
+            source=f"{source}.assets",
+            guest_root=guest_root,
+            guest_os=guest_os,
+        )
     elif isinstance(assets, list):
         for index, asset in enumerate(assets):
             if not isinstance(asset, dict):
@@ -335,6 +537,7 @@ def _session_asset_files(
                 content=content,
                 source=f"{source}.assets[{index}]",
                 guest_root=guest_root,
+                guest_os=guest_os,
             )
 
 
@@ -343,25 +546,110 @@ def _public_initial_content(initial: dict[str, Any]) -> dict[str, Any]:
     public.pop("files", None)
     public.pop("hidden_files", None)
     public.pop("hidden_file_names", None)
+    if isinstance(public.get("session"), dict):
+        public["session"] = _public_session(public["session"])
     return public
 
 
+def _public_session(session: dict[str, Any]) -> dict[str, Any]:
+    public = copy.deepcopy(session)
+    public.pop("baseline_checks", None)
+    public.pop("initial_state_checks", None)
+    return public
+
+
+def _add_materialization_baseline_checks(
+    env: dict[str, Any],
+    *,
+    guest_os: str,
+    has_provisioning: bool,
+) -> None:
+    session = copy.deepcopy(env.get("session") if isinstance(env.get("session"), dict) else {})
+    checks = list(session.get("baseline_checks") or []) if isinstance(session.get("baseline_checks"), list) else []
+    materialized_marker = (
+        r"C:\ProgramData\EvalClaw\vm-materialized"
+        if guest_os == _WINDOWS
+        else "/opt/evalclaw/vm-materialized"
+    )
+    marker_paths = {
+        str(check.get("path"))
+        for check in checks
+        if isinstance(check, dict) and check.get("path")
+    }
+    if materialized_marker not in marker_paths:
+        checks.append(
+            {
+                "id": "evalclaw_vm_materialized",
+                "method": "file_exists",
+                "path": materialized_marker,
+            }
+        )
+    if has_provisioning:
+        provisioned_marker = (
+            r"C:\ProgramData\EvalClaw\vm-provisioned"
+            if guest_os == _WINDOWS
+            else "/opt/evalclaw/vm-provisioned"
+        )
+        if provisioned_marker not in marker_paths:
+            checks.append(
+                {
+                    "id": "evalclaw_vm_provisioned",
+                    "method": "file_exists",
+                    "path": provisioned_marker,
+                }
+            )
+    session["baseline_checks"] = checks
+    env["session"] = session
+
+
 def _collect_guest_files(item: BenchmarkItem, env: dict[str, Any]) -> list[VmGuestFile]:
-    guest_user = _guest_user(env)
-    guest_root = _guest_root(env, guest_user)
+    guest_os = _guest_os(env)
+    guest_user = _guest_user(env, guest_os)
+    guest_root = _guest_root(env, guest_user, guest_os)
     materialization = env.get("vm_materialization")
     files: dict[str, VmGuestFile] = {}
     initial = _initial_content(item)
     package = _agent_task_package(item)
-    _add_file_mapping(files, env.get("visible_files"), source="metadata.agent_env.visible_files", guest_root=guest_root)
-    _add_file_mapping(files, env.get("files"), source="metadata.agent_env.files", guest_root=guest_root)
-    _add_file_mapping(files, initial.get("files"), source="metadata.task_agent.initial_content.files", guest_root=guest_root)
-    _session_asset_files(files, env.get("session"), source="metadata.agent_env.session", guest_root=guest_root)
-    _session_asset_files(files, initial.get("session"), source="metadata.task_agent.initial_content.session", guest_root=guest_root)
+    _add_file_mapping(
+        files,
+        env.get("visible_files"),
+        source="metadata.agent_env.visible_files",
+        guest_root=guest_root,
+        guest_os=guest_os,
+    )
+    _add_file_mapping(
+        files,
+        env.get("files"),
+        source="metadata.agent_env.files",
+        guest_root=guest_root,
+        guest_os=guest_os,
+    )
+    _add_file_mapping(
+        files,
+        initial.get("files"),
+        source="metadata.task_agent.initial_content.files",
+        guest_root=guest_root,
+        guest_os=guest_os,
+    )
+    _session_asset_files(
+        files,
+        env.get("session"),
+        source="metadata.agent_env.session",
+        guest_root=guest_root,
+        guest_os=guest_os,
+    )
+    _session_asset_files(
+        files,
+        initial.get("session"),
+        source="metadata.task_agent.initial_content.session",
+        guest_root=guest_root,
+        guest_os=guest_os,
+    )
     _add_private_file_mapping(
         files,
         env.get("hidden_files"),
         source="metadata.agent_env.hidden_files",
+        guest_os=guest_os,
     )
     has_guest_files = bool(files)
     has_provisioning = _vm_provisioning_requested(env)
@@ -380,23 +668,36 @@ def _collect_guest_files(item: BenchmarkItem, env: dict[str, Any]) -> list[VmGue
         "rubric": item.rubric,
         "tags": item.tags,
         "task_agent_initial_content": _public_initial_content(initial),
-        "session": copy.deepcopy(env.get("session") if isinstance(env.get("session"), dict) else {}),
+        "session": _public_session(env["session"]) if isinstance(env.get("session"), dict) else {},
     }
-    files["/opt/evalclaw/task/public/task.json"] = VmGuestFile(
-        guest_path="/opt/evalclaw/task/public/task.json",
+    public_root = (
+        PureWindowsPath(r"C:\ProgramData\EvalClaw\task\public")
+        if guest_os == _WINDOWS
+        else PurePosixPath("/opt/evalclaw/task/public")
+    )
+    private_root = (
+        PureWindowsPath(r"C:\ProgramData\EvalClaw\task\private")
+        if guest_os == _WINDOWS
+        else PurePosixPath("/opt/evalclaw/task/private")
+    )
+    public_task_path = str(public_root / "task.json")
+    files[public_task_path] = VmGuestFile(
+        guest_path=public_task_path,
         content=json.dumps(public_manifest, ensure_ascii=False, indent=2),
         source="evalclaw.public_task_manifest",
         permissions="0644",
     )
     if package:
-        files["/opt/evalclaw/task/public/agent_task_package.json"] = VmGuestFile(
-            guest_path="/opt/evalclaw/task/public/agent_task_package.json",
+        public_package_path = str(public_root / "agent_task_package.json")
+        files[public_package_path] = VmGuestFile(
+            guest_path=public_package_path,
             content=json.dumps(public_agent_task_package(package), ensure_ascii=False, indent=2),
             source="metadata.agent_task_package.public",
             permissions="0644",
         )
-        files["/opt/evalclaw/task/private/agent_task_package_private.json"] = VmGuestFile(
-            guest_path="/opt/evalclaw/task/private/agent_task_package_private.json",
+        private_package_path = str(private_root / "agent_task_package_private.json")
+        files[private_package_path] = VmGuestFile(
+            guest_path=private_package_path,
             content=json.dumps(package, ensure_ascii=False, indent=2),
             source="metadata.agent_task_package.private",
             permissions="0600",
@@ -407,8 +708,9 @@ def _collect_guest_files(item: BenchmarkItem, env: dict[str, Any]) -> list[VmGue
         isinstance(materialization, dict) and materialization.get("include_evaluation_manifest")
     )
     if include_evaluation and isinstance(evaluation, dict) and evaluation:
-        files["/opt/evalclaw/task/private/evaluation.json"] = VmGuestFile(
-            guest_path="/opt/evalclaw/task/private/evaluation.json",
+        evaluation_path = str(private_root / "evaluation.json")
+        files[evaluation_path] = VmGuestFile(
+            guest_path=evaluation_path,
             content=json.dumps(evaluation, ensure_ascii=False, indent=2),
             source="metadata.agent_env.evaluation",
             permissions="0600",
@@ -480,7 +782,8 @@ def _cloud_init_user_data(files: list[VmGuestFile], *, guest_user: str, guest_ro
         commands.append(f"mkdir -p {quoted_dirs}")
         commands.append(f"chown -R {shlex.quote(guest_user)}:{shlex.quote(guest_user)} {quoted_dirs} || true")
         commands.append(f"chmod -R u+rwX,go+rX {quoted_dirs} || true")
-    commands.extend(_provisioning_commands(provisioning))
+    commands.extend(_linux_provisioning_commands(provisioning))
+    commands.append("mkdir -p /opt/evalclaw && touch /opt/evalclaw/vm-materialized")
     lines.append("runcmd:")
     if commands:
         for command in commands:
@@ -488,6 +791,60 @@ def _cloud_init_user_data(files: list[VmGuestFile], *, guest_user: str, guest_ro
     else:
         lines.append("  - " + json.dumps(["sh", "-lc", "true"]))
     return "\n".join(lines) + "\n"
+
+
+def _powershell_string(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
+
+
+def _cloudbase_init_user_data(files: list[VmGuestFile], *, env: dict[str, Any]) -> str:
+    lines = [
+        "#ps1_sysnative",
+        "$ErrorActionPreference = 'Stop'",
+        "$ProgressPreference = 'SilentlyContinue'",
+    ]
+    for file in files:
+        path = PureWindowsPath(file.guest_path)
+        encoded = base64.b64encode(file.content.encode("utf-8")).decode("ascii")
+        lines.extend(
+            [
+                f"$path = {_powershell_string(str(path))}",
+                "New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path) | Out-Null",
+                f"[IO.File]::WriteAllBytes($path, [Convert]::FromBase64String('{encoded}'))",
+            ]
+        )
+
+    if any(file.root_only for file in files):
+        private_root = r"C:\ProgramData\EvalClaw\task\private"
+        lines.extend(
+            [
+                f"$privateRoot = {_powershell_string(private_root)}",
+                "if (Test-Path -LiteralPath $privateRoot) {",
+                "  & icacls.exe $privateRoot /inheritance:r "
+                "/grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /T /C | Out-Null",
+                "  if ($LASTEXITCODE -ne 0) { throw 'Failed to protect EvalClaw private task files' }",
+                "}",
+            ]
+        )
+
+    provisioning = _vm_provisioning(env)
+    for index, command in enumerate(_windows_provisioning_commands(provisioning), 1):
+        lines.extend(
+            [
+                "$global:LASTEXITCODE = 0",
+                command,
+                f"if ($LASTEXITCODE -ne 0) {{ throw 'VM provisioning command {index} failed' }}",
+            ]
+        )
+    materialized_marker = r"C:\ProgramData\EvalClaw\vm-materialized"
+    lines.extend(
+        [
+            f"$marker = {_powershell_string(materialized_marker)}",
+            "New-Item -ItemType Directory -Force -Path (Split-Path -Parent $marker) | Out-Null",
+            "Set-Content -LiteralPath $marker -Value 'ready' -Encoding ASCII",
+        ]
+    )
+    return "\r\n".join(lines) + "\r\n"
 
 
 def _windows_path_to_wsl(path: str | Path) -> str:
@@ -538,7 +895,7 @@ def _build_seed_iso(seed_dir: Path, iso_path: Path, *, timeout: int = 60) -> Non
         wsl = shutil.which("wsl.exe") or shutil.which("wsl")
         if not wsl:
             raise VmTaskMaterializationError(
-                "Cannot build VM cloud-init seed ISO: genisoimage/mkisofs was not found, and WSL is not available."
+                "Cannot build VM NoCloud config-drive ISO: genisoimage/mkisofs was not found, and WSL is not available."
             )
         output_path = shlex.quote(_windows_path_to_wsl(iso_path))
         user_data_path = shlex.quote(_windows_path_to_wsl(seed_dir / "user-data"))
@@ -554,11 +911,11 @@ def _build_seed_iso(seed_dir: Path, iso_path: Path, *, timeout: int = 60) -> Non
         command = [wsl, "--", "bash", "-lc", script]
         ok, output = _run_command(command, timeout=timeout)
     if not ok:
-        raise VmTaskMaterializationError(f"Failed to build VM cloud-init seed ISO: {output}")
+        raise VmTaskMaterializationError(f"Failed to build VM NoCloud config-drive ISO: {output}")
 
 
 def _existing_seed_iso(vm_spec: dict[str, Any]) -> str:
-    for key in ("seed_iso", "cloud_init_iso"):
+    for key in ("seed_iso", "cloud_init_iso", "config_drive_iso"):
         value = vm_spec.get(key)
         if isinstance(value, str) and value.strip():
             return value.strip()
@@ -574,12 +931,16 @@ def materialize_vm_task(
     env = copy.deepcopy(_agent_env(item))
     if not env or not vm_task_requires_vm(item):
         return VmTaskMaterializationResult(item_id=item.id, applied=False, skipped_reason="item does not require a VM")
+    guest_os = _guest_os(env)
+    strategy = _materialization_strategy(guest_os)
     materialization = env.get("vm_materialization")
     if isinstance(materialization, dict) and materialization.get("enabled") is False:
         result = VmTaskMaterializationResult(
             item_id=item.id,
             applied=False,
             skipped_reason="metadata.agent_env.vm_materialization.enabled=false",
+            guest_os=guest_os,
+            strategy=strategy,
         )
         env["vm_materialization"] = {**materialization, **result.as_dict()}
         _set_agent_env(item, env)
@@ -593,23 +954,33 @@ def materialize_vm_task(
             item_id=item.id,
             applied=False,
             seed_iso=explicit_seed,
-            skipped_reason="existing vm.seed_iso/cloud_init_iso preserved",
+            skipped_reason="existing VM config-drive ISO preserved",
+            guest_os=guest_os,
+            strategy=strategy,
         )
         env["vm_materialization"] = {**(materialization if isinstance(materialization, dict) else {}), **result.as_dict()}
         _set_agent_env(item, env)
         return result
 
+    _validate_provisioning_platform(_vm_provisioning(env), guest_os)
     files = _collect_guest_files(item, env)
-    provisioning_summary = _provisioning_summary(env)
+    provisioning_summary = _provisioning_summary(env, guest_os)
     if not files and not provisioning_summary:
         result = VmTaskMaterializationResult(
             item_id=item.id,
             applied=False,
             skipped_reason="no VM guest files to materialize",
+            guest_os=guest_os,
+            strategy=strategy,
         )
         env["vm_materialization"] = {**(materialization if isinstance(materialization, dict) else {}), **result.as_dict()}
         _set_agent_env(item, env)
         return result
+    _add_materialization_baseline_checks(
+        env,
+        guest_os=guest_os,
+        has_provisioning=bool(provisioning_summary.get("command_count")),
+    )
     digest_payload = json.dumps(provisioning_summary, sort_keys=True, ensure_ascii=False)
     digest = hashlib.sha256(f"{_files_digest(files)}\0{digest_payload}".encode("utf-8")).hexdigest()[:12]
     slug = _safe_slug(item.id)
@@ -618,12 +989,14 @@ def materialize_vm_task(
     seed_dir = task_dir / "seed"
     seed_iso = task_dir / "seed.iso"
     seed_dir.mkdir(parents=True, exist_ok=True)
-    guest_user = _guest_user(env)
-    guest_root = _guest_root(env, guest_user)
-    (seed_dir / "user-data").write_text(
-        _cloud_init_user_data(files, guest_user=guest_user, guest_root=guest_root, env=env),
-        encoding="utf-8",
+    guest_user = _guest_user(env, guest_os)
+    guest_root = _guest_root(env, guest_user, guest_os)
+    user_data = (
+        _cloudbase_init_user_data(files, env=env)
+        if guest_os == _WINDOWS
+        else _cloud_init_user_data(files, guest_user=guest_user, guest_root=guest_root, env=env)
     )
+    (seed_dir / "user-data").write_text(user_data, encoding="utf-8")
     (seed_dir / "meta-data").write_text(
         f"instance-id: evalclaw-{slug}-{digest}\nlocal-hostname: evalclaw-task\n",
         encoding="utf-8",
@@ -631,6 +1004,7 @@ def materialize_vm_task(
     _build_seed_iso(seed_dir, seed_iso)
 
     vm_spec["seed_iso"] = str(seed_iso)
+    vm_spec["config_drive_type"] = "nocloud"
     env["vm"] = vm_spec
     result = VmTaskMaterializationResult(
         item_id=item.id,
@@ -638,6 +1012,8 @@ def materialize_vm_task(
         seed_iso=str(seed_iso),
         work_dir=str(task_dir),
         file_count=len(files),
+        guest_os=guest_os,
+        strategy=strategy,
         provisioning=provisioning_summary,
         mappings=[{"guest_path": file.guest_path, "source": file.source} for file in files],
     )

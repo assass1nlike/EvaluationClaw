@@ -36,6 +36,38 @@ that is sound. An item with no substantiated problem should receive no issue.
 Suggestions must be scoped to the reported defect and should preserve
 unaffected task content.
 
+When an item has metadata.task_design_id, find the matching object in
+task_designs and treat it as the Planner's authoritative construction contract.
+Check that the concrete task implements its required inputs, interaction,
+environment, outputs, scoring evidence, sources, and construction requirements.
+Do not accept a field merely because it contains plausible prose.
+
+Apply task-type requirements according to what the runner actually consumes:
+- yes_no needs a yes/no key; multiple_choice needs distinct choices and a key
+  that identifies one choice.
+- short_answer may use an exact reference answer or a sufficiently concrete
+  rubric when multiple phrasings are valid.
+- open_generation and multi_turn need a reference or judge rubric;
+  pairwise_preference needs explicit comparison and tie criteria.
+- code_execution needs test_code that consumes {model_output}; an unrelated
+  test or scoring description is not an executable substitute.
+- agent_interaction needs an environment whose actual evaluator scores the
+  state, artifacts, answer, or trajectory produced by the target.
+
+For every environment-backed task, cross-check the complete execution chain:
+Planner requirements -> resettable initial state -> runner-exposed actions and
+observations -> target-produced result -> evaluator inputs -> score. A task may
+start from a clean/default environment when that genuinely satisfies the
+TaskDesign; do not demand setup files merely for uniformity. When task-specific
+fixtures, hidden faults, accounts, services, documents, or application state
+are required, however, require an executable setup mechanism or a concrete,
+runner-resolvable prebuilt artifact plus a way to verify the required baseline.
+A sentence claiming that an image, template, snapshot, or external session
+already contains the state is not implementation evidence. The evaluator must
+inspect what the target leaves behind and must not create or repair the expected
+state itself. Do not accept custom tool names unless the selected runtime
+actually exposes them.
+
 For task_type=agent_interaction with metadata.agent_env.type=code_sandbox:
 - visible_files are available to the target through file tools.
 - runtime_files are available to setup/runtime but protected from target file tools.
@@ -44,6 +76,8 @@ For task_type=agent_interaction with metadata.agent_env.type=code_sandbox:
 - Do not mark the item unexecutable merely because hidden tests are hidden from
   the target or summarized in metadata, as long as hidden file names/count and a
   test_command are present.
+- An empty visible_files mapping is valid when the task asks the agent to create
+  new files from scratch. The deterministic test_command is still required.
 - metadata.agent_env fields named visible_files_preview, files_preview, or
   hidden_files_preview are intentionally compact QC excerpts, not the canonical
   task files. Do not report truncation/omission issues solely because a preview
@@ -59,16 +93,12 @@ For task_type=agent_interaction with metadata.agent_env.type=docker_workspace:
 - Deterministic scoring may be binary or numeric partial-credit scoring such as
   0/0.5/1. Partial criteria are not incompatible with deterministic scoring
   when the evaluator has explicit checks for those levels.
-- Cross-check the complete execution chain rather than accepting populated
-  fields independently: target prompt -> actually exposed tools -> resettable
-  initial environment -> setup/start commands -> target-produced final state or
-  artifact -> runner-private evaluator. Report an error if any link is missing
-  or contradictory.
 - A prompt must not claim that browser, MCP, API, database, or other custom
   tools are available unless agent_env configures a runtime that actually
   exposes them. For EvaluationClaw's Docker text-browser runtime, browser.enabled
   must be true with runtime=playwright_python, start_url, allowed_origins, and a
-  Playwright-ready image or image build.
+  runtime that actually contains Playwright and a browser. Do not infer that a
+  custom image lacks them solely because its image name does not say playwright.
 - Check that setup_commands are feasible under the declared image and network
   policy, start required local services before the target begins, use paths
   consistent with the container workdir, and leave the evaluator runtime
@@ -89,11 +119,40 @@ For task_type=agent_interaction with metadata.agent_env.type=docker_workspace:
   infer that canonical files are truncated merely because the QC copy is an
   excerpt.
 
+For task_type=agent_interaction with metadata.agent_env.type=workspace:
+- This is EvaluationClaw's built-in room/inventory runtime, not a generic file
+  workspace. It needs reachable rooms, a mailroom, available goal items, and a
+  non-empty outgoing_bin goal. File editing, shell setup, browser state, and
+  invented custom tools are not implemented by this runtime.
+
+For task_type=agent_interaction with metadata.agent_env.type=gui_desktop:
+- Require an identifiable application or desktop surface, a launch/start
+  state, bounded steps, and bridge-executable evaluation checks or method.
+- When requires_vm=true, VM image/template/snapshot/disk fields must be
+  runner-resolvable identifiers rather than descriptive paragraphs. Check that
+  task-specific setup is compatible with the declared guest OS and provider.
+- EvaluationClaw builds a NoCloud config-drive ISO for task-specific files and
+  provisioning. Linux uses cloud-init; Windows uses PowerShell user data through
+  Cloudbase-Init's NoCloud service. Require vm.guest_os for OS-specific setup,
+  Linux package fields only on Linux, Windows package/PowerShell fields only on
+  Windows, and a Cloudbase-Init-capable base template for dynamic Windows setup.
+- Hidden or mutable initial state needs runner-private session.baseline_checks;
+  the bridge must confirm baseline_verified=true before the target starts.
+- Do not require a VM for a valid externally managed desktop bridge, and do not
+  require task-specific provisioning when the requested base application state
+  is sufficient.
+
+For task_type=multi_turn with a dialogue contract:
+- Require a positive turn bound and either scripted user turns or a concrete
+  follow-up policy. The scoring oracle must inspect the relevant transcript,
+  final answer, or resulting state rather than only the first response.
+
 For task_type=multi_turn or task_type=agent_interaction:
 - If metadata.task_structure_validation.status is "passed", the task has
-  already passed builder-level structural validation. Do not report low-level
-  missing-schema issues for task_agent, agent_env, or agent_task_package unless
-  the visible task content itself proves that the task is not executable.
+  passed builder-level shape and runner-contract validation only. Do not repeat
+  those low-level schema checks without evidence, but never treat this marker as
+  proof that Planner requirements, initial state, tools, or evaluator semantics
+  are complete.
 - Prefer items that include metadata.task_agent with schema_version
   "evalclaw.task_agent.v1".
 - metadata.task_agent should define the task-specific agent system_prompt,
@@ -119,6 +178,8 @@ For task_type=pairwise_preference:
 For items using metadata.multimodal:
 - metadata.multimodal.schema_version should be evalclaw.multimodal.v1.
 - metadata.multimodal.modalities and assets should be present and non-empty.
+- The current target adapter supports native image/text content only; audio or
+  video metadata must not be accepted as a native multimodal evaluation.
 - image items should provide a usable URL, data URI, or local file path that the
   runner can resolve into provider-native image content.
 

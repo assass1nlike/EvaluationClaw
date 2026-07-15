@@ -81,29 +81,29 @@
       <div class="arrow">↓</div>
 
       <article class="step">
-        <h3><span class="number">2.</span> 明确整套评测应该怎样组成</h3>
-        <p><span class="label">处理</span>规划器把用户目标拆成要覆盖的能力、题目形式、题目数量和评分方式。</p>
-        <p><span class="label">输出</span>一份结构化评测方案。它回答“这套 benchmark 应该测哪些方面”，但仍然不是具体题目。</p>
+        <h3><span class="number">2.</span> 设计测评维度与整体覆盖</h3>
+        <p><span class="label">处理</span>规划器结合用户目标和可选研究结果，拆出互不重叠的能力维度，并分配题型、题量、来源和评分方向。</p>
+        <p><span class="label">输出</span>一份结构化测评纲要。它回答“这套 benchmark 应该测哪些方面”，但仍然不是具体题目。</p>
       </article>
       <div class="arrow">↓</div>
 
       <article class="step">
-        <h3><span class="number">3.</span> 把评测方案展开成逐题构建位置</h3>
-        <p><span class="label">处理</span>框架根据每个能力需要的题型和数量，列出所有待构建位置。每个位置只负责一种能力、一种题型和一道题。</p>
-        <p><span class="label">输出</span>一张具体的构题任务清单。清单中的位置描述“应该造一道什么题”，但位置本身仍然不是题目。</p>
+        <h3><span class="number">3.</span> 设计适合一次构题调用的 Blueprint</h3>
+        <p><span class="label">处理</span>规划器按内容簇、共享数据或环境和构建工作量决定工作包边界。一个 Blueprint 可以是一批简单同类题，也可以是一两道复杂任务；共享同一案例时可以混合题型。</p>
+        <p><span class="label">输出</span>通过题量、覆盖、粒度和工作量审计的 Blueprint 清单。每个 Blueprint 只属于一个维度，并选择题组、原型或逐题规划粒度。</p>
       </article>
       <div class="arrow">↓</div>
 
       <article class="step">
-        <h3><span class="number">4.</span> 逐个位置构建完整题目</h3>
-        <p><span class="label">处理</span>构题器一次只接收一个位置，并生成一道完整任务，包括题面以及该题实际需要的答案、评分标准、测试、材料或交互要求。</p>
+        <h3><span class="number">4.</span> 每个 Blueprint 调用一次构题器</h3>
+        <p><span class="label">处理</span>构题器一次接收一个完整 Blueprint，并按其中的题量和题型分配生成全部任务，包括题面以及各题实际需要的答案、评分标准、测试、材料或交互要求。</p>
         <p><span class="label">输出</span>一组候选题目。到这里题目已经存在，但还不能默认认为它们可靠或可执行。</p>
       </article>
       <div class="arrow">↓</div>
 
       <article class="step">
-        <h3><span class="number">5.</span> 检查题目并重做有问题的位置</h3>
-        <p><span class="label">处理</span>质量检查确认每道题是否完整、能否评分、是否重复，以及整套题是否覆盖了原计划。发现阻塞问题时，只把相关构题位置交回上一步重做，然后再次检查。</p>
+        <h3><span class="number">5.</span> 检查题目并只替换问题题目</h3>
+        <p><span class="label">处理</span>质量检查确认每道题是否完整、能否评分、是否重复，以及整套题是否覆盖了原计划。发现阻塞问题时，只把原 Blueprint 中有问题的题和问题说明交回构题器；同一 Blueprint 中通过的题保持不变。</p>
         <p><span class="label">输出</span>通过检查的题目集合，以及哪些题通过、哪些题被拒绝的记录。</p>
       </article>
       <div class="arrow">↓</div>
@@ -129,7 +129,7 @@
       <thead><tr><th>边界</th><th>应当怎样理解</th></tr></thead>
       <tbody>
         <tr><td>评测方案 ≠ 题目</td><td>评测方案只决定测什么、用什么题型、造多少题和怎样评分。</td></tr>
-        <tr><td>构题位置 ≠ 题目</td><td>构题位置是给构题器的一份单题订单；构题器执行后才产生真实题目。</td></tr>
+        <tr><td>Blueprint ≠ 题目</td><td>Blueprint 是给构题器的一份自适应工作包，可以规划一道或多道题；构题器执行后才产生真实题目。</td></tr>
         <tr><td>生成 benchmark ≠ 测试模型</td><td>质量检查完成时 benchmark 已经生成。目标模型执行是其后的可选阶段。</td></tr>
       </tbody>
     </table>
@@ -147,7 +147,7 @@
   </section>
 
   <footer>
-    <strong>用一句话记住：</strong>用户说明想测什么，规划器决定整套评测怎样组成，框架把计划展开成单题订单，构题器逐题生产，质量检查决定哪些题成为正式 benchmark，最后才可选择运行目标模型。
+    <strong>用一句话记住：</strong>用户说明想测什么，规划器设计维度和自适应 Blueprint，构题器按 Blueprint 成批或精细生产，质量检查只替换问题题目，最后才可选择运行目标模型。
   </footer>
 </main>
 </body>

@@ -5,7 +5,8 @@ from natural-language goals.
 
 It currently supports:
 
-- Planner-driven `EvalSpec` and general `TaskBlueprint` generation from vague goals.
+- Skill-driven `BenchmarkPlan` generation from vague goals: non-overlapping dimensions plus
+  adaptive `family`/`archetype`/`per_task` Blueprints sized for one TaskBuilder call.
 - **Deep research** (`--deep-research`): a bounded search→compress→reflect loop that
   turns a vague field into a structured `ResearchBrief` (taxonomy, existing benchmarks
   and their weaknesses, seed sources, challenge-effort anchors, citations) that grounds the
@@ -17,7 +18,8 @@ It currently supports:
   multimodal, multi-turn, and environment-interaction tasks. Execution fields are optional.
 - Self-generated benchmark tasks with optional web research, HuggingFace support, and
   programmatic local fallbacks.
-- Deterministic and LLM-assisted QC gates with targeted task-slot repair.
+- Deterministic and LLM-assisted QC gates that replace only failed tasks and preserve
+  QC-passed tasks from the same Blueprint.
 - Direct model execution with rule scoring, code execution sandboxing, multi-turn tasks,
   simulated agent interaction tasks, and double-pass LLM judge audit.
 - Loop 3 self-improvement that diagnoses QC/run results and regenerates targeted items.

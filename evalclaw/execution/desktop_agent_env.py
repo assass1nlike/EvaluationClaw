@@ -49,6 +49,8 @@ def desktop_bridge_setup_message() -> str:
         "- POST /sessions/{session_id}/actions\n"
         "- POST /sessions/{session_id}/evaluate\n"
         "- DELETE /sessions/{session_id}\n\n"
+        "When POST /sessions receives non-empty session.baseline_checks, it must verify them before exposing "
+        "the session and return baseline_verified=true; EvaluationClaw fails closed otherwise.\n\n"
         "The bridge backend can wrap a local VM, VNC/RDP desktop, browser automation service, "
         "or an MCP/CUA server. For isolated VM lifecycle, configure the VM provider options."
     )
@@ -154,7 +156,14 @@ class DesktopBridgeAgentEnvironment:
             headers=_headers(bridge_api_key),
             trust_env=trust_env_for_url(self.bridge_url),
         )
-        self._start()
+        try:
+            self._start()
+        except Exception:
+            try:
+                self.cleanup()
+            except Exception:
+                pass
+            raise
 
     @classmethod
     def from_config(cls, config: dict[str, Any]) -> "DesktopBridgeAgentEnvironment":
@@ -176,6 +185,7 @@ class DesktopBridgeAgentEnvironment:
                 )
                 bridge_url = vm_session.bridge_url
                 api_key = vm_session.bridge_api_key or api_key
+                vm_provider_url = str(vm_session.data.get("provider_url") or vm_provider_url)
                 if not bridge_url:
                     raise RuntimeError("VM provider created a VM but did not return bridge_url for the desktop session.")
             else:
@@ -243,6 +253,11 @@ class DesktopBridgeAgentEnvironment:
         self.session_id = str(payload.get("session_id") or payload.get("id") or "")
         if not self.session_id:
             raise RuntimeError("GUI desktop bridge did not return session_id from POST /sessions.")
+        baseline_checks = self.session_config.get("baseline_checks")
+        if isinstance(baseline_checks, list) and baseline_checks and payload.get("baseline_verified") is not True:
+            raise RuntimeError(
+                "GUI desktop bridge did not confirm the requested initial-state baseline checks."
+            )
         self.last_observation = _payload_observation(
             payload,
             fallback=_payload_observation(health, "GUI desktop session started."),

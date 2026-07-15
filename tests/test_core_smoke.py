@@ -56,7 +56,8 @@ from evalclaw.planning.loop import (
     apply_human_review_feedback,
     format_human_review_overview,
 )
-from evalclaw.planning.planner import plan_eval_spec, translate_goal_to_english
+from evalclaw.planning.planner import translate_goal_to_english
+from evalclaw.planning.task_planner import _instruction_resource, plan_benchmark
 from evalclaw.protocols.agent_task_package import compact_agent_task_package
 from evalclaw.protocols.multimodal import MULTIMODAL_SCHEMA_VERSION
 from evalclaw.protocols.science import SCIENCE_SCHEMA_VERSION, text_requests_science
@@ -90,12 +91,12 @@ from evalclaw.types import (
     ScaleBudget,
     SourceKind,
     TargetModelConfig,
-    TaskBlueprint,
     TaskDefinition,
     TaskScoringSpec,
     TaskSuite,
     TaskType,
 )
+from tests.blueprint_factory import make_blueprint
 
 
 def test_sandbox_runs_in_isolated_container(monkeypatch) -> None:
@@ -141,7 +142,7 @@ def test_planner_fallback_preserves_scale_budget() -> None:
         scale_budget=ScaleBudget.high,
     )
 
-    spec = plan_eval_spec("Evaluate iterative code agents", config)
+    spec = plan_benchmark("Evaluate iterative code agents", config).to_eval_spec()
 
     assert spec.scale_budget == ScaleBudget.high
     assert spec.scale == 1000
@@ -290,12 +291,13 @@ def test_task_builder_requires_role_key_by_default() -> None:
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="agent_blueprint",
-        dimension_id=dimension.id,
-        title="Agent task",
+    blueprint = make_blueprint(
+        "agent_blueprint",
+        dimension.id,
+        "Agent task",
+        task_type=TaskType.agent_interaction,
+        content="One executable agent task.",
         environment_type=AgentEnvironmentType.workspace,
-        expected_task_count=1,
     )
 
     with pytest.raises(RuntimeError, match="missing task-builder API key"):
@@ -322,12 +324,13 @@ def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> Non
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="agent_blueprint",
-        dimension_id=dimension.id,
-        title="Agent task",
+    blueprint = make_blueprint(
+        "agent_blueprint",
+        dimension.id,
+        "Agent task",
+        task_type=TaskType.agent_interaction,
+        content="One executable agent task.",
         environment_type=AgentEnvironmentType.workspace,
-        expected_task_count=1,
     )
 
     with pytest.raises(RuntimeError, match="quota exhausted"):
@@ -342,14 +345,12 @@ def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> Non
         )
 
 
-def test_task_builder_calls_llm_once_per_planned_task(monkeypatch) -> None:
+def test_task_builder_calls_llm_once_per_blueprint(monkeypatch) -> None:
     payloads: list[dict] = []
 
     def one_task_call_llm(messages, *args, **kwargs):
         payload = json.loads(messages[0].content)
         payloads.append(payload)
-        construction = payload["task_plan"]["construction"]
-        task_index = construction["task_index"]
         challenge_effort = payload["task_plan"]["capability"]["challenge_effort"]
         return json.dumps(
             {
@@ -364,8 +365,8 @@ def test_task_builder_calls_llm_once_per_planned_task(monkeypatch) -> None:
                             "type": "workspace",
                             "workspace": {
                                 "start_room": "office",
-                                "rooms": {"office": [f"item_{task_index}"], "done": []},
-                                "goal": {"done": [f"item_{task_index}"]},
+                                "rooms": {"office": [f"item_{task_index}"], "mailroom": []},
+                                "goal": {"outgoing_bin": [f"item_{task_index}"]},
                             },
                         },
                         "scoring": {"pass_criteria": "Done."},
@@ -377,6 +378,7 @@ def test_task_builder_calls_llm_once_per_planned_task(monkeypatch) -> None:
                             }
                         },
                     }
+                    for task_index in (1, 2)
                 ]
             }
         )
@@ -392,12 +394,16 @@ def test_task_builder_calls_llm_once_per_planned_task(monkeypatch) -> None:
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="agent_blueprint",
-        dimension_id=dimension.id,
-        title="Agent task",
+    blueprint = make_blueprint(
+        "agent_blueprint",
+        dimension.id,
+        "Two related workspace tasks",
+        task_type=TaskType.agent_interaction,
+        count=2,
+        content="Move two distinct workspace items in separate tasks.",
+        construction_requirements=["Implement both distinct workspace tasks."],
         environment_type=AgentEnvironmentType.workspace,
-        expected_task_count=2,
+        metadata={"content_focus": "two workspace items"},
     )
 
     progress: list[str] = []
@@ -414,12 +420,16 @@ def test_task_builder_calls_llm_once_per_planned_task(monkeypatch) -> None:
     )
 
     assert [task.id for task in suite.tasks] == ["task_1", "task_2"]
-    assert len(payloads) == 2
-    assert [payload["task_plan"]["construction"]["expected_task_count"] for payload in payloads] == [1, 1]
-    assert [payload["task_plan"]["construction"]["task_index"] for payload in payloads] == [1, 2]
-    assert [payload["task_plan"]["construction"]["blueprint_task_count"] for payload in payloads] == [2, 2]
-    assert any("starting 1/2" in message for message in progress)
-    assert any("completed 2/2" in message for message in progress)
+    assert len(payloads) == 1
+    construction = payloads[0]["task_plan"]["blueprint"]
+    assert construction["planned_task_count"] == 2
+    assert construction["required_return_task_count"] == 2
+    assert construction["task_designs"][0]["task_count"] == 2
+    assert "Move two distinct workspace items" in construction["task_designs"][0][
+        "content_design"
+    ]["description"]
+    assert any("starting 1/1" in message for message in progress)
+    assert any("completed 1/1" in message for message in progress)
 
 
 def test_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
@@ -457,12 +467,13 @@ def test_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="agent_blueprint",
-        dimension_id=dimension.id,
-        title="Agent task",
+    blueprint = make_blueprint(
+        "agent_blueprint",
+        dimension.id,
+        "Agent task",
+        task_type=TaskType.agent_interaction,
+        content="One executable agent task.",
         environment_type=AgentEnvironmentType.workspace,
-        expected_task_count=1,
     )
 
     with pytest.raises(RuntimeError, match="returned 2 task object"):
@@ -492,8 +503,8 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
                             "type": "workspace",
                             "workspace": {
                                 "start_room": "office",
-                                "rooms": {"office": ["brief"], "done": []},
-                                "goal": {"done": ["brief"]},
+                                "rooms": {"office": ["brief"], "mailroom": []},
+                                "goal": {"outgoing_bin": ["brief"]},
                             },
                         },
                         "scoring": {"pass_criteria": "Hidden tests pass."},
@@ -523,12 +534,14 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="agent_blueprint",
-        dimension_id=dimension.id,
-        title="Agent task",
+    blueprint = make_blueprint(
+        "agent_blueprint",
+        dimension.id,
+        "Agent task",
+        task_type=TaskType.agent_interaction,
+        content="One executable agent task.",
+        challenge_effort=ChallengeEffort.E4,
         environment_type=AgentEnvironmentType.workspace,
-        expected_task_count=1,
     )
 
     suite = build_task_suite(
@@ -560,16 +573,16 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
                         "dimension_id": "agent_capability",
                         "challenge_effort": "E4",
                         "title": "Recovered task",
-                        "prompt": "Inspect the workspace and move the brief into the done room.",
+                        "prompt": "Inspect the workspace and place the brief in the outgoing bin.",
                         "environment": {
                             "type": "workspace",
                             "workspace": {
                                 "start_room": "office",
-                                "rooms": {"office": ["brief"], "done": []},
-                                "goal": {"done": ["brief"]},
+                                "rooms": {"office": ["brief"], "mailroom": []},
+                                "goal": {"outgoing_bin": ["brief"]},
                             },
                         },
-                        "scoring": {"pass_criteria": "The brief is in the done room."},
+                        "scoring": {"pass_criteria": "The brief is in the outgoing bin."},
                         "metadata": {
                             "challenge_effort_self_assessment": {
                                 "requested_effort": "E4",
@@ -595,12 +608,14 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="agent_blueprint",
-        dimension_id=dimension.id,
-        title="Agent task",
+    blueprint = make_blueprint(
+        "agent_blueprint",
+        dimension.id,
+        "Agent task",
+        task_type=TaskType.agent_interaction,
+        content="One executable agent task.",
+        challenge_effort=ChallengeEffort.E4,
         environment_type=AgentEnvironmentType.workspace,
-        expected_task_count=1,
     )
     config = BenchmarkConfig(
         orchestrator_api_key="dummy",
@@ -644,10 +659,13 @@ def test_task_builder_stops_after_reduced_effort_retry_truncates(monkeypatch) ->
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="agent_blueprint",
-        dimension_id=dimension.id,
-        title="Agent task",
+    blueprint = make_blueprint(
+        "agent_blueprint",
+        dimension.id,
+        "Agent task",
+        task_type=TaskType.agent_interaction,
+        content="One executable agent task.",
+        challenge_effort=ChallengeEffort.E4,
         environment_type=AgentEnvironmentType.workspace,
     )
 
@@ -674,7 +692,7 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
     def concurrent_call_llm(messages, *args, **kwargs):
         nonlocal active_calls, max_active_calls
         payload = json.loads(messages[0].content)
-        blueprint_id = payload["task_plan"]["construction"]["id"]
+        blueprint_id = payload["task_plan"]["blueprint"]["id"]
         dimension_id = payload["task_plan"]["capability"]["id"]
         challenge_effort = payload["task_plan"]["capability"].get("challenge_effort", "E3")
         with lock:
@@ -698,8 +716,8 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
                             "type": "workspace",
                             "workspace": {
                                 "start_room": "office",
-                                "rooms": {"office": ["brief"], "done": []},
-                                "goal": {"done": ["brief"]},
+                                "rooms": {"office": ["brief"], "mailroom": []},
+                                "goal": {"outgoing_bin": ["brief"]},
                             },
                         },
                         "scoring": {"pass_criteria": "Done."},
@@ -728,19 +746,21 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
         task_types=[TaskType.agent_interaction],
     )
     blueprints = [
-        TaskBlueprint(
-            id="first_blueprint",
-            dimension_id=dimension.id,
-            title="First task",
-        environment_type=AgentEnvironmentType.workspace,
-            expected_task_count=1,
+        make_blueprint(
+            "first_blueprint",
+            dimension.id,
+            "First task",
+            task_type=TaskType.agent_interaction,
+            content="First task.",
+            environment_type=AgentEnvironmentType.workspace,
         ),
-        TaskBlueprint(
-            id="second_blueprint",
-            dimension_id=dimension.id,
-            title="Second task",
-        environment_type=AgentEnvironmentType.workspace,
-            expected_task_count=1,
+        make_blueprint(
+            "second_blueprint",
+            dimension.id,
+            "Second task",
+            task_type=TaskType.agent_interaction,
+            content="Second task.",
+            environment_type=AgentEnvironmentType.workspace,
         ),
     ]
 
@@ -759,7 +779,7 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
     assert [task.id for task in suite.tasks] == ["first_blueprint_task", "second_blueprint_task"]
 
 
-def test_task_builder_repairs_structural_validation_errors(monkeypatch) -> None:
+def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path) -> None:
     payloads: list[dict] = []
 
     def repairable_call_llm(messages, *args, **kwargs):
@@ -834,12 +854,13 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch) -> None:
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="desktop_blueprint",
-        dimension_id=dimension.id,
-        title="Desktop workflow",
+    blueprint = make_blueprint(
+        "desktop_blueprint",
+        dimension.id,
+        "Desktop workflow",
+        task_type=TaskType.agent_interaction,
+        content="One desktop workflow.",
         environment_type=AgentEnvironmentType.gui_desktop,
-        expected_task_count=1,
     )
 
     suite = build_task_suite(
@@ -850,6 +871,7 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch) -> None:
             use_web_research=False,
             use_hf_discovery=False,
             task_builder_repair_attempts=1,
+            task_builder_debug_dir=str(tmp_path / "builder-debug"),
         ),
     )
 
@@ -857,6 +879,92 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch) -> None:
     assert payloads[1]["repair"]["issues"]
     assert suite.tasks[0].environment.session["application"] == "spreadsheet"
     assert suite.tasks[0].environment.evaluation["method"] == "artifact_check"
+    responses = sorted(tmp_path.glob("builder-debug/**/*.response.txt"))
+    diagnostics = sorted(tmp_path.glob("builder-debug/**/*.diagnostics.json"))
+    assert len(responses) == 2
+    assert len(diagnostics) == 2
+    statuses = [json.loads(path.read_text(encoding="utf-8"))["status"] for path in diagnostics]
+    assert statuses == ["structural_validation_failed", "accepted"]
+
+
+def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp_path) -> None:
+    def incomplete_gui_response(messages, *args, **kwargs):
+        payload = json.loads(messages[0].content)
+        effort = payload["task_plan"]["capability"].get("challenge_effort", "E3")
+        return json.dumps(
+            {
+                "tasks": [
+                    {
+                        "id": "unscored_gui_task",
+                        "dimension_id": "desktop_agent",
+                        "task_type": "agent_interaction",
+                        "challenge_effort": effort,
+                        "title": "Unscored GUI task",
+                        "prompt": "Inspect the desktop and repair the requested state.",
+                        "environment": {
+                            "type": "gui_desktop",
+                            "session": {
+                                "application": "desktop",
+                                "start_state": "The desktop is visible.",
+                            },
+                        },
+                        "scoring": {"pass_criteria": "The requested state is repaired."},
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": effort,
+                                "meets_requested_effort": True,
+                                "rationale": "The task requires a multi-step desktop repair.",
+                            }
+                        },
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.construction.suite.call_llm", incomplete_gui_response)
+    dimension = EvalDimension(
+        id="desktop_agent",
+        name="Desktop agent",
+        description="Evaluate GUI desktop task execution.",
+        approach="Use executable GUI tasks.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate desktop agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent_interaction],
+    )
+    blueprint = make_blueprint(
+        "desktop_blueprint",
+        dimension.id,
+        "Desktop workflow",
+        task_type=TaskType.agent_interaction,
+        content="One desktop workflow.",
+        environment_type=AgentEnvironmentType.gui_desktop,
+    )
+
+    with pytest.raises(RuntimeError, match="executable evaluation"):
+        build_task_suite(
+            spec,
+            [blueprint],
+            BenchmarkConfig(
+                orchestrator_api_key="dummy",
+                use_web_research=False,
+                use_hf_discovery=False,
+                task_builder_repair_attempts=1,
+                task_builder_debug_dir=str(tmp_path / "builder-debug"),
+            ),
+        )
+
+    responses = sorted(tmp_path.glob("builder-debug/**/*.response.txt"))
+    diagnostics = sorted(tmp_path.glob("builder-debug/**/*.diagnostics.json"))
+    assert len(responses) == 2
+    assert len(diagnostics) == 2
+    assert all("unscored_gui_task" in path.read_text(encoding="utf-8") for path in responses)
+    assert all(
+        json.loads(path.read_text(encoding="utf-8"))["status"]
+        == "structural_validation_failed"
+        for path in diagnostics
+    )
 
 
 def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None:
@@ -880,7 +988,8 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
                             "type": "workspace",
                             "workspace": {
                                 "start_room": "office",
-                                "rooms": {"office": ["brief"]},
+                                "rooms": {"office": ["brief"], "mailroom": []},
+                                "goal": {"outgoing_bin": ["brief"]},
                             },
                         },
                         "scoring": {
@@ -912,12 +1021,14 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
         dimensions=[dimension],
         task_types=[TaskType.agent_interaction],
     )
-    blueprint = TaskBlueprint(
-        id="tool_use_blueprint",
-        dimension_id=dimension.id,
-        title="Tool-use workflow",
+    blueprint = make_blueprint(
+        "tool_use_blueprint",
+        dimension.id,
+        "Tool-use workflow",
+        task_type=TaskType.agent_interaction,
+        content="One tool-use workflow.",
+        challenge_effort=ChallengeEffort.E2,
         environment_type=AgentEnvironmentType.workspace,
-        expected_task_count=1,
     )
 
     suite = build_task_suite(
@@ -1135,10 +1246,12 @@ def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
     source_suite = build_task_suite(
         spec,
         [
-        TaskBlueprint(
-                id="gui_blueprint",
-                dimension_id=dimension.id,
-                title="GUI task",
+            make_blueprint(
+                "gui_blueprint",
+                dimension.id,
+                "GUI task",
+                task_type=TaskType.agent_interaction,
+                content="One GUI task.",
                 environment_type=AgentEnvironmentType.gui_desktop,
             )
         ],
@@ -1522,6 +1635,54 @@ def test_desktop_bridge_creates_and_cleans_vm_session(monkeypatch) -> None:
     assert ("POST", "/sessions", {"session": {"application": "browser", "vm": {"image": "evalclaw-gui"}, "vm_id": "vm-1", "requires_vm": True}}) in requests
 
 
+def test_desktop_bridge_fails_closed_when_baseline_is_not_confirmed(monkeypatch) -> None:
+    deleted: list[str] = []
+
+    class FakeResponse:
+        content = b"{}"
+
+        def __init__(self, payload: dict):
+            self.payload = payload
+            self.content = json.dumps(payload).encode()
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self.payload
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            pass
+
+        def request(self, method, path, json=None):
+            if method == "POST" and path == "/sessions":
+                return FakeResponse({"session_id": "session-unverified"})
+            return FakeResponse({"status": "ok"})
+
+        def delete(self, path):
+            deleted.append(path)
+            return FakeResponse({})
+
+        def close(self):
+            return None
+
+    monkeypatch.setattr("evalclaw.execution.desktop_agent_env.httpx.Client", FakeClient)
+
+    with pytest.raises(RuntimeError, match="baseline checks"):
+        DesktopBridgeAgentEnvironment(
+            bridge_url="http://127.0.0.1:7766",
+            bridge_api_key=None,
+            session_config={
+                "application": "desktop",
+                "baseline_checks": [{"method": "file_exists", "path": "/opt/evalclaw/vm-materialized"}],
+            },
+            evaluation_config={},
+        )
+
+    assert deleted == ["/sessions/session-unverified"]
+
+
 def test_probe_vm_provider_uses_local_auto_when_no_url(monkeypatch) -> None:
     monkeypatch.setattr("evalclaw.execution.vm_provider._virtualbox_executable", lambda: "VBoxManage")
     monkeypatch.setattr("evalclaw.execution.vm_provider._run_command", lambda *args, **kwargs: (True, "7.0.0"))
@@ -1553,8 +1714,10 @@ def test_vm_provider_disables_proxy_env_for_local_urls() -> None:
     assert trust_env_for_url("http://vm-provider.internal:7788") is True
 
 
-def test_create_local_vm_session_virtualbox(monkeypatch) -> None:
+def test_create_local_vm_session_virtualbox(monkeypatch, tmp_path) -> None:
     commands: list[list[str]] = []
+    seed_iso = tmp_path / "windows-config-drive.iso"
+    seed_iso.write_bytes(b"seed")
 
     def fake_run_command(command, *, timeout=30):
         commands.append(command)
@@ -1568,13 +1731,19 @@ def test_create_local_vm_session_virtualbox(monkeypatch) -> None:
 
     session = create_local_vm_session(
         "local://virtualbox",
-        vm_spec={"image": "evalclaw-gui-ubuntu-22.04", "snapshot": "clean", "bridge": {"guest_port": 7766}},
+        vm_spec={
+            "image": "evalclaw-gui-ubuntu-22.04",
+            "snapshot": "clean",
+            "seed_iso": str(seed_iso),
+            "bridge": {"guest_port": 7766},
+        },
         session_spec={"application": "file_manager"},
         timeout=12,
     )
 
     assert session.vm_id == "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12"
     assert session.bridge_url == "http://127.0.0.1:18766"
+    assert session.data["provider_url"] == "local://virtualbox"
     assert commands[0] == ["VBoxManage", "--version"]
     assert commands[1] == [
         "VBoxManage",
@@ -1587,6 +1756,32 @@ def test_create_local_vm_session_virtualbox(monkeypatch) -> None:
         "machine",
     ]
     assert ["VBoxManage", "snapshot", "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12", "restore", "clean"] in commands
+    assert [
+        "VBoxManage",
+        "storagectl",
+        "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12",
+        "--name",
+        "EvalClawConfigDrive",
+        "--add",
+        "sata",
+        "--controller",
+        "IntelAhci",
+    ] in commands
+    assert [
+        "VBoxManage",
+        "storageattach",
+        "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12",
+        "--storagectl",
+        "EvalClawConfigDrive",
+        "--port",
+        "0",
+        "--device",
+        "0",
+        "--type",
+        "dvddrive",
+        "--medium",
+        str(seed_iso.resolve()),
+    ] in commands
     assert [
         "VBoxManage",
         "modifyvm",
@@ -1662,6 +1857,7 @@ def test_create_local_vm_session_qemu_uses_overlay_and_port_forward(monkeypatch,
 
     assert session.vm_id == "evalclaw-qemu-base-feedface"
     assert session.bridge_url == "http://127.0.0.1:18767"
+    assert session.data["provider_url"] == "local://qemu"
     assert commands[0][:6] == ["qemu-img", "create", "-f", "qcow2", "-F", "qcow2"]
     process = processes[0]
     assert "-nic" in process.command
@@ -1821,315 +2017,36 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
     assert sampled_dimensions == {"a", "b"}
 
 
-def test_planner_parses_dimension_item_allocation(monkeypatch) -> None:
-    def fake_call_llm(*args, **kwargs):
-        return json.dumps(
-            {
-                "spec": {
-                    "id": "format_eval",
-                    "objective": "Evaluate format following.",
-                    "subjects": ["target"],
-                    "task_types": ["multiple_choice", "open_generation"],
-                    "scale_budget": "mid",
-                    "scale": 6,
-                    "metrics": ["accuracy"],
-                    "dimensions": [
-                        {
-                            "id": "strict_json",
-                            "name": "Strict JSON",
-                            "description": "Valid JSON output under constraints.",
-                            "approach": "Use schema-constrained prompts.",
-                            "target_item_count": 3,
-                            "target_source_backed_count": 1,
-                            "target_generated_count": 2,
-                            "task_types": ["short_answer"],
-                            "item_requirements": ["Prompt must require parseable JSON."],
-                        }
-                    ],
-                },
-                "critique": {
-                    "checklist": {
-                        "objective": True,
-                        "subjects": True,
-                        "format": True,
-                        "content": True,
-                        "scale": True,
-                        "metrics": True,
-                    },
-                    "score": 4.5,
-                },
-            }
-        )
-
-    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
-
-    spec = plan_eval_spec("Evaluate format following", BenchmarkConfig(orchestrator_api_key="dummy"))
-
-    dimension = spec.dimensions[0]
-    assert dimension.target_item_count == 3
-    assert dimension.target_source_backed_count == 1
-    assert dimension.target_generated_count == 2
-    assert dimension.task_types == [TaskType.short_answer]
-    assert dimension.item_requirements == ["Prompt must require parseable JSON."]
-
-
-def test_planner_accepts_pairwise_task_when_reference_is_configured(monkeypatch) -> None:
-    captured_payload = {}
-
-    def fake_call_llm(messages, **kwargs):
-        captured_payload.update(json.loads(messages[0].content))
-        return json.dumps(
-            {
-                "spec": {
-                    "id": "preference_eval",
-                    "objective": "Compare response quality against a reference model.",
-                    "subjects": ["target"],
-                    "task_types": ["pairwise_preference"],
-                    "scale_budget": "mid",
-                    "scale": 3,
-                    "metrics": ["win_rate"],
-                    "dimensions": [
-                        {
-                            "id": "helpfulness_preference",
-                            "name": "Helpfulness preference",
-                            "description": "Prefer the more helpful answer.",
-                            "approach": "Use direct target-vs-reference comparison.",
-                            "target_item_count": 2,
-                            "task_types": ["pairwise"],
-                            "item_requirements": ["Prompt should be answered by both target and reference."],
-                        }
-                    ],
-                },
-                "critique": {
-                    "checklist": {
-                        "objective": True,
-                        "subjects": True,
-                        "format": True,
-                        "content": True,
-                        "scale": True,
-                        "metrics": True,
-                    },
-                    "score": 4.5,
-                },
-            }
-        )
-
-    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
-
-    spec = plan_eval_spec(
-        "Compare helpfulness",
+def test_planner_instruction_resource_contains_design_constraints() -> None:
+    instruction = _instruction_resource(
+        "Evaluate visual scientific reasoning from images.",
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
             reference_model=TargetModelConfig(provider="mock", model="mock-reference"),
+            scale_budget=ScaleBudget.high,
         ),
     )
 
-    assert captured_payload["reference_model"]["model"] == "mock-reference"
-    assert spec.task_types == [TaskType.pairwise_preference]
-    assert spec.metrics == [Metric.win_rate]
-    assert spec.dimensions[0].task_types == [TaskType.pairwise_preference]
+    assert "Evaluate visual scientific reasoning from images." in instruction
+    assert '"scale_budget": "high"' in instruction
+    assert '"available_task_types"' in instruction
+    assert '"available_metrics"' in instruction
+    assert '"available_environment_types"' in instruction
+    assert '"model": "mock-reference"' in instruction
+    assert '"pairwise_preference_policy"' in instruction
+    assert '"multimodal_policy"' in instruction
+    assert '"science_policy"' in instruction
 
 
-def test_planner_includes_multimodal_guidance_when_planning(monkeypatch) -> None:
-    captured_payload = {}
+def test_planner_instruction_resource_omits_irrelevant_domain_policies() -> None:
+    instruction = _instruction_resource(
+        "Evaluate text-only instruction following.",
+        BenchmarkConfig(scale_budget=ScaleBudget.low),
+    )
 
-    def fake_call_llm(messages, **kwargs):
-        captured_payload.update(json.loads(messages[0].content))
-        return json.dumps(
-            {
-                "spec": {
-                    "id": "vision_eval",
-                    "objective": "Evaluate visual reasoning.",
-                    "subjects": ["target"],
-                    "task_types": ["open_generation"],
-                    "scale_budget": "mid",
-                    "scale": 3,
-                    "metrics": ["judge_score"],
-                    "dimensions": [
-                        {
-                            "id": "visual_reasoning",
-                            "name": "Visual reasoning",
-                            "description": "Interpret an image and answer questions about it.",
-                            "approach": "Use image-backed prompts.",
-                            "target_item_count": 2,
-                            "task_types": ["open_generation"],
-                            "item_requirements": [
-                                "Include metadata.multimodal using evalclaw.multimodal.v1.",
-                            ],
-                        }
-                    ],
-                },
-                "critique": {
-                    "checklist": {
-                        "objective": True,
-                        "subjects": True,
-                        "format": True,
-                        "content": True,
-                        "scale": True,
-                        "metrics": True,
-                    },
-                    "score": 4.5,
-                },
-            }
-        )
-
-    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
-
-    spec = plan_eval_spec("Evaluate visual reasoning", BenchmarkConfig(orchestrator_api_key="dummy"))
-
-    assert "multimodal_policy" in captured_payload
-    assert "multimodal_schema" in captured_payload
-    assert spec.dimensions[0].item_requirements[0].startswith("Include metadata.multimodal")
-
-
-def test_planner_omits_multimodal_guidance_for_text_only_goals(monkeypatch) -> None:
-    captured_payload = {}
-
-    def fake_call_llm(messages, **kwargs):
-        captured_payload.update(json.loads(messages[0].content))
-        return json.dumps(
-            {
-                "spec": {
-                    "id": "code_eval",
-                    "objective": "Evaluate code repair.",
-                    "subjects": ["target"],
-                    "task_types": ["open_generation"],
-                    "scale_budget": "low",
-                    "scale": 2,
-                    "metrics": ["judge_score"],
-                    "dimensions": [
-                        {
-                            "id": "code_repair",
-                            "name": "Code repair",
-                            "description": "Fix bugs in small code snippets.",
-                            "approach": "Use text-only code prompts.",
-                            "target_item_count": 1,
-                            "task_types": ["open_generation"],
-                            "item_requirements": ["Include a complete prompt and rubric."],
-                        }
-                    ],
-                },
-                "critique": {
-                    "checklist": {
-                        "objective": True,
-                        "subjects": True,
-                        "format": True,
-                        "content": True,
-                        "scale": True,
-                        "metrics": True,
-                    },
-                    "score": 4.5,
-                },
-            }
-        )
-
-    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
-
-    plan_eval_spec("Evaluate code engineering ability", BenchmarkConfig(orchestrator_api_key="dummy"))
-
-    assert "multimodal_policy" not in captured_payload
-    assert "multimodal_schema" not in captured_payload
-
-
-def test_planner_includes_science_guidance_when_requested(monkeypatch) -> None:
-    captured_payload = {}
-
-    def fake_call_llm(messages, **kwargs):
-        captured_payload.update(json.loads(messages[0].content))
-        return json.dumps(
-            {
-                "spec": {
-                    "id": "science_eval",
-                    "objective": "Evaluate graduate physics reasoning.",
-                    "subjects": ["target"],
-                    "task_types": ["multiple_choice", "short_answer"],
-                    "scale_budget": "mid",
-                    "scale": 500,
-                    "metrics": ["accuracy", "judge_score"],
-                    "dimensions": [
-                        {
-                            "id": "physics_units",
-                            "name": "Physics units",
-                            "description": "Solve physics problems with units.",
-                            "approach": "Use self-contained quantitative prompts.",
-                            "target_item_count": 2,
-                            "task_types": ["short_answer"],
-                            "item_requirements": [
-                                "Include constants, units, assumptions, and metadata.science.",
-                            ],
-                        }
-                    ],
-                },
-                "critique": {
-                    "checklist": {
-                        "objective": True,
-                        "subjects": True,
-                        "format": True,
-                        "content": True,
-                        "scale": True,
-                        "metrics": True,
-                    },
-                    "score": 4.5,
-                },
-            }
-        )
-
-    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
-
-    spec = plan_eval_spec("Evaluate graduate physics scientific reasoning", BenchmarkConfig(orchestrator_api_key="dummy"))
-
-    assert "science_policy" in captured_payload
-    assert "science_schema" in captured_payload
-    assert spec.dimensions[0].item_requirements[0].startswith("Include constants")
-
-
-def test_planner_omits_science_guidance_for_non_science_goal(monkeypatch) -> None:
-    captured_payload = {}
-
-    def fake_call_llm(messages, **kwargs):
-        captured_payload.update(json.loads(messages[0].content))
-        return json.dumps(
-            {
-                "spec": {
-                    "id": "instruction_eval",
-                    "objective": "Evaluate instruction following.",
-                    "subjects": ["target"],
-                    "task_types": ["open_generation"],
-                    "scale_budget": "low",
-                    "scale": 100,
-                    "metrics": ["judge_score"],
-                    "dimensions": [
-                        {
-                            "id": "format",
-                            "name": "Format",
-                            "description": "Follow output constraints.",
-                            "approach": "Use text-only instructions.",
-                            "target_item_count": 2,
-                            "task_types": ["open_generation"],
-                            "item_requirements": ["Score output format and constraint adherence."],
-                        }
-                    ],
-                },
-                "critique": {
-                    "checklist": {
-                        "objective": True,
-                        "subjects": True,
-                        "format": True,
-                        "content": True,
-                        "scale": True,
-                        "metrics": True,
-                    },
-                    "score": 4.5,
-                },
-            }
-        )
-
-    monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
-
-    plan_eval_spec("Evaluate instruction following", BenchmarkConfig(orchestrator_api_key="dummy"))
-
-    assert "science_policy" not in captured_payload
-    assert "science_schema" not in captured_payload
+    assert '"target_models_are_optional": true' in instruction
+    assert '"multimodal_policy"' not in instruction
+    assert '"science_policy"' not in instruction
+    assert '"pairwise_preference_policy"' not in instruction
 
 
 def test_chinese_goal_translation_before_planning(monkeypatch) -> None:
@@ -2485,10 +2402,10 @@ def test_science_request_detection_and_fallback_spec() -> None:
     assert text_requests_science("测试物理定量计算和科学证据解释")
     assert not text_requests_science("Evaluate instruction following without science")
 
-    spec = plan_eval_spec(
+    spec = plan_benchmark(
         "Evaluate scientific reasoning in physics experiments",
         BenchmarkConfig(scale_budget=ScaleBudget.low),
-    )
+    ).to_eval_spec()
 
     dimension_ids = {dimension.id for dimension in spec.dimensions}
     assert "science_conceptual_reasoning" in dimension_ids

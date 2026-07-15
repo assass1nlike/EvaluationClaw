@@ -273,8 +273,8 @@ def _materialize_vm_tasks(report: EnvironmentClawReport, items: list[BenchmarkIt
                 EnvironmentAction(
                     action="materialize VM task content",
                     reason=(
-                        "Generated a task-specific cloud-init seed ISO for VM initial files, metadata, "
-                        "and optional software provisioning commands."
+                        f"Generated a task-specific NoCloud config-drive ISO using {result.strategy} "
+                        "for initial files, metadata, and optional software provisioning commands."
                     ),
                     applied=True,
                     data=result.as_dict(),

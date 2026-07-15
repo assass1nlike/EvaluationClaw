@@ -186,9 +186,12 @@ Requirements:
   cran_packages/r_packages, bioconductor_packages/bioc_packages,
   julia_packages, conda_packages with conda_channels, cargo_packages,
   go_packages, gem_packages, composer_packages, apk/dnf/yum/pacman package
-  fields for non-Ubuntu bases, install_steps, commands, and optional
-  desktop_bridge_install_command/desktop_bridge_start_command. EvaluationClaw
-  writes these into the same cloud-init seed ISO as task files.
+  fields for non-Ubuntu Linux bases, install_steps, commands, and optional
+  desktop_bridge_install_command/desktop_bridge_start_command. For Windows,
+  set vm.guest_os="windows" and use winget/choco, Windows features, pip/npm,
+  PowerShell commands, or PowerShell install steps with a Cloudbase-Init NoCloud
+  base template. EvaluationClaw writes OS-specific setup and task files into the
+  same NoCloud config-drive ISO.
   For professional, VM-backed, GUI/desktop-software, docker_workspace, or
   long-horizon executable tasks, also include metadata.agent_task_package with
   schema_version "evalclaw.agent_task_package.v1". It must define visible

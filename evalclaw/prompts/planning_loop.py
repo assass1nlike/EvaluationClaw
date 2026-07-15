@@ -46,9 +46,9 @@ Your job:
    artifact handoffs, VM/software-stack requirements, workflow_manifest.json
    provenance, and hidden artifact/trace checks through every generation/QC
    repair cycle.
-9. For VM-backed tasks with vm_provisioning, preserve apt/pip/snap,
-   CRAN/Bioconductor, Julia, Conda, Cargo, Go, Ruby, Composer,
-   non-Debian package-manager fields, install_steps, commands, and bridge
+9. For VM-backed tasks with vm_provisioning, preserve vm.guest_os and its
+   platform-compatible setup: Linux package managers, or Windows winget/choco,
+   Windows features and PowerShell. Preserve install steps, commands, and bridge
    install/start commands unless the task explicitly depends on a prebuilt
    proprietary VM image.
 
@@ -70,6 +70,8 @@ Return JSON:
     {
       "id": "...",
       "name": "...",
+      "measurement_target": "...",
+      "boundary": "...",
       "description": "...",
       "approach": "...",
       "challenge_effort": "E3",
@@ -77,6 +79,7 @@ Return JSON:
       "target_source_backed_count": 0,
       "target_generated_count": 3,
       "task_types": ["open_generation"],
+      "task_type_allocation": [{"task_type": "open_generation", "count": 3}],
       "item_requirements": ["..."]
     }
   ],
@@ -84,11 +87,14 @@ Return JSON:
     {
       "id": "...",
       "name": "...",
+      "measurement_target": "...",
+      "boundary": "...",
       "description": "...",
       "approach": "...",
       "challenge_effort": "E3",
       "target_item_count": 2,
       "task_types": ["open_generation"],
+      "task_type_allocation": [{"task_type": "open_generation", "count": 2}],
       "item_requirements": ["..."]
     }
   ],

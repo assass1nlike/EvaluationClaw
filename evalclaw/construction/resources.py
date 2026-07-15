@@ -50,21 +50,31 @@ def _select_blueprint_sources(
     blueprint: TaskBlueprint,
     config: BenchmarkConfig,
 ) -> list[BenchmarkSource]:
+    sources = [
+        BenchmarkSource(
+            kind=SourceKind.web,
+            uri=uri,
+            title=uri,
+            notes="Planner-suggested source from the benchmark plan.",
+        )
+        for uri in blueprint.source_plan.suggested_urls[: config.max_research_sources]
+    ]
+    if len(sources) >= config.max_research_sources:
+        return sources
     settings = role_model_settings(config, "research")
     if (
         not dimension.needs_research
         or not config.use_web_research
         or not settings.configured
     ):
-        return []
+        return sources
     queries = blueprint.resource_queries or dimension.research_queries
     if not queries:
         queries = [
             f"{dimension.name} {blueprint.title} benchmark task resources",
             f"{dimension.name} {blueprint.description} benchmark dataset",
         ]
-    sources: list[BenchmarkSource] = []
-    seen: set[str] = set()
+    seen: set[str] = {source.uri for source in sources}
     for query in queries[:2]:
         result = web_search(
             query,
