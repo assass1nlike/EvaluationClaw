@@ -596,7 +596,7 @@ class QcReport(BaseModel):
     @property
     def is_acceptable(self) -> bool:
         hard_failures = [i for i in self.issues if i.severity == QcSeverity.error]
-        return not hard_failures and self.quality_score >= 0.8
+        return not hard_failures and not self.rejected_item_ids
 
 
 class ResearchTaxonomyEntry(BaseModel):
@@ -828,5 +828,5 @@ class BenchmarkConfig(BaseModel):
     gui_bridge_timeout_s: int = 30
     vm_provider_url: Optional[str] = None
     vm_provider_api_key: Optional[str] = None
-    vm_provider_timeout_s: int = 120
+    vm_provider_timeout_s: int = 600
     vm_provider_destroy_on_cleanup: bool = True

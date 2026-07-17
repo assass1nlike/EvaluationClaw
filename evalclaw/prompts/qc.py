@@ -54,6 +54,23 @@ Apply task-type requirements according to what the runner actually consumes:
 - agent_interaction needs an environment whose actual evaluator scores the
   state, artifacts, answer, or trajectory produced by the target.
 
+Each sampled item includes prompt_is_complete and prompt_character_count. When
+prompt_is_complete=false, prompt is an explicitly marked QC review excerpt
+containing its beginning and end. Do not report prompt truncation merely because
+the middle was omitted for QC context; report only a concrete defect visible in
+the excerpt, or a warning when the omitted content prevents a reliable review.
+Likewise, any `QC REVIEW EXCERPT` or `QC review excerpt clipped` marker anywhere
+in the supplied metadata was inserted only while preparing this QC request. It
+is not present in the canonical task, command, file, or validator. Never report
+that marker or the excerpt boundary as a defect in the canonical benchmark.
+
+For executable tasks, metadata.agent_env and metadata.agent_task_package are the
+canonical runtime contracts. Ordinary task metadata fields with names such as
+required_tools, forbidden_shortcuts, or retained_evidence are descriptive and
+cannot add, remove, or override runtime tools. Report a tool-contract conflict
+only when the canonical environment or agent task package conflicts with the
+runner contract.
+
 For every environment-backed task, cross-check the complete execution chain:
 Planner requirements -> resettable initial state -> runner-exposed actions and
 observations -> target-produced result -> evaluator inputs -> score. A task may
@@ -128,14 +145,30 @@ For task_type=agent_interaction with metadata.agent_env.type=workspace:
 For task_type=agent_interaction with metadata.agent_env.type=gui_desktop:
 - Require an identifiable application or desktop surface, a launch/start
   state, bounded steps, and bridge-executable evaluation checks or method.
-- When requires_vm=true, VM image/template/snapshot/disk fields must be
-  runner-resolvable identifiers rather than descriptive paragraphs. Check that
-  task-specific setup is compatible with the declared guest OS and provider.
+- When requires_vm=true, accept either a concrete runner-resolvable
+  image/template/snapshot/disk or a declared guest OS plus non-empty
+  required_capabilities for runtime provider resolution. Check that task-specific
+  setup is compatible with the declared guest OS and capabilities.
+- A concrete `vm.template`, `vm.image`, or VM disk field is independently a
+  valid boot-source identifier. Never require both `environment.image` and a
+  VM template/image field, and do not call the accepted field ambiguous merely
+  because the other alternatives are empty.
 - EvaluationClaw builds a NoCloud config-drive ISO for task-specific files and
   provisioning. Linux uses cloud-init; Windows uses PowerShell user data through
   Cloudbase-Init's NoCloud service. Require vm.guest_os for OS-specific setup,
   Linux package fields only on Linux, Windows package/PowerShell fields only on
   Windows, and a Cloudbase-Init-capable base template for dynamic Windows setup.
+- `vm_provisioning` is itself the canonical VM setup path consumed by the VM
+  materializer. It does not need to be copied into `setup_commands`; never report
+  it as disconnected merely because `setup_commands` is empty. Audit the actual
+  provisioning content and its compatibility with the guest/template instead.
+- `expected_artifacts` may use `artifact_requirement=all`, `any`, or
+  `exactly_one`; respect that explicit quantifier instead of treating every
+  candidate path as jointly required.
+- The runner retains the agent trace for audit, but generic GUI scoring is the
+  score returned by the bridge evaluator. Reject promised trajectory points
+  unless the canonical bridge evaluation defines a concrete executable way to
+  score them.
 - Hidden or mutable initial state needs runner-private session.baseline_checks;
   the bridge must confirm baseline_verified=true before the target starts.
 - Do not require a VM for a valid externally managed desktop bridge, and do not

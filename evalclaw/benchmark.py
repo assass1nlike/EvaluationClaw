@@ -115,6 +115,10 @@ def _merge_repaired_suite(
     )
 
 
+def _blocking_error_count(report: QcReport) -> int:
+    return sum(issue.severity == QcSeverity.error for issue in report.issues)
+
+
 def build_benchmark_dataset_with_qc_loop(
     goal: str,
     config: BenchmarkConfig,
@@ -173,10 +177,21 @@ def build_dataset_from_spec_with_qc_loop(
             ),
             log=log,
         )
-        suite = _merge_repaired_suite(suite, repaired)
-        dataset = task_suite_to_dataset(suite, spec, config)
-        qc_report = run_qc_gate(dataset, config)
-        log(f"  QC after repair round {repair_round}: {qc_report.summary}")
+        candidate_suite = _merge_repaired_suite(suite, repaired)
+        candidate_dataset = task_suite_to_dataset(candidate_suite, spec, config)
+        candidate_qc = run_qc_gate(candidate_dataset, config)
+        log(f"  QC after repair round {repair_round}: {candidate_qc.summary}")
+        previous_errors = _blocking_error_count(qc_report)
+        candidate_errors = _blocking_error_count(candidate_qc)
+        if candidate_errors >= previous_errors:
+            log(
+                f"  QC repair round {repair_round}: discarded non-improving replacement "
+                f"({candidate_errors} blocking issue(s), current best {previous_errors})."
+            )
+            continue
+        suite = candidate_suite
+        dataset = candidate_dataset
+        qc_report = candidate_qc
 
     if (not qc_report.is_acceptable or qc_report.rejected_item_ids) and not config.allow_incomplete_benchmark:
         blocking = [issue for issue in qc_report.issues if issue.severity == QcSeverity.error]
