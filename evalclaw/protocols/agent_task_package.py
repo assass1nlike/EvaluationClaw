@@ -23,6 +23,7 @@ AGENT_TASK_PACKAGE_SCHEMA: dict[str, Any] = {
         "requires_vm": False,
         "requires_gui": False,
         "required_software": ["Runtime or application requirements, without secrets."],
+        "required_capabilities": ["Provider image capabilities required at runtime."],
         "network": "none | restricted | internet",
     },
     "visible_inputs": {
@@ -39,6 +40,7 @@ AGENT_TASK_PACKAGE_SCHEMA: dict[str, Any] = {
     },
     "output_contract": {
         "expected_artifacts": ["Paths or states the target must produce."],
+        "artifact_requirement": "all | any | exactly_one",
         "required_outputs": ["Structured outputs or final states."],
         "schema": {},
         "constraints": ["Format, location, and side-effect constraints."],
@@ -226,17 +228,19 @@ def agent_task_package_issues(item: BenchmarkItem) -> list[str]:
 def public_agent_task_package(package: dict[str, Any]) -> dict[str, Any]:
     """Return a target-visible package summary with hidden references redacted."""
     public = copy.deepcopy(package)
+    public.pop("evaluation", None)
     hidden = public.get("hidden_references")
     if isinstance(hidden, dict):
         redacted = {
             "staging_phase": hidden.get("staging_phase") or "post_agent_or_runner_private",
-            "reference_artifacts": hidden.get("reference_artifacts", []),
             "notes": "Hidden references are runner-private and are not exposed to the target agent.",
         }
         if isinstance(hidden.get("file_names"), list):
-            redacted["file_names"] = sorted(str(path) for path in hidden["file_names"])
             redacted["file_count"] = len(hidden["file_names"])
         public["hidden_references"] = redacted
+    execution = public.get("execution")
+    if isinstance(execution, dict):
+        execution.pop("evaluate", None)
     return public
 
 

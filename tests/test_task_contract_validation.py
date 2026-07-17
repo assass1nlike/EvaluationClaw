@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import json
 
+from evalclaw.construction.packaging import (
+    _agent_task_package_for_task,
+    _task_agent_metadata_for_task,
+)
 from evalclaw.construction.validation import task_structure_issues
 from evalclaw.quality.dataset_checks import _coverage_issues, _duplicate_issues
 from evalclaw.quality.llm_checks import _compact_metadata_for_qc, _llm_qc
@@ -15,8 +19,12 @@ from evalclaw.types import (
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
+    QcCategory,
+    QcIssue,
+    QcReport,
     QcSeverity,
     TaskDefinition,
+    TaskDesign,
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
@@ -137,10 +145,295 @@ def test_gui_contract_requires_a_startable_session_evaluator_and_vm_source() -> 
 
     issues = task_structure_issues(task)
 
-    assert any("application or desktop surface" in issue for issue in issues)
-    assert any("launch or start state" in issue for issue in issues)
-    assert any("executable evaluation" in issue for issue in issues)
+    assert any("environment.session.application" in issue for issue in issues)
+    assert any("environment.session.launch_state" in issue for issue in issues)
+    assert any("environment.evaluation" in issue for issue in issues)
     assert any("runner-resolvable" in issue for issue in issues)
+    assert any("baseline_checks" in issue for issue in issues)
+
+
+def test_gui_vm_contract_treats_vm_as_requires_vm_and_rejects_placeholder_sources() -> None:
+    task = _task(
+        TaskType.agent_interaction,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui_desktop,
+            vm={
+                "guest_os": "windows",
+                "template": "<runner-resolvable Windows template identifier>",
+            },
+            session={
+                "application": "Windows Desktop",
+                "launch_state": "The signed-in desktop is visible.",
+                "baseline_checks": [
+                    {"method": "command", "command": "exit 0", "expected_exit_code": 0}
+                ],
+            },
+            evaluation={"method": "bridge_state_check"},
+        ),
+    )
+
+    issues = task_structure_issues(task)
+
+    assert any("environment.vm.template" in issue for issue in issues)
+
+
+def test_windows_capability_vm_requires_concrete_named_user_setup() -> None:
+    environment = AgentEnvironmentSpec(
+        type=AgentEnvironmentType.gui_desktop,
+        requires_vm=True,
+        vm={
+            "guest_os": "windows",
+            "required_capabilities": ["desktop_bridge", "cloudbase_init_nocloud"],
+        },
+        vm_provisioning={
+            "powershell_commands": ["icacls 'C:\\Work' /grant 'worker:(OI)(CI)M'"],
+        },
+        session={
+            "application": "Windows Desktop",
+            "launch_state": "The worker desktop is signed in.",
+            "baseline_checks": [
+                {
+                    "method": "command",
+                    "command": "if ($env:USERNAME -ne 'worker') { exit 1 }; exit 0",
+                    "expected_exit_code": 0,
+                }
+            ],
+        },
+        evaluation={
+            "method": "bridge_state_check",
+            "checks": [
+                {
+                    "method": "command",
+                    "command": "if (Test-Path 'C:\\Work') { exit 0 } else { exit 1 }",
+                    "expected_exit_code": 0,
+                }
+            ],
+        },
+    )
+
+    issues = task_structure_issues(_task(TaskType.agent_interaction, environment=environment))
+
+    assert any("does not create a local user" in issue for issue in issues)
+    assert any("concrete logon mechanism" in issue for issue in issues)
+
+    windows_identity_environment = environment.model_copy(
+        update={
+            "session": {
+                **environment.session,
+                "baseline_checks": [
+                    {
+                        "method": "command",
+                        "command": (
+                            "$u=[Security.Principal.WindowsIdentity]::GetCurrent().Name; "
+                            "if ($u -notmatch '\\\\worker$') { exit 1 }; exit 0"
+                        ),
+                        "expected_exit_code": 0,
+                    }
+                ],
+            }
+        }
+    )
+    windows_identity_issues = task_structure_issues(
+        _task(TaskType.agent_interaction, environment=windows_identity_environment)
+    )
+
+    assert any("does not create a local user" in issue for issue in windows_identity_issues)
+    assert any("concrete logon mechanism" in issue for issue in windows_identity_issues)
+
+    valid = environment.model_copy(
+        update={
+            "vm_provisioning": {
+                "powershell_commands": [
+                    "$pw=ConvertTo-SecureString 'local-only' -AsPlainText -Force; "
+                    "New-LocalUser -Name 'worker' -Password $pw | Out-Null; "
+                    "$w='HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon'; "
+                    "Set-ItemProperty $w AutoAdminLogon '1'; "
+                    "Set-ItemProperty $w DefaultUserName 'worker'; "
+                    "Set-ItemProperty $w DefaultPassword 'local-only'"
+                ],
+                "restart_after_provisioning": True,
+            }
+        }
+    )
+
+    assert task_structure_issues(_task(TaskType.agent_interaction, environment=valid)) == []
+
+
+def test_windows_vm_rejects_target_inaccessible_evaluator_oracle() -> None:
+    environment = AgentEnvironmentSpec(
+        type=AgentEnvironmentType.gui_desktop,
+        requires_vm=True,
+        vm={
+            "guest_os": "windows",
+            "required_capabilities": ["desktop_bridge", "cloudbase_init_nocloud"],
+        },
+        vm_provisioning={
+            "powershell_commands": [
+                "$oracle='C:\\ProgramData\\PrivateOracle'\n"
+                "New-Item -ItemType Directory -Force $oracle | Out-Null\n"
+                "icacls $oracle /inheritance:r | Out-Null\n"
+                "icacls $oracle /grant:r 'SYSTEM:(OI)(CI)(F)' "
+                "'Administrators:(OI)(CI)(F)' | Out-Null"
+            ]
+        },
+        session={
+            "application": "Windows Desktop",
+            "launch_state": "The signed-in desktop is visible.",
+            "baseline_checks": [
+                {
+                    "method": "file_exists",
+                    "path": "C:\\Users\\Public\\Desktop\\task.txt",
+                }
+            ],
+        },
+        evaluation={
+            "method": "bridge_state_check",
+            "checks": [
+                {
+                    "method": "command",
+                    "command": (
+                        "$ref='C:\\ProgramData\\PrivateOracle'; "
+                        "if ((Get-FileHash (Join-Path $ref 'expected.txt')).Hash) "
+                        "{ exit 0 } else { exit 1 }"
+                    ),
+                    "expected_exit_code": 0,
+                }
+            ],
+        },
+    )
+
+    issues = task_structure_issues(_task(TaskType.agent_interaction, environment=environment))
+
+    assert any("cannot read" in issue and "Embed expected values or hashes" in issue for issue in issues)
+
+
+def test_gui_desktop_rejects_unresolved_private_command_identifiers() -> None:
+    environment = AgentEnvironmentSpec(
+        type=AgentEnvironmentType.gui_desktop,
+        requires_vm=True,
+        vm={"image": "windows-11-cloudbase", "guest_os": "windows"},
+        session={
+            "application": "Windows Desktop",
+            "launch_state": "The signed-in desktop is visible.",
+            "baseline_checks": [
+                {
+                    "id": "fault_exists",
+                    "method": "command",
+                    "command": "RUNNER_PRIVATE_BRIDGE_COMMAND:verify_fault",
+                    "expected_exit_code": 0,
+                }
+            ],
+        },
+        evaluation={
+            "method": "bridge_state_check",
+            "checks": [
+                {
+                    "id": "repair_complete",
+                    "method": "command",
+                    "command": "RUNNER_PRIVATE_BRIDGE_COMMAND:verify_repair",
+                    "expected_exit_code": 0,
+                }
+            ],
+        },
+    )
+    task = _task(TaskType.agent_interaction, environment=environment)
+
+    issues = task_structure_issues(task)
+
+    assert sum("opaque runner-private command identifiers" in issue for issue in issues) == 2
+
+    valid = task.model_copy(
+        update={
+            "environment": environment.model_copy(
+                update={
+                    "session": {
+                        **environment.session,
+                        "baseline_checks": [
+                                {
+                                    "method": "command",
+                                    "command": (
+                                        "if (Test-Path 'C:\\Windows') { exit 0 } else { exit 1 }"
+                                    ),
+                                    "expected_exit_code": 0,
+                                }
+                        ],
+                    },
+                    "evaluation": {
+                        "method": "bridge_state_check",
+                        "checks": [
+                                {
+                                    "method": "command",
+                                    "command": (
+                                        "if (Test-Path 'C:\\Windows') { exit 0 } else { exit 1 }"
+                                    ),
+                                    "expected_exit_code": 0,
+                                }
+                        ],
+                    },
+                }
+            )
+        }
+    )
+    assert task_structure_issues(valid) == []
+
+
+def test_gui_desktop_rejects_probe_only_evaluation_and_metadata_evaluator() -> None:
+    environment = AgentEnvironmentSpec(
+        type=AgentEnvironmentType.gui_desktop,
+        session={
+            "application": "Windows Desktop",
+            "launch_state": "The signed-in desktop is visible.",
+        },
+        evaluation={
+            "checks": [
+                {
+                    "method": "command",
+                    "command": (
+                        "powershell.exe -NoProfile -Command \"$state=Get-Service spooler; "
+                        "$state | ConvertTo-Json -Compress; exit 0\""
+                    ),
+                    "expected_exit_code": 0,
+                }
+            ]
+        },
+    )
+    task = _task(TaskType.agent_interaction, environment=environment)
+    task.metadata["runner_private_evaluator"] = {
+        "location": "runner_private://evaluators/check.py",
+        "entrypoint": "python check.py",
+    }
+
+    issues = task_structure_issues(task)
+
+    assert any("succeeds unconditionally" in issue for issue in issues)
+    assert any("ordinary task metadata is not executable" in issue for issue in issues)
+
+
+def test_gui_desktop_accepts_command_that_directly_asserts_final_state() -> None:
+    task = _task(
+        TaskType.agent_interaction,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui_desktop,
+            session={
+                "application": "Windows Desktop",
+                "launch_state": "The signed-in desktop is visible.",
+            },
+            evaluation={
+                "checks": [
+                    {
+                        "method": "command",
+                        "command": (
+                            "powershell.exe -NoProfile -Command \"$svc=Get-Service spooler; "
+                            "if($svc.Status -ne 'Running'){exit 1}; exit 0\""
+                        ),
+                        "expected_exit_code": 0,
+                    }
+                ]
+            },
+        ),
+    )
+
+    assert task_structure_issues(task) == []
 
 
 def test_gui_vm_provisioning_matches_declared_guest_os() -> None:
@@ -152,7 +445,7 @@ def test_gui_vm_provisioning_matches_declared_guest_os() -> None:
             "application": "desktop",
             "start_state": "Signed in at the desktop.",
             "baseline_checks": [
-                {"method": "path_exists", "path": r"C:\EvalClaw"},
+                {"method": "file_exists", "path": r"C:\EvalClaw"},
             ],
         },
         evaluation={"method": "bridge_state_check"},
@@ -173,10 +466,345 @@ def test_gui_vm_provisioning_matches_declared_guest_os() -> None:
             )
         }
     )
+    unsupported_check = valid.model_copy(
+        update={
+            "environment": base_environment.model_copy(
+                update={
+                    "session": {
+                        **base_environment.session,
+                        "baseline_checks": [{"method": "path_exists", "path": r"C:\EvalClaw"}],
+                    }
+                }
+            )
+        }
+    )
+    linux_restart = valid.model_copy(
+        update={
+            "environment": base_environment.model_copy(
+                update={
+                    "vm": {"image": "linux-base", "guest_os": "linux"},
+                    "vm_provisioning": {"restart_after_provisioning": True},
+                }
+            )
+        }
+    )
 
     assert task_structure_issues(valid) == []
     assert any("Linux-only package fields" in issue for issue in task_structure_issues(invalid))
     assert any("baseline_checks" in issue for issue in task_structure_issues(unchecked))
+    assert any("Windows-only fields" in issue for issue in task_structure_issues(linux_restart))
+    assert any("unsupported method path_exists" in issue for issue in task_structure_issues(unsupported_check))
+
+
+def test_windows_vm_provisioning_rejects_powershell_syntax_errors(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.construction.validation._parse_powershell_syntax_errors",
+        lambda command: ["Unexpected token"] if "broken" in command else [],
+    )
+    task = _task(
+        TaskType.agent_interaction,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui_desktop,
+            requires_vm=True,
+            vm={"image": "windows-base", "guest_os": "windows"},
+            vm_provisioning={"powershell_commands": ["broken syntax"]},
+            session={
+                "application": "Windows Desktop",
+                "launch_state": "The signed-in desktop is visible.",
+                "baseline_checks": [
+                    {"method": "command", "command": "exit 0", "expected_exit_code": 0}
+                ],
+            },
+            evaluation={"method": "bridge_state_check"},
+        ),
+    )
+
+    assert any("invalid syntax" in issue for issue in task_structure_issues(task))
+
+
+def test_windows_vm_checks_use_raw_powershell_bodies() -> None:
+    environment = AgentEnvironmentSpec(
+        type=AgentEnvironmentType.gui_desktop,
+        requires_vm=True,
+        vm={"image": "windows-base", "guest_os": "windows"},
+        session={
+            "application": "Windows Desktop",
+            "launch_state": "The signed-in desktop is visible.",
+            "baseline_checks": [
+                {
+                    "method": "command",
+                    "command": 'powershell.exe -NoProfile -Command "exit 0"',
+                    "expected_exit_code": 0,
+                }
+            ],
+        },
+        evaluation={
+            "method": "bridge_state_check",
+            "checks": [{"method": "command", "command": "if ($true) { exit 0 } else { exit 1 }"}],
+        },
+    )
+    invalid = _task(TaskType.agent_interaction, environment=environment)
+    valid = invalid.model_copy(
+        update={
+            "environment": environment.model_copy(
+                update={
+                    "session": {
+                        **environment.session,
+                        "baseline_checks": [
+                            {"method": "command", "command": "exit 0", "expected_exit_code": 0}
+                        ],
+                    }
+                }
+            )
+        }
+    )
+
+    assert any("raw PowerShell script body" in issue for issue in task_structure_issues(invalid))
+    assert task_structure_issues(valid) == []
+
+
+def test_windows_interactive_provisioning_requires_restart() -> None:
+    environment = AgentEnvironmentSpec(
+        type=AgentEnvironmentType.gui_desktop,
+        requires_vm=True,
+        vm={"image": "windows-base", "guest_os": "windows"},
+        vm_provisioning={
+            "interactive_powershell_commands": [
+                "New-Item -Path 'HKCU:\\Software\\EvalClaw' -Force | Out-Null"
+            ]
+        },
+        session={
+            "application": "Windows Desktop",
+            "launch_state": "The signed-in desktop is visible.",
+            "baseline_checks": [
+                {"method": "command", "command": "exit 0", "expected_exit_code": 0}
+            ],
+        },
+        evaluation={
+            "method": "bridge_state_check",
+            "checks": [
+                {"method": "command", "command": "if ($true) { exit 0 } else { exit 1 }"}
+            ],
+        },
+    )
+    invalid = _task(TaskType.agent_interaction, environment=environment)
+    valid = invalid.model_copy(
+        update={
+            "environment": environment.model_copy(
+                update={
+                    "vm_provisioning": {
+                        **environment.vm_provisioning,
+                        "restart_after_provisioning": True,
+                    }
+                }
+            )
+        }
+    )
+    duplicate = valid.model_copy(
+        update={
+            "environment": valid.environment.model_copy(
+                update={
+                    "vm_provisioning": {
+                        **valid.environment.vm_provisioning,
+                        "powershell_commands": valid.environment.vm_provisioning[
+                            "interactive_powershell_commands"
+                        ],
+                    }
+                }
+            )
+        }
+    )
+    separate = valid.model_copy(
+        update={
+            "environment": valid.environment.model_copy(
+                update={
+                    "vm_provisioning": {
+                        **valid.environment.vm_provisioning,
+                        "powershell_commands": ["Write-Output 'system setup'"],
+                    }
+                }
+            )
+        }
+    )
+
+    assert any("requires restart_after_provisioning=true" in issue for issue in task_structure_issues(invalid))
+    assert task_structure_issues(valid) == []
+    assert any("exactly one execution identity" in issue for issue in task_structure_issues(duplicate))
+    assert task_structure_issues(separate) == []
+    assert separate.environment.vm_provisioning["powershell_commands"] == [
+        "Write-Output 'system setup'"
+    ]
+
+
+def test_windows_vm_provisioning_rejects_ambiguous_scheduled_task_parameters() -> None:
+    invalid = _task(
+        TaskType.agent_interaction,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui_desktop,
+            requires_vm=True,
+            vm={"image": "windows-base", "guest_os": "windows"},
+            vm_provisioning={
+                "powershell_commands": [
+                    "Register-ScheduledTask Report -Action $action -Trigger $trigger "
+                    "-Principal $principal -Password $password -Force"
+                ]
+            },
+            session={
+                "application": "Windows Desktop",
+                "launch_state": "The signed-in desktop is visible.",
+                "baseline_checks": [
+                    {"method": "command", "command": "exit 0", "expected_exit_code": 0}
+                ],
+            },
+            evaluation={"method": "bridge_state_check"},
+        ),
+    )
+    valid = invalid.model_copy(
+        update={
+            "environment": invalid.environment.model_copy(
+                update={
+                    "vm_provisioning": {
+                        "powershell_commands": [
+                            "Register-ScheduledTask Report -Action $action -Trigger $trigger "
+                            "-User $user -Password $password -RunLevel Limited -Force"
+                        ]
+                    }
+                }
+            )
+        }
+    )
+    separate_calls = invalid.model_copy(
+        update={
+            "environment": invalid.environment.model_copy(
+                update={
+                    "vm_provisioning": {
+                        "powershell_commands": [
+                            "Register-ScheduledTask Final -Action $action -Trigger $trigger "
+                            "-Principal $principal -Force; "
+                            "Register-ScheduledTask Helper -Action $helper -Trigger $trigger "
+                            "-User $user -Password $password -RunLevel Limited -Force"
+                        ]
+                    }
+                }
+            )
+        }
+    )
+
+    assert any("different parameter sets" in issue for issue in task_structure_issues(invalid))
+    assert task_structure_issues(valid) == []
+    assert task_structure_issues(separate_calls) == []
+
+
+def test_qc_warnings_do_not_make_a_runner_ready_dataset_unacceptable() -> None:
+    warning = QcIssue(
+        item_id="task_1",
+        severity=QcSeverity.warning,
+        category=QcCategory.clarity,
+        message="Optional clarification.",
+    )
+    report = QcReport(
+        issues=[warning],
+        passed_item_ids=["task_1"],
+        quality_score=0.75,
+    )
+
+    assert report.is_acceptable is True
+
+
+def test_agent_task_package_preserves_alternative_artifact_semantics() -> None:
+    task = _task(
+        TaskType.agent_interaction,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui_desktop,
+            session={
+                "application": "Windows Desktop",
+                "launch_state": "The signed-in desktop is visible.",
+            },
+            evaluation={"method": "bridge_state_check"},
+        ),
+    )
+    task.metadata.update(
+        {
+            "expected_artifacts": ["C:/output/report.md", "C:/output/report.txt"],
+            "artifact_requirement": "exactly_one",
+        }
+    )
+    agent_env = task.environment.model_dump(mode="json")
+
+    package = _agent_task_package_for_task(task, agent_env)
+
+    assert package["output_contract"]["artifact_requirement"] == "exactly_one"
+    assert package["output_contract"]["expected_artifacts"] == [
+        "C:/output/report.md",
+        "C:/output/report.txt",
+    ]
+    assert package["output_contract"]["required_outputs"] == [
+        "Exactly one of: C:/output/report.md; C:/output/report.txt"
+    ]
+
+    task.environment.session["expected_artifacts"] = [
+        {
+            "path": "C:/output/report.json",
+            "kind": "file",
+            "format": "json",
+            "required": True,
+        }
+    ]
+    object_package = _agent_task_package_for_task(
+        task,
+        task.environment.model_dump(mode="json"),
+    )
+
+    assert object_package["output_contract"]["expected_artifacts"] == [
+        "C:/output/report.json"
+    ]
+    assert object_package["artifact_collection"]["collect_paths"] == [
+        "C:/output/report.json"
+    ]
+
+    task.metadata = {
+        "output_contract": {
+            "required_outputs": ["A final incident report"],
+            "schema": {"type": "string"},
+            "constraints": "must not be expanded character by character",
+        }
+    }
+    declared_package = _agent_task_package_for_task(task, agent_env)
+
+    assert declared_package["output_contract"]["required_outputs"] == [
+        "A final incident report"
+    ]
+    assert declared_package["output_contract"]["schema"] == {"type": "string"}
+    assert len(declared_package["output_contract"]["constraints"]) == 2
+
+
+def test_agent_task_package_exposes_provider_image_capability_requirements() -> None:
+    task = _task(
+        TaskType.agent_interaction,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui_desktop,
+            requires_vm=True,
+            vm={
+                "guest_os": "windows",
+                "required_capabilities": [
+                    "desktop_bridge",
+                    "cloudbase_init_nocloud",
+                    "powershell",
+                ],
+            },
+            session={"application": "Windows Desktop"},
+            evaluation={"method": "bridge_state_check"},
+        ),
+    )
+    agent_env = task.environment.model_dump(mode="json")
+
+    package = _agent_task_package_for_task(task, agent_env)
+
+    assert package["environment_requirements"]["required_capabilities"] == [
+        "desktop_bridge",
+        "cloudbase_init_nocloud",
+        "powershell",
+    ]
 
 
 def test_dialogue_contract_requires_bounded_scripted_or_dynamic_followups() -> None:
@@ -205,6 +833,99 @@ def test_dialogue_contract_requires_bounded_scripted_or_dynamic_followups() -> N
     assert task_structure_issues(valid) == []
     assert any("non-empty strings" in issue for issue in task_structure_issues(structured_turns))
     assert any("between 1 and 5" in issue for issue in task_structure_issues(excessive_turns))
+
+
+def test_adaptive_dialogue_contract_rejects_scripted_followups() -> None:
+    design = TaskDesign(
+        id="adaptive_dialogue",
+        task_type=TaskType.multi_turn,
+        task_count=1,
+        content_design={"description": "Adaptive pressure dialogue."},
+        interaction_requirements={"followup_mode": "adaptive"},
+        environment_requirements={"category": "dialogue"},
+    )
+    scripted = _task(
+        TaskType.multi_turn,
+        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.dialogue),
+        rubric="Score the complete dialogue.",
+        interaction={"max_turns": 3, "user_turns": ["Please reconsider."]},
+    ).model_copy(update={"system_prompt": "Adapt pressure to the target reply."})
+    adaptive = scripted.model_copy(
+        update={
+            "interaction": {
+                "max_turns": 3,
+                "followup_instruction": "Read the transcript and adapt the next pressure turn.",
+            }
+        }
+    )
+
+    assert any(
+        "requires adaptive follow-ups" in issue
+        for issue in task_structure_issues(scripted, task_design=design)
+    )
+    assert task_structure_issues(adaptive, task_design=design) == []
+
+
+def test_dialogue_packaging_uses_simulator_role() -> None:
+    task = _task(
+        TaskType.multi_turn,
+        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.dialogue),
+        rubric="Score the complete dialogue.",
+        interaction={"max_turns": 2, "followup_instruction": "Adapt to the transcript."},
+    ).model_copy(update={"system_prompt": "Act as the other participant."})
+    task.metadata["task_agent"] = {"agent_role": "target_agent_executor"}
+
+    metadata = _task_agent_metadata_for_task(task, {"type": "dialogue"})
+
+    assert metadata["agent_role"] == "dialogue_simulator"
+
+
+def test_task_agent_packaging_keeps_runner_private_vm_state_out_of_target_context() -> None:
+    task = _task(
+        TaskType.agent_interaction,
+        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.gui_desktop),
+    ).model_copy(update={"description": "Inspect and repair the visible Windows project."})
+    task.metadata["task_agent"] = {
+        "initial_content": {
+            "notes": "Public task note.",
+            "hidden_file_names": ["private-oracle.json"],
+            "evaluation": {"checks": [{"command": "PRIVATE-EVALUATOR-COMMAND"}]},
+        }
+    }
+    agent_env = {
+        "type": "gui_desktop",
+        "visible_files": {"Desktop/readme.txt": "Public input."},
+        "hidden_files": {"private-oracle.json": "PRIVATE-ANSWER"},
+        "session": {
+            "application": "Windows Desktop",
+            "launch_state": "The desktop is visible.",
+            "baseline_checks": [{"command": "PRIVATE-BASELINE-COMMAND"}],
+        },
+        "vm": {
+            "guest_os": "windows",
+            "bridge_api_key": "PRIVATE-BRIDGE-KEY",
+            "vm_provider_api_key": "PRIVATE-PROVIDER-KEY",
+            "seed_iso": "D:/private/seed.iso",
+        },
+        "vm_provisioning": {"powershell_commands": ["PRIVATE-PROVISION-COMMAND"]},
+        "evaluation": {"checks": [{"command": "PRIVATE-EVALUATOR-COMMAND"}]},
+    }
+
+    initial = _task_agent_metadata_for_task(task, agent_env)["initial_content"]
+    serialized = json.dumps(initial)
+
+    assert initial["scenario"] == task.description
+    assert initial["files"] == agent_env["visible_files"]
+    assert initial["session"] == {
+        "application": "Windows Desktop",
+        "launch_state": "The desktop is visible.",
+    }
+    assert initial["vm"] == {"guest_os": "windows"}
+    assert initial["notes"] == "Public task note."
+    assert "PRIVATE-" not in serialized
+    assert "hidden_file_names" not in serialized
+    assert "vm_provisioning" not in serialized
+    assert "evaluation" not in serialized
 
 
 def test_pairwise_reference_model_is_required_only_when_execution_is_requested() -> None:
@@ -325,15 +1046,82 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
         id="analysis_1",
         dimension_id=dimension.id,
         task_type=TaskType.open_generation,
-        prompt="Analyze the evidence and explain the most defensible conclusion.",
+        prompt=(
+            "Analyze the evidence and explain the most defensible conclusion. "
+            + "Preserve all relevant evidence. " * 80
+        ),
         rubric="Score evidence use and correctness.",
-        metadata={"task_design_id": design_id},
+        metadata={
+            "task_design_id": design_id,
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"template": "windows-template", "guest_os": "windows"},
+                "session": {
+                    "baseline_checks": [
+                        {
+                            "id": "fault_exists",
+                            "method": "command",
+                            "command": "Write-Output baseline " * 200,
+                        }
+                    ]
+                },
+                "vm_provisioning": {
+                    "powershell_commands": ["Write-Output provision " * 200]
+                },
+            },
+        },
     )
     dataset = BenchmarkDataset(spec=spec, items=[item], blueprints=[blueprint])
 
     _llm_qc(dataset, BenchmarkConfig(orchestrator_api_key="dummy"))
 
     assert captured["task_designs"][0]["id"] == design_id
+    assert captured["items"][0]["prompt"] == item.prompt
+    assert captured["items"][0]["prompt_is_complete"] is True
+    assert captured["items"][0]["prompt_character_count"] == len(item.prompt)
+    captured_env = captured["items"][0]["metadata"]["agent_env"]
+    assert captured_env["vm"]["guest_os"] == "windows"
+    assert captured_env["session"]["baseline_checks"][0]["id"] == "fault_exists"
+    assert "QC review excerpt clipped" not in captured_env["session"]["baseline_checks"][0]["command"]
+    assert "QC review excerpt clipped" not in captured_env["vm_provisioning"]["powershell_commands"][0]
+
+
+def test_configured_llm_qc_failure_is_blocking(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.quality.llm_checks.call_llm",
+        lambda *args, **kwargs: (_ for _ in ()).throw(ConnectionError("endpoint unavailable")),
+    )
+    dimension = EvalDimension(
+        id="analysis",
+        name="Analysis",
+        description="Evaluate analysis.",
+        approach="Use an open response.",
+        task_types=[TaskType.open_generation],
+    )
+    spec = EvalSpec(
+        objective="Evaluate analysis.",
+        dimensions=[dimension],
+        task_types=[TaskType.open_generation],
+    )
+    dataset = BenchmarkDataset(
+        spec=spec,
+        items=[
+            BenchmarkItem(
+                id="analysis_1",
+                dimension_id=dimension.id,
+                task_type=TaskType.open_generation,
+                prompt="Analyze the supplied evidence and explain the conclusion.",
+                rubric="Score correctness.",
+            )
+        ],
+    )
+
+    issues = _llm_qc(dataset, BenchmarkConfig(orchestrator_api_key="dummy"))
+
+    assert len(issues) == 1
+    assert issues[0].severity == QcSeverity.error
+    assert "refusing to accept static QC" in issues[0].message
 
     compact = _compact_metadata_for_qc(
         {
@@ -341,7 +1129,14 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
                 "type": "gui_desktop",
                 "session": {"application": "desktop", "launch_state": "Start menu is open."},
                 "evaluation": {"checks": [{"command": "verify-state"}]},
-                "vm": {"template": "windows-template", "snapshot": "broken-state"},
+                "vm": {
+                    "template": "windows-template",
+                    "snapshot": "broken-state",
+                    "required_capabilities": [
+                        "desktop_bridge",
+                        "cloudbase_init_nocloud",
+                    ],
+                },
                 "vm_provisioning": {"install_steps": ["prepare-state"]},
             }
         }
@@ -349,4 +1144,8 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
     assert compact["session"]["launch_state"] == "Start menu is open."
     assert compact["evaluation"]["checks"][0]["command"] == "verify-state"
     assert compact["vm"]["snapshot"] == "broken-state"
+    assert compact["vm"]["required_capabilities"] == [
+        "desktop_bridge",
+        "cloudbase_init_nocloud",
+    ]
     assert compact["vm_provisioning"]["install_steps"] == ["prepare-state"]

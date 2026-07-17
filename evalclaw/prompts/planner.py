@@ -13,9 +13,8 @@ that constrains the requested count must become "exactly one task", not merely
 "a task". Before returning, check the source for every explicit count word or
 numeral and write it as "exactly N" in english_goal; Chinese quantifiers such
 as 一道、一个、一项 must be rendered as "exactly one", never as an indefinite
-article. If the user is
-asking to evaluate a non-English capability, describe that requirement in
-English rather than replacing it with an English-only task.
+article. If the user is asking to evaluate a non-English capability, describe
+that requirement in English rather than replacing it with an English-only task.
 """
 
 BENCHMARK_PLANNER_SYSTEM_PROMPT = """\

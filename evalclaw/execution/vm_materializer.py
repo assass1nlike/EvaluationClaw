@@ -23,7 +23,7 @@ from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_METADATA_KEY,
     public_agent_task_package,
 )
-from ..protocols.task_agent import TASK_AGENT_METADATA_KEY
+from ..protocols.task_agent import TASK_AGENT_METADATA_KEY, public_task_agent_initial_content
 from ..types import BenchmarkItem
 from .installers import (
     apt_packages,
@@ -61,6 +61,8 @@ _WINDOWS_PROVISIONING_FIELDS = {
     "windows_features",
     "powershell_commands",
     "powershell_script",
+    "interactive_powershell_commands",
+    "restart_after_provisioning",
 }
 
 
@@ -163,6 +165,26 @@ def _guest_os(env: dict[str, Any]) -> str:
 
 def _materialization_strategy(guest_os: str) -> str:
     return "cloudbase_init.nocloud.v1" if guest_os == _WINDOWS else "cloud_init.nocloud.v1"
+
+
+def _add_required_vm_capabilities(
+    vm_spec: dict[str, Any],
+    env: dict[str, Any],
+    *,
+    guest_os: str,
+    needs_config_drive: bool,
+) -> None:
+    required = vm_spec.get("required_capabilities")
+    capabilities = [str(value) for value in required if str(value).strip()] if isinstance(required, list) else []
+    if str(env.get("type") or "").lower() == "gui_desktop":
+        capabilities.append("desktop_bridge")
+    if needs_config_drive:
+        if guest_os == _WINDOWS:
+            capabilities.extend(("cloudbase_init_nocloud", "powershell"))
+        else:
+            capabilities.append("cloud_init_nocloud")
+    if capabilities:
+        vm_spec["required_capabilities"] = list(dict.fromkeys(capabilities))
 
 
 def _guest_user(env: dict[str, Any], guest_os: str) -> str:
@@ -302,6 +324,8 @@ def _vm_provisioning_requested(env: dict[str, Any]) -> bool:
         "windows_features",
         "powershell_commands",
         "powershell_script",
+        "interactive_powershell_commands",
+        "restart_after_provisioning",
     )
     return any(bool(provisioning.get(key)) for key in keys) or bool(provisioning.get("enabled"))
 
@@ -363,15 +387,63 @@ def _linux_provisioning_commands(provisioning: dict[str, Any]) -> list[str]:
     return commands
 
 
+def _windows_interactive_setup_commands(provisioning: dict[str, Any]) -> list[str]:
+    raw_commands = provisioning.get("interactive_powershell_commands")
+    commands = raw_commands if isinstance(raw_commands, list) else [raw_commands]
+    commands = [str(command) for command in commands if str(command or "").strip()]
+    if not commands:
+        return []
+    state_root = r"C:\ProgramData\EvalClaw\interactive-provisioning"
+    script = "\r\n".join(
+        [
+            "$ErrorActionPreference = 'Stop'",
+            f"$stateRoot = '{state_root}'",
+            "try {",
+            *commands,
+            "  Set-Content -LiteralPath (Join-Path $stateRoot 'ready') -Value 'ready' -Encoding ASCII",
+            "  Remove-Item -LiteralPath $PSCommandPath -Force",
+            "} catch {",
+            "  $_ | Out-String | Set-Content -LiteralPath (Join-Path $stateRoot 'failed') -Encoding UTF8",
+            "  exit 1",
+            "}",
+        ]
+    ) + "\r\n"
+    encoded = base64.b64encode(script.encode("utf-8")).decode("ascii")
+    setup_script = f"{state_root}\\setup.ps1"
+    return [
+        "; ".join(
+            [
+                f"$interactiveRoot = '{state_root}'",
+                "New-Item -ItemType Directory -Force -Path $interactiveRoot | Out-Null",
+                "& icacls.exe $interactiveRoot /inheritance:r "
+                "/grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' "
+                "'*S-1-5-32-545:(OI)(CI)M' /T /C | Out-Null",
+                "if ($LASTEXITCODE -ne 0) { throw 'Failed to protect interactive provisioning state' }",
+                f"[IO.File]::WriteAllBytes('{setup_script}', [Convert]::FromBase64String('{encoded}'))",
+                "Remove-Item -LiteralPath (Join-Path $interactiveRoot 'ready'),"
+                "(Join-Path $interactiveRoot 'failed') -Force -ErrorAction SilentlyContinue",
+                "Set-Content -LiteralPath (Join-Path $interactiveRoot 'required') "
+                "-Value 'required' -Encoding ASCII",
+            ]
+        )
+    ]
+
+
 def _windows_provisioning_commands(provisioning: dict[str, Any]) -> list[str]:
     commands = render_windows_install_commands(provisioning)
-    if commands:
+    commands.extend(_windows_interactive_setup_commands(provisioning))
+    if commands or provisioning.get("restart_after_provisioning"):
         commands.extend(
             [
                 "$marker = 'C:\\ProgramData\\EvalClaw\\vm-provisioned'",
                 "New-Item -ItemType Directory -Force -Path (Split-Path -Parent $marker) | Out-Null",
                 "Set-Content -LiteralPath $marker -Value 'ready' -Encoding ASCII",
             ]
+        )
+    if provisioning.get("restart_after_provisioning"):
+        commands.append(
+            "Set-Content -LiteralPath 'C:\\ProgramData\\EvalClaw\\restart-after-provisioning' "
+            "-Value 'required' -Encoding ASCII"
         )
     return commands
 
@@ -395,6 +467,18 @@ def _provisioning_summary(env: dict[str, Any], guest_os: str) -> dict[str, Any]:
             provisioning.get("choco_packages") or provisioning.get("chocolatey_packages")
         ),
         "windows_features": package_list(provisioning.get("windows_features")),
+        "interactive_command_count": len(
+            [
+                command
+                for command in (
+                    provisioning.get("interactive_powershell_commands")
+                    if isinstance(provisioning.get("interactive_powershell_commands"), list)
+                    else [provisioning.get("interactive_powershell_commands")]
+                )
+                if str(command or "").strip()
+            ]
+        ),
+        "restart_after_provisioning": bool(provisioning.get("restart_after_provisioning")),
         "pip_packages": package_list(provisioning.get("pip_packages") or provisioning.get("python_packages")),
         "snap_packages": package_list(provisioning.get("snap_packages")),
         "cran_packages": package_list(provisioning.get("cran_packages") or provisioning.get("r_packages")),
@@ -542,10 +626,8 @@ def _session_asset_files(
 
 
 def _public_initial_content(initial: dict[str, Any]) -> dict[str, Any]:
-    public = copy.deepcopy(initial)
+    public = public_task_agent_initial_content(initial)
     public.pop("files", None)
-    public.pop("hidden_files", None)
-    public.pop("hidden_file_names", None)
     if isinstance(public.get("session"), dict):
         public["session"] = _public_session(public["session"])
     return public
@@ -665,7 +747,6 @@ def _collect_guest_files(item: BenchmarkItem, env: dict[str, Any]) -> list[VmGue
         "item_id": item.id,
         "dimension_id": item.dimension_id,
         "prompt": item.prompt,
-        "rubric": item.rubric,
         "tags": item.tags,
         "task_agent_initial_content": _public_initial_content(initial),
         "session": _public_session(env["session"]) if isinstance(env.get("session"), dict) else {},
@@ -933,8 +1014,27 @@ def materialize_vm_task(
         return VmTaskMaterializationResult(item_id=item.id, applied=False, skipped_reason="item does not require a VM")
     guest_os = _guest_os(env)
     strategy = _materialization_strategy(guest_os)
+    vm_spec = copy.deepcopy(env.get("vm") if isinstance(env.get("vm"), dict) else {})
+    session = env.get("session") if isinstance(env.get("session"), dict) else {}
+    baseline_checks = session.get("baseline_checks")
+    if not (
+        isinstance(baseline_checks, list)
+        and baseline_checks
+        and all(isinstance(check, dict) and check for check in baseline_checks)
+    ):
+        raise VmTaskMaterializationError(
+            "VM task materialization requires non-empty environment.session.baseline_checks "
+            "so the bridge can prove the initial state before the target starts."
+        )
     materialization = env.get("vm_materialization")
     if isinstance(materialization, dict) and materialization.get("enabled") is False:
+        _add_required_vm_capabilities(
+            vm_spec,
+            env,
+            guest_os=guest_os,
+            needs_config_drive=False,
+        )
+        env["vm"] = vm_spec
         result = VmTaskMaterializationResult(
             item_id=item.id,
             applied=False,
@@ -946,10 +1046,16 @@ def materialize_vm_task(
         _set_agent_env(item, env)
         return result
 
-    vm_spec = copy.deepcopy(env.get("vm") if isinstance(env.get("vm"), dict) else {})
     explicit_seed = _existing_seed_iso(vm_spec)
     overwrite = overwrite_seed_iso or bool(isinstance(materialization, dict) and materialization.get("overwrite_seed_iso"))
     if explicit_seed and not overwrite:
+        _add_required_vm_capabilities(
+            vm_spec,
+            env,
+            guest_os=guest_os,
+            needs_config_drive=True,
+        )
+        env["vm"] = vm_spec
         result = VmTaskMaterializationResult(
             item_id=item.id,
             applied=False,
@@ -966,6 +1072,13 @@ def materialize_vm_task(
     files = _collect_guest_files(item, env)
     provisioning_summary = _provisioning_summary(env, guest_os)
     if not files and not provisioning_summary:
+        _add_required_vm_capabilities(
+            vm_spec,
+            env,
+            guest_os=guest_os,
+            needs_config_drive=False,
+        )
+        env["vm"] = vm_spec
         result = VmTaskMaterializationResult(
             item_id=item.id,
             applied=False,
@@ -1003,6 +1116,12 @@ def materialize_vm_task(
     )
     _build_seed_iso(seed_dir, seed_iso)
 
+    _add_required_vm_capabilities(
+        vm_spec,
+        env,
+        guest_os=guest_os,
+        needs_config_drive=True,
+    )
     vm_spec["seed_iso"] = str(seed_iso)
     vm_spec["config_drive_type"] = "nocloud"
     env["vm"] = vm_spec

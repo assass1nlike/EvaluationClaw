@@ -46,9 +46,57 @@ from .validation import (
 _VALID_TASK_BUILDERS = {"llm", "local", "auto"}
 
 
+def _ensure_unique_task_ids(tasks: list[TaskDefinition]) -> None:
+    """Keep Builder IDs stable while preventing collisions across Blueprints."""
+    seen: set[str] = set()
+    duplicate_counts: Counter[str] = Counter()
+    for task in tasks:
+        original_id = task.id
+        if original_id not in seen:
+            seen.add(original_id)
+            continue
+        blueprint_id = str(task.metadata.get("builder_blueprint_id") or "").strip()
+        prefix = blueprint_id or "task"
+        duplicate_counts[original_id] += 1
+        candidate = f"{prefix}__{original_id}"
+        if duplicate_counts[original_id] > 1:
+            candidate += f"__{duplicate_counts[original_id]}"
+        while candidate in seen:
+            duplicate_counts[original_id] += 1
+            candidate = f"{prefix}__{original_id}__{duplicate_counts[original_id]}"
+        task.id = candidate
+        seen.add(candidate)
+
+
+def _is_local_task_id(value: str) -> bool:
+    return bool(re.fullmatch(r"(?:task|item|question|problem)[_-]?\d+", value, re.IGNORECASE))
+
+
+def _task_duplicate_key(task: TaskDefinition) -> str:
+    content: dict[str, object] = {"prompt": task.prompt}
+    if task.task_type == TaskType.multi_turn:
+        content.update(
+            {
+                "system_prompt": task.system_prompt,
+                "interaction": task.interaction,
+            }
+        )
+    elif task.environment is not None:
+        content["environment"] = task.environment.model_dump(mode="json")
+    return " ".join(
+        json.dumps(content, ensure_ascii=False, sort_keys=True).lower().split()
+    )
+
+
 def _debug_slug(value: str) -> str:
     slug = re.sub(r"[^A-Za-z0-9_.-]+", "-", value).strip("-")
     return slug[:100] or "unnamed"
+
+
+def _debug_job_slug(dimension_id: str, blueprint_id: str) -> str:
+    raw = f"{dimension_id}__{blueprint_id}"
+    digest = uuid.uuid5(uuid.NAMESPACE_OID, raw).hex[:8]
+    return f"{_debug_slug(raw)[:48]}-{digest}"
 
 
 @dataclass(frozen=True)
@@ -196,14 +244,46 @@ def _task_builder_payload(
         ]
     if TaskType.multi_turn in task_types:
         optional_fields.extend(["system_prompt", "interaction", "environment", "rubric"])
+        requested_followup_modes = sorted(
+            {
+                str(design.interaction_requirements.get("followup_mode") or "").strip().lower()
+                for design in blueprint.task_designs
+                if design.task_type == TaskType.multi_turn
+                and str(design.interaction_requirements.get("followup_mode") or "").strip()
+            }
+        )
+        if requested_followup_modes == ["adaptive"]:
+            followup_contract = (
+                "Use interaction.followup_instruction for response-conditioned follow-ups and omit "
+                "interaction.user_turns."
+            )
+        elif requested_followup_modes == ["scripted"]:
+            followup_contract = (
+                "Use exactly interaction.user_turns as a list of 1 to 5 non-empty strings and omit "
+                "interaction.followup_instruction."
+            )
+        else:
+            followup_contract = (
+                "Use exactly interaction.user_turns as a list of 1 to 5 non-empty strings for "
+                "scripted follow-ups, or interaction.followup_instruction for adaptive follow-ups; "
+                "aliases such as scripted_user_turns, turns, and follow_up_policy are invalid."
+            )
         type_requirements[TaskType.multi_turn.value] = [
             "Provide a dialogue environment and top-level interaction object. interaction.max_turns "
-            "must be between 1 and 5. Use exactly interaction.user_turns as a list of 1 to 5 "
-            "non-empty strings for "
-            "scripted follow-ups, or interaction.followup_instruction for adaptive follow-ups; aliases "
-            "such as scripted_user_turns, turns, and follow_up_policy are invalid.",
+            f"must be between 1 and 5. {followup_contract}",
             "Provide task-specific transcript scoring criteria.",
+            "The task prompt is the complete first content sent to the target and must include all "
+            "target-visible role and scenario context. system_prompt is exclusively the separate "
+            "dialogue-simulator prompt.",
         ]
+        if requested_followup_modes:
+            type_requirements[TaskType.multi_turn.value].append(
+                "Implement each TaskDesign's interaction_requirements.followup_mode exactly. "
+                "adaptive requires a task-specific simulator system_prompt and "
+                "interaction.followup_instruction and forbids interaction.user_turns; scripted "
+                "requires interaction.user_turns and forbids interaction.followup_instruction. "
+                f"This Blueprint requests: {', '.join(requested_followup_modes)}."
+            )
     if any(
         task_type not in {
             TaskType.multiple_choice,
@@ -453,7 +533,7 @@ def build_task_suite(
         label = job_label(job)
         debug_job_dir = (
             debug_root
-            / f"{_debug_slug(dimension.id)}__{_debug_slug(blueprint.id)}"
+            / _debug_job_slug(dimension.id, blueprint.id)
             / debug_invocation_id
             if debug_root is not None
             else None
@@ -472,31 +552,34 @@ def build_task_suite(
                 return
             phase = "initial" if attempt == 0 else "structural-repair"
             stem = f"attempt-{attempt + 1:02d}-{phase}"
-            debug_job_dir.mkdir(parents=True, exist_ok=True)
-            response_path = debug_job_dir / f"{stem}.response.txt"
-            if raw_response is not None:
-                response_path.write_text(raw_response, encoding="utf-8")
-                emit(f"  Task builder: saved raw response debug: {response_path}.")
-            diagnostics = {
-                "invocation_id": debug_invocation_id,
-                "dimension_id": dimension.id,
-                "blueprint_id": blueprint.id,
-                "model": builder_settings.model,
-                "backend": "litellm" if force_litellm else config.llm_backend,
-                "attempt": attempt + 1,
-                "phase": phase,
-                "status": status,
-                "response_file": response_path.name if response_path.exists() else None,
-                "response_bytes": response_path.stat().st_size if response_path.exists() else 0,
-                "parsed_top_level_keys": parsed_keys or [],
-                "validation_issues": validation_issues or [],
-                "error_type": type(error).__name__ if error is not None else None,
-                "error": str(error) if error is not None else None,
-            }
-            (debug_job_dir / f"{stem}.diagnostics.json").write_text(
-                json.dumps(diagnostics, ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
+            try:
+                debug_job_dir.mkdir(parents=True, exist_ok=True)
+                response_path = debug_job_dir / f"{stem}.response.txt"
+                if raw_response is not None:
+                    response_path.write_text(raw_response, encoding="utf-8")
+                    emit(f"  Task builder: saved raw response debug: {response_path}.")
+                diagnostics = {
+                    "invocation_id": debug_invocation_id,
+                    "dimension_id": dimension.id,
+                    "blueprint_id": blueprint.id,
+                    "model": builder_settings.model,
+                    "backend": "litellm" if force_litellm else config.llm_backend,
+                    "attempt": attempt + 1,
+                    "phase": phase,
+                    "status": status,
+                    "response_file": response_path.name if response_path.exists() else None,
+                    "response_bytes": response_path.stat().st_size if response_path.exists() else 0,
+                    "parsed_top_level_keys": parsed_keys or [],
+                    "validation_issues": validation_issues or [],
+                    "error_type": type(error).__name__ if error is not None else None,
+                    "error": str(error) if error is not None else None,
+                }
+                (debug_job_dir / f"{stem}.diagnostics.json").write_text(
+                    json.dumps(diagnostics, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
+            except OSError as exc:
+                emit(f"  Task builder: could not save debug artifacts ({exc}).")
 
         emit(
             f"  Task builder: starting {job_progress_index[job.order]}/{len(jobs)} - "
@@ -828,13 +911,13 @@ def build_task_suite(
                     task_issues.append(
                         f"Task task_type {task.task_type.value} is not allowed by this Blueprint call."
                     )
-                normalized_prompt = " ".join(task.prompt.lower().split())
-                if normalized_prompt in seen_task_prompts:
+                duplicate_key = _task_duplicate_key(task)
+                if duplicate_key in seen_task_prompts:
                     task_issues.append(
-                        f"Task prompt duplicates {seen_task_prompts[normalized_prompt]} within the same blueprint."
+                        f"Task content duplicates {seen_task_prompts[duplicate_key]} within the same blueprint."
                     )
-                elif normalized_prompt:
-                    seen_task_prompts[normalized_prompt] = task.id
+                elif duplicate_key:
+                    seen_task_prompts[duplicate_key] = task.id
                 validation_issues.extend(f"task #{idx} ({task.id}): {issue}" for issue in task_issues)
                 attempt_tasks.append(task)
                 added_for_blueprint += 1
@@ -885,12 +968,22 @@ def build_task_suite(
                     f"expected {dict(expected_design_counts)}, got {dict(actual_design_counts)}."
                 )
             if job_revision:
-                expected_ids = {
+                expected_id_order = [
                     str(task.get("id") or "")
                     for task in job_revision.get("previous_tasks", [])
-                    if isinstance(task, dict)
-                }
+                    if isinstance(task, dict) and str(task.get("id") or "")
+                ]
+                expected_ids = set(expected_id_order)
                 returned_ids = {task.id for task in attempt_tasks}
+                if (
+                    len(attempt_tasks) == len(expected_id_order)
+                    and len(returned_ids) == len(attempt_tasks)
+                    and returned_ids != expected_ids
+                    and all(_is_local_task_id(task.id) for task in attempt_tasks)
+                ):
+                    for task, expected_id in zip(attempt_tasks, expected_id_order, strict=True):
+                        task.id = expected_id
+                    returned_ids = expected_ids
                 if returned_ids != expected_ids:
                     validation_issues.append(
                         "Repair must preserve exactly the affected task ids: "
@@ -1110,6 +1203,8 @@ def build_task_suite(
         resources.extend(result.resources)
         tasks.extend(result.tasks)
         notes.extend(result.notes)
+
+    _ensure_unique_task_ids(tasks)
 
     if not resources and blueprints:
         for blueprint in blueprints:

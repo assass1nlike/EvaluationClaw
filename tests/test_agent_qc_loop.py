@@ -209,6 +209,40 @@ def test_real_partial_credit_evaluator_error_is_not_demoted() -> None:
     assert stabilized.severity == QcSeverity.error
 
 
+def test_valid_vm_provider_request_false_positive_is_demoted() -> None:
+    item = BenchmarkItem(
+        id="vm_task",
+        dimension_id="vm",
+        task_type=TaskType.agent_interaction,
+        prompt="Repair the prepared workstation.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {
+                    "guest_os": "windows",
+                    "required_capabilities": ["desktop_bridge", "cloudbase_init_nocloud"],
+                },
+            }
+        },
+    )
+    issue = QcIssue(
+        item_id=item.id,
+        severity=QcSeverity.error,
+        category=QcCategory.schema,
+        message=(
+            "The task has no concrete boot source or externally managed desktop bridge "
+            "endpoint, so there is no resolvable Windows desktop."
+        ),
+        suggested_action="Hard-code a template.",
+    )
+
+    stabilized = _stabilize_llm_issue(issue, {item.id: item})
+
+    assert stabilized.severity == QcSeverity.warning
+    assert "VM Provider resolution request" in stabilized.message
+
+
 def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeypatch) -> None:
     dimension = EvalDimension(
         id="knowledge",
@@ -298,6 +332,90 @@ def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeyp
     assert [item.id for item in dataset.items] == ["failed_task", "passed_task"]
     assert dataset.items[0].answer == "supported result"
     assert dataset.items[1].prompt == passed.prompt
+
+
+def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -> None:
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate grounded knowledge.",
+        approach="Use one short-answer task.",
+        task_types=[TaskType.short_answer],
+        target_item_count=1,
+    )
+    spec = EvalSpec(
+        objective="Evaluate grounded knowledge.",
+        dimensions=[dimension],
+        task_types=[TaskType.short_answer],
+        scale=1,
+    )
+    blueprint = make_blueprint(
+        "knowledge_family",
+        dimension.id,
+        "One knowledge task",
+        task_type=TaskType.short_answer,
+        content="One evidence question.",
+    )
+
+    def suite(answer: str) -> TaskSuite:
+        task = _task("knowledge_task", dimension.id, blueprint.id).model_copy(
+            update={"answer": answer}
+        )
+        return TaskSuite(
+            objective=spec.objective,
+            dimensions=[dimension],
+            blueprints=[blueprint],
+            tasks=[task],
+        )
+
+    monkeypatch.setattr(
+        "evalclaw.benchmark.plan_benchmark",
+        lambda *args, **kwargs: make_plan(spec, [blueprint]),
+    )
+    answers = iter(("initial", "best", "worse", "fixed"))
+    build_calls = 0
+
+    def fake_build(*args, **kwargs):
+        nonlocal build_calls
+        build_calls += 1
+        revision = kwargs.get("revision_context_by_dimension")
+        if build_calls in {3, 4}:
+            assert revision[dimension.id]["previous_tasks"][0]["answer"] == "best"
+        return suite(next(answers))
+
+    def fake_qc(dataset, config):
+        answer = dataset.items[0].answer
+        issue_count = {"initial": 2, "best": 1, "worse": 2, "fixed": 0}[answer]
+        issues = [
+            QcIssue(
+                item_id="knowledge_task",
+                severity=QcSeverity.error,
+                category=QcCategory.scoring,
+                message=f"Blocking issue {index} for {answer}.",
+            )
+            for index in range(issue_count)
+        ]
+        return QcReport(
+            issues=issues,
+            passed_item_ids=[] if issues else ["knowledge_task"],
+            rejected_item_ids=["knowledge_task"] if issues else [],
+            quality_score=1.0 if not issues else 0.0,
+            summary=f"{issue_count} blocking issue(s).",
+        )
+
+    monkeypatch.setattr("evalclaw.benchmark.build_task_suite", fake_build)
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", fake_qc)
+    logs: list[str] = []
+
+    _, dataset, qc_report = build_benchmark_dataset_with_qc_loop(
+        spec.objective,
+        BenchmarkConfig(max_qc_iterations=3),
+        log=logs.append,
+    )
+
+    assert dataset.items[0].answer == "fixed"
+    assert qc_report.rejected_item_ids == []
+    assert any("discarded non-improving replacement" in message for message in logs)
 
 
 def test_qc_repair_preserves_task_order_and_replaces_resource_by_id() -> None:

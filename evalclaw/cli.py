@@ -24,6 +24,13 @@ console = Console()
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 
 
+def _configure_utf8_streams() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
+
+
 @app.callback()
 def _main() -> None:
     """EvaluationClaw command group."""
@@ -431,7 +438,7 @@ def generate(
         help="Optional bearer token for --vm-provider-url.",
     ),
     vm_provider_timeout: int = typer.Option(
-        120,
+        600,
         "--vm-provider-timeout",
         help="Timeout in seconds for VM provider create/delete requests.",
     ),
@@ -654,4 +661,5 @@ def generate(
 
 
 def main() -> None:
+    _configure_utf8_streams()
     app()

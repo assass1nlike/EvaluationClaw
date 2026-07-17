@@ -10,7 +10,9 @@ from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_METADATA_KEY,
     AGENT_TASK_PACKAGE_SCHEMA_VERSION,
 )
+from ..protocols.task_agent import public_task_agent_initial_content
 from ..types import (
+    AgentEnvironmentType,
     BenchmarkBatch,
     BenchmarkConfig,
     BenchmarkDataset,
@@ -78,29 +80,20 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
     existing = task.metadata.get("task_agent") if isinstance(task.metadata.get("task_agent"), dict) else {}
     initial_content: dict[str, Any] = {}
     if isinstance(existing.get("initial_content"), dict):
-        initial_content.update(existing["initial_content"])
+        initial_content.update(public_task_agent_initial_content(existing["initial_content"]))
     if task.description and "scenario" not in initial_content:
         initial_content["scenario"] = task.description
-    if agent_env.get("workspace") and "workspace" not in initial_content:
-        initial_content["workspace"] = agent_env["workspace"]
-    if agent_env.get("visible_files") and "files" not in initial_content:
-        initial_content["files"] = agent_env["visible_files"]
-    if agent_env.get("hidden_files") and "hidden_file_names" not in initial_content:
-        initial_content["hidden_file_names"] = sorted(agent_env["hidden_files"].keys())
-    if agent_env.get("image") and "image" not in initial_content:
-        initial_content["image"] = agent_env["image"]
-    if agent_env.get("session") and "session" not in initial_content:
-        initial_content["session"] = agent_env["session"]
-    if agent_env.get("vm") and "vm" not in initial_content:
-        initial_content["vm"] = agent_env["vm"]
-    if agent_env.get("vm_provisioning") and "vm_provisioning" not in initial_content:
-        initial_content["vm_provisioning"] = agent_env["vm_provisioning"]
-    if agent_env.get("evaluation") and "evaluation" not in initial_content:
-        initial_content["evaluation"] = agent_env["evaluation"]
-    if agent_env.get("browser") and "browser" not in initial_content:
-        initial_content["browser"] = agent_env["browser"]
-    if agent_env.get("notes") and "notes" not in initial_content:
-        initial_content["notes"] = agent_env["notes"]
+    public_environment = public_task_agent_initial_content(
+        {
+            key: agent_env[key]
+            for key in ("workspace", "visible_files", "image", "session", "vm", "browser", "notes")
+            if agent_env.get(key)
+        }
+    )
+    if "visible_files" in public_environment:
+        public_environment["files"] = public_environment.pop("visible_files")
+    for key, value in public_environment.items():
+        initial_content.setdefault(key, value)
 
     scoring = task.scoring.model_dump(mode="json")
     pass_criteria = scoring.get("pass_criteria") or task.scoring.pass_criteria
@@ -135,10 +128,20 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
             "levels": levels,
         }
     )
+    is_dialogue = task.environment.type == AgentEnvironmentType.dialogue
     metadata = {
         "schema_version": existing.get("schema_version") or "evalclaw.task_agent.v1",
-        "agent_role": existing.get("agent_role") or "target_agent_executor",
-        "system_prompt": task.system_prompt or existing.get("system_prompt") or "You are the target agent. Return JSON only.",
+        "agent_role": (
+            "dialogue_simulator"
+            if is_dialogue
+            else existing.get("agent_role") or "target_agent_executor"
+        ),
+        "system_prompt": task.system_prompt or existing.get("system_prompt") or (
+            "You are a task-specific dialogue simulator. Use the transcript to produce the next "
+            "user turn and return JSON only."
+            if is_dialogue
+            else "You are the target agent. Return JSON only."
+        ),
         "initial_content": initial_content,
         "interaction": existing.get("interaction") if isinstance(existing.get("interaction"), dict) else task.interaction,
         "scoring": scoring,
@@ -153,19 +156,41 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
     return metadata
 
 
+def _artifact_path(value: Any) -> str:
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, dict):
+        path = value.get("path")
+        return path.strip() if isinstance(path, str) else ""
+    return ""
+
+
+def _artifact_paths(values: Any) -> list[str]:
+    if not isinstance(values, list):
+        return []
+    return list(dict.fromkeys(path for value in values if (path := _artifact_path(value))))
+
+
 def _expected_artifacts(agent_env: dict[str, Any]) -> list[str]:
     artifacts: list[str] = []
     session = agent_env.get("session")
     if isinstance(session, dict):
-        value = session.get("expected_artifacts")
-        if isinstance(value, list):
-            artifacts.extend(str(item) for item in value if str(item).strip())
+        artifacts.extend(_artifact_paths(session.get("expected_artifacts")))
     evaluation = agent_env.get("evaluation")
     if isinstance(evaluation, dict):
-        value = evaluation.get("expected_artifacts")
-        if isinstance(value, list):
-            artifacts.extend(str(item) for item in value if str(item).strip())
+        artifacts.extend(_artifact_paths(evaluation.get("expected_artifacts")))
     return list(dict.fromkeys(artifacts))
+
+
+def _artifact_requirement(agent_env: dict[str, Any]) -> str:
+    for section_name in ("evaluation", "session"):
+        section = agent_env.get(section_name)
+        if not isinstance(section, dict):
+            continue
+        value = str(section.get("artifact_requirement") or "").strip().lower()
+        if value in {"all", "any", "exactly_one"}:
+            return value
+    return "all"
 
 
 def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
@@ -212,9 +237,53 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
     runtime_files = agent_env.get("runtime_files") if isinstance(agent_env.get("runtime_files"), dict) else {}
     hidden_files = agent_env.get("hidden_files") if isinstance(agent_env.get("hidden_files"), dict) else {}
     expected_artifacts = _expected_artifacts(agent_env)
-    required_outputs = expected_artifacts or [task.scoring.pass_criteria or "Task-specific completion state."]
+    declared_output = (
+        task.metadata.get("output_contract")
+        if isinstance(task.metadata.get("output_contract"), dict)
+        else {}
+    )
+    if not expected_artifacts:
+        declared_artifacts = declared_output.get("expected_artifacts")
+        if not isinstance(declared_artifacts, list):
+            declared_artifacts = task.metadata.get("expected_artifacts")
+        if isinstance(declared_artifacts, list):
+            expected_artifacts = _artifact_paths(declared_artifacts)
+    artifact_requirement = str(
+        declared_output.get("artifact_requirement")
+        or task.metadata.get("artifact_requirement")
+        or _artifact_requirement(agent_env)
+    ).strip().lower()
+    if artifact_requirement not in {"all", "any", "exactly_one"}:
+        artifact_requirement = "all"
+    declared_required_outputs = declared_output.get("required_outputs")
+    if not isinstance(declared_required_outputs, list):
+        declared_required_outputs = []
+    declared_required_outputs = [
+        str(value) for value in declared_required_outputs if str(value).strip()
+    ]
+    if expected_artifacts and artifact_requirement != "all":
+        quantifier = "Any one of" if artifact_requirement == "any" else "Exactly one of"
+        required_outputs = [f"{quantifier}: " + "; ".join(expected_artifacts)]
+    elif expected_artifacts:
+        required_outputs = expected_artifacts
+    elif declared_required_outputs:
+        required_outputs = declared_required_outputs
+    else:
+        required_outputs = [task.scoring.pass_criteria or "Task-specific completion state."]
+    declared_constraints = declared_output.get("constraints")
+    if not isinstance(declared_constraints, list):
+        declared_constraints = []
     setup_commands = agent_env.get("setup_commands") if isinstance(agent_env.get("setup_commands"), list) else []
     required_software = vm.get("required_software") if isinstance(vm.get("required_software"), list) else []
+    vm_requirements = vm.get("requirements") if isinstance(vm.get("requirements"), dict) else {}
+    required_capabilities = vm.get("required_capabilities")
+    if not isinstance(required_capabilities, list):
+        required_capabilities = vm_requirements.get("capabilities")
+    required_capabilities = (
+        list(dict.fromkeys(str(value) for value in required_capabilities if str(value).strip()))
+        if isinstance(required_capabilities, list)
+        else []
+    )
     if env_type in {"code_sandbox", "docker_workspace"} and agent_env.get("image"):
         required_software = list(dict.fromkeys([*required_software, str(agent_env["image"])]))
     hidden_reference_artifacts = list(expected_artifacts) if env_type == "gui_desktop" else []
@@ -264,6 +333,7 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
             "requires_vm": bool(agent_env.get("requires_vm") or vm),
             "requires_gui": env_type == "gui_desktop",
             "required_software": required_software,
+            "required_capabilities": required_capabilities,
             "network": str(agent_env.get("network") or vm.get("network") or "none"),
         },
         "visible_inputs": {
@@ -280,11 +350,21 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
         },
         "output_contract": {
             "expected_artifacts": expected_artifacts,
+            "artifact_requirement": artifact_requirement,
             "required_outputs": required_outputs,
-            "schema": {},
+            "schema": (
+                declared_output.get("schema")
+                if isinstance(declared_output.get("schema"), dict)
+                else {}
+            ),
             "constraints": [
                 "The final answer or artifacts must be produced inside the configured environment.",
                 "Hidden references and evaluator files must not be read by the target agent.",
+                *(
+                    str(value)
+                    for value in declared_constraints
+                    if str(value).strip()
+                ),
             ],
         },
         "execution": {

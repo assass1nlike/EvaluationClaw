@@ -27,6 +27,11 @@ def make_task_design(
     construction_requirements: list[str] | None = None,
     allowed_tools: list[str] | None = None,
 ) -> TaskDesign:
+    interaction_requirements: dict[str, Any] = {}
+    if allowed_tools:
+        interaction_requirements["allowed_action_or_tool_categories"] = allowed_tools
+    if task_type == TaskType.multi_turn:
+        interaction_requirements["followup_mode"] = "scripted"
     return TaskDesign(
         id=design_id,
         task_type=task_type,
@@ -38,11 +43,7 @@ def make_task_design(
             if environment_type is not None
             else {}
         ),
-        interaction_requirements=(
-            {"allowed_action_or_tool_categories": allowed_tools}
-            if allowed_tools
-            else {}
-        ),
+        interaction_requirements=interaction_requirements,
         scoring_contract={
             "components": [{"method": "task-appropriate", "criteria": ["Correctness"]}]
         },

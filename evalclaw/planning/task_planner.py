@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from collections.abc import Callable
 from typing import Any
@@ -37,6 +38,39 @@ def _unique_strings(values: object) -> list[str]:
     return list(dict.fromkeys(str(value).strip() for value in values if str(value).strip()))
 
 
+_TASK_COUNT_NOUNS = r"(?:tasks?|questions?|items?|problems?|prompts?|dialogues?|scenarios?|test cases?)"
+_TOTAL_TASK_COUNT_RE = re.compile(
+    rf"\b(?:a\s+)?total\s+(?:of\s+)?(?:exactly\s+)?(?P<count>\d+)"
+    rf"(?:\s+[\w-]+){{0,5}}\s+{_TASK_COUNT_NOUNS}\b",
+    re.IGNORECASE,
+)
+_EXACT_TASK_COUNT_RE = re.compile(
+    rf"\bexactly\s+(?P<count>\d+)(?:\s+[\w-]+){{0,5}}\s+{_TASK_COUNT_NOUNS}\b",
+    re.IGNORECASE,
+)
+_CJK_TOTAL_TASK_COUNT_RE = re.compile(
+    r"(?:总共|总计|共)[^\d]{0,8}(?P<count>\d+)\s*(?:道|个|项|份)?(?:题目?|问题|任务|对话|案例)"
+)
+
+
+def _explicit_total_task_count(instruction: str) -> int | None:
+    """Return an unambiguous user-specified total task count, if present."""
+    for pattern in (_TOTAL_TASK_COUNT_RE, _CJK_TOTAL_TASK_COUNT_RE):
+        match = pattern.search(instruction)
+        if match:
+            return int(match.group("count"))
+    candidates = {
+        int(match.group("count"))
+        for match in _EXACT_TASK_COUNT_RE.finditer(instruction)
+        if not re.match(
+            r"\s+(?:per|for\s+each|in\s+each)\b",
+            instruction[match.end() : match.end() + 32],
+            re.IGNORECASE,
+        )
+    }
+    return next(iter(candidates)) if len(candidates) == 1 else None
+
+
 def _instruction_resource(
     goal: str,
     config: BenchmarkConfig,
@@ -66,6 +100,9 @@ def _instruction_resource(
             config.reference_model.model_dump(mode="json") if config.reference_model else None
         ),
     }
+    explicit_task_count = _explicit_total_task_count(goal)
+    if explicit_task_count is not None:
+        constraints["explicit_total_task_count"] = explicit_task_count
     if config.reference_model is not None:
         constraints["pairwise_preference_policy"] = (
             "Use pairwise_preference only where target-versus-reference comparison directly "
@@ -194,6 +231,11 @@ def _local_plan_from_spec(spec: EvalSpec) -> BenchmarkPlan:
                         "exclusions": [dimension.boundary] if dimension.boundary else [],
                     },
                     environment_requirements=environment,
+                    interaction_requirements=(
+                        {"followup_mode": "scripted"}
+                        if allocation.task_type == TaskType.multi_turn
+                        else {}
+                    ),
                     scoring_contract={
                         "components": [
                             {
@@ -247,7 +289,11 @@ def _local_plan_from_spec(spec: EvalSpec) -> BenchmarkPlan:
     )
 
 
-def _audit_plan(plan: BenchmarkPlan) -> list[str]:
+def _audit_plan(
+    plan: BenchmarkPlan,
+    *,
+    expected_task_count: int | None = None,
+) -> list[str]:
     issues: list[str] = []
     if not plan.dimensions:
         return ["plan.dimensions must contain at least one dimension."]
@@ -304,6 +350,32 @@ def _audit_plan(plan: BenchmarkPlan) -> list[str]:
                 and not category
             ):
                 issues.append(f"{design_prefix}: interactive tasks require environment_requirements.")
+            if (
+                design.task_type == TaskType.multi_turn
+                and category
+                and normalized_category != AgentEnvironmentType.dialogue.value
+            ):
+                issues.append(
+                    f"{design_prefix}: multi_turn tasks execute as conversations and must use "
+                    "environment category 'dialogue'. Use agent_interaction for tasks that execute "
+                    "in a workspace or tool environment."
+                )
+            if design.task_type == TaskType.multi_turn:
+                followup_mode = str(
+                    design.interaction_requirements.get("followup_mode") or ""
+                ).strip().lower()
+                if followup_mode not in {"adaptive", "scripted"}:
+                    issues.append(
+                        f"{design_prefix}: multi_turn TaskDesigns must set "
+                        "interaction_requirements.followup_mode to 'adaptive' or 'scripted'."
+                    )
+            if (
+                design.task_type != TaskType.multi_turn
+                and normalized_category == AgentEnvironmentType.dialogue.value
+            ):
+                issues.append(
+                    f"{design_prefix}: environment category 'dialogue' is only valid for multi_turn tasks."
+                )
             for url in _unique_strings(design.source_plan.get("suggested_urls")):
                 if not url.lower().startswith(("https://", "http://")):
                     issues.append(f"{design_prefix}: suggested URL is invalid: {url!r}.")
@@ -341,14 +413,25 @@ def _audit_plan(plan: BenchmarkPlan) -> list[str]:
         if duplicated:
             issues.append(f"{prefix}: TaskDesigns assigned to multiple Blueprints: {duplicated}.")
 
-    if not sum(design.task_count for dim in plan.dimensions for design in dim.task_designs):
+    planned_task_count = sum(
+        design.task_count for dim in plan.dimensions for design in dim.task_designs
+    )
+    if not planned_task_count:
         issues.append("The complete plan must contain at least one task.")
+    if expected_task_count is not None and planned_task_count != expected_task_count:
+        issues.append(
+            f"The user explicitly requested exactly {expected_task_count} tasks, but the plan contains "
+            f"{planned_task_count}. Adjust TaskDesign.task_count values so their sum is exactly "
+            f"{expected_task_count}."
+        )
     return issues
 
 
 def _parse_plan_response(
     data: object,
     config: BenchmarkConfig,
+    *,
+    expected_task_count: int | None = None,
 ) -> tuple[BenchmarkPlan, list[str]]:
     if not isinstance(data, dict) or not isinstance(data.get("plan"), dict):
         raise ValueError("Planner response must be an object with a plan object at its root.")
@@ -358,7 +441,7 @@ def _parse_plan_response(
             "scale_budget": _safe_scale_budget(config.scale_budget),
         }
     )
-    issues = _audit_plan(plan)
+    issues = _audit_plan(plan, expected_task_count=expected_task_count)
     return plan, issues
 
 
@@ -367,6 +450,7 @@ def _run_planner(
     config: BenchmarkConfig,
     *,
     log: Callable[[str], None] | None,
+    expected_task_count: int | None = None,
 ) -> BenchmarkPlan:
     settings = role_model_settings(config, "planner")
     if not settings.configured:
@@ -407,7 +491,11 @@ def _run_planner(
                 max_tokens=16384,
             )
             previous_response = extract_json(raw)
-            plan, errors = _parse_plan_response(previous_response, config)
+            plan, errors = _parse_plan_response(
+                previous_response,
+                config,
+                expected_task_count=expected_task_count,
+            )
         except Exception as exc:
             errors = [f"{type(exc).__name__}: {exc}"]
             if log:
@@ -450,7 +538,18 @@ def plan_benchmark(
         previous_plan=previous_plan,
     )
     if role_model_settings(config, "planner").configured:
-        return _run_planner(instruction, config, log=log)
+        return _run_planner(
+            instruction,
+            config,
+            log=log,
+            expected_task_count=_explicit_total_task_count(goal),
+        )
+    if str(config.task_builder or "llm").lower() == "llm":
+        raise RuntimeError(
+            "Planner model is not configured. LLM construction mode fails closed instead of "
+            "silently substituting a local plan; configure the Planner role or explicitly use "
+            "task_builder='local'/'auto' for offline fallback planning."
+        )
     fallback = _fallback_outline(
         goal,
         [target.id for target in config.targets] or None,
@@ -467,6 +566,12 @@ def plan_from_spec(
 ) -> BenchmarkPlan:
     """Re-plan an explicitly supplied benchmark outline through the same Skill path."""
     if not role_model_settings(config, "planner").configured:
+        if str(config.task_builder or "llm").lower() == "llm":
+            raise RuntimeError(
+                "Planner model is not configured. LLM construction mode fails closed instead of "
+                "silently substituting a local plan; configure the Planner role or explicitly use "
+                "task_builder='local'/'auto' for offline fallback planning."
+            )
         return _local_plan_from_spec(spec)
     instruction = (
         "Design the complete benchmark plan represented by the following existing outline. "
@@ -474,7 +579,18 @@ def plan_from_spec(
         "while supplying the TaskDesign detail and Blueprint allocation required by the Planner Skill.\n\n"
         + json.dumps(spec.model_dump(mode="json"), ensure_ascii=False, indent=2)
     )
-    return _run_planner(_instruction_resource(instruction, config), config, log=log)
+    expected_task_count = (
+        sum(int(dimension.target_item_count) for dimension in spec.dimensions)
+        if spec.dimensions
+        and all(dimension.target_item_count is not None for dimension in spec.dimensions)
+        else None
+    )
+    return _run_planner(
+        _instruction_resource(instruction, config),
+        config,
+        log=log,
+        expected_task_count=expected_task_count,
+    )
 
 
 def plan_blueprints_for_spec(

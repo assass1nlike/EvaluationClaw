@@ -223,6 +223,28 @@ def test_call_litellm_deepseek_json_matches_direct_structured_mode(monkeypatch) 
     assert requests[0]["response_format"] == {"type": "json_object"}
 
 
+def test_call_litellm_custom_openai_endpoint_uses_json_mode(monkeypatch) -> None:
+    import litellm as _litellm
+
+    requests: list[dict] = []
+
+    def fake_completion(**kwargs):
+        requests.append(kwargs)
+        return _FakeLitellmResponse("stop", '{"tasks": []}')
+
+    monkeypatch.setattr(_litellm, "completion", fake_completion)
+
+    result = llm._call_litellm(
+        model="gpt-5.6-luna",
+        messages=[{"role": "user", "content": "Return one JSON object."}],
+        max_tokens=16384,
+        base_url="https://openai-compatible.example/v1",
+    )
+
+    assert result == '{"tasks": []}'
+    assert requests[0]["response_format"] == {"type": "json_object"}
+
+
 def test_azure_legacy_retries_then_raises_on_truncation(monkeypatch) -> None:
     monkeypatch.setenv("AZURE_API_BASE", "https://res.openai.azure.com")
     monkeypatch.setenv("AZURE_API_VERSION", "2024-06-01")

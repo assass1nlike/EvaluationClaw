@@ -1,6 +1,7 @@
 """Controlled environment probing and lightweight runtime decisions."""
 from __future__ import annotations
 
+import copy
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -20,7 +21,7 @@ from .vm_materializer import (
     materialize_vm_task,
     vm_task_requires_vm,
 )
-from .vm_provider import probe_vm_provider, vm_provider_setup_message
+from .vm_provider import probe_vm_provider, resolve_vm_image_spec, vm_provider_setup_message
 
 
 @dataclass
@@ -269,12 +270,19 @@ def _materialize_vm_tasks(report: EnvironmentClawReport, items: list[BenchmarkIt
             report.blocking_errors.append(str(exc))
             continue
         if result.applied:
+            command_count = int(result.provisioning.get("command_count") or 0)
+            materialization_detail = (
+                f"including {command_count} task-specific provisioning command(s)"
+                if command_count
+                else "containing task files and metadata; initial state comes from the declared "
+                "prebuilt VM source and remains guarded by baseline checks"
+            )
             report.actions.append(
                 EnvironmentAction(
                     action="materialize VM task content",
                     reason=(
                         f"Generated a task-specific NoCloud config-drive ISO using {result.strategy} "
-                        "for initial files, metadata, and optional software provisioning commands."
+                        f"{materialization_detail}."
                     ),
                     applied=True,
                     data=result.as_dict(),
@@ -290,6 +298,57 @@ def _materialize_vm_tasks(report: EnvironmentClawReport, items: list[BenchmarkIt
                     reason=result.skipped_reason,
                     applied=False,
                     data=result.as_dict(),
+                )
+            )
+
+
+def _resolve_vm_task_images(
+    report: EnvironmentClawReport,
+    items: list[BenchmarkItem],
+    provider_status: object,
+) -> None:
+    data = getattr(provider_status, "data", {})
+    data = data if isinstance(data, dict) else {}
+    capabilities = data.get("capabilities")
+    capabilities = capabilities if isinstance(capabilities, dict) else {}
+    if not bool(data.get("protocol_v2")):
+        return
+    for item in items:
+        if not _item_requires_vm(item):
+            continue
+        env = copy.deepcopy(_agent_env(item))
+        vm_spec = env.get("vm") if isinstance(env.get("vm"), dict) else {}
+        try:
+            resolved, selected = resolve_vm_image_spec(
+                vm_spec,
+                capabilities,
+                capabilities_discovered=True,
+            )
+        except RuntimeError as exc:
+            report.blocking_errors.append(f"Task {item.id} VM image resolution failed: {exc}")
+            report.actions.append(
+                EnvironmentAction(
+                    action="resolve VM image",
+                    reason=str(exc),
+                    applied=False,
+                    data={"item_id": item.id},
+                )
+            )
+            continue
+        env["vm"] = resolved
+        _set_agent_env(item, env)
+        if selected is not None:
+            report.actions.append(
+                EnvironmentAction(
+                    action="resolve VM image",
+                    reason=(
+                        "Selected a provider image matching the task OS and required capabilities."
+                    ),
+                    applied=True,
+                    data={
+                        "item_id": item.id,
+                        "image": selected,
+                    },
                 )
             )
 
@@ -389,6 +448,8 @@ def run_environment_claw(
         )
         if not status.available:
             report.blocking_errors.append(vm_provider_setup_message())
+        else:
+            _resolve_vm_task_images(report, items, status)
 
     if has_gui_desktop_without_vm:
         bridge_url = _first_gui_bridge_url(items) or config.gui_bridge_url

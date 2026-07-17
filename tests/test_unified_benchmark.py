@@ -55,7 +55,7 @@ def test_planner_creates_adaptive_blueprint_work_packages(monkeypatch) -> None:
 
     monkeypatch.setattr("evalclaw.planning.task_planner._fallback_outline", fake_plan)
 
-    planned = plan_benchmark(spec.objective, BenchmarkConfig())
+    planned = plan_benchmark(spec.objective, BenchmarkConfig(task_builder="local"))
 
     assert calls == 1
     derived = planned.to_eval_spec()

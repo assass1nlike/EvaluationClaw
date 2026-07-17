@@ -1,6 +1,10 @@
 """Structural validation for tasks built by the general constructor."""
 from __future__ import annotations
 
+import base64
+import re
+import shutil
+import subprocess
 from pathlib import PurePosixPath
 
 from ..protocols.agent_task_package import AGENT_TASK_PACKAGE_METADATA_KEY
@@ -88,8 +92,7 @@ def _prompt_looks_truncated(prompt: str) -> bool:
     if len(stripped) < 120 or stripped.endswith(_COMPLETE_PROMPT_ENDINGS):
         return False
     lower = stripped.lower()
-    last_word = lower.rsplit(maxsplit=1)[-1] if lower.split() else ""
-    return len(last_word) <= 2 or lower.endswith(_DANGLING_PROMPT_ENDINGS)
+    return lower.endswith(_DANGLING_PROMPT_ENDINGS)
 
 
 def _declared_vm_guest_os(env: object) -> str:
@@ -129,6 +132,8 @@ def _vm_provisioning_platform_issues(env: object) -> list[str]:
         "windows_features",
         "powershell_commands",
         "powershell_script",
+        "interactive_powershell_commands",
+        "restart_after_provisioning",
     }
     linux_fields = {
         "apt_packages",
@@ -215,32 +220,440 @@ def _vm_provisioning_platform_issues(env: object) -> list[str]:
     return []
 
 
-def _vm_provisioning_needs_state_check(env: object) -> bool:
+def _parse_powershell_syntax_errors(command: str) -> list[str]:
+    executable = shutil.which("pwsh") or shutil.which("powershell")
+    if not executable:
+        return []
+    encoded = base64.b64encode(command.encode("utf-8")).decode("ascii")
+    parser_script = (
+        f"$source=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{encoded}'));"
+        "$tokens=$null;$errors=$null;"
+        "[void][System.Management.Automation.Language.Parser]::ParseInput("
+        "$source,[ref]$tokens,[ref]$errors);"
+        "if($errors){$errors|ForEach-Object{$_.Message};exit 1}"
+    )
+    try:
+        result = subprocess.run(
+            [executable, "-NoProfile", "-NonInteractive", "-Command", "-"],
+            input=parser_script,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if result.returncode != 1:
+        return []
+    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def _vm_powershell_syntax_issues(env: object) -> list[str]:
+    if _declared_vm_guest_os(env) != "windows":
+        return []
     provisioning = getattr(env, "vm_provisioning", {})
     if not isinstance(provisioning, dict):
+        return []
+    raw_commands = provisioning.get("powershell_commands")
+    commands = list(raw_commands) if isinstance(raw_commands, list) else [raw_commands]
+    script = provisioning.get("powershell_script")
+    if _has_text(script):
+        commands.append(script)
+    interactive_commands = provisioning.get("interactive_powershell_commands")
+    if isinstance(interactive_commands, list):
+        commands.extend(interactive_commands)
+    elif _has_text(interactive_commands):
+        commands.append(interactive_commands)
+    issues: list[str] = []
+    for index, command in enumerate(commands, 1):
+        if not _has_text(command):
+            continue
+        errors = _parse_powershell_syntax_errors(str(command))
+        if errors:
+            issues.append(
+                f"environment.vm_provisioning PowerShell command {index} has invalid syntax: "
+                + "; ".join(errors[:3])
+            )
+    return issues
+
+
+def _vm_interactive_provisioning_issues(env: object) -> list[str]:
+    if _declared_vm_guest_os(env) != "windows":
+        return []
+    provisioning = getattr(env, "vm_provisioning", {})
+    if not isinstance(provisioning, dict):
+        return []
+    issues: list[str] = []
+    interactive_raw = provisioning.get("interactive_powershell_commands")
+    if interactive_raw and not provisioning.get("restart_after_provisioning"):
+        issues.append(
+            "environment.vm_provisioning.interactive_powershell_commands requires "
+            "restart_after_provisioning=true so the commands run in the intended signed-in user session."
+        )
+    interactive = interactive_raw if isinstance(interactive_raw, list) else [interactive_raw]
+    system_raw = provisioning.get("powershell_commands")
+    system = system_raw if isinstance(system_raw, list) else [system_raw]
+    if _has_text(provisioning.get("powershell_script")):
+        system.append(provisioning.get("powershell_script"))
+    duplicates = {
+        str(command).strip()
+        for command in interactive
+        if _has_text(command)
+    } & {
+        str(command).strip()
+        for command in system
+        if _has_text(command)
+    }
+    if duplicates:
+        issues.append(
+            "The same PowerShell command cannot appear in both system powershell_commands/"
+            "powershell_script and interactive_powershell_commands; assign it to exactly one "
+            "execution identity."
+        )
+    return issues
+
+
+def _vm_windows_session_identity_issues(env: object) -> list[str]:
+    if _declared_vm_guest_os(env) != "windows":
+        return []
+    vm = getattr(env, "vm", {})
+    session = getattr(env, "session", {})
+    provisioning = getattr(env, "vm_provisioning", {})
+    if not all(isinstance(value, dict) for value in (vm, session, provisioning)):
+        return []
+    source_fields = (
+        "template",
+        "template_name",
+        "image",
+        "disk_image",
+        "disk_path",
+        "template_path",
+    )
+    if _has_any_text(*(vm.get(field) for field in source_fields)):
+        return []
+    checks = session.get("baseline_checks")
+    if not isinstance(checks, list):
+        return []
+    asserted_users: set[str] = set()
+    for check in checks:
+        if not isinstance(check, dict):
+            continue
+        command = str(check.get("command") or "")
+        asserted_users.update(
+            match.group(1)
+            for match in re.finditer(
+                r"(?i)\$env:USERNAME\s+-i?(?:eq|ne)\s+['\"]([^'\"]+)['\"]",
+                command,
+            )
+        )
+        asserted_users.update(
+            match.group(1)
+            for match in re.finditer(
+                r"(?i)-(?:not)?match\s+['\"][^'\"]*\\+([A-Za-z0-9_.-]+)\$['\"]",
+                command,
+            )
+        )
+    if not asserted_users:
+        return []
+    commands = "\n".join(
+        str(command)
+        for field in ("powershell_commands", "powershell_script")
+        for command in (
+            provisioning.get(field)
+            if isinstance(provisioning.get(field), list)
+            else [provisioning.get(field)]
+        )
+        if _has_text(command)
+    )
+    lower = commands.lower()
+    creates_local_user = "new-localuser" in lower or bool(
+        re.search(r"(?i)\bnet(?:\.exe)?\s+user\b", commands)
+    )
+    issues: list[str] = []
+    names = ", ".join(sorted(asserted_users))
+    if not creates_local_user:
+        issues.append(
+            "Windows capability-resolved VM baseline requires the signed-in user "
+            f"{names}, but provisioning does not create a local user. Create the account "
+            "explicitly; Scheduled Task principals and ACL entries do not create users."
+        )
+    has_logon_configuration = "autoadminlogon" in lower and "defaultusername" in lower
+    if not provisioning.get("restart_after_provisioning") or not has_logon_configuration:
+        issues.append(
+            "Windows capability-resolved VM baseline asserts a named signed-in user, but "
+            "provisioning must configure a concrete logon mechanism and set "
+            "restart_after_provisioning=true before the bridge exposes that session."
+        )
+    return issues
+
+
+def _vm_protected_evaluator_reference_issues(env: object) -> list[str]:
+    if _declared_vm_guest_os(env) != "windows":
+        return []
+    provisioning = getattr(env, "vm_provisioning", {})
+    evaluation = getattr(env, "evaluation", {})
+    if not isinstance(provisioning, dict) or not isinstance(evaluation, dict):
+        return []
+    raw_commands = provisioning.get("powershell_commands")
+    commands = list(raw_commands) if isinstance(raw_commands, list) else [raw_commands]
+    script = provisioning.get("powershell_script")
+    if _has_text(script):
+        commands.append(script)
+    provisioning_text = "\n".join(str(command) for command in commands if _has_text(command))
+    assignments = {
+        match.group(1).lower(): match.group(2)
+        for match in re.finditer(
+            r"(?im)^\s*\$([A-Za-z_][A-Za-z0-9_]*)\s*=\s*['\"]([A-Za-z]:\\[^'\"]+)['\"]",
+            provisioning_text,
+        )
+    }
+    protected_roots: set[str] = set()
+    lines = provisioning_text.splitlines()
+    for line in lines:
+        if "icacls" not in line.lower() or "/inheritance:r" not in line.lower():
+            continue
+        variables = re.findall(r"\$([A-Za-z_][A-Za-z0-9_]*)", line)
+        roots = [assignments[name.lower()] for name in variables if name.lower() in assignments]
+        roots.extend(re.findall(r"['\"]([A-Za-z]:\\[^'\"]+)['\"]", line))
+        for root in roots:
+            related = "\n".join(
+                candidate
+                for candidate in lines
+                if root.lower() in candidate.lower()
+                or any(f"${name}".lower() in candidate.lower() for name, value in assignments.items() if value == root)
+            ).lower()
+            target_can_read = any(
+                marker in related
+                for marker in ("everyone:", "authenticated users:", "users:", "*s-1-5-32-545")
+            )
+            if not target_can_read:
+                protected_roots.add(root)
+    if not protected_roots:
+        return []
+    checks = evaluation.get("checks")
+    if not isinstance(checks, list):
+        return []
+    evaluation_text = "\n".join(
+        str(check.get("command") or "")
+        for check in checks
+        if isinstance(check, dict)
+    )
+    inaccessible = sorted(root for root in protected_roots if root.lower() in evaluation_text.lower())
+    if not inaccessible:
+        return []
+    return [
+        "Windows gui_desktop evaluation runs as the signed-in target user and cannot read "
+        "provisioning paths whose ACL grants only SYSTEM/Administrators: "
+        + ", ".join(inaccessible)
+        + ". Embed expected values or hashes in the evaluator command instead of reading a "
+        "target-inaccessible oracle at runtime."
+    ]
+
+
+def _vm_powershell_check_issues(env: object) -> list[str]:
+    if _declared_vm_guest_os(env) != "windows":
+        return []
+    groups = (
+        ("environment.session.baseline_checks", getattr(env, "session", {}).get("baseline_checks")),
+        ("environment.evaluation.checks", getattr(env, "evaluation", {}).get("checks")),
+    )
+    issues: list[str] = []
+    for field_name, checks in groups:
+        if not isinstance(checks, list):
+            continue
+        for index, check in enumerate(checks, 1):
+            if not isinstance(check, dict) or str(check.get("method") or "").lower() != "command":
+                continue
+            command = str(check.get("command") or "").strip()
+            if not command:
+                continue
+            if re.match(r"(?i)^\s*(?:powershell(?:\.exe)?|pwsh(?:\.exe)?)\b.*\s-(?:command|c)\b", command):
+                issues.append(
+                    f"{field_name}[{index}].command must be the raw PowerShell script body; "
+                    "do not wrap it in powershell.exe/pwsh -Command."
+                )
+                continue
+            errors = _parse_powershell_syntax_errors(command)
+            if errors:
+                issues.append(
+                    f"{field_name}[{index}].command has invalid PowerShell syntax: "
+                    + "; ".join(errors[:3])
+                )
+    return issues
+
+
+def _scheduled_task_parameter_sets(command: str) -> list[set[str]]:
+    executable = shutil.which("pwsh") or shutil.which("powershell")
+    if not executable:
+        statements = re.split(r"[;\r\n]+", command)
+        return [
+            {name.lower() for name in re.findall(r"(?<!\w)-([A-Za-z][A-Za-z0-9]*)\b", statement)}
+            for statement in statements
+            if re.search(r"(?i)\bRegister-ScheduledTask\b", statement)
+        ]
+    encoded = base64.b64encode(command.encode("utf-8")).decode("ascii")
+    parser_script = (
+        f"$source=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{encoded}'));"
+        "$tokens=$null;$errors=$null;"
+        "$ast=[System.Management.Automation.Language.Parser]::ParseInput("
+        "$source,[ref]$tokens,[ref]$errors);"
+        "$nodes=$ast.FindAll({param($node)"
+        "$node -is [System.Management.Automation.Language.CommandAst] -and "
+        "$node.GetCommandName() -eq 'Register-ScheduledTask'},$true);"
+        "foreach($node in $nodes){"
+        "$parameters=@($node.CommandElements|Where-Object{"
+        "$_ -is [System.Management.Automation.Language.CommandParameterAst]}|"
+        "ForEach-Object{$_.ParameterName.ToLowerInvariant()});"
+        "Write-Output ($parameters -join ',')}"
+    )
+    try:
+        result = subprocess.run(
+            [executable, "-NoProfile", "-NonInteractive", "-Command", "-"],
+            input=parser_script,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if result.returncode != 0:
+        return []
+    return [
+        {name for name in line.strip().split(",") if name}
+        for line in result.stdout.splitlines()
+    ]
+
+
+def _vm_powershell_contract_issues(env: object) -> list[str]:
+    if _declared_vm_guest_os(env) != "windows":
+        return []
+    provisioning = getattr(env, "vm_provisioning", {})
+    if not isinstance(provisioning, dict):
+        return []
+    raw_commands = provisioning.get("powershell_commands")
+    commands = list(raw_commands) if isinstance(raw_commands, list) else [raw_commands]
+    script = provisioning.get("powershell_script")
+    if _has_text(script):
+        commands.append(script)
+    issues: list[str] = []
+    for index, command in enumerate(commands, 1):
+        text = str(command or "")
+        if any(
+            {"principal", "password"}.issubset(parameters)
+            for parameters in _scheduled_task_parameter_sets(text)
+        ):
+            issues.append(
+                f"environment.vm_provisioning PowerShell command {index} combines "
+                "Register-ScheduledTask -Principal with -Password, which are different "
+                "parameter sets. Use -User/-Password/-RunLevel or -Principal without -Password."
+            )
+    return issues
+
+
+def _vm_source_looks_descriptive_or_placeholder(value: object) -> bool:
+    text = str(value or "").strip()
+    lowered = text.lower()
+    if not text:
         return False
-    command_fields = (
-        "commands",
-        "run_commands",
-        "bootstrap_commands",
-        "runcmd",
-        "powershell_commands",
-        "powershell_script",
-    )
-    if any(provisioning.get(key) for key in command_fields):
+    if any(
+        marker in lowered
+        for marker in (
+            "<",
+            ">",
+            "runner-resolvable",
+            "placeholder",
+            "replace me",
+            "template identifier",
+            "snapshot identifier",
+            "disk identifier",
+        )
+    ):
         return True
-    steps = (
-        provisioning.get("install_steps")
-        or provisioning.get("package_manager_steps")
-        or provisioning.get("software_install_steps")
+    return len(text) > 120 and text.endswith((".", "!", "?"))
+
+
+def _desktop_check_issues(checks: object, *, field_name: str) -> list[str]:
+    if not isinstance(checks, list):
+        return []
+    issues: list[str] = []
+    for index, check in enumerate(checks, 1):
+        if not isinstance(check, dict):
+            issues.append(f"{field_name}[{index}] must be an object.")
+            continue
+        method = str(check.get("method") or "").strip().lower()
+        if method == "command":
+            command = str(check.get("command") or "").strip()
+            if not command:
+                issues.append(
+                    f"{field_name}[{index}] uses method=command but has no executable guest command."
+                )
+            elif re.fullmatch(r"[A-Z][A-Z0-9_]{2,}:[A-Za-z0-9_.:/-]+", command):
+                issues.append(
+                    f"{field_name}[{index}].command must contain the complete executable guest "
+                    "command; opaque runner-private command identifiers are not part of the "
+                    "gui_desktop bridge contract."
+                )
+            elif field_name == "environment.evaluation.checks" and _command_is_probe_only(
+                command,
+                check,
+            ):
+                issues.append(
+                    f"{field_name}[{index}].command only collects output and succeeds "
+                    "unconditionally. A command check must directly return success or failure for "
+                    "the state being scored; ordinary task metadata cannot supply a separate "
+                    "runtime evaluator."
+                )
+        elif method == "file_exists" and not _has_text(check.get("path")):
+            issues.append(f"{field_name}[{index}] uses {method} but has no path.")
+        elif method not in {"command", "file_exists"}:
+            issues.append(
+                f"{field_name}[{index}] uses unsupported method {method or '<empty>'}; "
+                "the gui_desktop bridge supports command and file_exists."
+            )
+    return issues
+
+
+def _command_is_probe_only(command: str, check: dict[str, object]) -> bool:
+    comparison_fields = {
+        "expected_output",
+        "expected_stdout",
+        "stdout_contains",
+        "output_regex",
+        "expected_value",
+        "json_path",
+    }
+    if any(_has_text(check.get(field)) for field in comparison_fields):
+        return False
+    normalized = re.sub(r"\s+", " ", command.strip().lower())
+    unconditional_success = bool(
+        re.search(r"(?:^|[;}&|]\s*)exit\s+(?:0|'0'|\"0\")\s*[\"']?\s*$", normalized)
     )
-    steps = [steps] if isinstance(steps, dict) else steps
-    return any(
-        str(step.get("manager") or step.get("type") or "").strip().lower()
-        in {"command", "shell", "sh", "bash", "powershell", "pwsh", "ps1"}
-        for step in steps or []
-        if isinstance(step, dict)
+    explicit_failure = bool(
+        re.search(r"\bexit\s+(?!0(?:\D|$))\d+\b", normalized)
+        or re.search(r"\b(?:throw|assert)\b", normalized)
     )
+    return unconditional_success and not explicit_failure
+
+
+def _metadata_runtime_evaluator_issues(metadata: dict[str, object]) -> list[str]:
+    issues: list[str] = []
+    executable_markers = re.compile(
+        r"runner[-_ ]private|host[-_ ]side|private evaluator|runner_private://|"
+        r"\bentrypoint\b|\bexecutable\b",
+        re.IGNORECASE,
+    )
+    for key, value in metadata.items():
+        normalized_key = str(key).strip().lower().replace("-", "_")
+        if not any(term in normalized_key for term in ("evaluator", "evaluation", "validation")):
+            continue
+        if executable_markers.search(f"{key} {value}"):
+            issues.append(
+                f"Task metadata.{key} declares a runtime evaluator, but ordinary task metadata "
+                "is not executable. Put the complete evaluator in the canonical environment "
+                "evaluation fields supported by the selected runtime."
+            )
+    return issues
 
 
 def task_structure_issues(
@@ -259,6 +672,7 @@ def task_structure_issues(
     issues: list[str] = []
     if not _has_text(task.id):
         issues.append("Task id is empty.")
+    issues.extend(_metadata_runtime_evaluator_issues(task.metadata))
     if not _has_text(task.title):
         issues.append("Task title is empty.")
     if not _has_text(task.prompt):
@@ -358,6 +772,15 @@ def task_structure_issues(
     if env.type != expected_environment:
         issues.append(
             f"Task environment.type must match blueprint.environment_type={expected_environment.value}."
+        )
+    artifact_requirement = str(
+        env.evaluation.get("artifact_requirement")
+        or env.session.get("artifact_requirement")
+        or "all"
+    ).strip().lower()
+    if artifact_requirement not in {"all", "any", "exactly_one"}:
+        issues.append(
+            "environment artifact_requirement must be all, any, or exactly_one."
         )
     if env.type == AgentEnvironmentType.dialogue and task.task_type != TaskType.multi_turn:
         issues.append("dialogue environments are executable only for multi_turn tasks.")
@@ -501,32 +924,85 @@ def task_structure_issues(
                 env.session.get("entrypoint"),
             )
             if not has_application:
-                issues.append("gui_desktop session must identify the application or desktop surface.")
+                issues.append(
+                    "gui_desktop tasks must set environment.session.application, kind, or applications; "
+                    "session.surface is not consumed by the runtime."
+                )
             if not has_start_state:
-                issues.append("gui_desktop session must define a launch or start state.")
+                issues.append(
+                    "gui_desktop tasks must set environment.session.launch_state, start_state, "
+                    "start_url, or entrypoint."
+                )
         if not _has_environment_evaluator(task):
-            issues.append("gui_desktop tasks must include an executable evaluation method or checks.")
-        if env.requires_vm:
+            issues.append(
+                "gui_desktop tasks must put an executable method or checks in environment.evaluation; "
+                "session.evaluation_checks is not consumed by the runtime."
+            )
+        issues.extend(
+            _desktop_check_issues(
+                env.session.get("baseline_checks"),
+                field_name="environment.session.baseline_checks",
+            )
+        )
+        issues.extend(
+            _desktop_check_issues(
+                env.evaluation.get("checks"),
+                field_name="environment.evaluation.checks",
+            )
+        )
+        requires_vm = bool(env.requires_vm or env.vm)
+        if requires_vm:
             if not env.vm:
                 issues.append("gui_desktop tasks with requires_vm=true must include environment.vm.")
-            elif not _has_any_text(
-                env.vm.get("template"),
-                env.vm.get("template_name"),
-                env.vm.get("image"),
-                env.vm.get("disk_image"),
-                env.vm.get("disk_path"),
-            ):
-                issues.append(
-                    "VM-backed gui_desktop tasks must provide a runner-resolvable template, image, or disk identifier."
+            else:
+                source_fields = (
+                    "template",
+                    "template_name",
+                    "image",
+                    "disk_image",
+                    "disk_path",
+                    "template_path",
                 )
+                source_values = [env.vm.get(field) for field in source_fields]
+                requirements = env.vm.get("requirements")
+                requirements = requirements if isinstance(requirements, dict) else {}
+                required_capabilities = (
+                    requirements.get("capabilities")
+                    or requirements.get("required_capabilities")
+                    or env.vm.get("required_capabilities")
+                )
+                has_runtime_requirements = bool(
+                    _declared_vm_guest_os(env)
+                    and isinstance(required_capabilities, list)
+                    and required_capabilities
+                )
+                if not _has_any_text(*source_values) and not has_runtime_requirements:
+                    issues.append(
+                        "VM-backed gui_desktop tasks must provide a runner-resolvable template, "
+                        "image, or disk identifier, or guest OS plus required_capabilities for "
+                        "runtime provider resolution."
+                    )
+                for field in (*source_fields, "snapshot"):
+                    value = env.vm.get(field)
+                    if _vm_source_looks_descriptive_or_placeholder(value):
+                        issues.append(
+                            f"environment.vm.{field} must be a concrete runner-resolvable identifier, "
+                            "not a placeholder or prose description."
+                        )
             issues.extend(_vm_provisioning_platform_issues(env))
-            if _vm_provisioning_needs_state_check(env) and not (
+            issues.extend(_vm_powershell_syntax_issues(env))
+            issues.extend(_vm_interactive_provisioning_issues(env))
+            issues.extend(_vm_windows_session_identity_issues(env))
+            issues.extend(_vm_protected_evaluator_reference_issues(env))
+            issues.extend(_vm_powershell_check_issues(env))
+            issues.extend(_vm_powershell_contract_issues(env))
+            if not (
                 isinstance(env.session.get("baseline_checks"), list)
                 and env.session["baseline_checks"]
             ):
                 issues.append(
-                    "VM provisioning with state-building commands must define executable "
-                    "session.baseline_checks for the bridge to verify before the target starts."
+                    "Every VM-backed gui_desktop task must define executable "
+                    "environment.session.baseline_checks for the bridge to verify before the target starts."
                 )
 
     elif env.type == AgentEnvironmentType.dialogue:
@@ -543,6 +1019,7 @@ def task_structure_issues(
                     "matching the runtime turn bound."
                 )
             scripted_turns = task.interaction.get("user_turns")
+            followup_instruction = task.interaction.get("followup_instruction")
             scripted_turns_valid = bool(
                 isinstance(scripted_turns, list)
                 and 1 <= len(scripted_turns) <= 5
@@ -553,14 +1030,55 @@ def task_structure_issues(
                     "interaction.user_turns must contain 1 to 5 non-empty strings; structured turn "
                     "objects are not consumed by the runtime."
                 )
-            elif not scripted_turns_valid and not _has_text(
-                task.interaction.get("followup_instruction")
-            ):
+            elif not scripted_turns_valid and not _has_text(followup_instruction):
                 issues.append(
                     "multi_turn dialogue tasks must provide interaction.user_turns as a non-empty list "
                     "of strings, or interaction.followup_instruction. The field name must be exactly "
                     "user_turns; aliases such as scripted_user_turns or turns are not part of the runtime contract."
                 )
+            if scripted_turns_valid and _has_text(followup_instruction):
+                issues.append(
+                    "multi_turn dialogue tasks must set exactly one of interaction.user_turns and "
+                    "interaction.followup_instruction."
+                )
+            followup_mode = (
+                str(task_design.interaction_requirements.get("followup_mode") or "")
+                .strip()
+                .lower()
+                if task_design is not None
+                else ""
+            )
+            if followup_mode == "adaptive":
+                if scripted_turns is not None:
+                    issues.append(
+                        "TaskDesign requires adaptive follow-ups, so interaction.user_turns must be omitted."
+                    )
+                if not _has_text(followup_instruction):
+                    issues.append(
+                        "TaskDesign requires adaptive follow-ups, so interaction.followup_instruction "
+                        "must tell the simulator how to respond to the transcript and latest target reply."
+                    )
+                if not _has_text(task.system_prompt):
+                    issues.append(
+                        "Adaptive dialogue tasks must provide a task-specific system_prompt for the "
+                        "dialogue simulator."
+                    )
+                if _has_text(task.interaction.get("initial_user_message")):
+                    issues.append(
+                        "Adaptive dialogue tasks must use the complete task prompt as the first "
+                        "target-visible turn; omit interaction.initial_user_message."
+                    )
+            elif followup_mode == "scripted":
+                if not scripted_turns_valid:
+                    issues.append(
+                        "TaskDesign requires scripted follow-ups, so interaction.user_turns must contain "
+                        "the fixed turns."
+                    )
+                if _has_text(followup_instruction):
+                    issues.append(
+                        "TaskDesign requires scripted follow-ups, so interaction.followup_instruction "
+                        "must be omitted."
+                    )
         if any(
             (
                 env.visible_files,

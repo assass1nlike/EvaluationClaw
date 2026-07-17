@@ -56,6 +56,10 @@ This says "each task group" rather than "each task" because one description may 
 
 Make the sum of the task counts across all dimensions equal the user's target task count. Allocate task counts according to coverage value and measurement importance; do not divide them evenly by default.
 
+Use environment requirements only when the task actually needs an execution context. For `multi_turn` tasks, use the `dialogue` environment category. For `agent_interaction` tasks, choose the environment category that provides the required tools or state. For static task types such as multiple-choice, short-answer, and open-generation, leave `environment_requirements` empty unless the task genuinely requires an executable environment; never label a static task as `dialogue` merely because it has an interaction mode.
+
+For every `multi_turn` TaskDesign, set `interaction_requirements.followup_mode` to exactly `adaptive` or `scripted`. Use `adaptive` when later turns must respond to the target's actual replies, and `scripted` only when predetermined follow-up turns are substantively appropriate. Preserve any explicit user requirement about this choice.
+
 At the end of this step, determine the JSON for every task group and express all information in your design through JSON fields. The complete field set for one task-group JSON object is `plan.dimensions[].task_designs` in `reference/universal_format.json`. This field specification is shared by all tasks, so an individual task does not necessarily need—and usually will not need—to fill every field.
 
 ### Step Four: Perform a Global Audit
