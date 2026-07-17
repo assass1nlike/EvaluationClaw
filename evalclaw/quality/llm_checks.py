@@ -33,24 +33,50 @@ def _file_review_excerpt(content: object, limit: int = 3000) -> str:
     return text[:half] + "\n... QC REVIEW EXCERPT ...\n" + text[-half:]
 
 
-def _compact_qc_value(value: object, *, depth: int = 0) -> object:
+def _prompt_for_qc(prompt: str, *, limit: int) -> dict[str, object]:
+    complete = len(prompt) <= limit
+    return {
+        "prompt": prompt if complete else _file_review_excerpt(prompt, limit),
+        "prompt_is_complete": complete,
+        "prompt_character_count": len(prompt),
+    }
+
+
+def _compact_qc_value(
+    value: object,
+    *,
+    depth: int = 0,
+    string_limit: int = 1200,
+) -> object:
     if isinstance(value, str):
-        return value if len(value) <= 1200 else value[:1200] + "\n[QC excerpt clipped]"
+        return (
+            value
+            if len(value) <= string_limit
+            else _file_review_excerpt(value, string_limit)
+            + "\n[QC review excerpt clipped; canonical value is complete and longer]"
+        )
     if value is None or isinstance(value, (bool, int, float)):
         return value
     if depth >= 3:
-        return str(value)[:1200]
+        return _compact_qc_value(str(value), string_limit=string_limit)
     if isinstance(value, list):
-        return [_compact_qc_value(item, depth=depth + 1) for item in value[:16]]
+        return [
+            _compact_qc_value(item, depth=depth + 1, string_limit=string_limit)
+            for item in value[:16]
+        ]
     if isinstance(value, dict):
         return {
-            str(key): _compact_qc_value(child, depth=depth + 1)
+            str(key): _compact_qc_value(
+                child,
+                depth=depth + 1,
+                string_limit=string_limit,
+            )
             for key, child in list(value.items())[:24]
         }
-    return str(value)[:1200]
+    return _compact_qc_value(str(value), string_limit=string_limit)
 
 
-def _compact_metadata_for_qc(metadata: dict) -> dict:
+def _compact_metadata_for_qc(metadata: dict, *, string_limit: int = 1200) -> dict:
     """Keep QC context small while preserving executable environment facts."""
     if not metadata:
         return {}
@@ -148,15 +174,19 @@ def _compact_metadata_for_qc(metadata: dict) -> dict:
                 "assets",
                 "handoff_artifacts",
                 "expected_artifacts",
+                "baseline_checks",
             )
             env_summary["session"] = {
-                key: _compact_qc_value(session[key])
+                key: _compact_qc_value(session[key], string_limit=string_limit)
                 for key in session_keys
                 if key in session
             }
         evaluation = env.get("evaluation")
         if isinstance(evaluation, dict):
-            env_summary["evaluation"] = _compact_qc_value(evaluation)
+            env_summary["evaluation"] = _compact_qc_value(
+                evaluation,
+                string_limit=string_limit,
+            )
         vm = env.get("vm")
         if isinstance(vm, dict):
             env_summary["requires_vm"] = bool(env.get("requires_vm"))
@@ -174,17 +204,25 @@ def _compact_metadata_for_qc(metadata: dict) -> dict:
                 "locale",
                 "display",
                 "required_software",
+                "required_capabilities",
+                "requirements",
+                "resolved_image",
+                "config_drive",
                 "guest_user",
+                "guest_os",
                 "os",
             )
             env_summary["vm"] = {
-                key: _compact_qc_value(vm[key])
+                key: _compact_qc_value(vm[key], string_limit=string_limit)
                 for key in vm_keys
                 if key in vm
             }
         vm_provisioning = env.get("vm_provisioning")
         if isinstance(vm_provisioning, dict) and vm_provisioning:
-            env_summary["vm_provisioning"] = _compact_qc_value(vm_provisioning)
+            env_summary["vm_provisioning"] = _compact_qc_value(
+                vm_provisioning,
+                string_limit=string_limit,
+            )
         compact["agent_env"] = env_summary
     task_agent = metadata.get(TASK_AGENT_METADATA_KEY)
     if isinstance(task_agent, dict):
@@ -197,13 +235,11 @@ def _compact_metadata_for_qc(metadata: dict) -> dict:
         if key in {"agent_env", TASK_AGENT_METADATA_KEY, AGENT_TASK_PACKAGE_METADATA_KEY}:
             continue
         if isinstance(value, (str, int, float, bool)) or value is None:
-            compact[key] = value
-        elif isinstance(value, list):
-            compact[key] = value[:10]
-        elif isinstance(value, dict):
-            compact[key] = {str(k): v for k, v in list(value.items())[:10]}
+            compact[key] = _compact_qc_value(value, string_limit=string_limit)
+        elif isinstance(value, (list, dict)):
+            compact[key] = _compact_qc_value(value, string_limit=string_limit)
         else:
-            compact[key] = str(value)[:500]
+            compact[key] = _compact_qc_value(str(value), string_limit=string_limit)
     return compact
 
 
@@ -218,9 +254,38 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
     if not isinstance(env, dict):
         return issue
     env_type = str(env.get("type") or "")
+    message = issue.message.lower()
+    if env_type == "gui_desktop":
+        vm = env.get("vm")
+        has_provider_request = (
+            bool(env.get("requires_vm"))
+            and isinstance(vm, dict)
+            and bool(vm.get("guest_os") or vm.get("os"))
+            and bool(vm.get("required_capabilities"))
+        )
+        missing_boot_source_claim = any(
+            phrase in message
+            for phrase in (
+                "no concrete boot source",
+                "no resolvable windows desktop",
+                "no resolvable desktop",
+                "externally managed desktop bridge endpoint",
+            )
+        )
+        if has_provider_request and missing_boot_source_claim:
+            return issue.model_copy(
+                update={
+                    "severity": QcSeverity.warning,
+                    "message": (
+                        issue.message
+                        + " Note: a guest OS plus non-empty required_capabilities is a valid "
+                        "VM Provider resolution request; this was demoted from an LLM QC "
+                        "blocking error."
+                    ),
+                }
+            )
     if env_type not in {"code_sandbox", "docker_workspace"}:
         return issue
-    message = issue.message.lower()
     if isinstance(env.get("hidden_files"), dict) and env.get("test_command"):
         false_positive_phrases = (
             "hidden tests are not visible",
@@ -307,19 +372,27 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
         for item in sampled_items
         if str(item.metadata.get("task_design_id") or "")
     }
+    prompt_limit = max(1200, min(6000, 60000 // max(1, len(sampled_items))))
+    metadata_string_limit = max(
+        1200,
+        min(12000, 120000 // max(1, len(sampled_items))),
+    )
     sample = [
         {
             "id": item.id,
             "dimension_id": item.dimension_id,
             "task_type": item.task_type.value,
             "challenge_effort": item.challenge_effort.value,
-            "prompt": item.prompt[:1200],
+            **_prompt_for_qc(item.prompt, limit=prompt_limit),
             "choices": item.choices,
             "answer": item.answer,
             "rubric": item.rubric,
             "source": item.source.model_dump(mode="json"),
             "tags": item.tags,
-            "metadata": _compact_metadata_for_qc(item.metadata),
+            "metadata": _compact_metadata_for_qc(
+                item.metadata,
+                string_limit=metadata_string_limit,
+            ),
         }
         for item in sampled_items
     ]
@@ -359,9 +432,9 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
             return [
                 _issue(
                     None,
-                    QcSeverity.warning,
+                    QcSeverity.error,
                     QcCategory.clarity,
-                    f"LLM QC returned {type(data).__name__}; static QC was used as fallback.",
+                    f"LLM QC returned {type(data).__name__}; configured LLM QC did not complete.",
                     "Retry with a QC model that returns the requested object schema.",
                 )
             ]
@@ -369,9 +442,9 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
         return [
             _issue(
                 None,
-                QcSeverity.warning,
+                QcSeverity.error,
                 QcCategory.clarity,
-                f"LLM QC failed; static QC was used as fallback: {str(exc)[:240]}",
+                f"LLM QC failed; refusing to accept static QC as an equivalent fallback: {str(exc)[:240]}",
                 "Retry with a smaller dataset, a different QC model, or local/static-only QC.",
             )
         ]

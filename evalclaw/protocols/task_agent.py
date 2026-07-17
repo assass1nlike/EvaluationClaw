@@ -15,6 +15,45 @@ from ..types import BenchmarkConfig, BenchmarkItem, Message
 TASK_AGENT_SCHEMA_VERSION = "evalclaw.task_agent.v1"
 TASK_AGENT_METADATA_KEY = "task_agent"
 
+_RUNNER_PRIVATE_INITIAL_CONTENT_KEYS = frozenset(
+    {
+        "api_key",
+        "baseline_checks",
+        "bridge_api_key",
+        "bridge_url",
+        "evaluation",
+        "hidden_files",
+        "hidden_file_names",
+        "initial_state_checks",
+        "provider_api_key",
+        "provider_url",
+        "runtime_files",
+        "seed_iso",
+        "setup_commands",
+        "test_command",
+        "vm_provider_api_key",
+        "vm_provider_url",
+        "vm_provisioning",
+    }
+)
+
+
+def public_task_agent_initial_content(value: dict[str, Any]) -> dict[str, Any]:
+    """Remove runner-private environment details from target-visible task context."""
+
+    def scrub(child: Any) -> Any:
+        if isinstance(child, dict):
+            return {
+                str(key): scrub(item)
+                for key, item in child.items()
+                if str(key).strip().lower() not in _RUNNER_PRIVATE_INITIAL_CONTENT_KEYS
+            }
+        if isinstance(child, list):
+            return [scrub(item) for item in child]
+        return child
+
+    return scrub(value)
+
 TASK_AGENT_SCHEMA: dict[str, Any] = {
     "schema_version": TASK_AGENT_SCHEMA_VERSION,
     "agent_role": "dialogue_simulator | environment_controller | target_agent_executor | judge | api_oracle | research_synthesizer",
@@ -40,13 +79,6 @@ TASK_AGENT_SCHEMA: dict[str, Any] = {
             "required_software": ["Desktop applications, browsers, fonts, plugins, or bridge services."],
             "network": "none | restricted | internet",
             "locale": "Locale/language assumptions.",
-        },
-        "evaluation": {
-            "method": "Bridge, deterministic, judge, artifact, or state-check method.",
-            "checks": ["Named scoring checks or artifact/state assertions."],
-            "pass_criteria": "Full-credit completion standard.",
-            "partial_criteria": "Partial-credit standard.",
-            "fail_criteria": "Failure standard.",
         },
         "notes": "Any non-secret setup detail needed to run the task.",
     },
@@ -101,11 +133,12 @@ Fields:
   per-task NoCloud config-drive ISO before VM startup when no explicit seed ISO
   is supplied. Linux guests consume it with cloud-init; Windows guests consume
   PowerShell user data with Cloudbase-Init. For GUI/browser/desktop-software tasks,
-  include initial_content.session, initial_content.vm, and
-  initial_content.evaluation summaries: application/window, start state,
-  assets/input files/URLs, expected artifacts, VM isolation/image/snapshot,
-  required software/display/network, oracle checks, and pass/partial/fail
-  standards.
+  include public initial_content.session and initial_content.vm summaries:
+  application/window, start state, assets/input files/URLs, expected artifacts,
+  VM isolation/image/snapshot, and required software/display/network. Keep
+  provisioning, baseline checks, evaluator commands, hidden references, runtime
+  credentials, and scoring internals exclusively in metadata.agent_env and
+  metadata.task_agent.scoring; never copy them into initial_content.
   For VM-backed tasks that can start from a base OS image, metadata.agent_env may
   include vm_provisioning.enabled=true with apt_packages/system_packages,
   pip_packages/python_packages, snap_packages, cran_packages/r_packages,

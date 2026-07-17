@@ -2,12 +2,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from evalclaw.construction.validation import task_structure_issues
 from evalclaw.execution.docker_agent_env import DockerWorkspaceAgentEnvironment
 from evalclaw.execution.docker_browser import DOCKER_BROWSER_RUNTIME_SCRIPT
 from evalclaw.execution.docker_images import _render_dockerfile, build_docker_image_if_requested
+from evalclaw.execution.vm_materializer import VmTaskMaterializationError, materialize_vm_task
 from evalclaw.execution.vm_materializer import _run_command as _run_vm_materializer_command
-from evalclaw.execution.vm_materializer import materialize_vm_task
 from evalclaw.types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
@@ -183,9 +185,7 @@ def test_browser_file_artifact_requires_write_tool_and_workdir_path() -> None:
         ),
         scoring=TaskScoringSpec(pass_criteria="The CSV matches expected rows."),
         metadata={
-            "agent_task_package": {
-                "output_contract": {"expected_artifacts": ["/tmp/result.csv"]}
-            }
+            "agent_task_package": {"output_contract": {"expected_artifacts": ["/tmp/result.csv"]}}
         },
     )
 
@@ -207,8 +207,12 @@ def test_vm_materializer_command_replaces_invalid_output_bytes() -> None:
 def test_docker_image_build_renders_cross_domain_installers(monkeypatch) -> None:
     build_commands: list[list[str]] = []
     dockerfile_text = ""
-    monkeypatch.setattr("evalclaw.execution.docker_images.resolve_docker_executable", lambda executable: "docker")
-    monkeypatch.setattr("evalclaw.execution.docker_images.docker_subprocess_env", lambda executable: {})
+    monkeypatch.setattr(
+        "evalclaw.execution.docker_images.resolve_docker_executable", lambda executable: "docker"
+    )
+    monkeypatch.setattr(
+        "evalclaw.execution.docker_images.docker_subprocess_env", lambda executable: {}
+    )
 
     def fake_run(command, **kwargs):
         nonlocal dockerfile_text
@@ -278,7 +282,10 @@ def test_docker_image_build_renders_cross_domain_installers(monkeypatch) -> None
     assert "DESeq2" in dockerfile_text
     assert "julia -e" in dockerfile_text
     assert "DifferentialEquations" in dockerfile_text
-    assert "micromamba install -y -n base -c conda-forge -c pytorch pytorch torchvision" in dockerfile_text
+    assert (
+        "micromamba install -y -n base -c conda-forge -c pytorch pytorch torchvision"
+        in dockerfile_text
+    )
     assert "cargo install ripgrep" in dockerfile_text
     assert "go install github.com/projectdiscovery/httpx/cmd/httpx@latest" in dockerfile_text
     assert "gem install bundler" in dockerfile_text
@@ -288,8 +295,12 @@ def test_docker_image_build_renders_cross_domain_installers(monkeypatch) -> None
 
 def test_docker_image_build_passes_proxy_and_custom_build_args(monkeypatch) -> None:
     build_commands: list[list[str]] = []
-    monkeypatch.setattr("evalclaw.execution.docker_images.resolve_docker_executable", lambda executable: "docker")
-    monkeypatch.setattr("evalclaw.execution.docker_images.docker_subprocess_env", lambda executable: {})
+    monkeypatch.setattr(
+        "evalclaw.execution.docker_images.resolve_docker_executable", lambda executable: "docker"
+    )
+    monkeypatch.setattr(
+        "evalclaw.execution.docker_images.docker_subprocess_env", lambda executable: {}
+    )
     monkeypatch.setenv("EVALCLAW_DOCKER_HTTP_PROXY", "http://host.docker.internal:7890")
     monkeypatch.setenv("EVALCLAW_DOCKER_HTTPS_PROXY", "http://host.docker.internal:7890")
 
@@ -369,6 +380,11 @@ def test_vm_provisioning_renders_cross_domain_cloud_init(monkeypatch, tmp_path) 
                 "type": "gui_desktop",
                 "requires_vm": True,
                 "vm": {"image": "ubuntu-base"},
+                "session": {
+                    "baseline_checks": [
+                        {"method": "command", "command": "test -d /", "expected_exit_code": 0}
+                    ]
+                },
                 "vm_provisioning": {
                     "enabled": True,
                     "apt_packages": ["qgis", "openbabel", "ffmpeg", "latexmk"],
@@ -421,6 +437,11 @@ def test_vm_provisioning_triggers_from_non_apt_package_fields(monkeypatch, tmp_p
                 "type": "gui_desktop",
                 "requires_vm": True,
                 "vm": {"image": "ubuntu-base"},
+                "session": {
+                    "baseline_checks": [
+                        {"method": "command", "command": "test -d /", "expected_exit_code": 0}
+                    ]
+                },
                 "vm_provisioning": {
                     "cran_packages": ["forecast"],
                     "bioconductor_packages": ["edgeR"],
@@ -458,3 +479,22 @@ def test_vm_provisioning_triggers_from_non_apt_package_fields(monkeypatch, tmp_p
     assert "gem install rake" in user_data
     assert "composer global require phpunit/phpunit" in user_data
     assert "echo non-apt-ready" in user_data
+
+
+def test_vm_materialization_fails_closed_without_initial_state_checks(tmp_path) -> None:
+    item = BenchmarkItem(
+        id="unchecked_vm",
+        dimension_id="env",
+        task_type=TaskType.agent_interaction,
+        prompt="Operate an unchecked VM.",
+        metadata={
+            "agent_env": {
+                "type": "gui_desktop",
+                "requires_vm": True,
+                "vm": {"image": "windows-11-cloudbase", "guest_os": "windows"},
+            }
+        },
+    )
+
+    with pytest.raises(VmTaskMaterializationError, match="baseline_checks"):
+        materialize_vm_task(item, work_dir=tmp_path)

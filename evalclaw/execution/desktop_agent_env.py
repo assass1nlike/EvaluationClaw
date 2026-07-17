@@ -131,6 +131,7 @@ class DesktopBridgeAgentEnvironment:
         vm_provider_url: str = "",
         vm_provider_api_key: str | None = None,
         vm_id: str = "",
+        vm_session_data: dict[str, Any] | None = None,
         destroy_vm_on_cleanup: bool = True,
     ) -> None:
         self.bridge_url = bridge_url.rstrip("/")
@@ -140,6 +141,7 @@ class DesktopBridgeAgentEnvironment:
         self.vm_provider_url = vm_provider_url.rstrip("/")
         self.vm_provider_api_key = vm_provider_api_key
         self.vm_id = vm_id
+        self.vm_session_data = vm_session_data or {}
         self.destroy_vm_on_cleanup = destroy_vm_on_cleanup
         self.max_steps = max(1, max_steps)
         self.timeout = max(1, timeout)
@@ -181,7 +183,7 @@ class DesktopBridgeAgentEnvironment:
                     api_key=vm_provider_api_key,
                     vm_spec=config.get("vm") if isinstance(config.get("vm"), dict) else {},
                     session_spec=config.get("session") if isinstance(config.get("session"), dict) else {},
-                    timeout=int(config.get("vm_provider_timeout") or 120),
+                    timeout=int(config.get("vm_provider_timeout") or 600),
                 )
                 bridge_url = vm_session.bridge_url
                 api_key = vm_session.bridge_api_key or api_key
@@ -236,6 +238,7 @@ class DesktopBridgeAgentEnvironment:
             vm_provider_url=vm_provider_url,
             vm_provider_api_key=vm_provider_api_key,
             vm_id=vm_session.vm_id if vm_session else str(config.get("vm_id") or ""),
+            vm_session_data=vm_session.data if vm_session else {},
             destroy_vm_on_cleanup=destroy_vm_on_cleanup,
         )
 
@@ -255,8 +258,18 @@ class DesktopBridgeAgentEnvironment:
             raise RuntimeError("GUI desktop bridge did not return session_id from POST /sessions.")
         baseline_checks = self.session_config.get("baseline_checks")
         if isinstance(baseline_checks, list) and baseline_checks and payload.get("baseline_verified") is not True:
+            failures: list[str] = []
+            for check in payload.get("baseline_results", []):
+                if not isinstance(check, dict) or check.get("passed") is True:
+                    continue
+                result = check.get("result") if isinstance(check.get("result"), dict) else {}
+                detail = str(result.get("stderr") or result.get("stdout") or check.get("error") or "").strip()
+                label = str(check.get("id") or "unnamed check")
+                failures.append(f"{label}: {_shorten(detail, 400)}" if detail else label)
+            suffix = " Failed: " + " | ".join(failures) if failures else ""
             raise RuntimeError(
                 "GUI desktop bridge did not confirm the requested initial-state baseline checks."
+                + suffix
             )
         self.last_observation = _payload_observation(
             payload,
@@ -468,6 +481,7 @@ class DesktopBridgeAgentEnvironment:
             "environment": "gui_desktop",
             "bridge_url": self.bridge_url,
             "vm_id": self.vm_id,
+            "vm_session": self.vm_session_data,
             "session_id": self.session_id,
             "steps": self.steps,
             "max_steps": self.max_steps,

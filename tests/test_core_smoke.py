@@ -37,6 +37,7 @@ from evalclaw.execution.sandbox import build_code_harness, run_python_sandbox
 from evalclaw.execution.vm_provider import (
     VmProviderStatus,
     VmSession,
+    _wait_for_virtualbox_bridge,
     create_local_vm_session,
     destroy_local_vm_session,
     probe_local_vm_backend,
@@ -140,6 +141,7 @@ def test_planner_fallback_preserves_scale_budget() -> None:
     config = BenchmarkConfig(
         targets=[TargetModelConfig(provider="mock", model="mock-agent")],
         scale_budget=ScaleBudget.high,
+        task_builder="local",
     )
 
     spec = plan_benchmark("Evaluate iterative code agents", config).to_eval_spec()
@@ -942,7 +944,7 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
         environment_type=AgentEnvironmentType.gui_desktop,
     )
 
-    with pytest.raises(RuntimeError, match="executable evaluation"):
+    with pytest.raises(RuntimeError, match="environment.evaluation"):
         build_task_suite(
             spec,
             [blueprint],
@@ -1103,7 +1105,7 @@ def test_agent_task_structure_validation_flags_truncated_prompt() -> None:
         prompt=(
             "Use the VM desktop software stack to inspect the provided project files, operate the required "
             "applications, produce the requested intermediate artifacts, save the final deliverables, and then "
-            "run the bridge evaluation. The design-change propagation requirement must be c"
+            "run the bridge evaluation. The design-change propagation requirement must be carried"
         ),
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.gui_desktop,
@@ -1123,6 +1125,27 @@ def test_agent_task_structure_validation_flags_truncated_prompt() -> None:
     issues = task_structure_issues(task)
 
     assert any("prompt appears truncated" in issue.lower() for issue in issues)
+
+
+def test_task_structure_validation_allows_short_final_domain_symbol() -> None:
+    task = TaskDefinition(
+        id="space_group_mcq",
+        dimension_id="crystallography",
+        task_type=TaskType.multiple_choice,
+        title="Identify a space group",
+        description="Choose the space group consistent with the absences.",
+        prompt=(
+            "A crystal has C-centering and systematic absences 00l with l=2n. Which space group "
+            "is consistent with these observations?\n\nA) C2\nB) C21\nC) P21\nD) Cc"
+        ),
+        choices=["C2", "C21", "P21", "Cc"],
+        answer="B",
+        scoring=TaskScoringSpec(method="exact_match", pass_criteria="Answer B."),
+    )
+
+    issues = task_structure_issues(task)
+
+    assert not any("prompt appears truncated" in issue.lower() for issue in issues)
 
 
 def test_workspace_structure_does_not_treat_custom_tool_descriptors_as_executable() -> None:
@@ -1346,7 +1369,12 @@ def test_build_agent_environment_injects_vm_provider_runtime_config(monkeypatch)
                 "type": "gui_desktop",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
-                "session": {"application": "browser"},
+                "session": {
+                    "application": "browser",
+                    "baseline_checks": [
+                        {"method": "command", "command": "exit 0", "expected_exit_code": 0}
+                    ],
+                },
                 "evaluation": {"method": "bridge_state_check"},
             }
         },
@@ -1510,7 +1538,12 @@ def test_environment_claw_accepts_available_vm_provider(monkeypatch) -> None:
                 "type": "gui_desktop",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
-                "session": {"application": "browser"},
+                "session": {
+                    "application": "browser",
+                    "baseline_checks": [
+                        {"method": "command", "command": "exit 0", "expected_exit_code": 0}
+                    ],
+                },
                 "evaluation": {"method": "bridge_state_check"},
             }
         },
@@ -1657,7 +1690,18 @@ def test_desktop_bridge_fails_closed_when_baseline_is_not_confirmed(monkeypatch)
 
         def request(self, method, path, json=None):
             if method == "POST" and path == "/sessions":
-                return FakeResponse({"session_id": "session-unverified"})
+                return FakeResponse(
+                    {
+                        "session_id": "session-unverified",
+                        "baseline_results": [
+                            {
+                                "id": "fixture_ready",
+                                "passed": False,
+                                "result": {"exit_code": 1, "stderr": "fixture is missing"},
+                            }
+                        ],
+                    }
+                )
             return FakeResponse({"status": "ok"})
 
         def delete(self, path):
@@ -1669,7 +1713,7 @@ def test_desktop_bridge_fails_closed_when_baseline_is_not_confirmed(monkeypatch)
 
     monkeypatch.setattr("evalclaw.execution.desktop_agent_env.httpx.Client", FakeClient)
 
-    with pytest.raises(RuntimeError, match="baseline checks"):
+    with pytest.raises(RuntimeError, match="fixture_ready: fixture is missing"):
         DesktopBridgeAgentEnvironment(
             bridge_url="http://127.0.0.1:7766",
             bridge_api_key=None,
@@ -1749,13 +1793,14 @@ def test_create_local_vm_session_virtualbox(monkeypatch, tmp_path) -> None:
         "VBoxManage",
         "clonevm",
         "evalclaw-gui-ubuntu-22.04",
+        "--snapshot",
+        "clean",
         "--name",
         "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12",
         "--register",
         "--mode",
         "machine",
     ]
-    assert ["VBoxManage", "snapshot", "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12", "restore", "clean"] in commands
     assert [
         "VBoxManage",
         "storagectl",
@@ -1790,6 +1835,86 @@ def test_create_local_vm_session_virtualbox(monkeypatch, tmp_path) -> None:
         "evalclaw-bridge,tcp,127.0.0.1,18766,,7766",
     ] in commands
     assert ["VBoxManage", "startvm", "evalclaw-evalclaw-gui-ubuntu-22.04-abcdef12", "--type", "headless"] in commands
+
+
+def test_create_local_vm_session_reuses_existing_virtualbox_sata_controller(monkeypatch, tmp_path) -> None:
+    commands: list[list[str]] = []
+    seed_iso = tmp_path / "windows-config-drive.iso"
+    seed_iso.write_bytes(b"seed")
+
+    def fake_run_command(command, *, timeout=30):
+        commands.append(command)
+        if command[1:3] == ["showvminfo", "evalclaw-windows-template-abcdef12"]:
+            return True, "\n".join(
+                [
+                    'storagecontrollername0="SATA Controller"',
+                    'storagecontrollertype0="IntelAhci"',
+                    'storagecontrollerportcount0="30"',
+                    '"SATA Controller-0-0"="base.vdi"',
+                    '"SATA Controller-1-0"="installer.iso"',
+                    '"SATA Controller-2-0"="none"',
+                ]
+            )
+        return True, "ok"
+
+    monkeypatch.setattr("evalclaw.execution.vm_provider._virtualbox_executable", lambda: "VBoxManage")
+    monkeypatch.setattr("evalclaw.execution.vm_provider._run_command", fake_run_command)
+    monkeypatch.setattr("evalclaw.execution.vm_provider._free_local_port", lambda: 18766)
+    monkeypatch.setattr("evalclaw.execution.vm_provider._wait_for_bridge", lambda *args, **kwargs: (True, "ok"))
+    monkeypatch.setattr("evalclaw.execution.vm_provider.uuid.uuid4", lambda: types.SimpleNamespace(hex="abcdef123456"))
+
+    create_local_vm_session(
+        "local://virtualbox",
+        vm_spec={"image": "windows-template", "seed_iso": str(seed_iso)},
+        timeout=12,
+    )
+
+    assert not any(command[1:2] == ["storagectl"] for command in commands)
+    assert [
+        "VBoxManage",
+        "storageattach",
+        "evalclaw-windows-template-abcdef12",
+        "--storagectl",
+        "SATA Controller",
+        "--port",
+        "2",
+        "--device",
+        "0",
+        "--type",
+        "dvddrive",
+        "--medium",
+        str(seed_iso.resolve()),
+    ] in commands
+
+
+def test_virtualbox_bridge_wait_resets_only_after_explicit_restart_signal(monkeypatch) -> None:
+    bridge_results = iter([(False, "pending"), (False, "pending"), (True, "ready")])
+    commands: list[list[str]] = []
+
+    monkeypatch.setattr(
+        "evalclaw.execution.vm_provider._wait_for_bridge",
+        lambda *args, **kwargs: next(bridge_results),
+    )
+    monkeypatch.setattr(
+        "evalclaw.execution.vm_provider._virtualbox_restart_requested",
+        lambda *args, **kwargs: True,
+    )
+    monkeypatch.setattr(
+        "evalclaw.execution.vm_provider._run_command",
+        lambda command, **kwargs: (commands.append(command) is None, "ok"),
+    )
+
+    ok, detail = _wait_for_virtualbox_bridge(
+        "VBoxManage",
+        "vm-1",
+        "http://127.0.0.1:7766",
+        timeout=30,
+        restart_grace=0,
+    )
+
+    assert ok is True
+    assert detail == "ready"
+    assert commands == [["VBoxManage", "controlvm", "vm-1", "reset"]]
 
 
 def test_create_local_vm_session_qemu_uses_overlay_and_port_forward(monkeypatch, tmp_path) -> None:
@@ -2404,7 +2529,7 @@ def test_science_request_detection_and_fallback_spec() -> None:
 
     spec = plan_benchmark(
         "Evaluate scientific reasoning in physics experiments",
-        BenchmarkConfig(scale_budget=ScaleBudget.low),
+        BenchmarkConfig(scale_budget=ScaleBudget.low, task_builder="local"),
     ).to_eval_spec()
 
     dimension_ids = {dimension.id for dimension in spec.dimensions}
@@ -4355,7 +4480,7 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
     _, revised_dataset, revised_qc = apply_human_review_feedback(
         dataset,
         qc,
-        BenchmarkConfig(max_qc_iterations=1),
+        BenchmarkConfig(max_qc_iterations=1, task_builder="local"),
         "Please add agentic escalation coverage.",
     )
 
@@ -4411,7 +4536,7 @@ def test_human_review_ignores_destructive_delete_of_qc_passed_items(monkeypatch)
     _, revised_dataset, revised_qc = apply_human_review_feedback(
         dataset,
         qc,
-        BenchmarkConfig(max_qc_iterations=1),
+        BenchmarkConfig(max_qc_iterations=1, task_builder="local"),
         "Review the item.",
     )
 

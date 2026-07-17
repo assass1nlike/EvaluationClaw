@@ -1,6 +1,8 @@
 """VM provider lifecycle helpers for GUI/desktop evaluations."""
 from __future__ import annotations
 
+import copy
+import hashlib
 import os
 import re
 import shutil
@@ -11,7 +13,7 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import httpx
 
@@ -27,6 +29,10 @@ VIRTUALBOX_EXECUTABLE_ENV_VAR = "EVALCLAW_VBOXMANAGE"
 QEMU_EXECUTABLE_ENV_VAR = "EVALCLAW_QEMU_EXECUTABLE"
 QEMU_IMG_EXECUTABLE_ENV_VAR = "EVALCLAW_QEMU_IMG_EXECUTABLE"
 QEMU_ACCEL_ENV_VAR = "EVALCLAW_QEMU_ACCEL"
+
+VM_PROVIDER_PROTOCOL_V2 = "evalclaw.vm_provider.v2"
+VM_PROVIDER_CAPABILITIES_PATH = "/capabilities"
+VM_PROVIDER_CONFIG_DRIVE_UPLOAD_PATH = "/artifacts/config-drives"
 
 LOCAL_VM_PROVIDER_PREFIX = "local://"
 _LOCAL_QEMU_PROCESSES: dict[str, subprocess.Popen] = {}
@@ -68,11 +74,15 @@ def vm_provider_setup_message() -> str:
         "4. Put vm_provider_url in metadata.agent_env for this item.\n\n"
         "Expected VM provider contract:\n"
         "- GET /health\n"
+        "- GET /capabilities (v2; image inventory and supported features)\n"
+        "- POST /artifacts/config-drives (v2; multipart ISO upload with SHA-256)\n"
         "- POST /vms\n"
+        "- GET /operations/{operation_id} (v2 async create status)\n"
         "- DELETE /vms/{vm_id}\n\n"
-        "POST /vms receives {vm, session} and should create or reset an isolated VM, start the "
-        "desktop/CUA bridge for that VM, mount any vm.seed_iso/config_drive_iso before boot, and "
-        "return vm_id plus bridge_url. The provider can wrap "
+        "Legacy POST /vms receives {vm, session}. Protocol v2 receives the same fields plus a "
+        "request id, resolved image metadata, and an uploaded config-drive reference. The provider "
+        "should create or reset an isolated VM, mount the config-drive before boot, start the "
+        "desktop/CUA bridge, and return vm_id plus bridge_url. The provider can wrap "
         "VirtualBox, Hyper-V, VMware, QEMU, cloud VMs, or an internal VM farm.\n\n"
         "Built-in local provider supports VirtualBox when VBoxManage is installed and a GUI template VM exists. "
         "It also supports QEMU when qemu-system-x86_64 and qemu-img are installed and vm.disk_image points to a "
@@ -90,6 +100,182 @@ def trust_env_for_url(url: str) -> bool:
     if hostname in {"localhost", "127.0.0.1", "::1", "0.0.0.0"}:
         return False
     return True
+
+
+def _provider_client(
+    provider_url: str,
+    *,
+    api_key: str | None,
+    timeout: int,
+) -> httpx.Client:
+    return httpx.Client(
+        base_url=provider_url,
+        timeout=max(1, timeout),
+        headers=_headers(_resolve_provider_api_key(api_key)),
+        trust_env=trust_env_for_url(provider_url),
+    )
+
+
+def _normalized_capability(value: object) -> str:
+    return str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+
+
+def _capability_names(value: object) -> set[str]:
+    if not isinstance(value, list):
+        return set()
+    return {_normalized_capability(item) for item in value if _normalized_capability(item)}
+
+
+def _fetch_provider_capabilities(
+    client: httpx.Client,
+) -> tuple[dict[str, Any], bool]:
+    response = client.get(VM_PROVIDER_CAPABILITIES_PATH)
+    if response.status_code in {404, 405}:
+        return {}, False
+    response.raise_for_status()
+    parsed = response.json() if response.content else {}
+    if not isinstance(parsed, dict):
+        raise RuntimeError("VM provider /capabilities must return a JSON object.")
+    return parsed, True
+
+
+def _vm_image_requirements(vm_spec: dict[str, Any]) -> tuple[str, str, set[str]]:
+    requirements = vm_spec.get("requirements")
+    requirements = requirements if isinstance(requirements, dict) else {}
+    guest_os = _normalized_capability(
+        requirements.get("guest_os")
+        or requirements.get("os")
+        or vm_spec.get("guest_os")
+        or vm_spec.get("os")
+        or vm_spec.get("platform")
+    )
+    if guest_os == "win" or guest_os.startswith("windows"):
+        guest_os = "windows"
+    elif guest_os.startswith("linux"):
+        guest_os = "linux"
+    architecture = _normalized_capability(
+        requirements.get("architecture")
+        or requirements.get("arch")
+        or vm_spec.get("architecture")
+        or vm_spec.get("arch")
+    )
+    capabilities = _capability_names(requirements.get("capabilities"))
+    capabilities.update(_capability_names(requirements.get("required_capabilities")))
+    capabilities.update(_capability_names(vm_spec.get("required_capabilities")))
+    return guest_os, architecture, capabilities
+
+
+def _image_identifiers(image: dict[str, Any]) -> set[str]:
+    identifiers = {
+        str(image.get(key) or "").strip()
+        for key in ("id", "name", "image", "template")
+        if str(image.get(key) or "").strip()
+    }
+    aliases = image.get("aliases")
+    if isinstance(aliases, list):
+        identifiers.update(str(value).strip() for value in aliases if str(value).strip())
+    return identifiers
+
+
+def _image_matches_requirements(
+    image: dict[str, Any],
+    *,
+    guest_os: str,
+    architecture: str,
+    required_capabilities: set[str],
+) -> bool:
+    image_os = _normalized_capability(image.get("guest_os") or image.get("os"))
+    if image_os == "win" or image_os.startswith("windows"):
+        image_os = "windows"
+    elif image_os.startswith("linux"):
+        image_os = "linux"
+    image_arch = _normalized_capability(image.get("architecture") or image.get("arch"))
+    image_capabilities = _capability_names(image.get("capabilities"))
+    return bool(
+        image.get("enabled", True)
+        and (not guest_os or image_os == guest_os)
+        and (not architecture or image_arch == architecture)
+        and required_capabilities.issubset(image_capabilities)
+    )
+
+
+def _image_priority(image: dict[str, Any]) -> int:
+    try:
+        return int(image.get("priority") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def resolve_vm_image_spec(
+    vm_spec: dict[str, Any],
+    capabilities: dict[str, Any],
+    *,
+    capabilities_discovered: bool,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Resolve a provider image without embedding provider-specific ids in tasks."""
+    resolved = copy.deepcopy(vm_spec)
+    images = capabilities.get("images")
+    images = [image for image in images if isinstance(image, dict)] if isinstance(images, list) else []
+    features = _capability_names(capabilities.get("features"))
+    inventory_supported = bool(images or "image_inventory" in features)
+    pinned = next(
+        (
+            str(resolved.get(key) or "").strip()
+            for key in ("template", "template_name", "image", "disk_image")
+            if str(resolved.get(key) or "").strip()
+        ),
+        "",
+    )
+    guest_os, architecture, required_capabilities = _vm_image_requirements(resolved)
+    if not inventory_supported:
+        if not pinned and capabilities_discovered and "server_side_image_resolution" not in features:
+            raise RuntimeError(
+                "VM provider does not expose an image inventory or server-side image resolution, "
+                "and the task does not pin a concrete image."
+            )
+        return resolved, None
+
+    matching = [
+        image
+        for image in images
+        if _image_matches_requirements(
+            image,
+            guest_os=guest_os,
+            architecture=architecture,
+            required_capabilities=required_capabilities,
+        )
+    ]
+    if pinned:
+        matching = [image for image in matching if pinned in _image_identifiers(image)]
+        if not matching:
+            raise RuntimeError(
+                f"VM provider cannot resolve pinned image {pinned!r} with the required OS/capabilities."
+            )
+    if not matching:
+        requirements = ", ".join(sorted(required_capabilities)) or "none"
+        raise RuntimeError(
+            "VM provider has no enabled image satisfying "
+            f"guest_os={guest_os or 'any'}, architecture={architecture or 'any'}, "
+            f"capabilities={requirements}."
+        )
+    matching.sort(
+        key=lambda image: (
+            not bool(image.get("default", False)),
+            -_image_priority(image),
+            str(image.get("id") or image.get("name") or ""),
+        )
+    )
+    selected = matching[0]
+    image_id = str(selected.get("id") or selected.get("name") or "").strip()
+    if not image_id:
+        raise RuntimeError("VM provider image inventory entry is missing id/name.")
+    resolved["image"] = image_id
+    resolved["resolved_image"] = {
+        key: selected[key]
+        for key in ("id", "name", "digest", "guest_os", "os", "architecture", "arch", "capabilities")
+        if key in selected
+    }
+    return resolved, copy.deepcopy(selected)
 
 
 def _resolve_provider_url(provider_url: str | None) -> str:
@@ -410,14 +596,63 @@ def _virtualbox_config_drive_commands(
     executable: str,
     vm_id: str,
     vm_spec: dict[str, Any],
+    *,
+    timeout: int,
 ) -> list[list[str]]:
     paths = _vm_cdrom_paths(vm_spec)
     if not paths:
         return []
     configured_controller = str(vm_spec.get("config_drive_controller") or "").strip()
-    controller = configured_controller or "EvalClawConfigDrive"
+    ok, machine_info = _run_command(
+        [executable, "showvminfo", vm_id, "--machinereadable"],
+        timeout=timeout,
+    )
+    if not ok:
+        raise RuntimeError(f"Could not inspect VirtualBox VM storage controllers: {machine_info}")
+
+    names: dict[str, str] = {}
+    types: dict[str, str] = {}
+    port_counts: dict[str, int] = {}
+    for line in machine_info.splitlines():
+        match = re.match(r'^storagecontrollername(\d+)="(.*)"$', line)
+        if match:
+            names[match.group(1)] = match.group(2)
+            continue
+        match = re.match(r'^storagecontrollertype(\d+)="(.*)"$', line)
+        if match:
+            types[match.group(1)] = match.group(2)
+            continue
+        match = re.match(r'^storagecontrollerportcount(\d+)="?(\d+)"?$', line)
+        if match:
+            port_counts[match.group(1)] = int(match.group(2))
+
+    controller = configured_controller
+    ports: list[int] = []
+    candidates = [
+        (index, name)
+        for index, name in names.items()
+        if (configured_controller and name == configured_controller)
+        or (not configured_controller and types.get(index) == "IntelAhci")
+    ]
+    for index, name in candidates:
+        occupied: set[int] = set()
+        attachment_pattern = re.compile(rf'^"{re.escape(name)}-(\d+)-(\d+)"="(.*)"$')
+        for line in machine_info.splitlines():
+            attachment = attachment_pattern.match(line)
+            if attachment and attachment.group(3).lower() != "none":
+                occupied.add(int(attachment.group(1)))
+        free = [port for port in range(port_counts.get(index, 0)) if port not in occupied]
+        if len(free) >= len(paths):
+            controller = name
+            ports = free[: len(paths)]
+            break
+
     commands: list[list[str]] = []
-    if not configured_controller:
+    if not controller:
+        if candidates:
+            raise RuntimeError("Existing VirtualBox SATA controller has no free config-drive ports.")
+        controller = "EvalClawConfigDrive"
+        ports = list(range(len(paths)))
         commands.append(
             [
                 executable,
@@ -431,7 +666,9 @@ def _virtualbox_config_drive_commands(
                 "IntelAhci",
             ]
         )
-    for port, path in enumerate(paths):
+    elif not ports:
+        ports = list(range(len(paths)))
+    for port, path in zip(ports, paths, strict=True):
         commands.append(
             [
                 executable,
@@ -472,6 +709,58 @@ def _wait_for_bridge(url: str, *, timeout: int, api_key: str | None = None) -> t
     return False, last_error or "timed out waiting for bridge"
 
 
+def _virtualbox_restart_requested(executable: str, vm_id: str) -> bool:
+    ok, output = _run_command(
+        [
+            executable,
+            "guestproperty",
+            "get",
+            vm_id,
+            "/EvalClaw/RestartAfterProvisioning",
+        ],
+        timeout=10,
+    )
+    return bool(ok and re.search(r"(?im)^Value:\s*pending\s*$", output))
+
+
+def _wait_for_virtualbox_bridge(
+    executable: str,
+    vm_id: str,
+    url: str,
+    *,
+    timeout: int,
+    restart_grace: int = 90,
+) -> tuple[bool, str]:
+    deadline = time.monotonic() + max(1, timeout)
+    restart_seen_at: float | None = None
+    reset_issued = False
+    last_detail = ""
+    while time.monotonic() < deadline:
+        remaining = max(1, int(deadline - time.monotonic()))
+        ok, last_detail = _wait_for_bridge(url, timeout=min(5, remaining))
+        if ok:
+            return True, last_detail
+        requested = _virtualbox_restart_requested(executable, vm_id)
+        if requested and restart_seen_at is None:
+            restart_seen_at = time.monotonic()
+        elif not requested:
+            restart_seen_at = None
+        if (
+            requested
+            and restart_seen_at is not None
+            and not reset_issued
+            and time.monotonic() - restart_seen_at >= max(0, restart_grace)
+        ):
+            reset_ok, reset_detail = _run_command(
+                [executable, "controlvm", vm_id, "reset"],
+                timeout=30,
+            )
+            if not reset_ok:
+                return False, f"VirtualBox provisioning restart recovery failed: {reset_detail}"
+            reset_issued = True
+    return False, last_detail or "timed out waiting for bridge"
+
+
 def probe_vm_provider(
     provider_url: str | None,
     *,
@@ -506,18 +795,19 @@ def probe_vm_provider(
             },
         )
     try:
-        with httpx.Client(
-            base_url=url,
-            timeout=max(1, timeout),
-            headers=_headers(_resolve_provider_api_key(api_key)),
-            trust_env=trust_env_for_url(url),
-        ) as client:
+        with _provider_client(url, api_key=api_key, timeout=timeout) as client:
             response = client.get("/health")
             response.raise_for_status()
             data = response.json() if response.content else {}
+            data = data if isinstance(data, dict) else {"result": data}
+            capabilities, discovered = _fetch_provider_capabilities(client)
+            if discovered:
+                data["capabilities"] = capabilities
+            data["capabilities_discovered"] = discovered
+            data["protocol_v2"] = _provider_protocol_is_v2(capabilities, discovered)
     except Exception as exc:
         return VmProviderStatus(False, provider_url=url, detail=str(exc))
-    return VmProviderStatus(True, provider_url=url, detail="VM provider is reachable.", data=data if isinstance(data, dict) else {})
+    return VmProviderStatus(True, provider_url=url, detail="VM provider is reachable.", data=data)
 
 
 def _virtualbox_clone_and_start(
@@ -544,34 +834,50 @@ def _virtualbox_clone_and_start(
     bridge_host = str(os.environ.get(VM_BRIDGE_HOST_ENV_VAR) or "127.0.0.1").strip() or "127.0.0.1"
     bridge_url = f"http://{bridge_host}:{host_port}"
 
-    commands = [
-        [executable, "clonevm", template, "--name", vm_id, "--register", "--mode", "machine"],
-    ]
+    clone_command = [executable, "clonevm", template]
     if snapshot:
-        commands.append([executable, "snapshot", vm_id, "restore", snapshot])
-    commands.extend(_virtualbox_config_drive_commands(executable, vm_id, vm_spec))
-    commands.extend(
-        [
-            [
-                executable,
-                "modifyvm",
-                vm_id,
-                "--natpf1",
-                f"evalclaw-bridge,tcp,127.0.0.1,{host_port},,{guest_port}",
-            ],
-            [executable, "startvm", vm_id, "--type", "headless"],
-        ]
-    )
+        clone_command.extend(["--snapshot", snapshot])
+    clone_command.extend(["--name", vm_id, "--register", "--mode", "machine"])
+    initial_commands = [clone_command]
 
     executed: list[list[str]] = []
     try:
+        for command in initial_commands:
+            ok, output = _run_command(command, timeout=timeout)
+            executed.append(command)
+            if not ok:
+                raise RuntimeError(f"VirtualBox command failed: {' '.join(command)}\n{output}")
+        commands = _virtualbox_config_drive_commands(
+            executable,
+            vm_id,
+            vm_spec,
+            timeout=timeout,
+        )
+        commands.extend(
+            [
+                [
+                    executable,
+                    "modifyvm",
+                    vm_id,
+                    "--natpf1",
+                    f"evalclaw-bridge,tcp,127.0.0.1,{host_port},,{guest_port}",
+                ],
+                [executable, "startvm", vm_id, "--type", "headless"],
+            ]
+        )
         for command in commands:
             ok, output = _run_command(command, timeout=timeout)
             executed.append(command)
             if not ok:
                 raise RuntimeError(f"VirtualBox command failed: {' '.join(command)}\n{output}")
-        wait_timeout = int(vm_spec.get("bridge_wait_timeout") or min(max(30, timeout), 180))
-        ok, detail = _wait_for_bridge(bridge_url, timeout=wait_timeout)
+        wait_timeout = int(vm_spec.get("bridge_wait_timeout") or min(max(30, timeout), 600))
+        ok, detail = _wait_for_virtualbox_bridge(
+            executable,
+            vm_id,
+            bridge_url,
+            timeout=wait_timeout,
+            restart_grace=int(vm_spec.get("restart_grace_timeout") or 90),
+        )
         if not ok:
             raise RuntimeError(f"Started VM {vm_id}, but desktop bridge did not become reachable at {bridge_url}: {detail}")
     except Exception:
@@ -796,6 +1102,174 @@ def _payload_vm_id(payload: dict[str, Any]) -> str:
     return ""
 
 
+def _provider_protocol_is_v2(capabilities: dict[str, Any], discovered: bool) -> bool:
+    version = _normalized_capability(capabilities.get("protocol_version"))
+    return bool(
+        discovered
+        and version in {"2", "v2", _normalized_capability(VM_PROVIDER_PROTOCOL_V2)}
+    )
+
+
+def _local_config_drive_path(vm_spec: dict[str, Any]) -> tuple[str, Path] | None:
+    for key in ("seed_iso", "cloud_init_iso", "config_drive_iso"):
+        value = vm_spec.get(key)
+        if not isinstance(value, str) or not value.strip():
+            continue
+        return key, Path(value.strip()).expanduser().resolve()
+    return None
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _upload_remote_config_drive(
+    client: httpx.Client,
+    vm_spec: dict[str, Any],
+    capabilities: dict[str, Any],
+    *,
+    capabilities_discovered: bool,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    prepared = copy.deepcopy(vm_spec)
+    local_drive = _local_config_drive_path(prepared)
+    if local_drive is None:
+        return prepared, None
+    source_key, path = local_drive
+    if not _provider_protocol_is_v2(capabilities, capabilities_discovered):
+        return prepared, None
+    if not path.is_file():
+        raise RuntimeError(
+            f"VM config-drive {source_key} does not point to a readable local file: {path}"
+        )
+    features = _capability_names(capabilities.get("features"))
+    if "config_drive_upload" not in features:
+        raise RuntimeError(
+            "VM provider v2 must advertise config_drive_upload before EvalClaw can transfer "
+            "a task-specific local config-drive."
+        )
+
+    digest = _file_sha256(path)
+    size = path.stat().st_size
+    with path.open("rb") as handle:
+        response = client.post(
+            VM_PROVIDER_CONFIG_DRIVE_UPLOAD_PATH,
+            data={
+                "sha256": digest,
+                "size": str(size),
+                "lifecycle": "vm_scoped",
+            },
+            files={"file": (path.name, handle, "application/x-iso9660-image")},
+            headers={"Idempotency-Key": f"config-drive-{digest}"},
+        )
+    response.raise_for_status()
+    uploaded = response.json() if response.content else {}
+    if not isinstance(uploaded, dict):
+        raise RuntimeError("VM provider config-drive upload must return a JSON object.")
+    artifact_id = str(uploaded.get("artifact_id") or uploaded.get("id") or "").strip()
+    returned_digest = str(uploaded.get("sha256") or "").strip().lower()
+    if returned_digest and returned_digest != digest:
+        _delete_remote_artifact(client, artifact_id)
+        raise RuntimeError("VM provider returned a config-drive SHA-256 that does not match the upload.")
+    artifact_url = str(uploaded.get("url") or uploaded.get("download_url") or "").strip()
+    if not artifact_id and not artifact_url:
+        raise RuntimeError("VM provider config-drive upload returned neither artifact_id nor URL.")
+    drive = {
+        "artifact_id": artifact_id,
+        "url": artifact_url,
+        "sha256": digest,
+        "size": size,
+        "media_type": "application/x-iso9660-image",
+        "lifecycle": "vm_scoped",
+    }
+    for alias in ("seed_iso", "cloud_init_iso", "config_drive_iso"):
+        prepared.pop(alias, None)
+    prepared["config_drive"] = {key: value for key, value in drive.items() if value not in {"", None}}
+    return prepared, prepared["config_drive"]
+
+
+def _delete_remote_artifact(client: httpx.Client, artifact_id: str) -> None:
+    if not artifact_id:
+        return
+    try:
+        response = client.delete(f"/artifacts/{artifact_id}")
+        response.raise_for_status()
+    except Exception:
+        pass
+
+
+def _same_provider_url(provider_url: str, value: str) -> str:
+    resolved = urljoin(provider_url.rstrip("/") + "/", value)
+    provider = urlparse(provider_url)
+    target = urlparse(resolved)
+    if (provider.scheme, provider.netloc) != (target.scheme, target.netloc):
+        raise RuntimeError("VM provider operation URL must use the same origin as the provider.")
+    return resolved
+
+
+def _poll_vm_operation(
+    client: httpx.Client,
+    provider_url: str,
+    response: httpx.Response,
+    data: dict[str, Any],
+    *,
+    timeout: int,
+) -> dict[str, Any]:
+    if response.status_code != 202:
+        return data
+    operation_url = str(
+        data.get("status_url")
+        or data.get("operation_url")
+        or response.headers.get("Location")
+        or ""
+    ).strip()
+    operation_id = str(data.get("operation_id") or data.get("id") or "").strip()
+    if not operation_url and operation_id:
+        operation_url = f"/operations/{operation_id}"
+    if not operation_url:
+        raise RuntimeError("Async VM provider response must include status_url or operation_id.")
+    operation_url = _same_provider_url(provider_url, operation_url)
+    deadline = time.monotonic() + max(1, timeout)
+    latest = data
+    while time.monotonic() < deadline:
+        poll = client.get(operation_url)
+        poll.raise_for_status()
+        latest = poll.json() if poll.content else {}
+        if not isinstance(latest, dict):
+            raise RuntimeError("VM provider operation status must return a JSON object.")
+        status = _normalized_capability(latest.get("status") or latest.get("state"))
+        if status in {"failed", "error", "cancelled", "canceled"}:
+            detail = latest.get("error") or latest.get("detail") or status
+            raise RuntimeError(f"VM provider operation failed: {detail}")
+        if status in {"ready", "succeeded", "completed"} or (
+            status == "running" and _payload_vm_id(latest) and _payload_bridge_url(latest)
+        ):
+            return latest
+        time.sleep(1)
+    raise RuntimeError(f"Timed out after {timeout}s waiting for VM provider operation.")
+
+
+def _public_vm_session_data(data: dict[str, Any]) -> dict[str, Any]:
+    def sanitized(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                key: sanitized(child)
+                for key, child in value.items()
+                if not (
+                    str(key).lower() in {"api_key", "authorization", "token", "secret"}
+                    or str(key).lower().endswith(("_api_key", "_token", "_secret"))
+                )
+            }
+        if isinstance(value, list):
+            return [sanitized(child) for child in value]
+        return copy.deepcopy(value)
+
+    return sanitized(data)
+
+
 def create_vm_session(
     provider_url: str | None,
     *,
@@ -814,31 +1288,87 @@ def create_vm_session(
             session_spec=session_spec,
             timeout=timeout,
         )
-    payload = {
-        "vm": vm_spec or {},
-        "session": session_spec or {},
-    }
-    with httpx.Client(
-        base_url=url,
-        timeout=max(1, timeout),
-        headers=_headers(_resolve_provider_api_key(api_key)),
-        trust_env=trust_env_for_url(url),
-    ) as client:
-        response = client.post("/vms", json=payload)
-        response.raise_for_status()
-        data = response.json() if response.content else {}
-    if not isinstance(data, dict):
-        data = {"result": data}
-    data.setdefault("provider_url", url)
-    vm_id = _payload_vm_id(data)
-    if not vm_id:
-        raise RuntimeError("VM provider did not return vm_id from POST /vms.")
-    return VmSession(
-        vm_id=vm_id,
-        bridge_url=_payload_bridge_url(data),
-        bridge_api_key=_payload_bridge_api_key(data),
-        data=data,
-    )
+    request_id = f"vm-{uuid.uuid4().hex}"
+    uploaded_drive: dict[str, Any] | None = None
+    selected_image: dict[str, Any] | None = None
+    prepared_vm = copy.deepcopy(vm_spec or {})
+    with _provider_client(url, api_key=api_key, timeout=timeout) as client:
+        capabilities, discovered = _fetch_provider_capabilities(client)
+        protocol_v2 = _provider_protocol_is_v2(capabilities, discovered)
+        prepared_vm, selected_image = resolve_vm_image_spec(
+            prepared_vm,
+            capabilities if protocol_v2 else {},
+            capabilities_discovered=protocol_v2,
+        )
+        prepared_vm, uploaded_drive = _upload_remote_config_drive(
+            client,
+            prepared_vm,
+            capabilities,
+            capabilities_discovered=discovered,
+        )
+        payload: dict[str, Any] = {
+            "vm": prepared_vm,
+            "session": session_spec or {},
+        }
+        if protocol_v2:
+            payload.update(
+                {
+                    "protocol_version": VM_PROVIDER_PROTOCOL_V2,
+                    "request_id": request_id,
+                }
+            )
+        data: dict[str, Any] = {}
+        try:
+            request: dict[str, Any] = {"json": payload}
+            if protocol_v2:
+                request["headers"] = {"Idempotency-Key": request_id}
+            response = client.post("/vms", **request)
+            response.raise_for_status()
+            data = response.json() if response.content else {}
+            if not isinstance(data, dict):
+                data = {"result": data}
+            initial_data = data
+            if protocol_v2:
+                data = _poll_vm_operation(
+                    client,
+                    url,
+                    response,
+                    data,
+                    timeout=timeout,
+                )
+                data = {**initial_data, **data}
+            data.setdefault("provider_url", url)
+            if protocol_v2:
+                data.setdefault("request_id", request_id)
+            data.setdefault("vm", prepared_vm)
+            if selected_image is not None:
+                data.setdefault("resolved_image", selected_image)
+            if uploaded_drive is not None:
+                data.setdefault("config_drive", uploaded_drive)
+            vm_id = _payload_vm_id(data)
+            if not vm_id:
+                raise RuntimeError("VM provider did not return vm_id from POST /vms.")
+            bridge_url = _payload_bridge_url(data)
+            if not bridge_url:
+                raise RuntimeError("VM provider did not return bridge_url from POST /vms.")
+            return VmSession(
+                vm_id=vm_id,
+                bridge_url=bridge_url,
+                bridge_api_key=_payload_bridge_api_key(data),
+                data=_public_vm_session_data(data),
+            )
+        except Exception:
+            created_vm_id = _payload_vm_id(data) if isinstance(data, dict) else ""
+            if created_vm_id:
+                try:
+                    client.delete(f"/vms/{created_vm_id}")
+                except Exception:
+                    pass
+            _delete_remote_artifact(
+                client,
+                str((uploaded_drive or {}).get("artifact_id") or "").strip(),
+            )
+            raise
 
 
 def destroy_vm_session(
@@ -854,11 +1384,6 @@ def destroy_vm_session(
     if _is_local_provider(url):
         destroy_local_vm_session(url, vm_id, timeout=timeout)
         return
-    with httpx.Client(
-        base_url=url,
-        timeout=max(1, timeout),
-        headers=_headers(_resolve_provider_api_key(api_key)),
-        trust_env=trust_env_for_url(url),
-    ) as client:
+    with _provider_client(url, api_key=api_key, timeout=timeout) as client:
         response = client.delete(f"/vms/{vm_id}")
         response.raise_for_status()

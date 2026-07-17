@@ -270,6 +270,12 @@ def _call_litellm(
         "timeout": 300,
     }
     requests_json = _messages_request_json(messages)
+    if (
+        requests_json
+        and base_url
+        and not model.startswith(("claude-", "anthropic/"))
+    ):
+        kwargs["response_format"] = {"type": "json_object"}
     if model.startswith("deepseek-v4") and requests_json:
         # DeepSeek V4's thinking mode can consume the entire response window
         # before emitting the JSON body. Match the direct OpenAI-compatible
