@@ -201,7 +201,7 @@ Each run writes:
 The direct runner is the source of truth for rubric-based open-generation tasks.
 The lm-eval runner is currently an interoperability layer and works best for
 standard exact-match or multiple-choice tasks unless a custom metric is added.
-`agent_interaction` tasks run through the EvaluationClaw direct runner because
+`agent` tasks run through the EvaluationClaw direct runner because
 they require a stateful action/observation environment and deterministic
 environment scoring.
 Tasks that need interaction may optionally request built-in environments such as

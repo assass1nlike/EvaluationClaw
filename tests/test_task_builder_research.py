@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import json
 
-from evalclaw.construction.research import run_task_builder_research
+from evalclaw.construction.research import _append_tool_results, run_task_builder_research
 from evalclaw.construction.resources import _select_blueprint_sources
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.models.llm import TargetToolModelResponse
-from evalclaw.protocols.tool import ToolCall
+from evalclaw.protocols.tool import ToolCall, ToolResult
 from evalclaw.research.backends import SearchResult
 from evalclaw.types import (
     AgentEnvironmentType,
@@ -42,6 +42,39 @@ def _openai_tool_response(call: ToolCall) -> TargetToolModelResponse:
     )
 
 
+def test_responses_tool_result_is_appended_as_function_output() -> None:
+    messages = [{"role": "user", "content": "Look up the source."}]
+    response = TargetToolModelResponse(
+        adapter="openai_responses",
+        content="",
+        tool_calls=[ToolCall(id="call_1", name="lookup", arguments={"query": "source"})],
+        assistant_message={
+            "responses_output": [
+                {
+                    "type": "function_call",
+                    "call_id": "call_1",
+                    "name": "lookup",
+                    "arguments": '{"query":"source"}',
+                }
+            ]
+        },
+        raw_response={},
+    )
+
+    _append_tool_results(
+        messages,
+        response,
+        [ToolResult(tool_call_id="call_1", name="lookup", content="result")],
+    )
+
+    assert messages[1]["type"] == "function_call"
+    assert messages[2] == {
+        "type": "function_call_output",
+        "call_id": "call_1",
+        "output": "result",
+    }
+
+
 def test_blueprint_source_search_requires_explicit_research_need(monkeypatch) -> None:
     calls = 0
 
@@ -62,7 +95,7 @@ def test_blueprint_source_search_requires_explicit_research_need(monkeypatch) ->
         "self_contained_blueprint",
         dimension.id,
         "Self contained",
-        task_type=TaskType.open_generation,
+        task_type=TaskType.generation,
         content="Self-contained task.",
         source_plan={"search_queries": ["this query must not run"]},
     )
@@ -89,7 +122,7 @@ def test_planner_suggested_urls_are_available_without_an_extra_search() -> None:
         "grounded_blueprint",
         dimension.id,
         "Grounded questions",
-        task_type=TaskType.short_answer,
+        task_type=TaskType.fill_blank,
         content="One source-grounded question.",
         source_plan={
             "strategy": "source_backed",
@@ -266,13 +299,13 @@ def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
     spec = EvalSpec(
         objective="Evaluate evidence-grounded agents.",
         dimensions=[dimension],
-        task_types=[TaskType.agent_interaction],
+        task_types=[TaskType.agent],
     )
     blueprint = make_blueprint(
         "research_blueprint",
         dimension.id,
         "Research workflow",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         content="Research workflow.",
         challenge_effort=ChallengeEffort.E4,
         environment_type=AgentEnvironmentType.workspace,
@@ -301,7 +334,7 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
         return {
             "id": task_id,
             "dimension_id": "agent_research",
-            "task_type": "agent_interaction",
+            "task_type": "agent",
             "challenge_effort": "E4",
             "title": f"Task {task_index}",
             "prompt": prompt,
@@ -364,14 +397,14 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
     spec = EvalSpec(
         objective="Evaluate evidence-grounded agents.",
         dimensions=[dimension],
-        task_types=[TaskType.agent_interaction],
+        task_types=[TaskType.agent],
     )
     blueprints = [
         make_blueprint(
             f"research_blueprint_{index}",
             dimension.id,
             f"Research workflow {index}",
-            task_type=TaskType.agent_interaction,
+            task_type=TaskType.agent,
             content=f"Research workflow scenario {index}.",
             challenge_effort=ChallengeEffort.E4,
             environment_type=AgentEnvironmentType.workspace,

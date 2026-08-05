@@ -14,6 +14,8 @@ _PROVIDER_ALIASES = {
     "anthropic_messages": "anthropic",
     "openai-compatible": "openai_compatible",
     "openai_compatible_chat": "openai_compatible",
+    "openai-responses": "openai_responses",
+    "responses": "openai_responses",
 }
 
 
@@ -55,6 +57,8 @@ def default_api_key(provider: str, model: str, fallback: Optional[str] = None) -
         return os.environ.get("DEEPSEEK_API_KEY") or fallback
     if provider == "openai_compatible" and model.startswith("gemini"):
         return os.environ.get("GEMINI_API_KEY") or fallback
+    if provider in {"openai_compatible", "openai_responses"}:
+        return os.environ.get("OPENAI_API_KEY") or fallback
     if provider == "azure" or model.startswith("azure/"):
         return (
             os.environ.get("AZURE_API_KEY")
@@ -95,5 +99,9 @@ def orchestrator_defaults(
 ) -> tuple[Optional[str], Optional[str]]:
     """Return effective orchestrator API key and base URL."""
     provider, inferred_base = infer_provider(model, base_url, provider)
-    effective_base_url = inferred_base if provider == "openai_compatible" else base_url
+    effective_base_url = (
+        inferred_base
+        if provider in {"openai_compatible", "openai_responses"}
+        else base_url
+    )
     return api_key or default_api_key(provider, model), effective_base_url

@@ -31,7 +31,7 @@ def test_builder_debug_job_slug_is_short_stable_and_collision_resistant() -> Non
     first = _debug_job_slug(dimension, blueprint)
 
     assert first == _debug_job_slug(dimension, blueprint)
-    assert len(first) <= 57
+    assert len(first) <= 33
     assert first != _debug_job_slug(dimension, blueprint + "_other")
 
 
@@ -40,7 +40,7 @@ def test_builder_ids_are_namespaced_only_when_blueprints_collide() -> None:
         TaskDefinition(
             id="task_1",
             dimension_id="first",
-            task_type=TaskType.short_answer,
+            task_type=TaskType.fill_blank,
             title="First",
             prompt="First task.",
             metadata={"builder_blueprint_id": "first_blueprint"},
@@ -48,7 +48,7 @@ def test_builder_ids_are_namespaced_only_when_blueprints_collide() -> None:
         TaskDefinition(
             id="task_1",
             dimension_id="second",
-            task_type=TaskType.short_answer,
+            task_type=TaskType.fill_blank,
             title="Second",
             prompt="Second task.",
             metadata={"builder_blueprint_id": "second_blueprint"},
@@ -56,7 +56,7 @@ def test_builder_ids_are_namespaced_only_when_blueprints_collide() -> None:
         TaskDefinition(
             id="task_1",
             dimension_id="second",
-            task_type=TaskType.short_answer,
+            task_type=TaskType.fill_blank,
             title="Third",
             prompt="Third task.",
             metadata={"builder_blueprint_id": "second_blueprint"},
@@ -104,12 +104,12 @@ def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() ->
         name="Reasoning",
         description="Evaluate reasoning across task formats.",
         approach="Use complementary tasks.",
-        task_types=[TaskType.short_answer, TaskType.code_execution],
+        task_types=[TaskType.fill_blank, TaskType.generation],
     )
     spec = EvalSpec(
         objective="Evaluate reasoning.",
         subjects=["unknown_future_target"],
-        task_types=[TaskType.short_answer, TaskType.code_execution],
+        task_types=[TaskType.fill_blank, TaskType.generation],
         dimensions=[dimension],
         scale_budget=ScaleBudget.high,
         scale=37,
@@ -119,7 +119,7 @@ def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() ->
         "reasoning_tasks",
         dimension.id,
         "Reasoning tasks",
-        task_type=TaskType.short_answer,
+        task_type=TaskType.fill_blank,
         content="Reasoning tasks.",
     )
 
@@ -135,11 +135,11 @@ def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() ->
     assert "scale_budget" not in benchmark_context
     assert "task_family" not in payload["task_plan"]["blueprint"]
     assert benchmark_context["scale"] == 37
-    assert benchmark_context["task_types"] == ["short_answer", "code_execution"]
+    assert benchmark_context["task_types"] == ["fill_blank", "generation"]
     assert benchmark_context["metrics"] == ["exact_match", "pass@1"]
     assert payload["task_plan"]["capability"]["task_types"] == [
-        "short_answer",
-        "code_execution",
+        "fill_blank",
+        "generation",
     ]
 
 
@@ -149,18 +149,18 @@ def test_static_builder_call_contains_no_execution_capability_fields() -> None:
         name="Knowledge",
         description="Evaluate knowledge.",
         approach="Use multiple-choice questions.",
-        task_types=[TaskType.multiple_choice],
+        task_types=[TaskType.choice],
     )
     spec = EvalSpec(
         objective="Evaluate knowledge.",
-        task_types=[TaskType.multiple_choice],
+        task_types=[TaskType.choice],
         dimensions=[dimension],
     )
     blueprint = make_blueprint(
         "knowledge_tasks",
         dimension.id,
         "Knowledge tasks",
-        task_type=TaskType.multiple_choice,
+        task_type=TaskType.choice,
         content="Knowledge tasks.",
     )
 
@@ -188,18 +188,18 @@ def test_execution_fields_are_added_only_for_blueprints_that_request_them() -> N
         name="Tool use",
         description="Evaluate stateful tool use.",
         approach="Use an executable workspace task.",
-        task_types=[TaskType.agent_interaction],
+        task_types=[TaskType.agent],
     )
     spec = EvalSpec(
         objective="Evaluate tool use.",
-        task_types=[TaskType.agent_interaction],
+        task_types=[TaskType.agent],
         dimensions=[dimension],
     )
     blueprint = make_blueprint(
         "tool_tasks",
         dimension.id,
         "Tool tasks",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         content="Stateful tool tasks.",
         environment_type=AgentEnvironmentType.workspace,
         allowed_tools=["look", "read_file"],
@@ -236,12 +236,12 @@ def test_execution_fields_are_added_only_for_blueprints_that_request_them() -> N
 def test_environment_skill_routes_only_environment_backed_task_designs() -> None:
     static_design = make_task_design(
         "static_question",
-        TaskType.short_answer,
+        TaskType.fill_blank,
         content="One static question.",
     )
     gui_design = make_task_design(
         "desktop_workflow",
-        TaskType.agent_interaction,
+        TaskType.agent,
         content="One desktop workflow.",
         environment_type=AgentEnvironmentType.gui_desktop,
     )
@@ -282,18 +282,18 @@ def test_task_builder_payload_contract_supports_a_multi_task_blueprint() -> None
         name="Analysis",
         description="Evaluate analysis.",
         approach="Use distinct tasks.",
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
     )
     spec = EvalSpec(
         objective="Evaluate analysis.",
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
         dimensions=[dimension],
     )
     blueprint = make_blueprint(
         "analysis_tasks",
         dimension.id,
         "Analysis tasks",
-        task_type=TaskType.open_generation,
+        task_type=TaskType.generation,
         count=5,
         content="Five distinct boundary cases; use materially different cases.",
         metadata={"content_focus": "boundary cases"},
@@ -309,7 +309,7 @@ def test_task_builder_payload_contract_supports_a_multi_task_blueprint() -> None
 
     assert construction["planned_task_count"] == 5
     assert construction["required_return_task_count"] == 5
-    assert construction["task_designs"][0]["task_type"] == "open_generation"
+    assert construction["task_designs"][0]["task_type"] == "generation"
     assert construction["task_designs"][0]["task_count"] == 5
     assert "Five distinct boundary cases" in construction["task_designs"][0][
         "content_design"
@@ -319,6 +319,8 @@ def test_task_builder_payload_contract_supports_a_multi_task_blueprint() -> None
     assert "task_index" not in construction
     assert "Implement one Planner-authored Blueprint" in TASK_BUILDER_PROMPT
     assert "only the listed replacement tasks" in TASK_BUILDER_PROMPT
+    assert '"resource_ids": []' in TASK_BUILDER_PROMPT
+    assert "resource_ids" in TASK_BUILDER_PROMPT
 
 
 def test_qc_prompt_requires_complete_but_evidence_based_review() -> None:
@@ -335,26 +337,26 @@ def test_qc_prompt_requires_complete_but_evidence_based_review() -> None:
     assert "cannot add, remove, or override runtime tools" in QC_SYSTEM_PROMPT
 
 
-def test_task_builder_contract_matches_short_answer_and_code_runners() -> None:
+def test_task_builder_contract_matches_fill_blank_and_generation_runners() -> None:
     dimension = EvalDimension(
         id="mixed",
         name="Mixed",
         description="Evaluate two runner contracts.",
         approach="Use short-answer and code tasks.",
-        task_types=[TaskType.short_answer, TaskType.code_execution],
+        task_types=[TaskType.fill_blank, TaskType.generation],
     )
     spec = EvalSpec(
         objective="Evaluate runner contracts.",
         dimensions=[dimension],
-        task_types=[TaskType.short_answer, TaskType.code_execution],
+        task_types=[TaskType.fill_blank, TaskType.generation],
     )
     blueprint = make_blueprint(
         "mixed_blueprint",
         dimension.id,
         "Mixed tasks",
         task_designs=[
-            make_task_design("short", TaskType.short_answer),
-            make_task_design("code", TaskType.code_execution),
+            make_task_design("short", TaskType.fill_blank),
+            make_task_design("code", TaskType.generation),
         ],
     )
 
@@ -365,8 +367,8 @@ def test_task_builder_contract_matches_short_answer_and_code_runners() -> None:
         "No external sources.",
     )["task_builder_contract"]["task_schema"]["type_requirements"]
 
-    assert "rubric/scoring contract" in requirements["short_answer"][0]
-    assert "{model_output}" in requirements["code_execution"][0]
+    assert "expected_text" in requirements["fill_blank"][0]
+    assert "python_tests" in requirements["generation"][0]
 
 
 def test_multi_turn_builder_contract_names_the_runtime_fields_exactly() -> None:
@@ -388,17 +390,15 @@ def test_multi_turn_builder_contract_names_the_runtime_fields_exactly() -> None:
         "Dialogue tasks",
         task_type=TaskType.multi_turn,
         content="Several bounded dialogues.",
-        environment_type=AgentEnvironmentType.dialogue,
     )
+    blueprint.task_designs[0].interaction_requirements["followup_mode"] = "scripted"
 
     payload = _task_builder_payload(spec, dimension, blueprint, "No external sources.")
     requirements = payload["task_builder_contract"]["task_schema"]["type_requirements"]["multi_turn"]
-    skill_prompt = environment_skill_system_prompt(blueprint)
 
     assert "interaction.user_turns" in requirements[0]
     assert "non-empty strings" in requirements[0]
-    assert "do not rename it to `scripted_user_turns`" in skill_prompt
-    assert '"environment": {"type": "dialogue"}' in skill_prompt
+    assert environment_skill_system_prompt(blueprint) == ""
 
 
 def test_adaptive_multi_turn_contract_forbids_scripted_turns() -> None:
@@ -417,7 +417,6 @@ def test_adaptive_multi_turn_contract_forbids_scripted_turns() -> None:
     design = make_task_design(
         "adaptive_design",
         TaskType.multi_turn,
-        environment_type=AgentEnvironmentType.dialogue,
     )
     design.interaction_requirements["followup_mode"] = "adaptive"
     blueprint = make_blueprint(

@@ -7,6 +7,7 @@ from evalclaw.construction.packaging import (
     _task_agent_metadata_for_task,
 )
 from evalclaw.construction.validation import task_structure_issues
+from evalclaw.protocols.task_agent import compact_task_agent_for_qc
 from evalclaw.quality.dataset_checks import _coverage_issues, _duplicate_issues
 from evalclaw.quality.llm_checks import _compact_metadata_for_qc, _llm_qc
 from evalclaw.quality.qc import run_qc_gate
@@ -19,6 +20,7 @@ from evalclaw.types import (
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
+    JudgeToolRef,
     QcCategory,
     QcIssue,
     QcReport,
@@ -34,9 +36,9 @@ def _task(
     task_type: TaskType,
     *,
     environment: AgentEnvironmentSpec | None = None,
-    answer: str | None = None,
+    expected_text: str | None = None,
     rubric: str | None = None,
-    test_code: str | None = None,
+    judge_tools: list[JudgeToolRef] | None = None,
     interaction: dict | None = None,
 ) -> TaskDefinition:
     return TaskDefinition(
@@ -45,33 +47,43 @@ def _task(
         task_type=task_type,
         title="Contract test",
         prompt="Complete the requested benchmark task and return the required result.",
-        answer=answer,
+        expected_text=expected_text,
         rubric=rubric,
-        test_code=test_code,
+        judge_tools=judge_tools or [],
         environment=environment,
         interaction=interaction or {},
     )
 
 
-def test_short_answer_may_use_rubric_instead_of_exact_answer() -> None:
-    task = _task(TaskType.short_answer, rubric="Accept any equivalent explanation of the result.")
+def test_fill_blank_requires_one_exact_expected_text() -> None:
+    missing = _task(TaskType.fill_blank, rubric="Accept any equivalent explanation of the result.")
+    valid = _task(TaskType.fill_blank, expected_text="4")
 
-    assert task_structure_issues(task) == []
+    assert any("expected_text" in issue for issue in task_structure_issues(missing))
+    assert task_structure_issues(valid) == []
 
 
-def test_code_execution_requires_a_test_that_consumes_model_output() -> None:
-    missing = _task(TaskType.code_execution, rubric="Score correctness.")
-    unrelated = _task(TaskType.code_execution, test_code="assert 2 + 2 == 4")
-    valid = _task(TaskType.code_execution, test_code="assert {model_output} == '4'")
+def test_python_tests_judge_tool_must_consume_model_output() -> None:
+    rubric_only = _task(TaskType.generation, rubric="Score correctness.")
+    unrelated = _task(
+        TaskType.generation,
+        rubric="Score correctness.",
+        judge_tools=[JudgeToolRef(tool="python_tests", config={"test_code": "assert 2 + 2 == 4"})],
+    )
+    valid = _task(
+        TaskType.generation,
+        rubric="Score correctness.",
+        judge_tools=[JudgeToolRef(tool="python_tests", config={"test_code": "assert {model_output} == '4'"})],
+    )
 
-    assert any("must provide test_code" in issue for issue in task_structure_issues(missing))
-    assert any("must consume the response" in issue for issue in task_structure_issues(unrelated))
+    assert task_structure_issues(rubric_only) == []
+    assert any("consume {model_output}" in issue for issue in task_structure_issues(unrelated))
     assert task_structure_issues(valid) == []
 
 
 def test_empty_code_sandbox_is_valid_when_the_agent_creates_files() -> None:
     task = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.code_sandbox,
             test_command="python3 verify.py",
@@ -83,7 +95,7 @@ def test_empty_code_sandbox_is_valid_when_the_agent_creates_files() -> None:
 
 def test_docker_browser_validation_does_not_guess_capabilities_from_image_name() -> None:
     task = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.docker_workspace,
             image="organization/custom-runtime:1",
@@ -102,7 +114,7 @@ def test_docker_browser_validation_does_not_guess_capabilities_from_image_name()
 
 def test_workspace_contract_matches_the_builtin_room_inventory_runtime() -> None:
     valid = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.workspace,
             workspace={
@@ -131,9 +143,45 @@ def test_workspace_contract_matches_the_builtin_room_inventory_runtime() -> None
     assert any("must exist" in issue for issue in invalid_issues)
 
 
+def test_workspace_contract_explains_the_executable_state_shape() -> None:
+    task = _task(
+        TaskType.agent,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.workspace,
+            workspace={
+                "rooms": [{"id": "office", "objects": ["brief"]}],
+                "goal": {"outgoing_bin": "mailroom"},
+            },
+        ),
+    )
+
+    issues = task_structure_issues(task)
+
+    assert any("mapping room names to arrays of item IDs" in issue for issue in issues)
+    assert any("array of required item IDs" in issue for issue in issues)
+
+
+def test_task_agent_qc_excerpt_preserves_prompt_ending_and_marks_clipping() -> None:
+    system_prompt = "BEGIN " + ("adaptive policy " * 100) + " COMPLETE END"
+
+    compact = compact_task_agent_for_qc(
+        {
+            "schema_version": "evalclaw.task_agent.v1",
+            "agent_role": "dialogue_simulator",
+            "system_prompt": system_prompt,
+        }
+    )
+
+    excerpt = compact["system_prompt"]
+    assert excerpt.startswith("BEGIN ")
+    assert excerpt.endswith(" COMPLETE END")
+    assert "QC review excerpt clipped" in excerpt
+    assert compact["system_prompt_character_count"] == len(system_prompt)
+
+
 def test_gui_contract_requires_a_startable_session_evaluator_and_vm_source() -> None:
     task = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.gui_desktop,
             requires_vm=True,
@@ -154,7 +202,7 @@ def test_gui_contract_requires_a_startable_session_evaluator_and_vm_source() -> 
 
 def test_gui_vm_contract_treats_vm_as_requires_vm_and_rejects_placeholder_sources() -> None:
     task = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.gui_desktop,
             vm={
@@ -211,7 +259,7 @@ def test_windows_capability_vm_requires_concrete_named_user_setup() -> None:
         },
     )
 
-    issues = task_structure_issues(_task(TaskType.agent_interaction, environment=environment))
+    issues = task_structure_issues(_task(TaskType.agent, environment=environment))
 
     assert any("does not create a local user" in issue for issue in issues)
     assert any("concrete logon mechanism" in issue for issue in issues)
@@ -234,7 +282,7 @@ def test_windows_capability_vm_requires_concrete_named_user_setup() -> None:
         }
     )
     windows_identity_issues = task_structure_issues(
-        _task(TaskType.agent_interaction, environment=windows_identity_environment)
+        _task(TaskType.agent, environment=windows_identity_environment)
     )
 
     assert any("does not create a local user" in issue for issue in windows_identity_issues)
@@ -256,7 +304,7 @@ def test_windows_capability_vm_requires_concrete_named_user_setup() -> None:
         }
     )
 
-    assert task_structure_issues(_task(TaskType.agent_interaction, environment=valid)) == []
+    assert task_structure_issues(_task(TaskType.agent, environment=valid)) == []
 
 
 def test_windows_vm_rejects_target_inaccessible_evaluator_oracle() -> None:
@@ -302,7 +350,7 @@ def test_windows_vm_rejects_target_inaccessible_evaluator_oracle() -> None:
         },
     )
 
-    issues = task_structure_issues(_task(TaskType.agent_interaction, environment=environment))
+    issues = task_structure_issues(_task(TaskType.agent, environment=environment))
 
     assert any("cannot read" in issue and "Embed expected values or hashes" in issue for issue in issues)
 
@@ -336,7 +384,7 @@ def test_gui_desktop_rejects_unresolved_private_command_identifiers() -> None:
             ],
         },
     )
-    task = _task(TaskType.agent_interaction, environment=environment)
+    task = _task(TaskType.agent, environment=environment)
 
     issues = task_structure_issues(task)
 
@@ -397,7 +445,7 @@ def test_gui_desktop_rejects_probe_only_evaluation_and_metadata_evaluator() -> N
             ]
         },
     )
-    task = _task(TaskType.agent_interaction, environment=environment)
+    task = _task(TaskType.agent, environment=environment)
     task.metadata["runner_private_evaluator"] = {
         "location": "runner_private://evaluators/check.py",
         "entrypoint": "python check.py",
@@ -411,7 +459,7 @@ def test_gui_desktop_rejects_probe_only_evaluation_and_metadata_evaluator() -> N
 
 def test_gui_desktop_accepts_command_that_directly_asserts_final_state() -> None:
     task = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.gui_desktop,
             session={
@@ -451,7 +499,7 @@ def test_gui_vm_provisioning_matches_declared_guest_os() -> None:
         evaluation={"method": "bridge_state_check"},
         vm_provisioning={"powershell_commands": ["New-Item C:\\EvalClaw -ItemType Directory -Force"]},
     )
-    valid = _task(TaskType.agent_interaction, environment=base_environment)
+    valid = _task(TaskType.agent, environment=base_environment)
     invalid = valid.model_copy(
         update={
             "environment": base_environment.model_copy(
@@ -502,7 +550,7 @@ def test_windows_vm_provisioning_rejects_powershell_syntax_errors(monkeypatch) -
         lambda command: ["Unexpected token"] if "broken" in command else [],
     )
     task = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.gui_desktop,
             requires_vm=True,
@@ -543,7 +591,7 @@ def test_windows_vm_checks_use_raw_powershell_bodies() -> None:
             "checks": [{"method": "command", "command": "if ($true) { exit 0 } else { exit 1 }"}],
         },
     )
-    invalid = _task(TaskType.agent_interaction, environment=environment)
+    invalid = _task(TaskType.agent, environment=environment)
     valid = invalid.model_copy(
         update={
             "environment": environment.model_copy(
@@ -587,7 +635,7 @@ def test_windows_interactive_provisioning_requires_restart() -> None:
             ],
         },
     )
-    invalid = _task(TaskType.agent_interaction, environment=environment)
+    invalid = _task(TaskType.agent, environment=environment)
     valid = invalid.model_copy(
         update={
             "environment": environment.model_copy(
@@ -638,7 +686,7 @@ def test_windows_interactive_provisioning_requires_restart() -> None:
 
 def test_windows_vm_provisioning_rejects_ambiguous_scheduled_task_parameters() -> None:
     invalid = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.gui_desktop,
             requires_vm=True,
@@ -713,7 +761,7 @@ def test_qc_warnings_do_not_make_a_runner_ready_dataset_unacceptable() -> None:
 
 def test_agent_task_package_preserves_alternative_artifact_semantics() -> None:
     task = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.gui_desktop,
             session={
@@ -778,9 +826,37 @@ def test_agent_task_package_preserves_alternative_artifact_semantics() -> None:
     assert len(declared_package["output_contract"]["constraints"]) == 2
 
 
+def test_workspace_agent_task_package_uses_builtin_runtime_tools() -> None:
+    task = _task(
+        TaskType.agent,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.workspace,
+            workspace={
+                "start_room": "office",
+                "rooms": {"office": ["brief"], "mailroom": []},
+                "goal": {"outgoing_bin": ["brief"]},
+            },
+        ),
+    )
+
+    package = _agent_task_package_for_task(
+        task,
+        task.environment.model_dump(mode="json"),
+    )
+
+    assert package["trajectory_requirements"]["required_tools"] == [
+        "look",
+        "move",
+        "inspect",
+        "take",
+        "place",
+        "final",
+    ]
+
+
 def test_agent_task_package_exposes_provider_image_capability_requirements() -> None:
     task = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(
             type=AgentEnvironmentType.gui_desktop,
             requires_vm=True,
@@ -807,10 +883,9 @@ def test_agent_task_package_exposes_provider_image_capability_requirements() -> 
     ]
 
 
-def test_dialogue_contract_requires_bounded_scripted_or_dynamic_followups() -> None:
+def test_multi_turn_contract_requires_bounded_scripted_or_dynamic_followups() -> None:
     invalid = _task(
         TaskType.multi_turn,
-        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.dialogue),
         rubric="Score the complete dialogue.",
         interaction={"max_turns": 3},
     )
@@ -835,18 +910,16 @@ def test_dialogue_contract_requires_bounded_scripted_or_dynamic_followups() -> N
     assert any("between 1 and 5" in issue for issue in task_structure_issues(excessive_turns))
 
 
-def test_adaptive_dialogue_contract_rejects_scripted_followups() -> None:
+def test_adaptive_multi_turn_contract_rejects_scripted_followups() -> None:
     design = TaskDesign(
         id="adaptive_dialogue",
         task_type=TaskType.multi_turn,
         task_count=1,
         content_design={"description": "Adaptive pressure dialogue."},
         interaction_requirements={"followup_mode": "adaptive"},
-        environment_requirements={"category": "dialogue"},
     )
     scripted = _task(
         TaskType.multi_turn,
-        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.dialogue),
         rubric="Score the complete dialogue.",
         interaction={"max_turns": 3, "user_turns": ["Please reconsider."]},
     ).model_copy(update={"system_prompt": "Adapt pressure to the target reply."})
@@ -860,29 +933,28 @@ def test_adaptive_dialogue_contract_rejects_scripted_followups() -> None:
     )
 
     assert any(
-        "requires adaptive follow-ups" in issue
+        "Adaptive multi_turn" in issue
         for issue in task_structure_issues(scripted, task_design=design)
     )
     assert task_structure_issues(adaptive, task_design=design) == []
 
 
-def test_dialogue_packaging_uses_simulator_role() -> None:
+def test_multi_turn_packaging_uses_simulator_role() -> None:
     task = _task(
         TaskType.multi_turn,
-        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.dialogue),
         rubric="Score the complete dialogue.",
         interaction={"max_turns": 2, "followup_instruction": "Adapt to the transcript."},
     ).model_copy(update={"system_prompt": "Act as the other participant."})
     task.metadata["task_agent"] = {"agent_role": "target_agent_executor"}
 
-    metadata = _task_agent_metadata_for_task(task, {"type": "dialogue"})
+    metadata = _task_agent_metadata_for_task(task, {})
 
     assert metadata["agent_role"] == "dialogue_simulator"
 
 
 def test_task_agent_packaging_keeps_runner_private_vm_state_out_of_target_context() -> None:
     task = _task(
-        TaskType.agent_interaction,
+        TaskType.agent,
         environment=AgentEnvironmentSpec(type=AgentEnvironmentType.gui_desktop),
     ).model_copy(update={"description": "Inspect and repair the visible Windows project."})
     task.metadata["task_agent"] = {
@@ -934,19 +1006,20 @@ def test_pairwise_reference_model_is_required_only_when_execution_is_requested()
         name="Comparison",
         description="Compare response quality.",
         approach="Use pairwise judging.",
-        task_types=[TaskType.pairwise_preference],
+        task_types=[TaskType.generation],
     )
     spec = EvalSpec(
         objective="Compare model responses.",
         dimensions=[dimension],
-        task_types=[TaskType.pairwise_preference],
+        task_types=[TaskType.generation],
     )
     item = BenchmarkItem(
         id="pairwise_1",
         dimension_id=dimension.id,
-        task_type=TaskType.pairwise_preference,
+        task_type=TaskType.generation,
         prompt="Write a concise explanation of why the proposed change is safe and effective.",
         rubric="Prefer correctness, completeness, and clarity; return a tie when quality is equivalent.",
+        judge_tools=[JudgeToolRef(tool="reference_model_response")],
     )
     dataset = BenchmarkDataset(spec=spec, items=[item])
 
@@ -961,7 +1034,7 @@ def test_dataset_checks_duplicate_ids_unknown_dimensions_and_near_duplicates() -
     item_a = BenchmarkItem(
         id="same_id",
         dimension_id="known",
-        task_type=TaskType.open_generation,
+        task_type=TaskType.generation,
         prompt="Analyze the supplied dataset and explain the first trend in detail.",
         rubric="Score factual accuracy.",
     )
@@ -996,7 +1069,7 @@ def test_multimodal_qc_requires_resolvable_assets_and_valid_references() -> None
     item = BenchmarkItem(
         id="image_1",
         dimension_id="vision",
-        task_type=TaskType.open_generation,
+        task_type=TaskType.generation,
         prompt="Inspect the supplied image and describe the main visible anomaly.",
         rubric="Score against visible evidence.",
         metadata={
@@ -1028,24 +1101,24 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
         name="Analysis",
         description="Evaluate analysis.",
         approach="Use an open response.",
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
     )
     spec = EvalSpec(
         objective="Evaluate analysis.",
         dimensions=[dimension],
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
     )
     blueprint = make_blueprint(
         "analysis_blueprint",
         dimension.id,
         "Analysis task",
-        task_type=TaskType.open_generation,
+        task_type=TaskType.generation,
     )
     design_id = blueprint.task_designs[0].id
     item = BenchmarkItem(
         id="analysis_1",
         dimension_id=dimension.id,
-        task_type=TaskType.open_generation,
+        task_type=TaskType.generation,
         prompt=(
             "Analyze the evidence and explain the most defensible conclusion. "
             + "Preserve all relevant evidence. " * 80
@@ -1097,12 +1170,12 @@ def test_configured_llm_qc_failure_is_blocking(monkeypatch) -> None:
         name="Analysis",
         description="Evaluate analysis.",
         approach="Use an open response.",
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
     )
     spec = EvalSpec(
         objective="Evaluate analysis.",
         dimensions=[dimension],
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
     )
     dataset = BenchmarkDataset(
         spec=spec,
@@ -1110,7 +1183,7 @@ def test_configured_llm_qc_failure_is_blocking(monkeypatch) -> None:
             BenchmarkItem(
                 id="analysis_1",
                 dimension_id=dimension.id,
-                task_type=TaskType.open_generation,
+                task_type=TaskType.generation,
                 prompt="Analyze the supplied evidence and explain the conclusion.",
                 rubric="Score correctness.",
             )

@@ -49,13 +49,13 @@ def _dataset() -> BenchmarkDataset:
         name="Analysis",
         description="Evaluate analysis.",
         approach="Use one direct task.",
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
         target_item_count=1,
     )
     spec = EvalSpec(
         objective="Evaluate analysis.",
         dimensions=[dimension],
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
         scale=1,
     )
     return BenchmarkDataset(
@@ -64,7 +64,7 @@ def _dataset() -> BenchmarkDataset:
             BenchmarkItem(
                 id="analysis_1",
                 dimension_id=dimension.id,
-                task_type=TaskType.open_generation,
+                task_type=TaskType.generation,
                 prompt="Analyze the evidence and justify the conclusion.",
                 rubric="Score correctness and justification.",
             )
@@ -132,7 +132,7 @@ def test_task_builder_uses_task_builder_role(monkeypatch) -> None:
         "analysis_blueprint",
         "analysis",
         "Analysis task",
-        task_type=TaskType.open_generation,
+        task_type=TaskType.generation,
         content="One analysis task.",
     )
 
@@ -199,6 +199,26 @@ def test_research_uses_research_role(monkeypatch) -> None:
         {"goal": "goal"},
     ) == {"findings": ["grounded"]}
     _assert_role_call(captured, "research")
+
+
+def test_low_effort_research_caps_structured_output_budget(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_call_llm(*args, **kwargs):
+        captured.update(kwargs)
+        return '{"findings":["grounded"]}'
+
+    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
+    monkeypatch.setattr(deep_research, "call_llm", fake_call_llm)
+
+    deep_research._call_orchestrator_json(
+        _config_for("research"),
+        "system",
+        {"goal": "goal"},
+        max_tokens=8192,
+    )
+
+    assert captured["max_tokens"] == 2048
 
 
 def test_loop3_uses_loop3_role(monkeypatch) -> None:

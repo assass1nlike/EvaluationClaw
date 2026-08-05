@@ -66,6 +66,23 @@ def test_post_with_retry_honors_retry_after(monkeypatch) -> None:
     assert waits == [2.0]
 
 
+def test_post_with_retry_gives_one_generation_the_full_deadline(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_post(*args, **kwargs):
+        captured["timeout"] = kwargs["timeout"]
+        return llm.httpx.Response(
+            200,
+            json={"ok": True},
+            request=llm.httpx.Request("POST", "https://model.example/v1"),
+        )
+
+    monkeypatch.setattr(llm.httpx, "post", fake_post)
+
+    assert llm._post_with_retry("https://model.example/v1", {}, {}) == {"ok": True}
+    assert captured["timeout"] == pytest.approx(300.0, abs=0.01)
+
+
 def test_post_with_retry_enforces_total_deadline(monkeypatch) -> None:
     now = 0.0
     calls = 0
@@ -261,6 +278,266 @@ def test_call_llm_uses_legacy_for_unadaptable_litellm_response(monkeypatch) -> N
 
     assert result == "adapted directly"
     assert legacy_calls == 1
+
+
+def test_legacy_openai_compatible_forwards_reasoning_effort(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_post(url, headers, body, **kwargs):
+        captured.update(body)
+        return {"choices": [{"finish_reason": "stop", "message": {"content": "ok"}}]}
+
+    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
+    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
+
+    result = llm.call_llm(
+        [Message(role="user", content="hello")],
+        model="gpt-5.6-luna",
+        api_key="test-key",
+        base_url="https://model.example/v1",
+        backend="legacy",
+    )
+
+    assert result == "ok"
+    assert captured["reasoning_effort"] == "low"
+
+
+def test_openai_responses_provider_uses_responses_api(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_responses(url, headers, body, **kwargs):
+        captured.update({"url": url, "headers": headers, "body": body})
+        return {
+            "status": "completed",
+            "incomplete_details": None,
+            "output_text": '{"ok":true}',
+            "output": [],
+        }
+
+    monkeypatch.setattr(llm, "_post_streaming_responses", fake_responses)
+
+    result = llm.call_llm(
+        [Message(role="user", content="Return JSON.")],
+        system="Follow the schema.",
+        model="gpt-5.6-luna",
+        api_key="test-key",
+        base_url="https://model.example/v1",
+        provider="openai_responses",
+        backend="auto",
+    )
+
+    assert result == '{"ok":true}'
+    assert captured["url"] == "https://model.example/v1/responses"
+    assert captured["body"]["model"] == "gpt-5.6-luna"
+    assert captured["body"]["instructions"] == "Follow the schema."
+    assert captured["body"]["input"] == [{"role": "user", "content": "Return JSON."}]
+
+
+def test_responses_stream_returns_completed_response(monkeypatch) -> None:
+    completed = {"status": "completed", "output_text": "done", "output": []}
+    stream_lines = [
+        "data: " + json.dumps({"type": "response.created", "response": {"status": "in_progress"}}),
+        "data: " + json.dumps({"type": "response.completed", "response": completed}),
+        "data: [DONE]",
+    ]
+
+    class FakeStream:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def raise_for_status(self):
+            return None
+
+        def iter_lines(self):
+            return iter(stream_lines)
+
+    monkeypatch.setattr(llm.httpx, "stream", lambda *args, **kwargs: FakeStream())
+
+    assert llm._post_streaming_responses("https://model.example/v1/responses", {}, {}) == completed
+
+
+def test_responses_stream_returns_incomplete_response(monkeypatch) -> None:
+    incomplete = {
+        "status": "incomplete",
+        "incomplete_details": {"reason": "max_output_tokens"},
+        "output": [],
+    }
+
+    class FakeStream:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def raise_for_status(self):
+            return None
+
+        def iter_lines(self):
+            return iter(
+                ["data: " + json.dumps({"type": "response.incomplete", "response": incomplete})]
+            )
+
+    monkeypatch.setattr(llm.httpx, "stream", lambda *args, **kwargs: FakeStream())
+
+    assert llm._post_streaming_responses("https://model.example/v1/responses", {}, {}) == incomplete
+
+
+def test_openai_responses_provider_preserves_tool_output(monkeypatch) -> None:
+    raw_output = [
+        {
+            "type": "function_call",
+            "call_id": "call_1",
+            "name": "lookup",
+            "arguments": '{"query":"test"}',
+        }
+    ]
+    monkeypatch.setattr(
+        llm,
+        "_post_streaming_responses",
+        lambda *args, **kwargs: {
+            "status": "completed",
+            "incomplete_details": None,
+            "output_text": "",
+            "output": raw_output,
+        },
+    )
+    tool = ToolSpec(
+        name="lookup",
+        description="Look up a query.",
+        parameters=object_schema({"query": {"type": "string"}}, required=["query"]),
+    )
+
+    response = llm.call_orchestrator_with_tools(
+        [{"role": "user", "content": "Look up test."}],
+        model="gpt-5.6-luna",
+        api_key="test-key",
+        base_url="https://model.example/v1",
+        provider="openai_responses",
+        tools=[tool],
+    )
+
+    assert response.adapter == "openai_responses"
+    assert response.tool_calls[0].id == "call_1"
+    assert response.tool_calls[0].arguments == {"query": "test"}
+    assert response.assistant_message == {"responses_output": raw_output}
+
+
+def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
+    captured: dict = {}
+    stream_lines = [
+        "data: " + json.dumps({"choices": [{"delta": {"content": "{\"ok\":"}}]}),
+        "data: " + json.dumps({"choices": [{"delta": {"content": "true}"}, "finish_reason": "stop"}]}),
+        "data: [DONE]",
+    ]
+
+    class FakeStream:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def raise_for_status(self):
+            return None
+
+        def iter_lines(self):
+            return iter(stream_lines)
+
+    def fake_stream(method, url, headers, json, timeout):
+        captured["method"] = method
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["body"] = json
+        captured["timeout"] = timeout
+        return FakeStream()
+
+    def forbidden_post(*args, **kwargs):
+        raise AssertionError("non-streaming POST should not be used")
+
+    def forbidden_litellm(*args, **kwargs):
+        raise AssertionError("LiteLLM should be skipped when streaming is enabled")
+
+    monkeypatch.setenv("EVALCLAW_LLM_STREAMING", "1")
+    monkeypatch.setattr(llm.httpx, "stream", fake_stream)
+    monkeypatch.setattr(llm, "_post_with_retry", forbidden_post)
+    monkeypatch.setattr(llm, "_call_litellm", forbidden_litellm)
+
+    result = llm.call_llm(
+        [Message(role="user", content="Return JSON.")],
+        model="gpt-5.6-luna",
+        api_key="test-key",
+        base_url="https://model.example/v1",
+        provider="openai_compatible",
+        backend="auto",
+    )
+
+    assert result == '{"ok":true}'
+    assert captured["method"] == "POST"
+    assert captured["url"] == "https://model.example/v1/chat/completions"
+    assert captured["body"]["stream"] is True
+    assert captured["body"]["response_format"] == {"type": "json_object"}
+
+
+def test_openai_compatible_streaming_retries_upstream_error(monkeypatch) -> None:
+    attempts = 0
+    waits: list[float] = []
+
+    class FakeStream:
+        def __init__(self, lines):
+            self.lines = lines
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def raise_for_status(self):
+            return None
+
+        def iter_lines(self):
+            return iter(self.lines)
+
+    def fake_stream(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return FakeStream(
+                [
+                    "data: "
+                    + json.dumps(
+                        {
+                            "error": {
+                                "message": "Upstream service temporarily unavailable",
+                                "type": "upstream_error",
+                            }
+                        }
+                    )
+                ]
+            )
+        return FakeStream(
+            [
+                "data: " + json.dumps({"choices": [{"delta": {"content": "ok"}}]}),
+                "data: [DONE]",
+            ]
+        )
+
+    monkeypatch.setattr(llm.httpx, "stream", fake_stream)
+    monkeypatch.setattr(llm.time, "sleep", waits.append)
+
+    result = llm._post_streaming_openai_compatible(
+        "https://model.example/v1/chat/completions",
+        {},
+        {},
+    )
+
+    assert result == ("ok", None)
+    assert attempts == 2
+    assert waits == [5.0]
 
 
 class _FakeAnthropicMessages:

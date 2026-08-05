@@ -77,7 +77,7 @@ SCIENCE_SCHEMA: dict[str, Any] = {
         "data_interpretation | literature_reasoning | uncertainty_calibration"
     ),
     "evidence_context": "self_contained | source_grounded | provided_data | provided_paper_excerpt",
-    "answer_type": "multiple_choice | exact_numeric | short_explanation | rubric_scored",
+    "answer_type": "choice | exact_numeric | short_explanation | rubric_scored",
     "units": "required units when applicable, otherwise empty string",
     "assumptions": ["explicit assumptions, constants, approximations, or scope limits"],
     "safety_notes": "for medical/clinical or safety-sensitive science, evaluate reasoning only and avoid actionable advice",
@@ -119,7 +119,7 @@ Science item rules:
   paper excerpts, tables, observations, or assumptions as needed.
 - For quantitative items, include required units, enough numeric information,
   and a single unambiguous answer or rubric. Check dimensional consistency.
-- For multiple_choice, include exactly one best answer, plausible distractors,
+- For choice, include exactly one best answer, plausible distractors,
   and an answer letter that matches the rubric.
 - For experimental-design items, specify hypothesis, variables, controls,
   sample/measurement constraints, and confounders clearly enough to score.

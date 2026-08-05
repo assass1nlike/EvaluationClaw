@@ -1,4 +1,4 @@
-﻿"""Tests for the deep-research loop and its pipeline integration.
+"""Tests for the deep-research loop and its pipeline integration.
 
 Follows the monkeypatch style of tests/test_core_smoke.py: no real network,
 no real LLM calls.
@@ -28,6 +28,7 @@ from evalclaw.research.deep_research import (
     render_brief_markdown,
     run_deep_research,
 )
+from evalclaw.sources.hf_discovery import discover_hf_datasets
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkDataset,
@@ -114,6 +115,58 @@ def _patch_search(monkeypatch, calls: list[str]) -> None:
 
     monkeypatch.setattr(deep_research, "web_search", fake_web_search)
     monkeypatch.setattr(deep_research, "fetch_url_text", lambda url, **kwargs: f"page text of {url}")
+
+
+def test_gather_round_caps_fetch_attempts_when_fetches_fail(monkeypatch) -> None:
+    fetch_calls: list[str] = []
+
+    def fake_web_search(query, **kwargs):
+        return SearchResult(
+            content=f"synth for {query}",
+            citations=[
+                {"url": f"https://source.example/{query}/{index}", "title": "Source"}
+                for index in range(5)
+            ],
+        )
+
+    def fake_fetch(url, **kwargs):
+        fetch_calls.append(url)
+        return None
+
+    monkeypatch.setattr(deep_research, "web_search", fake_web_search)
+    monkeypatch.setattr(deep_research, "fetch_url_text", fake_fetch)
+
+    material, citations = deep_research._gather_round(
+        ["q1", "q2"],
+        _research_config(),
+        set(),
+    )
+
+    assert len(fetch_calls) == deep_research.MAX_FETCHES_PER_ROUND
+    assert len(material) == 2
+    assert len(citations) == 10
+
+
+def test_hf_discovery_stops_after_service_failure(monkeypatch) -> None:
+    calls = 0
+
+    class FailingApi:
+        def list_datasets(self, *, search, limit):
+            nonlocal calls
+            calls += 1
+            raise TimeoutError("hub unavailable")
+
+    monkeypatch.setattr("huggingface_hub.HfApi", lambda: FailingApi())
+    dimension = EvalDimension(
+        id="healthcare",
+        name="Healthcare deception",
+        description="Evaluate deception in healthcare settings.",
+        approach="Source-grounded tasks.",
+        research_queries=["query one", "query two"],
+    )
+
+    assert discover_hf_datasets(dimension, limit=3) == []
+    assert calls == 1
 
 
 def _sample_brief() -> ResearchBrief:
@@ -344,9 +397,9 @@ def _minimal_package(research_brief: ResearchBrief | None) -> BenchmarkPackage:
     item = BenchmarkItem(
         id="item_1",
         dimension_id="core",
-        task_type=TaskType.short_answer,
+        task_type=TaskType.fill_blank,
         prompt="Answer briefly.",
-        answer="ok",
+        expected_text="ok",
     )
     run = EvalRun(
         dataset=BenchmarkDataset(spec=spec, items=[item]),

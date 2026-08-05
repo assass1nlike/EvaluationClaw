@@ -30,6 +30,7 @@ from ..types import (
     BenchmarkItem,
     BenchmarkSource,
     ChallengeEffort,
+    ChoiceOption,
     EvalDimension,
     EvalSpec,
     Message,
@@ -45,25 +46,24 @@ from .fallback import (
 
 
 def _safe_task_type(value: object, fallback: TaskType) -> TaskType:
-    aliases = {
-        "generation": TaskType.open_generation,
-        "open_ended": TaskType.open_generation,
-        "open-ended": TaskType.open_generation,
-        "mcq": TaskType.multiple_choice,
-        "qa": TaskType.short_answer,
-        "agent": TaskType.agent_interaction,
-        "agent_interactive": TaskType.agent_interaction,
-        "pairwise": TaskType.pairwise_preference,
-        "preference": TaskType.pairwise_preference,
-        "arena": TaskType.pairwise_preference,
-    }
-    text = str(value)
-    if text in aliases:
-        return aliases[text]
     try:
-        return TaskType(text)
+        return TaskType(str(value))
     except ValueError:
         return fallback
+
+
+def _choice_options(value: object) -> list[ChoiceOption]:
+    if not isinstance(value, list):
+        return []
+    options: list[ChoiceOption] = []
+    for option in value:
+        if not isinstance(option, dict):
+            continue
+        option_id = str(option.get("id") or "").strip()
+        text = str(option.get("text") or "").strip()
+        if option_id and text:
+            options.append(ChoiceOption(id=option_id, text=text))
+    return options
 
 
 def _normalize_source(source_uri: object, source_title: object = "") -> BenchmarkSource:
@@ -285,7 +285,7 @@ def _parse_items(
     if not isinstance(raw_items, list):
         raw_items = []
     task_plan = dimension.task_types or spec.task_types
-    task_fallback = task_plan[0] if task_plan else TaskType.open_generation
+    task_fallback = task_plan[0] if task_plan else TaskType.generation
     challenge_efforts = _challenge_effort_cycle(dimension)
     items: list[BenchmarkItem] = []
     for raw in raw_items:
@@ -295,11 +295,7 @@ def _parse_items(
         if not prompt:
             continue
         source = _normalize_source(raw.get("source_uri"), raw.get("source_title"))
-        choices = raw.get("choices") or []
-        if isinstance(choices, dict):
-            choices = [f"{key}. {value}" for key, value in choices.items()]
-        if not isinstance(choices, list):
-            choices = []
+        choices = _choice_options(raw.get("choices"))
         metadata = raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {}
         if not metadata.get(TASK_CONTENT_SUMMARY_METADATA_KEY):
             metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = compact_task_content_summary(
@@ -324,10 +320,18 @@ def _parse_items(
             dimension_id=dimension.id,
             task_type=task_type,
             prompt=prompt,
-            choices=[str(choice) for choice in choices],
-            answer=str(raw["answer"]) if raw.get("answer") is not None else None,
+            choices=choices,
+            correct_choice_ids=[str(value) for value in raw.get("correct_choice_ids", [])]
+            if isinstance(raw.get("correct_choice_ids"), list)
+            else [],
+            expected_text=str(raw["expected_text"]) if raw.get("expected_text") is not None else None,
             rubric=str(rubric) if rubric is not None else None,
-            test_code=str(raw["test_code"]) if raw.get("test_code") is not None else None,
+            judge_tools=[value for value in raw.get("judge_tools", []) if isinstance(value, dict)]
+            if isinstance(raw.get("judge_tools"), list)
+            else [],
+            output_contract=raw.get("output_contract")
+            if isinstance(raw.get("output_contract"), dict)
+            else {},
             challenge_effort=safe_challenge_effort(
                 raw.get("challenge_effort"),
                 next(challenge_efforts),

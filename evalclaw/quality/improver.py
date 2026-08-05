@@ -196,8 +196,11 @@ def _diagnosis_payload(
                 "task_type": item.task_type.value,
                 "challenge_effort": item.challenge_effort.value,
                 "prompt_excerpt": _shorten(item.prompt, 900),
-                "answer": item.answer,
+                "choices": [choice.model_dump(mode="json") for choice in item.choices],
+                "correct_choice_ids": item.correct_choice_ids,
+                "expected_text": item.expected_text,
                 "rubric_excerpt": _shorten(item.rubric, 600),
+                "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
             }
         )
 

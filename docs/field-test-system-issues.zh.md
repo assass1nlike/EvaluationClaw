@@ -1,6 +1,6 @@
 # EvalClaw 实测核心系统问题台账
 
-更新日期：2026-07-17
+更新日期：2026-08-05
 
 ## 记录范围
 
@@ -20,7 +20,7 @@
 | FT-002 | QC 结论跨修复轮次显著漂移，未改任务也可能由通过变为拒绝 | P0 | 待修复 | 两次 50 题自适应对话测试 |
 | FT-003 | 大批量 QC 会漏掉用户要求的核心行为构念 | P0 | 待修复 | 两次 50 题自适应对话测试 |
 | FT-004 | 环境题曾允许用描述性声明代替真实的初始状态构建 | P0 | 已验证修复 | Windows 隐藏故障修复测试 |
-| FT-005 | 环境 Builder 指令与结构验证器的字段契约不完全一致 | P1 | 已验证修复 | Windows 隐藏故障修复复测 |
+| FT-005 | 环境 Builder、打包器、验证器与运行时的字段/工具契约不完全一致 | P1 | 已缓解，待复测 | Windows 隐藏故障修复复测；医疗欺骗 benchmark |
 | FT-006 | 失败运行没有完整保留 Planner 与 QC 的原始审计信息 | P1 | 待修复 | 50 题自适应欺骗诱导测试 |
 | FT-007 | GUI 任务曾允许不可执行的私有 evaluator 声明和无条件成功检查 | P0 | 已验证修复 | Windows 隐藏故障修复 v7-v10 |
 | FT-008 | 单题 QC warning 曾使全部通过的数据集无法产包 | P1 | 已验证修复 | Windows 隐藏故障修复 v11 |
@@ -37,6 +37,13 @@
 | FT-019 | artifact 对象被序列化为字典字符串 | P1 | 已验证修复 | vm-chain-matrix-06-operator-workspace |
 | FT-020 | Windows identity 命名用户断言识别不完整 | P0 | 已验证修复 | Operator 任务 v3 |
 | FT-021 | target 不可读私有 evaluator oracle 被误记为 0 分 | P0 | 已验证修复 | Operator 任务 v2 |
+| FT-022 | QC 摘要曾无标记地截断 task-agent system prompt并产生假阳性 | P1 | 已缓解，待复测 | 医疗欺骗 benchmark v10 |
+| FT-023 | Planner 缺少执行环境能力边界，可能选择无法实现任务合同的 runtime | P0 | 已缓解，待复测 | 医疗欺骗 benchmark v14 |
+| FT-024 | OpenAI-compatible 流式路径曾缺少瞬态错误重试 | P1 | 已缓解，待复测 | 医疗欺骗 benchmark v11-v14 |
+| FT-025 | Planner 可生成超出单次 Builder 稳定承载能力的 Blueprint | P0 | 待修复 | 医疗欺骗 benchmark v22 |
+| FT-026 | 真实数据约束下缺少可执行、可审计的来源载荷 | P0 | 待修复 | 医疗欺骗 benchmark v23-v24 |
+| FT-027 | QC 接受不存在的全局 item ID，污染通过/拒绝计数 | P1 | 待修复 | 医疗欺骗 benchmark v24 |
+| FT-028 | 单个 Blueprint 修复失败会中断整个 QC 候选循环 | P1 | 待修复 | 医疗欺骗 benchmark v24 |
 
 ## FT-001：Blueprint 工作量没有受到实际输出预算约束
 
@@ -150,6 +157,10 @@ Builder skill 要求模型“标识 application 或 desktop surface”并提供�
 
 Builder Skill、结构验证器、打包器和 QC 现已统一使用 `environment.vm_provisioning`、`environment.session` 与 `environment.evaluation`。Windows command 检查统一使用 raw PowerShell body；Scheduled Task 参数检查按每次 AST 调用分别判断，不再合并两个独立调用，验证器也不再原地修改待验证命令列表。v10-v13 的多轮真实 Builder 响应和最终本机运行均未再出现旧字段或协议错位，因此标记为“已验证修复”。
 
+医疗欺骗 benchmark v9 又发现同类 workspace 协议错位：Builder 把房间写成对象数组，并把对象放在独立 `objects` 数组；运行时实际只接受 `environment.workspace.rooms` 为“房间名 -> item ID 数组”的映射。v14 进一步发现 canonical agent package 为 workspace 错误声明了 `read_file/write_file`，而运行时实际暴露 `look/move/inspect/take/place/final`。
+
+当前已在 workspace Builder reference 中加入唯一可执行 JSON 形状和明确的修复反馈，并修正 canonical 工具列表。定向回归测试通过，但尚未得到同类端到端成功包，因此本条整体状态重新标记为“已缓解，待复测”。
+
 ## FT-006：失败运行缺少完整的 Planner 与 QC 审计信息
 
 ### 实测证据
@@ -167,6 +178,8 @@ Builder Skill、结构验证器、打包器和 QC 现已统一使用 `environmen
 - 无法可靠归因失败发生在规划、构建还是验收。
 - 难以比较多轮 QC，无法确认定点修复是否真的收敛。
 - 大规模实测只能依赖控制台片段和人工推断。
+
+医疗欺骗 benchmark v14 还暴露了 Windows debug 路径过长：同一响应文件可以保存，但稍长的 `.diagnostics.json` 路径超过传统 `MAX_PATH` 后报 `FileNotFoundError`。debug job 目录名现已保留短前缀和稳定哈希，将最长目录段从 57 字符缩至 33 字符。该修复只改善 Builder 诊断保存，Planner 与 QC 原始审计信息仍未完整落盘，因此 FT-006 状态保持“待修复”。
 
 ## FT-007：GUI 任务曾允许不可执行的私有 evaluator 声明和无条件成功检查
 
@@ -268,7 +281,7 @@ evaluator 现在显式接受等价登录类型，并用大小写不敏感的 lit
 
 ## 暂不列为核心系统问题的现象
 
-- `api.sudocode.chat` 在两次真实 target 运行中出现过多次 `RemoteProtocolError`。最小工具请求成功，完整工具请求也能在不改变 schema 的重试中成功；v9 运行的现有三次有界重试最终全部恢复。因此当前证据更符合外部 endpoint 的瞬时连接抖动，不足以定性为 EvalClaw 的系统性网络设计缺陷。此前确有一次连续三次断开导致运行失败，仍应保留原始失败结果用于观察频率。
+- `api.sudocode.chat` 在医疗 benchmark v11-v14 的长 Planner/Builder 请求中反复返回 `upstream_error`、`ConnectError` 和 `RemoteProtocolError`，而同一 key、模型和 endpoint 的最小请求仍能在数秒内成功。流式路径补齐有界重试后，部分调用恢复，部分调用连续三次失败；单 Worker 也出现 Planner 连续五轮失败。2026-08-05 改用 `api.sudorelay.com` 后，完整 deepresearch、Planner、六个 Builder 和三轮 QC 均完成，两次 `RemoteProtocolError` 由同一重试机制恢复，运行最终只因任务合同问题 fail-closed。因此现有证据进一步指向旧外部 endpoint 的长请求不稳定，而不是 Builder 并发本身。原始失败仍保留用于观察频率；不能把重试耗尽后的外部故障伪装为框架成功。
 - 某个 Builder 单独生成了一道方向错误的题，不足以证明框架缺陷。只有当框架的规划、契约或 QC 让同类错误成批出现或错误通过时，才归入本台账。
 - 尚未真正运行 target model 的测试不能用于判断 runner、评分器或目标模型适配器正确与否。
 
@@ -331,6 +344,106 @@ Builder 合法地产生 `{path, kind, format}` artifact 对象时，打包器曾
 ### 当前状态
 
 Builder Skill 已明确说明 evaluator 与 target 使用同一登录令牌；Windows GUI evaluator 不得运行时读取 target 不可访问的 oracle，必须把预期值或 hash 内嵌在检查命令中。结构验证现在会拦截能静态识别的受保护 oracle 引用，状态为“已验证修复”。
+
+## FT-022：QC 摘要无标记截断 task-agent system prompt
+
+### 实测证据
+
+医疗欺骗 benchmark v10 的 Builder 原始响应包含完整的多轮 simulator `system_prompt`，结尾明确说明终止条件；QC 却报告 canonical prompt 在 `adapt to` 处半句结束，并据此拒绝最后一题。检查发现 `compact_task_agent_for_qc` 直接取前 800 字符，没有尾部也没有摘要标记，因此 QC 实际审查的是框架制造的截断文本。
+
+日志：[`medical v10 run.log`](../benchmark-output/medical-deception-real-world-20260804-v10-stream-newkey/run.log)
+
+完整 Builder 响应：[`multi-turn final repair`](../benchmark-output/medical-deception-real-world-20260804-v10-stream-newkey/debug/task-builder/multi_turn_deceptive_intent__bp_multiturn_escala-ba27cbdc/20260804T150733.712324Z-32ede474/attempt-01-initial.response.txt)
+
+### 当前状态
+
+task-agent QC 摘要现在保留首尾、原始字符数，并插入 QC 已认识的 `QC review excerpt clipped` 标记。回归测试证明 prompt 尾部和标记均存在；尚待同类端到端复测，状态为“已缓解，待复测”。
+
+## FT-023：Planner 缺少执行环境能力边界
+
+### 实测证据
+
+医疗欺骗 benchmark v14 的 Planner 要求任务提供可编辑 workspace、受保护证据、报告文件、JSON schema、哈希和确定性 validator，却把环境类别选为内置 `workspace`。该 runtime 只能进行房间移动、物品检查和 outgoing-bin 搬运，Builder 无法实现文件编辑合同。QC 正确拒绝了任务。
+
+日志：[`medical v14 run.log`](../benchmark-output/medical-deception-real-world-20260804-v14-stream-worker1-low/run.log)
+
+### 当前状态
+
+Planner Skill 现在明确四种 runtime 的实际能力，并要求包含文件、脚本、schema、hash、测试或可执行 validator 的任务选择 `code_sandbox` 或 `docker_workspace`，不得选择 `workspace`。该变化已通过 Planner/Builder 合同测试，尚待同类端到端复测，状态为“已缓解，待复测”。
+
+## FT-024：OpenAI-compatible 流式路径缺少瞬态错误重试
+
+### 实测证据
+
+医疗欺骗 benchmark v11 在 SSE 数据中收到 `upstream_error: Upstream service temporarily unavailable` 后立即失败。非流式请求已有 429、5xx 和传输错误的有界重试，但新增流式实现没有同等机制，导致一次外部瞬态错误直接消耗 Builder 调用并终止整轮。
+
+日志：[`medical v11 run.log`](../benchmark-output/medical-deception-real-world-20260804-v11-stream-newkey/run.log)
+
+### 当前状态
+
+流式请求现在对 429、5xx、传输中断和明确的 `upstream_error` 做最多三次、总时限 300 秒的有界重试；每次失败的部分响应会丢弃。v12-v14 真实日志已显示重试实际触发；改用 `api.sudorelay.com` 的 v15 又确认两次 `RemoteProtocolError` 均恢复，流程继续完成全部 QC 轮次。由于完整 benchmark 仍因任务合同问题未产包，状态暂保持“已缓解，待复测”。
+
+## FT-025：Planner 可生成超出单次 Builder 稳定承载能力的 Blueprint
+
+### 实测证据
+
+医疗欺骗 benchmark v22 在默认 `mid` 规模下规划了 500 道题，却只拆成 7 个 Blueprint。前两个 Blueprint 分别要求单次 Builder 生成 110 和 80 道带真实来源与评分字段的任务。第一个 Blueprint 的三次响应分别得到 0、20 和 110 个可用任务；第二个分别得到 5、10 和 53 个，最终在结构修复耗尽后 fail-closed。第二个 Blueprint 的最后响应已有 38166 bytes，仍无法满足 80 题；这不是 API 连接失败，而是工作包超过单次稳定输出能力。
+
+日志：[`medical v22 run.log`](../benchmark-output/medical-deception-real-world-20260805-v22-rightapi-responses-run.log)
+
+诊断目录：[`medical v22 task-builder traces`](../benchmark-output/medical-deception-real-world-20260805-v22-rightapi-responses/debug/task-builder/)
+
+### 额外风险
+
+第一个 Builder 初始响应明确说明现有资源不足以构造 110 个具有病例级真实来源、许可或去标识状态、意图金标和证据跨度的任务，因此返回空数组以避免伪造。结构修复只把它作为数量错误继续要求完整重建，后续响应遂开始生成尚待人工补齐真实材料的占位任务。框架当前没有把“来源不足”与“输出数量不足”区分为不同的可修复状态，数量修复可能覆盖模型正确的证据边界判断。
+
+### 当前状态
+
+问题已确认，尚未修复。合理修复需要同时约束 Planner 的 Blueprint 序列化工作量，并决定 Builder 数量不足时采用增量补齐、Planner 重拆包还是来源不足 fail-closed；不能仅为本次医疗案例设置固定题数上限。
+
+## FT-026：真实数据约束下 Planner/Builder 生成了不可解析的资源包引用
+
+### 实测证据
+
+医疗欺骗 benchmark v23 明确要求 exactly 20 tasks。Planner 正确生成 4 个维度、4 个 Blueprint、20 道题，Builder 也将每个工作包限制为 5 题。三轮 QC 修复后仍有 5 道题被拒绝，最终报告为 `15/20 items passed, 5 rejected, quality_score=0.915`。阻塞问题是题目要求 task-visible 的 `Packet FCR-1`、`Packet MHD-1`、`Packet FNS-1`、`Packet CCA-1` 和 `Packet FDR-1`，但对应任务没有可解析的 packet URI、文件、asset 或 dataset identifier，`source.uri` 为空。
+
+研究阶段三轮结果同时确认：没有找到公开验证过、带专家欺骗标签的真实医疗数据集；现有候选来源缺少病例级 URL、许可、去标识记录或可复核金标准。Builder 在部分初始响应中正确拒绝伪造来源，但修复后仍可能保留不可解析的包名引用。
+
+日志：[`medical v23 run.log`](../benchmark-output/medical-deception-real-world-20260805-v23-20tasks-rightapi-responses-run.log)
+
+QC 完整追踪：[`medical v23 QC trace`](../benchmark-output/medical-deception-real-world-20260805-v23-20tasks-rightapi-responses/debug/qc/20260805T112359.460843Z-334e29fa/)
+
+v24 将约束改为“数据必须是已有的真实数据”。Planner 转而规划 MIMIC-IV、CMS、FDA、WHO、DOJ/OIG 和已发表病例来源，但多数任务仍只包含自行改写的记录片段、数据库首页或“本地保留 extract”的声明，没有附带可审计的行标识、抽取结果、来源跨度或文件。第一轮 QC 修复后为 `9/20 items passed, 11 rejected`；剩余问题仍集中于把“现有数据集存在”误当成“构题所用的具体记录已经物化并可验证”。这进一步确认根因是资源载荷/稳定标识协议缺失，而不是上一版用户措辞要求了专家欺骗标签。
+
+v24 追踪：[`medical v24 QC trace`](../benchmark-output/medical-deception-existing-real-data-20260805-v24/debug/qc/20260805T132804.254882Z-85089016/)
+
+### 当前状态
+
+问题已确认，尚未修复。Planner/Builder 协议需要把“引用一个资源包名称”与“提供可供任务执行和 QC 解析的资源载荷或稳定标识”区分开；在真实数据不可访问时，应在规划或构建阶段明确阻断，而不是让不可解析的资源引用进入 QC 修复循环。
+
+## FT-027：QC 接受不存在的全局 item ID，导致通过/拒绝计数矛盾
+
+### 实测证据
+
+医疗欺骗 benchmark v24 的初始 QC 将数据集级问题返回为 `item_id="benchmark"`。`run_qc_gate` 未校验该 ID 是否属于真实任务，直接把它加入 `rejected_item_ids`，于是 20 道任务的摘要显示 `2/20 items passed, 19 rejected`；实际被拒绝的是 18 道任务，另一个拒绝 ID 是不存在的 `benchmark`。
+
+报告：[`medical v24 initial QC`](../benchmark-output/medical-deception-existing-real-data-20260805-v24/debug/qc/20260805T132804.254882Z-85089016/00-initial/report.json)
+
+### 当前状态
+
+问题已确认，尚未修复。QC 解析层应将 `null`/空 ID 作为全局问题，并对其他 ID 做任务集合校验；未知 ID 不应污染逐题通过数和拒绝数。
+
+## FT-028：QC 修复候选的单个 Blueprint 构建失败会中断整个循环
+
+### 实测证据
+
+v24 第一轮 QC 候选已从 2 道提升到 9 道通过。第二轮只修复 4 个受影响 Blueprint，其中 `bp_safe_communication` 连续三次把来源绑定写入 `metadata.source_ids`，没有写入顶层 `resource_ids`；结构验证正确拒绝了这些响应，但异常直接终止整个 benchmark，第三轮 QC 未运行，当前最佳的第一轮候选也没有正常完成流程或形成草稿包。
+
+诊断：[`medical v24 failed Blueprint repair`](../benchmark-output/medical-deception-existing-real-data-20260805-v24/debug/task-builder/uncertainty_safe_communi-ddcfdbe0/20260805T133959.003814Z-ae2d0305/attempt-03-structural-repair.diagnostics.json)
+
+### 当前状态
+
+问题已确认，尚未修复。Builder 忽略明确字段反馈属于本次模型响应问题；框架问题是候选构建没有隔离失败 Blueprint，也没有在候选无效时保留当前最佳数据集并继续执行既定的 fail-closed 收尾。
 
 ## 维护规则
 

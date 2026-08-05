@@ -108,7 +108,7 @@ def run_pairwise_preference(
 ) -> tuple[str, float, str, str | None]:
     reference = config.reference_model
     if reference is None:
-        return "", 0.0, "", "No reference model configured for pairwise_preference item."
+        return "", 0.0, "", "No reference model configured for reference_model_response judge tool."
     has_reference_credentials, reference_env_name = target_config_has_credentials(reference)
     if not has_reference_credentials:
         return (

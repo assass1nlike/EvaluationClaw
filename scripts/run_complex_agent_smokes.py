@@ -38,7 +38,7 @@ def make_workspace_item() -> tuple[BenchmarkItem, list[dict[str, Any]], Benchmar
     item = BenchmarkItem(
         id="workspace_multi_room_delivery",
         dimension_id="stateful_tool_use",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt=(
             "Inspect the workspace, identify the current laptop, collect the blue notebook and "
             "the charged tablet, and place only those required items in the outgoing bin."
@@ -132,7 +132,7 @@ assert summarize_orders([{"amount": "3.00", "status": "cancelled"}]) == {
     item = BenchmarkItem(
         id="code_repair_hidden_business_rules",
         dimension_id="iterative_code_agent",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt=(
             "Repair summarize_orders in solution.py. It must ignore cancelled orders, handle empty input, "
             "avoid floating point money errors, and pass the hidden tests. Inspect files and run tests."
@@ -182,7 +182,7 @@ grep -Fx 'carrot:2' result.txt
     item = BenchmarkItem(
         id="docker_cli_data_processing",
         dimension_id="containerized_tool_use",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt=(
             "Repair analyze.sh inside the container. The command-line script should tokenize text, "
             "count words case-insensitively, and print the top three words as word:count lines."
@@ -220,7 +220,7 @@ def make_vm_item() -> tuple[BenchmarkItem, list[dict[str, Any]], BenchmarkConfig
     item = BenchmarkItem(
         id="vm_multi_artifact_session",
         dimension_id="vm_desktop_bridge",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt=(
             "Inside the VM session, create two artifacts: /reports/summary.txt containing "
             "'VM complex success' and /reports/checklist.txt containing 'alpha' and 'beta'. "

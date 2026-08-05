@@ -21,13 +21,18 @@ Return pure JSON only, with no markdown. Format:
   "generation_notes": "...",
   "items": [
     {
-      "task_type": "multiple_choice",
+      "task_type": "choice",
       "content_summary": "3-8 words naming the task content",
       "prompt": "...",
-      "choices": ["A. ...", "B. ...", "C. ...", "D. ..."],
-      "answer": "A",
-      "rubric": "Scoring rubric; open-generation rubrics must define concrete 1-5 score levels.",
-      "test_code": null,
+      "choices": [{"id": "A", "text": "..."}, {"id": "B", "text": "..."}],
+      "correct_choice_ids": ["A"],
+      "expected_text": null,
+      "rubric": null,
+      "judge_tools": [],
+      "output_contract": {},
+      "system_prompt": "",
+      "interaction": {},
+      "environment": null,
       "challenge_effort": "E2",
       "tags": ["..."],
       "source_uri": "...",
@@ -59,9 +64,9 @@ Requirements:
   agent, or complexity multipliers to reduce or increase it.
   Choose the item mix that best fits the assigned dimension instead of forcing a
   fixed count for every task type.
-- The item task_type must be one of dimension_task_type_plan. Do not switch a
-  planned open_generation or code_execution dimension into agent_interaction
-  merely because the topic involves code.
+- The item task_type must be one of dimension_task_type_plan. The only task
+  types are choice, fill_blank, generation, multi_turn, and agent. Code output
+  remains generation unless the target must act in an executable environment.
 - If repair_guidance is present, treat it as mandatory QC feedback from previous
   failed items. Generate replacements that directly fix those problems instead
   of repeating the same pattern.
@@ -120,26 +125,25 @@ Requirements:
   present, all prompts/rubrics/system prompts are complete strings, all code
   blocks or file contents are syntactically closed, and the item can be answered
   without unstated context.
-- multiple_choice must be single-answer, include at least 4 choices, and use a
-  choice letter as answer.
-- yes_no answer must be yes or no.
-- open_generation must include a top-level "rubric" string. Do not put the only
-  scoring guidance in metadata.judge_rubric; metadata may duplicate details, but
-  the item itself must have rubric populated.
-- short_answer must include either an answer or a rubric.
-- code_execution must include test_code and use {model_output} as the placeholder
-  for the model output.
-- pairwise_preference sends the same prompt to the target and reference model;
-  include a rubric that defines target-vs-reference preference criteria. Do not
-  include answer keys. Use pairwise_preference only when reference_model is
-  present in the payload.
+- choice must include at least two distinct objects with non-empty unique ids
+  and text, plus one or more correct_choice_ids. Two choices may represent a
+  binary judgment; multiple correct ids represent multi-select. The selected-id
+  set must match exactly, with no partial credit.
+- fill_blank must include exactly one non-empty expected_text. State the output
+  format in the prompt so only that text is correct. Scoring trims only outer
+  whitespace and is otherwise exact.
+- generation must include a top-level rubric with concrete scoring criteria.
+  Optional judge_tools may use only registered tools: python_tests, whose
+  config.test_code consumes {model_output}, or reference_model_response, which
+  compares against the configured reference model. Their outputs are evidence
+  for the Judge, not independent task types or direct final scores.
 - multi_turn rubrics must be in the top-level "rubric" field and explain
   follow-up direction and full-dialogue scoring.
 - multi_turn items must include metadata.task_agent. They may also provide
   metadata.task_agent.interaction.user_turns for deterministic scripted
   follow-ups; otherwise the runner will use the task-specific agent to generate
   follow-ups dynamically from its system_prompt and transcript.
-- agent_interaction is for action/observation loops in simulated environments;
+- agent is for action/observation loops in executable environments;
   metadata must include task_agent, and should provide agent_env when using a
   built-in workspace or code_sandbox environment. The item must still include a
   top-level "rubric" string describing pass/fail or score levels.

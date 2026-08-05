@@ -20,14 +20,14 @@ def utc_now() -> str:
 
 
 class TaskType(str, Enum):
-    yes_no = "yes_no"
-    multiple_choice = "multiple_choice"
-    short_answer = "short_answer"
-    open_generation = "open_generation"
-    code_execution = "code_execution"
+    choice = "choice"
+    fill_blank = "fill_blank"
+    generation = "generation"
     multi_turn = "multi_turn"
-    agent_interaction = "agent_interaction"
-    pairwise_preference = "pairwise_preference"
+    agent = "agent"
+
+
+JUDGE_TOOL_NAMES = frozenset({"python_tests", "reference_model_response"})
 
 
 class ChallengeEffort(str, Enum):
@@ -141,7 +141,7 @@ class EvalSpec(BaseModel):
     id: str = "evalclaw_spec"
     objective: str
     subjects: list[str] = Field(default_factory=list)
-    task_types: list[TaskType] = Field(default_factory=lambda: [TaskType.open_generation])
+    task_types: list[TaskType] = Field(default_factory=lambda: [TaskType.generation])
     dimensions: list[EvalDimension] = Field(default_factory=list)
     scale_budget: ScaleBudget = ScaleBudget.mid
     scale: int = 20
@@ -159,7 +159,6 @@ class BenchmarkSource(BaseModel):
 
 
 class AgentEnvironmentType(str, Enum):
-    dialogue = "dialogue"
     workspace = "workspace"
     code_sandbox = "code_sandbox"
     docker_workspace = "docker_workspace"
@@ -175,6 +174,16 @@ class TaskResource(BaseModel):
     content_summary: str = ""
     notes: str = ""
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ChoiceOption(BaseModel):
+    id: str
+    text: str
+
+
+class JudgeToolRef(BaseModel):
+    tool: str
+    config: dict[str, Any] = Field(default_factory=dict)
 
 
 class BlueprintSourcePlan(BaseModel):
@@ -285,7 +294,6 @@ class TaskBlueprint(BaseModel):
     @property
     def environment_type(self) -> Optional[AgentEnvironmentType]:
         aliases = {
-            "dialogue": AgentEnvironmentType.dialogue,
             "workspace": AgentEnvironmentType.workspace,
             "code_sandbox": AgentEnvironmentType.code_sandbox,
             "code sandbox": AgentEnvironmentType.code_sandbox,
@@ -501,6 +509,8 @@ class TaskScoringSpec(BaseModel):
 
 
 class TaskDefinition(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     id: str
     dimension_id: str
     task_type: TaskType
@@ -508,10 +518,12 @@ class TaskDefinition(BaseModel):
     content_summary: str = ""
     description: str = ""
     prompt: str
-    choices: list[str] = Field(default_factory=list)
-    answer: Optional[str] = None
+    choices: list[ChoiceOption] = Field(default_factory=list)
+    correct_choice_ids: list[str] = Field(default_factory=list)
+    expected_text: Optional[str] = None
     rubric: Optional[str] = None
-    test_code: Optional[str] = None
+    judge_tools: list[JudgeToolRef] = Field(default_factory=list)
+    output_contract: dict[str, Any] = Field(default_factory=dict)
     system_prompt: str = ""
     resource_ids: list[str] = Field(default_factory=list)
     environment: Optional[AgentEnvironmentSpec] = None
@@ -535,14 +547,18 @@ class TaskSuite(BaseModel):
 
 
 class BenchmarkItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     id: str
     dimension_id: str
     task_type: TaskType
     prompt: str
-    choices: list[str] = Field(default_factory=list)
-    answer: Optional[str] = None
+    choices: list[ChoiceOption] = Field(default_factory=list)
+    correct_choice_ids: list[str] = Field(default_factory=list)
+    expected_text: Optional[str] = None
     rubric: Optional[str] = None
-    test_code: Optional[str] = None
+    judge_tools: list[JudgeToolRef] = Field(default_factory=list)
+    output_contract: dict[str, Any] = Field(default_factory=dict)
     challenge_effort: ChallengeEffort = ChallengeEffort.E2
     source: BenchmarkSource = Field(
         default_factory=lambda: BenchmarkSource(kind=SourceKind.self_generated)

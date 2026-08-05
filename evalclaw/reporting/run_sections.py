@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ..types import (
     BenchmarkDataset,
+    BenchmarkItem,
     EvalRun,
     ItemResult,
     QcReport,
@@ -356,7 +357,8 @@ def _judge_audit_lines(run: EvalRun) -> list[str]:
     return lines
 
 
-def _format_transcript(raw_response: str, task_type: TaskType) -> str:
+def _format_transcript(raw_response: str, item: BenchmarkItem | None) -> str:
+    task_type = item.task_type if item else TaskType.generation
     parsed = _parse_json(raw_response)
     if task_type == TaskType.multi_turn and isinstance(parsed, list):
         chunks: list[str] = []
@@ -365,7 +367,7 @@ def _format_transcript(raw_response: str, task_type: TaskType) -> str:
                 chunks.append(f"[{index}] {message.get('role', 'unknown').upper()}: {message.get('content', '')}")
         if chunks:
             return "\n\n".join(chunks)
-    if task_type == TaskType.agent_interaction and isinstance(parsed, dict):
+    if task_type == TaskType.agent and isinstance(parsed, dict):
         trace = parsed.get("trace")
         if isinstance(trace, list):
             chunks = [
@@ -390,7 +392,12 @@ def _format_transcript(raw_response: str, task_type: TaskType) -> str:
                 )
             chunks.extend(["", "Final state:", json.dumps(parsed.get("final_state", {}), ensure_ascii=False, indent=2)])
             return "\n".join(chunks)
-    if task_type == TaskType.pairwise_preference and isinstance(parsed, dict):
+    if (
+        task_type == TaskType.generation
+        and item is not None
+        and any(tool.tool == "reference_model_response" for tool in item.judge_tools)
+        and isinstance(parsed, dict)
+    ):
         return "\n\n".join(
             [
                 f"Winner: {parsed.get('winner', '-')}",
@@ -438,7 +445,7 @@ def _detailed_item_lines(run: EvalRun) -> list[str]:
         return lines
     for result in run.results:
         item = item_by_id.get(result.item_id)
-        task_type = item.task_type if item else TaskType.open_generation
+        task_type = item.task_type if item else TaskType.generation
         summary = f"{result.item_id} / {result.target_id} / score {_pct(result.score)}"
         lines.extend(
             [
@@ -466,7 +473,7 @@ def _detailed_item_lines(run: EvalRun) -> list[str]:
                 "",
                 "### Response / Trace",
                 "",
-                _code_block(_format_transcript(result.raw_response, task_type), "text"),
+                _code_block(_format_transcript(result.raw_response, item), "text"),
                 "",
                 "### Judge Reasoning",
                 "",

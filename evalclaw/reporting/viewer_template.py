@@ -948,7 +948,7 @@ HTML_TEMPLATE = """<!doctype html>
         valueText(visibleInputs.assets),
         valueText(envRequirements),
         valueText(resourceProvenance),
-        valueText(item.answer),
+        valueText(item.expected_text),
       ].join(" ").toLowerCase();
       return {
         item,
@@ -1169,7 +1169,7 @@ HTML_TEMPLATE = """<!doctype html>
         ["forbidden_shortcuts", trajectoryRequirements.forbidden_shortcuts],
       ]);
       const referenceAnswer = objectWithValues([
-        ["answer", item.answer],
+        ["expected_text", item.expected_text],
         ["choices", item.choices],
         ["reference_metadata", referenceMetadata(metadata)],
         ["reference_artifacts", hiddenRefs.reference_artifacts],

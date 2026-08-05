@@ -1,4 +1,4 @@
-﻿"""Browser-oriented diagnostic reports for EvaluationClaw packages."""
+"""Browser-oriented diagnostic reports for EvaluationClaw packages."""
 from __future__ import annotations
 
 import json
@@ -70,9 +70,12 @@ def _eval_families(pkg: BenchmarkPackage) -> list[str]:
     families: list[str] = []
     if _is_safety_eval(dataset):
         families.append("safety")
-    if TaskType.agent_interaction in item_types or TaskType.multi_turn in item_types:
+    if TaskType.agent in item_types or TaskType.multi_turn in item_types:
         families.append("agent")
-    if TaskType.code_execution in item_types or "code_sandbox" in metadata_types or any(item.test_code for item in dataset.items):
+    if (
+        any(tool.tool == "python_tests" for item in dataset.items for tool in item.judge_tools)
+        or "code_sandbox" in metadata_types
+    ):
         families.append("code")
     if any(keyword in blob for keyword in ("math", "reasoning", "proof", "theorem", "logic", "knowledge", "science", "graduate")):
         families.append("reasoning")
@@ -169,8 +172,11 @@ def _result_records(pkg: BenchmarkPackage) -> list[dict[str, Any]]:
                 "challenge_effort": item.challenge_effort.value if item else "-",
                 "prompt": _clip(item.prompt, 30000) if item else "",
                 "rubric": _clip(item.rubric or "", 20000) if item else "",
-                "answer": item.answer if item else None,
-                "choices": item.choices if item else [],
+                "choices": [choice.model_dump(mode="json") for choice in item.choices] if item else [],
+                "correct_choice_ids": item.correct_choice_ids if item else [],
+                "expected_text": item.expected_text if item else None,
+                "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools] if item else [],
+                "output_contract": item.output_contract if item else {},
                 "tags": item.tags if item else [],
                 "metadata": item.metadata if item else {},
                 "source": item.source.model_dump(mode="json") if item else None,
@@ -186,19 +192,12 @@ def _result_records(pkg: BenchmarkPackage) -> list[dict[str, Any]]:
 def _planned_uses_llm_judge(item: BenchmarkItem) -> bool:
     """Whether this item's runner path needs an LLM judge for scoring."""
     if item.task_type in {
-        TaskType.yes_no,
-        TaskType.multiple_choice,
-        TaskType.code_execution,
-        TaskType.agent_interaction,
+        TaskType.agent,
     }:
         return False
-    if item.task_type == TaskType.short_answer:
-        return not bool(item.answer)
-    return item.task_type in {
-        TaskType.open_generation,
-        TaskType.multi_turn,
-        TaskType.pairwise_preference,
-    }
+    if item.task_type == TaskType.fill_blank:
+        return False
+    return item.task_type in {TaskType.generation, TaskType.multi_turn}
 
 
 def _judge_double_pass_enabled(pkg: BenchmarkPackage, records: list[dict[str, Any]]) -> bool:
@@ -312,8 +311,7 @@ def _viewer_payload(
     code_items: list[BenchmarkItem] = [
         item
         for item in used_items
-        if item.task_type == TaskType.code_execution
-        or bool(item.test_code)
+        if any(tool.tool == "python_tests" for tool in item.judge_tools)
         or (isinstance(item.metadata.get("agent_env"), dict) and item.metadata.get("agent_env", {}).get("type") == "code_sandbox")
     ]
     planned_llm_judged = sum(1 for item in used_items if _planned_uses_llm_judge(item))

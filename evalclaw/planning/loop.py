@@ -1,4 +1,4 @@
-﻿"""Planner-supervised generation and pre-run QC repair loop."""
+"""Planner-supervised generation and pre-run QC repair loop."""
 from __future__ import annotations
 
 import json
@@ -33,18 +33,10 @@ def _slug(text: str) -> str:
 
 
 def _safe_task_type(value: object) -> TaskType:
-    aliases = {
-        "pairwise": TaskType.pairwise_preference,
-        "preference": TaskType.pairwise_preference,
-        "arena": TaskType.pairwise_preference,
-    }
-    text = str(value)
-    if text in aliases:
-        return aliases[text]
     try:
-        return TaskType(text)
+        return TaskType(str(value))
     except ValueError:
-        return TaskType.open_generation
+        return TaskType.generation
 
 
 def _safe_effort(value: object, fallback: ChallengeEffort = ChallengeEffort.E3) -> ChallengeEffort:
@@ -128,8 +120,12 @@ def _item_excerpt(item: BenchmarkItem) -> dict[str, object]:
         "task_type": item.task_type.value,
         "challenge_effort": item.challenge_effort.value,
         "prompt": item.prompt[:700],
-        "answer": item.answer,
+        "choices": [choice.model_dump(mode="json") for choice in item.choices],
+        "correct_choice_ids": item.correct_choice_ids,
+        "expected_text": item.expected_text,
         "rubric": (item.rubric or "")[:500],
+        "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
+        "output_contract": item.output_contract,
         "source": item.source.model_dump(mode="json"),
         "tags": item.tags,
         "metadata": metadata,

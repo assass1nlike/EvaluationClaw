@@ -1,4 +1,4 @@
-﻿"""Data-analysis fallback agent tasks."""
+"""Data-analysis fallback agent tasks."""
 from __future__ import annotations
 
 import json
@@ -393,7 +393,7 @@ def _data_analysis_task_for_blueprint(
     return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title=_task_title(blueprint, index),
         description=(
             "A data-analysis task that requires inspecting a local dataset, computing aggregate metrics, "

@@ -27,12 +27,12 @@ def _mixed_spec() -> EvalSpec:
         name="Mixed capability",
         description="Evaluate factual analysis and stateful tool use.",
         approach="Use both direct questions and executable tasks.",
-        task_types=[TaskType.multiple_choice, TaskType.agent_interaction],
+        task_types=[TaskType.choice, TaskType.agent],
         target_item_count=2,
     )
     return EvalSpec(
         objective="Evaluate factual analysis and tool use.",
-        task_types=[TaskType.multiple_choice, TaskType.agent_interaction],
+        task_types=[TaskType.choice, TaskType.agent],
         dimensions=[dimension],
         scale=2,
     )
@@ -67,7 +67,7 @@ def test_planner_creates_adaptive_blueprint_work_packages(monkeypatch) -> None:
     assert [
         blueprint.task_type_allocation[0].task_type
         for blueprint in planned.blueprints
-    ] == [TaskType.multiple_choice, TaskType.agent_interaction]
+    ] == [TaskType.choice, TaskType.agent]
     assert planned.blueprints[0].environment_type is None
     assert planned.blueprints[0].tool_requirements == []
     assert planned.blueprints[1].environment_type == AgentEnvironmentType.workspace
@@ -86,16 +86,16 @@ def test_planner_skill_drives_one_mixed_type_family_blueprint(monkeypatch) -> No
                         "measurement_target": "Complementary factual and explanatory analysis.",
                         "boundary": "Exclude stateful tool use and unrelated recall.",
                         "task_types": [
-                            TaskType.multiple_choice,
-                            TaskType.open_generation,
+                            TaskType.choice,
+                            TaskType.generation,
                         ],
                         "task_type_allocation": [
                             TaskTypeAllocation(
-                                task_type=TaskType.multiple_choice,
+                                task_type=TaskType.choice,
                                 count=3,
                             ),
                             TaskTypeAllocation(
-                                task_type=TaskType.open_generation,
+                                task_type=TaskType.generation,
                                 count=2,
                             ),
                         ],
@@ -105,7 +105,7 @@ def test_planner_skill_drives_one_mixed_type_family_blueprint(monkeypatch) -> No
                     }
                 )
             ],
-            "task_types": [TaskType.multiple_choice, TaskType.open_generation],
+            "task_types": [TaskType.choice, TaskType.generation],
         }
     )
     captured: dict[str, object] = {"calls": 0}
@@ -136,7 +136,7 @@ def test_planner_skill_drives_one_mixed_type_family_blueprint(monkeypatch) -> No
                             "task_designs": [
                                 {
                                     "id": "shared_case_mcq",
-                                    "task_type": "multiple_choice",
+                                    "task_type": "choice",
                                     "task_count": 3,
                                     "challenge_effort": "E3",
                                     "content_design": {
@@ -146,7 +146,7 @@ def test_planner_skill_drives_one_mixed_type_family_blueprint(monkeypatch) -> No
                                 },
                                 {
                                     "id": "shared_case_explanation",
-                                    "task_type": "open_generation",
+                                    "task_type": "generation",
                                     "task_count": 2,
                                     "challenge_effort": "E3",
                                     "content_design": {
@@ -190,7 +190,7 @@ def test_planner_skill_drives_one_mixed_type_family_blueprint(monkeypatch) -> No
     assert plan.blueprints[0].planned_task_count == 5
     assert len(plan.blueprints[0].task_type_allocation) == 2
     derived = plan.to_eval_spec()
-    assert derived.task_types == [TaskType.multiple_choice, TaskType.open_generation]
+    assert derived.task_types == [TaskType.choice, TaskType.generation]
     assert derived.scale == 5
     assert [item.count for item in derived.dimensions[0].task_type_allocation] == [3, 2]
     assert plan.audit.passed is True
@@ -202,12 +202,12 @@ def test_one_builder_call_materializes_a_mixed_type_blueprint(monkeypatch) -> No
         name="Shared case",
         description="Evaluate factual and explanatory analysis over one case.",
         approach="Use one shared prompt context.",
-        task_types=[TaskType.multiple_choice, TaskType.open_generation],
+        task_types=[TaskType.choice, TaskType.generation],
         target_item_count=2,
     )
     spec = EvalSpec(
         objective="Evaluate mixed responses.",
-        task_types=[TaskType.multiple_choice, TaskType.open_generation],
+        task_types=[TaskType.choice, TaskType.generation],
         dimensions=[dimension],
         scale=2,
     )
@@ -218,12 +218,12 @@ def test_one_builder_call_materializes_a_mixed_type_blueprint(monkeypatch) -> No
         task_designs=[
             make_task_design(
                 "shared_case_mcq",
-                TaskType.multiple_choice,
+                TaskType.choice,
                 content="One factual question over the shared case.",
             ),
             make_task_design(
                 "shared_case_explanation",
-                TaskType.open_generation,
+                TaskType.generation,
                 content="One explanatory question over the shared case.",
             ),
         ],
@@ -246,18 +246,18 @@ def test_one_builder_call_materializes_a_mixed_type_blueprint(monkeypatch) -> No
                     {
                         "id": "case_mcq",
                         "dimension_id": dimension.id,
-                        "task_type": "multiple_choice",
+                        "task_type": "choice",
                         "title": "Identify the supported fact",
                         "prompt": "Which statement is supported by the shared case?",
-                        "choices": ["A", "B"],
-                        "answer": "A",
+                        "choices": [{"id": "A", "text": "Supported"}, {"id": "B", "text": "Unsupported"}],
+                        "correct_choice_ids": ["A"],
                         "scoring": {"pass_criteria": "Answer A."},
                         "metadata": common_metadata,
                     },
                     {
                         "id": "case_explanation",
                         "dimension_id": dimension.id,
-                        "task_type": "open_generation",
+                        "task_type": "generation",
                         "title": "Explain the implication",
                         "prompt": "Explain the main implication of the shared case.",
                         "rubric": "Reward a correct, evidence-grounded explanation.",
@@ -277,8 +277,8 @@ def test_one_builder_call_materializes_a_mixed_type_blueprint(monkeypatch) -> No
 
     assert calls == 1
     assert [task.task_type for task in suite.tasks] == [
-        TaskType.multiple_choice,
-        TaskType.open_generation,
+        TaskType.choice,
+        TaskType.generation,
     ]
 
 
@@ -289,14 +289,14 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together() -> 
             "mixed_mcq",
             "mixed",
             "Mixed MCQ",
-            task_type=TaskType.multiple_choice,
+            task_type=TaskType.choice,
             content="One factual question.",
         ),
         make_blueprint(
             "mixed_interaction",
             "mixed",
             "Mixed interaction",
-            task_type=TaskType.agent_interaction,
+            task_type=TaskType.agent,
             content="One workspace interaction.",
             environment_type=AgentEnvironmentType.workspace,
             allowed_tools=["look", "read_file", "write_file"],
@@ -311,14 +311,14 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together() -> 
     dataset = task_suite_to_dataset(suite, spec, BenchmarkConfig())
 
     assert [task.task_type for task in suite.tasks] == [
-        TaskType.multiple_choice,
-        TaskType.agent_interaction,
+        TaskType.choice,
+        TaskType.agent,
     ]
     assert suite.tasks[0].environment is None
     assert suite.tasks[1].environment is not None
     assert [item.task_type for item in dataset.items] == [
-        TaskType.multiple_choice,
-        TaskType.agent_interaction,
+        TaskType.choice,
+        TaskType.agent,
     ]
     assert "agent_env" not in dataset.items[0].metadata
     assert dataset.items[1].metadata["agent_env"]["type"] == "workspace"
@@ -332,12 +332,12 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
         name="Analysis",
         description="Evaluate analysis.",
         approach="Use open-generation tasks.",
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
         target_item_count=1,
     )
     spec = EvalSpec(
         objective="Evaluate analysis.",
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
         dimensions=[dimension],
         scale=1,
     )
@@ -345,13 +345,13 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
         "analysis_blueprint",
         dimension.id,
         "Analysis",
-        task_type=TaskType.open_generation,
+        task_type=TaskType.generation,
         content="One analysis task.",
     )
     original = TaskDefinition(
         id="analysis_original",
         dimension_id=dimension.id,
-        task_type=TaskType.open_generation,
+        task_type=TaskType.generation,
         title="Original",
         prompt="Analyze the original case and justify the conclusion.",
         rubric="Score correctness and justification.",
@@ -380,7 +380,7 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
         task = TaskDefinition(
             id="temporary",
             dimension_id=dimension.id,
-            task_type=TaskType.open_generation,
+            task_type=TaskType.generation,
             title="Boundary case",
             prompt="Analyze a distinct boundary case and justify the conclusion.",
             rubric="Score correctness and justification.",

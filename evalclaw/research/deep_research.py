@@ -9,6 +9,8 @@ the existing single-shot research path.
 from __future__ import annotations
 
 import json
+import os
+from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Optional
 
 from ..models.json_utils import extract_json
@@ -49,6 +51,8 @@ def _call_orchestrator_json(
     max_tokens: int = 4096,
 ) -> dict:
     settings = role_model_settings(config, "research")
+    if os.environ.get("EVALCLAW_REASONING_EFFORT") == "low":
+        max_tokens = min(max_tokens, 2048)
     raw = call_llm(
         [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
         system=system,
@@ -103,18 +107,26 @@ def _gather_round(
             if url:
                 citations.append({"url": url, "title": citation.get("title") or url})
 
-    fetches = 0
+    fetch_urls: list[str] = []
     for citation in citations:
-        if fetches >= MAX_FETCHES_PER_ROUND:
+        if len(fetch_urls) >= MAX_FETCHES_PER_ROUND:
             break
         url = citation["url"]
         if url in fetched_urls:
             continue
         fetched_urls.add(url)
-        text = fetch_url_text(url, max_chars=FETCH_MAX_CHARS)
+        fetch_urls.append(url)
+
+    with ThreadPoolExecutor(max_workers=max(1, len(fetch_urls))) as executor:
+        fetched_text = list(
+            executor.map(
+                lambda url: fetch_url_text(url, max_chars=FETCH_MAX_CHARS),
+                fetch_urls,
+            )
+        )
+    for url, text in zip(fetch_urls, fetched_text):
         if text:
             material.append({"url": url, "content": text})
-            fetches += 1
     return material, citations
 
 
