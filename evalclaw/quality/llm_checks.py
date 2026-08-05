@@ -248,7 +248,7 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
     if issue.severity != QcSeverity.error or not issue.item_id:
         return issue
     item = item_by_id.get(issue.item_id)
-    if not item or item.task_type != TaskType.agent_interaction:
+    if not item or item.task_type != TaskType.agent:
         return issue
     env = item.metadata.get("agent_env")
     if not isinstance(env, dict):
@@ -346,9 +346,16 @@ def _llm_qc_sample(dataset: BenchmarkDataset, limit: int) -> tuple[list[Benchmar
     }
 
 
-def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]:
+def _llm_qc(
+    dataset: BenchmarkDataset,
+    config: BenchmarkConfig,
+    *,
+    trace: dict[str, object] | None = None,
+) -> list[QcIssue]:
     settings = role_model_settings(config, "qc")
     if not settings.configured:
+        if trace is not None:
+            trace["status"] = "disabled"
         return []
     limit = 50
     if is_large_scale_budget(dataset.spec.scale_budget):
@@ -384,9 +391,12 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
             "task_type": item.task_type.value,
             "challenge_effort": item.challenge_effort.value,
             **_prompt_for_qc(item.prompt, limit=prompt_limit),
-            "choices": item.choices,
-            "answer": item.answer,
+            "choices": [choice.model_dump(mode="json") for choice in item.choices],
+            "correct_choice_ids": item.correct_choice_ids,
+            "expected_text": item.expected_text,
             "rubric": item.rubric,
+            "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
+            "output_contract": item.output_contract,
             "source": item.source.model_dump(mode="json"),
             "tags": item.tags,
             "metadata": _compact_metadata_for_qc(
@@ -396,30 +406,39 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
         }
         for item in sampled_items
     ]
+    request = {
+        "objective": dataset.spec.objective,
+        "scale_budget": dataset.spec.scale_budget.value,
+        "constraints": dataset.spec.constraints,
+        "planner_notes": dataset.spec.planner_notes,
+        "dimensions": [d.model_dump(mode="json") for d in dataset.spec.dimensions],
+        "batches": [batch.model_dump(mode="json") for batch in dataset.batches],
+        "task_designs": [
+            task_design_by_id[design_id].model_dump(mode="json")
+            for design_id in sorted(sampled_design_ids)
+            if design_id in task_design_by_id
+        ],
+        "llm_qc_sampling": sampling,
+        "items": sample,
+    }
+    if trace is not None:
+        trace.update(
+            {
+                "status": "requested",
+                "system_prompt": QC_SYSTEM_PROMPT,
+                "request": request,
+                "model": settings.model,
+                "provider": settings.provider,
+                "base_url": settings.base_url,
+                "max_tokens": 4096,
+            }
+        )
     try:
         raw = call_llm(
             [
                 Message(
                     role="user",
-                    content=json.dumps(
-                        {
-                            "objective": dataset.spec.objective,
-                            "scale_budget": dataset.spec.scale_budget.value,
-                            "constraints": dataset.spec.constraints,
-                            "planner_notes": dataset.spec.planner_notes,
-                            "dimensions": [d.model_dump(mode="json") for d in dataset.spec.dimensions],
-                            "batches": [batch.model_dump(mode="json") for batch in dataset.batches],
-                            "task_designs": [
-                                task_design_by_id[design_id].model_dump(mode="json")
-                                for design_id in sorted(sampled_design_ids)
-                                if design_id in task_design_by_id
-                            ],
-                            "llm_qc_sampling": sampling,
-                            "items": sample,
-                        },
-                        ensure_ascii=False,
-                        indent=2,
-                    ),
+                    content=json.dumps(request, ensure_ascii=False, indent=2),
                 )
             ],
             system=QC_SYSTEM_PROMPT,
@@ -427,8 +446,14 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
             backend=config.llm_backend,
             max_tokens=4096,
         )
+        if trace is not None:
+            trace["raw_response"] = raw
         data = extract_json(raw)
+        if trace is not None:
+            trace["parsed_response"] = data
         if not isinstance(data, dict):
+            if trace is not None:
+                trace["status"] = "invalid_response"
             return [
                 _issue(
                     None,
@@ -439,6 +464,14 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
                 )
             ]
     except Exception as exc:
+        if trace is not None:
+            trace.update(
+                {
+                    "status": "failed",
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                }
+            )
         return [
             _issue(
                 None,
@@ -447,7 +480,9 @@ def _llm_qc(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[QcIssue]
                 f"LLM QC failed; refusing to accept static QC as an equivalent fallback: {str(exc)[:240]}",
                 "Retry with a smaller dataset, a different QC model, or local/static-only QC.",
             )
-        ]
+            ]
+    if trace is not None:
+        trace["status"] = "completed"
     issues: list[QcIssue] = []
     item_by_id = {item.id: item for item in dataset.items}
     for raw_issue in data.get("issues", []):

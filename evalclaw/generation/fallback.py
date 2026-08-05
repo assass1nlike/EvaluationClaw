@@ -1,4 +1,4 @@
-﻿"""Deterministic fallback benchmark-item generation."""
+"""Deterministic fallback benchmark-item generation."""
 from __future__ import annotations
 
 import uuid
@@ -10,7 +10,21 @@ from ..protocols.multimodal import (
     text_requests_multimodal,
 )
 from ..protocols.science import SCIENCE_METADATA_KEY, SCIENCE_SCHEMA_VERSION, text_requests_science
-from ..types import BenchmarkItem, ChallengeEffort, EvalDimension, EvalSpec, TaskType
+from ..types import BenchmarkItem, ChallengeEffort, ChoiceOption, EvalDimension, EvalSpec, TaskType
+
+
+def _choice_options(values: list[object]) -> list[ChoiceOption]:
+    options: list[ChoiceOption] = []
+    for index, value in enumerate(values):
+        option_id = chr(ord("A") + index)
+        text = str(value).strip()
+        for separator in (". ", ") ", ": "):
+            prefix = option_id + separator
+            if text.startswith(prefix):
+                text = text[len(prefix) :].strip()
+                break
+        options.append(ChoiceOption(id=option_id, text=text))
+    return options
 
 
 def _challenge_effort_cycle(dimension: EvalDimension) -> cycle[ChallengeEffort]:
@@ -501,7 +515,7 @@ def _science_fallback_item(
             "units": "",
             "assumptions": ["small study results may not generalize without replication"],
         }
-    answer_type = "multiple_choice" if task_type == TaskType.multiple_choice else "short_explanation"
+    answer_type = "choice" if task_type == TaskType.choice else "short_explanation"
     metadata = {
         SCIENCE_METADATA_KEY: _science_metadata(
             discipline=discipline,
@@ -518,14 +532,14 @@ def _science_fallback_item(
         f"({challenge_effort.value}). Context: this item uses {context}, framed as {evidence_form}; "
         f"the main distractor should test {pitfall}. {case['prompt']}"
     )
-    if task_type == TaskType.multiple_choice:
+    if task_type == TaskType.choice:
         return BenchmarkItem(
             id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
             dimension_id=dimension.id,
-            task_type=TaskType.multiple_choice,
+            task_type=TaskType.choice,
             prompt=prompt + "\nChoose the best option and answer with the letter only.",
-            choices=[str(choice) for choice in case["choices"]],
-            answer=str(case["correct"]),
+            choices=_choice_options(list(case["choices"])),
+            correct_choice_ids=[str(case["correct"])],
             rubric=f"Multiple-choice scoring: full credit for answer {case['correct']}. {case['rubric']}",
             challenge_effort=challenge_effort,
             metadata=metadata,
@@ -533,9 +547,9 @@ def _science_fallback_item(
     return BenchmarkItem(
         id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
         dimension_id=dimension.id,
-        task_type=TaskType.short_answer if task_type == TaskType.short_answer else TaskType.open_generation,
+        task_type=TaskType.fill_blank if task_type == TaskType.fill_blank else TaskType.generation,
         prompt=prompt,
-        answer=str(case["answer"]) if task_type == TaskType.short_answer else None,
+        expected_text=str(case["answer"]) if task_type == TaskType.fill_blank else None,
         rubric=str(case["rubric"]),
         challenge_effort=challenge_effort,
         metadata=metadata,
@@ -543,7 +557,7 @@ def _science_fallback_item(
 
 
 def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list[BenchmarkItem]:
-    tasks = cycle(dimension.task_types or spec.task_types or [TaskType.open_generation])
+    tasks = cycle(dimension.task_types or spec.task_types or [TaskType.generation])
     challenge_efforts = _challenge_effort_cycle(dimension)
     items: list[BenchmarkItem] = []
     scenario_domains = [
@@ -637,15 +651,15 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
         chart_kind = _chart_kind(dimension)
         if _dimension_needs_science(dimension):
             item = _science_fallback_item(dimension, task_type, challenge_effort, idx + seed % 997)
-        elif chart_kind and task_type == TaskType.multiple_choice:
+        elif chart_kind and task_type == TaskType.choice:
             prompt, expected, choices, _ = _chart_question(chart_kind, dimension)
             item = BenchmarkItem(
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
                 dimension_id=dimension.id,
-                task_type=TaskType.multiple_choice,
+                task_type=TaskType.choice,
                 prompt=_chart_multiple_choice_prompt(prompt),
-                choices=choices,
-                answer="A",
+                choices=_choice_options(choices),
+                correct_choice_ids=["A"],
                 rubric=(
                     f"Multiple-choice scoring: full credit for answer A, which matches the "
                     f"chart-supported answer ({expected}). No credit for B, C, D, or non-choice output."
@@ -657,13 +671,12 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
             item = BenchmarkItem(
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
                 dimension_id=dimension.id,
-                task_type=TaskType.open_generation,
+                task_type=TaskType.generation,
                 prompt=prompt,
-                answer=expected,
                 rubric=rubric,
                 challenge_effort=challenge_effort,
             )
-        elif task_type == TaskType.multiple_choice:
+        elif task_type == TaskType.choice:
             item = BenchmarkItem(
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
                 dimension_id=dimension.id,
@@ -673,13 +686,13 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                     + "Which model behavior best satisfies this evaluation case? "
                     "Choose the best answer and respond with the letter only."
                 ),
-                choices=[
+                choices=_choice_options([
                     "A. The response fully satisfies the dimension",
                     "B. The response partially satisfies the dimension",
                     "C. The response avoids the requested behavior",
                     "D. The response is irrelevant",
-                ],
-                answer="A",
+                ]),
+                correct_choice_ids=["A"],
                 rubric=(
                     "Multiple-choice scoring: full credit for answer A. No credit for B, C, D, "
                     "or a non-choice response. The item is a local fallback smoke-test placeholder "
@@ -687,39 +700,28 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
                 ),
                 challenge_effort=challenge_effort,
             )
-        elif task_type == TaskType.pairwise_preference:
+        elif task_type == TaskType.generation:
             item = BenchmarkItem(
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
                 dimension_id=dimension.id,
-                task_type=TaskType.pairwise_preference,
-                prompt=(
-                    base
-                    + "Answer the user request as well as possible. This item will be judged by comparing "
-                    "the target model's answer against the configured reference model's answer."
-                ),
+                task_type=TaskType.generation,
+                prompt=base + "Answer the user request as well as possible.",
                 rubric=(
-                    "Pairwise preference rubric: prefer the response that is more correct, complete, "
-                    "well-calibrated, and aligned with the dimension. Return tie only when both answers "
-                    "are materially equivalent or have offsetting strengths."
+                    "Score 5 for a correct, complete, well-calibrated response aligned with the dimension; "
+                    "3 for a partially correct response with material omissions; 1 for an incorrect, "
+                    "unsupported, or non-responsive answer."
                 ),
                 challenge_effort=challenge_effort,
-                tags=["pairwise"],
-                metadata={
-                    "pairwise": {
-                        "reference_role": "configured_reference_model",
-                        "score_mapping": {"target_win": 1.0, "tie": 0.5, "reference_win": 0.0},
-                    }
-                },
             )
-        elif task_type == TaskType.agent_interaction:
-            item = _agent_interaction_fallback_item(spec, dimension, challenge_effort, base)
+        elif task_type == TaskType.agent:
+            item = _agent_fallback_item(spec, dimension, challenge_effort, base)
         elif task_type == TaskType.multi_turn:
             item = _multi_turn_fallback_item(dimension, challenge_effort, base)
         else:
             item = BenchmarkItem(
                 id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
                 dimension_id=dimension.id,
-                task_type=TaskType.open_generation,
+                task_type=TaskType.generation,
                 prompt=(
                     base
                     + "Produce the requested engineering response. Be specific about evidence, assumptions, "
@@ -735,7 +737,7 @@ def fallback_items(spec: EvalSpec, dimension: EvalDimension, count: int) -> list
     return items
 
 
-def _agent_interaction_fallback_item(
+def _agent_fallback_item(
     spec: EvalSpec,
     dimension: EvalDimension,
     challenge_effort: ChallengeEffort,
@@ -746,7 +748,7 @@ def _agent_interaction_fallback_item(
         return BenchmarkItem(
             id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
             dimension_id=dimension.id,
-            task_type=TaskType.agent_interaction,
+            task_type=TaskType.agent,
             prompt=(
                 base
                 + "Use the code_sandbox tools to implement max_pair_sum(nums) in solution.py. "
@@ -804,7 +806,7 @@ def _agent_interaction_fallback_item(
     return BenchmarkItem(
         id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
         dimension_id=dimension.id,
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt=(
             base
             + "Use the simulated workspace tools to place the blue_notebook and charged_tablet "
@@ -909,7 +911,7 @@ def _multi_turn_fallback_item(
                         "1": "Ignores the follow-up, contradicts earlier context, or fails the main request.",
                     },
                 },
-                "execution": {"environment_type": "dialogue"},
+                "execution": {"interaction_type": "multi_turn"},
             }
         },
     )

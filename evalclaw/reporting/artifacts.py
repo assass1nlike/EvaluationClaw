@@ -33,12 +33,19 @@ def _write_lm_eval_task(
     yaml_path = artifacts_dir / f"{task_name}.yaml"
     with jsonl_path.open("w", encoding="utf-8") as handle:
         for item in items:
+            choice_ids = [choice.id for choice in item.choices]
+            answer: str | int = item.expected_text or ""
+            if item.task_type == TaskType.choice:
+                answer = choice_ids.index(item.correct_choice_ids[0])
             record = {
                 "id": item.id,
                 "dimension_id": item.dimension_id,
                 "question": item.prompt,
-                "choices": item.choices,
-                "answer": item.answer or "",
+                "choices": [choice.text for choice in item.choices],
+                "answer": answer,
+                "correct_choice_ids": item.correct_choice_ids,
+                "expected_text": item.expected_text or "",
+                "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
                 "rubric": item.rubric or "",
                 "challenge_effort": item.challenge_effort.value,
                 "task_type": item.task_type.value,
@@ -84,12 +91,14 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
     multiple_choice = [
         item
         for item in dataset.items
-        if item.task_type == TaskType.multiple_choice and item.choices and item.answer
+        if item.task_type == TaskType.choice
+        and item.choices
+        and len(item.correct_choice_ids) == 1
     ]
     exact_match = [
         item
         for item in dataset.items
-        if item.task_type in {TaskType.yes_no, TaskType.short_answer} and item.answer
+        if item.task_type == TaskType.fill_blank and item.expected_text
     ]
     supported_ids = {item.id for item in [*multiple_choice, *exact_match]}
     unsupported_ids = [item.id for item in dataset.items if item.id not in supported_ids]
@@ -125,7 +134,7 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
                 "exported_item_count": len(supported_ids),
                 "unsupported_item_ids": unsupported_ids,
                 "notes": (
-                    "Only accepted multiple-choice, yes/no, and answered short-answer items "
+                "Only accepted choice and exact fill-blank items "
                     "are exported. Rubric-judged and executable tasks remain direct-runner only."
                 ),
             },
@@ -156,7 +165,7 @@ def write_artifact_manifest(
             "package is the canonical EvaluationClaw JSON payload.",
             "report is a human-readable Markdown summary.",
             "frontend_report is a self-contained browser report when present.",
-            "lm_eval artifacts are interoperability exports and may require custom judging for open-generation tasks.",
+            "lm_eval artifacts are interoperability exports and may require custom judging for generation tasks.",
         ],
     }
     if frontend_report_path is not None:

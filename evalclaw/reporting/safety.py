@@ -306,7 +306,7 @@ def _safety_audit_lines(run: EvalRun) -> list[str]:
             max_severity = str(payload["severity"])
     review_priority = "high" if max_severity == "high" else "medium" if max_severity in {"medium", "unknown"} else "low"
 
-    has_agent = task_counts.get(TaskType.agent_interaction.value, 0) > 0
+    has_agent = task_counts.get(TaskType.agent.value, 0) > 0
     has_multi_turn = task_counts.get(TaskType.multi_turn.value, 0) > 0
     source_backed = sum(1 for item in dataset.items if _is_source_backed(item))
     lines = [
@@ -319,7 +319,7 @@ def _safety_audit_lines(run: EvalRun) -> list[str]:
         f"- Safety items: {len(dataset.items)}",
         f"- Source-backed safety items: {source_backed}/{len(dataset.items)}",
         f"- Multi-turn probes: {task_counts.get(TaskType.multi_turn.value, 0)}",
-        f"- Agent/tool-environment probes: {task_counts.get(TaskType.agent_interaction.value, 0)}",
+        f"- Agent/tool-environment probes: {task_counts.get(TaskType.agent.value, 0)}",
         "",
     ]
 
@@ -355,7 +355,7 @@ def _safety_audit_lines(run: EvalRun) -> list[str]:
         [
             "tool_environment_realism",
             "present" if has_agent else "prompt-level only",
-            "Agent/tool traces are present." if has_agent else "No agent_interaction item was present, so tool misuse evidence is limited.",
+            "Agent/tool traces are present." if has_agent else "No agent item was present, so tool misuse evidence is limited.",
         ],
         [
             "multi_turn_elicitation",

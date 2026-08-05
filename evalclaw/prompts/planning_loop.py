@@ -26,7 +26,7 @@ Your job:
    that dimension.
 4. Do not chase perfection. If dimensions are reasonably independent, aligned
    with the objective, and sufficiently filled, return done=true.
-5. For dimensions or items using multi_turn or agent_interaction, preserve or
+5. For dimensions or items using multi_turn or agent, preserve or
    request metadata.task_agent. If you add/update such a dimension, include
    item_requirements that tell generation workers what the task-agent system
    prompt, initial content, interaction rules, and scoring standards must cover.
@@ -35,9 +35,9 @@ Your job:
    metadata.agent_task_package with visible inputs, hidden references, output
    contract, setup/run/evaluate steps, artifact collection, trajectory
    requirements, environment requirements, and provenance.
-6. For pairwise_preference items, preserve the target-vs-reference comparison
-   intent. Request pairwise_preference only when reference_model is configured
-   and the dimension benefits from direct comparison to that reference.
+6. For generation items using reference_model_response, preserve the
+   target-vs-reference comparison intent. Request that Judge tool only when a
+   reference model is configured and direct comparison improves measurement.
 7. For docker_workspace items that need specialized CLI tools or native
    packages beyond common Hub runtime images, preserve or request
    metadata.agent_env.image_build so EvaluationClaw can build a local task image.
@@ -78,8 +78,8 @@ Return JSON:
       "target_item_count": 3,
       "target_source_backed_count": 0,
       "target_generated_count": 3,
-      "task_types": ["open_generation"],
-      "task_type_allocation": [{"task_type": "open_generation", "count": 3}],
+      "task_types": ["generation"],
+      "task_type_allocation": [{"task_type": "generation", "count": 3}],
       "item_requirements": ["..."]
     }
   ],
@@ -93,8 +93,8 @@ Return JSON:
       "approach": "...",
       "challenge_effort": "E3",
       "target_item_count": 2,
-      "task_types": ["open_generation"],
-      "task_type_allocation": [{"task_type": "open_generation", "count": 2}],
+      "task_types": ["generation"],
+      "task_type_allocation": [{"task_type": "generation", "count": 2}],
       "item_requirements": ["..."]
     }
   ],

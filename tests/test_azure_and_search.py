@@ -56,6 +56,12 @@ def test_default_api_key_azure_alias(monkeypatch) -> None:
     assert default_api_key("azure", "azure/dep") == "aliaskey"
 
 
+def test_default_api_key_generic_openai_compatible(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "relay-key")
+
+    assert default_api_key("openai_compatible", "gpt-5.6-luna") == "relay-key"
+
+
 def test_target_from_model_azure(monkeypatch) -> None:
     monkeypatch.setenv("AZURE_API_KEY", "azkey")
     target = target_from_model("azure/my-dep")
@@ -109,6 +115,38 @@ def test_effective_max_tokens_floors_reasoning_models() -> None:
     assert llm._effective_max_tokens("azure/gpt-5.5", 4096) == llm._REASONING_MAX_TOKENS_FLOOR
     assert llm._effective_max_tokens("azure/gpt-5.5", 32000) == 32000
     assert llm._effective_max_tokens("azure/gpt-4o", 4096) == 4096
+
+
+def test_effective_max_tokens_respects_explicit_low_effort(monkeypatch) -> None:
+    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
+
+    assert llm._effective_max_tokens("gpt-5.6-luna", 1024) == 1024
+
+
+def test_legacy_orchestrator_tools_forward_reasoning_effort(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_post(url, headers, body, **kwargs):
+        captured.update(body)
+        return {
+            "choices": [
+                {"finish_reason": "stop", "message": {"content": "ok", "tool_calls": []}}
+            ]
+        }
+
+    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
+    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
+
+    llm.call_orchestrator_with_tools(
+        [{"role": "user", "content": "hello"}],
+        model="gpt-5.6-luna",
+        api_key="test-key",
+        base_url="https://model.example/v1",
+        backend="legacy",
+        tools=[],
+    )
+
+    assert captured["reasoning_effort"] == "low"
 
 
 def test_azure_legacy_reasoning_model_uses_max_completion_tokens(monkeypatch) -> None:
@@ -493,6 +531,28 @@ def test_keyless_backend_disables_forbidden_source_for_run(monkeypatch) -> None:
     assert len(wikipedia_calls) == 1
 
 
+def test_keyless_backend_disables_timed_out_source_for_run(monkeypatch) -> None:
+    wikipedia_calls = 0
+    fake_get = _fake_get_factory()
+
+    def wikipedia_timeout(url, *args, **kwargs):
+        nonlocal wikipedia_calls
+        if "wikipedia.org" in url:
+            wikipedia_calls += 1
+            raise backends.httpx.ConnectTimeout(
+                "timed out",
+                request=backends.httpx.Request("GET", url),
+            )
+        return fake_get(url, *args, **kwargs)
+
+    monkeypatch.setattr(backends.httpx, "get", wikipedia_timeout)
+    backend = KeylessBackend(min_source_interval_s=0)
+
+    assert backend.search("first query") is not None
+    assert backend.search("second query") is not None
+    assert wikipedia_calls == 1
+
+
 def test_process_keyless_backend_shares_query_cache(monkeypatch) -> None:
     calls: list[str] = []
     fake_get = _fake_get_factory()
@@ -579,6 +639,24 @@ def test_fetch_url_text_disables_forbidden_origin_for_run(monkeypatch) -> None:
 
     assert backends.fetch_url_text("https://blocked.example/first") is None
     assert backends.fetch_url_text("https://blocked.example/second") is None
+    assert calls == 1
+
+
+def test_fetch_url_text_disables_timed_out_origin_for_run(monkeypatch) -> None:
+    calls = 0
+
+    def fake_get(url, **kwargs):
+        nonlocal calls
+        calls += 1
+        raise backends.httpx.ConnectTimeout(
+            "timed out",
+            request=backends.httpx.Request("GET", url),
+        )
+
+    monkeypatch.setattr(backends.httpx, "get", fake_get)
+
+    assert backends.fetch_url_text("https://slow.example/first") is None
+    assert backends.fetch_url_text("https://slow.example/second") is None
     assert calls == 1
 
 

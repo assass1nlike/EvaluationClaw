@@ -303,7 +303,7 @@ def _matches_dimension(item: BenchmarkItem, dimension: EvalDimension) -> bool:
     if not keywords:
         return True
     metadata_text = " ".join(_stringify(value) for key, value in item.metadata.items() if key.startswith("hf_"))
-    text = f"{item.prompt} {item.answer or ''} {item.rubric or ''} {metadata_text}".lower()
+    text = f"{item.prompt} {item.expected_text or ''} {item.rubric or ''} {metadata_text}".lower()
     return any(_contains_keyword(text, keyword) for keyword in keywords)
 
 
@@ -394,8 +394,8 @@ def item_from_hf_record(
 
     choices = _choices(row)
     answer = _normalize_choice_answer(answer, choices)
-    task_type = TaskType.multiple_choice if len(choices) >= 2 and answer else TaskType.open_generation
-    if task_type == TaskType.open_generation and len(answer.strip()) < 20:
+    task_type = TaskType.choice if len(choices) >= 2 and answer else TaskType.generation
+    if task_type == TaskType.generation and not answer.strip():
         return None
     dataset_id = _dataset_id(source)
     config_part = f"&config={config_name}" if config_name else ""
@@ -410,13 +410,30 @@ def item_from_hf_record(
         rubric += f"\nReference answer or solution: {reference_answer}"
 
     category = row.get("category") or row.get("subject") or row.get("topic") or row.get("domain")
+    if task_type == TaskType.choice:
+        correct_ids = [
+            chr(ord("A") + index)
+            for index, choice in enumerate(choices)
+            if choice == answer
+        ]
+        if not correct_ids:
+            return None
+        expected_text = None
+    elif len(answer.strip()) < 80:
+        task_type = TaskType.fill_blank
+        correct_ids = []
+        expected_text = reference_answer
+    else:
+        correct_ids = []
+        expected_text = None
     return BenchmarkItem(
         id=f"{dimension.id}_hf_{uuid.uuid4().hex[:8]}",
         dimension_id=dimension.id,
         task_type=task_type,
         prompt=_compact(prompt, 4000),
-        choices=choices,
-        answer=reference_answer or None,
+        choices=[{"id": chr(ord("A") + index), "text": value} for index, value in enumerate(choices)],
+        correct_choice_ids=correct_ids,
+        expected_text=expected_text,
         rubric=rubric,
         challenge_effort=challenge_effort,
         source=BenchmarkSource(

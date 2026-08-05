@@ -43,15 +43,15 @@ environment, outputs, scoring evidence, sources, and construction requirements.
 Do not accept a field merely because it contains plausible prose.
 
 Apply task-type requirements according to what the runner actually consumes:
-- yes_no needs a yes/no key; multiple_choice needs distinct choices and a key
-  that identifies one choice.
-- short_answer may use an exact reference answer or a sufficiently concrete
-  rubric when multiple phrasings are valid.
-- open_generation and multi_turn need a reference or judge rubric;
-  pairwise_preference needs explicit comparison and tie criteria.
-- code_execution needs test_code that consumes {model_output}; an unrelated
-  test or scoring description is not an executable substitute.
-- agent_interaction needs an environment whose actual evaluator scores the
+- choice needs at least two distinct id/text choices and one or more valid
+  correct_choice_ids; multi-select is scored by exact set equality.
+- fill_blank needs one non-empty expected_text and a prompt that makes the
+  exact required response format unambiguous.
+- generation and multi_turn need a concrete judge rubric. generation may use
+  python_tests or reference_model_response as Judge evidence; python_tests must
+  consume {model_output}, and reference comparison needs explicit comparison
+  and tie criteria.
+- agent needs an environment whose actual evaluator scores the
   state, artifacts, answer, or trajectory produced by the target.
 
 Each sampled item includes prompt_is_complete and prompt_character_count. When
@@ -85,7 +85,7 @@ inspect what the target leaves behind and must not create or repair the expected
 state itself. Do not accept custom tool names unless the selected runtime
 actually exposes them.
 
-For task_type=agent_interaction with metadata.agent_env.type=code_sandbox:
+For task_type=agent with metadata.agent_env.type=code_sandbox:
 - visible_files are available to the target through file tools.
 - runtime_files are available to setup/runtime but protected from target file tools.
 - hidden_files are intentionally not readable by the target but are available
@@ -102,7 +102,7 @@ For task_type=agent_interaction with metadata.agent_env.type=code_sandbox:
   task package, or executable file content explicitly contains placeholders
   such as "...", "truncated", "same as above", or missing required code.
 
-For task_type=agent_interaction with metadata.agent_env.type=docker_workspace:
+For task_type=agent with metadata.agent_env.type=docker_workspace:
 - hidden_files are likewise runner-private evaluator or reference files. Do not
   reject a task merely because an evaluator script is hidden from the target
   agent, as long as test_command/evaluation explains that the runner executes
@@ -136,13 +136,13 @@ For task_type=agent_interaction with metadata.agent_env.type=docker_workspace:
   infer that canonical files are truncated merely because the QC copy is an
   excerpt.
 
-For task_type=agent_interaction with metadata.agent_env.type=workspace:
+For task_type=agent with metadata.agent_env.type=workspace:
 - This is EvaluationClaw's built-in room/inventory runtime, not a generic file
   workspace. It needs reachable rooms, a mailroom, available goal items, and a
   non-empty outgoing_bin goal. File editing, shell setup, browser state, and
   invented custom tools are not implemented by this runtime.
 
-For task_type=agent_interaction with metadata.agent_env.type=gui_desktop:
+For task_type=agent with metadata.agent_env.type=gui_desktop:
 - Require an identifiable application or desktop surface, a launch/start
   state, bounded steps, and bridge-executable evaluation checks or method.
 - When requires_vm=true, accept either a concrete runner-resolvable
@@ -180,7 +180,7 @@ For task_type=multi_turn with a dialogue contract:
   follow-up policy. The scoring oracle must inspect the relevant transcript,
   final answer, or resulting state rather than only the first response.
 
-For task_type=multi_turn or task_type=agent_interaction:
+For task_type=multi_turn or task_type=agent:
 - If metadata.task_structure_validation.status is "passed", the task has
   passed builder-level shape and runner-contract validation only. Do not repeat
   those low-level schema checks without evidence, but never treat this marker as
@@ -201,12 +201,12 @@ For task_type=multi_turn or task_type=agent_interaction:
   intentionally unavailable to the target agent; do not reject an item merely
   because hidden_references are private.
 
-For task_type=pairwise_preference:
+For generation tasks using judge_tools.tool=reference_model_response:
 - The item prompt should be suitable for both the target model and configured
   reference model.
 - The rubric must define target-vs-reference preference criteria and when to
   return a tie.
-- Do not require an answer key; pairwise scoring compares two model responses.
+- Do not require an answer key; the Judge compares two model responses.
 
 For items using metadata.multimodal:
 - metadata.multimodal.schema_version should be evalclaw.multimodal.v1.

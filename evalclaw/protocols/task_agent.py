@@ -104,7 +104,7 @@ TASK_AGENT_SCHEMA: dict[str, Any] = {
         },
     },
     "execution": {
-        "environment_type": "dialogue | workspace | code_sandbox | docker_workspace | gui_desktop",
+        "environment_type": "workspace | code_sandbox | docker_workspace | gui_desktop",
         "environment_ref": "metadata.agent_env",
     },
     "agent_task_package": "Optional summary pointer; full executable task package should live at metadata.agent_task_package.",
@@ -310,7 +310,15 @@ def compact_task_agent_for_qc(spec: dict[str, Any]) -> dict[str, Any]:
     for key in ("schema_version", "agent_role", "system_prompt"):
         value = spec.get(key)
         if isinstance(value, str):
-            compact[key] = value[:800]
+            if key == "system_prompt" and len(value) > 800:
+                compact[key] = (
+                    value[:400]
+                    + "\n... QC review excerpt clipped; canonical value is complete and longer ...\n"
+                    + value[-400:]
+                )
+                compact["system_prompt_character_count"] = len(value)
+            else:
+                compact[key] = value
     interaction = spec.get("interaction")
     if isinstance(interaction, dict):
         compact["interaction"] = {

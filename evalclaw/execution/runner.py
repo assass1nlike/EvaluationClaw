@@ -1,4 +1,4 @@
-﻿"""Runner: execute accepted benchmark items against one or more target models."""
+"""Runner: execute accepted benchmark items against one or more target models."""
 from __future__ import annotations
 
 import json
@@ -45,31 +45,6 @@ from ..types import (
 )
 from .plan import build_execution_plan
 from .sandbox import build_code_harness, run_python_sandbox
-
-
-def _score_yes_no(response: str, answer: str | None) -> float:
-    expected = (answer or "yes").lower()
-    lower = response.lower()
-    has_yes = bool(re.search(r"\byes\b|\u662f|\u6b63\u786e", lower))
-    has_no = bool(re.search(r"\bno\b|\u5426|\u4e0d\u6b63\u786e|\u9519\u8bef", lower))
-    if has_yes and not has_no:
-        return 1.0 if expected == "yes" else 0.0
-    if has_no and not has_yes:
-        return 1.0 if expected == "no" else 0.0
-    return 0.0
-
-
-def _parse_choice_options(choices: list[str]) -> dict[str, str]:
-    parsed: dict[str, str] = {}
-    for index, choice in enumerate(choices):
-        fallback_label = chr(ord("A") + index)
-        text = str(choice).strip()
-        match = re.match(r"^\s*([A-Z])\s*[\).:\uff1a]\s*(.+?)\s*$", text, flags=re.IGNORECASE)
-        if match:
-            parsed[match.group(1).upper()] = match.group(2).strip()
-        else:
-            parsed[fallback_label] = text
-    return parsed
 
 
 def _boxed_contents(text: str) -> list[str]:
@@ -123,67 +98,37 @@ def _normalize_choice_text(text: str) -> str:
     return normalized.lower()
 
 
-def _choice_answer_candidates(response: str) -> list[str]:
-    candidates: list[str] = []
-    boxed = _boxed_contents(response)
-    candidates.extend(boxed)
-    if len(boxed) > 1:
-        candidates.append(" ".join(boxed))
-    for pattern in (
-        r"(?:final\s+answer|answer|option|choice|\u7b54\u6848|\u9009\u9879)\s*(?:is|\u4e3a|\u662f)?\s*[:=\uff1a]?\s*([A-Z]|\$?[-+]?[\d,]+(?:\.\d+)?%?|\\?[A-Za-z0-9_{}^./%+-]+)",
-        r"\*\*\s*([A-Z])\s*[\).:\uff1a]",
-        r"\u6240\u4ee5\s*(?:\u7b54\u6848|\u7ed3\u679c)?\s*(?:\u662f|\u4e3a|=|:|\uff1a)?\s*([A-Z]|[-+]?\d+(?:\.\d+)?)",
-    ):
-        candidates.extend(match.group(1) for match in re.finditer(pattern, response, flags=re.IGNORECASE))
-    nonempty_lines = [line.strip() for line in response.splitlines() if line.strip()]
-    if nonempty_lines:
-        candidates.append(nonempty_lines[-1])
-    candidates.append(response)
-    return candidates
+def _selected_choice_ids(response: str, item: BenchmarkItem) -> set[str] | None:
+    by_lower = {choice.id.lower(): choice.id for choice in item.choices}
+    text_by_lower = {_normalize_choice_text(choice.text): choice.id for choice in item.choices}
+    stripped = response.strip()
+    try:
+        parsed = json.loads(stripped)
+    except (TypeError, ValueError):
+        parsed = None
+    if isinstance(parsed, dict):
+        parsed = parsed.get("choice_ids")
+    if isinstance(parsed, list):
+        values = [str(value).strip().lower() for value in parsed]
+    else:
+        answer_text = re.sub(
+            r"^\s*(?:final\s+answer|answer|choices?|options?|\u7b54\u6848|\u9009\u9879)\s*[:=\uff1a]\s*",
+            "",
+            stripped,
+            flags=re.IGNORECASE,
+        )
+        exact_text_id = text_by_lower.get(_normalize_choice_text(answer_text))
+        if exact_text_id:
+            return {exact_text_id}
+        values = [value.lower() for value in re.split(r"[\s,;]+", answer_text) if value]
+    if not values or any(value not in by_lower for value in values):
+        return None
+    return {by_lower[value] for value in values}
 
 
-def _choice_answer_letter(answer: str, choices: list[str] | None) -> tuple[str | None, str | None]:
-    stripped = (answer or "").strip()
-    options = _parse_choice_options(choices or [])
-    if not stripped:
-        return None, None
-    if len(stripped) == 1 and "A" <= stripped.upper() <= "Z":
-        letter = stripped.upper()
-        return letter, options.get(letter)
-    match = re.match(r"^\s*([A-Z])\s*[\).:\uff1a]\s*(.+?)\s*$", stripped, flags=re.IGNORECASE)
-    if match:
-        letter = match.group(1).upper()
-        return letter, options.get(letter) or match.group(2).strip()
-    normalized_answer = _normalize_choice_text(stripped)
-    for letter, text in options.items():
-        if normalized_answer == _normalize_choice_text(text) or normalized_answer == _normalize_choice_text(
-            f"{letter}. {text}"
-        ):
-            return letter, text
-    return None, None
-
-
-def _score_choice(response: str, answer: str | None, choices: list[str] | None = None) -> float:
-    if not answer:
-        return 0.0
-    letter, expected_text = _choice_answer_letter(answer, choices)
-    if not letter:
-        return 0.0
-
-    if not expected_text:
-        return 0.0
-    expected = _normalize_choice_text(expected_text)
-    if not expected:
-        return 0.0
-    expected_numbers = re.findall(r"[-+]?\d+(?:\.\d+)?", expected)
-    for candidate in _choice_answer_candidates(response):
-        normalized = _normalize_choice_text(candidate)
-        if normalized == letter.lower() or normalized == expected:
-            return 1.0
-        candidate_numbers = re.findall(r"[-+]?\d+(?:\.\d+)?", normalized)
-        if len(expected_numbers) >= 2 and all(number in candidate_numbers for number in expected_numbers):
-            return 1.0
-    return 0.0
+def _score_choice(response: str, item: BenchmarkItem) -> float:
+    selected = _selected_choice_ids(response, item)
+    return 1.0 if selected is not None and selected == set(item.correct_choice_ids) else 0.0
 
 
 def _is_judge_failure(reasoning: str | None) -> bool:
@@ -193,16 +138,10 @@ def _is_judge_failure(reasoning: str | None) -> bool:
     return "judge returned invalid json" in lowered or "no judge model configured" in lowered
 
 
-def _score_short_answer(response: str, answer: str | None) -> float:
-    if not answer:
+def _score_fill_blank(response: str, expected_text: str | None) -> float:
+    if expected_text is None:
         return 0.0
-    expected = answer.strip().lower()
-    got = response.strip().lower()
-    if expected == got:
-        return 1.0
-    if expected and expected in got:
-        return 0.8
-    return 0.0
+    return 1.0 if response.strip() == expected_text.strip() else 0.0
 
 
 def _call_judge_json(prompt: dict, config: BenchmarkConfig) -> dict | None:
@@ -262,7 +201,11 @@ def validate_multimodal_target_support(items: list[BenchmarkItem], config: Bench
         reason = multimodal_unsupported_reason(target)
         if reason:
             errors.append(f"{reason} Multimodal item(s): {item_ids}.")
-    if config.reference_model and any(item.task_type == TaskType.pairwise_preference for item in multimodal_items):
+    if config.reference_model and any(
+        item.task_type == TaskType.generation
+        and any(tool.tool == "reference_model_response" for tool in item.judge_tools)
+        for item in multimodal_items
+    ):
         reason = multimodal_unsupported_reason(config.reference_model)
         if reason:
             errors.append(f"Reference model is incompatible for pairwise multimodal evaluation. {reason}")
@@ -306,7 +249,13 @@ def _call_task_agent_json(
     return parsed if isinstance(parsed, dict) else None
 
 
-def _judge_item(item: BenchmarkItem, response: str, config: BenchmarkConfig) -> tuple[float, str]:
+def _judge_item(
+    item: BenchmarkItem,
+    response: str,
+    config: BenchmarkConfig,
+    *,
+    external_evidence: list[dict[str, object]] | None = None,
+) -> tuple[float, str]:
     scoring = task_agent_scoring(item)
     scoring_method = str(scoring.get("method") or "").strip().lower()
     if scoring and scoring_method in {"agent_judge", "task_agent_judge"} and task_agent_available(config):
@@ -316,6 +265,7 @@ def _judge_item(item: BenchmarkItem, response: str, config: BenchmarkConfig) -> 
             "model_response": response,
             "task_agent_scoring": scoring,
             "initial_content": task_agent_initial_content_text(item),
+            "external_evidence": external_evidence or [],
             "output_schema": {"score_raw": 3, "score_normalized": 0.6, "reasoning": "..."},
         }
         data = _call_task_agent_json(
@@ -340,6 +290,7 @@ def _judge_item(item: BenchmarkItem, response: str, config: BenchmarkConfig) -> 
         "model_response": response,
         "task_agent_scoring": scoring or None,
         "initial_content": task_agent_initial_content_text(item) or None,
+        "external_evidence": external_evidence or [],
         "output_schema": {"score_raw": 3, "score_normalized": 0.6, "reasoning": "..."},
     }
     first = _call_judge_json(base_prompt, config)
@@ -374,14 +325,16 @@ def _judge_item(item: BenchmarkItem, response: str, config: BenchmarkConfig) -> 
     return final_score, reasoning
 
 
-def _run_code(
+def _python_test_evidence(
     item: BenchmarkItem,
     response: str,
     config: BenchmarkConfig,
-) -> tuple[float, str | None]:
-    if not item.test_code:
-        return 0.0, "Missing test_code."
-    code = build_code_harness(item.test_code, response)
+) -> dict[str, object]:
+    tool = next((tool for tool in item.judge_tools if tool.tool == "python_tests"), None)
+    test_code = str(tool.config.get("test_code") or "") if tool else ""
+    if not test_code:
+        return {"tool": "python_tests", "passed": False, "error": "Missing test_code in tool config."}
+    code = build_code_harness(test_code, response)
     try:
         returncode, stdout, stderr = run_python_sandbox(
             code,
@@ -389,11 +342,27 @@ def _run_code(
             image=config.container_sandbox_image,
             docker_executable=config.docker_executable,
         )
-        if returncode != 0:
-            return 0.0, (stderr or stdout)[:800]
-        return 1.0, None
+        return {
+            "tool": "python_tests",
+            "passed": returncode == 0,
+            "returncode": returncode,
+            "stdout": stdout[:800],
+            "stderr": stderr[:800],
+        }
     except Exception as exc:
-        return 0.0, str(exc)
+        return {"tool": "python_tests", "passed": False, "error": str(exc)}
+
+
+def _judge_tool_evidence(
+    item: BenchmarkItem,
+    response: str,
+    config: BenchmarkConfig,
+) -> list[dict[str, object]]:
+    evidence: list[dict[str, object]] = []
+    for tool in item.judge_tools:
+        if tool.tool == "python_tests":
+            evidence.append(_python_test_evidence(item, response, config))
+    return evidence
 
 
 def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[str]:
@@ -513,7 +482,7 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 error=reasoning if _is_judge_failure(reasoning) else None,
                 latency_ms=latency_ms,
             )
-        if item.task_type == TaskType.agent_interaction:
+        if item.task_type == TaskType.agent:
             raw, score, reasoning = _run_agent_interaction(item, target, config)
             latency_ms = round((time.monotonic() - start) * 1000)
             return ItemResult(
@@ -524,7 +493,9 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 judge_reasoning=reasoning,
                 latency_ms=latency_ms,
             )
-        if item.task_type == TaskType.pairwise_preference:
+        if item.task_type == TaskType.generation and any(
+            tool.tool == "reference_model_response" for tool in item.judge_tools
+        ):
             raw, score, reasoning, error = _run_pairwise_preference(item, target, config)
             latency_ms = round((time.monotonic() - start) * 1000)
             return ItemResult(
@@ -548,23 +519,27 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 user_content=user_content,
             )
         latency_ms = round((time.monotonic() - start) * 1000)
-        if item.task_type == TaskType.yes_no:
-            score = _score_yes_no(response, item.answer)
+        if item.task_type == TaskType.choice:
+            score = _score_choice(response, item)
             return ItemResult(item_id=item.id, target_id=target.id, raw_response=response, score=score, latency_ms=latency_ms)
-        if item.task_type == TaskType.multiple_choice:
-            score = _score_choice(response, item.answer, item.choices)
+        if item.task_type == TaskType.fill_blank:
+            score = _score_fill_blank(response, item.expected_text)
             return ItemResult(item_id=item.id, target_id=target.id, raw_response=response, score=score, latency_ms=latency_ms)
-        if item.task_type == TaskType.short_answer and item.answer:
-            score = _score_short_answer(response, item.answer)
-            return ItemResult(item_id=item.id, target_id=target.id, raw_response=response, score=score, latency_ms=latency_ms)
-        if item.task_type == TaskType.code_execution:
-            score, error = _run_code(item, response, config)
+        if item.task_type == TaskType.generation:
+            evidence = _judge_tool_evidence(item, response, config)
+            score, reasoning = _judge_item(
+                item,
+                response,
+                config,
+                external_evidence=evidence,
+            )
             return ItemResult(
                 item_id=item.id,
                 target_id=target.id,
                 raw_response=response,
                 score=score,
-                judge_reasoning=error,
+                judge_reasoning=reasoning,
+                error=reasoning if _is_judge_failure(reasoning) else None,
                 latency_ms=latency_ms,
             )
         score, reasoning = _judge_item(item, response, config)

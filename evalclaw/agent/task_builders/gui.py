@@ -1,4 +1,4 @@
-﻿"""GUI desktop fallback agent tasks."""
+"""GUI desktop fallback agent tasks."""
 from __future__ import annotations
 
 import json
@@ -1247,7 +1247,7 @@ def _gui_desktop_task_for_blueprint(
     return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title=_task_title(blueprint, index),
         description=(
             "A bridge-backed GUI desktop task. The target agent must inspect screenshots and operate the "

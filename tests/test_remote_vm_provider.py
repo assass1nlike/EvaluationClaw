@@ -412,7 +412,7 @@ def test_environment_claw_resolves_remote_image_before_target_execution(monkeypa
     item = BenchmarkItem(
         id="remote_windows",
         dimension_id="vm",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Repair the Windows workstation.",
         metadata={
             "agent_env": {

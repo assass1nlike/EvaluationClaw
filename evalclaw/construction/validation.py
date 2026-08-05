@@ -721,36 +721,87 @@ def task_structure_issues(
             if not _has_text(assessment.get("rationale")):
                 issues.append("Task metadata.challenge_effort_self_assessment.rationale must explain the self-check.")
 
-    if task.task_type == TaskType.multiple_choice:
+    if task.task_type == TaskType.choice:
         if len(task.choices) < 2:
-            issues.append("multiple_choice tasks must provide at least two choices.")
-        if not _has_text(task.answer):
-            issues.append("multiple_choice tasks must provide the correct answer.")
-    elif task.task_type == TaskType.yes_no and not _has_text(task.answer):
-        issues.append("yes_no tasks must provide a reference answer.")
-    elif (
-        task.task_type == TaskType.short_answer
-        and not _has_text(task.answer)
-        and not _has_scoring_guidance(task)
-    ):
-        issues.append("short_answer tasks must provide a reference answer or scoring guidance.")
-    elif task.task_type == TaskType.code_execution:
-        if not _has_text(task.test_code):
-            issues.append("code_execution tasks must provide test_code used by the runner.")
-        elif "{model_output}" not in str(task.test_code):
-            issues.append("code_execution test_code must consume the response through {model_output}.")
-    elif task.task_type == TaskType.pairwise_preference and not _has_scoring_guidance(task):
-        issues.append("pairwise_preference tasks must define comparison criteria for the judge.")
+            issues.append("choice tasks must provide at least two choices.")
+        choice_ids = [choice.id for choice in task.choices]
+        if len(set(choice_ids)) != len(choice_ids) or any(not _has_text(value) for value in choice_ids):
+            issues.append("choice option ids must be non-empty and unique.")
+        if not task.correct_choice_ids:
+            issues.append("choice tasks must provide at least one correct_choice_id.")
+        elif any(value not in set(choice_ids) for value in task.correct_choice_ids):
+            issues.append("correct_choice_ids must refer to provided choice ids.")
+    elif task.task_type == TaskType.fill_blank:
+        if task.expected_text is None or not _has_text(task.expected_text):
+            issues.append("fill_blank tasks must provide one non-empty expected_text.")
+    if task.task_type in {TaskType.generation, TaskType.multi_turn} and not _has_scoring_guidance(task):
+        issues.append("generation and multi_turn tasks must provide a judge rubric or scoring guidance.")
 
-    if not _has_scoring_guidance(task) and not _has_any_text(task.answer, task.test_code):
-        if not _has_environment_evaluator(task):
+    registered_judge_tools = {"python_tests", "reference_model_response"}
+    for judge_tool in task.judge_tools:
+        if judge_tool.tool not in registered_judge_tools:
+            issues.append(f"Unsupported judge tool: {judge_tool.tool!r}.")
+            continue
+        if task.task_type not in {TaskType.generation, TaskType.multi_turn, TaskType.agent}:
+            issues.append("judge_tools are only valid for generation, multi_turn, and agent tasks.")
+        if judge_tool.tool == "python_tests":
+            test_code = str(judge_tool.config.get("test_code") or "")
+            if not test_code.strip():
+                issues.append("python_tests requires config.test_code.")
+            elif "{model_output}" not in test_code:
+                issues.append("python_tests config.test_code must consume {model_output}.")
+        if judge_tool.tool == "reference_model_response" and task.task_type != TaskType.generation:
+            issues.append("reference_model_response is only valid for generation tasks.")
+
+    if task.task_type == TaskType.agent and task.environment is None:
+        issues.append("agent tasks must provide an executable environment.")
+
+    if task.task_type == TaskType.multi_turn:
+        interaction = task.interaction
+        try:
+            max_turns = int(interaction.get("max_turns", 0))
+        except (TypeError, ValueError):
+            max_turns = 0
+        if not 1 <= max_turns <= 5:
+            issues.append("multi_turn tasks must define interaction.max_turns between 1 and 5.")
+        scripted_turns = interaction.get("user_turns")
+        followup_instruction = interaction.get("followup_instruction")
+        scripted_turns_valid = bool(
+            isinstance(scripted_turns, list)
+            and 1 <= len(scripted_turns) <= 5
+            and all(isinstance(turn, str) and turn.strip() for turn in scripted_turns)
+        )
+        if scripted_turns is not None and not scripted_turns_valid:
+            issues.append("interaction.user_turns must contain 1 to 5 non-empty strings.")
+        if not scripted_turns_valid and not _has_text(followup_instruction):
             issues.append(
-                "Task scoring must define an answer, rubric, executable evaluator, instructions, criteria, "
-                "oracle notes, or levels."
+                "multi_turn tasks must provide either interaction.user_turns or "
+                "interaction.followup_instruction."
             )
-
-    if task.task_type == TaskType.agent_interaction and task.environment is None:
-        issues.append("agent_interaction tasks must provide an executable environment.")
+        if scripted_turns_valid and _has_text(followup_instruction):
+            issues.append(
+                "multi_turn tasks must set exactly one of interaction.user_turns and "
+                "interaction.followup_instruction."
+            )
+        followup_mode = (
+            str(task_design.interaction_requirements.get("followup_mode") or "").strip().lower()
+            if task_design is not None
+            else ""
+        )
+        if followup_mode == "adaptive":
+            if scripted_turns is not None:
+                issues.append("Adaptive multi_turn tasks must omit interaction.user_turns.")
+            if not _has_text(followup_instruction):
+                issues.append(
+                    "Adaptive multi_turn tasks must provide interaction.followup_instruction."
+                )
+            if not _has_text(task.system_prompt):
+                issues.append("Adaptive multi_turn tasks must provide a simulator system_prompt.")
+        elif followup_mode == "scripted":
+            if not scripted_turns_valid:
+                issues.append("Scripted multi_turn tasks must provide interaction.user_turns.")
+            if _has_text(followup_instruction):
+                issues.append("Scripted multi_turn tasks must omit interaction.followup_instruction.")
 
     expected_environment = blueprint.environment_type if blueprint is not None else None
     if blueprint is not None:
@@ -782,11 +833,9 @@ def task_structure_issues(
         issues.append(
             "environment artifact_requirement must be all, any, or exactly_one."
         )
-    if env.type == AgentEnvironmentType.dialogue and task.task_type != TaskType.multi_turn:
-        issues.append("dialogue environments are executable only for multi_turn tasks.")
-    if env.type != AgentEnvironmentType.dialogue and task.task_type != TaskType.agent_interaction:
+    if task.task_type != TaskType.agent:
         issues.append(
-            f"{env.type.value} environments are executable only for agent_interaction tasks."
+            f"{env.type.value} environments are executable only for agent tasks."
         )
     if env.max_steps < 1:
         issues.append("Executable environments must set max_steps to a positive bound.")
@@ -1005,111 +1054,30 @@ def task_structure_issues(
                     "environment.session.baseline_checks for the bridge to verify before the target starts."
                 )
 
-    elif env.type == AgentEnvironmentType.dialogue:
-        if not task.interaction:
-            issues.append("dialogue tasks must include interaction rules such as max_turns and stop_condition.")
-        else:
-            try:
-                max_turns = int(task.interaction.get("max_turns", 0))
-            except (TypeError, ValueError):
-                max_turns = 0
-            if not 1 <= max_turns <= 5:
-                issues.append(
-                    "multi_turn dialogue tasks must define interaction.max_turns between 1 and 5, "
-                    "matching the runtime turn bound."
-                )
-            scripted_turns = task.interaction.get("user_turns")
-            followup_instruction = task.interaction.get("followup_instruction")
-            scripted_turns_valid = bool(
-                isinstance(scripted_turns, list)
-                and 1 <= len(scripted_turns) <= 5
-                and all(isinstance(turn, str) and turn.strip() for turn in scripted_turns)
-            )
-            if scripted_turns is not None and not scripted_turns_valid:
-                issues.append(
-                    "interaction.user_turns must contain 1 to 5 non-empty strings; structured turn "
-                    "objects are not consumed by the runtime."
-                )
-            elif not scripted_turns_valid and not _has_text(followup_instruction):
-                issues.append(
-                    "multi_turn dialogue tasks must provide interaction.user_turns as a non-empty list "
-                    "of strings, or interaction.followup_instruction. The field name must be exactly "
-                    "user_turns; aliases such as scripted_user_turns or turns are not part of the runtime contract."
-                )
-            if scripted_turns_valid and _has_text(followup_instruction):
-                issues.append(
-                    "multi_turn dialogue tasks must set exactly one of interaction.user_turns and "
-                    "interaction.followup_instruction."
-                )
-            followup_mode = (
-                str(task_design.interaction_requirements.get("followup_mode") or "")
-                .strip()
-                .lower()
-                if task_design is not None
-                else ""
-            )
-            if followup_mode == "adaptive":
-                if scripted_turns is not None:
-                    issues.append(
-                        "TaskDesign requires adaptive follow-ups, so interaction.user_turns must be omitted."
-                    )
-                if not _has_text(followup_instruction):
-                    issues.append(
-                        "TaskDesign requires adaptive follow-ups, so interaction.followup_instruction "
-                        "must tell the simulator how to respond to the transcript and latest target reply."
-                    )
-                if not _has_text(task.system_prompt):
-                    issues.append(
-                        "Adaptive dialogue tasks must provide a task-specific system_prompt for the "
-                        "dialogue simulator."
-                    )
-                if _has_text(task.interaction.get("initial_user_message")):
-                    issues.append(
-                        "Adaptive dialogue tasks must use the complete task prompt as the first "
-                        "target-visible turn; omit interaction.initial_user_message."
-                    )
-            elif followup_mode == "scripted":
-                if not scripted_turns_valid:
-                    issues.append(
-                        "TaskDesign requires scripted follow-ups, so interaction.user_turns must contain "
-                        "the fixed turns."
-                    )
-                if _has_text(followup_instruction):
-                    issues.append(
-                        "TaskDesign requires scripted follow-ups, so interaction.followup_instruction "
-                        "must be omitted."
-                    )
-        if any(
-            (
-                env.visible_files,
-                env.runtime_files,
-                env.hidden_files,
-                env.setup_commands,
-                env.test_command,
-                env.workspace,
-                env.browser,
-                env.vm,
-                env.requires_vm,
-            )
-        ):
-            issues.append("dialogue environments cannot execute files, setup commands, browser state, or VM state.")
-
     elif env.type == AgentEnvironmentType.workspace:
         if not env.workspace:
             issues.append(
-                "workspace tasks must include environment.workspace state for the built-in "
-                "room/inventory tools; environment.tools does not define executable custom behavior."
+                "workspace tasks must include environment.workspace state with rooms as an object "
+                "mapping room names to item-ID arrays and goal.outgoing_bin as an item-ID array; "
+                "environment.tools does not define executable custom behavior."
             )
         else:
             rooms = env.workspace.get("rooms")
             goal = env.workspace.get("goal")
             required_items = goal.get("outgoing_bin") if isinstance(goal, dict) else None
             if not isinstance(rooms, dict) or not rooms:
-                issues.append("workspace tasks must define non-empty workspace.rooms.")
+                issues.append(
+                    "workspace tasks must define non-empty workspace.rooms as an object mapping "
+                    "room names to arrays of item IDs, for example "
+                    '{"office": ["brief"], "mailroom": []}.'
+                )
             elif "mailroom" not in rooms:
                 issues.append("workspace tasks must include a mailroom for the built-in place action.")
             if not isinstance(required_items, list) or not required_items:
-                issues.append("workspace tasks must define a non-empty goal.outgoing_bin.")
+                issues.append(
+                    "workspace tasks must define workspace.goal.outgoing_bin as a non-empty "
+                    "array of required item IDs, for example [\"brief\"]."
+                )
             elif isinstance(rooms, dict):
                 available_items = {
                     str(item)

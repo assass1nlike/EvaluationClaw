@@ -2,7 +2,7 @@ r"""Run a minimal EvaluationClaw agent task inside a real QEMU VM.
 
 The script downloads an Ubuntu cloud image to D:\localwork\vm_backends\smoke,
 injects a tiny HTTP desktop bridge with cloud-init, starts the VM through
-EvalClaw's local QEMU VM provider, and runs one agent_interaction item against it.
+EvalClaw's local QEMU VM provider, and runs one agent item against it.
 """
 from __future__ import annotations
 
@@ -229,7 +229,7 @@ def build_item() -> BenchmarkItem:
     return BenchmarkItem(
         id="vm_agent_smoke",
         dimension_id="vm_file_task",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt=(
             "Inside the VM session, create /agent_note.txt containing exactly this phrase: "
             "VM smoke success. Then run the environment evaluation."
@@ -256,7 +256,7 @@ def build_item() -> BenchmarkItem:
                 "timeout": 20,
             }
         },
-        tags=["vm", "agent_interaction", "smoke"],
+        tags=["vm", "agent", "smoke"],
     )
 
 

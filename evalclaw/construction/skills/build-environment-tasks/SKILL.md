@@ -1,6 +1,6 @@
 ---
 name: build-environment-tasks
-description: Construct benchmark tasks that require dialogue, workspace, code-sandbox, container, browser, desktop, VM, or other executable environments. Use only for TaskDesigns with non-empty environment requirements.
+description: Construct agent benchmark tasks that require workspace, code-sandbox, container, browser, desktop, VM, or other executable environments. Use only for TaskDesigns with non-empty environment requirements.
 ---
 
 # Build Environment-Backed Tasks
@@ -34,7 +34,6 @@ EvaluationClaw derives canonical `metadata.agent_env`, `metadata.task_agent`, an
 
 Read only the references selected by the runtime:
 
-- `references/dialogue.md`
 - `references/workspace.md`
 - `references/code-sandbox.md`
 - `references/docker-workspace.md`

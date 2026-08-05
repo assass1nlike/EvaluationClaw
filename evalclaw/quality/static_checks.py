@@ -22,45 +22,6 @@ def _normalize_mc_text(text: str) -> str:
     return normalized.strip(" .,:;\uff0c\u3002\uff1b\uff1a")
 
 
-def _mc_answer_has_choice(answer: str | None, choices: list[str]) -> bool:
-    if not answer:
-        return False
-    stripped = answer.strip()
-    if len(stripped) == 1 and "A" <= stripped.upper() <= chr(ord("A") + len(choices) - 1):
-        return True
-    answer_text = _normalize_mc_text(stripped)
-    return any(answer_text == _normalize_mc_text(choice) for choice in choices)
-
-
-def _mc_answer_letter(answer: str | None, choices: list[str]) -> str | None:
-    if not answer:
-        return None
-    stripped = answer.strip()
-    if len(stripped) == 1 and "A" <= stripped.upper() <= chr(ord("A") + len(choices) - 1):
-        return stripped.upper()
-    match = re.match(r"^\s*([A-Z])\s*[\).:\uff1a]", stripped, flags=re.IGNORECASE)
-    if match:
-        return match.group(1).upper()
-    answer_text = _normalize_mc_text(stripped)
-    for index, choice in enumerate(choices):
-        if answer_text == _normalize_mc_text(choice):
-            return chr(ord("A") + index)
-    return None
-
-
-def _rubric_answer_letter(rubric: str | None) -> str | None:
-    if not rubric:
-        return None
-    for pattern in (
-        r"(?:correct\s+answer|answer)\s*(?:is)?\s*[:=]?\s*([A-Z])\b",
-        r"\b([A-Z])\s+is\s+the\s+correct\s+answer\b",
-    ):
-        match = re.search(pattern, rubric, flags=re.IGNORECASE)
-        if match:
-            return match.group(1).upper()
-    return None
-
-
 def _rubric_has_explicit_self_correction(rubric: str | None) -> bool:
     if not rubric:
         return False
@@ -116,81 +77,112 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                 "Add concrete context and expected behavior.",
             )
         )
-    if item.task_type == TaskType.multiple_choice:
+    if item.task_type == TaskType.choice:
         if len(item.choices) < 2:
             issues.append(
                 _issue(
                     item.id,
                     QcSeverity.error,
                     QcCategory.schema,
-                    "Multiple-choice item has fewer than two choices.",
+                    "Choice item has fewer than two choices.",
                 )
             )
-        if not item.answer:
+        choice_ids = [choice.id for choice in item.choices]
+        if len(set(choice_ids)) != len(choice_ids) or any(not value.strip() for value in choice_ids):
             issues.append(
-                _issue(item.id, QcSeverity.error, QcCategory.scoring, "Multiple-choice item lacks answer.")
+                _issue(item.id, QcSeverity.error, QcCategory.schema, "Choice option ids must be unique and non-empty.")
             )
-        elif not _mc_answer_has_choice(item.answer, item.choices):
+        if not item.correct_choice_ids:
+            issues.append(
+                _issue(item.id, QcSeverity.error, QcCategory.scoring, "Choice item lacks correct_choice_ids.")
+            )
+        elif any(value not in set(choice_ids) for value in item.correct_choice_ids):
             issues.append(
                 _issue(
                     item.id,
                     QcSeverity.error,
                     QcCategory.scoring,
-                    "Multiple-choice answer does not identify one of the provided choices.",
-                    "Use a valid option letter or exact choice text.",
+                    "correct_choice_ids contains an unknown option id.",
+                    "Use one or more exact ids from choices.",
                 )
             )
-        normalized_choices = [_normalize_mc_text(choice) for choice in item.choices]
+        normalized_choices = [_normalize_mc_text(choice.text) for choice in item.choices]
         if len(set(normalized_choices)) < len(normalized_choices):
             issues.append(
                 _issue(
                     item.id,
                     QcSeverity.error,
                     QcCategory.scoring,
-                    "Multiple-choice item has duplicate or indistinguishable choices.",
-                    "Rewrite choices so exactly one answer is clearly correct.",
+                    "Choice item has duplicate or indistinguishable choices.",
+                    "Rewrite choices so every candidate is distinct.",
                 )
             )
-        answer_letter = _mc_answer_letter(item.answer, item.choices)
-        rubric_letter = _rubric_answer_letter(item.rubric)
-        if answer_letter and rubric_letter and answer_letter != rubric_letter:
+        if item.rubric:
+            explicit_key = re.search(
+                r"\b(?:answer|correct\s+(?:answer|choice|option))\s*(?:is|:|=)\s*([A-Za-z0-9_-]+)\b",
+                item.rubric,
+                flags=re.IGNORECASE,
+            )
+            if explicit_key:
+                declared_id = explicit_key.group(1)
+                canonical_ids = {choice.id.lower(): choice.id for choice in item.choices}
+                declared_id = canonical_ids.get(declared_id.lower(), declared_id)
+                if declared_id not in item.correct_choice_ids:
+                    issues.append(
+                        _issue(
+                            item.id,
+                            QcSeverity.error,
+                            QcCategory.scoring,
+                            "The rubric's explicit answer key conflicts with correct_choice_ids.",
+                            "Make the rubric and correct_choice_ids name the same correct option set.",
+                        )
+                    )
+    if item.task_type == TaskType.fill_blank and not item.expected_text:
+        issues.append(
+            _issue(item.id, QcSeverity.error, QcCategory.scoring, "Fill-blank item lacks expected_text.")
+        )
+    if item.task_type in {TaskType.generation, TaskType.multi_turn} and not item.rubric:
+        issues.append(
+            _issue(
+                item.id,
+                QcSeverity.error,
+                QcCategory.scoring,
+                "Generation or multi-turn item lacks a scoring rubric.",
+                "Add a concrete rubric for the judge.",
+            )
+        )
+    for judge_tool in item.judge_tools:
+        if judge_tool.tool not in {"python_tests", "reference_model_response"}:
+            issues.append(
+                _issue(item.id, QcSeverity.error, QcCategory.schema, f"Unsupported judge tool: {judge_tool.tool}.")
+            )
+            continue
+        if item.task_type not in {TaskType.generation, TaskType.multi_turn, TaskType.agent}:
+            issues.append(
+                _issue(item.id, QcSeverity.error, QcCategory.schema, "This task type does not support judge_tools.")
+            )
+        if judge_tool.tool == "python_tests":
+            test_code = str(judge_tool.config.get("test_code") or "")
+            if not test_code.strip() or "{model_output}" not in test_code:
+                issues.append(
+                    _issue(
+                        item.id,
+                        QcSeverity.error,
+                        QcCategory.scoring,
+                        "python_tests requires config.test_code that consumes {model_output}.",
+                    )
+                )
+        if judge_tool.tool == "reference_model_response" and item.task_type != TaskType.generation:
             issues.append(
                 _issue(
                     item.id,
                     QcSeverity.error,
-                    QcCategory.scoring,
-                    f"Multiple-choice answer ({answer_letter}) conflicts with rubric reference answer ({rubric_letter}).",
-                    "Fix the answer key or rewrite the rubric before running this item.",
+                    QcCategory.schema,
+                    "reference_model_response is only valid for generation tasks.",
                 )
             )
-    if item.task_type == TaskType.yes_no and (item.answer or "").strip().lower() not in {"yes", "no"}:
-        issues.append(
-            _issue(item.id, QcSeverity.error, QcCategory.scoring, "Yes/no item answer must be yes or no.")
-        )
-    if item.task_type in {TaskType.open_generation, TaskType.multi_turn} and not (
-        item.rubric or item.answer
-    ):
-        issues.append(
-            _issue(
-                item.id,
-                QcSeverity.error,
-                QcCategory.scoring,
-                "Open or multi-turn item lacks a reference answer or scoring rubric.",
-                "Add a concrete reference answer or rubric for the judge.",
-            )
-        )
-    if item.task_type == TaskType.pairwise_preference and not item.rubric:
-        issues.append(
-            _issue(
-                item.id,
-                QcSeverity.error,
-                QcCategory.scoring,
-                "Pairwise preference item lacks comparison criteria.",
-                "Add a rubric that tells the judge how to compare target and reference responses.",
-            )
-        )
     if (
-        item.task_type == TaskType.agent_interaction
+        item.task_type == TaskType.agent
         and not item.rubric
         and not _item_environment_has_evaluator(item)
     ):
@@ -204,7 +196,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
             )
         )
     task_structure_prevalidated = _task_structure_prevalidated(item)
-    if item.task_type in {TaskType.multi_turn, TaskType.agent_interaction} and not task_structure_prevalidated:
+    if item.task_type in {TaskType.multi_turn, TaskType.agent} and not task_structure_prevalidated:
         task_agent = item.metadata.get(TASK_AGENT_METADATA_KEY)
         if not isinstance(task_agent, dict):
             issues.append(
@@ -405,31 +397,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                 "Use metadata.science with schema_version evalclaw.science.v1 and populate the required science fields.",
             )
         )
-    if item.task_type == TaskType.short_answer and not item.answer and not item.rubric:
-        issues.append(
-            _issue(
-                item.id,
-                QcSeverity.error,
-                QcCategory.scoring,
-                "Short-answer item needs an exact answer or rubric.",
-            )
-        )
-    if item.task_type == TaskType.code_execution:
-        if not item.test_code:
-            issues.append(
-                _issue(item.id, QcSeverity.error, QcCategory.scoring, "Code execution item lacks test_code.")
-            )
-        elif "{model_output}" not in item.test_code:
-            issues.append(
-                _issue(
-                    item.id,
-                    QcSeverity.error,
-                    QcCategory.scoring,
-                    "Code execution test_code does not consume the model response.",
-                    "Reference the response through the literal {model_output} placeholder.",
-                )
-            )
-    if item.task_type == TaskType.agent_interaction:
+    if item.task_type == TaskType.agent:
         env = item.metadata.get("agent_env")
         if not isinstance(env, dict):
             issues.append(

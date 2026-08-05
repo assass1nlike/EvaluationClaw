@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 
 from evalclaw.execution.runner import run_eval, run_item
 from evalclaw.generation.generator import generate_dimension_items
@@ -20,13 +20,13 @@ def test_fallback_generation_attaches_multimodal_metadata() -> None:
         name="Vision reasoning",
         description="Evaluate image understanding and visual reasoning.",
         approach="Use attached images and ask questions grounded in the visual evidence.",
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
         target_item_count=1,
     )
     spec = EvalSpec(
         objective="Evaluate multimodal image reasoning.",
         dimensions=[dimension],
-        task_types=[TaskType.open_generation],
+        task_types=[TaskType.generation],
     )
     config = BenchmarkConfig(use_hf_discovery=False, use_web_research=False)
 
@@ -44,9 +44,9 @@ def test_runner_sends_multimodal_content_to_target(monkeypatch) -> None:
     item = BenchmarkItem(
         id="vision_item",
         dimension_id="vision_reasoning",
-        task_type=TaskType.short_answer,
+        task_type=TaskType.fill_blank,
         prompt="Look at the image and answer yes or no.",
-        answer="yes",
+        expected_text="yes",
         metadata={
             "multimodal": {
                 "schema_version": "evalclaw.multimodal.v1",
@@ -95,9 +95,9 @@ def test_deepseek_target_rejects_multimodal_item_before_call() -> None:
     item = BenchmarkItem(
         id="vision_item",
         dimension_id="vision_reasoning",
-        task_type=TaskType.short_answer,
+        task_type=TaskType.fill_blank,
         prompt="Look at the image and answer yes or no.",
-        answer="yes",
+        expected_text="yes",
         metadata={
             "multimodal": {
                 "schema_version": "evalclaw.multimodal.v1",
@@ -142,9 +142,9 @@ def test_run_eval_reports_multimodal_incompatible_target() -> None:
     item = BenchmarkItem(
         id="vision_item",
         dimension_id="vision_reasoning",
-        task_type=TaskType.short_answer,
+        task_type=TaskType.fill_blank,
         prompt="Look at the image and answer yes or no.",
-        answer="yes",
+        expected_text="yes",
         metadata={
             "multimodal": {
                 "schema_version": "evalclaw.multimodal.v1",

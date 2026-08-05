@@ -117,6 +117,10 @@ def discover_hf_datasets(
                 )
                 if len(results) >= limit:
                     return results
-        except Exception:
-            continue
+        except Exception as exc:
+            print(
+                f"  [hf] discovery unavailable ({type(exc).__name__}); "
+                "skipping remaining queries."
+            )
+            break
     return results

@@ -6,7 +6,7 @@ from ..types import EvalDimension, TaskBlueprint, TaskDesign, TaskType
 
 def _default_blueprint_for_dimension(dimension: EvalDimension) -> TaskBlueprint:
     """Create one conservative work package for offline/local smoke tests."""
-    task_type = (dimension.task_types or [TaskType.open_generation])[0]
+    task_type = (dimension.task_types or [TaskType.generation])[0]
     count = max(1, int(dimension.target_item_count or 1))
     design = TaskDesign(
         id=f"{dimension.id}_{task_type.value}_tasks",

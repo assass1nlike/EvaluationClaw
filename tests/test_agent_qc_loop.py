@@ -32,14 +32,14 @@ def _task(
     return TaskDefinition(
         id=task_id,
         dimension_id=dimension_id,
-        task_type=TaskType.agent_interaction if interactive else TaskType.short_answer,
+        task_type=TaskType.agent if interactive else TaskType.fill_blank,
         title=task_id,
         prompt=(
             "Inspect the workspace and place the requested item in the outgoing bin."
             if interactive
             else "State the requested result from the supplied evidence."
         ),
-        answer=None if interactive else "result",
+        expected_text=None if interactive else "result",
         environment=(
             AgentEnvironmentSpec(
                 type=AgentEnvironmentType.workspace,
@@ -67,34 +67,34 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
             name="Knowledge",
             description="Evaluate grounded knowledge.",
             approach="Use a short-answer task.",
-            task_types=[TaskType.short_answer],
+            task_types=[TaskType.fill_blank],
         ),
         EvalDimension(
             id="tool_use",
             name="Tool use",
             description="Evaluate stateful tool use.",
             approach="Use an executable task.",
-            task_types=[TaskType.agent_interaction],
+            task_types=[TaskType.agent],
         ),
     ]
     spec = EvalSpec(
         objective="Evaluate knowledge and tool use.",
         dimensions=dimensions,
-        task_types=[TaskType.short_answer, TaskType.agent_interaction],
+        task_types=[TaskType.fill_blank, TaskType.agent],
     )
     blueprints = [
         make_blueprint(
             "knowledge_blueprint",
             "knowledge",
             "Knowledge",
-            task_type=TaskType.short_answer,
+            task_type=TaskType.fill_blank,
             content="Grounded knowledge.",
         ),
         make_blueprint(
             "tool_blueprint",
             "tool_use",
             "Tool use",
-            task_type=TaskType.agent_interaction,
+            task_type=TaskType.agent,
             content="Stateful tool use.",
             environment_type=AgentEnvironmentType.workspace,
         ),
@@ -183,7 +183,7 @@ def test_real_partial_credit_evaluator_error_is_not_demoted() -> None:
     item = BenchmarkItem(
         id="partial_task",
         dimension_id="first",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Complete the task.",
         metadata={
             "agent_env": {
@@ -213,7 +213,7 @@ def test_valid_vm_provider_request_false_positive_is_demoted() -> None:
     item = BenchmarkItem(
         id="vm_task",
         dimension_id="vm",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Repair the prepared workstation.",
         metadata={
             "agent_env": {
@@ -249,27 +249,27 @@ def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeyp
         name="Knowledge",
         description="Evaluate grounded knowledge.",
         approach="Use two short-answer tasks.",
-        task_types=[TaskType.short_answer],
+        task_types=[TaskType.fill_blank],
         target_item_count=2,
     )
     spec = EvalSpec(
         objective="Evaluate grounded knowledge.",
         dimensions=[dimension],
-        task_types=[TaskType.short_answer],
+        task_types=[TaskType.fill_blank],
         scale=2,
     )
     blueprint = make_blueprint(
         "knowledge_family",
         dimension.id,
         "Two knowledge tasks",
-        task_type=TaskType.short_answer,
+        task_type=TaskType.fill_blank,
         count=2,
         content="Two distinct evidence questions.",
     )
     failed = _task("failed_task", dimension.id, blueprint.id)
     passed = _task("passed_task", dimension.id, blueprint.id)
     repaired = _task("failed_task", dimension.id, blueprint.id).model_copy(
-        update={"answer": "supported result"}
+        update={"expected_text": "supported result"}
     )
     initial_suite = TaskSuite(
         objective=spec.objective,
@@ -330,7 +330,7 @@ def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeyp
     )
 
     assert [item.id for item in dataset.items] == ["failed_task", "passed_task"]
-    assert dataset.items[0].answer == "supported result"
+    assert dataset.items[0].expected_text == "supported result"
     assert dataset.items[1].prompt == passed.prompt
 
 
@@ -340,26 +340,26 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
         name="Knowledge",
         description="Evaluate grounded knowledge.",
         approach="Use one short-answer task.",
-        task_types=[TaskType.short_answer],
+        task_types=[TaskType.fill_blank],
         target_item_count=1,
     )
     spec = EvalSpec(
         objective="Evaluate grounded knowledge.",
         dimensions=[dimension],
-        task_types=[TaskType.short_answer],
+        task_types=[TaskType.fill_blank],
         scale=1,
     )
     blueprint = make_blueprint(
         "knowledge_family",
         dimension.id,
         "One knowledge task",
-        task_type=TaskType.short_answer,
+        task_type=TaskType.fill_blank,
         content="One evidence question.",
     )
 
     def suite(answer: str) -> TaskSuite:
         task = _task("knowledge_task", dimension.id, blueprint.id).model_copy(
-            update={"answer": answer}
+            update={"expected_text": answer}
         )
         return TaskSuite(
             objective=spec.objective,
@@ -380,11 +380,11 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
         build_calls += 1
         revision = kwargs.get("revision_context_by_dimension")
         if build_calls in {3, 4}:
-            assert revision[dimension.id]["previous_tasks"][0]["answer"] == "best"
+            assert revision[dimension.id]["previous_tasks"][0]["expected_text"] == "best"
         return suite(next(answers))
 
     def fake_qc(dataset, config):
-        answer = dataset.items[0].answer
+        answer = dataset.items[0].expected_text
         issue_count = {"initial": 2, "best": 1, "worse": 2, "fixed": 0}[answer]
         issues = [
             QcIssue(
@@ -413,7 +413,7 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
         log=logs.append,
     )
 
-    assert dataset.items[0].answer == "fixed"
+    assert dataset.items[0].expected_text == "fixed"
     assert qc_report.rejected_item_ids == []
     assert any("discarded non-improving replacement" in message for message in logs)
 
@@ -423,7 +423,7 @@ def test_qc_repair_preserves_task_order_and_replaces_resource_by_id() -> None:
     failed = _task("a_failed", "knowledge", "knowledge_family").model_copy(
         update={"resource_ids": ["failed_evidence"]}
     )
-    repaired = failed.model_copy(update={"answer": "supported result"})
+    repaired = failed.model_copy(update={"expected_text": "supported result"})
     previous = TaskSuite(
         objective="Evaluate grounded knowledge.",
         tasks=[kept, failed],
@@ -452,7 +452,7 @@ def test_qc_repair_preserves_task_order_and_replaces_resource_by_id() -> None:
     merged = _merge_repaired_suite(previous, repair)
 
     assert [task.id for task in merged.tasks] == ["z_kept", "a_failed"]
-    assert merged.tasks[1].answer == "supported result"
+    assert merged.tasks[1].expected_text == "supported result"
     assert merged.resources[0].content_summary == "Corrected supporting evidence."
 
 
@@ -462,18 +462,18 @@ def _rejected_fixture():
         name="Core",
         description="Core capability.",
         approach="Use a short-answer task.",
-        task_types=[TaskType.short_answer],
+        task_types=[TaskType.fill_blank],
     )
     spec = EvalSpec(
         objective="Evaluate core capability.",
         dimensions=[dimension],
-        task_types=[TaskType.short_answer],
+        task_types=[TaskType.fill_blank],
     )
     blueprint = make_blueprint(
         "core_blueprint",
         "core",
         "Core",
-        task_type=TaskType.short_answer,
+        task_type=TaskType.fill_blank,
         content="Core capability.",
     )
     suite = TaskSuite(

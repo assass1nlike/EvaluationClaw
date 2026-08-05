@@ -1,6 +1,7 @@
 """Evalclaw: LLM call utilities (Anthropic + OpenAI-compatible)."""
 from __future__ import annotations
 
+import json
 import os
 import time
 from dataclasses import dataclass
@@ -8,6 +9,10 @@ from typing import Any, Optional
 
 import anthropic
 import httpx
+
+# Pricing metadata is unrelated to inference. Use LiteLLM's bundled map so an
+# unreachable GitHub endpoint cannot delay every EvalClaw process at import.
+os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
 
 from ..protocols.tool import ToolCall, ToolSpec
 from ..protocols.tool_adapters import (
@@ -65,7 +70,7 @@ def _post_with_retry(
     body: dict,
     max_retries: int = 3,
     *,
-    request_timeout_s: float = 120.0,
+    request_timeout_s: float = 300.0,
     total_timeout_s: float = 300.0,
 ) -> dict:
     """POST with bounded retries for transient transport, 429, and 5xx errors."""
@@ -126,6 +131,109 @@ def _post_with_retry(
         return resp.json()
     raise RuntimeError("Max retries exceeded")
 
+
+def _env_enabled(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _is_transient_streaming_error(exc: Exception) -> bool:
+    if isinstance(exc, httpx.TransportError):
+        return True
+    if isinstance(exc, httpx.HTTPStatusError):
+        status = exc.response.status_code
+        return status == 429 or status >= 500
+    message = str(exc).lower()
+    return "upstream_error" in message or "temporarily unavailable" in message
+
+
+def _post_streaming_openai_compatible(
+    url: str,
+    headers: dict,
+    body: dict[str, Any],
+    *,
+    max_retries: int = 3,
+    request_timeout_s: float = 300.0,
+    total_timeout_s: float = 300.0,
+) -> tuple[str, str | None]:
+    """Read an OpenAI-compatible streaming chat response and return full text.
+
+    This intentionally covers only the standard SSE shape used by
+    /chat/completions. Tool streaming remains on the existing non-streaming
+    path.
+    """
+    stream_body = {**body, "stream": True}
+    delay = 5.0
+    started = time.monotonic()
+    endpoint = httpx.URL(url).host or "model endpoint"
+    for attempt in range(max_retries):
+        remaining = total_timeout_s - (time.monotonic() - started)
+        if remaining <= 0:
+            raise TimeoutError(
+                f"Streaming model request to {endpoint} exceeded "
+                f"{total_timeout_s:.0f}s overall deadline."
+            )
+        content_parts: list[str] = []
+        reasoning_parts: list[str] = []
+        finish_reason: str | None = None
+        try:
+            with httpx.stream(
+                "POST",
+                url,
+                headers=headers,
+                json=stream_body,
+                timeout=min(request_timeout_s, remaining),
+            ) as response:
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if not line:
+                        continue
+                    if not line.startswith("data:"):
+                        continue
+                    payload = line.removeprefix("data:").strip()
+                    if payload == "[DONE]":
+                        break
+                    chunk = json.loads(payload)
+                    if isinstance(chunk.get("error"), dict):
+                        raise RuntimeError(str(chunk["error"]))
+                    choices = chunk.get("choices") or []
+                    if not choices:
+                        continue
+                    choice = choices[0]
+                    finish_reason = choice.get("finish_reason") or finish_reason
+                    delta = choice.get("delta") or choice.get("message") or {}
+                    content = delta.get("content")
+                    if isinstance(content, str):
+                        content_parts.append(content)
+                    reasoning = delta.get("reasoning_content")
+                    if isinstance(reasoning, str):
+                        reasoning_parts.append(reasoning)
+        except (httpx.TransportError, httpx.HTTPStatusError, RuntimeError) as exc:
+            if attempt == max_retries - 1 or not _is_transient_streaming_error(exc):
+                raise
+            wait_s = min(
+                delay,
+                30.0,
+                max(0.0, total_timeout_s - (time.monotonic() - started)),
+            )
+            if wait_s <= 0:
+                raise TimeoutError(
+                    f"Streaming model request to {endpoint} exceeded "
+                    f"{total_timeout_s:.0f}s overall deadline."
+                ) from exc
+            print(
+                f"  [llm network] {endpoint} streaming attempt "
+                f"{attempt + 1}/{max_retries} failed ({type(exc).__name__}); "
+                f"retrying in {wait_s:.0f}s."
+            )
+            time.sleep(wait_s)
+            delay = min(delay * 2, 30.0)
+            continue
+        content = "".join(content_parts)
+        if content:
+            return content, finish_reason
+        return "".join(reasoning_parts), finish_reason
+    raise RuntimeError("Max streaming retries exceeded")
+
 DEFAULT_ORCHESTRATOR_MODEL = "claude-opus-4-6"
 
 # Module-level Anthropic clients, isolated by credential and endpoint.
@@ -170,6 +278,192 @@ def _extract_litellm_content(response: object) -> str:
         if parts:
             return "\n".join(parts)
     raise ValueError("LiteLLM response has no text content")
+
+
+def _extract_responses_content(response: object) -> str:
+    output_text = getattr(response, "output_text", None)
+    if output_text is None and isinstance(response, dict):
+        output_text = response.get("output_text")
+    if isinstance(output_text, str) and output_text:
+        return output_text
+    output = getattr(response, "output", None)
+    if output is None and isinstance(response, dict):
+        output = response.get("output")
+    parts: list[str] = []
+    for item in output or []:
+        content = getattr(item, "content", None)
+        if content is None and isinstance(item, dict):
+            content = item.get("content")
+        for block in content or []:
+            block_type = getattr(block, "type", None)
+            text = getattr(block, "text", None)
+            if isinstance(block, dict):
+                block_type = block.get("type")
+                text = block.get("text")
+            if block_type == "output_text" and isinstance(text, str):
+                parts.append(text)
+    return "\n".join(parts)
+
+
+def _responses_input(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for message in messages:
+        if message.get("type") in {"function_call", "function_call_output"}:
+            result.append(message)
+            continue
+        role = str(message.get("role") or "")
+        if role == "tool":
+            result.append(
+                {
+                    "type": "function_call_output",
+                    "call_id": str(message.get("tool_call_id") or ""),
+                    "output": str(message.get("content") or ""),
+                }
+            )
+        elif role in {"user", "assistant", "developer"}:
+            result.append({"role": role, "content": message.get("content") or ""})
+    return result
+
+
+def _responses_tools(tools: list[ToolSpec]) -> list[dict[str, Any]]:
+    return [
+        {
+            "type": "function",
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": tool.parameters,
+        }
+        for tool in tools
+    ]
+
+
+def _post_streaming_responses(
+    url: str,
+    headers: dict[str, str],
+    body: dict[str, Any],
+    *,
+    max_retries: int = 3,
+    request_timeout_s: float = 300.0,
+    total_timeout_s: float = 900.0,
+) -> dict[str, Any]:
+    """Return the complete response object from a Responses API SSE stream."""
+    delay = 5.0
+    started = time.monotonic()
+    endpoint = httpx.URL(url).host or "model endpoint"
+    for attempt in range(max_retries):
+        remaining = total_timeout_s - (time.monotonic() - started)
+        if remaining <= 0:
+            raise TimeoutError(
+                f"Responses API request to {endpoint} exceeded "
+                f"{total_timeout_s:.0f}s overall deadline."
+            )
+        try:
+            with httpx.stream(
+                "POST",
+                url,
+                headers=headers,
+                json={**body, "stream": True},
+                timeout=min(request_timeout_s, remaining),
+            ) as response:
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if not line or not line.startswith("data:"):
+                        continue
+                    payload = line.removeprefix("data:").strip()
+                    if payload == "[DONE]":
+                        break
+                    event = json.loads(payload)
+                    event_type = str(event.get("type") or "")
+                    if event_type in {"response.completed", "response.incomplete"}:
+                        completed = event.get("response")
+                        if isinstance(completed, dict):
+                            return completed
+                        raise LLMProtocolAdapterError(
+                            f"Responses API {event_type} event has no response object."
+                        )
+                    if event_type in {"error", "response.failed"}:
+                        detail = event.get("error") or event.get("response") or event
+                        raise RuntimeError(f"Responses API stream failed: {detail}")
+            raise LLMProtocolAdapterError(
+                "Responses API stream ended without a completed response."
+            )
+        except (httpx.TransportError, httpx.HTTPStatusError, RuntimeError) as exc:
+            if attempt == max_retries - 1 or not _is_transient_streaming_error(exc):
+                raise
+            wait_s = min(
+                delay,
+                30.0,
+                max(0.0, total_timeout_s - (time.monotonic() - started)),
+            )
+            if wait_s <= 0:
+                raise TimeoutError(
+                    f"Responses API request to {endpoint} exceeded "
+                    f"{total_timeout_s:.0f}s overall deadline."
+                ) from exc
+            print(
+                f"  [llm network] {endpoint} Responses API attempt "
+                f"{attempt + 1}/{max_retries} failed ({type(exc).__name__}); "
+                f"retrying in {wait_s:.0f}s."
+            )
+            time.sleep(wait_s)
+            delay = min(delay * 2, 30.0)
+    raise RuntimeError("Max Responses API retries exceeded")
+
+
+def _call_openai_responses(
+    *,
+    model: str,
+    messages: list[dict[str, Any]],
+    system: str | None,
+    max_tokens: int,
+    api_key: str | None,
+    base_url: str | None,
+    reduce_reasoning_effort: bool,
+    retry_on_truncation: bool,
+    tools: list[ToolSpec] | None = None,
+) -> dict[str, Any]:
+    if not base_url:
+        raise RuntimeError("The openai_responses provider requires a base URL.")
+    budget = _effective_max_tokens(model, max_tokens)
+    for attempt in range(2 if retry_on_truncation else 1):
+        body: dict[str, Any] = {
+            "model": model.removeprefix("openai/"),
+            "input": _responses_input(messages),
+            "max_output_tokens": budget,
+        }
+        if system:
+            body["instructions"] = system
+        requested_tools = tools or []
+        if requested_tools:
+            body["tools"] = _responses_tools(requested_tools)
+            body["tool_choice"] = "auto"
+        reasoning_effort = (
+            "low" if reduce_reasoning_effort else os.environ.get("EVALCLAW_REASONING_EFFORT")
+        )
+        if reasoning_effort and _is_reasoning_model(model):
+            body["reasoning"] = {"effort": reasoning_effort}
+        response = _post_streaming_responses(
+            f"{base_url.rstrip('/')}/responses",
+            headers={
+                "Authorization": f"Bearer {api_key or os.environ.get('OPENAI_API_KEY', '')}",
+                "Content-Type": "application/json",
+            },
+            body=body,
+        )
+        status = response.get("status")
+        incomplete = response.get("incomplete_details")
+        reason = None
+        if isinstance(incomplete, dict):
+            reason = incomplete.get("reason")
+        if status == "incomplete" and reason == "max_output_tokens":
+            if retry_on_truncation and attempt == 0:
+                budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
+                continue
+            raise LLMOutputTruncatedError(
+                f"Responses API output truncated at {budget} output tokens for model {model}."
+            )
+        return response
+    raise AssertionError("unreachable")
 
 
 def _jsonable(value: Any) -> Any:
@@ -236,12 +530,14 @@ def _is_reasoning_model(model: str) -> bool:
 
 
 def _effective_max_tokens(model: str, max_tokens: int) -> int:
-    """Raise (never lower) max_tokens for reasoning models.
+    """Raise max_tokens for reasoning models unless low effort was explicit.
 
     Reasoning models consume the completion budget with internal reasoning
     tokens first; a 4096 budget routinely yields truncated or empty text.
+    Low-effort calls deliberately trade reasoning depth for latency, so keep
+    the caller's stage-specific budget instead of expanding small JSON calls.
     """
-    if _is_reasoning_model(model):
+    if _is_reasoning_model(model) and os.environ.get("EVALCLAW_REASONING_EFFORT") != "low":
         return max(max_tokens, _REASONING_MAX_TOKENS_FLOOR)
     return max_tokens
 
@@ -446,6 +742,23 @@ def call_llm(
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
     resolved_provider, _ = infer_provider(model_name, base_url, provider)
     messages_dict = _message_dicts(messages, system)
+    if resolved_provider == "openai_responses":
+        response = _call_openai_responses(
+            model=model_name,
+            messages=[{"role": message.role, "content": message.content} for message in messages],
+            system=system,
+            max_tokens=max_tokens,
+            api_key=api_key,
+            base_url=base_url,
+            reduce_reasoning_effort=reduce_reasoning_effort,
+            retry_on_truncation=retry_on_truncation,
+        )
+        content = _extract_responses_content(response)
+        if content:
+            return content
+        raise LLMProtocolAdapterError(
+            f"Responses API returned no text content for model {model_name}."
+        )
     if (
         resolved_provider == "anthropic"
         and (provider is not None or base_url)
@@ -459,7 +772,13 @@ def call_llm(
             api_key=api_key,
             base_url=base_url,
         )
-    if backend in {"auto", "litellm"}:
+    stream_openai_compatible = (
+        _env_enabled("EVALCLAW_LLM_STREAMING")
+        and bool(base_url)
+        and resolved_provider == "openai_compatible"
+        and backend != "litellm"
+    )
+    if backend in {"auto", "litellm"} and not stream_openai_compatible:
         try:
             return _call_litellm(
                 model=model_name,
@@ -499,15 +818,33 @@ def call_llm(
         budget = _effective_max_tokens(model_name, max_tokens)
         for attempt in range(2 if retry_on_truncation else 1):
             body: dict[str, Any] = {"model": model_name, "messages": messages_dict, "max_tokens": budget}
+            reasoning_effort = (
+                "low" if reduce_reasoning_effort else os.environ.get("EVALCLAW_REASONING_EFFORT")
+            )
+            if reasoning_effort and _is_reasoning_model(model_name):
+                body["reasoning_effort"] = reasoning_effort
+            if _messages_request_json(messages_dict):
+                body["response_format"] = {"type": "json_object"}
             if "api.deepseek.com" in base_url and model_name.startswith("deepseek-v4"):
                 body["thinking"] = {"type": "disabled"}
-                if _messages_request_json(messages_dict):
-                    body["response_format"] = {"type": "json_object"}
-            data = _post_with_retry(
-                f"{base_url.rstrip('/')}/chat/completions",
-                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-                body=body,
-            )
+            url = f"{base_url.rstrip('/')}/chat/completions"
+            headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+            if stream_openai_compatible:
+                content, finish_reason = _post_streaming_openai_compatible(
+                    url,
+                    headers=headers,
+                    body=body,
+                )
+                if finish_reason == "length":
+                    if retry_on_truncation and attempt == 0:
+                        budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
+                        continue
+                    raise LLMOutputTruncatedError(
+                        f"LLM output truncated at {budget} completion tokens "
+                        f"(finish_reason=length) for model {model_name}"
+                    )
+                return content
+            data = _post_with_retry(url, headers=headers, body=body)
             choice = data["choices"][0]
             if choice.get("finish_reason") == "length":
                 if retry_on_truncation and attempt == 0:
@@ -558,6 +895,29 @@ def call_orchestrator_with_tools(
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
     resolved_provider, _ = infer_provider(model_name, base_url, provider)
     tool_specs = tools or []
+
+    if resolved_provider == "openai_responses":
+        response = _call_openai_responses(
+            model=model_name,
+            messages=messages,
+            system=system_prompt,
+            max_tokens=max_tokens,
+            api_key=api_key,
+            base_url=base_url,
+            reduce_reasoning_effort=False,
+            retry_on_truncation=retry_on_truncation,
+            tools=tool_specs,
+        )
+        output = getattr(response, "output", None)
+        if output is None and isinstance(response, dict):
+            output = response.get("output")
+        return TargetToolModelResponse(
+            adapter="openai_responses",
+            content=_extract_responses_content(response),
+            tool_calls=openai_tool_calls_from_response(response),
+            assistant_message={"responses_output": _jsonable(output or [])},
+            raw_response=_jsonable(response),
+        )
 
     if (
         resolved_provider == "anthropic"
@@ -686,6 +1046,9 @@ def call_orchestrator_with_tools(
             "messages": request_messages,
             "max_tokens": budget,
         }
+        reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
+        if reasoning_effort and _is_reasoning_model(model_name):
+            body["reasoning_effort"] = reasoning_effort
         if tool_specs:
             body["tools"] = openai_tools(tool_specs)
             body["tool_choice"] = "auto"

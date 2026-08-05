@@ -220,7 +220,10 @@ def generate(
     orchestrator_provider: Optional[str] = typer.Option(
         None,
         "--orchestrator-provider",
-        help="Explicit orchestrator protocol/provider, such as anthropic or openai_compatible.",
+        help=(
+            "Explicit orchestrator protocol/provider, such as anthropic, "
+            "openai_compatible, or openai_responses."
+        ),
     ),
     planner_model: Optional[str] = typer.Option(None, "--planner-model", help="Optional Planner model override."),
     planner_provider: Optional[str] = typer.Option(None, "--planner-provider", help="Protocol/provider for --planner-model."),
@@ -400,7 +403,7 @@ def generate(
     container_sandbox_image: str = typer.Option(
         "python:3.11-slim",
         "--container-sandbox-image",
-        help="Default isolated image for code_sandbox and code-execution tasks.",
+        help="Default isolated image for code_sandbox agent tasks and Python Judge tests.",
     ),
     no_environment_preflight: bool = typer.Option(
         False,

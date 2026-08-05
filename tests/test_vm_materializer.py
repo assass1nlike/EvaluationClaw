@@ -20,7 +20,7 @@ def test_materialize_vm_task_creates_seed_iso_and_updates_agent_env(monkeypatch,
     item = BenchmarkItem(
         id="vm_materialized_item",
         dimension_id="vm",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Use the prepared VM files.",
         metadata={
             "agent_task_package": {
@@ -105,7 +105,7 @@ def test_vm_public_manifests_do_not_expose_runner_private_evaluation() -> None:
     item = BenchmarkItem(
         id="private_vm_metadata",
         dimension_id="vm",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Repair the visible project.",
         rubric="PRIVATE-RUBRIC-ANSWER",
         metadata={
@@ -164,7 +164,7 @@ def test_materialize_vm_task_preserves_explicit_seed_iso(monkeypatch, tmp_path) 
     item = BenchmarkItem(
         id="vm_explicit_seed",
         dimension_id="vm",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Use the VM.",
         metadata={
             "agent_env": {
@@ -200,7 +200,7 @@ def test_materialize_windows_vm_uses_cloudbase_init_powershell(monkeypatch, tmp_
     item = BenchmarkItem(
         id="windows_hidden_fault",
         dimension_id="vm",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Repair the hidden Windows configuration fault.",
         metadata={
             "agent_env": {
@@ -280,7 +280,7 @@ def test_windows_vm_rejects_linux_only_provisioning(tmp_path) -> None:
     item = BenchmarkItem(
         id="windows_bad_packages",
         dimension_id="vm",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Use the Windows VM.",
         metadata={
             "agent_env": {
@@ -313,7 +313,7 @@ def test_materialize_vm_task_adds_cloud_init_vm_provisioning(monkeypatch, tmp_pa
     item = BenchmarkItem(
         id="vm_provisioned_item",
         dimension_id="vm",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Use the provisioned VM.",
         metadata={
             "agent_env": {
@@ -379,7 +379,7 @@ def test_environment_claw_materializes_and_probes_non_gui_vm_items(monkeypatch) 
     item = BenchmarkItem(
         id="non_gui_vm_item",
         dimension_id="vm",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Run a VM-backed workspace task.",
         metadata={
             "agent_env": {"type": "workspace", "requires_vm": True, "vm": {"image": "base-vm"}}

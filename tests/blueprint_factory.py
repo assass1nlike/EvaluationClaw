@@ -71,7 +71,7 @@ def make_blueprint(
     designs = task_designs or [
         make_task_design(
             f"{blueprint_id}_design",
-            task_type or TaskType.open_generation,
+            task_type or TaskType.generation,
             count=count,
             content=content,
             challenge_effort=challenge_effort,

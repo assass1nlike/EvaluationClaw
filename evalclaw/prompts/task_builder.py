@@ -25,10 +25,15 @@ pure JSON only, with no markdown. The top-level object must contain:
       "content_summary": "...",
       "description": "...",
       "prompt": "...",
-      "choices": [],
-      "answer": null,
+      "resource_ids": [],
+      "choices": [{"id": "A", "text": "..."}],
+      "correct_choice_ids": [],
+      "expected_text": null,
       "rubric": null,
-      "test_code": null,
+      "judge_tools": [],
+      "output_contract": {},
+      "system_prompt": "",
+      "interaction": {},
       "scoring": {
         "method": "...",
         "instructions": "...",
@@ -57,10 +62,14 @@ task_builder_contract.task_schema.required_task_type_counts.
 Generate exactly task_count concrete tasks for every TaskDesign. In each task's
 metadata, set task_design_id to the id of the TaskDesign it implements; the
 per-design counts must exactly match
-task_builder_contract.task_schema.required_task_design_counts. Choices, answer,
-rubric, test_code, system_prompt, resource_ids, interaction, and other optional
-fields should be populated only when required by the requested task type or
-the payload. Provide a usable scoring oracle for every task.
+task_builder_contract.task_schema.required_task_design_counts. Populate only
+the fields required by the task's type and TaskDesign. Choice and fill-blank
+tasks use their deterministic keys; generation, multi-turn, and agent tasks use
+their rubric and any requested Judge tools or runtime evaluator. Do not repeat
+the same scoring rule in several fields.
+When more than one resource is available, every source-backed task must list
+the exact resources it uses in the task's top-level resource_ids. Do not put
+this binding only in metadata.source_ids; metadata does not bind provenance.
 
 During QC repair, return replacements only for revision.previous_tasks, preserve
 their ids, and fix every listed issue. Do not return or modify tasks that are not
