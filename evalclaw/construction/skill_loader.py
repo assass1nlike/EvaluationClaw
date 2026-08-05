@@ -9,7 +9,6 @@ from ..types import TaskBlueprint, TaskDesign, TaskType
 
 _SKILL_DIR = Path(__file__).parent / "skills" / "build-environment-tasks"
 _CATEGORY_ROUTES = {
-    "dialogue": ("dialogue", "references/dialogue.md"),
     "workspace": ("workspace", "references/workspace.md"),
     "code_sandbox": ("code_sandbox", "references/code-sandbox.md"),
     "code sandbox": ("code_sandbox", "references/code-sandbox.md"),
@@ -20,7 +19,6 @@ _CATEGORY_ROUTES = {
     "gui_desktop": ("gui_desktop", "references/gui-desktop.md"),
 }
 _REFERENCE_ORDER = [
-    "references/dialogue.md",
     "references/workspace.md",
     "references/code-sandbox.md",
     "references/docker-workspace.md",
@@ -48,8 +46,7 @@ def _design_route(design: TaskDesign) -> dict[str, object] | None:
     references = [environment_reference]
     interaction_mode = str(design.interaction_requirements.get("mode") or "").strip().lower()
     if (
-        runtime_type == "dialogue"
-        or design.task_type == TaskType.multi_turn
+        design.task_type == TaskType.multi_turn
         or interaction_mode in {"multi_turn", "mixed"}
     ):
         references.append("references/task-agent.md")

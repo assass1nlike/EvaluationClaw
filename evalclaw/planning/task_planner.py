@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections import Counter
 from collections.abc import Callable
@@ -104,9 +105,9 @@ def _instruction_resource(
     if explicit_task_count is not None:
         constraints["explicit_total_task_count"] = explicit_task_count
     if config.reference_model is not None:
-        constraints["pairwise_preference_policy"] = (
-            "Use pairwise_preference only where target-versus-reference comparison directly "
-            "measures the requested capability."
+        constraints["reference_model_response_policy"] = (
+            "For generation tasks only, request the reference_model_response Judge tool where "
+            "target-versus-reference comparison directly measures the requested capability."
         )
     if text_requests_multimodal(goal):
         constraints["multimodal_policy"] = (
@@ -171,14 +172,12 @@ def _environment_for_dimension(
     dimension: EvalDimension,
     task_type: TaskType,
 ) -> dict[str, Any]:
-    if task_type not in {TaskType.agent_interaction, TaskType.multi_turn}:
+    if task_type != TaskType.agent:
         return {}
     text = " ".join(
         [dimension.name, dimension.description, dimension.approach, *dimension.item_requirements]
     ).lower()
-    if task_type == TaskType.multi_turn:
-        category = AgentEnvironmentType.dialogue.value
-    elif any(token in text for token in ("browser", "desktop", "gui", "spreadsheet")):
+    if any(token in text for token in ("browser", "desktop", "gui", "spreadsheet")):
         category = AgentEnvironmentType.gui_desktop.value
     elif any(token in text for token in ("docker", "container", "shell", "pipeline")):
         category = AgentEnvironmentType.docker_workspace.value
@@ -196,7 +195,7 @@ def _allocations_for_dimension(dimension: EvalDimension) -> list[TaskTypeAllocat
     count = max(1, int(dimension.target_item_count or 1))
     if dimension.task_type_allocation:
         return dimension.task_type_allocation
-    task_types = list(dict.fromkeys(dimension.task_types or [TaskType.open_generation]))[:count]
+    task_types = list(dict.fromkeys(dimension.task_types or [TaskType.generation]))[:count]
     quotient, remainder = divmod(count, len(task_types))
     return [
         TaskTypeAllocation(
@@ -345,21 +344,8 @@ def _audit_plan(
                 issues.append(
                     f"{design_prefix}: environment category {category!r} is not available at runtime."
                 )
-            if (
-                design.task_type in {TaskType.agent_interaction, TaskType.multi_turn}
-                and not category
-            ):
-                issues.append(f"{design_prefix}: interactive tasks require environment_requirements.")
-            if (
-                design.task_type == TaskType.multi_turn
-                and category
-                and normalized_category != AgentEnvironmentType.dialogue.value
-            ):
-                issues.append(
-                    f"{design_prefix}: multi_turn tasks execute as conversations and must use "
-                    "environment category 'dialogue'. Use agent_interaction for tasks that execute "
-                    "in a workspace or tool environment."
-                )
+            if design.task_type == TaskType.agent and not category:
+                issues.append(f"{design_prefix}: agent tasks require environment_requirements.")
             if design.task_type == TaskType.multi_turn:
                 followup_mode = str(
                     design.interaction_requirements.get("followup_mode") or ""
@@ -369,12 +355,11 @@ def _audit_plan(
                         f"{design_prefix}: multi_turn TaskDesigns must set "
                         "interaction_requirements.followup_mode to 'adaptive' or 'scripted'."
                     )
-            if (
-                design.task_type != TaskType.multi_turn
-                and normalized_category == AgentEnvironmentType.dialogue.value
-            ):
+            if category and design.task_type != TaskType.agent:
                 issues.append(
-                    f"{design_prefix}: environment category 'dialogue' is only valid for multi_turn tasks."
+                    f"{design_prefix}: environment category {normalized_category!r} is only valid "
+                    "for agent tasks. Remove the environment or change the task type when executable "
+                    "interaction is essential."
                 )
             for url in _unique_strings(design.source_plan.get("suggested_urls")):
                 if not url.lower().startswith(("https://", "http://")):
@@ -488,7 +473,11 @@ def _run_planner(
                 system=system,
                 **settings.call_kwargs(),
                 backend=config.llm_backend,
-                max_tokens=16384,
+                max_tokens=(
+                    4096
+                    if os.environ.get("EVALCLAW_REASONING_EFFORT") == "low"
+                    else 16384
+                ),
             )
             previous_response = extract_json(raw)
             plan, errors = _parse_plan_response(

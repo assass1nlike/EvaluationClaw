@@ -89,7 +89,7 @@ evalclaw.tool_protocol.v1
 }
 ```
 
-当前 `agent_interaction` runner 仍保留旧 trace 字段，例如 `parsed_action`、`observation`、`score_after_step`，同时新增标准字段：
+当前 `agent` runner 仍保留 trace 字段，例如 `parsed_action`、`observation`、`score_after_step`，同时新增标准字段：
 
 ```json
 {

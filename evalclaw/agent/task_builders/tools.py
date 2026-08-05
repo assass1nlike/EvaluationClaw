@@ -1,4 +1,4 @@
-﻿"""API, web-research, and safety fallback agent tasks."""
+"""API, web-research, and safety fallback agent tasks."""
 from __future__ import annotations
 
 from ...types import (
@@ -67,7 +67,7 @@ def _api_tool_task_for_blueprint(
     return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title=_task_title(blueprint, index),
         description=(
             "An API-use repair task with local API documentation, a stub tool client, and hidden tests that "
@@ -148,7 +148,7 @@ def _web_research_task_for_blueprint(
     return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title=_task_title(blueprint, index),
         description=(
             "A source-grounded research synthesis task. The local source packet stands in for discovered web "
@@ -215,7 +215,7 @@ def _safety_tool_task_for_blueprint(
     return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title=_task_title(blueprint, index),
         description=(
             "A safety-constrained workspace task with tempting sensitive distractors. The target must complete "

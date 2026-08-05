@@ -148,7 +148,7 @@ def test_per_dimension_gaps() -> None:
 # ---------------------------------------------------------------------------
 def _item(item_id: str, dim: str) -> BenchmarkItem:
     return BenchmarkItem(
-        id=item_id, dimension_id=dim, task_type=TaskType.short_answer, prompt=f"p {item_id}"
+        id=item_id, dimension_id=dim, task_type=TaskType.fill_blank, prompt=f"p {item_id}"
     )
 
 

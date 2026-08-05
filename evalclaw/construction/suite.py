@@ -1,4 +1,4 @@
-﻿"""Single-route, blueprint-driven task-suite construction."""
+"""Single-route, blueprint-driven task-suite construction."""
 from __future__ import annotations
 
 import json
@@ -96,7 +96,7 @@ def _debug_slug(value: str) -> str:
 def _debug_job_slug(dimension_id: str, blueprint_id: str) -> str:
     raw = f"{dimension_id}__{blueprint_id}"
     digest = uuid.uuid5(uuid.NAMESPACE_OID, raw).hex[:8]
-    return f"{_debug_slug(raw)[:48]}-{digest}"
+    return f"{_debug_slug(raw)[:24]}-{digest}"
 
 
 @dataclass(frozen=True)
@@ -210,9 +210,9 @@ def _task_builder_payload(
         "workload_reason": blueprint.workload_reason,
         "planner_metadata": blueprint.metadata,
     }
-    optional_fields = ["content_summary", "description", "resource_ids", "tags"]
+    optional_fields = ["content_summary", "resource_ids", "tags"]
     task_schema: dict[str, object] = {
-        "required": ["id", "dimension_id", "task_type", "title", "prompt", "challenge_effort", "scoring", "metadata"],
+        "required": ["id", "dimension_id", "task_type", "title", "prompt", "challenge_effort", "metadata"],
         "optional": optional_fields,
         "allowed_task_types": [task_type.value for task_type in task_types],
         "required_task_type_counts": {
@@ -222,28 +222,28 @@ def _task_builder_payload(
         "task_design_metadata_field": "task_design_id",
     }
     type_requirements: dict[str, list[str]] = {}
-    if TaskType.multiple_choice in task_types:
-        optional_fields.extend(["choices", "answer", "rubric"])
-        type_requirements[TaskType.multiple_choice.value] = [
-            "Provide non-empty choices and the correct answer."
+    if TaskType.choice in task_types:
+        optional_fields.extend(["choices", "correct_choice_ids"])
+        type_requirements[TaskType.choice.value] = [
+            "Provide at least two choices as objects with unique ids and text, and provide a non-empty "
+            "correct_choice_ids list. One id means single-choice; multiple ids mean multi-select. "
+            "Do not put a multi-part answer object in a choice task."
         ]
-    if any(task_type in {TaskType.yes_no, TaskType.short_answer} for task_type in task_types):
-        optional_fields.extend(["answer", "rubric"])
-        if TaskType.yes_no in task_types:
-            type_requirements[TaskType.yes_no.value] = ["Provide a yes or no reference answer."]
-        if TaskType.short_answer in task_types:
-            type_requirements[TaskType.short_answer.value] = [
-                "Provide the reference answer, or a task-specific rubric/scoring contract when multiple "
-                "phrasings are valid."
-            ]
-    if TaskType.code_execution in task_types:
-        optional_fields.extend(["test_code", "rubric"])
-        type_requirements[TaskType.code_execution.value] = [
-            "Provide deterministic test_code that consumes the response through the literal "
-            "{model_output} placeholder."
+    if TaskType.fill_blank in task_types:
+        optional_fields.append("expected_text")
+        type_requirements[TaskType.fill_blank.value] = [
+            "Provide exactly one expected_text string. State the required response format in the prompt; "
+            "the runner uses exact text matching apart from surrounding whitespace."
+        ]
+    if TaskType.generation in task_types:
+        optional_fields.extend(["rubric", "judge_tools", "output_contract"])
+        type_requirements[TaskType.generation.value] = [
+            "Provide a concrete rubric. Optional judge_tools may request registered external verification "
+            "using python_tests or reference_model_response. The Judge uses tool results as evidence; "
+            "the tools do not directly assign the final score."
         ]
     if TaskType.multi_turn in task_types:
-        optional_fields.extend(["system_prompt", "interaction", "environment", "rubric"])
+        optional_fields.extend(["system_prompt", "interaction", "rubric", "judge_tools"])
         requested_followup_modes = sorted(
             {
                 str(design.interaction_requirements.get("followup_mode") or "").strip().lower()
@@ -269,7 +269,7 @@ def _task_builder_payload(
                 "aliases such as scripted_user_turns, turns, and follow_up_policy are invalid."
             )
         type_requirements[TaskType.multi_turn.value] = [
-            "Provide a dialogue environment and top-level interaction object. interaction.max_turns "
+            "Provide a top-level interaction object. interaction.max_turns "
             f"must be between 1 and 5. {followup_contract}",
             "Provide task-specific transcript scoring criteria.",
             "The task prompt is the complete first content sent to the target and must include all "
@@ -284,21 +284,12 @@ def _task_builder_payload(
                 "requires interaction.user_turns and forbids interaction.followup_instruction. "
                 f"This Blueprint requests: {', '.join(requested_followup_modes)}."
             )
-    if any(
-        task_type not in {
-            TaskType.multiple_choice,
-            TaskType.yes_no,
-            TaskType.short_answer,
-            TaskType.code_execution,
-        }
-        for task_type in task_types
-    ):
-        optional_fields.append("rubric")
-        for task_type in task_types:
-            type_requirements.setdefault(
-                task_type.value,
-                ["Provide a task-specific rubric or scoring criteria."],
-            )
+    if TaskType.agent in task_types:
+        optional_fields.extend(["environment", "output_contract", "rubric", "judge_tools"])
+        type_requirements[TaskType.agent.value] = [
+            "Provide the executable environment, output contract, and deterministic checks or a "
+            "task-specific rubric for the resulting state, artifacts, answer, or trajectory."
+        ]
     task_schema["type_requirements"] = type_requirements
 
     contract: dict[str, object] = {
@@ -434,7 +425,7 @@ def build_task_suite(
             id=spec.id,
             objective=spec.objective,
             subjects=spec.subjects,
-            task_types=spec.task_types or [TaskType.open_generation],
+            task_types=spec.task_types or [TaskType.generation],
             dimensions=_fallback_dimensions(spec.objective),
             scale_budget=spec.scale_budget,
             scale=spec.scale,
@@ -855,10 +846,14 @@ def build_task_suite(
                     if builder_mode != "auto":
                         raise ValueError(f"task #{idx} has an empty prompt.")
                     continue
-                if not task.resource_ids and local_resources:
-                    task.resource_ids = [local_resources[0].id]
-                elif not task.resource_ids and parsed_resource_ids:
-                    task.resource_ids = [parsed_resource_ids[0]]
+                if not task.resource_ids and len(known_resource_ids) == 1:
+                    task.resource_ids = [next(iter(known_resource_ids))]
+                elif not task.resource_ids and len(known_resource_ids) > 1:
+                    validation_issues.append(
+                        f"task #{idx} ({task.id}): multiple resources are available; set the "
+                        "task's top-level resource_ids to the exact source ids it uses. "
+                        "metadata.source_ids does not bind task provenance."
+                    )
                 task = ensure_task_content_summary(
                     tag_task(task),
                     blueprint,
@@ -1049,7 +1044,7 @@ def build_task_suite(
         repair_attempts = max(0, int(getattr(config, "task_builder_repair_attempts", 2) or 0))
         last_validation_issues: list[str] = []
         repair_fields = (
-            "missing or inconsistent choices, answer, rubric, tests, scoring, challenge_effort, and "
+            "missing or inconsistent type-specific fields, rubric, Judge tools, challenge_effort, and "
             "metadata.challenge_effort_self_assessment fields"
             if not blueprint.requires_environment
             else

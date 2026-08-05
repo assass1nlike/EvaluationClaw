@@ -145,7 +145,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             description=f"Directly measure the central capability requested by: {goal}",
             approach="Create tasks that isolate the requested capability with explicit scoring criteria.",
             challenge_effort=ChallengeEffort.E3,
-            task_types=[TaskType.open_generation, TaskType.multiple_choice],
+            task_types=[TaskType.generation, TaskType.choice],
             item_requirements=[
                 "Measure only the central capability requested by the user.",
                 "Provide clear scoring criteria and avoid generic trivia.",
@@ -157,7 +157,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             description="Measure whether performance holds under edge cases, ambiguity, and distractors.",
             approach="Create boundary-condition tasks while keeping expected behavior clear.",
             challenge_effort=ChallengeEffort.E3,
-            task_types=[TaskType.open_generation, TaskType.multiple_choice],
+            task_types=[TaskType.generation, TaskType.choice],
             item_requirements=[
                 "Use edge cases, ambiguity, or distractors while staying aligned with the user goal.",
                 "Do not drift into unrelated robustness topics.",
@@ -169,7 +169,7 @@ def _fallback_dimensions(goal: str) -> list[EvalDimension]:
             description="Measure whether the model recognizes uncertainty and avoids unsupported claims.",
             approach="Use tasks where abstention, caveats, or concise uncertainty handling is expected.",
             challenge_effort=ChallengeEffort.E3,
-            task_types=[TaskType.open_generation],
+            task_types=[TaskType.generation],
             item_requirements=[
                 "Test calibrated uncertainty and avoidance of unsupported claims.",
                 "Reward concise uncertainty handling when evidence is insufficient.",
@@ -193,7 +193,7 @@ def _science_fallback_dimensions(goal: str) -> list[EvalDimension]:
                 "SciQ science question answering dataset",
             ],
             target_source_backed_count=1,
-            task_types=[TaskType.multiple_choice, TaskType.short_answer],
+            task_types=[TaskType.choice, TaskType.fill_blank],
             item_requirements=[
                 "Test conceptual scientific reasoning in the requested discipline or disciplines.",
                 "Provide all necessary scientific facts or source context unless testing established knowledge.",
@@ -206,7 +206,7 @@ def _science_fallback_dimensions(goal: str) -> list[EvalDimension]:
             description="Measure calculations, dimensional analysis, approximations, and unit handling.",
             approach="Use numeric science problems with explicit constants and assumptions.",
             challenge_effort=ChallengeEffort.E3,
-            task_types=[TaskType.short_answer, TaskType.multiple_choice],
+            task_types=[TaskType.fill_blank, TaskType.choice],
             item_requirements=[
                 "Include all constants, equations, data, and unit conventions needed to solve the problem.",
                 "Score numeric correctness, units, assumptions, and reasoning steps.",
@@ -226,7 +226,7 @@ def _science_fallback_dimensions(goal: str) -> list[EvalDimension]:
                 "PubMedQA scientific evidence reasoning dataset",
             ],
             target_source_backed_count=1,
-            task_types=[TaskType.open_generation, TaskType.multiple_choice],
+            task_types=[TaskType.generation, TaskType.choice],
             item_requirements=[
                 "Ask about controls, variables, confounders, causal inference, or evidence limits.",
                 "Provide the study excerpt, observations, or table needed to answer.",
@@ -259,7 +259,7 @@ def _fallback_outline(
         or "evalclaw_spec",
         objective=goal,
         subjects=target_ids or ["user_supplied_targets"],
-        task_types=[TaskType.open_generation, TaskType.multiple_choice],
+        task_types=[TaskType.generation, TaskType.choice],
         dimensions=_apply_budget_targets(_fallback_dimensions(goal), scale_budget),
         scale_budget=scale_budget,
         scale=scale_budget_target_items(scale_budget),

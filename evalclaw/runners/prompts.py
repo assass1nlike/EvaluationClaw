@@ -5,13 +5,18 @@ from ..types import BenchmarkItem, TaskType
 
 
 def target_prompt(item: BenchmarkItem) -> str:
-    if item.task_type != TaskType.multiple_choice or not item.choices:
+    if item.task_type != TaskType.choice or not item.choices:
         return item.prompt
-    choices_text = "\n".join(str(choice).strip() for choice in item.choices if str(choice).strip())
+    choices_text = "\n".join(
+        f"{choice.id}: {choice.text.strip()}"
+        for choice in item.choices
+        if choice.id.strip() and choice.text.strip()
+    )
     if not choices_text:
         return item.prompt
     return (
         f"{item.prompt.rstrip()}\n\n"
         f"Choices:\n{choices_text}\n\n"
-        "Answer with the best option. You may include brief reasoning, but make the final answer clear."
+        "Return only the selected choice id. If more than one choice is correct, "
+        "return the selected ids as a JSON array."
     )

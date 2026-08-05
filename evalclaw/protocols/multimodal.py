@@ -75,7 +75,7 @@ Required fields:
 For image tasks, use asset kind "image" and include either a public URL, a data
 URI, or a local file path that can be resolved by the runner. The text prompt
 must explain what the model should inspect and what the answer should focus on.
-If the item is multiple-choice or short-answer, keep the question text concise
+If the item is choice or fill-blank, keep the question text concise
 and make sure the visual evidence is necessary for a correct answer.
 """
 

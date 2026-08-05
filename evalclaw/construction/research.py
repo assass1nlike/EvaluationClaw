@@ -11,6 +11,7 @@ from ..protocols.tool import ToolCall, ToolResult, ToolSpec
 from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_anthropic,
     evalclaw_tool_result_to_openai,
+    evalclaw_tool_result_to_openai_response_input,
 )
 from ..research.backends import fetch_url_text, web_search
 from ..types import BenchmarkConfig
@@ -168,6 +169,13 @@ def _append_tool_results(
                 "content": [evalclaw_tool_result_to_anthropic(result) for result in results],
             }
         )
+        return
+    if response.adapter == "openai_responses":
+        messages.pop()
+        output = response.assistant_message.get("responses_output")
+        if isinstance(output, list):
+            messages.extend(item for item in output if isinstance(item, dict))
+        messages.extend(evalclaw_tool_result_to_openai_response_input(result) for result in results)
         return
     messages.extend(evalclaw_tool_result_to_openai(result) for result in results)
 

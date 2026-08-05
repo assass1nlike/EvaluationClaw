@@ -128,7 +128,7 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
             "levels": levels,
         }
     )
-    is_dialogue = task.environment.type == AgentEnvironmentType.dialogue
+    is_dialogue = task.task_type == TaskType.multi_turn
     metadata = {
         "schema_version": existing.get("schema_version") or "evalclaw.task_agent.v1",
         "agent_role": (
@@ -145,10 +145,14 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
         "initial_content": initial_content,
         "interaction": existing.get("interaction") if isinstance(existing.get("interaction"), dict) else task.interaction,
         "scoring": scoring,
-        "execution": {
-            "environment_type": agent_env.get("type", task.environment.type.value),
-            "environment_ref": "metadata.agent_env",
-        },
+        "execution": (
+            {"interaction_type": "multi_turn"}
+            if is_dialogue
+            else {
+                "environment_type": agent_env.get("type", task.environment.type.value),
+                "environment_ref": "metadata.agent_env",
+            }
+        ),
     }
     for key, value in existing.items():
         if key not in metadata:
@@ -223,7 +227,7 @@ def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
         return [*workspace_tools, "run_tests"]
     if env_type == "code_sandbox":
         return ["read_file", "write_file", "run_tests"]
-    return ["look", "read_file", "write_file"]
+    return ["look", "move", "inspect", "take", "place", "final"]
 
 
 def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]) -> dict[str, Any]:
@@ -519,7 +523,9 @@ def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkCon
         metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = _task_content_summary(task)
         metadata.setdefault("builder_blueprint_id", task.metadata.get("builder_blueprint_id", ""))
         task_package: dict[str, Any] | None = None
-        if task.environment is not None:
+        if task.task_type == TaskType.multi_turn:
+            metadata["task_agent"] = _task_agent_metadata_for_task(task, {})
+        elif task.environment is not None:
             agent_env = _environment_for_runner(task)
             metadata["task_agent"] = _task_agent_metadata_for_task(task, agent_env)
             metadata["agent_env"] = agent_env
@@ -541,12 +547,14 @@ def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkCon
             task_type=task.task_type,
             prompt=task.prompt,
             choices=task.choices,
-            answer=task.answer,
+            correct_choice_ids=task.correct_choice_ids,
+            expected_text=task.expected_text,
             rubric=task.rubric or task.scoring.instructions or (
                 f"{task.scoring.pass_criteria} {task.scoring.partial_criteria} {task.scoring.fail_criteria}".strip()
                 or None
             ),
-            test_code=task.test_code,
+            judge_tools=task.judge_tools,
+            output_contract=task.output_contract,
             challenge_effort=task.challenge_effort,
             source=item_source,
             tags=task.tags,

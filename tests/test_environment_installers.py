@@ -111,7 +111,7 @@ def test_browser_blueprint_requires_executable_docker_browser_runtime() -> None:
     task = TaskDefinition(
         id="browser_task",
         dimension_id="web",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title="Browser task",
         prompt="Use the browser tools to update the local website.",
         environment=AgentEnvironmentSpec(
@@ -127,7 +127,7 @@ def test_browser_blueprint_requires_executable_docker_browser_runtime() -> None:
         "browser_blueprint",
         "web",
         "Browser workflow",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         content="One browser workflow.",
         environment_type=AgentEnvironmentType.docker_workspace,
         allowed_tools=["browser"],
@@ -142,7 +142,7 @@ def test_setup_cannot_reference_evaluator_only_hidden_files() -> None:
     task = TaskDefinition(
         id="invalid_lifecycle",
         dimension_id="code",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title="Invalid lifecycle",
         prompt="Configure the application and complete the requested code change.",
         environment=AgentEnvironmentSpec(
@@ -165,7 +165,7 @@ def test_browser_file_artifact_requires_write_tool_and_workdir_path() -> None:
     task = TaskDefinition(
         id="browser_artifact_task",
         dimension_id="web",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title="Browser artifact task",
         prompt="Use browser tools and save the extracted data.",
         environment=AgentEnvironmentSpec(
@@ -373,7 +373,7 @@ def test_vm_provisioning_renders_cross_domain_cloud_init(monkeypatch, tmp_path) 
     item = BenchmarkItem(
         id="vm_cross_domain_provisioning",
         dimension_id="env",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Run a cross-domain VM task.",
         metadata={
             "agent_env": {
@@ -430,7 +430,7 @@ def test_vm_provisioning_triggers_from_non_apt_package_fields(monkeypatch, tmp_p
     item = BenchmarkItem(
         id="vm_non_apt_provisioning",
         dimension_id="env",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Run a VM task that only needs domain language packages.",
         metadata={
             "agent_env": {
@@ -485,7 +485,7 @@ def test_vm_materialization_fails_closed_without_initial_state_checks(tmp_path) 
     item = BenchmarkItem(
         id="unchecked_vm",
         dimension_id="env",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Operate an unchecked VM.",
         metadata={
             "agent_env": {

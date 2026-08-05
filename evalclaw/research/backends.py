@@ -20,6 +20,7 @@ import re
 import threading
 import time
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from urllib.parse import parse_qs, quote_plus, urlsplit
 
@@ -40,7 +41,7 @@ _USER_AGENT = (
 _TERMINAL_SOURCE_STATUSES = {401, 403, 407, 429}
 _FETCH_STATE_LOCK = threading.RLock()
 _FETCH_CACHE: dict[tuple[str, int], str | None] = {}
-_FETCH_BLOCKED_ORIGINS: dict[str, int] = {}
+_FETCH_BLOCKED_ORIGINS: dict[str, int | str] = {}
 _FETCH_ORIGIN_LOCKS: dict[str, threading.Lock] = {}
 
 
@@ -103,6 +104,14 @@ def fetch_url_text(url: str, max_chars: int = 4000, timeout: float = 10.0) -> st
                 print(f"  [fetch] disabled {origin} for this run after HTTP {status}.")
             else:
                 print(f"  [fetch] {origin} returned HTTP {status}; skipping this URL.")
+            return None
+        except httpx.TimeoutException:
+            with _FETCH_STATE_LOCK:
+                _FETCH_CACHE[cache_key] = None
+                first_timeout = origin not in _FETCH_BLOCKED_ORIGINS
+                _FETCH_BLOCKED_ORIGINS[origin] = "timeout"
+            if first_timeout:
+                print(f"  [fetch] disabled {origin} for this run after timeout.")
             return None
         except Exception as exc:
             with _FETCH_STATE_LOCK:
@@ -276,7 +285,7 @@ class KeylessBackend(SearchBackend):
             name: threading.Lock() for name in ("arxiv", "wikipedia", "duckduckgo")
         }
         self._query_cache: dict[tuple[str, str], list[dict]] = {}
-        self._disabled_sources: dict[str, int] = {}
+        self._disabled_sources: dict[str, int | str] = {}
         self._last_source_request: dict[str, float] = {}
 
     def reset(self) -> None:
@@ -320,6 +329,15 @@ class KeylessBackend(SearchBackend):
                 else:
                     print(f"  [search] keyless source {name} returned HTTP {status}; query skipped.")
                 return []
+            except httpx.TimeoutException:
+                with self._state_lock:
+                    self._query_cache[cache_key] = []
+                    self._last_source_request[name] = time.monotonic()
+                    first_timeout = name not in self._disabled_sources
+                    self._disabled_sources[name] = "timeout"
+                if first_timeout:
+                    print(f"  [search] disabled keyless source {name} for this run after timeout.")
+                return []
             except Exception as exc:
                 with self._state_lock:
                     self._query_cache[cache_key] = []
@@ -339,12 +357,18 @@ class KeylessBackend(SearchBackend):
         citations: list[dict] = []
         seen: set[str] = set()
 
-        for name, source in (
+        sources = (
             ("arxiv", self._arxiv),
             ("wikipedia", self._wikipedia),
             ("duckduckgo", self._duckduckgo),
-        ):
-            entries = self._run_source(name, source, query)
+        )
+        with ThreadPoolExecutor(max_workers=len(sources)) as executor:
+            requests = {
+                name: executor.submit(self._run_source, name, source, query)
+                for name, source in sources
+            }
+        for name, _source in sources:
+            entries = requests[name].result()
             for entry in entries:
                 url = entry.get("url", "")
                 if not url or url in seen:

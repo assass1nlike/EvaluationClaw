@@ -1,4 +1,4 @@
-﻿"""Parsing helpers for general tasks with optional execution environments."""
+"""Parsing helpers for general tasks with optional execution environments."""
 from __future__ import annotations
 
 from typing import Any
@@ -7,11 +7,26 @@ from ...types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
     BenchmarkItem,
+    ChoiceOption,
     TaskDefinition,
     TaskScoringSpec,
     TaskType,
     safe_challenge_effort,
 )
+
+
+def _choice_options(raw_choices: object) -> list[ChoiceOption]:
+    if not isinstance(raw_choices, list):
+        return []
+    options: list[ChoiceOption] = []
+    for value in raw_choices:
+        if not isinstance(value, dict):
+            continue
+        option_id = str(value.get("id") or "").strip()
+        text = str(value.get("text") or "").strip()
+        if text:
+            options.append(ChoiceOption(id=option_id, text=text))
+    return options
 
 
 def _safe_environment_type(
@@ -29,14 +44,11 @@ def _task_from_raw(
     fallback_id: str,
     *,
     default_dimension_id: str,
-    default_task_type: TaskType = TaskType.open_generation,
+    default_task_type: TaskType = TaskType.generation,
 ) -> TaskDefinition:
     environment = raw.get("environment") if isinstance(raw.get("environment"), dict) else {}
     scoring = raw.get("scoring") if isinstance(raw.get("scoring"), dict) else {}
-    try:
-        task_type = TaskType(str(raw.get("task_type") or default_task_type.value))
-    except ValueError:
-        task_type = default_task_type
+    task_type = TaskType(str(raw.get("task_type") or default_task_type.value))
     environment_spec = AgentEnvironmentSpec(
             type=_safe_environment_type(environment.get("type")),
             tools=[tool for tool in environment.get("tools", []) if isinstance(tool, dict)],
@@ -90,12 +102,14 @@ def _task_from_raw(
         content_summary=str(raw.get("content_summary") or ""),
         description=str(raw.get("description") or ""),
         prompt=str(raw.get("prompt") or ""),
-        choices=[str(choice) for choice in raw.get("choices", []) if str(choice).strip()]
-        if isinstance(raw.get("choices"), list)
+        choices=_choice_options(raw.get("choices")),
+        correct_choice_ids=[str(value) for value in raw.get("correct_choice_ids", []) if str(value).strip()]
+        if isinstance(raw.get("correct_choice_ids"), list)
         else [],
-        answer=str(raw["answer"]) if raw.get("answer") is not None else None,
+        expected_text=str(raw["expected_text"]) if raw.get("expected_text") is not None else None,
         rubric=str(raw["rubric"]) if raw.get("rubric") is not None else None,
-        test_code=str(raw["test_code"]) if raw.get("test_code") is not None else None,
+        judge_tools=[value for value in raw.get("judge_tools", []) if isinstance(value, dict)],
+        output_contract=raw.get("output_contract") if isinstance(raw.get("output_contract"), dict) else {},
         system_prompt=str(raw.get("system_prompt") or ""),
         resource_ids=[str(x) for x in raw.get("resource_ids", []) if x],
         environment=environment_spec,
@@ -140,9 +154,11 @@ def _task_from_item(item: BenchmarkItem, *, title: str) -> TaskDefinition:
         description=item.prompt,
         prompt=item.prompt,
         choices=item.choices,
-        answer=item.answer,
+        correct_choice_ids=item.correct_choice_ids,
+        expected_text=item.expected_text,
         rubric=item.rubric,
-        test_code=item.test_code,
+        judge_tools=item.judge_tools,
+        output_contract=item.output_contract,
         system_prompt=(str(task_agent.get("system_prompt") or "") if env else ""),
         resource_ids=[],
         environment=AgentEnvironmentSpec(

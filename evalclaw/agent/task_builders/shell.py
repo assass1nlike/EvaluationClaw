@@ -1,4 +1,4 @@
-﻿"""Shell and runtime debugging fallback agent tasks."""
+"""Shell and runtime debugging fallback agent tasks."""
 from __future__ import annotations
 
 from ...types import (
@@ -601,7 +601,7 @@ def _shell_debugging_task_for_blueprint(
     return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title=_task_title(blueprint, index),
         description=(
             "A shell-oriented debugging task that benefits from command diagnostics and realistic workspace "

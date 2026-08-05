@@ -201,7 +201,7 @@ def test_build_agent_environment_supports_docker_workspace(monkeypatch) -> None:
     item = BenchmarkItem(
         id="docker_agent",
         dimension_id="agent",
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         prompt="Fix the containerized project.",
         metadata={
             "agent_env": {

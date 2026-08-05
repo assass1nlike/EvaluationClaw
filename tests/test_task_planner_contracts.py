@@ -15,7 +15,7 @@ from evalclaw.types import BenchmarkConfig, BenchmarkPlan, TaskType
 def _plan(
     *,
     task_count: int = 1,
-    task_type: TaskType = TaskType.open_generation,
+    task_type: TaskType = TaskType.generation,
     environment_category: str = "",
     followup_mode: str = "adaptive",
 ) -> BenchmarkPlan:
@@ -83,15 +83,11 @@ def test_plan_audit_enforces_explicit_total() -> None:
     assert any("requested exactly 50" in issue and "contains 51" in issue for issue in issues)
 
 
-def test_plan_audit_matches_multi_turn_runtime_route() -> None:
-    wrong_route = _audit_plan(
-        _plan(task_type=TaskType.multi_turn, environment_category="workspace")
-    )
-    correct_route = _audit_plan(
-        _plan(task_type=TaskType.multi_turn, environment_category="dialogue")
-    )
+def test_plan_audit_keeps_multi_turn_out_of_environment_routes() -> None:
+    wrong_route = _audit_plan(_plan(task_type=TaskType.multi_turn, environment_category="workspace"))
+    correct_route = _audit_plan(_plan(task_type=TaskType.multi_turn))
 
-    assert any("must use environment category 'dialogue'" in issue for issue in wrong_route)
+    assert any("only valid for agent tasks" in issue for issue in wrong_route)
     assert correct_route == []
 
 
@@ -99,12 +95,19 @@ def test_plan_audit_requires_multi_turn_followup_mode() -> None:
     issues = _audit_plan(
         _plan(
             task_type=TaskType.multi_turn,
-            environment_category="dialogue",
             followup_mode="",
         )
     )
 
     assert any("followup_mode" in issue for issue in issues)
+
+
+def test_plan_audit_rejects_workspace_for_static_task() -> None:
+    issues = _audit_plan(
+        _plan(task_type=TaskType.fill_blank, environment_category="workspace")
+    )
+
+    assert any("only valid for agent tasks" in issue for issue in issues)
 
 
 def test_planner_repairs_wrong_explicit_total(monkeypatch) -> None:
@@ -125,3 +128,21 @@ def test_planner_repairs_wrong_explicit_total(monkeypatch) -> None:
     assert sum(design.task_count for dim in plan.dimensions for design in dim.task_designs) == 50
     assert len(payloads) == 2
     assert "explicitly requested exactly 50 tasks" in payloads[1]
+
+
+def test_low_effort_planner_uses_bounded_output_budget(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured.update(kwargs)
+        return json.dumps({"plan": _plan().model_dump(mode="json")})
+
+    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
+    monkeypatch.setattr("evalclaw.planning.task_planner.call_llm", fake_call_llm)
+
+    plan_benchmark(
+        "Create exactly one benchmark task.",
+        BenchmarkConfig(orchestrator_api_key="dummy"),
+    )
+
+    assert captured["max_tokens"] == 4096

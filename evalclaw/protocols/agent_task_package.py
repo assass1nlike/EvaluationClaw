@@ -123,7 +123,7 @@ def get_agent_task_package(item: BenchmarkItem) -> dict[str, Any] | None:
 
 
 def item_requires_agent_task_package(item: BenchmarkItem) -> bool:
-    if item.task_type != TaskType.agent_interaction:
+    if item.task_type != TaskType.agent:
         return False
     env = _env_from_item(item)
     env_type = str(env.get("type") or "").lower()

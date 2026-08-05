@@ -52,11 +52,28 @@ Further design the substantive content that makes up each dimension. Determine:
 - All included task types and their respective counts.
 - The content design of each task group.
 
+Use only these task types:
+
+- `choice`: two or more candidate choices and one or more correct choice ids; two choices can express a binary judgment, and multiple correct ids express multi-select.
+- `fill_blank`: one uniquely formatted expected text, scored by exact text match after trimming surrounding whitespace.
+- `generation`: an open response scored by a Judge against a rubric. When useful, the Judge may use registered external-verification tools such as Python tests or a configured reference-model response.
+- `multi_turn`: a scripted or response-adaptive dialogue scored over the complete transcript.
+- `agent`: a task in which the target acts through tools in an executable, resettable environment and is scored from the resulting state, artifacts, answer, or trajectory.
+
 This says "each task group" rather than "each task" because one description may either describe one task relatively concretely or cover multiple similar tasks as a whole. For example, it may describe one complex and difficult agent task in some detail, or it may require ten multiple-choice questions about a certain knowledge point. Ultimately, every task must belong to a "group" described at a level of detail suitable for guiding construction according to the task's complexity.
 
 Make the sum of the task counts across all dimensions equal the user's target task count. Allocate task counts according to coverage value and measurement importance; do not divide them evenly by default.
 
-Use environment requirements only when the task actually needs an execution context. For `multi_turn` tasks, use the `dialogue` environment category. For `agent_interaction` tasks, choose the environment category that provides the required tools or state. For static task types such as multiple-choice, short-answer, and open-generation, leave `environment_requirements` empty unless the task genuinely requires an executable environment; never label a static task as `dialogue` merely because it has an interaction mode.
+Use `environment_requirements` only for `agent` tasks, choosing the environment category that provides the required tools or state. `multi_turn` tasks express their dialogue behavior through `interaction_requirements` and do not use an execution environment. Leave `environment_requirements` empty for `choice`, `fill_blank`, `generation`, and `multi_turn`; if executable interaction is essential, design an `agent` task instead.
+
+Choose the environment category according to its actual runtime capabilities:
+
+- `workspace` is only the built-in room, inventory, item inspection, and outgoing-bin runtime. It cannot edit files, run commands or validators, browse, or add custom tools.
+- `code_sandbox` supports reading and writing files and running tests in a standard code workspace.
+- `docker_workspace` supports task-specific packages, services, shell commands, browser automation, and executable validators in a container.
+- `gui_desktop` supports mouse/keyboard desktop interaction and may request a locally or remotely provisioned VM when a specific operating system or application state is required.
+
+If a task requires editable artifacts, scripts, schemas, hashes, tests, or other executable validation, do not select `workspace`; select `code_sandbox` or `docker_workspace` according to the required software and services.
 
 For every `multi_turn` TaskDesign, set `interaction_requirements.followup_mode` to exactly `adaptive` or `scripted`. Use `adaptive` when later turns must respond to the target's actual replies, and `scripted` only when predetermined follow-up turns are substantively appropriate. Preserve any explicit user requirement about this choice.
 

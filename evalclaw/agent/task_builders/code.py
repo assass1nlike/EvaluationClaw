@@ -1,4 +1,4 @@
-﻿"""Code and repository fallback agent tasks."""
+"""Code and repository fallback agent tasks."""
 from __future__ import annotations
 
 from ...types import (
@@ -98,7 +98,7 @@ def _code_repair_task_for_blueprint(
     return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title=_task_title(blueprint, index),
         description="A compact repository repair task with hidden deterministic tests.",
         prompt=str(variant["prompt"]),
@@ -168,7 +168,7 @@ def _repo_issue_task_for_blueprint(
     return TaskDefinition(
         id=_task_id(dimension, blueprint, index),
         dimension_id=dimension.id,
-        task_type=TaskType.agent_interaction,
+        task_type=TaskType.agent,
         title=_task_title(blueprint, index),
         description=(
             "A GitHub-style issue resolution task. The target must read issue context, inspect the small "

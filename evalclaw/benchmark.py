@@ -1,7 +1,10 @@
 """Single-route benchmark planning, task construction, and QC repair."""
 from __future__ import annotations
 
+import uuid
 from collections.abc import Callable
+from datetime import datetime, timezone
+from pathlib import Path
 
 from .construction.packaging import task_suite_to_dataset
 from .construction.suite import build_task_suite
@@ -146,9 +149,29 @@ def build_dataset_from_spec_with_qc_loop(
     log: Callable[[str], None] = print,
 ) -> tuple[BenchmarkDataset, QcReport]:
     """Build and QC an already planned specification through the general route."""
+    qc_debug_root = None
+    if config.task_builder_debug_dir:
+        qc_debug_root = (
+            Path(config.task_builder_debug_dir).expanduser().parent
+            / "qc"
+            / (
+                datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+                + "-"
+                + uuid.uuid4().hex[:8]
+            )
+        )
+
+    def run_traced_qc(candidate: BenchmarkDataset, stage: str) -> QcReport:
+        if qc_debug_root is None:
+            return run_qc_gate(candidate, config)
+        trace_dir = qc_debug_root / stage
+        report = run_qc_gate(candidate, config, trace_dir=trace_dir)
+        log(f"  QC: saved complete trace: {trace_dir}.")
+        return report
+
     suite = build_task_suite(spec, blueprints, config, log=log)
     dataset = task_suite_to_dataset(suite, spec, config)
-    qc_report = run_qc_gate(dataset, config)
+    qc_report = run_traced_qc(dataset, "00-initial")
     log(f"  QC: reviewing {len(dataset.items)} constructed task(s). {qc_report.summary}")
 
     max_repairs = max(0, int(config.max_qc_iterations))
@@ -179,7 +202,10 @@ def build_dataset_from_spec_with_qc_loop(
         )
         candidate_suite = _merge_repaired_suite(suite, repaired)
         candidate_dataset = task_suite_to_dataset(candidate_suite, spec, config)
-        candidate_qc = run_qc_gate(candidate_dataset, config)
+        candidate_qc = run_traced_qc(
+            candidate_dataset,
+            f"{repair_round:02d}-repair-candidate",
+        )
         log(f"  QC after repair round {repair_round}: {candidate_qc.summary}")
         previous_errors = _blocking_error_count(qc_report)
         candidate_errors = _blocking_error_count(candidate_qc)
