@@ -27,7 +27,7 @@ sys.path.insert(0, str(_HERE.parent))     # repo root for evalclaw when not pip-
 
 import _lib
 
-from evalclaw.models.providers import orchestrator_defaults, target_from_model
+from evalclaw.models.providers import resolve_role_connection, target_from_model
 from evalclaw.pipeline import run_pipeline
 from evalclaw.types import BenchmarkConfig, ScaleBudget
 
@@ -41,26 +41,29 @@ def _build_bench_config(
 ) -> tuple[BenchmarkConfig, str, str, bool]:
     """Build the pipeline config for one variant.
 
-    Returns (config, strong_target_id, weak_target_id, offline).
-    ``offline`` is True when no orchestrator credential could be resolved; in
-    that mode network-dependent stages are disabled so the run still completes.
+    Returns (config, strong_target_id, weak_target_id, offline, orch).
+    ``offline`` is True when no role credential could be resolved; in that mode
+    network-dependent stages are disabled so the run still completes.
     """
-    orch_model = exp["orchestrator_model"]
-    orch_key, orch_base = orchestrator_defaults(orch_model)
-    offline = not orch_key
+    role_model = exp["role_model"]
+    role_key, role_base = resolve_role_connection(role_model)
+    offline = not role_key
 
-    strong = target_from_model(exp["strong_target"], fallback_key=orch_key)
-    weak = target_from_model(exp["weak_target"], fallback_key=orch_key)
+    strong = target_from_model(exp["strong_target"], fallback_key=role_key)
+    weak = target_from_model(exp["weak_target"], fallback_key=role_key)
     targets = [strong] if weak.id == strong.id else [strong, weak]
     run_targets = any(bool(t.api_key) for t in targets)
 
+    role_fields: dict[str, object] = {}
+    for role in ("planner", "task_builder", "qc", "research", "loop3"):
+        role_fields[f"{role}_model"] = role_model
+        role_fields[f"{role}_api_key"] = role_key
+        role_fields[f"{role}_base_url"] = role_base
+
     config = BenchmarkConfig(
-        orchestrator_model=orch_model,
-        orchestrator_api_key=orch_key,
-        orchestrator_base_url=orch_base,
+        **role_fields,
         targets=targets,
         scale_budget=ScaleBudget(str(exp["scale_budget"]).lower() if not smoke else "low"),
-        questions_per_dimension=2 if smoke else int(exp["questions_per_dimension"]),
         use_deep_research=deep_research,
         max_research_iterations=1 if smoke else int(exp["max_research_iterations"]),
         search_backend=str(exp["search_backend"]),
@@ -72,7 +75,13 @@ def _build_bench_config(
         human_review=False,
         output_dir=str(variant_dir),
     )
-    return config, strong.id, weak.id, offline
+    orch = {
+        "model": role_model,
+        "api_key": role_key,
+        "base_url": role_base,
+        "backend": config.llm_backend,
+    }
+    return config, strong.id, weak.id, offline, orch
 
 
 def _run_variant(
@@ -84,7 +93,7 @@ def _run_variant(
     smoke: bool,
 ) -> dict:
     """Run one pipeline variant and compute its metrics dict."""
-    config, strong_id, weak_id, offline = _build_bench_config(
+    config, strong_id, weak_id, offline, orch = _build_bench_config(
         exp, variant_dir, deep_research=deep_research, smoke=smoke
     )
     timer = _lib.StageTimer()
@@ -106,13 +115,6 @@ def _run_variant(
             "offline": offline,
         }
 
-    orch = {
-        "model": config.orchestrator_model,
-        "api_key": config.orchestrator_api_key,
-        "base_url": config.orchestrator_base_url,
-        "backend": config.llm_backend,
-    }
-
     with timer.stage("coverage_audit"):
         coverage = _lib.audit_dimension_coverage(goal, pkg.spec, orch)
 
@@ -125,7 +127,7 @@ def _run_variant(
         item_validity = _lib.audit_item_validity(goal, sample, orch)
 
     embed_fn = None
-    if exp.get("embedding_model") and config.orchestrator_api_key:
+    if exp.get("embedding_model") and orch["api_key"]:
         embed_fn = _lib.make_litellm_embed_fn(str(exp["embedding_model"]))
     with timer.stage("diversity"):
         diversity = _lib.semantic_diversity(
@@ -155,7 +157,7 @@ def _run_variant(
     }
     if offline:
         metrics["notes"] = (
-            "offline mode: no orchestrator credential resolved, so web research, HF discovery, "
+            "offline mode: no role credential resolved, so web research, HF discovery, "
             "target runs, and LLM audits were skipped; pipeline used local fallbacks."
         )
     return metrics
@@ -179,7 +181,7 @@ def run_experiment(exp: dict, *, smoke: bool, output_root: Path) -> list[Path]:
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "smoke": smoke,
             "experiment_config": {
-                "orchestrator_model": exp["orchestrator_model"],
+                "role_model": exp["role_model"],
                 "strong_target": exp["strong_target"],
                 "weak_target": exp["weak_target"],
                 "embedding_model": exp.get("embedding_model"),

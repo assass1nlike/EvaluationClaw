@@ -123,7 +123,7 @@ def run_pipeline(
     original_goal = goal
     goal = translate_goal_to_english(goal, config)
     if goal != original_goal:
-        log("\n[Input] Translated non-English evaluation goal to English before planning.")
+        log("\n[Input] Normalized the evaluation goal to English before planning.")
         log(f"  English goal: {goal}")
 
     if config.use_deep_research and config.research_brief is None:

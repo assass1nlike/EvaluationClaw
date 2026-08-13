@@ -16,8 +16,7 @@ It currently supports:
   combination of arXiv + Wikipedia + DuckDuckGo otherwise.
 - One blueprint-driven construction route for multiple-choice, open-generation, code,
   multimodal, multi-turn, and environment-interaction tasks. Execution fields are optional.
-- Self-generated benchmark tasks with optional web research, HuggingFace support, and
-  programmatic local fallbacks.
+- Model-generated benchmark tasks with optional web research and HuggingFace support.
 - Deterministic and LLM-assisted QC gates that replace only failed tasks and preserve
   QC-passed tasks from the same Blueprint.
 - Direct model execution with rule scoring, code execution sandboxing, multi-turn tasks,
@@ -63,11 +62,10 @@ is raised automatically and truncated responses are retried; set
 Generate a benchmark draft without running target models:
 
 ```bash
-python evalclaw_cli.py generate \
+ANTHROPIC_API_KEY="..." python evalclaw_cli.py generate \
   -g "Evaluate strict format following" \
   --no-interactive \
   --no-research \
-  --task-builder local \
   --scale-budget low \
   --qpd 1
 ```

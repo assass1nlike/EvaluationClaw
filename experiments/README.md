@@ -23,16 +23,15 @@ export AZURE_API_VERSION=2024-06-01
 Optional: `GEMINI_API_KEY` enables the Gemini search backend (otherwise the
 free keyless backend — arXiv + Wikipedia + DuckDuckGo — is used automatically).
 
-Without any credentials the scripts still run end-to-end in a degraded offline
-mode: the pipeline uses its local fallback generators, LLM audits are marked
-`skipped (no orchestrator API key)`, diversity falls back to token-Jaccard, and
-the runner/discriminative metrics are skipped. Use this to check plumbing.
+Planner and TaskBuilder credentials are required; benchmark construction fails
+closed when their model calls are unavailable. Optional audits and embedding
+metrics may still be skipped when their role-specific credentials are absent.
 
 ## 2. Fill the config
 
 Copy `config.example.json` (or edit it in place) and set your deployment names:
 
-- `orchestrator_model` / `strong_target` / `weak_target`: use `azure/<deployment-name>`
+- `role_model` / `strong_target` / `weak_target`: use `azure/<deployment-name>`
   (e.g. `azure/gpt-4o`, `azure/gpt-4o-mini`). Any provider the evalclaw CLI
   supports works here (`gpt-*`, `claude-*`, `deepseek-*`, `gemini*`).
 - `embedding_model`: optional Azure embedding deployment

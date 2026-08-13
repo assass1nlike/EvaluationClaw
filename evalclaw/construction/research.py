@@ -16,19 +16,33 @@ from ..protocols.tool_adapters import (
 from ..research.backends import fetch_url_text, web_search
 from ..types import BenchmarkConfig
 
-TASK_BUILDER_E4_RESEARCH_PROMPT = """\
-This task uses E4 construction effort. You may use the supplied research tools
-when external evidence would materially improve the benchmark task. Search for
-authoritative task shapes, real failure modes, software behavior, evaluation
-protocols, or source resources only when useful. Do not perform ceremonial
-searches, do not search for secrets, and do not use hidden evaluator content.
-Use search_web for a query and fetch_url for a specific public HTTP(S) source.
-After research, return the complete task-builder JSON object. The tool budget is
-bounded; do not keep researching after you have enough evidence.
+TASK_BUILDER_RESEARCH_PROMPT = """\
+You may use the supplied research tools when source material would materially
+improve the benchmark task. Use read_research_source to inspect text retained by
+Deep Research, search_web for a new query, and fetch_url for a public HTTP(S)
+source. Do not perform ceremonial searches, search for secrets, or use hidden
+evaluator content. After research, return the complete task-builder JSON object.
+The tool budget is bounded; stop researching once the task is adequately grounded.
 """
 
 
 TASK_BUILDER_RESEARCH_TOOLS = [
+    ToolSpec(
+        name="read_research_source",
+        description="Read source text retained by Deep Research without another network request.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "URL from source_material_index."},
+                "max_chars": {
+                    "type": "integer",
+                    "description": "Maximum retained text characters to return.",
+                },
+            },
+            "required": ["url"],
+            "additionalProperties": False,
+        },
+    ),
     ToolSpec(
         name="search_web",
         description=(
@@ -88,6 +102,40 @@ def _execute_research_tool(
 ) -> ToolResult:
     args = call.arguments if isinstance(call.arguments, dict) else {}
     try:
+        if call.name == "read_research_source":
+            url = str(args.get("url") or "").strip()
+            brief = config.research_brief
+            material = next(
+                (
+                    candidate
+                    for candidate in (brief.source_materials if brief is not None else [])
+                    if candidate.url == url
+                ),
+                None,
+            )
+            if material is None:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="No retained Deep Research source matched that URL.",
+                    error="source_not_found",
+                )
+            requested_chars = _bounded_int(
+                args.get("max_chars"), default=max_chars, minimum=500, maximum=max_chars
+            )
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(
+                    {
+                        "url": material.url,
+                        "title": material.title,
+                        "content": material.content[:requested_chars],
+                    },
+                    max_chars=max_chars,
+                ),
+            )
+
         if call.name == "search_web":
             query = str(args.get("query") or "").strip()
             if not query:
@@ -186,7 +234,7 @@ def run_task_builder_research(
     system_prompt: str,
     config: BenchmarkConfig,
 ) -> tuple[str, list[str]]:
-    """Run a bounded E4 research/tool loop and return final builder JSON text."""
+    """Run a bounded research/tool loop and return final builder JSON text."""
     max_calls = _bounded_int(
         config.task_builder_research_max_calls,
         default=6,
@@ -195,9 +243,9 @@ def run_task_builder_research(
     )
     max_chars = _bounded_int(
         config.task_builder_research_max_chars,
-        default=6000,
+        default=50_000,
         minimum=1000,
-        maximum=16000,
+        maximum=100_000,
     )
     settings = role_model_settings(config, "task_builder")
     messages: list[dict[str, Any]] = [
@@ -292,7 +340,7 @@ def run_task_builder_research(
 
 
 __all__ = [
-    "TASK_BUILDER_E4_RESEARCH_PROMPT",
+    "TASK_BUILDER_RESEARCH_PROMPT",
     "TASK_BUILDER_RESEARCH_TOOLS",
     "run_task_builder_research",
 ]

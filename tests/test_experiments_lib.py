@@ -175,7 +175,7 @@ def _spec() -> EvalSpec:
 
 def test_coverage_audit_skipped_without_key() -> None:
     result = _lib.audit_dimension_coverage("goal", _spec(), {"api_key": None})
-    assert result == {"skipped": "no orchestrator API key"}
+    assert result == {"skipped": "no role API key"}
 
 
 def test_coverage_audit_parses_scores() -> None:
@@ -254,7 +254,7 @@ def test_stage_timer_records_durations() -> None:
 def test_render_exp1_report_with_skipped_metrics() -> None:
     metrics = {
         "generated_at": "2026-07-03T00:00:00Z",
-        "experiment_config": {"orchestrator_model": "azure/gpt-4o"},
+        "experiment_config": {"role_model": "azure/gpt-4o"},
         "variants": {
             "baseline": {
                 "wall_time_s": 2.5,
@@ -262,8 +262,8 @@ def test_render_exp1_report_with_skipped_metrics() -> None:
                 "dimensions": 3,
                 "items": 12,
                 "qc_quality": 1.0,
-                "coverage_audit": {"skipped": "no orchestrator API key"},
-                "item_validity": {"skipped": "no orchestrator API key"},
+                "coverage_audit": {"skipped": "no role API key"},
+                "item_validity": {"skipped": "no role API key"},
                 "diversity": {"method": "jaccard", "mean_pairwise_distance": 0.8},
                 "discriminative": {"skipped": "runner produced no results"},
             },
@@ -272,7 +272,7 @@ def test_render_exp1_report_with_skipped_metrics() -> None:
     }
     report = _lib.render_exp1_report("tax law", metrics)
     assert "# Experiment 1: Deep Research A/B — tax law" in report
-    assert "skipped (no orchestrator API key)" in report
+    assert "skipped (no role API key)" in report
     assert "Pipeline failed: boom" in report
     assert "| Diversity (mean pairwise) | 0.8 |" in report
     assert "## Caveats" in report

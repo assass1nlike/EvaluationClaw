@@ -10,7 +10,7 @@ import json
 from typer.testing import CliRunner
 
 from evalclaw.cli import app
-from evalclaw.generation.generator import _select_research_sources
+from evalclaw.generation.generator import _select_research_sources, _source_context
 from evalclaw.pipeline import _persist_package, run_pipeline
 from evalclaw.planning.task_planner import _planner_resources
 from evalclaw.prompts.research import (
@@ -34,6 +34,7 @@ from evalclaw.types import (
     BenchmarkDataset,
     BenchmarkItem,
     BenchmarkPackage,
+    BenchmarkSource,
     ChallengeEffort,
     EvalDimension,
     EvalRun,
@@ -42,11 +43,13 @@ from evalclaw.types import (
     ResearchBenchmarkNote,
     ResearchBrief,
     ResearchSeedSource,
+    ResearchSourceMaterial,
     ResearchTaxonomyEntry,
     ScaleBudget,
     SourceKind,
     TaskType,
 )
+from tests.config_helpers import dummy_config_kwargs
 
 SYNTHESIS_JSON = json.dumps(
     {
@@ -62,7 +65,7 @@ SYNTHESIS_JSON = json.dumps(
             {"title": "IRS Pub 17", "url": "https://ex.com/pub17", "why_useful": "authoritative rules"}
         ],
         "exemplar_items": [{"prompt": "Is X deductible?", "answer": "No", "notes": ""}],
-        "challenge_effort_anchors": {"E1": "single rule lookup", "E4": "multi-jurisdiction planning"},
+        "challenge_effort_anchors": {"E1": "single rule lookup", "E3": "multi-jurisdiction planning"},
         "citations": [{"claim": "TaxBench exists", "url": "https://ex.com/taxbench"}],
         "research_notes": "coverage is US-centric",
     }
@@ -95,7 +98,7 @@ def _scripted_call_llm(script: dict):
 
 def _research_config(**overrides) -> BenchmarkConfig:
     defaults = dict(
-        orchestrator_api_key="dummy",
+        **dummy_config_kwargs(),
         use_web_research=True,
         use_hf_discovery=False,
         search_backend="keyless",
@@ -178,15 +181,23 @@ def _sample_brief() -> ResearchBrief:
             ResearchSeedSource(title="Seed One", url="https://ex.com/seed1", why_useful="grounding"),
             ResearchSeedSource(title="Seed Two", url="https://ex.com/seed2", why_useful="examples"),
         ],
-        challenge_effort_anchors={"E1": "lookup", "E4": "expert synthesis"},
+        findings=["A retained finding backed by Seed One."],
+        source_materials=[
+            ResearchSourceMaterial(
+                title="Seed One",
+                url="https://ex.com/seed1",
+                content="Complete retained source text.",
+            )
+        ],
+        challenge_effort_anchors={"E1": "lookup", "E3": "expert synthesis"},
     )
 
 
 # ---------------------------------------------------------------------------
 # Graceful no-run conditions
 # ---------------------------------------------------------------------------
-def test_deep_research_returns_none_without_orchestrator_key() -> None:
-    config = _research_config(orchestrator_api_key=None)
+def test_deep_research_returns_none_without_research_key() -> None:
+    config = _research_config(research_api_key=None)
     assert run_deep_research("evaluate tax law reasoning", config) is None
 
 
@@ -220,7 +231,10 @@ def test_deep_research_stops_when_reflection_reports_no_gaps(monkeypatch) -> Non
     assert search_calls == ["q1", "q2"]
     assert brief.field_overview.startswith("Tax law reasoning")
     assert [t.name for t in brief.taxonomy] == ["statute_interpretation", "deduction_analysis"]
-    assert brief.challenge_effort_anchors["E4"] == "multi-jurisdiction planning"
+    assert brief.challenge_effort_anchors["E3"] == "multi-jurisdiction planning"
+    assert brief.findings == ["finding one (source: https://ex.com/1)"]
+    assert brief.source_materials
+    assert brief.source_materials[0].content.startswith("page text of https://ex.com/")
 
 
 def test_deep_research_runs_follow_up_round_then_stops(monkeypatch) -> None:
@@ -325,7 +339,11 @@ def test_planner_resources_include_research_brief() -> None:
     assert '"field_overview": "Overview of the domain."' in resources
     assert '"name": "subskill_a"' in resources
     assert '"name": "BenchA"' in resources
-    assert '"E4": "expert synthesis"' in resources
+    assert '"E3": "expert synthesis"' in resources
+    assert '"findings": [' in resources
+    assert '"source_material_index": [' in resources
+    assert '"content_chars": 30' in resources
+    assert "Complete retained source text." not in resources
 
 
 def test_planner_resources_mark_deepresearch_directory_empty_when_absent() -> None:
@@ -360,7 +378,7 @@ def test_generator_prefers_brief_seed_sources(monkeypatch) -> None:
 
     monkeypatch.setattr(generator_module, "web_search", fake_web_search)
     config = BenchmarkConfig(
-        orchestrator_api_key="dummy",
+        **dummy_config_kwargs(),
         use_hf_discovery=False,
         use_web_research=True,
         max_research_sources=3,
@@ -384,6 +402,26 @@ def test_generator_seed_sources_respect_cap_and_no_research_dimensions() -> None
     )
     sources = _select_research_sources(_dimension(needs_research=False), config)
     assert [s.uri for s in sources] == ["https://ex.com/seed1"]
+
+
+def test_source_context_reuses_retained_material_without_refetch(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.generation.generator.fetch_url_text",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not refetch")),
+    )
+
+    context = _source_context(
+        [
+            BenchmarkSource(
+                kind=SourceKind.web,
+                uri="https://ex.com/seed1",
+                title="Seed One",
+            )
+        ],
+        _sample_brief(),
+    )
+
+    assert "Complete retained source text." in context
 
 
 # ---------------------------------------------------------------------------
@@ -469,7 +507,17 @@ def test_render_brief_markdown_covers_all_sections() -> None:
 def test_compact_brief_context_is_compact() -> None:
     brief = _sample_brief()
     context = compact_brief_context(brief)
-    assert set(context) == {"field_overview", "taxonomy", "existing_benchmarks", "challenge_effort_anchors"}
+    assert set(context) == {
+        "field_overview",
+        "taxonomy",
+        "existing_benchmarks",
+        "findings",
+        "seed_sources",
+        "citations",
+        "source_material_index",
+        "challenge_effort_anchors",
+    }
+    assert "content" not in context["source_material_index"][0]
 
 
 # ---------------------------------------------------------------------------
@@ -477,14 +525,34 @@ def test_compact_brief_context_is_compact() -> None:
 # ---------------------------------------------------------------------------
 def test_pipeline_attaches_and_persists_brief(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr("evalclaw.pipeline.run_deep_research", lambda goal, config, **kwargs: _sample_brief())
+    monkeypatch.setattr("evalclaw.pipeline.translate_goal_to_english", lambda goal, config: goal)
+    dimension = EvalDimension(
+        id="summarization",
+        name="Summarization",
+        description="Summarize meeting notes.",
+        approach="Use grounded meeting-note prompts.",
+    )
+    spec = EvalSpec(objective="Evaluate summarization", dimensions=[dimension])
+    item = BenchmarkItem(
+        id="summary_1",
+        dimension_id=dimension.id,
+        task_type=TaskType.generation,
+        prompt="Summarize the supplied meeting notes and preserve all decisions.",
+        rubric="Score factual coverage and concision.",
+    )
+    dataset = BenchmarkDataset(spec=spec, items=[item])
+    qc_report = QcReport(passed_item_ids=[item.id], quality_score=1.0)
+    monkeypatch.setattr(
+        "evalclaw.pipeline.build_benchmark_dataset_with_qc_loop",
+        lambda goal, config, **kwargs: (spec, dataset, qc_report),
+    )
     config = BenchmarkConfig(
         use_deep_research=True,
         use_web_research=False,
         use_hf_discovery=False,
-        task_builder="local",
         run_targets=False,
         environment_claw=False,
-        scale_budget=ScaleBudget.low,  # keep the fallback dataset small so QC stays fast
+        scale_budget=ScaleBudget.low,
         output_dir=str(tmp_path),
     )
 
@@ -537,7 +605,7 @@ def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
             "--planner-model", "planner-model", "--planner-api-key", "planner-key",
             "--task-builder-model", "builder-model", "--task-builder-api-key", "builder-key",
             "--qc-model", "qc-model", "--qc-api-key", "qc-key",
-            "--judge-model", "judge-model", "--judge-api-key", "judge-key",
+            "--judge-model", "judge-model",
             "--research-model", "research-model", "--research-api-key", "research-key",
             "--loop3-model", "loop3-model", "--loop3-api-key", "loop3-key",
         ],
@@ -546,7 +614,7 @@ def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
     assert captured["config"].planner_model == "planner-model"
     assert captured["config"].task_builder_model == "builder-model"
     assert captured["config"].qc_model == "qc-model"
-    assert captured["config"].judge_model == "judge-model"
+    assert captured["config"].judge_models[0].model == "judge-model"
     assert captured["config"].research_model == "research-model"
     assert captured["config"].loop3_model == "loop3-model"
 

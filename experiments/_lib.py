@@ -27,13 +27,12 @@ DEFAULT_CONFIG: dict = {
         "Evaluate models' understanding of materials science laboratory safety",
         "Evaluate an agent's ability to understand and modify a legacy codebase",
     ],
-    "orchestrator_model": "azure/gpt-4o",
+    "role_model": "azure/gpt-4o",
     "strong_target": "azure/gpt-4o",
     "weak_target": "azure/gpt-4o-mini",
     "embedding_model": None,  # e.g. "azure/text-embedding-3-small"
     "scale_budget": "low",
     "search_backend": "auto",
-    "questions_per_dimension": 3,
     "max_research_iterations": 3,
     "item_audit_sample_per_dimension": 3,
     "item_audit_sample_cap": 12,
@@ -306,7 +305,7 @@ def _call_orchestrator_json(orch: dict, system: str, payload: dict, call: Callab
 def audit_dimension_coverage(goal: str, spec, orch: dict, *, call: Callable | None = None) -> dict:
     """LLM-as-judge audit of spec dimension coverage/relevance (1-5)."""
     if not orch.get("api_key"):
-        return {"skipped": "no orchestrator API key"}
+        return {"skipped": "no role API key"}
     dimensions = [
         {"id": d.id, "name": d.name, "description": d.description}
         for d in getattr(spec, "dimensions", [])
@@ -328,7 +327,7 @@ def audit_dimension_coverage(goal: str, spec, orch: dict, *, call: Callable | No
 def audit_item_validity(goal: str, items: Sequence, orch: dict, *, call: Callable | None = None) -> dict:
     """LLM audit of a sample of items: valid/invalid + reason -> validity rate."""
     if not orch.get("api_key"):
-        return {"skipped": "no orchestrator API key"}
+        return {"skipped": "no role API key"}
     if not items:
         return {"skipped": "no items to audit"}
     payload_items = [

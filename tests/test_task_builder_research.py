@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import json
 
-from evalclaw.construction.research import _append_tool_results, run_task_builder_research
+from evalclaw.construction.research import (
+    _append_tool_results,
+    _execute_research_tool,
+    run_task_builder_research,
+)
 from evalclaw.construction.resources import _select_blueprint_sources
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.models.llm import TargetToolModelResponse
@@ -14,9 +18,12 @@ from evalclaw.types import (
     ChallengeEffort,
     EvalDimension,
     EvalSpec,
+    ResearchBrief,
+    ResearchSourceMaterial,
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
+from tests.config_helpers import dummy_config_kwargs
 
 
 def _openai_tool_response(call: ToolCall) -> TargetToolModelResponse:
@@ -103,7 +110,7 @@ def test_blueprint_source_search_requires_explicit_research_need(monkeypatch) ->
     sources = _select_blueprint_sources(
         dimension,
         blueprint,
-        BenchmarkConfig(orchestrator_api_key="dummy", use_web_research=True),
+        BenchmarkConfig(**dummy_config_kwargs(), use_web_research=True),
     )
 
     assert sources == []
@@ -177,8 +184,8 @@ def test_task_builder_research_executes_search_and_returns_final_json(monkeypatc
         {"blueprint": {"id": "service_blueprint"}},
         system_prompt="Build a task.",
         config=BenchmarkConfig(
-            orchestrator_model="gpt-5",
-            orchestrator_api_key="test-key",
+            task_builder_model="gpt-5",
+            task_builder_api_key="test-key",
             use_web_research=True,
             search_backend="keyless",
             task_builder_research_max_calls=2,
@@ -191,6 +198,31 @@ def test_task_builder_research_executes_search_and_returns_final_json(monkeypatc
     tool_messages = captured[1]["messages"]
     assert any(message.get("role") == "tool" for message in tool_messages)
     assert "Evidence for reproducible service failure benchmark" in json.dumps(tool_messages)
+
+
+def test_task_builder_can_read_retained_deep_research_source() -> None:
+    result = _execute_research_tool(
+        ToolCall(
+            id="read_1",
+            name="read_research_source",
+            arguments={"url": "https://example.com/source"},
+        ),
+        BenchmarkConfig(
+            research_brief=ResearchBrief(
+                source_materials=[
+                    ResearchSourceMaterial(
+                        title="Retained source",
+                        url="https://example.com/source",
+                        content="Full retained evidence for task construction.",
+                    )
+                ]
+            )
+        ),
+        max_chars=50_000,
+    )
+
+    assert result.error is None
+    assert "Full retained evidence for task construction." in result.content
 
 
 def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) -> None:
@@ -233,8 +265,8 @@ def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) ->
         {"blueprint": {"id": "gui_blueprint"}},
         system_prompt="Build a task.",
         config=BenchmarkConfig(
-            orchestrator_model="claude-opus-4-6",
-            orchestrator_api_key="test-key",
+            task_builder_model="claude-opus-4-6",
+            task_builder_api_key="test-key",
             use_web_research=True,
             search_backend="keyless",
             task_builder_research_max_calls=2,
@@ -248,7 +280,7 @@ def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) ->
     assert captured[1][2]["content"][0]["tool_use_id"] == "fetch_1"
 
 
-def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
+def test_source_backed_task_builder_enables_research_loop(monkeypatch) -> None:
     captured: dict = {}
 
     def fake_research(payload, *, system_prompt, config):
@@ -261,7 +293,7 @@ def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
                         {
                             "id": "research_task",
                             "dimension_id": "agent_research",
-                            "challenge_effort": "E4",
+                            "challenge_effort": "E2",
                             "title": "Research task",
                             "prompt": "Inspect the workspace and produce the requested result.",
                             "environment": {
@@ -275,7 +307,7 @@ def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
                             "scoring": {"pass_criteria": "The requested result is complete."},
                             "metadata": {
                                 "challenge_effort_self_assessment": {
-                                    "requested_effort": "E4",
+                                    "requested_effort": "E2",
                                     "meets_requested_effort": True,
                                     "rationale": "The task uses a realistic state and a multi-constraint oracle.",
                                 }
@@ -294,7 +326,8 @@ def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
         name="Agent research",
         description="Evaluate evidence-grounded agent work.",
         approach="Use an executable workspace task.",
-        challenge_effort=ChallengeEffort.E4,
+        challenge_effort=ChallengeEffort.E2,
+        needs_research=True,
     )
     spec = EvalSpec(
         objective="Evaluate evidence-grounded agents.",
@@ -307,23 +340,39 @@ def test_e4_task_builder_enables_research_loop(monkeypatch) -> None:
         "Research workflow",
         task_type=TaskType.agent,
         content="Research workflow.",
-        challenge_effort=ChallengeEffort.E4,
+        challenge_effort=ChallengeEffort.E2,
         environment_type=AgentEnvironmentType.workspace,
+        source_plan={
+            "strategy": "source_backed",
+            "suggested_urls": ["https://example.com/source"],
+        },
     )
 
     suite = build_task_suite(
         spec,
         [blueprint],
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
+            **dummy_config_kwargs(),
             use_web_research=True,
             search_backend="keyless",
+            research_brief=ResearchBrief(
+                source_materials=[
+                    ResearchSourceMaterial(
+                        title="Retained source",
+                        url="https://example.com/source",
+                        content="Retained evidence.",
+                    )
+                ]
+            ),
         ),
     )
 
-    assert suite.tasks[0].challenge_effort == ChallengeEffort.E4
-    assert captured["payload"]["task_plan"]["blueprint"]["id"] == "research_blueprint"
-    assert "E4 construction effort" in captured["system_prompt"]
+    assert suite.tasks[0].challenge_effort == ChallengeEffort.E2
+    assert captured["payload"]["task_plan"]["builder_job_id"] == "research_blueprint"
+    assert captured["payload"]["resources"]["deep_research"]["source_material_index"][0][
+        "url"
+    ] == "https://example.com/source"
+    assert "read_research_source" in captured["system_prompt"]
 
 
 def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> None:
@@ -335,7 +384,7 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
             "id": task_id,
             "dimension_id": "agent_research",
             "task_type": "agent",
-            "challenge_effort": "E4",
+            "challenge_effort": "E3",
             "title": f"Task {task_index}",
             "prompt": prompt,
             "environment": {
@@ -348,9 +397,9 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
             },
             "scoring": {"pass_criteria": "The requested result is complete."},
             "metadata": {
-                "builder_blueprint_id": f"research_blueprint_{task_index}",
+                "builder_job_id": f"research_blueprint_{task_index}",
                 "challenge_effort_self_assessment": {
-                    "requested_effort": "E4",
+                    "requested_effort": "E3",
                     "meets_requested_effort": True,
                     "rationale": "The task uses a realistic state and deterministic oracle.",
                 },
@@ -392,7 +441,7 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
         name="Agent research",
         description="Evaluate evidence-grounded agent work.",
         approach="Use executable tasks.",
-        challenge_effort=ChallengeEffort.E4,
+        challenge_effort=ChallengeEffort.E3,
     )
     spec = EvalSpec(
         objective="Evaluate evidence-grounded agents.",
@@ -406,7 +455,7 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
             f"Research workflow {index}",
             task_type=TaskType.agent,
             content=f"Research workflow scenario {index}.",
-            challenge_effort=ChallengeEffort.E4,
+            challenge_effort=ChallengeEffort.E3,
             environment_type=AgentEnvironmentType.workspace,
             metadata={"content_focus": f"scenario {index}"},
         )
@@ -428,7 +477,7 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
         spec,
         blueprints,
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
+            **dummy_config_kwargs(),
             use_web_research=True,
             search_backend="keyless",
             task_builder_max_workers=1,

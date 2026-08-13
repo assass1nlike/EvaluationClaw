@@ -177,7 +177,6 @@ def _planner_review(
         "objective": dataset.spec.objective,
         "scale_budget": dataset.spec.scale_budget.value,
         "human_feedback": human_feedback,
-        "reference_model": config.reference_model.model_dump(mode="json") if config.reference_model else None,
         "dimensions": [dimension.model_dump(mode="json") for dimension in dataset.spec.dimensions],
         "dimension_dataset_summaries": _dimension_dataset_summaries(dataset, config),
         "target_counts": {
@@ -451,7 +450,7 @@ def apply_human_review_feedback(
     plan = plan_from_spec(dataset.spec, config, log=log)
     rebuilt, qc_report = build_dataset_from_spec_with_qc_loop(
         dataset.spec,
-        plan.blueprints,
+        plan.builder_jobs,
         config,
         log=log or (lambda _message: None),
     )

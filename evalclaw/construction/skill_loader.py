@@ -1,4 +1,4 @@
-"""Load only the environment-construction Skill references a Blueprint needs."""
+"""Load only the environment-construction Skill references a TaskDesign needs."""
 from __future__ import annotations
 
 import json

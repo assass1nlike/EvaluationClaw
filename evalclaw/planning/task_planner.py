@@ -1,35 +1,26 @@
-"""Skill-driven benchmark content and Blueprint planning."""
+"""Skill-driven benchmark content and TaskDesign planning."""
 from __future__ import annotations
 
 import json
 import os
 import re
-from collections import Counter
 from collections.abc import Callable
-from typing import Any
 
 from ..models.llm import call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..prompts.planner import BENCHMARK_PLANNER_SYSTEM_PROMPT
-from ..protocols.multimodal import text_requests_multimodal
-from ..protocols.science import text_requests_science
 from ..research.deep_research import compact_brief_context
 from ..types import (
     AgentEnvironmentType,
     BenchmarkConfig,
     BenchmarkPlan,
     BenchmarkPlanAudit,
-    BenchmarkPlanDimension,
-    EvalDimension,
     EvalSpec,
     Message,
-    Metric,
     TaskBlueprint,
-    TaskDesign,
     TaskType,
-    TaskTypeAllocation,
 )
-from .planner import _fallback_outline, _safe_scale_budget, _scale_budget_guidance
+from .planner import _safe_scale_budget, _scale_budget_guidance
 from .skill_loader import benchmark_planner_system_prompt
 
 
@@ -81,44 +72,19 @@ def _instruction_resource(
 ) -> str:
     scale_budget = _safe_scale_budget(config.scale_budget)
     constraints: dict[str, object] = {
-        "target_models": [
-            {"id": target.id, "provider": target.provider, "model": target.model}
-            for target in config.targets
-        ],
-        "target_models_are_optional": True,
         "scale_budget": scale_budget.value,
         "scale_budget_guidance": _scale_budget_guidance(scale_budget),
-        "default_questions_per_dimension_when_no_count_is_requested": (
-            config.questions_per_dimension
-        ),
         "count_policy": (
             "An explicit total task count in the user request overrides all defaults."
         ),
         "available_task_types": [task_type.value for task_type in TaskType],
-        "available_metrics": [metric.value for metric in Metric],
         "available_environment_types": [environment.value for environment in AgentEnvironmentType],
-        "reference_model": (
-            config.reference_model.model_dump(mode="json") if config.reference_model else None
-        ),
     }
     explicit_task_count = _explicit_total_task_count(goal)
     if explicit_task_count is not None:
         constraints["explicit_total_task_count"] = explicit_task_count
-    if config.reference_model is not None:
-        constraints["reference_model_response_policy"] = (
-            "For generation tasks only, request the reference_model_response Judge tool where "
-            "target-versus-reference comparison directly measures the requested capability."
-        )
-    if text_requests_multimodal(goal):
-        constraints["multimodal_policy"] = (
-            "The request explicitly asks for multimodal evaluation. Include only modalities "
-            "needed to measure the requested capability."
-        )
-    if text_requests_science(goal):
-        constraints["science_policy"] = (
-            "Make scientific evidence, assumptions, units, and scoring oracles explicit where relevant."
-        )
-
+    if config.source_backed_ratio is not None:
+        constraints["source_backed_ratio"] = config.source_backed_ratio
     sections = [
         "# User Evaluation Request",
         "",
@@ -168,126 +134,6 @@ def _planner_resources(instruction: str, config: BenchmarkConfig) -> str:
     )
 
 
-def _environment_for_dimension(
-    dimension: EvalDimension,
-    task_type: TaskType,
-) -> dict[str, Any]:
-    if task_type != TaskType.agent:
-        return {}
-    text = " ".join(
-        [dimension.name, dimension.description, dimension.approach, *dimension.item_requirements]
-    ).lower()
-    if any(token in text for token in ("browser", "desktop", "gui", "spreadsheet")):
-        category = AgentEnvironmentType.gui_desktop.value
-    elif any(token in text for token in ("docker", "container", "shell", "pipeline")):
-        category = AgentEnvironmentType.docker_workspace.value
-    elif any(token in text for token in ("code", "repository", "tests")):
-        category = AgentEnvironmentType.code_sandbox.value
-    else:
-        category = AgentEnvironmentType.workspace.value
-    return {
-        "category": category,
-        "purpose": "Provide the execution context required by this interactive task group.",
-    }
-
-
-def _allocations_for_dimension(dimension: EvalDimension) -> list[TaskTypeAllocation]:
-    count = max(1, int(dimension.target_item_count or 1))
-    if dimension.task_type_allocation:
-        return dimension.task_type_allocation
-    task_types = list(dict.fromkeys(dimension.task_types or [TaskType.generation]))[:count]
-    quotient, remainder = divmod(count, len(task_types))
-    return [
-        TaskTypeAllocation(
-            task_type=task_type,
-            count=quotient + (1 if index < remainder else 0),
-        )
-        for index, task_type in enumerate(task_types)
-    ]
-
-
-def _local_plan_from_spec(spec: EvalSpec) -> BenchmarkPlan:
-    dimensions: list[BenchmarkPlanDimension] = []
-    for dimension in spec.dimensions:
-        task_designs: list[TaskDesign] = []
-        blueprints: list[TaskBlueprint] = []
-        for index, allocation in enumerate(_allocations_for_dimension(dimension), 1):
-            environment = _environment_for_dimension(dimension, allocation.task_type)
-            design_id = f"{dimension.id}_{allocation.task_type.value}_{index}"
-            task_designs.append(
-                TaskDesign(
-                    id=design_id,
-                    task_type=allocation.task_type,
-                    task_count=allocation.count,
-                    challenge_effort=dimension.challenge_effort,
-                    content_design={
-                        "purpose": dimension.measurement_target or dimension.description,
-                        "description": dimension.description,
-                        "coverage_requirements": list(dimension.item_requirements),
-                        "variation_requirements": [
-                            "Make every concrete task materially distinct."
-                        ],
-                        "exclusions": [dimension.boundary] if dimension.boundary else [],
-                    },
-                    environment_requirements=environment,
-                    interaction_requirements=(
-                        {"followup_mode": "scripted"}
-                        if allocation.task_type == TaskType.multi_turn
-                        else {}
-                    ),
-                    scoring_contract={
-                        "components": [
-                            {
-                                "method": "task-type-appropriate deterministic or rubric scoring",
-                                "criteria": ["Measure the requested capability directly."],
-                            }
-                        ]
-                    },
-                    source_plan={
-                        "strategy": "source_backed" if dimension.needs_research else "self_contained",
-                        "search_queries": list(dimension.research_queries),
-                    },
-                    construction_requirements=list(dimension.item_requirements),
-                    metadata={"planning_source": "local_fallback"},
-                )
-            )
-            blueprints.append(
-                TaskBlueprint(
-                    id=f"{design_id}_blueprint",
-                    dimension_id=dimension.id,
-                    title=f"{dimension.name} — {allocation.task_type.value}",
-                    task_design_ids=[design_id],
-                    grouping_rationale="This fallback work package contains one coherent task group.",
-                    workload_reason="The task group is handled by one local Builder job.",
-                    metadata={"planning_source": "local_fallback"},
-                )
-            )
-        dimensions.append(
-            BenchmarkPlanDimension(
-                id=dimension.id,
-                name=dimension.name,
-                measurement_target=dimension.measurement_target or dimension.description,
-                boundary=dimension.boundary or "Exclude capabilities outside this dimension.",
-                approach=dimension.approach,
-                content_requirements=list(dimension.item_requirements),
-                exclusions=[dimension.boundary] if dimension.boundary else [],
-                task_designs=task_designs,
-                blueprints=blueprints,
-            )
-        )
-    return BenchmarkPlan(
-        id=spec.id,
-        objective=spec.objective,
-        metrics=spec.metrics,
-        constraints=spec.constraints,
-        planner_notes=spec.planner_notes,
-        dimensions=dimensions,
-        subjects=spec.subjects,
-        scale_budget=spec.scale_budget,
-        audit=BenchmarkPlanAudit(passed=True),
-    )
-
-
 def _audit_plan(
     plan: BenchmarkPlan,
     *,
@@ -301,7 +147,6 @@ def _audit_plan(
         issues.append("Dimension ids must be unique.")
 
     all_design_ids: set[str] = set()
-    all_blueprint_ids: set[str] = set()
     allowed_task_types = set(TaskType)
     allowed_environments = {environment.value for environment in AgentEnvironmentType}
     aliases = {
@@ -325,7 +170,6 @@ def _audit_plan(
         if repeated:
             issues.append(f"{prefix}: TaskDesign ids must be globally unique: {sorted(repeated)}.")
         all_design_ids.update(local_design_ids)
-        design_by_id = {design.id: design for design in dimension.task_designs}
         for design in dimension.task_designs:
             design_prefix = f"{prefix}/{design.id or 'unnamed_task_design'}"
             if design.task_type not in allowed_task_types:
@@ -365,38 +209,6 @@ def _audit_plan(
                 if not url.lower().startswith(("https://", "http://")):
                     issues.append(f"{design_prefix}: suggested URL is invalid: {url!r}.")
 
-        references: list[str] = []
-        for blueprint in dimension.blueprints:
-            blueprint_prefix = f"{prefix}/{blueprint.id or 'unnamed_blueprint'}"
-            if blueprint.dimension_id or blueprint.task_designs:
-                issues.append(
-                    f"{blueprint_prefix}: Planner Blueprints must reference TaskDesign ids instead "
-                    "of duplicating resolved task content."
-                )
-            if blueprint.id in all_blueprint_ids:
-                issues.append(f"{blueprint_prefix}: Blueprint ids must be globally unique.")
-            all_blueprint_ids.add(blueprint.id)
-            if not all([blueprint.id, blueprint.title, blueprint.grouping_rationale, blueprint.workload_reason]):
-                issues.append(
-                    f"{blueprint_prefix}: id, title, grouping_rationale, and workload_reason are required."
-                )
-            if not blueprint.task_design_ids:
-                issues.append(f"{blueprint_prefix}: task_design_ids must not be empty.")
-            if len(blueprint.task_design_ids) != len(set(blueprint.task_design_ids)):
-                issues.append(f"{blueprint_prefix}: task_design_ids contains duplicates.")
-            unknown = set(blueprint.task_design_ids) - set(design_by_id)
-            if unknown:
-                issues.append(
-                    f"{blueprint_prefix}: references TaskDesigns outside this dimension: {sorted(unknown)}."
-                )
-            references.extend(blueprint.task_design_ids)
-        reference_counts = Counter(references)
-        missing = [design_id for design_id in local_design_ids if reference_counts[design_id] == 0]
-        duplicated = [design_id for design_id in local_design_ids if reference_counts[design_id] > 1]
-        if missing:
-            issues.append(f"{prefix}: TaskDesigns missing from Blueprints: {missing}.")
-        if duplicated:
-            issues.append(f"{prefix}: TaskDesigns assigned to multiple Blueprints: {duplicated}.")
 
     planned_task_count = sum(
         design.task_count for dim in plan.dimensions for design in dim.task_designs
@@ -466,7 +278,7 @@ def _run_planner(
                 + "\n</FILE>"
             )
         if log:
-            log(f"  Planner: designing TaskDesigns and Blueprints ({attempt}/{max_attempts}).")
+            log(f"  Planner: designing dimensions and TaskDesigns ({attempt}/{max_attempts}).")
         try:
             raw = call_llm(
                 [Message(role="user", content=user_content)],
@@ -502,8 +314,8 @@ def _run_planner(
             if log:
                 log(
                     f"  Planner: completed {len(completed.dimensions)} dimension(s), "
-                    f"{len(completed.blueprints)} Blueprint(s), and "
-                    f"{sum(blueprint.planned_task_count for blueprint in completed.blueprints)} task(s)."
+                    f"{len(completed.builder_jobs)} TaskDesign builder job(s), and "
+                    f"{sum(job.planned_task_count for job in completed.builder_jobs)} task(s)."
                 )
             return completed
     raise RuntimeError(
@@ -519,7 +331,7 @@ def plan_benchmark(
     previous_plan: BenchmarkPlan | None = None,
     log: Callable[[str], None] | None = None,
 ) -> BenchmarkPlan:
-    """Turn one natural-language request into all TaskDesigns and Blueprints."""
+    """Turn one natural-language request into a complete set of TaskDesigns."""
     instruction = _instruction_resource(
         goal,
         config,
@@ -533,18 +345,10 @@ def plan_benchmark(
             log=log,
             expected_task_count=_explicit_total_task_count(goal),
         )
-    if str(config.task_builder or "llm").lower() == "llm":
-        raise RuntimeError(
-            "Planner model is not configured. LLM construction mode fails closed instead of "
-            "silently substituting a local plan; configure the Planner role or explicitly use "
-            "task_builder='local'/'auto' for offline fallback planning."
-        )
-    fallback = _fallback_outline(
-        goal,
-        [target.id for target in config.targets] or None,
-        _safe_scale_budget(config.scale_budget),
+    raise RuntimeError(
+        "Planner model is not configured. Benchmark planning requires a configured Planner role "
+        "and does not substitute a local plan."
     )
-    return _local_plan_from_spec(fallback)
 
 
 def plan_from_spec(
@@ -555,17 +359,13 @@ def plan_from_spec(
 ) -> BenchmarkPlan:
     """Re-plan an explicitly supplied benchmark outline through the same Skill path."""
     if not role_model_settings(config, "planner").configured:
-        if str(config.task_builder or "llm").lower() == "llm":
-            raise RuntimeError(
-                "Planner model is not configured. LLM construction mode fails closed instead of "
-                "silently substituting a local plan; configure the Planner role or explicitly use "
-                "task_builder='local'/'auto' for offline fallback planning."
-            )
-        return _local_plan_from_spec(spec)
+        raise RuntimeError(
+            "Planner model is not configured. Benchmark re-planning requires a configured Planner role."
+        )
     instruction = (
         "Design the complete benchmark plan represented by the following existing outline. "
-        "Preserve its objective, dimensions, task counts, task types, metrics, and constraints, "
-        "while supplying the TaskDesign detail and Blueprint allocation required by the Planner Skill.\n\n"
+        "Preserve its objective, dimensions, task counts, task types, scoring contracts, and constraints, "
+        "while supplying the complete TaskDesign detail required by the Planner Skill.\n\n"
         + json.dumps(spec.model_dump(mode="json"), ensure_ascii=False, indent=2)
     )
     expected_task_count = (
@@ -588,7 +388,7 @@ def plan_blueprints_for_spec(
     *,
     log: Callable[[str], None] | None = None,
 ) -> list[TaskBlueprint]:
-    return plan_from_spec(spec, config, log=log).blueprints
+    return plan_from_spec(spec, config, log=log).builder_jobs
 
 
 __all__ = ["plan_benchmark", "plan_blueprints_for_spec", "plan_from_spec"]

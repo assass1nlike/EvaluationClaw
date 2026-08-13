@@ -737,7 +737,7 @@ def task_structure_issues(
     if task.task_type in {TaskType.generation, TaskType.multi_turn} and not _has_scoring_guidance(task):
         issues.append("generation and multi_turn tasks must provide a judge rubric or scoring guidance.")
 
-    registered_judge_tools = {"python_tests", "reference_model_response"}
+    registered_judge_tools = {"python_tests"}
     for judge_tool in task.judge_tools:
         if judge_tool.tool not in registered_judge_tools:
             issues.append(f"Unsupported judge tool: {judge_tool.tool!r}.")
@@ -750,9 +750,6 @@ def task_structure_issues(
                 issues.append("python_tests requires config.test_code.")
             elif "{model_output}" not in test_code:
                 issues.append("python_tests config.test_code must consume {model_output}.")
-        if judge_tool.tool == "reference_model_response" and task.task_type != TaskType.generation:
-            issues.append("reference_model_response is only valid for generation tasks.")
-
     if task.task_type == TaskType.agent and task.environment is None:
         issues.append("agent tasks must provide an executable environment.")
 
@@ -807,11 +804,11 @@ def task_structure_issues(
     if blueprint is not None:
         if expected_environment is None:
             if task.environment is not None:
-                issues.append("Task must omit environment because the blueprint does not request one.")
+                issues.append("Task must omit environment because the TaskDesign does not request one.")
             return issues
         if task.environment is None:
             issues.append(
-                f"Task must provide environment because blueprint.environment_type={expected_environment.value}."
+                f"Task must provide environment because the TaskDesign requests {expected_environment.value}."
             )
             return issues
     elif task.environment is None:
@@ -822,7 +819,7 @@ def task_structure_issues(
     env = task.environment
     if env.type != expected_environment:
         issues.append(
-            f"Task environment.type must match blueprint.environment_type={expected_environment.value}."
+            f"Task environment.type must match the TaskDesign requirement {expected_environment.value}."
         )
     artifact_requirement = str(
         env.evaluation.get("artifact_requirement")

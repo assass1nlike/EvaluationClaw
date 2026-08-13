@@ -218,10 +218,10 @@ def _task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
         f"- Task suite: {suite.id}",
         f"- Tasks: {len(suite.tasks)}",
         f"- Resources: {len(suite.resources)}",
-        f"- Blueprints: {len(suite.blueprints)}",
+        f"- Builder jobs: {len(suite.builder_jobs)}",
         "",
     ]
-    if suite.blueprints:
+    if suite.builder_jobs:
         rows = [
             [
                 blueprint.id,
@@ -234,11 +234,11 @@ def _task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
                 blueprint.environment_type.value if blueprint.environment_type else "-",
                 blueprint.title,
             ]
-            for blueprint in suite.blueprints
+            for blueprint in suite.builder_jobs
         ]
         lines.extend([
             _markdown_table(
-                ["Blueprint", "Dimension", "Types", "Tasks", "Env", "Title"],
+                ["Builder Job", "Dimension", "Types", "Tasks", "Env", "TaskDesign"],
                 rows,
             ),
             "",
@@ -392,20 +392,6 @@ def _format_transcript(raw_response: str, item: BenchmarkItem | None) -> str:
                 )
             chunks.extend(["", "Final state:", json.dumps(parsed.get("final_state", {}), ensure_ascii=False, indent=2)])
             return "\n".join(chunks)
-    if (
-        task_type == TaskType.generation
-        and item is not None
-        and any(tool.tool == "reference_model_response" for tool in item.judge_tools)
-        and isinstance(parsed, dict)
-    ):
-        return "\n\n".join(
-            [
-                f"Winner: {parsed.get('winner', '-')}",
-                f"Reference model: {parsed.get('reference_model', '-')}",
-                "Target response:\n" + _clip(str(parsed.get("target_response", "")), 1600),
-                "Reference response:\n" + _clip(str(parsed.get("reference_response", "")), 1600),
-            ]
-        )
     return raw_response
 
 

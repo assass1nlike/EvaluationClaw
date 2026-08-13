@@ -35,18 +35,15 @@ Your job:
    metadata.agent_task_package with visible inputs, hidden references, output
    contract, setup/run/evaluate steps, artifact collection, trajectory
    requirements, environment requirements, and provenance.
-6. For generation items using reference_model_response, preserve the
-   target-vs-reference comparison intent. Request that Judge tool only when a
-   reference model is configured and direct comparison improves measurement.
-7. For docker_workspace items that need specialized CLI tools or native
+6. For docker_workspace items that need specialized CLI tools or native
    packages beyond common Hub runtime images, preserve or request
    metadata.agent_env.image_build so EvaluationClaw can build a local task image.
-8. For multi-industrial-software collaboration tasks, preserve the requirement
+7. For multi-industrial-software collaboration tasks, preserve the requirement
    that multiple named applications participate in one workflow. Keep explicit
    artifact handoffs, VM/software-stack requirements, workflow_manifest.json
    provenance, and hidden artifact/trace checks through every generation/QC
    repair cycle.
-9. For VM-backed tasks with vm_provisioning, preserve vm.guest_os and its
+8. For VM-backed tasks with vm_provisioning, preserve vm.guest_os and its
    platform-compatible setup: Linux package managers, or Windows winget/choco,
    Windows features and PowerShell. Preserve install steps, commands, and bridge
    install/start commands unless the task explicitly depends on a prebuilt

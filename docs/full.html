@@ -139,7 +139,7 @@
     </div>
     <p>仅当启用 Deep Research 且配置中还没有现成研究摘要时才运行。Research 连接不可用、Web 研究关闭或搜索后端为 none 时，本步骤返回空，Planner 继续只依赖需求和自身知识。</p>
     <p>每轮研究依次完成：生成有限数量的查询；搜索网页并抓取少量候选页面；把材料压缩为与测评设计相关的发现；检查领域结构、已有 benchmark、来源和构题投入参照是否仍有缺口；如有缺口则生成下一轮查询。达到完成条件或轮数上限后，框架把发现整理为领域概览、能力分类、已有 benchmark、种子来源、示例、构题投入参照和引用。整理失败时使用已收集材料生成尽力而为的摘要。</p>
-    <p>Planner 实际收到的是压缩版本，目前包含领域概览、能力分类、已有 benchmark 及其已知不足、E1–E4 构题投入参照。完整种子来源、示例和引用保留在研究摘要和最终产物中，但不进入当前 Planner 的压缩资源。</p>
+    <p>Planner 实际收到的是压缩版本，目前包含领域概览、能力分类、已有 benchmark 及其已知不足、E1–E3 构题投入参照。完整种子来源、示例和引用保留在研究摘要和最终产物中，但不进入当前 Planner 的压缩资源。</p>
   </section>
 
   <section id="plan">
@@ -154,7 +154,7 @@
     <h3>4.1 规划中的三个层级</h3>
     <ol>
       <li><strong>Dimension：</strong>一个独立测量维度，说明测量目标、与相邻维度的边界、测量方法、必需内容和排除项。</li>
-      <li><strong>TaskDesign：</strong>Dimension 内的一组任务设计。它指定题型、题数、E1–E4 构题投入、内容范围、输入、交互、环境、输出、评分、来源和构建要求。简单题可以用一个 TaskDesign 描述一批题；复杂题可以用一个 TaskDesign 具体描述一道题。</li>
+      <li><strong>TaskDesign：</strong>Dimension 内的一组任务设计。它指定题型、题数、E1–E3 构题投入、内容范围、输入、交互、环境、输出、评分、来源和构建要求。简单题可以用一个 TaskDesign 描述一批题；复杂题可以用一个 TaskDesign 具体描述一道题。</li>
       <li><strong>Blueprint：</strong>一次 Task Builder 调用负责的工作包。它只引用本维度中的一个或多个 TaskDesign，并解释这些题组为什么适合一起构建、为什么总工作量能够由一次调用完成。</li>
     </ol>
     <p>同一 Blueprint 可以包含多道题和多种题型，但所有 TaskDesign 必须属于同一 Dimension。所有 Blueprint 的并集必须让每个 TaskDesign 恰好出现一次。</p>
@@ -182,7 +182,7 @@
     <h3>5.2 Builder 实际收到的内容</h3>
     <p>基础 system prompt 要求 Builder 实现一个 Planner 已设计好的 Blueprint，并返回纯 JSON。user payload 包含整套测评目标、当前维度、当前 Blueprint、其完整 TaskDesign、所需任务总数、各题型数量、各 TaskDesign 数量、来源上下文以及任务字段契约。</p>
     <p>没有环境要求时，请求中不出现环境构题协议。存在环境要求时，框架根据每个 TaskDesign 的环境类别，确定性地加载环境构题 Skill，并只附加当前 Blueprint 用到的参考说明。例如普通 workspace 不会收到 Docker、GUI 或 VM 说明；混合 Blueprint 中的路由表会标明环境说明适用于哪些 TaskDesign。</p>
-    <p>当当前维度的构题投入为 E4、这是首次构建、Web 研究可用且没有进入降投入恢复时，Builder 可以在受限次数和字符预算内搜索或抓取公开材料。结构修复、QC 修复和截断后的降投入恢复都不开放这项搜索。</p>
+    <p>当当前维度的构题投入为 E3、这是首次构建、Web 研究可用且没有进入降投入恢复时，Builder 可以在受限次数和字符预算内搜索或抓取公开材料。结构修复、QC 修复和截断后的降投入恢复都不开放这项搜索。</p>
 
     <h3>5.3 三种 Builder 模式</h3>
     <ul>
@@ -206,7 +206,7 @@
 
     <h3>6.2 输出截断恢复</h3>
     <p>如果响应因输出预算耗尽而截断，框架不解析残缺 JSON，也不从中间续写。它从头发起一次新的 LiteLLM 调用，要求减少构题与推理投入，优先保证完整任务和确定性评分。第二次仍截断时，该 Blueprint 构建失败。</p>
-    <p>降投入恢复得到的任务继续保留 Planner 要求的 E1–E4 标签，但会附加“投入等级未必忠实”的标记。这个标记不会代替后续结构检查和 QC。</p>
+    <p>降投入恢复得到的任务继续保留 Planner 要求的 E1–E3 标签，但会附加“投入等级未必忠实”的标记。这个标记不会代替后续结构检查和 QC。</p>
 
     <div class="constraint">
       <p><strong>当前环境一致性约束：</strong>环境 Skill 的路由可以按 TaskDesign 选择参考说明，但结构验证仍通过 Blueprint 的单一环境类型检查任务。因此，一个 Blueprint 当前应只包含同一种环境语义；把静态 TaskDesign 与环境 TaskDesign 混在同一 Blueprint，或在同一 Blueprint 混合多种环境类型，会与后续结构验证不一致。</p>

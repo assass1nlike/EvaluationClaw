@@ -6,7 +6,7 @@ from .providers import (
     default_api_key,
     infer_provider,
     normalize_provider,
-    orchestrator_defaults,
+    resolve_role_connection,
     target_from_model,
 )
 
@@ -18,6 +18,6 @@ __all__ = [
     "extract_json",
     "infer_provider",
     "normalize_provider",
-    "orchestrator_defaults",
+    "resolve_role_connection",
     "target_from_model",
 ]

@@ -33,13 +33,14 @@ from ..types import (
     ResearchCitation,
     ResearchExemplarItem,
     ResearchSeedSource,
+    ResearchSourceMaterial,
     ResearchTaxonomyEntry,
 )
 from .backends import fetch_url_text, web_search
 
 MAX_QUERIES_PER_ROUND = 4
 MAX_FETCHES_PER_ROUND = 3
-FETCH_MAX_CHARS = 2500
+FETCH_MAX_CHARS = 50_000
 MAX_FINDINGS = 60
 
 
@@ -124,9 +125,13 @@ def _gather_round(
                 fetch_urls,
             )
         )
+    titles_by_url = {
+        str(citation.get("url") or ""): str(citation.get("title") or citation.get("url") or "")
+        for citation in citations
+    }
     for url, text in zip(fetch_urls, fetched_text):
         if text:
-            material.append({"url": url, "content": text})
+            material.append({"url": url, "title": titles_by_url.get(url, url), "content": text})
     return material, citations
 
 
@@ -392,12 +397,27 @@ def run_deep_research(
 
     findings: list[str] = []
     citations: list[dict] = []
+    source_materials: dict[str, ResearchSourceMaterial] = {}
     fetched_urls: set[str] = set()
     max_rounds = max(1, config.max_research_iterations)
 
     for round_index in range(1, max_rounds + 1):
         material, round_citations = _gather_round(queries, config, fetched_urls)
         citations.extend(round_citations)
+        for entry in material:
+            url = str(entry.get("url") or "")
+            content = str(entry.get("content") or "")
+            if not url or not content:
+                continue
+            retained = ResearchSourceMaterial(
+                title=str(entry.get("title") or url),
+                url=url,
+                query=str(entry.get("query") or ""),
+                content=content,
+            )
+            current = source_materials.get(url)
+            if current is None or len(retained.content) > len(current.content):
+                source_materials[url] = retained
         new_findings = _compress(goal, material, config)
         findings.extend(new_findings)
         _log(
@@ -411,7 +431,13 @@ def run_deep_research(
         queries = reflection["follow_up_queries"]
         _log(f"  [deep-research] Gaps: {reflection['gaps']} -> follow-up queries: {queries}")
 
-    return _synthesize(goal, findings, citations, hf_sources, config)
+    brief = _synthesize(goal, findings, citations, hf_sources, config)
+    return brief.model_copy(
+        update={
+            "findings": findings[-MAX_FINDINGS:],
+            "source_materials": list(source_materials.values()),
+        }
+    )
 
 
 def compact_brief_context(brief: ResearchBrief) -> dict:
@@ -429,6 +455,21 @@ def compact_brief_context(brief: ResearchBrief) -> dict:
                 "known_weaknesses": benchmark.known_weaknesses[:3],
             }
             for benchmark in brief.existing_benchmarks[:10]
+        ],
+        "findings": brief.findings[:30],
+        "seed_sources": [
+            source.model_dump(mode="json") for source in brief.seed_sources[:10]
+        ],
+        "citations": [
+            citation.model_dump(mode="json") for citation in brief.citations[:20]
+        ],
+        "source_material_index": [
+            {
+                "title": material.title,
+                "url": material.url,
+                "content_chars": len(material.content),
+            }
+            for material in brief.source_materials
         ],
         "challenge_effort_anchors": dict(list(brief.challenge_effort_anchors.items())[:4]),
     }
