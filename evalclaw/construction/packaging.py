@@ -490,8 +490,9 @@ def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkCon
     dimension_by_id = {dimension.id: dimension for dimension in suite.dimensions}
     for index, task in enumerate(suite.tasks, 1):
         metadata = dict(task.metadata)
+        builder_job_id = metadata.get("builder_job_id")
         blueprint = next(
-            (candidate for candidate in suite.blueprints if candidate.id == metadata.get("builder_blueprint_id")),
+            (candidate for candidate in suite.builder_jobs if candidate.id == builder_job_id),
             None,
         )
         task_design_id = str(metadata.get("task_design_id") or "")
@@ -521,7 +522,7 @@ def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkCon
         )
         metadata["task_structure_validation"] = task_structure_validation_metadata(structure_issues)
         metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = _task_content_summary(task)
-        metadata.setdefault("builder_blueprint_id", task.metadata.get("builder_blueprint_id", ""))
+        metadata.setdefault("builder_job_id", builder_job_id or "")
         task_package: dict[str, Any] | None = None
         if task.task_type == TaskType.multi_turn:
             metadata["task_agent"] = _task_agent_metadata_for_task(task, {})
@@ -582,7 +583,7 @@ def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkCon
                             if item.dimension_id == dimension.id
                         )
                     ) or dimension.task_types or spec.task_types,
-                    source_strategy="Blueprint-driven task construction.",
+                    source_strategy="TaskDesign-driven task construction.",
                     qc_sample_size=max(1, min(dim_count, 8)),
                     notes="General task-builder batch.",
                 )

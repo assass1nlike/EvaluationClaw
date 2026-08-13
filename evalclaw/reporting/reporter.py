@@ -48,7 +48,6 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
         "",
         f"- Subjects: {', '.join(dataset.spec.subjects)}",
         f"- Task types: {', '.join(t.value for t in dataset.spec.task_types)}",
-        f"- Metrics: {', '.join(m.value for m in dataset.spec.metrics)}",
         f"- Scale budget: {dataset.spec.scale_budget.value}",
         f"- Planned item count: {dataset.spec.scale:g}",
         f"- Planner critique score: {dataset.spec.critique.score:.1f}/5",

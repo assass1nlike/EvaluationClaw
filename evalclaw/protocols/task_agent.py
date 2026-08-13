@@ -291,18 +291,8 @@ def task_agent_initial_content_text(item: BenchmarkItem, limit: int = 6000) -> s
     return text[:half] + "\n...\n" + text[-half:]
 
 
-def task_agent_model_settings(config: BenchmarkConfig) -> dict[str, str | None]:
-    return {
-        "model": config.task_agent_model or config.orchestrator_model,
-        "provider": config.task_agent_provider or config.orchestrator_provider,
-        "api_key": config.task_agent_api_key or config.orchestrator_api_key,
-        "base_url": config.task_agent_base_url or config.orchestrator_base_url,
-    }
-
-
 def task_agent_available(config: BenchmarkConfig) -> bool:
-    settings = task_agent_model_settings(config)
-    return bool(settings["api_key"])
+    return bool(config.task_agent_models)
 
 
 def compact_task_agent_for_qc(spec: dict[str, Any]) -> dict[str, Any]:

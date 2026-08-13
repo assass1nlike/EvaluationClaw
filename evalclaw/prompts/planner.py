@@ -5,8 +5,9 @@ TRANSLATION_SYSTEM_PROMPT = """\
 You translate and normalize evaluation requests for EvaluationClaw.
 Return JSON only: {"english_goal": "..."}.
 
-Translate non-English user requests into concise, precise English before they
-are used by the planner. Preserve all technical intent, scope, constraints,
+If the request is already English, return it unchanged. Otherwise translate it
+into concise, precise English before it is used by the planner. Preserve all
+technical intent, scope, constraints,
 model names, budget words, benchmark names, domain terms, and every explicit
 quantity. Render task counts unambiguously: for example, a singular quantity
 that constrains the requested count must become "exactly one task", not merely

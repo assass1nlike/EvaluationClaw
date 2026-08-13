@@ -152,7 +152,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
             )
         )
     for judge_tool in item.judge_tools:
-        if judge_tool.tool not in {"python_tests", "reference_model_response"}:
+        if judge_tool.tool != "python_tests":
             issues.append(
                 _issue(item.id, QcSeverity.error, QcCategory.schema, f"Unsupported judge tool: {judge_tool.tool}.")
             )
@@ -172,15 +172,6 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                         "python_tests requires config.test_code that consumes {model_output}.",
                     )
                 )
-        if judge_tool.tool == "reference_model_response" and item.task_type != TaskType.generation:
-            issues.append(
-                _issue(
-                    item.id,
-                    QcSeverity.error,
-                    QcCategory.schema,
-                    "reference_model_response is only valid for generation tasks.",
-                )
-            )
     if (
         item.task_type == TaskType.agent
         and not item.rubric

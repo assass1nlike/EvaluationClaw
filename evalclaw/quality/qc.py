@@ -77,21 +77,6 @@ def run_qc_gate(
     issues: list[QcIssue] = []
     for item in dataset.items:
         issues.extend(_static_item_issues(item))
-        if (
-            item.task_type == TaskType.generation
-            and any(tool.tool == "reference_model_response" for tool in item.judge_tools)
-            and config.run_targets
-            and config.reference_model is None
-        ):
-            issues.append(
-                _issue(
-                    item.id,
-                    QcSeverity.error,
-                    QcCategory.schema,
-                    "The reference_model_response judge tool requires BenchmarkConfig.reference_model.",
-                    "Configure a reference model or remove that judge tool from the task design.",
-                )
-            )
     issues.extend(_duplicate_issues(dataset.items, near_duplicate_limit=_near_duplicate_limit(dataset, config)))
     issues.extend(_coverage_issues(dataset))
     issues.extend(_batch_issues(dataset))

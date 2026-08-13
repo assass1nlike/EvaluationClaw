@@ -106,23 +106,16 @@ def make_plan(spec: EvalSpec, blueprints: list[TaskBlueprint]) -> BenchmarkPlan:
                 measurement_target=dimension.measurement_target or dimension.description,
                 boundary=dimension.boundary or "Exclude unrelated capabilities.",
                 approach=dimension.approach,
-                content_requirements=list(dimension.item_requirements),
-                exclusions=[dimension.boundary] if dimension.boundary else [],
                 task_designs=[
                     design
                     for blueprint in dimension_blueprints
                     for design in blueprint.task_designs
-                ],
-                blueprints=[
-                    blueprint.model_copy(update={"task_designs": []})
-                    for blueprint in dimension_blueprints
                 ],
             )
         )
     return BenchmarkPlan(
         id=spec.id,
         objective=spec.objective,
-        metrics=spec.metrics,
         constraints=spec.constraints,
         planner_notes=spec.planner_notes,
         dimensions=dimensions,

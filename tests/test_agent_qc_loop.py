@@ -54,7 +54,7 @@ def _task(
         ),
         scoring=TaskScoringSpec(pass_criteria="The requested result is correct."),
         metadata={
-            "builder_blueprint_id": blueprint_id,
+            "builder_job_id": blueprint_id,
             "task_design_id": f"{blueprint_id}_design",
         },
     )
@@ -99,26 +99,30 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
             environment_type=AgentEnvironmentType.workspace,
         ),
     ]
+    plan = make_plan(spec, blueprints)
+    builder_jobs = plan.builder_jobs
+    knowledge_job_id = builder_jobs[0].id
+    tool_job_id = builder_jobs[1].id
     initial_suite = TaskSuite(
         objective=spec.objective,
         dimensions=dimensions,
-        blueprints=blueprints,
+        blueprints=builder_jobs,
         tasks=[
-            _task("knowledge_old", "knowledge", "knowledge_blueprint"),
-            _task("tool_kept", "tool_use", "tool_blueprint", interactive=True),
+            _task("knowledge_old", "knowledge", knowledge_job_id),
+            _task("tool_kept", "tool_use", tool_job_id, interactive=True),
         ],
     )
     repaired_suite = TaskSuite(
         objective=spec.objective,
         dimensions=dimensions,
-        blueprints=[blueprints[0]],
-        tasks=[_task("knowledge_old", "knowledge", "knowledge_blueprint")],
+        blueprints=[builder_jobs[0]],
+        tasks=[_task("knowledge_old", "knowledge", knowledge_job_id)],
     )
     builder_calls: list[dict] = []
 
     monkeypatch.setattr(
         "evalclaw.benchmark.plan_benchmark",
-        lambda goal, config, **kwargs: make_plan(spec, blueprints),
+        lambda goal, config, **kwargs: plan,
     )
 
     def fake_build(spec_arg, selected_blueprints, config, **kwargs):
@@ -170,7 +174,7 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
 
     assert [item.id for item in dataset.items] == ["knowledge_old", "tool_kept"]
     assert qc_report.rejected_item_ids == []
-    assert builder_calls[1]["blueprints"] == ["knowledge_blueprint"]
+    assert builder_calls[1]["blueprints"] == [knowledge_job_id]
     revision = builder_calls[1]["revision"]["knowledge"]
     assert revision["previous_tasks"][0]["id"] == "knowledge_old"
     assert revision["qc_issues"][0]["message"] == (

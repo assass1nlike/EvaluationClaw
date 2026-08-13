@@ -48,9 +48,7 @@ Apply task-type requirements according to what the runner actually consumes:
 - fill_blank needs one non-empty expected_text and a prompt that makes the
   exact required response format unambiguous.
 - generation and multi_turn need a concrete judge rubric. generation may use
-  python_tests or reference_model_response as Judge evidence; python_tests must
-  consume {model_output}, and reference comparison needs explicit comparison
-  and tie criteria.
+  python_tests as Judge evidence; its test code must consume {model_output}.
 - agent needs an environment whose actual evaluator scores the
   state, artifacts, answer, or trajectory produced by the target.
 
@@ -200,13 +198,6 @@ For task_type=multi_turn or task_type=agent:
   environment/software requirements, and provenance. Hidden references are
   intentionally unavailable to the target agent; do not reject an item merely
   because hidden_references are private.
-
-For generation tasks using judge_tools.tool=reference_model_response:
-- The item prompt should be suitable for both the target model and configured
-  reference model.
-- The rubric must define target-vs-reference preference criteria and when to
-  return a tie.
-- Do not require an answer key; the Judge compares two model responses.
 
 For items using metadata.multimodal:
 - metadata.multimodal.schema_version should be evalclaw.multimodal.v1.

@@ -16,7 +16,6 @@ from evalclaw.types import (
     AgentEnvironmentType,
     EvalDimension,
     EvalSpec,
-    Metric,
     ScaleBudget,
     TaskDefinition,
     TaskType,
@@ -43,7 +42,7 @@ def test_builder_ids_are_namespaced_only_when_blueprints_collide() -> None:
             task_type=TaskType.fill_blank,
             title="First",
             prompt="First task.",
-            metadata={"builder_blueprint_id": "first_blueprint"},
+            metadata={"builder_job_id": "first_blueprint"},
         ),
         TaskDefinition(
             id="task_1",
@@ -51,7 +50,7 @@ def test_builder_ids_are_namespaced_only_when_blueprints_collide() -> None:
             task_type=TaskType.fill_blank,
             title="Second",
             prompt="Second task.",
-            metadata={"builder_blueprint_id": "second_blueprint"},
+            metadata={"builder_job_id": "second_blueprint"},
         ),
         TaskDefinition(
             id="task_1",
@@ -59,7 +58,7 @@ def test_builder_ids_are_namespaced_only_when_blueprints_collide() -> None:
             task_type=TaskType.fill_blank,
             title="Third",
             prompt="Third task.",
-            metadata={"builder_blueprint_id": "second_blueprint"},
+            metadata={"builder_job_id": "second_blueprint"},
         ),
     ]
 
@@ -102,6 +101,8 @@ def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() ->
     dimension = EvalDimension(
         id="reasoning",
         name="Reasoning",
+        measurement_target="Evaluate reasoning while covering both supported conclusions and explanations.",
+        boundary="Exclude unsupported recall and stateful tool use.",
         description="Evaluate reasoning across task formats.",
         approach="Use complementary tasks.",
         task_types=[TaskType.fill_blank, TaskType.generation],
@@ -113,7 +114,6 @@ def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() ->
         dimensions=[dimension],
         scale_budget=ScaleBudget.high,
         scale=37,
-        metrics=[Metric.exact_match, Metric.pass_at_1],
     )
     blueprint = make_blueprint(
         "reasoning_tasks",
@@ -133,14 +133,20 @@ def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() ->
     benchmark_context = payload["benchmark_context"]
     assert "subjects" not in benchmark_context
     assert "scale_budget" not in benchmark_context
-    assert "task_family" not in payload["task_plan"]["blueprint"]
+    assert "task_family" not in payload["task_plan"]["task_design"]
     assert benchmark_context["scale"] == 37
     assert benchmark_context["task_types"] == ["fill_blank", "generation"]
-    assert benchmark_context["metrics"] == ["exact_match", "pass@1"]
+    assert "metrics" not in benchmark_context
     assert payload["task_plan"]["capability"]["task_types"] == [
         "fill_blank",
         "generation",
     ]
+    assert payload["task_plan"]["capability"]["measurement_target"] == (
+        "Evaluate reasoning while covering both supported conclusions and explanations."
+    )
+    assert payload["task_plan"]["capability"]["boundary"] == (
+        "Exclude unsupported recall and stateful tool use."
+    )
 
 
 def test_static_builder_call_contains_no_execution_capability_fields() -> None:
@@ -212,9 +218,8 @@ def test_execution_fields_are_added_only_for_blueprints_that_request_them() -> N
         "No external sources.",
     )
 
-    construction = payload["task_plan"]["blueprint"]
+    task_design = payload["task_plan"]["task_design"]
     contract = payload["task_builder_contract"]
-    task_design = construction["task_designs"][0]
     assert task_design["environment_requirements"]["category"] == "workspace"
     assert task_design["interaction_requirements"][
         "allowed_action_or_tool_categories"
@@ -276,7 +281,7 @@ def test_environment_skill_routes_only_environment_backed_task_designs() -> None
     assert 'path="references/workspace.md"' not in skill_prompt
 
 
-def test_task_builder_payload_contract_supports_a_multi_task_blueprint() -> None:
+def test_task_builder_payload_contract_supports_one_multi_item_task_design() -> None:
     dimension = EvalDimension(
         id="analysis",
         name="Analysis",
@@ -305,22 +310,23 @@ def test_task_builder_payload_contract_supports_a_multi_task_blueprint() -> None
         blueprint,
         "No external sources.",
     )
-    construction = payload["task_plan"]["blueprint"]
+    construction = payload["task_plan"]["task_design"]
 
-    assert construction["planned_task_count"] == 5
     assert construction["required_return_task_count"] == 5
-    assert construction["task_designs"][0]["task_type"] == "generation"
-    assert construction["task_designs"][0]["task_count"] == 5
-    assert "Five distinct boundary cases" in construction["task_designs"][0][
-        "content_design"
-    ]["description"]
-    assert construction["planner_metadata"] == {"content_focus": "boundary cases"}
+    assert construction["task_type"] == "generation"
+    assert construction["task_count"] == 5
+    assert "Five distinct boundary cases" in construction["content_design"]["description"]
+    assert "planner_metadata" not in construction
     assert "expected_task_count" not in construction
     assert "task_index" not in construction
-    assert "Implement one Planner-authored Blueprint" in TASK_BUILDER_PROMPT
+    assert "Implement one Planner-authored TaskDesign" in TASK_BUILDER_PROMPT
     assert "only the listed replacement tasks" in TASK_BUILDER_PROMPT
     assert '"resource_ids": []' in TASK_BUILDER_PROMPT
     assert "resource_ids" in TASK_BUILDER_PROMPT
+    assert "treat a URL, title, dataset landing page, or brief" in TASK_BUILDER_PROMPT
+    assert "missing evidence with invented facts" in TASK_BUILDER_PROMPT
+    assert "Materialize every dependency implied by each concrete task" in TASK_BUILDER_PROMPT
+    assert "actual inputs, assets, files, services" in TASK_BUILDER_PROMPT
 
 
 def test_qc_prompt_requires_complete_but_evidence_based_review() -> None:
@@ -350,22 +356,25 @@ def test_task_builder_contract_matches_fill_blank_and_generation_runners() -> No
         dimensions=[dimension],
         task_types=[TaskType.fill_blank, TaskType.generation],
     )
-    blueprint = make_blueprint(
-        "mixed_blueprint",
-        dimension.id,
-        "Mixed tasks",
-        task_designs=[
-            make_task_design("short", TaskType.fill_blank),
-            make_task_design("code", TaskType.generation),
-        ],
-    )
-
-    requirements = _task_builder_payload(
-        spec,
-        dimension,
-        blueprint,
-        "No external sources.",
-    )["task_builder_contract"]["task_schema"]["type_requirements"]
+    requirements = {}
+    for design in (
+        make_task_design("short", TaskType.fill_blank),
+        make_task_design("code", TaskType.generation),
+    ):
+        job = make_blueprint(
+            f"{design.id}_job",
+            dimension.id,
+            design.id,
+            task_designs=[design],
+        )
+        requirements.update(
+            _task_builder_payload(
+                spec,
+                dimension,
+                job,
+                "No external sources.",
+            )["task_builder_contract"]["task_schema"]["type_requirements"]
+        )
 
     assert "expected_text" in requirements["fill_blank"][0]
     assert "python_tests" in requirements["generation"][0]

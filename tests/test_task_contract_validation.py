@@ -30,6 +30,7 @@ from evalclaw.types import (
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
+from tests.config_helpers import dummy_config_kwargs
 
 
 def _task(
@@ -1000,7 +1001,7 @@ def test_task_agent_packaging_keeps_runner_private_vm_state_out_of_target_contex
     assert "evaluation" not in serialized
 
 
-def test_pairwise_reference_model_is_required_only_when_execution_is_requested() -> None:
+def test_removed_reference_model_tool_is_always_rejected() -> None:
     dimension = EvalDimension(
         id="comparison",
         name="Comparison",
@@ -1026,8 +1027,8 @@ def test_pairwise_reference_model_is_required_only_when_execution_is_requested()
     draft_qc = run_qc_gate(dataset, BenchmarkConfig(run_targets=False))
     execution_qc = run_qc_gate(dataset, BenchmarkConfig(run_targets=True))
 
-    assert not any("reference_model" in issue.message for issue in draft_qc.issues)
-    assert any("reference_model" in issue.message for issue in execution_qc.issues)
+    assert any("Unsupported judge tool" in issue.message for issue in draft_qc.issues)
+    assert any("Unsupported judge tool" in issue.message for issue in execution_qc.issues)
 
 
 def test_dataset_checks_duplicate_ids_unknown_dimensions_and_near_duplicates() -> None:
@@ -1147,7 +1148,7 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
     )
     dataset = BenchmarkDataset(spec=spec, items=[item], blueprints=[blueprint])
 
-    _llm_qc(dataset, BenchmarkConfig(orchestrator_api_key="dummy"))
+    _llm_qc(dataset, BenchmarkConfig(**dummy_config_kwargs()))
 
     assert captured["task_designs"][0]["id"] == design_id
     assert captured["items"][0]["prompt"] == item.prompt
@@ -1190,7 +1191,7 @@ def test_configured_llm_qc_failure_is_blocking(monkeypatch) -> None:
         ],
     )
 
-    issues = _llm_qc(dataset, BenchmarkConfig(orchestrator_api_key="dummy"))
+    issues = _llm_qc(dataset, BenchmarkConfig(**dummy_config_kwargs()))
 
     assert len(issues) == 1
     assert issues[0].severity == QcSeverity.error

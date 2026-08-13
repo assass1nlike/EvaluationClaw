@@ -34,7 +34,7 @@
 - `suite.py`：每个 Blueprint 形成一次 Builder 调用；严格校验其题量和混合题型分配，并处理 Blueprint 并发、结构 repair、截断恢复和进度日志。QC repair 时只返回有问题的题并按题目 ID 合并。
 - `builders.py`：通用本地 fallback 分派。无环境任务复用程序化 item fallback；有环境任务调用对应交互环境实现。
 - `resources.py`：仅在 dimension 明确 `needs_research=true` 时选择外部来源，并做资源归一化与去重。
-- `research.py`：E4 初次构题可使用的有界研究工具循环；QC repair 不重复研究。
+- `research.py`：source-backed 或 E3 初次构题可使用有界研究工具循环；QC repair 不重复研究。
 - `validation.py`：在全局 QC 前校验题型字段、challenge effort 自检和可选执行环境契约。
 - `packaging.py`：把统一 `TaskSuite` 转成 `BenchmarkDataset`。只有 task 带 `environment` 时才生成 `agent_env`、`task_agent` 和 `agent_task_package` metadata。
 

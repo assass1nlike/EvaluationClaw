@@ -56,10 +56,8 @@ Requirements:
   the item challenging, not as a generic quality label:
   - E1: simple direct item.
   - E2: moderate planning with meaningful edge cases.
-  - E3: high-effort, carefully designed item that is difficult by your own
-    generation standard.
-  - E4: maximum effort, planning depth, source use when helpful, and robust
-    evaluation design.
+  - E3: maximum effort: deep planning, source use when helpful, difficult
+    content by your own generation standard, and robust evaluation design.
 - Treat requested_count as a raw item count. Do not apply task-type, environment,
   agent, or complexity multipliers to reduce or increase it.
   Choose the item mix that best fits the assigned dimension instead of forcing a
@@ -133,9 +131,8 @@ Requirements:
   format in the prompt so only that text is correct. Scoring trims only outer
   whitespace and is otherwise exact.
 - generation must include a top-level rubric with concrete scoring criteria.
-  Optional judge_tools may use only registered tools: python_tests, whose
-  config.test_code consumes {model_output}, or reference_model_response, which
-  compares against the configured reference model. Their outputs are evidence
+  Optional judge_tools may use only the registered python_tests tool, whose
+  config.test_code consumes {model_output}. Its output is evidence
   for the Judge, not independent task types or direct final scores.
 - multi_turn rubrics must be in the top-level "rubric" field and explain
   follow-up direction and full-dialogue scoring.

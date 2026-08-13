@@ -1,4 +1,4 @@
-"""Single-route, blueprint-driven task-suite construction."""
+"""Single-route, TaskDesign-driven task-suite construction."""
 from __future__ import annotations
 
 import json
@@ -16,10 +16,11 @@ from ..core.task_summary import compact_task_content_summary
 from ..generation.generator import _source_context
 from ..models.llm import LLMOutputTruncatedError, call_llm, extract_json
 from ..models.roles import role_model_settings
-from ..planning.planner import _fallback_dimensions
 from ..prompts.task_builder import TASK_BUILDER_PROMPT
+from ..research.deep_research import compact_brief_context
 from ..types import (
     BenchmarkConfig,
+    ChallengeEffort,
     EvalDimension,
     EvalSpec,
     Message,
@@ -29,8 +30,8 @@ from ..types import (
     TaskSuite,
     TaskType,
 )
-from .builders import _fallback_task_for_blueprint, _task_from_raw
-from .research import TASK_BUILDER_E4_RESEARCH_PROMPT, run_task_builder_research
+from .builders import _task_from_raw
+from .research import TASK_BUILDER_RESEARCH_PROMPT, run_task_builder_research
 from .resources import (
     _dedupe_resources,
     _resource_from_raw,
@@ -43,11 +44,9 @@ from .validation import (
     task_structure_issues,
 )
 
-_VALID_TASK_BUILDERS = {"llm", "local", "auto"}
-
 
 def _ensure_unique_task_ids(tasks: list[TaskDefinition]) -> None:
-    """Keep Builder IDs stable while preventing collisions across Blueprints."""
+    """Keep Builder IDs stable while preventing collisions across Builder jobs."""
     seen: set[str] = set()
     duplicate_counts: Counter[str] = Counter()
     for task in tasks:
@@ -55,7 +54,7 @@ def _ensure_unique_task_ids(tasks: list[TaskDefinition]) -> None:
         if original_id not in seen:
             seen.add(original_id)
             continue
-        blueprint_id = str(task.metadata.get("builder_blueprint_id") or "").strip()
+        blueprint_id = str(task.metadata.get("builder_job_id") or "").strip()
         prefix = blueprint_id or "task"
         duplicate_counts[original_id] += 1
         candidate = f"{prefix}__{original_id}"
@@ -104,7 +103,6 @@ class _BlueprintBuildJob:
     order: int
     dimension: EvalDimension
     blueprint: TaskBlueprint
-    fallback_start_index: int
 
 
 @dataclass
@@ -128,6 +126,8 @@ def _capability_payload(dimension: EvalDimension) -> dict[str, object]:
         "id": dimension.id,
         "name": dimension.name,
         "description": dimension.description,
+        "measurement_target": dimension.measurement_target,
+        "boundary": dimension.boundary,
         "approach": dimension.approach,
         "challenge_effort": dimension.challenge_effort.value,
         "task_types": [task_type.value for task_type in dimension.task_types],
@@ -150,7 +150,12 @@ def _task_builder_payload(
     blueprint: TaskBlueprint,
     resource_context: str,
     revision_context: dict[str, object] | None = None,
+    deep_research_context: dict[str, object] | None = None,
+    config: BenchmarkConfig | None = None,
 ) -> dict[str, object]:
+    if len(blueprint.task_designs) != 1:
+        raise ValueError("Each Task Builder job must contain exactly one TaskDesign.")
+    task_design = blueprint.task_designs[0]
     required_type_counts = {
         item.task_type.value: item.count for item in blueprint.task_type_allocation
     }
@@ -194,21 +199,9 @@ def _task_builder_payload(
         if other.id != dimension.id
     ]
     construction: dict[str, object] = {
-        "id": blueprint.id,
-        "title": blueprint.title,
-        "planned_task_count": blueprint.planned_task_count,
+        **task_design.model_dump(mode="json", exclude_defaults=True),
+        "challenge_effort": task_design.challenge_effort.value,
         "required_return_task_count": required_return_count,
-        "task_design_ids": list(blueprint.task_design_ids),
-        "task_designs": [
-            {
-                **design.model_dump(mode="json", exclude_defaults=True),
-                "challenge_effort": design.challenge_effort.value,
-            }
-            for design in blueprint.task_designs
-        ],
-        "grouping_rationale": blueprint.grouping_rationale,
-        "workload_reason": blueprint.workload_reason,
-        "planner_metadata": blueprint.metadata,
     }
     optional_fields = ["content_summary", "resource_ids", "tags"]
     task_schema: dict[str, object] = {
@@ -239,7 +232,7 @@ def _task_builder_payload(
         optional_fields.extend(["rubric", "judge_tools", "output_contract"])
         type_requirements[TaskType.generation.value] = [
             "Provide a concrete rubric. Optional judge_tools may request registered external verification "
-            "using python_tests or reference_model_response. The Judge uses tool results as evidence; "
+            "using python_tests. The Judge uses tool results as evidence; "
             "the tools do not directly assign the final score."
         ]
     if TaskType.multi_turn in task_types:
@@ -282,7 +275,7 @@ def _task_builder_payload(
                 "adaptive requires a task-specific simulator system_prompt and "
                 "interaction.followup_instruction and forbids interaction.user_turns; scripted "
                 "requires interaction.user_turns and forbids interaction.followup_instruction. "
-                f"This Blueprint requests: {', '.join(requested_followup_modes)}."
+                f"This TaskDesign requests: {', '.join(requested_followup_modes)}."
             )
     if TaskType.agent in task_types:
         optional_fields.extend(["environment", "output_contract", "rubric", "judge_tools"])
@@ -290,6 +283,20 @@ def _task_builder_payload(
             "Provide the executable environment, output contract, and deterministic checks or a "
             "task-specific rubric for the resulting state, artifacts, answer, or trajectory."
         ]
+    if config is not None and config.judge_models:
+        judge_hint = (
+            "Select exactly one judge model from available_models.judge_models and record its id in "
+            "metadata.judge_model_id. Choose the model whose capability matches the task's scoring "
+            "complexity."
+        )
+        for judge_task_type in (TaskType.generation, TaskType.multi_turn, TaskType.agent):
+            if judge_task_type in task_types:
+                type_requirements[judge_task_type.value].append(judge_hint)
+    if config is not None and config.task_agent_models and TaskType.multi_turn in task_types:
+        type_requirements[TaskType.multi_turn.value].append(
+            "Select exactly one task-agent model from available_models.task_agent_models and record "
+            "its id in metadata.task_agent_model_id for the dialogue simulator."
+        )
     task_schema["type_requirements"] = type_requirements
 
     contract: dict[str, object] = {
@@ -305,17 +312,18 @@ def _task_builder_payload(
             "objective": spec.objective,
             "task_types": [task_type.value for task_type in spec.task_types],
             "scale": spec.scale,
-            "metrics": [metric.value for metric in spec.metrics],
             "constraints": list(spec.constraints),
             "planner_notes": spec.planner_notes,
             "other_capabilities": other_capabilities,
         },
         "task_plan": {
             "capability": _capability_payload(dimension),
-            "blueprint": construction,
+            "builder_job_id": blueprint.id,
+            "task_design": construction,
         },
         "resources": {
             "context": resource_context,
+            "deep_research": deep_research_context or {},
             "selection": {
                 "queries": list(blueprint.source_plan.search_queries),
                 "suggested_urls": list(blueprint.source_plan.suggested_urls),
@@ -325,6 +333,17 @@ def _task_builder_payload(
         },
         "task_builder_contract": contract,
     }
+    if config is not None and (config.judge_models or config.task_agent_models):
+        payload["available_models"] = {
+            "judge_models": [
+                {"id": model.id, "model": model.model, "provider": model.provider or ""}
+                for model in config.judge_models
+            ],
+            "task_agent_models": [
+                {"id": model.id, "model": model.model, "provider": model.provider or ""}
+                for model in config.task_agent_models
+            ],
+        }
     if revision_context:
         payload["revision"] = revision_context
     return payload
@@ -333,7 +352,7 @@ def _task_builder_payload(
 def _revision_context_for_job(
     revision_context: dict[str, object] | None,
     *,
-    blueprint_id: str,
+    builder_job_id: str,
 ) -> dict[str, object] | None:
     if not revision_context:
         return None
@@ -350,7 +369,7 @@ def _revision_context_for_job(
         task
         for task in previous_tasks
         if isinstance(task.get("metadata"), dict)
-        and task["metadata"].get("builder_blueprint_id") == blueprint_id
+        and task["metadata"].get("builder_job_id") == builder_job_id
     ]
     raw_issues = revision_context.get("qc_issues")
     issues = (
@@ -358,7 +377,7 @@ def _revision_context_for_job(
         if isinstance(raw_issues, list)
         else []
     )
-    blueprint_issues = [
+    job_issues = [
         issue
         for issue in issues
         if issue.get("item_id") in {None, ""}
@@ -366,22 +385,22 @@ def _revision_context_for_job(
     ]
     affected_ids = {
         str(issue.get("item_id") or "")
-        for issue in blueprint_issues
+        for issue in job_issues
         if str(issue.get("item_id") or "")
     }
     affected_tasks = [
         task for task in matched if str(task.get("id") or "") in affected_ids
     ]
-    if blueprint_issues and not affected_ids:
+    if job_issues and not affected_ids:
         affected_tasks = matched
     return {
         **revision_context,
         "previous_tasks": affected_tasks,
-        "qc_issues": blueprint_issues,
+        "qc_issues": job_issues,
         "expected_replacement_count": len(affected_tasks),
         "instruction": (
             "Return replacements only for the tasks listed in previous_tasks. Preserve each task id. "
-            "Fix every listed QC issue, but do not return or modify any other task from the Blueprint."
+            "Fix every listed QC issue, but do not return or modify any other task from the TaskDesign."
         ),
     }
 
@@ -413,27 +432,8 @@ def build_task_suite(
         + uuid.uuid4().hex[:8]
     )
 
-    builder_mode = str(config.task_builder or "llm").lower()
-    if builder_mode not in _VALID_TASK_BUILDERS:
-        raise ValueError(
-            "BenchmarkConfig.task_builder must be one of: "
-            f"{', '.join(sorted(_VALID_TASK_BUILDERS))}."
-        )
-
     if not spec.dimensions:
-        spec = EvalSpec(
-            id=spec.id,
-            objective=spec.objective,
-            subjects=spec.subjects,
-            task_types=spec.task_types or [TaskType.generation],
-            dimensions=_fallback_dimensions(spec.objective),
-            scale_budget=spec.scale_budget,
-            scale=spec.scale,
-            metrics=spec.metrics,
-            constraints=spec.constraints,
-            planner_notes=spec.planner_notes,
-            critique=spec.critique,
-        )
+        raise ValueError("EvalSpec.dimensions must not be empty before task construction.")
 
     blueprint_by_dimension = defaultdict(list)
     for blueprint in blueprints:
@@ -464,14 +464,11 @@ def build_task_suite(
     def strict_error(blueprint: TaskBlueprint, message: str) -> RuntimeError:
         return RuntimeError(
             "Task builder LLM generation failed "
-            f"for blueprint '{blueprint.id}' using model '{builder_settings.model}': {message} "
-            "Set BenchmarkConfig.task_builder='local' only for offline smoke tests, "
-            "or 'auto' if fallback templates are intentionally acceptable."
+            f"for Builder job '{blueprint.id}' using model '{builder_settings.model}': {message}"
         )
 
     jobs: list[_BlueprintBuildJob] = []
     build_results_by_order: dict[int, _BlueprintBuildResult] = {}
-    fallback_variant_counts: defaultdict[str, int] = defaultdict(int)
     order = 0
     for dimension in spec.dimensions:
         dim_blueprints = blueprint_by_dimension.get(dimension.id, [])
@@ -480,31 +477,23 @@ def build_task_suite(
                 order=order,
                 resources=[],
                 tasks=[],
-                notes=[f"{dimension.id}: no blueprint supplied; skipping."],
+                notes=[f"{dimension.id}: no TaskDesign Builder job supplied; skipping."],
             )
             order += 1
             continue
         for blueprint in dim_blueprints:
-            fallback_key = (
-                blueprint.environment_type.value
-                if blueprint.environment_type
-                else ("mixed_environment" if blueprint.requires_environment else "no_environment")
-            )
-            fallback_start_index = fallback_variant_counts[fallback_key] + 1
-            fallback_variant_counts[fallback_key] += blueprint.planned_task_count
             jobs.append(
                 _BlueprintBuildJob(
                     order=order,
                     dimension=dimension,
                     blueprint=blueprint,
-                    fallback_start_index=fallback_start_index,
                 )
             )
             order += 1
 
     if jobs:
         emit(
-            f"  Task builder: {len(jobs)} Blueprint job(s) covering "
+            f"  Task builder: {len(jobs)} TaskDesign job(s) covering "
             f"{sum(job.blueprint.planned_task_count for job in jobs)} planned task(s) across "
             f"{len({job.dimension.id for job in jobs})} dimension(s)."
         )
@@ -552,7 +541,7 @@ def build_task_suite(
                 diagnostics = {
                     "invocation_id": debug_invocation_id,
                     "dimension_id": dimension.id,
-                    "blueprint_id": blueprint.id,
+                    "builder_job_id": blueprint.id,
                     "model": builder_settings.model,
                     "backend": "litellm" if force_litellm else config.llm_backend,
                     "attempt": attempt + 1,
@@ -578,14 +567,14 @@ def build_task_suite(
         )
         job_revision = _revision_context_for_job(
             (revision_context_by_dimension or {}).get(dimension.id),
-            blueprint_id=blueprint.id,
+            builder_job_id=blueprint.id,
         )
         if job_revision and not job_revision.get("qc_issues"):
             return _BlueprintBuildResult(
                 order=job.order,
                 resources=[],
                 tasks=[],
-                notes=[f"{label}: no task in this Blueprint requires repair."],
+                notes=[f"{label}: no task in this TaskDesign requires repair."],
             )
         source_candidates = _select_blueprint_sources(dimension, blueprint, config)
         local_resources = [
@@ -640,8 +629,8 @@ def build_task_suite(
                     task_design_id = matching_designs[0].id
             task.metadata = {
                 **task.metadata,
-                "builder_blueprint_id": blueprint.id,
-                "planner_blueprint_metadata": blueprint.metadata,
+                "builder_job_id": blueprint.id,
+                "builder_job_metadata": blueprint.metadata,
             }
             if task_design_id:
                 task.metadata["task_design_id"] = task_design_id
@@ -667,60 +656,24 @@ def build_task_suite(
                 }
             return task
 
-        def add_local_tasks(*, reason: str) -> _BlueprintBuildResult:
-            for offset, task_design in enumerate(planned_task_designs[:target_task_count]):
-                single_design_blueprint = blueprint.model_copy(
-                    update={
-                        "task_design_ids": [task_design.id],
-                        "task_designs": [task_design],
-                    }
-                )
-                task = _fallback_task_for_blueprint(
-                    spec,
-                    dimension,
-                    single_design_blueprint,
-                    index=job.fallback_start_index + offset,
-                    task_type=task_design.task_type,
-                )
-                task.challenge_effort = task_design.challenge_effort
-                if job_revision:
-                    previous_tasks = job_revision.get("previous_tasks", [])
-                    if offset < len(previous_tasks) and isinstance(previous_tasks[offset], dict):
-                        task.id = str(previous_tasks[offset].get("id") or task.id)
-                result_tasks.append(
-                    ensure_task_content_summary(
-                        tag_task(task, task_design.id), blueprint, local_resources
-                    )
-                )
-            result_notes.append(
-                f"{blueprint.id}: {reason} local task(s), "
-                f"count={target_task_count}."
-            )
-            return _BlueprintBuildResult(
-                order=job.order,
-                resources=result_resources,
-                tasks=result_tasks,
-                notes=result_notes,
-            )
-
-        if builder_mode == "local":
-            return add_local_tasks(reason="Explicit")
-
         if not builder_settings.configured:
-            if builder_mode == "auto":
-                return add_local_tasks(reason="Missing task-builder API key; auto mode used")
             raise strict_error(
                 blueprint,
-                "missing task-builder API key. Default 'llm' mode requires a configured "
-                "task-builder role for task materialization.",
+                "missing task-builder API key; configure the TaskBuilder role for task materialization.",
             )
 
         payload = _task_builder_payload(
             spec,
             dimension,
             blueprint,
-            _source_context(source_candidates),
+            _source_context(source_candidates, config.research_brief),
             job_revision,
+            deep_research_context=(
+                compact_brief_context(config.research_brief)
+                if config.research_brief is not None
+                else None
+            ),
+            config=config,
         )
 
         def call_task_builder(
@@ -729,19 +682,25 @@ def build_task_suite(
             force_litellm: bool = False,
             reduce_effort: bool = False,
         ) -> str:
+            has_retained_sources = bool(
+                config.research_brief and config.research_brief.source_materials
+            )
+            web_tools_enabled = (
+                config.use_web_research and str(config.search_backend).lower() != "none"
+            )
             research_enabled = (
-                builder_mode == "llm"
-                and dimension.challenge_effort.value == "E4"
-                and config.use_web_research
-                and str(config.search_backend).lower() != "none"
-                and job_revision is None
+                job_revision is None
                 and not reduce_effort
+                and (
+                    (dimension.needs_research and (has_retained_sources or web_tools_enabled))
+                    or (dimension.challenge_effort == ChallengeEffort.E3 and web_tools_enabled)
+                )
             )
             system_prompt = TASK_BUILDER_PROMPT
             if blueprint.requires_environment:
                 system_prompt += "\n\n" + environment_skill_system_prompt(blueprint)
             if research_enabled:
-                system_prompt += "\n\n" + TASK_BUILDER_E4_RESEARCH_PROMPT
+                system_prompt += "\n\n" + TASK_BUILDER_RESEARCH_PROMPT
                 try:
                     raw_response, research_notes = run_task_builder_research(
                         call_payload,
@@ -753,7 +712,7 @@ def build_task_suite(
                     raise
                 except Exception as exc:
                     result_notes.append(
-                        "E4 task-builder research tools were unavailable; continued with the regular "
+                        "Task-builder research tools were unavailable; continued with the regular "
                         f"task-builder call ({type(exc).__name__}: {str(exc)[:180]})."
                     )
                     raw_response = call_llm(
@@ -791,19 +750,17 @@ def build_task_suite(
             if not parsed_tasks:
                 keys = ", ".join(sorted(str(key) for key in parsed.keys()))
                 raise ValueError(f"LLM returned no tasks; parsed object keys were [{keys}].")
-            if builder_mode != "auto" and len(parsed_tasks) > target_task_count:
+            if len(parsed_tasks) > target_task_count:
                 raise ValueError(
                     f"LLM returned {len(parsed_tasks)} task object(s), "
-                    f"but this Blueprint call requires {target_task_count}."
+                    f"but this Builder job requires {target_task_count}."
                 )
             parsed_resource_ids: list[str] = []
             parsed_task_resources: list[TaskResource] = []
             seen_task_prompts: dict[str, str] = {}
             for idx, raw_resource in enumerate(parsed_resources, 1):
                 if not isinstance(raw_resource, dict):
-                    if builder_mode != "auto":
-                        raise ValueError(f"resource #{idx} is not a JSON object.")
-                    continue
+                    raise ValueError(f"resource #{idx} is not a JSON object.")
                 resource = _resource_from_raw(raw_resource, f"{blueprint.id}_resource_{idx}")
                 attempt_resources.append(resource)
                 parsed_task_resources.append(resource)
@@ -817,16 +774,14 @@ def build_task_suite(
             )
             if duplicate_resource_ids:
                 validation_issues.append(
-                    "Resource ids must be unique within this Blueprint call: "
+                    "Resource ids must be unique within this Builder job: "
                     + ", ".join(duplicate_resource_ids)
                 )
             known_resource_ids = {resource.id for resource in attempt_resources}
             added_for_blueprint = 0
             for idx, raw_task in enumerate(parsed_tasks, 1):
                 if not isinstance(raw_task, dict):
-                    if builder_mode != "auto":
-                        raise ValueError(f"task #{idx} is not a JSON object.")
-                    continue
+                    raise ValueError(f"task #{idx} is not a JSON object.")
                 try:
                     task = _task_from_raw(
                         raw_task,
@@ -837,15 +792,11 @@ def build_task_suite(
                         ],
                     )
                 except Exception as exc:
-                    if builder_mode != "auto":
-                        raise ValueError(
-                            f"task #{idx} could not be normalized ({type(exc).__name__}: {exc})."
-                        ) from exc
-                    continue
+                    raise ValueError(
+                        f"task #{idx} could not be normalized ({type(exc).__name__}: {exc})."
+                    ) from exc
                 if not task.prompt.strip():
-                    if builder_mode != "auto":
-                        raise ValueError(f"task #{idx} has an empty prompt.")
-                    continue
+                    raise ValueError(f"task #{idx} has an empty prompt.")
                 if not task.resource_ids and len(known_resource_ids) == 1:
                     task.resource_ids = [next(iter(known_resource_ids))]
                 elif not task.resource_ids and len(known_resource_ids) > 1:
@@ -889,13 +840,13 @@ def build_task_suite(
                     dimension=dimension,
                     blueprint=validation_blueprint,
                     task_design=task_design,
-                    require_challenge_effort_self_assessment=builder_mode == "llm",
+                    require_challenge_effort_self_assessment=True,
                 )
                 if not task_design_id:
                     task_issues.append("Task metadata.task_design_id is required.")
                 elif task_design is None:
                     task_issues.append(
-                        f"Task metadata.task_design_id {task_design_id!r} is not in this Blueprint."
+                        f"Task metadata.task_design_id {task_design_id!r} is not in this Builder job."
                     )
                 elif task.task_type != task_design.task_type:
                     task_issues.append(
@@ -904,12 +855,12 @@ def build_task_suite(
                     )
                 if task.task_type not in set(planned_task_types):
                     task_issues.append(
-                        f"Task task_type {task.task_type.value} is not allowed by this Blueprint call."
+                        f"Task task_type {task.task_type.value} is not allowed by this Builder job."
                     )
                 duplicate_key = _task_duplicate_key(task)
                 if duplicate_key in seen_task_prompts:
                     task_issues.append(
-                        f"Task content duplicates {seen_task_prompts[duplicate_key]} within the same blueprint."
+                        f"Task content duplicates {seen_task_prompts[duplicate_key]} within the same Builder job."
                     )
                 elif duplicate_key:
                     seen_task_prompts[duplicate_key] = task.id
@@ -917,38 +868,15 @@ def build_task_suite(
                 attempt_tasks.append(task)
                 added_for_blueprint += 1
             while added_for_blueprint < target_task_count:
-                if builder_mode != "auto":
-                    raise ValueError(
-                        f"LLM produced {added_for_blueprint} usable task(s), "
-                        f"but this Blueprint requires {target_task_count} usable task(s)."
-                    )
-                task_design = planned_task_designs[added_for_blueprint]
-                single_design_blueprint = blueprint.model_copy(
-                    update={
-                        "task_design_ids": [task_design.id],
-                        "task_designs": [task_design],
-                    }
+                raise ValueError(
+                    f"LLM produced {added_for_blueprint} usable task(s), "
+                    f"but this Builder job requires {target_task_count} usable task(s)."
                 )
-                task = _fallback_task_for_blueprint(
-                    spec,
-                    dimension,
-                    single_design_blueprint,
-                    index=job.fallback_start_index + added_for_blueprint,
-                    task_type=task_design.task_type,
-                )
-                task.challenge_effort = task_design.challenge_effort
-                attempt_tasks.append(
-                    ensure_task_content_summary(
-                        tag_task(task, task_design.id), blueprint, local_resources
-                    )
-                )
-                attempt_notes.append(f"{blueprint.id}: Filled missing task with local fallback.")
-                added_for_blueprint += 1
             actual_type_counts = Counter(task.task_type for task in attempt_tasks)
             expected_type_counts = Counter(planned_task_types[:target_task_count])
             if actual_type_counts != expected_type_counts:
                 validation_issues.append(
-                    "Task type counts do not match this Blueprint call: "
+                    "Task type counts do not match this Builder job: "
                     f"expected {dict(expected_type_counts)}, got {dict(actual_type_counts)}."
                 )
             actual_design_counts = Counter(
@@ -959,7 +887,7 @@ def build_task_suite(
             )
             if actual_design_counts != expected_design_counts:
                 validation_issues.append(
-                    "TaskDesign counts do not match this Blueprint call: "
+                    "TaskDesign counts do not match this Builder job: "
                     f"expected {dict(expected_design_counts)}, got {dict(actual_design_counts)}."
                 )
             if job_revision:
@@ -1154,12 +1082,6 @@ def build_task_suite(
                     f"({len(last_validation_issues)} issue(s))."
                 )
 
-        if builder_mode == "auto":
-            result_notes.append(
-                f"{blueprint.id}: structural validation failed after {repair_attempts} repair attempt(s); "
-                "using local executable fallback."
-            )
-            return add_local_tasks(reason="Structural validation failure; auto mode used")
         raise strict_error(
             blueprint,
             "structural validation failed after "

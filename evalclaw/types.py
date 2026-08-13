@@ -27,14 +27,13 @@ class TaskType(str, Enum):
     agent = "agent"
 
 
-JUDGE_TOOL_NAMES = frozenset({"python_tests", "reference_model_response"})
+JUDGE_TOOL_NAMES = frozenset({"python_tests"})
 
 
 class ChallengeEffort(str, Enum):
     E1 = "E1"
     E2 = "E2"
     E3 = "E3"
-    E4 = "E4"
 
 
 def safe_challenge_effort(value: object, fallback: ChallengeEffort = ChallengeEffort.E3) -> ChallengeEffort:
@@ -45,14 +44,6 @@ def safe_challenge_effort(value: object, fallback: ChallengeEffort = ChallengeEf
         return ChallengeEffort(text.upper())
     except ValueError:
         return fallback
-
-
-class Metric(str, Enum):
-    accuracy = "accuracy"
-    exact_match = "exact_match"
-    judge_score = "judge_score"
-    pass_at_1 = "pass@1"
-    win_rate = "win_rate"
 
 
 class ScaleBudget(str, Enum):
@@ -97,7 +88,6 @@ class PlannerChecklist(BaseModel):
     format: bool = False
     content: bool = False
     scale: bool = False
-    metrics: bool = False
 
 
 class PlannerCritique(BaseModel):
@@ -145,7 +135,6 @@ class EvalSpec(BaseModel):
     dimensions: list[EvalDimension] = Field(default_factory=list)
     scale_budget: ScaleBudget = ScaleBudget.mid
     scale: int = 20
-    metrics: list[Metric] = Field(default_factory=lambda: [Metric.judge_score])
     constraints: list[str] = Field(default_factory=list)
     planner_notes: str = ""
     critique: PlannerCritique = Field(default_factory=PlannerCritique)
@@ -223,7 +212,11 @@ class TaskDesign(BaseModel):
 
 
 class TaskBlueprint(BaseModel):
-    """Planner-authored work package for one Task Builder call."""
+    """Compatibility record for one framework-derived Task Builder job.
+
+    New plans create exactly one record per TaskDesign. The legacy name and
+    grouping fields remain only for loading existing datasets.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -354,7 +347,7 @@ class BenchmarkPlanAudit(BaseModel):
 
 
 class BenchmarkPlanDimension(BaseModel):
-    """One Planner-owned measurement dimension and its Builder work packages."""
+    """One Planner-owned measurement dimension and its task designs."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -363,20 +356,16 @@ class BenchmarkPlanDimension(BaseModel):
     measurement_target: str
     boundary: str
     approach: str
-    content_requirements: list[str] = Field(default_factory=list)
-    exclusions: list[str] = Field(default_factory=list)
     task_designs: list[TaskDesign] = Field(default_factory=list)
-    blueprints: list[TaskBlueprint] = Field(default_factory=list)
 
 
 class BenchmarkPlan(BaseModel):
-    """Planner output containing suite-wide intent and adaptive Blueprints."""
+    """Planner output containing suite-wide intent and TaskDesigns."""
 
     model_config = ConfigDict(extra="forbid")
 
     id: str = "evalclaw_plan"
     objective: str
-    metrics: list[Metric] = Field(default_factory=lambda: [Metric.judge_score])
     constraints: list[str] = Field(default_factory=list)
     planner_notes: str = ""
     dimensions: list[BenchmarkPlanDimension] = Field(default_factory=list)
@@ -385,20 +374,27 @@ class BenchmarkPlan(BaseModel):
     audit: BenchmarkPlanAudit = Field(default_factory=BenchmarkPlanAudit, exclude=True)
 
     @property
-    def blueprints(self) -> list[TaskBlueprint]:
-        resolved: list[TaskBlueprint] = []
+    def builder_jobs(self) -> list[TaskBlueprint]:
+        """Derive one Task Builder call per Planner-authored TaskDesign."""
+        jobs: list[TaskBlueprint] = []
         for dimension in self.dimensions:
-            designs = {design.id: design for design in dimension.task_designs}
-            for blueprint in dimension.blueprints:
-                resolved.append(
-                    blueprint.model_copy(
-                        update={
-                            "dimension_id": dimension.id,
-                            "task_designs": [designs[design_id] for design_id in blueprint.task_design_ids],
-                        }
+            for design in dimension.task_designs:
+                jobs.append(
+                    TaskBlueprint(
+                        id=f"{dimension.id}__{design.id}",
+                        dimension_id=dimension.id,
+                        title=design.description or design.id,
+                        task_design_ids=[design.id],
+                        task_designs=[design],
+                        metadata={"derived_from_task_design": True},
                     )
                 )
-        return resolved
+        return jobs
+
+    @property
+    def blueprints(self) -> list[TaskBlueprint]:
+        """Backward-compatible alias for framework-derived builder jobs."""
+        return self.builder_jobs
 
     def to_eval_spec(self) -> EvalSpec:
         """Derive the dataset-level evaluation metadata used after planning."""
@@ -444,7 +440,6 @@ class BenchmarkPlan(BaseModel):
                         TaskTypeAllocation(task_type=task_type, count=task_count)
                         for task_type, task_count in allocations.items()
                     ],
-                    item_requirements=dimension.content_requirements,
                     challenge_effort_distribution={
                         effort: effort_count / count for effort, effort_count in efforts.items()
                     },
@@ -458,7 +453,6 @@ class BenchmarkPlan(BaseModel):
             dimensions=dimensions,
             scale_budget=self.scale_budget,
             scale=sum(design.task_count for dim in self.dimensions for design in dim.task_designs),
-            metrics=self.metrics,
             constraints=self.constraints,
             planner_notes=self.planner_notes,
         )
@@ -545,6 +539,10 @@ class TaskSuite(BaseModel):
     construction_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
 
+    @property
+    def builder_jobs(self) -> list[TaskBlueprint]:
+        return self.blueprints
+
 
 class BenchmarkItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -592,6 +590,10 @@ class BenchmarkDataset(BaseModel):
     task_suite: Optional[TaskSuite] = None
     generation_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
+
+    @property
+    def builder_jobs(self) -> list[TaskBlueprint]:
+        return self.blueprints
 
 
 class QcIssue(BaseModel):
@@ -653,6 +655,15 @@ class ResearchCitation(BaseModel):
     url: str = ""
 
 
+class ResearchSourceMaterial(BaseModel):
+    """Readable source text retained from deep research for later task construction."""
+
+    title: str = ""
+    url: str
+    query: str = ""
+    content: str
+
+
 class ResearchBrief(BaseModel):
     """Structured output of the deep-research loop.
 
@@ -664,8 +675,10 @@ class ResearchBrief(BaseModel):
     existing_benchmarks: list[ResearchBenchmarkNote] = Field(default_factory=list)
     seed_sources: list[ResearchSeedSource] = Field(default_factory=list)
     exemplar_items: list[ResearchExemplarItem] = Field(default_factory=list)
-    challenge_effort_anchors: dict[str, str] = Field(default_factory=dict)
+    challenge_effort_anchors: dict[ChallengeEffort, str] = Field(default_factory=dict)
     citations: list[ResearchCitation] = Field(default_factory=list)
+    findings: list[str] = Field(default_factory=list)
+    source_materials: list[ResearchSourceMaterial] = Field(default_factory=list)
     research_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
 
@@ -764,10 +777,8 @@ class BenchmarkPackage(BaseModel):
 
 
 class BenchmarkConfig(BaseModel):
-    orchestrator_model: str = "claude-opus-4-6"
-    orchestrator_provider: Optional[str] = None
-    orchestrator_api_key: Optional[str] = None
-    orchestrator_base_url: Optional[str] = None
+    model_config = ConfigDict(extra="forbid")
+
     planner_model: Optional[str] = None
     planner_provider: Optional[str] = None
     planner_api_key: Optional[str] = None
@@ -780,10 +791,7 @@ class BenchmarkConfig(BaseModel):
     qc_provider: Optional[str] = None
     qc_api_key: Optional[str] = None
     qc_base_url: Optional[str] = None
-    judge_model: Optional[str] = None
-    judge_provider: Optional[str] = None
-    judge_api_key: Optional[str] = None
-    judge_base_url: Optional[str] = None
+    judge_models: list[TargetModelConfig] = Field(default_factory=list)
     research_model: Optional[str] = None
     research_provider: Optional[str] = None
     research_api_key: Optional[str] = None
@@ -792,20 +800,15 @@ class BenchmarkConfig(BaseModel):
     loop3_provider: Optional[str] = None
     loop3_api_key: Optional[str] = None
     loop3_base_url: Optional[str] = None
-    task_agent_model: Optional[str] = None
-    task_agent_provider: Optional[str] = None
-    task_agent_api_key: Optional[str] = None
-    task_agent_base_url: Optional[str] = None
+    task_agent_models: list[TargetModelConfig] = Field(default_factory=list)
     targets: list[TargetModelConfig] = Field(default_factory=list)
-    reference_model: Optional[TargetModelConfig] = None
     scale_budget: ScaleBudget = ScaleBudget.mid
-    questions_per_dimension: int = 5
     max_planner_iterations: int = 5
     max_qc_iterations: int = 3
     max_research_sources: int = 3
     max_hf_records_per_dimension: int = 1
     large_scale_generated_item_cap_per_dimension: int = 50
-    large_scale_min_source_backed_ratio: float = 0.8
+    source_backed_ratio: Optional[float] = None
     large_scale_llm_qc_sample_size: int = 120
     output_dir: str = "./benchmark-output"
     task_builder_debug_dir: Optional[str] = None
@@ -816,11 +819,10 @@ class BenchmarkConfig(BaseModel):
     max_research_iterations: int = 3
     research_brief: Optional[ResearchBrief] = None
     use_hf_discovery: bool = True
-    task_builder: str = "llm"  # llm | local | auto
     task_builder_max_workers: int = 4
     task_builder_repair_attempts: int = 2
     task_builder_research_max_calls: int = 6
-    task_builder_research_max_chars: int = 6000
+    task_builder_research_max_chars: int = 50_000
     judge_double_pass: bool = True
     llm_backend: str = "auto"  # auto | litellm | legacy
     runner: str = "direct"  # direct | lm-eval | auto
