@@ -221,7 +221,7 @@ v9 因 openai-compatible 角色没有绑定 API key，未出现 Planner 调用�
 
 ### 当前状态
 
-`task_builder=llm` 时，Planner 未配置现在直接 fail-closed；只有显式 `task_builder=local/auto` 才允许本地计划。离线测试也已改为明确声明 local 模式。CLI 缺 key 复测已确认流程在 Planner 前直接失败，未再创建默认计划，因此标记为“已验证修复”。
+Planner 或 TaskBuilder 未配置时流程直接 fail-closed，不再提供 local/auto 构题或本地计划模式。CLI 缺 key 时会在模型规划前直接失败，不创建默认计划。
 
 ## FT-011：目标模型上下文曾暴露 VM 故障注入和私有评分实现
 

@@ -6,7 +6,7 @@ import pytest
 
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.execution import runner as execution_runner
-from evalclaw.models.roles import role_model_settings
+from evalclaw.models.roles import resolve_judge_model, role_model_settings
 from evalclaw.planning import planner
 from evalclaw.quality import improver, llm_checks
 from evalclaw.research import deep_research
@@ -16,6 +16,7 @@ from evalclaw.types import (
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
+    TargetModelConfig,
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
@@ -23,10 +24,6 @@ from tests.blueprint_factory import make_blueprint
 
 def _config_for(role: str) -> BenchmarkConfig:
     return BenchmarkConfig(
-        orchestrator_model="default-model",
-        orchestrator_provider="anthropic",
-        orchestrator_api_key="default-key",
-        orchestrator_base_url="https://default.example",
         **{
             f"{role}_model": f"{role}-model",
             f"{role}_provider": "openai_compatible",
@@ -72,35 +69,28 @@ def _dataset() -> BenchmarkDataset:
     )
 
 
-@pytest.mark.parametrize("role", ["planner", "task_builder", "qc", "judge", "research", "loop3"])
-def test_role_settings_override_orchestrator(role: str) -> None:
+@pytest.mark.parametrize("role", ["planner", "task_builder", "qc", "research", "loop3"])
+def test_role_settings_use_role_fields(role: str) -> None:
     settings = role_model_settings(_config_for(role), role)  # type: ignore[arg-type]
 
     assert settings.configured is True
     _assert_role_call(settings.call_kwargs(), role)
 
 
-def test_role_settings_fall_back_field_wise() -> None:
-    config = BenchmarkConfig(
-        orchestrator_model="default-model",
-        orchestrator_provider="anthropic",
-        orchestrator_api_key="default-key",
-        orchestrator_base_url="https://default.example",
-        planner_model="planner-model",
-    )
+def test_unset_role_fields_remain_none() -> None:
+    config = BenchmarkConfig(planner_model="planner-model")
 
     assert role_model_settings(config, "planner").call_kwargs() == {
         "model": "planner-model",
-        "provider": "anthropic",
-        "api_key": "default-key",
-        "base_url": "https://default.example",
+        "provider": None,
+        "api_key": None,
+        "base_url": None,
     }
 
 
-def test_role_key_is_sufficient_without_orchestrator_key() -> None:
+def test_role_key_is_sufficient() -> None:
     settings = role_model_settings(
         BenchmarkConfig(
-            orchestrator_api_key=None,
             qc_model="qc-model",
             qc_api_key="qc-key",
         ),
@@ -171,7 +161,7 @@ def test_qc_uses_qc_role(monkeypatch) -> None:
     _assert_role_call(captured, "qc")
 
 
-def test_judge_uses_judge_role(monkeypatch) -> None:
+def test_judge_uses_selected_judge_model(monkeypatch) -> None:
     captured: dict = {}
 
     def fake_call_llm(*args, **kwargs):
@@ -180,8 +170,34 @@ def test_judge_uses_judge_role(monkeypatch) -> None:
 
     monkeypatch.setattr(execution_runner, "call_llm", fake_call_llm)
 
-    assert execution_runner._call_judge_json({"item": "x"}, _config_for("judge")) is not None
-    _assert_role_call(captured, "judge")
+    config = BenchmarkConfig(
+        judge_models=[
+            TargetModelConfig(provider="openai_compatible", model="judge-model", api_key="judge-key")
+        ]
+    )
+    assert execution_runner._call_judge_json({"item": "x"}, config, config.judge_models[0]) is not None
+    assert captured["model"] == "judge-model"
+    assert captured["provider"] == "openai_compatible"
+    assert captured["api_key"] == "judge-key"
+
+
+def test_resolve_judge_model_uses_per_task_selection() -> None:
+    models = [
+        TargetModelConfig(provider="openai_compatible", model="judge-a", api_key="k"),
+        TargetModelConfig(provider="openai_compatible", model="judge-b", api_key="k"),
+    ]
+    config = BenchmarkConfig(judge_models=models)
+    item = BenchmarkItem(
+        id="i",
+        dimension_id="d",
+        task_type=TaskType.generation,
+        prompt="p",
+        metadata={"judge_model_id": "judge-b"},
+    )
+
+    assert resolve_judge_model(config, item).model == "judge-b"
+    assert resolve_judge_model(config).model == "judge-a"
+    assert resolve_judge_model(BenchmarkConfig(), item) is None
 
 
 def test_research_uses_research_role(monkeypatch) -> None:

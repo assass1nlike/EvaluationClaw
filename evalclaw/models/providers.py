@@ -90,14 +90,14 @@ def target_from_model(
     )
 
 
-def orchestrator_defaults(
+def resolve_role_connection(
     model: str,
     *,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
     provider: Optional[str] = None,
 ) -> tuple[Optional[str], Optional[str]]:
-    """Return effective orchestrator API key and base URL."""
+    """Return an effective API key and base URL for one explicitly configured role."""
     provider, inferred_base = infer_provider(model, base_url, provider)
     effective_base_url = (
         inferred_base

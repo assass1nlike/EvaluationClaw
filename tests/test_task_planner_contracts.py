@@ -10,6 +10,7 @@ from evalclaw.planning.task_planner import (
     plan_benchmark,
 )
 from evalclaw.types import BenchmarkConfig, BenchmarkPlan, TaskType
+from tests.config_helpers import dummy_config_kwargs
 
 
 def _plan(
@@ -28,7 +29,6 @@ def _plan(
         {
             "id": "test_plan",
             "objective": "Test the requested capability.",
-            "metrics": ["judge_score"],
             "dimensions": [
                 {
                     "id": "capability",
@@ -50,15 +50,6 @@ def _plan(
                             "environment_requirements": environment,
                         }
                     ],
-                    "blueprints": [
-                        {
-                            "id": "builder_job",
-                            "title": "Build test cases",
-                            "task_design_ids": ["tasks"],
-                            "grouping_rationale": "The tasks share one construction method.",
-                            "workload_reason": "The response fits one Builder call.",
-                        }
-                    ],
                 }
             ],
         }
@@ -73,8 +64,8 @@ def test_explicit_total_task_count_is_conservative() -> None:
 
 
 def test_llm_planning_without_a_configured_model_fails_closed() -> None:
-    with pytest.raises(RuntimeError, match="fails closed"):
-        plan_benchmark("Create one benchmark task.", BenchmarkConfig(task_builder="llm"))
+    with pytest.raises(RuntimeError, match="does not substitute a local plan"):
+        plan_benchmark("Create one benchmark task.", BenchmarkConfig())
 
 
 def test_plan_audit_enforces_explicit_total() -> None:
@@ -122,12 +113,49 @@ def test_planner_repairs_wrong_explicit_total(monkeypatch) -> None:
 
     plan = plan_benchmark(
         "Create exactly 50 evaluation questions.",
-        BenchmarkConfig(orchestrator_api_key="dummy", max_planner_iterations=2),
+        BenchmarkConfig(**dummy_config_kwargs(), max_planner_iterations=2),
     )
 
     assert sum(design.task_count for dim in plan.dimensions for design in dim.task_designs) == 50
     assert len(payloads) == 2
     assert "explicitly requested exactly 50 tasks" in payloads[1]
+
+
+def test_planner_repairs_removed_dimension_fields(monkeypatch) -> None:
+    valid_plan = _plan().model_dump(mode="json")
+    stale_plan = json.loads(json.dumps(valid_plan))
+    stale_dimension = stale_plan["dimensions"][0]
+    stale_dimension["content_requirements"] = ["Cover the requested content."]
+    stale_dimension["exclusions"] = ["Exclude unrelated content."]
+    responses = [stale_plan, valid_plan]
+    payloads: list[str] = []
+
+    def fake_call_llm(messages, **kwargs):
+        payloads.append(messages[0].content)
+        return json.dumps({"plan": responses[len(payloads) - 1]})
+
+    monkeypatch.setattr("evalclaw.planning.task_planner.call_llm", fake_call_llm)
+
+    plan = plan_benchmark(
+        "Create exactly one benchmark task.",
+        BenchmarkConfig(**dummy_config_kwargs(), max_planner_iterations=2),
+    )
+
+    assert len(payloads) == 2
+    assert "content_requirements" in payloads[1]
+    assert "exclusions" in payloads[1]
+    assert plan.dimensions[0].measurement_target == "The requested capability."
+    assert plan.dimensions[0].boundary == "Exclude unrelated capabilities."
+
+
+def test_plan_maps_merged_dimension_fields_without_item_requirements() -> None:
+    plan = _plan()
+
+    dimension = plan.to_eval_spec().dimensions[0]
+
+    assert dimension.measurement_target == plan.dimensions[0].measurement_target
+    assert dimension.boundary == plan.dimensions[0].boundary
+    assert dimension.item_requirements == []
 
 
 def test_low_effort_planner_uses_bounded_output_budget(monkeypatch) -> None:
@@ -142,7 +170,7 @@ def test_low_effort_planner_uses_bounded_output_budget(monkeypatch) -> None:
 
     plan_benchmark(
         "Create exactly one benchmark task.",
-        BenchmarkConfig(orchestrator_api_key="dummy"),
+        BenchmarkConfig(**dummy_config_kwargs()),
     )
 
     assert captured["max_tokens"] == 4096

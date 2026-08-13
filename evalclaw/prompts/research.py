@@ -46,7 +46,7 @@ The ResearchBrief fields that must eventually be populated:
 - existing_benchmarks: known benchmarks and their weaknesses
 - seed_sources: groundable document/data URLs for item generation
 - exemplar_items: representative example tasks
-- challenge_effort_anchors: what E1-E4 task-builder effort means in this domain
+- challenge_effort_anchors: what E1-E3 task-builder effort means in this domain
 - citations: claim-to-source mapping
 
 Input JSON: {"goal": "...", "findings": ["..."], "round": N, "max_rounds": M}
@@ -75,7 +75,7 @@ the findings do not support them; never invent URLs):
   "existing_benchmarks": [{"name": "...", "url": "...", "known_weaknesses": ["..."]}],
   "seed_sources": [{"title": "...", "url": "...", "why_useful": "..."}],
   "exemplar_items": [{"prompt": "...", "answer": "...", "notes": "..."}],
-  "challenge_effort_anchors": {"E1": "...", "E2": "...", "E3": "...", "E4": "..."},
+  "challenge_effort_anchors": {"E1": "...", "E2": "...", "E3": "..."},
   "citations": [{"claim": "...", "url": "..."}],
   "research_notes": "caveats, open questions, coverage limits"
 }

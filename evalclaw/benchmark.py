@@ -22,7 +22,7 @@ from .types import (
 )
 
 
-def _affected_blueprint_ids(
+def _affected_builder_job_ids(
     dataset: BenchmarkDataset,
     qc_report: QcReport,
 ) -> set[str]:
@@ -38,11 +38,11 @@ def _affected_blueprint_ids(
         item = item_by_id.get(issue.item_id)
         if item is None:
             continue
-        blueprint_id = str(item.metadata.get("builder_blueprint_id") or "")
-        if blueprint_id:
-            affected.add(blueprint_id)
+        builder_job_id = str(item.metadata.get("builder_job_id") or "")
+        if builder_job_id:
+            affected.add(builder_job_id)
     if global_error:
-        affected.update(blueprint.id for blueprint in dataset.blueprints)
+        affected.update(job.id for job in dataset.builder_jobs)
     return affected
 
 
@@ -53,11 +53,11 @@ def _revision_contexts(
     affected_ids: set[str],
 ) -> dict[str, dict[str, object]]:
     item_by_id = {item.id: item for item in dataset.items}
-    blueprint_by_id = {blueprint.id: blueprint for blueprint in suite.blueprints}
+    job_by_id = {job.id: job for job in suite.builder_jobs}
     dimensions = {
-        blueprint_by_id[blueprint_id].dimension_id
-        for blueprint_id in affected_ids
-        if blueprint_id in blueprint_by_id
+        job_by_id[job_id].dimension_id
+        for job_id in affected_ids
+        if job_id in job_by_id
     }
     contexts: dict[str, dict[str, object]] = {}
     for dimension_id in dimensions:
@@ -79,7 +79,7 @@ def _revision_contexts(
             "instruction": (
                 "Return replacements only for task ids named by the listed QC issues. Fix every "
                 "listed problem and preserve each affected task id. Do not return or modify any "
-                "QC-passed task, including other tasks from the same Blueprint."
+                "QC-passed task, including other tasks from the same TaskDesign."
             ),
         }
     return contexts
@@ -128,12 +128,12 @@ def build_benchmark_dataset_with_qc_loop(
     *,
     log: Callable[[str], None] = print,
 ) -> tuple[EvalSpec, BenchmarkDataset, QcReport]:
-    """Plan adaptive Blueprints and build each through one Builder call."""
+    """Plan TaskDesigns and build each through one independent Builder call."""
     plan = plan_benchmark(goal, config, log=log)
     spec = plan.to_eval_spec()
     dataset, qc_report = build_dataset_from_spec_with_qc_loop(
         spec,
-        plan.blueprints,
+        plan.builder_jobs,
         config,
         log=log,
     )
@@ -143,7 +143,7 @@ def build_benchmark_dataset_with_qc_loop(
 
 def build_dataset_from_spec_with_qc_loop(
     spec: EvalSpec,
-    blueprints: list[TaskBlueprint],
+    builder_jobs: list[TaskBlueprint],
     config: BenchmarkConfig,
     *,
     log: Callable[[str], None] = print,
@@ -169,24 +169,24 @@ def build_dataset_from_spec_with_qc_loop(
         log(f"  QC: saved complete trace: {trace_dir}.")
         return report
 
-    suite = build_task_suite(spec, blueprints, config, log=log)
+    suite = build_task_suite(spec, builder_jobs, config, log=log)
     dataset = task_suite_to_dataset(suite, spec, config)
     qc_report = run_traced_qc(dataset, "00-initial")
     log(f"  QC: reviewing {len(dataset.items)} constructed task(s). {qc_report.summary}")
 
     max_repairs = max(0, int(config.max_qc_iterations))
     for repair_round in range(1, max_repairs + 1):
-        affected_ids = _affected_blueprint_ids(dataset, qc_report)
+        affected_ids = _affected_builder_job_ids(dataset, qc_report)
         if not affected_ids:
             break
         selected = [
-            blueprint
-            for blueprint in blueprints
-            if blueprint.id in affected_ids
+            job
+            for job in builder_jobs
+            if job.id in affected_ids
         ]
         log(
             f"  QC repair round {repair_round}/{max_repairs}: "
-            f"repairing {len(selected)} affected blueprint(s)."
+            f"repairing {len(selected)} affected TaskDesign job(s)."
         )
         repaired = build_task_suite(
             spec,

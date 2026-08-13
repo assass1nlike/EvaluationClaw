@@ -32,6 +32,7 @@ def _dataset() -> BenchmarkDataset:
         name="Core",
         description="Evaluate core behavior.",
         approach="Use several scoring protocols.",
+        target_item_count=5,
     )
     spec = EvalSpec(objective="Evaluate core behavior.", dimensions=[dimension])
     return BenchmarkDataset(
@@ -265,5 +266,8 @@ def test_human_review_does_not_treat_empty_passed_ids_as_all_ready() -> None:
 
 def test_challenge_effort_does_not_accept_old_level_words() -> None:
     assert safe_challenge_effort("E1") == ChallengeEffort.E1
-    assert safe_challenge_effort("easy", ChallengeEffort.E4) == ChallengeEffort.E4
+    assert safe_challenge_effort("easy", ChallengeEffort.E3) == ChallengeEffort.E3
     assert safe_challenge_effort("hard", ChallengeEffort.E1) == ChallengeEffort.E1
+    assert safe_challenge_effort("E4", ChallengeEffort.E2) == ChallengeEffort.E2
+    with pytest.raises(ValueError):
+        ChallengeEffort("E4")

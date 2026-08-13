@@ -34,6 +34,7 @@ from ..types import (
     EvalDimension,
     EvalSpec,
     Message,
+    ResearchBrief,
     SourceKind,
     TaskType,
     safe_challenge_effort,
@@ -105,11 +106,11 @@ def _large_scale_source_target_for_dimension(
     planned_count: int,
     config: BenchmarkConfig,
 ) -> int:
-    if not is_large_scale_budget(config.scale_budget):
-        return min(planned_count, dimension.target_source_backed_count)
     if dimension.target_source_backed_count > 0:
         return min(planned_count, dimension.target_source_backed_count)
-    ratio = max(0.0, min(1.0, float(config.large_scale_min_source_backed_ratio)))
+    if config.source_backed_ratio is None:
+        return 0
+    ratio = max(0.0, min(1.0, float(config.source_backed_ratio)))
     return min(planned_count, int(round(planned_count * ratio)))
 
 
@@ -134,14 +135,14 @@ def _source_backed_target_for_dimension(
 ) -> int:
     if dimension.target_source_backed_count > 0:
         return min(count, dimension.target_source_backed_count)
-    if is_large_scale_budget(config.scale_budget):
-        planned = max(count, int(dimension.target_item_count or count))
-        return min(count, _large_scale_source_target_for_dimension(dimension, planned, config))
+    if config.source_backed_ratio is not None:
+        ratio = max(0.0, min(1.0, float(config.source_backed_ratio)))
+        return min(count, int(round(count * ratio)))
     return min(count, max(0, config.max_hf_records_per_dimension))
 
 
 def _planned_count_for_dimension(dimension: EvalDimension, config: BenchmarkConfig) -> int:
-    return max(1, int(dimension.target_item_count or config.questions_per_dimension))
+    return max(1, int(dimension.target_item_count or 1))
 
 
 def _ensure_item_content_summaries(items: list[BenchmarkItem]) -> list[BenchmarkItem]:
@@ -216,15 +217,26 @@ def _select_research_sources(
     return sources
 
 
-def _source_context(sources: list[BenchmarkSource]) -> str:
+def _source_context(
+    sources: list[BenchmarkSource],
+    research_brief: ResearchBrief | None = None,
+) -> str:
     if not sources:
         return "No external sources. Generate from the spec and clearly label source as self_generated."
+    retained_by_url = {
+        material.url: material.content
+        for material in (research_brief.source_materials if research_brief is not None else [])
+    }
     parts: list[str] = []
     for source in sources:
         if source.kind == SourceKind.hf_dataset:
             parts.append(f"--- {source.title} ---\nURI: {source.uri}\n{source.notes}")
             continue
-        text = fetch_url_text(source.uri, max_chars=3000) if source.uri else None
+        text = retained_by_url.get(source.uri)
+        if text is None and source.uri:
+            text = fetch_url_text(source.uri, max_chars=3000)
+        if text is not None:
+            text = text[:3000]
         content = text or source.notes or "(content unavailable)"
         parts.append(f"--- {source.title or source.uri} ---\nURI: {source.uri}\n{content}")
     return "\n\n".join(parts)
@@ -388,7 +400,6 @@ def generate_dimension_items(
         "requested_count": remaining_count,
         "dimension_item_requirements": dimension.item_requirements,
         "dimension_task_type_plan": [task_type.value for task_type in (dimension.task_types or spec.task_types)],
-        "reference_model": config.reference_model.model_dump(mode="json") if config.reference_model else None,
         "dimension_source_allocation": {
             "target_total": count,
             "target_source_backed": source_backed_target,

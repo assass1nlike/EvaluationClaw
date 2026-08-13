@@ -9,6 +9,7 @@ from evalclaw.types import (
     EvalSpec,
     TaskType,
 )
+from tests.config_helpers import dummy_config_kwargs
 
 
 def test_qc_trace_persists_model_exchange_and_complete_report(tmp_path, monkeypatch) -> None:
@@ -57,7 +58,7 @@ def test_qc_trace_persists_model_exchange_and_complete_report(tmp_path, monkeypa
 
     report = run_qc_gate(
         dataset,
-        BenchmarkConfig(orchestrator_api_key="dummy"),
+        BenchmarkConfig(**dummy_config_kwargs()),
         trace_dir=trace_dir,
     )
 

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from evalclaw.construction.packaging import task_suite_to_dataset
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.planning.task_planner import plan_benchmark
@@ -19,6 +21,7 @@ from evalclaw.types import (
     TaskTypeAllocation,
 )
 from tests.blueprint_factory import make_blueprint, make_task_design
+from tests.config_helpers import dummy_config_kwargs
 
 
 def _mixed_spec() -> EvalSpec:
@@ -38,51 +41,14 @@ def _mixed_spec() -> EvalSpec:
     )
 
 
-def test_planner_creates_adaptive_blueprint_work_packages(monkeypatch) -> None:
+def test_planner_derives_one_builder_job_per_requested_task_design(monkeypatch) -> None:
     spec = _mixed_spec().model_copy(
         update={
-            "dimensions": [
-                _mixed_spec().dimensions[0].model_copy(update={"target_item_count": 5})
-            ]
-        }
-    )
-    calls = 0
-
-    def fake_plan(*args, **kwargs):
-        nonlocal calls
-        calls += 1
-        return spec
-
-    monkeypatch.setattr("evalclaw.planning.task_planner._fallback_outline", fake_plan)
-
-    planned = plan_benchmark(spec.objective, BenchmarkConfig(task_builder="local"))
-
-    assert calls == 1
-    derived = planned.to_eval_spec()
-    assert derived.objective == spec.objective
-    assert derived.scale == 5
-    assert derived.task_types == spec.task_types
-    assert len(planned.blueprints) == 2
-    assert [blueprint.planned_task_count for blueprint in planned.blueprints] == [3, 2]
-    assert [
-        blueprint.task_type_allocation[0].task_type
-        for blueprint in planned.blueprints
-    ] == [TaskType.choice, TaskType.agent]
-    assert planned.blueprints[0].environment_type is None
-    assert planned.blueprints[0].tool_requirements == []
-    assert planned.blueprints[1].environment_type == AgentEnvironmentType.workspace
-    assert all(blueprint.metadata for blueprint in planned.blueprints)
-    assert planned.audit.passed is True
-
-
-def test_planner_skill_drives_one_mixed_type_family_blueprint(monkeypatch) -> None:
-    spec = _mixed_spec().model_copy(
-        update={
-            "scale": 5,
+            "scale": 15,
             "dimensions": [
                 _mixed_spec().dimensions[0].model_copy(
                     update={
-                        "target_item_count": 5,
+                        "target_item_count": 15,
                         "measurement_target": "Complementary factual and explanatory analysis.",
                         "boundary": "Exclude stateful tool use and unrelated recall.",
                         "task_types": [
@@ -92,11 +58,11 @@ def test_planner_skill_drives_one_mixed_type_family_blueprint(monkeypatch) -> No
                         "task_type_allocation": [
                             TaskTypeAllocation(
                                 task_type=TaskType.choice,
-                                count=3,
+                                count=5,
                             ),
                             TaskTypeAllocation(
                                 task_type=TaskType.generation,
-                                count=2,
+                                count=10,
                             ),
                         ],
                         "item_requirements": [
@@ -119,54 +85,42 @@ def test_planner_skill_drives_one_mixed_type_family_blueprint(monkeypatch) -> No
                 "plan": {
                     "id": "shared_case_plan",
                     "objective": spec.objective,
-                    "metrics": ["judge_score"],
                     "constraints": [],
                     "planner_notes": "",
                     "dimensions": [
                         {
                             "id": "mixed",
                             "name": "Mixed capability",
-                            "measurement_target": "Complementary factual and explanatory analysis.",
-                            "boundary": "Exclude stateful tool use and unrelated recall.",
+                            "measurement_target": (
+                                "Complementary factual and explanatory analysis over one shared case; "
+                                "cover both supported facts and evidence-grounded explanations."
+                            ),
+                            "boundary": (
+                                "Exclude stateful tool use, unrelated recall, and claims unsupported "
+                                "by the shared case."
+                            ),
                             "approach": "Use one shared case.",
-                            "content_requirements": [
-                                "Use one shared case to test factual and explanatory analysis."
-                            ],
-                            "exclusions": ["Stateful tool use"],
                             "task_designs": [
                                 {
                                     "id": "shared_case_mcq",
                                     "task_type": "choice",
-                                    "task_count": 3,
+                                    "task_count": 5,
                                     "challenge_effort": "E3",
                                     "content_design": {
                                         "purpose": "Test supported facts.",
-                                        "description": "Three distinct factual questions over one case.",
+                                        "description": "Five distinct factual questions over one case.",
                                     },
                                 },
                                 {
                                     "id": "shared_case_explanation",
                                     "task_type": "generation",
-                                    "task_count": 2,
+                                    "task_count": 10,
                                     "challenge_effort": "E3",
                                     "content_design": {
                                         "purpose": "Test explanation.",
-                                        "description": "Two distinct explanations over the same case.",
+                                        "description": "Ten distinct explanations over the same case.",
                                     },
                                 },
-                            ],
-                            "blueprints": [
-                                {
-                                    "id": "shared_case_blueprint",
-                                    "title": "Questions over one shared case",
-                                    "task_design_ids": [
-                                        "shared_case_mcq",
-                                        "shared_case_explanation",
-                                    ],
-                                    "grouping_rationale": "All tasks share one compact case.",
-                                    "workload_reason": "Five short tasks fit in one Builder call.",
-                                    "metadata": {"content_focus": "shared case"},
-                                }
                             ],
                         }
                     ],
@@ -178,38 +132,38 @@ def test_planner_skill_drives_one_mixed_type_family_blueprint(monkeypatch) -> No
 
     plan = plan_benchmark(
         spec.objective,
-        BenchmarkConfig(orchestrator_api_key="dummy"),
+        BenchmarkConfig(**dummy_config_kwargs()),
     )
 
     assert captured["calls"] == 1
-    assert "# Design Benchmark Content and Blueprints" in str(captured["system"])
+    assert "# Design Benchmark Content and TaskDesigns" in str(captured["system"])
     assert 'path="reference/universal_format.json"' in str(captured["system"])
     assert 'path="resources/instruction.md"' in str(captured["payload"])
     assert spec.objective in str(captured["payload"])
-    assert len(plan.blueprints) == 1
-    assert plan.blueprints[0].planned_task_count == 5
-    assert len(plan.blueprints[0].task_type_allocation) == 2
+    assert len(plan.builder_jobs) == 2
+    assert [job.planned_task_count for job in plan.builder_jobs] == [5, 10]
+    assert all(len(job.task_designs) == 1 for job in plan.builder_jobs)
     derived = plan.to_eval_spec()
     assert derived.task_types == [TaskType.choice, TaskType.generation]
-    assert derived.scale == 5
-    assert [item.count for item in derived.dimensions[0].task_type_allocation] == [3, 2]
+    assert derived.scale == 15
+    assert [item.count for item in derived.dimensions[0].task_type_allocation] == [5, 10]
     assert plan.audit.passed is True
 
 
-def test_one_builder_call_materializes_a_mixed_type_blueprint(monkeypatch) -> None:
+def test_build_task_suite_rejects_multi_design_blueprint() -> None:
     dimension = EvalDimension(
         id="shared_case",
         name="Shared case",
         description="Evaluate factual and explanatory analysis over one case.",
         approach="Use one shared prompt context.",
         task_types=[TaskType.choice, TaskType.generation],
-        target_item_count=2,
+        target_item_count=15,
     )
     spec = EvalSpec(
         objective="Evaluate mixed responses.",
         task_types=[TaskType.choice, TaskType.generation],
         dimensions=[dimension],
-        scale=2,
+        scale=15,
     )
     blueprint = make_blueprint(
         "mixed_blueprint",
@@ -219,70 +173,27 @@ def test_one_builder_call_materializes_a_mixed_type_blueprint(monkeypatch) -> No
             make_task_design(
                 "shared_case_mcq",
                 TaskType.choice,
+                count=5,
                 content="One factual question over the shared case.",
             ),
             make_task_design(
                 "shared_case_explanation",
                 TaskType.generation,
+                count=10,
                 content="One explanatory question over the shared case.",
             ),
         ],
     )
-    calls = 0
 
-    def fake_call_llm(*args, **kwargs):
-        nonlocal calls
-        calls += 1
-        common_metadata = {
-            "challenge_effort_self_assessment": {
-                "requested_effort": "E3",
-                "meets_requested_effort": True,
-                "rationale": "Both tasks are complete and distinct.",
-            }
-        }
-        return json.dumps(
-            {
-                "tasks": [
-                    {
-                        "id": "case_mcq",
-                        "dimension_id": dimension.id,
-                        "task_type": "choice",
-                        "title": "Identify the supported fact",
-                        "prompt": "Which statement is supported by the shared case?",
-                        "choices": [{"id": "A", "text": "Supported"}, {"id": "B", "text": "Unsupported"}],
-                        "correct_choice_ids": ["A"],
-                        "scoring": {"pass_criteria": "Answer A."},
-                        "metadata": common_metadata,
-                    },
-                    {
-                        "id": "case_explanation",
-                        "dimension_id": dimension.id,
-                        "task_type": "generation",
-                        "title": "Explain the implication",
-                        "prompt": "Explain the main implication of the shared case.",
-                        "rubric": "Reward a correct, evidence-grounded explanation.",
-                        "scoring": {"pass_criteria": "The explanation uses the case evidence."},
-                        "metadata": common_metadata,
-                    },
-                ]
-            }
+    with pytest.raises(ValueError, match="exactly one TaskDesign"):
+        build_task_suite(
+            spec,
+            [blueprint],
+            BenchmarkConfig(**dummy_config_kwargs(), task_builder_max_workers=1),
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", fake_call_llm)
-    suite = build_task_suite(
-        spec,
-        [blueprint],
-        BenchmarkConfig(orchestrator_api_key="dummy", task_builder_max_workers=1),
-    )
 
-    assert calls == 1
-    assert [task.task_type for task in suite.tasks] == [
-        TaskType.choice,
-        TaskType.generation,
-    ]
-
-
-def test_one_task_builder_constructs_static_and_interactive_tasks_together() -> None:
+def test_one_task_builder_constructs_static_and_interactive_tasks_together(monkeypatch) -> None:
     spec = _mixed_spec()
     blueprints = [
         make_blueprint(
@@ -303,10 +214,45 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together() -> 
         ),
     ]
 
+    blueprint_by_id = {blueprint.id: blueprint for blueprint in blueprints}
+
+    def fake_call_llm(messages, **kwargs):
+        from evalclaw.construction.builders import _fallback_task_for_blueprint
+
+        payload = json.loads(messages[0].content)
+        blueprint_id = payload["task_plan"]["builder_job_id"]
+        blueprint = blueprint_by_id[blueprint_id]
+        task = _fallback_task_for_blueprint(
+            spec,
+            spec.dimensions[0],
+            blueprint,
+            index=1,
+            task_type=blueprint.task_designs[0].task_type,
+        )
+        task.metadata.update(
+            {
+                "task_design_id": blueprint.task_designs[0].id,
+                "challenge_effort_self_assessment": {
+                    "requested_effort": blueprint.task_designs[0].challenge_effort.value,
+                    "meets_requested_effort": True,
+                    "rationale": "The task implements the complete planned contract.",
+                },
+            }
+        )
+        return json.dumps(
+            {
+                "construction_notes": "Model-built test fixture.",
+                "resources": [],
+                "tasks": [task.model_dump(mode="json")],
+            }
+        )
+
+    monkeypatch.setattr("evalclaw.construction.suite.call_llm", fake_call_llm)
+
     suite = build_task_suite(
         spec,
         blueprints,
-        BenchmarkConfig(task_builder="local", task_builder_max_workers=1),
+        BenchmarkConfig(**dummy_config_kwargs(), task_builder_max_workers=1),
     )
     dataset = task_suite_to_dataset(suite, spec, BenchmarkConfig())
 
@@ -357,7 +303,7 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
         rubric="Score correctness and justification.",
         scoring=TaskScoringSpec(instructions="Score correctness and justification."),
         metadata={
-            "builder_blueprint_id": blueprint.id,
+            "builder_job_id": blueprint.id,
             "task_design_id": blueprint.task_design_ids[0],
         },
     )
@@ -385,7 +331,7 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
             prompt="Analyze a distinct boundary case and justify the conclusion.",
             rubric="Score correctness and justification.",
             scoring=TaskScoringSpec(instructions="Score correctness and justification."),
-            metadata={"builder_blueprint_id": blueprints[0].id},
+            metadata={"builder_job_id": blueprints[0].id},
         )
         return TaskSuite(
             objective=scoped_spec.objective,
@@ -395,6 +341,10 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
         )
 
     monkeypatch.setattr("evalclaw.quality.improver.build_task_suite", fake_build)
+    monkeypatch.setattr(
+        "evalclaw.quality.improver.plan_blueprints_for_spec",
+        lambda spec, config, **kwargs: [blueprint],
+    )
 
     improved = _replace_or_expand_items(
         dataset,
@@ -406,7 +356,7 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
                 guidance="Add a distinct boundary case.",
             )
         ],
-        BenchmarkConfig(task_builder="local"),
+        BenchmarkConfig(),
     )
 
     assert calls == 1

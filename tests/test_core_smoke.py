@@ -86,7 +86,6 @@ from evalclaw.types import (
     EvalSpec,
     ItemResult,
     JudgeToolRef,
-    Metric,
     QcCategory,
     QcIssue,
     QcReport,
@@ -100,6 +99,7 @@ from evalclaw.types import (
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
+from tests.config_helpers import dummy_config_kwargs
 
 
 def test_sandbox_runs_in_isolated_container(monkeypatch) -> None:
@@ -137,22 +137,6 @@ def test_core_models_fill_defaults() -> None:
     assert target.id == "deepseek-v4-flash"
     assert config.targets[0].provider == "deepseek"
     assert dimension.weight == 1.0
-
-
-def test_planner_fallback_preserves_scale_budget() -> None:
-    config = BenchmarkConfig(
-        targets=[TargetModelConfig(provider="mock", model="mock-agent")],
-        scale_budget=ScaleBudget.high,
-        task_builder="local",
-    )
-
-    spec = plan_benchmark("Evaluate iterative code agents", config).to_eval_spec()
-
-    assert spec.scale_budget == ScaleBudget.high
-    assert spec.scale == 1000
-    assert all(dimension.challenge_effort == ChallengeEffort.E3 for dimension in spec.dimensions)
-    assert sum(dimension.target_item_count or 0 for dimension in spec.dimensions) == spec.scale
-    assert all((dimension.target_item_count or 0) > 0 for dimension in spec.dimensions)
 
 
 def test_scale_budget_targets_are_raw_item_counts() -> None:
@@ -342,14 +326,14 @@ def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> Non
             spec,
             [blueprint],
             BenchmarkConfig(
-                orchestrator_api_key="dummy",
+                **dummy_config_kwargs(),
                 use_web_research=False,
                 use_hf_discovery=False,
             ),
         )
 
 
-def test_task_builder_calls_llm_once_per_blueprint(monkeypatch) -> None:
+def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
     payloads: list[dict] = []
 
     def one_task_call_llm(messages, *args, **kwargs):
@@ -415,7 +399,7 @@ def test_task_builder_calls_llm_once_per_blueprint(monkeypatch) -> None:
         spec,
         [blueprint],
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
+            **dummy_config_kwargs(),
             use_web_research=False,
             use_hf_discovery=False,
             task_builder_max_workers=1,
@@ -425,13 +409,10 @@ def test_task_builder_calls_llm_once_per_blueprint(monkeypatch) -> None:
 
     assert [task.id for task in suite.tasks] == ["task_1", "task_2"]
     assert len(payloads) == 1
-    construction = payloads[0]["task_plan"]["blueprint"]
-    assert construction["planned_task_count"] == 2
+    construction = payloads[0]["task_plan"]["task_design"]
     assert construction["required_return_task_count"] == 2
-    assert construction["task_designs"][0]["task_count"] == 2
-    assert "Move two distinct workspace items" in construction["task_designs"][0][
-        "content_design"
-    ]["description"]
+    assert construction["task_count"] == 2
+    assert "Move two distinct workspace items" in construction["content_design"]["description"]
     assert any("starting 1/1" in message for message in progress)
     assert any("completed 1/1" in message for message in progress)
 
@@ -495,7 +476,7 @@ def test_task_builder_repairs_ambiguous_multi_source_binding(monkeypatch) -> Non
         spec,
         [blueprint],
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
+            **dummy_config_kwargs(),
             use_web_research=False,
             use_hf_discovery=False,
             task_builder_max_workers=1,
@@ -556,7 +537,7 @@ def test_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
             spec,
             [blueprint],
             BenchmarkConfig(
-                orchestrator_api_key="dummy",
+                **dummy_config_kwargs(),
                 use_web_research=False,
                 use_hf_discovery=False,
             ),
@@ -573,7 +554,7 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
                         "dimension_id": "agent_capability",
                         "title": "Hard task",
                         "prompt": "Complete a realistic multi-file repair task.",
-                        "challenge_effort": "E4",
+                        "challenge_effort": "E3",
                         "environment": {
                             "type": "workspace",
                             "workspace": {
@@ -585,7 +566,7 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
                         "scoring": {"pass_criteria": "Hidden tests pass."},
                         "metadata": {
                             "challenge_effort_self_assessment": {
-                                "requested_effort": "E4",
+                                "requested_effort": "E3",
                                 "meets_requested_effort": True,
                                 "rationale": "The task uses a realistic repair setup with hidden scoring.",
                                 "effort_actions": ["Added nontrivial workspace state and hidden oracle."],
@@ -602,7 +583,7 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
         name="Agent capability",
         description="Evaluate realistic agent task execution.",
         approach="Use executable tasks.",
-        challenge_effort=ChallengeEffort.E4,
+        challenge_effort=ChallengeEffort.E3,
     )
     spec = EvalSpec(
         objective="Evaluate agents.",
@@ -615,7 +596,7 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
         "Agent task",
         task_type=TaskType.agent,
         content="One executable agent task.",
-        challenge_effort=ChallengeEffort.E4,
+        challenge_effort=ChallengeEffort.E3,
         environment_type=AgentEnvironmentType.workspace,
     )
 
@@ -623,13 +604,13 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
         spec,
         [blueprint],
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
+            **dummy_config_kwargs(),
             use_web_research=False,
             use_hf_discovery=False,
         ),
     )
 
-    assert suite.tasks[0].challenge_effort == ChallengeEffort.E4
+    assert suite.tasks[0].challenge_effort == ChallengeEffort.E3
 
 
 def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> None:
@@ -646,7 +627,7 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
                     {
                         "id": "recovered_task",
                         "dimension_id": "agent_capability",
-                        "challenge_effort": "E4",
+                        "challenge_effort": "E3",
                         "title": "Recovered task",
                         "prompt": "Inspect the workspace and place the brief in the outgoing bin.",
                         "environment": {
@@ -660,7 +641,7 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
                         "scoring": {"pass_criteria": "The brief is in the outgoing bin."},
                         "metadata": {
                             "challenge_effort_self_assessment": {
-                                "requested_effort": "E4",
+                                "requested_effort": "E3",
                                 "meets_requested_effort": False,
                                 "rationale": "The recovery prioritized completeness over maximum construction effort.",
                             }
@@ -676,7 +657,7 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
         name="Agent capability",
         description="Evaluate realistic agent task execution.",
         approach="Use executable tasks.",
-        challenge_effort=ChallengeEffort.E4,
+        challenge_effort=ChallengeEffort.E3,
     )
     spec = EvalSpec(
         objective="Evaluate agents.",
@@ -689,11 +670,11 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
         "Agent task",
         task_type=TaskType.agent,
         content="One executable agent task.",
-        challenge_effort=ChallengeEffort.E4,
+        challenge_effort=ChallengeEffort.E3,
         environment_type=AgentEnvironmentType.workspace,
     )
     config = BenchmarkConfig(
-        orchestrator_api_key="dummy",
+        **dummy_config_kwargs(),
         use_web_research=False,
         use_hf_discovery=False,
         task_builder_repair_attempts=0,
@@ -709,7 +690,7 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
     assert calls[1]["kwargs"]["reduce_reasoning_effort"] is True
     fidelity = suite.tasks[0].metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY]
     assert fidelity["status"] == "uncertain"
-    assert fidelity["requested_effort"] == "E4"
+    assert fidelity["requested_effort"] == "E3"
     assert dataset.items[0].metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY] == fidelity
 
 
@@ -727,7 +708,7 @@ def test_task_builder_stops_after_reduced_effort_retry_truncates(monkeypatch) ->
         name="Agent capability",
         description="Evaluate realistic agent task execution.",
         approach="Use executable tasks.",
-        challenge_effort=ChallengeEffort.E4,
+        challenge_effort=ChallengeEffort.E3,
     )
     spec = EvalSpec(
         objective="Evaluate agents.",
@@ -740,7 +721,7 @@ def test_task_builder_stops_after_reduced_effort_retry_truncates(monkeypatch) ->
         "Agent task",
         task_type=TaskType.agent,
         content="One executable agent task.",
-        challenge_effort=ChallengeEffort.E4,
+        challenge_effort=ChallengeEffort.E3,
         environment_type=AgentEnvironmentType.workspace,
     )
 
@@ -749,7 +730,7 @@ def test_task_builder_stops_after_reduced_effort_retry_truncates(monkeypatch) ->
             spec,
             [blueprint],
             BenchmarkConfig(
-                orchestrator_api_key="dummy",
+                **dummy_config_kwargs(),
                 use_web_research=False,
                 use_hf_discovery=False,
                 task_builder_repair_attempts=2,
@@ -767,7 +748,7 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
     def concurrent_call_llm(messages, *args, **kwargs):
         nonlocal active_calls, max_active_calls
         payload = json.loads(messages[0].content)
-        blueprint_id = payload["task_plan"]["blueprint"]["id"]
+        blueprint_id = payload["task_plan"]["builder_job_id"]
         dimension_id = payload["task_plan"]["capability"]["id"]
         challenge_effort = payload["task_plan"]["capability"].get("challenge_effort", "E3")
         with lock:
@@ -843,7 +824,7 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
         spec,
         blueprints,
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
+            **dummy_config_kwargs(),
             use_web_research=False,
             use_hf_discovery=False,
             task_builder_max_workers=2,
@@ -942,7 +923,7 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
         spec,
         [blueprint],
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
+            **dummy_config_kwargs(),
             use_web_research=False,
             use_hf_discovery=False,
             task_builder_repair_attempts=1,
@@ -1022,7 +1003,7 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
             spec,
             [blueprint],
             BenchmarkConfig(
-                orchestrator_api_key="dummy",
+                **dummy_config_kwargs(),
                 use_web_research=False,
                 use_hf_discovery=False,
                 task_builder_repair_attempts=1,
@@ -1110,7 +1091,7 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
         spec,
         [blueprint],
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
+            **dummy_config_kwargs(),
             use_web_research=False,
             use_hf_discovery=False,
             task_builder_repair_attempts=1,
@@ -1344,23 +1325,34 @@ def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
         dimensions=[dimension],
         task_types=[TaskType.agent],
     )
-    source_suite = build_task_suite(
+    from evalclaw.construction.builders import _fallback_task_for_blueprint
+
+    blueprint = make_blueprint(
+        "gui_blueprint",
+        dimension.id,
+        "GUI task",
+        task_type=TaskType.agent,
+        content="One GUI task.",
+        environment_type=AgentEnvironmentType.gui_desktop,
+    )
+    task = _fallback_task_for_blueprint(
         spec,
-        [
-            make_blueprint(
-                "gui_blueprint",
-                dimension.id,
-                "GUI task",
-                task_type=TaskType.agent,
-                content="One GUI task.",
-                environment_type=AgentEnvironmentType.gui_desktop,
-            )
-        ],
-        BenchmarkConfig(
-            use_web_research=False,
-            use_hf_discovery=False,
-            task_builder="local",
-        ),
+        dimension,
+        blueprint,
+        index=1,
+        task_type=TaskType.agent,
+    )
+    task.metadata.update(
+        {
+            "builder_job_id": blueprint.id,
+            "task_design_id": blueprint.task_designs[0].id,
+        }
+    )
+    source_suite = TaskSuite(
+        objective=spec.objective,
+        dimensions=[dimension],
+        blueprints=[blueprint],
+        tasks=[task],
     )
     task = source_suite.tasks[0]
     task.metadata["agent_task_package"] = {"schema_version": "broken"}
@@ -2140,9 +2132,10 @@ def test_large_scale_generation_caps_model_generated_items(monkeypatch) -> None:
     )
     spec = EvalSpec(objective="Evaluate robustness", dimensions=[dimension], scale_budget=ScaleBudget.large)
     config = BenchmarkConfig(
-        orchestrator_api_key="dummy",
+        **dummy_config_kwargs(),
         scale_budget=ScaleBudget.large,
         large_scale_generated_item_cap_per_dimension=25,
+        source_backed_ratio=0.8,
         use_hf_discovery=False,
         use_web_research=False,
     )
@@ -2208,7 +2201,7 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
             ],
         ),
         BenchmarkConfig(
-            orchestrator_api_key="dummy",
+            **dummy_config_kwargs(),
             scale_budget=ScaleBudget.large,
             large_scale_llm_qc_sample_size=10,
         ),
@@ -2223,21 +2216,18 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
 def test_planner_instruction_resource_contains_design_constraints() -> None:
     instruction = _instruction_resource(
         "Evaluate visual scientific reasoning from images.",
-        BenchmarkConfig(
-            reference_model=TargetModelConfig(provider="mock", model="mock-reference"),
-            scale_budget=ScaleBudget.high,
-        ),
+        BenchmarkConfig(scale_budget=ScaleBudget.high),
     )
 
     assert "Evaluate visual scientific reasoning from images." in instruction
     assert '"scale_budget": "high"' in instruction
     assert '"available_task_types"' in instruction
-    assert '"available_metrics"' in instruction
     assert '"available_environment_types"' in instruction
-    assert '"model": "mock-reference"' in instruction
-    assert '"reference_model_response_policy"' in instruction
-    assert '"multimodal_policy"' in instruction
-    assert '"science_policy"' in instruction
+    assert '"target_models"' not in instruction
+    assert '"reference_model"' not in instruction
+    assert '"available_metrics"' not in instruction
+    assert '"multimodal_policy"' not in instruction
+    assert '"science_policy"' not in instruction
 
 
 def test_planner_instruction_resource_omits_irrelevant_domain_policies() -> None:
@@ -2246,13 +2236,13 @@ def test_planner_instruction_resource_omits_irrelevant_domain_policies() -> None
         BenchmarkConfig(scale_budget=ScaleBudget.low),
     )
 
-    assert '"target_models_are_optional": true' in instruction
+    assert '"target_models"' not in instruction
     assert '"multimodal_policy"' not in instruction
     assert '"science_policy"' not in instruction
-    assert '"reference_model_response_policy"' not in instruction
+    assert '"reference_model"' not in instruction
 
 
-def test_chinese_goal_translation_before_planning(monkeypatch) -> None:
+def test_goal_translation_before_planning(monkeypatch) -> None:
     def fake_call_llm(*args, **kwargs):
         return '{"english_goal":"Evaluate complex mathematical reasoning."}'
 
@@ -2260,21 +2250,34 @@ def test_chinese_goal_translation_before_planning(monkeypatch) -> None:
 
     translated = translate_goal_to_english(
         "评估复杂数学推理能力",
-        BenchmarkConfig(orchestrator_api_key="dummy"),
+        BenchmarkConfig(**dummy_config_kwargs()),
     )
 
     assert translated == "Evaluate complex mathematical reasoning."
 
 
-def test_chinese_goal_translation_skips_remote_call_without_key(monkeypatch) -> None:
+def test_goal_translation_requires_planner_model() -> None:
+    with pytest.raises(RuntimeError, match="Planner model is not configured"):
+        translate_goal_to_english("Evaluate mathematical reasoning", BenchmarkConfig())
+
+
+def test_english_goal_still_uses_language_normalizer(monkeypatch) -> None:
+    calls = 0
+
     def fake_call_llm(*args, **kwargs):
-        raise AssertionError("remote translation should be skipped without a Planner-role key")
+        nonlocal calls
+        calls += 1
+        return '{"english_goal":"Evaluate mathematical reasoning."}'
 
     monkeypatch.setattr("evalclaw.planning.planner.call_llm", fake_call_llm)
 
-    translated = translate_goal_to_english("评估复杂数学推理能力", BenchmarkConfig())
+    translated = translate_goal_to_english(
+        "Evaluate mathematical reasoning.",
+        BenchmarkConfig(**dummy_config_kwargs()),
+    )
 
-    assert translated == "评估复杂数学推理能力"
+    assert translated == "Evaluate mathematical reasoning."
+    assert calls == 1
 
 
 def test_extract_json_parses_json_repair_string_return(monkeypatch) -> None:
@@ -2562,7 +2565,7 @@ def test_local_generator_adds_task_agent_metadata_for_multi_turn() -> None:
     assert item.metadata["task_agent"]["scoring"]["method"] == "agent_judge"
 
 
-def test_local_generator_does_not_implicitly_enable_reference_comparison() -> None:
+def test_local_generator_does_not_add_removed_reference_comparison_tool() -> None:
     dimension = EvalDimension(
         id="helpfulness",
         name="Helpfulness",
@@ -2574,12 +2577,10 @@ def test_local_generator_does_not_implicitly_enable_reference_comparison() -> No
         objective="Evaluate target helpfulness against a reference model.",
         dimensions=[dimension],
         task_types=[TaskType.generation],
-        metrics=[Metric.win_rate],
     )
     config = BenchmarkConfig(
         use_hf_discovery=False,
         use_web_research=False,
-        reference_model=TargetModelConfig(provider="mock", model="mock-reference"),
     )
 
     items, _, _ = generate_dimension_items(spec, dimension, 1, config)
@@ -2608,20 +2609,10 @@ def test_local_generator_attaches_multimodal_metadata_for_visual_dimensions() ->
     assert item.metadata["multimodal"]["assets"]
 
 
-def test_science_request_detection_and_fallback_spec() -> None:
+def test_science_request_detection() -> None:
     assert text_requests_science("Evaluate physics and chemistry scientific reasoning")
     assert text_requests_science("测试物理定量计算和科学证据解释")
     assert not text_requests_science("Evaluate instruction following without science")
-
-    spec = plan_benchmark(
-        "Evaluate scientific reasoning in physics experiments",
-        BenchmarkConfig(scale_budget=ScaleBudget.low, task_builder="local"),
-    ).to_eval_spec()
-
-    dimension_ids = {dimension.id for dimension in spec.dimensions}
-    assert "science_conceptual_reasoning" in dimension_ids
-    assert "quantitative_units" in dimension_ids
-    assert "experimental_evidence" in dimension_ids
 
 
 def test_local_generator_adds_science_metadata_for_science_dimensions() -> None:
@@ -2794,7 +2785,7 @@ def test_llm_generator_omits_multimodal_payload_for_text_only_dimension(monkeypa
         spec,
         dimension,
         1,
-        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+        BenchmarkConfig(**dummy_config_kwargs(), use_hf_discovery=False, use_web_research=False),
     )
 
     assert items[0].rubric == "Score correctness and clarity."
@@ -2836,7 +2827,7 @@ def test_llm_generator_includes_multimodal_payload_only_when_required(monkeypatc
         spec,
         dimension,
         1,
-        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+        BenchmarkConfig(**dummy_config_kwargs(), use_hf_discovery=False, use_web_research=False),
     )
 
     assert "multimodal_schema" in captured_payload
@@ -2891,7 +2882,7 @@ def test_llm_generator_includes_science_payload_only_when_required(monkeypatch) 
         spec,
         dimension,
         1,
-        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+        BenchmarkConfig(**dummy_config_kwargs(), use_hf_discovery=False, use_web_research=False),
     )
 
     assert "science_schema" in captured_payload
@@ -2937,7 +2928,7 @@ def test_llm_generator_omits_science_payload_for_non_science_dimension(monkeypat
         spec,
         dimension,
         1,
-        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+        BenchmarkConfig(**dummy_config_kwargs(), use_hf_discovery=False, use_web_research=False),
     )
 
     assert "science_schema" not in captured_payload
@@ -2962,7 +2953,7 @@ def test_chart_dimensions_use_programmatic_fallback_without_external_sources(mon
         spec,
         dimension,
         1,
-        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+        BenchmarkConfig(**dummy_config_kwargs(), use_hf_discovery=False, use_web_research=False),
     )
 
     assert "Programmatic multimodal fallback" in notes
@@ -2984,7 +2975,7 @@ def test_llm_generator_uses_fallback_when_json_parse_fails(monkeypatch) -> None:
         spec,
         dimension,
         1,
-        BenchmarkConfig(orchestrator_api_key="dummy", use_hf_discovery=False, use_web_research=False),
+        BenchmarkConfig(**dummy_config_kwargs(), use_hf_discovery=False, use_web_research=False),
     )
 
     assert len(items) == 1
@@ -3283,8 +3274,9 @@ def test_multi_turn_runner_uses_task_agent_for_followups_and_scoring(monkeypatch
         },
     )
     config = BenchmarkConfig(
-        task_agent_model="mock-task-agent",
-        task_agent_api_key="dummy",
+        task_agent_models=[
+            TargetModelConfig(provider="mock", model="mock-task-agent", api_key="dummy")
+        ],
         targets=[TargetModelConfig(provider="mock", model="mock-target")],
     )
 
@@ -3367,8 +3359,8 @@ def test_static_qc_treats_challenge_effort_as_builder_guidance() -> None:
         id="expert_reasoning",
         name="Expert reasoning",
         description="Expert tasks requiring substantial construction effort",
-        approach="Use E4 prompts",
-        challenge_effort=ChallengeEffort.E4,
+        approach="Use E3 prompts",
+        challenge_effort=ChallengeEffort.E3,
     )
     spec = EvalSpec(
         objective="Evaluate expert reasoning",
@@ -3809,7 +3801,7 @@ def test_judge_invalid_json_is_reported_as_evaluator_error(monkeypatch) -> None:
         rubric="Score correctness.",
     )
     config = BenchmarkConfig(
-        orchestrator_api_key="dummy",
+        **dummy_config_kwargs(),
         targets=[TargetModelConfig(provider="mock", model="mock-agent")],
     )
 
@@ -3854,7 +3846,7 @@ def test_python_tests_tool_supplies_evidence_to_generation_judge(monkeypatch) ->
         ],
     )
     config = BenchmarkConfig(
-        orchestrator_api_key="dummy",
+        **dummy_config_kwargs(),
         targets=[TargetModelConfig(provider="mock", model="mock-target")],
     )
 
@@ -3865,51 +3857,7 @@ def test_python_tests_tool_supplies_evidence_to_generation_judge(monkeypatch) ->
     assert captured["external_evidence"][0]["passed"] is True
 
 
-def test_reference_model_response_tool_compares_target_to_reference(monkeypatch) -> None:
-    calls: list[tuple[str, str]] = []
-
-    def fake_call_target_model(prompt, target, **kwargs):
-        calls.append((target.model, prompt))
-        if target.model == "mock-reference":
-            return "Reference answer."
-        return "Target answer is more complete."
-
-    def fake_call_llm(messages, **kwargs):
-        payload = json.loads(messages[0].content)
-        assert payload["target_response"] == "Target answer is more complete."
-        assert payload["reference_response"] == "Reference answer."
-        return json.dumps({"winner": "target", "score_normalized": 1.0, "reasoning": "Target is more helpful."})
-
-    monkeypatch.setattr("evalclaw.runners.pairwise.call_target_model", fake_call_target_model)
-    monkeypatch.setattr("evalclaw.runners.pairwise.call_llm", fake_call_llm)
-    item = BenchmarkItem(
-        id="pairwise_item",
-        dimension_id="helpfulness",
-        task_type=TaskType.generation,
-        prompt="Explain how to debug a failing unit test.",
-        rubric="Prefer the answer that gives more actionable debugging steps.",
-        judge_tools=[JudgeToolRef(tool="reference_model_response")],
-    )
-    config = BenchmarkConfig(
-        orchestrator_api_key="dummy",
-        targets=[TargetModelConfig(provider="mock", model="mock-target")],
-        reference_model=TargetModelConfig(provider="mock", model="mock-reference"),
-    )
-
-    result = run_item(item, config)
-    raw = json.loads(result.raw_response)
-
-    assert result.score == 1.0
-    assert result.error is None
-    assert "winner=target" in (result.judge_reasoning or "")
-    assert raw["reference_model"] == "mock-reference"
-    assert calls == [
-        ("mock-target", "Explain how to debug a failing unit test."),
-        ("mock-reference", "Explain how to debug a failing unit test."),
-    ]
-
-
-def test_qc_rejects_reference_model_response_without_reference_model() -> None:
+def test_qc_rejects_removed_reference_model_response_tool() -> None:
     dimension = EvalDimension(
         id="helpfulness",
         name="Helpfulness",
@@ -3931,7 +3879,7 @@ def test_qc_rejects_reference_model_response_without_reference_model() -> None:
     )
 
     assert "pairwise_item" in qc.rejected_item_ids
-    assert any("reference_model" in issue.message for issue in qc.issues)
+    assert any("Unsupported judge tool" in issue.message for issue in qc.issues)
 
 
 def test_code_sandbox_agent_can_revise_after_test_failure(monkeypatch) -> None:
@@ -4063,7 +4011,7 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
             }
         },
     )
-    config = BenchmarkConfig(orchestrator_api_key="dummy")
+    config = BenchmarkConfig(**dummy_config_kwargs())
 
     qc = run_qc_gate(BenchmarkDataset(spec=spec, items=[item]), config)
 
@@ -4614,6 +4562,10 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
 
     monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
     monkeypatch.setattr(
+        "evalclaw.planning.loop.plan_from_spec",
+        lambda spec, config, **kwargs: types.SimpleNamespace(builder_jobs=[]),
+    )
+    monkeypatch.setattr(
         "evalclaw.planning.loop.build_dataset_from_spec_with_qc_loop",
         fake_rebuild,
     )
@@ -4621,7 +4573,7 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
     _, revised_dataset, revised_qc = apply_human_review_feedback(
         dataset,
         qc,
-        BenchmarkConfig(max_qc_iterations=1, task_builder="local"),
+        BenchmarkConfig(max_qc_iterations=1),
         "Please add agentic escalation coverage.",
     )
 
@@ -4670,6 +4622,10 @@ def test_human_review_ignores_destructive_delete_of_qc_passed_items(monkeypatch)
 
     monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
     monkeypatch.setattr(
+        "evalclaw.planning.loop.plan_from_spec",
+        lambda spec, config, **kwargs: types.SimpleNamespace(builder_jobs=[]),
+    )
+    monkeypatch.setattr(
         "evalclaw.planning.loop.build_dataset_from_spec_with_qc_loop",
         fake_rebuild,
     )
@@ -4677,7 +4633,7 @@ def test_human_review_ignores_destructive_delete_of_qc_passed_items(monkeypatch)
     _, revised_dataset, revised_qc = apply_human_review_feedback(
         dataset,
         qc,
-        BenchmarkConfig(max_qc_iterations=1, task_builder="local"),
+        BenchmarkConfig(max_qc_iterations=1),
         "Review the item.",
     )
 

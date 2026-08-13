@@ -8,7 +8,7 @@ from collections import defaultdict
 from typing import Any, Callable
 
 from ..models.llm import call_llm, call_target_model, extract_json
-from ..models.roles import role_model_settings
+from ..models.roles import resolve_judge_model, resolve_task_agent_model
 from ..protocols.multimodal import (
     build_multimodal_user_content,
     get_multimodal_spec,
@@ -20,7 +20,6 @@ from ..protocols.task_agent import (
     task_agent_initial_content_text,
     task_agent_initial_user_message,
     task_agent_max_turns,
-    task_agent_model_settings,
     task_agent_scoring,
     task_agent_scripted_turns,
     task_agent_system_prompt,
@@ -29,7 +28,6 @@ from ..protocols.task_agent import (
 from ..runners.agent import parse_agent_action as _parse_agent_action
 from ..runners.agent import run_agent_interaction as _run_agent_interaction
 from ..runners.credentials import target_has_credentials as _target_has_credentials
-from ..runners.pairwise import run_pairwise_preference as _run_pairwise_preference
 from ..runners.prompts import target_prompt as _target_prompt
 from ..types import (
     BenchmarkConfig,
@@ -144,14 +142,16 @@ def _score_fill_blank(response: str, expected_text: str | None) -> float:
     return 1.0 if response.strip() == expected_text.strip() else 0.0
 
 
-def _call_judge_json(prompt: dict, config: BenchmarkConfig) -> dict | None:
-    settings = role_model_settings(config, "judge")
+def _call_judge_json(prompt: dict, config: BenchmarkConfig, judge_config) -> dict | None:
     messages = [Message(role="user", content=json.dumps(prompt, ensure_ascii=False, indent=2))]
     data: dict | None = None
     for _ in range(2):
         raw = call_llm(
             messages,
-            **settings.call_kwargs(),
+            model=judge_config.model,
+            provider=judge_config.provider,
+            api_key=judge_config.api_key,
+            base_url=judge_config.base_url,
             backend=config.llm_backend,
             max_tokens=1024,
         )
@@ -201,14 +201,6 @@ def validate_multimodal_target_support(items: list[BenchmarkItem], config: Bench
         reason = multimodal_unsupported_reason(target)
         if reason:
             errors.append(f"{reason} Multimodal item(s): {item_ids}.")
-    if config.reference_model and any(
-        item.task_type == TaskType.generation
-        and any(tool.tool == "reference_model_response" for tool in item.judge_tools)
-        for item in multimodal_items
-    ):
-        reason = multimodal_unsupported_reason(config.reference_model)
-        if reason:
-            errors.append(f"Reference model is incompatible for pairwise multimodal evaluation. {reason}")
     if errors:
         raise ValueError("\n".join(errors))
 
@@ -228,17 +220,17 @@ def _call_task_agent_json(
     system_fallback: str,
     max_tokens: int = 1024,
 ) -> dict[str, Any] | None:
-    if not task_agent_available(config):
+    model_config = resolve_task_agent_model(config, item)
+    if model_config is None:
         return None
-    settings = task_agent_model_settings(config)
     messages = [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))]
     raw = call_llm(
         messages,
         system=task_agent_system_prompt(item, system_fallback),
-        model=settings["model"],
-        api_key=settings["api_key"],
-        base_url=settings["base_url"],
-        provider=settings["provider"],
+        model=model_config.model,
+        api_key=model_config.api_key,
+        base_url=model_config.base_url,
+        provider=model_config.provider,
         backend=config.llm_backend,
         max_tokens=max_tokens,
     )
@@ -281,7 +273,8 @@ def _judge_item(
             return 0.0, "Task agent judge returned invalid JSON."
         score, reason = _score_from_judge_data(data)
         return score, f"task_agent_judge: {reason}"
-    if not role_model_settings(config, "judge").configured:
+    judge_config = resolve_judge_model(config, item)
+    if judge_config is None:
         return 0.0, "No judge model configured."
 
     base_prompt = {
@@ -293,7 +286,7 @@ def _judge_item(
         "external_evidence": external_evidence or [],
         "output_schema": {"score_raw": 3, "score_normalized": 0.6, "reasoning": "..."},
     }
-    first = _call_judge_json(base_prompt, config)
+    first = _call_judge_json(base_prompt, config, judge_config)
     if first is None:
         return 0.0, "Judge returned invalid JSON after retry."
     first_score, first_reason = _score_from_judge_data(first)
@@ -309,7 +302,7 @@ def _judge_item(
         "first_pass_score": first_score,
         "first_pass_reasoning": first_reason,
     }
-    second = _call_judge_json(swap_prompt, config)
+    second = _call_judge_json(swap_prompt, config, judge_config)
     if second is None:
         return first_score, f"{first_reason}\nJudge second pass failed; using first pass."
     second_score, second_reason = _score_from_judge_data(second)
@@ -371,8 +364,8 @@ def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[
         return scripted
     if get_task_agent_spec(item):
         return []
-    settings = role_model_settings(config, "judge")
-    if not settings.configured:
+    judge_config = resolve_judge_model(config, item)
+    if judge_config is None:
         return []
     prompt = {
         "instruction": "Generate 1-3 short user follow-up turns for this multi-turn evaluation. Return JSON only.",
@@ -381,7 +374,10 @@ def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[
     }
     raw = call_llm(
         [Message(role="user", content=json.dumps(prompt, ensure_ascii=False, indent=2))],
-        **settings.call_kwargs(),
+        model=judge_config.model,
+        provider=judge_config.provider,
+        api_key=judge_config.api_key,
+        base_url=judge_config.base_url,
         backend=config.llm_backend,
         max_tokens=1024,
     )
@@ -491,20 +487,6 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 raw_response=raw,
                 score=score,
                 judge_reasoning=reasoning,
-                latency_ms=latency_ms,
-            )
-        if item.task_type == TaskType.generation and any(
-            tool.tool == "reference_model_response" for tool in item.judge_tools
-        ):
-            raw, score, reasoning, error = _run_pairwise_preference(item, target, config)
-            latency_ms = round((time.monotonic() - start) * 1000)
-            return ItemResult(
-                item_id=item.id,
-                target_id=target.id,
-                raw_response=raw,
-                score=score,
-                judge_reasoning=reasoning or error,
-                error=error,
                 latency_ms=latency_ms,
             )
         prompt_text = _target_prompt(item)

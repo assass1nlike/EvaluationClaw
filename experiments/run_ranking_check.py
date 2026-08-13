@@ -33,24 +33,26 @@ sys.path.insert(0, str(_HERE.parent))     # repo root for evalclaw when not pip-
 import _lib
 
 from evalclaw.execution.runner import run_eval
-from evalclaw.models.providers import orchestrator_defaults, target_from_model
+from evalclaw.models.providers import resolve_role_connection, target_from_model
 from evalclaw.pipeline import run_pipeline
 from evalclaw.types import BenchmarkConfig, BenchmarkDataset, QcReport, ScaleBudget
 
 
 def _targets_and_config(exp: dict, *, smoke: bool, output_dir: Path) -> tuple[BenchmarkConfig, str, str]:
-    orch_model = exp["orchestrator_model"]
-    orch_key, orch_base = orchestrator_defaults(orch_model)
-    offline = not orch_key
-    strong = target_from_model(exp["strong_target"], fallback_key=orch_key)
-    weak = target_from_model(exp["weak_target"], fallback_key=orch_key)
+    role_model = exp["role_model"]
+    role_key, role_base = resolve_role_connection(role_model)
+    offline = not role_key
+    strong = target_from_model(exp["strong_target"], fallback_key=role_key)
+    weak = target_from_model(exp["weak_target"], fallback_key=role_key)
+    role_fields: dict[str, object] = {}
+    for role in ("planner", "task_builder", "qc", "research", "loop3"):
+        role_fields[f"{role}_model"] = role_model
+        role_fields[f"{role}_api_key"] = role_key
+        role_fields[f"{role}_base_url"] = role_base
     config = BenchmarkConfig(
-        orchestrator_model=orch_model,
-        orchestrator_api_key=orch_key,
-        orchestrator_base_url=orch_base,
+        **role_fields,
         targets=[strong, weak],
         scale_budget=ScaleBudget("low" if smoke else str(exp["scale_budget"]).lower()),
-        questions_per_dimension=2 if smoke else int(exp["questions_per_dimension"]),
         use_deep_research=False,
         search_backend=str(exp["search_backend"]),
         llm_backend=str(exp["llm_backend"]),
