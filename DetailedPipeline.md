@@ -27,7 +27,7 @@
 
 这是其[完整字段](#appendix-g)。
 
-构建复杂度由 E1-E3 `challenge_effort` 表达，题量由用户显式总数或 `scale_budget` 规模档指导；各字段的精确语义、默认值与优先级见[附录 G.2](#appendix-g) 与[附录 I.5](#appendix-i)。复杂度通过 `BenchmarkConfig.challenge_effort_override` 全局覆盖（若设置，所有维度和TaskDesign继承该档位），或由 Planner 在每个 Dimension 上单独指定 `challenge_effort`，TaskDesign 继承所属 Dimension 的档位；未显式指定时默认 E3。
+构建复杂度由 E1-E3 `challenge_effort` 表达，题量由用户显式总数或 `scale_budget` 规模档指导；各字段的精确语义、默认值与优先级见[附录 G.2](#appendix-g) 与[附录 I.5](#appendix-i)。复杂度不由 `BenchmarkConfig` 配置（该配置没有 challenge_effort 字段），而是由 Planner 在每个 `Dimension.challenge_effort`（默认 E3）上指定，其下每个 `TaskDesign.challenge_effort` 若未显式设置则继承所属 Dimension 的档位；也可由旧 generator 路径通过 `EvalSpec` 传播（见[附录 G](#appendix-g)）。
 
   ## 三、可选的 Deep Research
 
