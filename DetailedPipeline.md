@@ -1,43 +1,33 @@
-用户需求
-    -> 研究资料
-    -> 测评设计方案
-    -> 每个 TaskDesign 派生一个 Builder job
-    -> 具体题目
-    -> 标准 BenchmarkDataset
-    -> QC 检查与定向修复
-    -> 正式、可执行的 benchmark*这里不要把变量名之类的内容放过来，就用叙述性语言描述流程*
+用户提出测评需求
+    → 框架进行可选的深度研究，收集背景资料
+    → Planner 设计完整的测评方案，定义维度与任务设计
+    → 每个任务设计派生一个构题任务
+    → TaskBuilder 构造具体题目
+    → 系统将题目打包为标准数据集格式
+    → 全局 QC 检查题目质量并定向修复问题
+    → 输出正式、可执行的 benchmark
 
 源码发生变化后，应同步更新本文。
 
-*E 已处理：纯 prompt 的折叠块（B.1 planner.py、B.2 research.py、B.4 task_builder.py、B.5 qc.py）已去掉 Python `变量 = """\` 外壳、docstring、`__all__` 与导入语句，改为按文字内容直接展示；含组装/逻辑的块（B.4 research.py、B.6 planning_loop.py、task_agent / agent_task_package 来源）保留为源码。*
-
   ## 一、输入
 
-**1. 用户目标**
+**1. 用户目标(goal)**
 
 它用自然语言描述“想测什么”。
 
-**2. 运行配置**
+如果判断 goal 为非英文，框架会调用一次 Planner 模型将其翻译为英文。这是其[系统提示词](#appendix-b-translation)和[ prompt 结构](#appendix-a)。
+
+**2. 运行配置(BenchmarkConfig)**
 
 定义 benchmark 的一些配置，例如：
 
-  - Planner、TaskBuilder 等角色所使用的模型
+  - Planner、TaskBuilder 所使用的模型
   - 题量
   - 是否进行 Deep Research
 
-全部 69 个字段、默认值、作用阶段和 LLM 可见性见[附录 G](#appendix-g)。
+这是其[完整字段](#appendix-g)。
 
-构建复杂度由 E1-E3 `challenge_effort` 表达，题量由用户显式总数或 `scale_budget` 规模档指导；各字段的精确语义、默认值与优先级见[附录 G.2](#appendix-g) 与[附录 I.5](#appendix-i)。
-
-  ## 二、输入预处理
-
-若配置了输出目录，框架会据此派生调试目录（`task_builder_debug_dir` 与 QC 调试目录的派生规则见[附录 G.4](#appendix-g)）。
-
-  ### 目标英文标准化
-
-框架调用一次 Planner 的模型，如果判断 goal 为非英文，就将其翻译为英文。
-
-本次调用是一条 user message（`system=TRANSLATION_SYSTEM_PROMPT`，user 为原始 goal 字符串），模型输出 `{"english_goal":"..."}`。精确消息边界、JSON 输出和失败行为见 [附录 A 的 `T1`](#appendix-a) 与 [附录 B.1](#appendix-b-translation)。*M 已处理：`TRANSLATION_SYSTEM_PROMPT` 里那句 “Chinese quantifiers …” 已从 `evalclaw/prompts/planner.py` 与本文 B.1 中删除，其余不变。*
+构建复杂度由 E1-E3 `challenge_effort` 表达，题量由用户显式总数或 `scale_budget` 规模档指导；各字段的精确语义、默认值与优先级见[附录 G.2](#appendix-g) 与[附录 I.5](#appendix-i)。复杂度通过 `BenchmarkConfig.challenge_effort_override` 全局覆盖（若设置，所有维度和TaskDesign继承该档位），或由 Planner 在每个 Dimension 上单独指定 `challenge_effort`，TaskDesign 继承所属 Dimension 的档位；未显式指定时默认 E3。
 
   ## 三、可选的 Deep Research
 
@@ -65,29 +55,28 @@
 
 Planner 收到一份只读资源包，内容是：用户目标、`scale_budget` 规模指导、用户若显式指定的总题数（通常也一并提供）、支持的题型与执行环境、可选 Deep Research 紧凑结果。
 
-`scale_budget` 和用户显式题数都是对题量的指导，二者**不会报错**：它们一起传进 Planner 的 constraints（见附录 C），让模型自行结合两者分配题量。其中用户显式题数优先级最高——若框架能从目标中提取出无歧义的总数，审计阶段会强制各 `TaskDesign.task_count` 之和精确等于该数（见附录 C.3），冲突按显式题数收敛。
+`scale_budget` 和用户显式题数都是对题量的指导。当用户显式指定了明确题量时，框架**仅传递显式题数**给 Planner，不再传递 `scale_budget`，避免混淆；此时审计阶段会强制各 `TaskDesign.task_count` 之和精确等于该数（见附录 C.3）。若用户未显式指定题量，框架传递 `scale_budget` 给 Planner 作为规模指导。
 
-Planner 收到的完整 prompt 结构见[附录 C](#appendix-c)；这里按 LLM 实际看到的确切文本组织，不夹杂任何 Python 变量/函数名。固定 prompt、完整 Planner Skill 和 JSON reference 见[附录 B.3](#appendix-b-planner)。
+Planner 收到的完整 prompt 结构见[附录 C](#appendix-c)；固定 prompt、完整 Planner Skill 和 JSON reference 见[附录 B.3](#appendix-b-planner)。
 
 可用执行环境是 `workspace`、`code_sandbox`、`docker_workspace`、`gui_desktop`，各自能力边界见 Planner Skill 的「Choose the environment category」一节（[附录 B.3](#appendix-b-planner)）和各题型字段契约（[附录 D.3](#appendix-d-task-types)）。
 
   ### Planner 的输出：BenchmarkPlan
 
 `BenchmarkPlan` 只含两个由 Planner 设计的层级：`Dimension` 和 `TaskDesign`。
-**Dimension** 用 `measurement_target`/`boundary`/`approach` 定义互不重叠的测评维度。
+**Dimension** 用 `measurement_target`/`boundary`/`approach` 定义互不重叠的测评维度；完整字段定义见 `evalclaw/types.py::EvalDimension`（id、name、measurement_target、boundary、description、approach、weight、challenge_effort、needs_research、research_queries、target_item_count、target_source_backed_count、target_generated_count、task_types、task_type_allocation、item_requirements、challenge_effort_distribution），必填字段为 id、name、measurement_target、boundary、approach，其语义与 Planner 审计规则见[附录 C.3](#appendix-c)。
 **TaskDesign** 定义某类具体任务的题型、题量、E1-E3 难度、内容/输入输出/评分/来源/交互/环境要求；其完整字段见 `universal_format.json`（[附录 B.3](#appendix-b-planner)），各字段的精确语义（含 `task_count`、`scoring_contract` 等）见[附录 I.5](#appendix-i)。
 
   ### Planner 确定性审计
 
 Planner 输出不会直接采用，而是先经过纯代码的确定性审计，检查：必填字段都完整、复核用户显式总题数等，见[附录 C.3](#appendix-c)。
 如果发现错误，会把完整错误列表和上一次输出交回 Planner 要求返回修复后的完整计划，此时给 planner 的输入见[附录 C.2](#appendix-c)。
-超过 `max_planner_iterations` 轮仍不合法则 fail-closed；该字段的语义见[附录 G.2](#appendix-g)。
 
   ## 五、按 TaskDesign 构造具体任务
 
   ### 1. 为当前 TaskDesign 准备资源
 
-资源来源依次是 Planner 明确提供的 URL、当前 TaskDesign 的搜索查询、Dimension 的研究查询、可选网页搜索结果、TaskBuilder 自己返回的资源，以及没有外部来源时的 self-generated fixture。Planner 提供的 URL 直接成为候选来源不触发搜索；若来源仍不足且 `Dimension.needs_research=true`、网页研究开启、Research 角色已配置，框架会用 TaskDesign 查询（缺省用 Dimension 查询）发起新的 web search——这是一个独立的构题前来源搜索阶段，不只是整理 Planner 已有信息。
+资源来源依次是 Planner 明确提供的 URL、当前 TaskDesign 的搜索查询、Dimension 的研究查询、可选网页搜索结果、TaskBuilder 自己返回的资源，以及没有外部来源时的 self-generated fixture。Planner 提供的 URL 直接成为候选来源不触发搜索；若来源仍不足且 `Dimension.needs_research=true`、网页研究开启、Research 角色已配置，框架会用 TaskDesign 查询（缺省用 Dimension 查询）发起新的 web search——这是一个独立的构题前来源搜索阶段，不只是整理 Planner 已有信息。「来源不足」由框架代码判断：当 Planner 提供的 `suggested_urls` 为空、且 TaskDesign/Dimension 的 `search_queries` 也为空时，视为来源不足；此时若 `needs_research=true` 且网页研究开启，触发构题前搜索（见 `evalclaw/construction/resources.py`）。
 
 每个资源标准化为 `TaskResource`（完整字段见[附录 I.1](#appendix-i)）；资源如何呈现给 TaskBuilder 见 payload 的 `resources.context`（[附录 D.1](#appendix-d-payload)）。
 
@@ -115,7 +104,7 @@ TaskBuilder 返回后立即做纯代码结构检查，按题型分支校验各�
 
 全部 Builder job 完成后，系统按规划顺序合并任务、检查全局任务 ID 唯一性、去重与规范化资源、汇总 construction notes，产出 `TaskSuite`（完整字段见[附录 I.2](#appendix-i)）。
 
-这一步确实只是整合，但因为两个原因值得保留：其一，这里在**构题层**做去重与 ID 唯一化，是作者构题期就收口、避免污染后续的单个 Builder job；其二，`TaskSuite` 是会保留在 `BenchmarkDataset.task_suite` 里的持久化中间形态，供诊断/复现用。打包阶段从它读 tasks 再派生正式 `BenchmarkItem`。
+这一步确实只是整合，但因为两个原因值得保留：其一，这里在**构题层**做去重与 ID 唯一化，是作者构题期就收口、避免污染后续的单个 Builder job；其二，`TaskSuite` 是会保留在 `BenchmarkDataset.task_suite` 里的持久化中间形态，供诊断/复现用。打包阶段从它读 tasks 再派生正式 `BenchmarkItem`。*M 改一下吧，既然这里只是整合，同时打包成 BenchmarkDataset 的过程也只是整合，那就合为一个，不弄冗余的过程*
 
   ## 七、TaskSuite 打包成 BenchmarkDataset
 
@@ -131,6 +120,8 @@ TaskBuilder 返回后立即做纯代码结构检查，按题型分支校验各�
   6. 为 multi-turn 生成 `task_agent` metadata；
   7. 为有环境的 agent 任务生成 `agent_env`、`task_agent`、`agent_task_package`；
   8. 转换为最终 `BenchmarkItem`。
+
+这个过程的完整实现见 `evalclaw/construction/packaging.py::suite_to_dataset`（第490-589行），流程为：遍历 `TaskSuite.tasks`，对每题执行结构校验（`task_structure_issues`）→ 写入 `metadata.task_structure_validation` → 生成内容摘要 `task_content_summary` → 按题型提取 rubric（优先 `task.rubric`，其次 `scoring.instructions`，再次拼接 pass/partial/fail criteria）→ 从 `task.resource_ids` 或 `agent_task_package` 构造 `BenchmarkSource` → 组装 `BenchmarkItem`（id、dimension_id、task_type、prompt、choices、correct_choice_ids、expected_text、rubric、judge_tools、output_contract、challenge_effort、source、tags、metadata）→ 追加到 items 列表。
 
 同时为每个 Dimension 生成 `BenchmarkBatch`（计划/实际题数、source-backed/generated 目标、题型分布、QC 抽样大小，完整字段见[附录 I.3](#appendix-i)），产出 `BenchmarkDataset`（完整字段见[附录 I.4](#appendix-i)）。
 
@@ -2560,7 +2551,7 @@ Planner 不接收完整 source text、目标模型、执行结果、benchmark �
 </FILE>
 ~~~
 
-模型调用异常、非 JSON、Pydantic 解析失败和确定性计划审计失败都可能触发下一次 Planner 尝试；
+模型调用异常、非 JSON、Pydantic 解析失败和确定性计划审计失败都可能触发下一次 Planner 尝试。完整错误列表由 `evalclaw/planning/task_planner.py::_audit_plan` 产生（见[附录 C.3](#appendix-c)审计清单），每个错误都是一条字符串，描述具体问题（如「dimension/task_design 缺必填字段」、「task_count 总和不匹配显式题数」、「environment category 不可用」等）。错误呈现方式：框架把 `errors: list[str]` 与 `previous_response` 组装为修复 payload（见上方 C.2 示例），直接作为 user 消息传给 Planner，要求「Fix every listed issue while changing sound parts as little as possible」并返回修复后的完整 JSON。
 HTTP/传输重试是底层另一套机制。
 
 ### C.3 输出
@@ -3006,7 +2997,7 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `loop3_provider` | `Optional[str]` | `None` | Loop 3 provider | 调用参数 |
 | `loop3_api_key` | `Optional[str]` | `None` | Loop 3 凭据 | 调用参数 |
 | `loop3_base_url` | `Optional[str]` | `None` | Loop 3 API 地址 | 调用参数 |
-| `task_agent_models` | `list[TargetModelConfig]` | `[]` | 可用于任务代理/多轮模拟的模型列表；TaskBuilder 对 adaptive 题选一个记入 `metadata.task_agent_model_id` | 派生：列表摘要进入 TaskBuilder payload 的 `available_models` |
+| `task_agent_models`*M 它和 judge_models 的本质一样，都是在任务内部用于打分/对话的模型。所以，将它与judge_model 合并成一个“任务模型”，在任务本身需要model的时候可以被选用。以及，这个列表中的模型的apikey和base url也应该有配置的地方，目前好像没看到对它们进行配置的字段* | `list[TargetModelConfig]` | `[]` | 可用于任务代理/多轮模拟的模型列表；TaskBuilder 对 adaptive 题选一个记入 `metadata.task_agent_model_id` | 派生：列表摘要进入 TaskBuilder payload 的 `available_models` |
 | `targets` | `list[TargetModelConfig]` | `[]` | 待评测目标模型列表；每项含 id/provider/model/凭据等 | 否；仅执行阶段调用，Planner 不接收它 |
 
 ### G.2 规划、研究与规模策略（14 个字段）
@@ -3014,10 +3005,10 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | 字段 | 类型 | 默认值 | 作用 | LLM 可见性 |
 |---|---|---|---|---|
 | `scale_budget` | `ScaleBudget` | `mid` | low/mid/high/large/xlarge 规模指导，影响 Planner 与后续采样/改进 | 直接：Planner、人工 review、Loop 3 guidance |
-| `max_planner_iterations` | `int` | `5` | Planner 调用、JSON 解析和计划审计的最大尝试次数 | 否 |
+| `max_planner_iterations` | `int` | `5` | Planner 调用、JSON 解析和计划审计的最大尝试次数。如果 planner 的输出超过 `max_planner_iterations` 轮仍不合法则 fail-closed。 | 否 |
 | `max_qc_iterations` | `int` | `3` | 全局 QC 定向修复最大轮数 | 否 |
 | `max_research_sources` | `int` | `3` | 每个相关范围保留/选择的研究来源上限 | 派生：影响提供给 Planner/Builder 的来源 |
-| `max_hf_records_per_dimension` | `int` | `1` | 旧 generator 路径每维度最多导入的 HuggingFace 行数 | 派生；当前 TaskDesign 构题路径不自动导入 |
+| `max_hf_records_per_dimension` | `int` | `1` | **已废弃**：旧 generator 路径每维度最多导入的 HuggingFace 行数；当前 TaskDesign 构题路径不自动导入，该字段无实际作用 | 派生；保留仅为向后兼容 |
 | `large_scale_generated_item_cap_per_dimension` | `int` | `50` | 大规模模式每维度 self-generated 题量上限 | 派生 |
 | `source_backed_ratio` | `Optional[float]` | `None` | 全规模 source-backed 题量比例；显式设置时传给 Planner 作为约束，未设置时 LLM 看不到 | 直接：Planner constraints（仅显式设置时） |
 | `large_scale_llm_qc_sample_size` | `int` | `120` | large/xlarge LLM QC 分层抽样基数 | 派生：改变 QC 模型收到的 items |
@@ -3231,12 +3222,11 @@ Planner/TaskBuilder 首轮 prompt”是两件不同的事。
 | 字段 | 类型 | 默认值 | 含义 |
 |---|---|---|---|
 | `id` | `str` | 必填 | 稳定资源 ID，被题目的 `resource_ids` 引用 |
-| `kind` | `str` | `"web"` | 资源种类（web/hf_dataset/self_generated 等） |
+| `kind` | `str` | `"web"` | 资源种类，可选值：`web`（网页）、`hf_dataset`（HuggingFace数据集）、`lm_eval`（lm-eval任务）、`self_generated`（框架自生成）、`imported`（导入） |
 | `uri` | `str` | `""` | 可解析地址或标识 |
-| `title` | `str` | `""` | 标题 |
-| `license` | `str` | `""` | 许可 |
-| `content_summary` | `str` | `""` | 内容摘要 |
-| `notes` | `str` | `""` | 备注 |
+| `title` | `str` | `""` | 标题；若资源本身无明确标题，框架会回退使用 `resource.id` 或从 `uri` 派生的描述性标识（见 `evalclaw/construction/packaging.py` 第483、542行） |
+| `license` | `str` | `""` | 许可信息；该字段不呈现给 TaskBuilder LLM，仅用于数据集元数据记录与合规追踪（见 `evalclaw/construction/suite.py` payload 组装，license 未包含在 resources.context 中） |
+| `content_summary` | `str` | `""` | 内容摘要；包含对资源内容的简要描述，TaskBuilder 可见此字段作为来源上下文 |
 | `metadata` | `dict` | `{}` | 附加信息 |
 
 ### I.2 TaskSuite 字段
@@ -3252,7 +3242,7 @@ Planner/TaskBuilder 首轮 prompt”是两件不同的事。
 | `resources` | `list[TaskResource]` | `[]` | 去重规范化后的资源 |
 | `tasks` | `list[TaskDefinition]` | `[]` | 全部题目 |
 | `construction_notes` | `str` | `""` | 汇总的构造备注 |
-| `created_at` | `str` | 当前 UTC | 时间戳 |
+| `created_at` | `str` | 当前 UTC | 时间戳；用于追踪构题时间、数据集版本管理与审计日志，不影响题目执行或评分逻辑 |
 
 ### I.3 BenchmarkBatch 字段
 
@@ -3268,7 +3258,7 @@ Planner/TaskBuilder 首轮 prompt”是两件不同的事。
 | `source_backed_target` | `int` | `0` | source-backed 目标数 |
 | `generated_target` | `int` | `0` | generated 目标数 |
 | `task_types` | `list[TaskType]` | `[]` | 题型分布 |
-| `source_strategy` | `str` | `""` | 来源策略 |
+| `source_strategy` | `str` | `""` | 来源策略描述，记录该批次题目的来源获取方式；常见值如 `"TaskDesign-driven task construction."`（TaskDesign 驱动的构题）、`"HuggingFace dataset import"`（HF 数据集导入）、`"self-generated fixture"`（自生成 fixture）；该字段为描述性文本，不影响执行逻辑 |
 | `qc_sample_size` | `int` | `0` | QC 抽样大小 |
 | `notes` | `str` | `""` | 备注 |
 
@@ -3302,7 +3292,7 @@ runner/exporter 使用的正式数据集：
 - **generation / multi_turn**：有 rubric（error）。
 - **judge_tools**：只允许 `python_tests`（error）；仅 generation/multi-turn/agent 可用（error）；`test_code` 必须消费 `{model_output}`（error）。
 - **agent**：无 rubric 时必须有可执行环境 evaluator（error）；`metadata.agent_env` 必须存在（error）；环境文件路径无跨生命周期重叠（error）；`setup_commands` 不引用 hidden_files（error）；workspace/code_sandbox/gui_desktop 各有必填契约。
-- **多模态**：`metadata.multimodal` 的 schema_version、modalities、assets、content 引用完整。
+- **多模态**：`metadata.multimodal` 的 schema_version、modalities、assets、content 引用完整。多模态题目由 TaskBuilder 在构题时显式标记：当题目需要图像、音频等非纯文本模态时，TaskBuilder 在返回的题目中填充 `metadata.multimodal` 字段（schema_version=evalclaw.multimodal.v1、modalities列表、assets列表、可选content引用），QC 静态检查会校验该字段的完整性（见 `evalclaw/quality/static_checks.py` 和 `evalclaw/protocols/multimodal.py`）。五个基础题型（choice/fill_blank/generation/multi_turn/agent）均可携带多模态标记，题型本身不限制模态。
 - **science / task_agent / agent_task_package**：schema_version、system_prompt、scoring guidance 等 metadata 契约。
 - **rubric 自纠正**：检测 rubric 中自纠正/矛盾参考答案（error）。
 

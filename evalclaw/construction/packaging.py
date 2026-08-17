@@ -481,7 +481,7 @@ def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkCon
             kind=_resource_source_kind(resource.kind),
             uri=resource.uri if _has_real_source_uri(resource.uri) else "",
             title=resource.title or resource.id,
-            notes=resource.content_summary or resource.notes,
+            notes=resource.content_summary,
         )
         for resource in suite.resources
     ]
@@ -540,7 +540,7 @@ def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkCon
                     kind=_resource_source_kind(resource.kind),
                     uri=resource.uri if _has_real_source_uri(resource.uri) else "",
                     title=resource.title or task.title,
-                    notes=resource.content_summary or resource.notes,
+                    notes=resource.content_summary,
                 )
         item = BenchmarkItem(
             id=task.id,
