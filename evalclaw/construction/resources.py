@@ -28,8 +28,7 @@ def _resource_from_raw(raw: dict[str, Any], fallback_id: str) -> TaskResource:
         uri=str(raw.get("uri") or ""),
         title=str(raw.get("title") or ""),
         license=str(raw.get("license") or ""),
-        content_summary=str(raw.get("content_summary") or ""),
-        notes=str(raw.get("notes") or ""),
+        content_summary=str(raw.get("content_summary") or raw.get("notes") or ""),
         metadata=raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {},
     )
 
@@ -41,7 +40,6 @@ def _resource_from_source(source: BenchmarkSource, fallback_id: str) -> TaskReso
         uri=source.uri,
         title=source.title,
         content_summary=source.notes[:1000],
-        notes="Discovered by task resource search.",
     )
 
 

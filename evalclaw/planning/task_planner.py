@@ -70,19 +70,27 @@ def _instruction_resource(
     feedback: str | None = None,
     previous_plan: BenchmarkPlan | None = None,
 ) -> str:
-    scale_budget = _safe_scale_budget(config.scale_budget)
+    explicit_task_count = _explicit_total_task_count(goal)
     constraints: dict[str, object] = {
-        "scale_budget": scale_budget.value,
-        "scale_budget_guidance": _scale_budget_guidance(scale_budget),
-        "count_policy": (
-            "An explicit total task count in the user request overrides all defaults."
-        ),
         "available_task_types": [task_type.value for task_type in TaskType],
         "available_environment_types": [environment.value for environment in AgentEnvironmentType],
     }
-    explicit_task_count = _explicit_total_task_count(goal)
+
     if explicit_task_count is not None:
+        print(f"[Planner] User specified explicit task count: {explicit_task_count}. Not passing scale_budget.")
         constraints["explicit_total_task_count"] = explicit_task_count
+        constraints["count_policy"] = (
+            "The user explicitly requested exactly this many tasks. "
+            "All TaskDesign.task_count values must sum to this total."
+        )
+    else:
+        scale_budget = _safe_scale_budget(config.scale_budget)
+        constraints["scale_budget"] = scale_budget.value
+        constraints["scale_budget_guidance"] = _scale_budget_guidance(scale_budget)
+        constraints["count_policy"] = (
+            "Use scale_budget as guidance for the total number of tasks."
+        )
+
     if config.source_backed_ratio is not None:
         constraints["source_backed_ratio"] = config.source_backed_ratio
     sections = [

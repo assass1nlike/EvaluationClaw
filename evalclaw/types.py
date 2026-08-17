@@ -161,7 +161,6 @@ class TaskResource(BaseModel):
     title: str = ""
     license: str = ""
     content_summary: str = ""
-    notes: str = ""
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
