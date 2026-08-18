@@ -4,7 +4,8 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter, defaultdict
-from dataclasses import dataclass, field as dataclass_field
+from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from typing import Any, Callable
 
 from ..construction.suite import build_task_suite

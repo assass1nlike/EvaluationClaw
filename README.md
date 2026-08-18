@@ -64,10 +64,11 @@ Generate a benchmark draft without running target models:
 ```bash
 ANTHROPIC_API_KEY="..." python evalclaw_cli.py generate \
   -g "Evaluate strict format following" \
+  --planner-model claude-sonnet-4-6 \
+  --task-builder-model claude-sonnet-4-6 \
   --no-interactive \
   --no-research \
-  --scale-budget low \
-  --qpd 1
+  --scale-budget low
 ```
 
 Azure OpenAI end-to-end with deep research (vague field → researched benchmark → run):
@@ -75,7 +76,9 @@ Azure OpenAI end-to-end with deep research (vague field → researched benchmark
 ```bash
 python evalclaw_cli.py generate \
   -g "Evaluate LLM truthfulness and deception under pressure" \
-  --orchestrator-model azure/gpt-5.5 \
+  --planner-model azure/gpt-5.5 \
+  --task-builder-model azure/gpt-5.5 \
+  --research-model azure/gpt-5.5 \
   -m azure/gpt-4o \
   --deep-research \
   --search-backend keyless \
@@ -88,12 +91,12 @@ Use DeepSeek V4 Pro as the default orchestration model against DeepSeek V4 Flash
 ```bash
 DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   -g "Evaluate whether the model strictly follows specified output formats" \
-  --orchestrator-model deepseek-v4-pro \
+  --planner-model deepseek-v4-pro \
+  --task-builder-model deepseek-v4-pro \
   -m deepseek-v4-flash \
   --no-interactive \
   --no-research \
   --scale-budget mid \
-  --qpd 1 \
   --max-hf-records 1 \
   --runner direct \
   --llm-backend litellm
@@ -104,11 +107,11 @@ For faster smoke runs that still exercise Loop 3, use local diagnosis:
 ```bash
 DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   -g "Evaluate agent planning, noisy tool correction, code reasoning, and calibration" \
-  --orchestrator-model deepseek-v4-pro \
+  --planner-model deepseek-v4-pro \
+  --task-builder-model deepseek-v4-pro \
   -m deepseek-v4-flash \
   --no-interactive \
   --no-research \
-  --qpd 1 \
   --runner direct \
   --llm-backend litellm \
   --single-pass-judge \
@@ -124,17 +127,19 @@ recorded without being called in the current run.
 
 ### Custom endpoints and multiple targets
 
-Each orchestration role can override the default model and connection with
-`--planner-*`, `--task-builder-*`, `--qc-*`, `--judge-*`, `--research-*`, and
-`--loop3-*`. Unspecified role fields fall back to the corresponding
-`--orchestrator-*` setting. For example:
+Each model role has its own connection options. Planner and TaskBuilder roles
+are required for the main pipeline; QC, Research, and Loop 3 are optional.
+Use `--planner-*`, `--task-builder-*`, `--qc-*`, `--research-*`, and
+`--loop3-*` to configure them independently. Task-specific judges and dialogue
+simulators are selected with repeated `--task-model` or `--task-config` options.
+For example:
 
 ```bash
 evalclaw generate \
   --planner-model claude-opus-4-6 \
   --task-builder-model claude-sonnet-4-6 \
   --qc-model gpt-5-mini \
-  --judge-model gpt-5 \
+  --task-model gpt-5 \
   --research-model gemini-2.5-pro \
   --loop3-model claude-sonnet-4-6
 ```
@@ -142,15 +147,19 @@ evalclaw generate \
 When a role uses a different provider or endpoint, configure that role's
 `--*-provider`, `--*-api-key`, and `--*-base-url` explicitly.
 
-An Anthropic-compatible Claude/Claude Code endpoint can be used for the
-orchestrator with its native `/v1/messages` protocol:
+An Anthropic-compatible Claude/Claude Code endpoint can be used for any role
+with its native `/v1/messages` protocol. Configure each required role explicitly:
 
 ```bash
 evalclaw generate \
-  --orchestrator-model claude-sonnet-4-6 \
-  --orchestrator-provider anthropic \
-  --orchestrator-base-url https://claude-gateway.example/v1 \
-  --api-key "$CLAUDE_GATEWAY_KEY"
+  --planner-model claude-sonnet-4-6 \
+  --planner-provider anthropic \
+  --planner-base-url https://claude-gateway.example/v1 \
+  --planner-api-key "$CLAUDE_GATEWAY_KEY" \
+  --task-builder-model claude-sonnet-4-6 \
+  --task-builder-provider anthropic \
+  --task-builder-base-url https://claude-gateway.example/v1 \
+  --task-builder-api-key "$CLAUDE_GATEWAY_KEY"
 ```
 
 For multiple targets with independent protocols, endpoints, and credentials,
