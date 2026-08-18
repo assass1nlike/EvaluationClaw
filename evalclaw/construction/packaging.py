@@ -20,6 +20,7 @@ from ..types import (
     TaskBlueprint,
     TaskDefinition,
     TaskDesign,
+    TaskResource,
     TaskType,
 )
 from .validation import task_structure_issues, task_structure_validation_metadata
