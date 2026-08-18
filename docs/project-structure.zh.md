@@ -14,7 +14,7 @@
 ## 核心子包
 
 - `evalclaw/core/`：跨子系统共享的小型工具，包括规模预算和任务内容摘要。
-- `evalclaw/models/`：模型调用、JSON 提取、provider/protocol 选择、重试和截断恢复；`roles.py` 解析 Planner、TaskBuilder、QC、Judge、Research 和 Loop 3 的独立模型连接并回退到默认 orchestrator。
+- `evalclaw/models/`：模型调用、JSON 提取、provider/protocol 选择、重试和截断恢复；`roles.py` 解析 Planner、TaskBuilder、QC、Research 和 Loop 3 的独立模型连接。Planner、TaskBuilder 未配置时主流程 fail-closed，Research、QC 和 Loop 3 可按各自配置使用对应的无 LLM 路径。
 - `evalclaw/planning/`：自然语言需求到维度纲要，再由 Planner Skill 生成并审计完整 `BenchmarkPlan` 和自适应 `TaskBlueprint`。
 - `evalclaw/construction/`：唯一的构题实现，负责 Blueprint 资源选择、每 Blueprint 一次 Builder 调用、多题结构校验和 dataset 包装。
 - `evalclaw/generation/`：通用构题路线使用的程序化静态题 fallback 与底层 item 生成能力；不是独立顶层路线。
@@ -30,7 +30,7 @@
 
 ## Construction 子系统
 
-- `blueprints.py`：Planner 不可用时，为离线 smoke test 生成保守的本地 Blueprint fallback。
+- `blueprints.py`：保留供离线 smoke test 显式调用的保守本地 Blueprint helper；主规划入口不会在 Planner 不可用时自动采用它。
 - `suite.py`：每个 Blueprint 形成一次 Builder 调用；严格校验其题量和混合题型分配，并处理 Blueprint 并发、结构 repair、截断恢复和进度日志。QC repair 时只返回有问题的题并按题目 ID 合并。
 - `builders.py`：通用本地 fallback 分派。无环境任务复用程序化 item fallback；有环境任务调用对应交互环境实现。
 - `resources.py`：仅在 dimension 明确 `needs_research=true` 时选择外部来源，并做资源归一化与去重。
@@ -40,7 +40,7 @@
 
 ## Planning 子系统
 
-- `planner.py`：目标翻译、维度纲要 prompt、纲要解析和本地 fallback；维度阶段也读取当前 Planner Skill。
+- `planner.py`：目标翻译和规模指导；目标翻译需要已配置的 Planner role，维度与 Blueprint 规划统一读取当前 Planner Skill。
 - `task_planner.py`：唯一 benchmark planner 入口。加载 `planning/skills/design-benchmark-blueprints/SKILL.md`，让 Planner 自主决定 Blueprint 边界、题量、混合题型和 `family`/`archetype`/`per_task` 粒度，再执行题量、归属和工作量审计。
 - `skill_loader.py`：以 UTF-8 读取 Planner Skill，并把它注入维度和 Blueprint 规划调用。
 - `skills/design-benchmark-blueprints/SKILL.md`：需求、研究结果、维度和 Builder 工作量到完整 Blueprint 计划的规范。
