@@ -7,13 +7,13 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from ..types import (
-    BenchmarkDataset,
     BenchmarkItem,
     EvalRun,
     ItemResult,
     QcReport,
     ResearchBrief,
     SourceKind,
+    TaskSuite,
     TaskType,
 )
 from .markdown import (
@@ -79,7 +79,7 @@ def _is_source_backed(item: object) -> bool:
 
 def _recommendations(run: EvalRun) -> list[str]:
     recs: list[str] = []
-    item_by_id = {item.id: item for item in run.dataset.items}
+    item_by_id = {item.id: item for item in run.suite.tasks}
     if run.qc_report.quality_score < 0.8:
         recs.append("Regenerate or repair items flagged by QC before treating scores as reliable.")
     if not run.results:
@@ -111,7 +111,7 @@ def _recommendations(run: EvalRun) -> list[str]:
 
 
 def _failure_mode_rows(run: EvalRun) -> list[list[str]]:
-    item_by_id = {item.id: item for item in run.dataset.items}
+    item_by_id = {item.id: item for item in run.suite.tasks}
     grouped: dict[tuple[str, str], list[ItemResult]] = defaultdict(list)
     for result in run.results:
         item = item_by_id.get(result.item_id)
@@ -167,7 +167,7 @@ def _run_provenance_lines(run: EvalRun) -> list[str]:
     lines = [
         "## Run Provenance",
         "",
-        f"- Dataset created at: `{run.dataset.created_at}`",
+        f"- Suite created at: `{run.suite.created_at}`",
         f"- Run created at: `{run.created_at}`",
         f"- Evaluated results: {len(results)}",
         f"- Target count: {len(run.summaries)}",
@@ -182,9 +182,9 @@ def _run_provenance_lines(run: EvalRun) -> list[str]:
     return lines
 
 
-def _used_items(dataset: BenchmarkDataset, qc: QcReport) -> list[object]:
+def _used_items(suite: TaskSuite, qc: QcReport) -> list[object]:
     passed = set(qc.passed_item_ids)
-    return [item for item in dataset.items if item.id in passed]
+    return [item for item in suite.tasks if item.id in passed]
 
 
 def _source_mapping_lines(items: list[object]) -> list[str]:
@@ -208,10 +208,16 @@ def _source_mapping_lines(items: list[object]) -> list[str]:
     return lines
 
 
-def _task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
-    suite = dataset.task_suite
-    if suite is None:
-        return []
+def _suite_task_env(task: object) -> str:
+    metadata = getattr(task, "metadata", {})
+    if isinstance(metadata, dict):
+        agent_env = metadata.get("agent_env")
+        if isinstance(agent_env, dict):
+            return str(agent_env.get("type") or "-")
+    return "-"
+
+
+def _task_suite_lines(suite: TaskSuite) -> list[str]:
     lines = [
         "## Task Construction",
         "",
@@ -260,7 +266,7 @@ def _task_suite_lines(dataset: BenchmarkDataset) -> list[str]:
                 task.id,
                 task.dimension_id,
                 task.task_type.value,
-                task.environment.type.value if task.environment else "-",
+                _suite_task_env(task),
                 _escape_cell(task.prompt, 120),
             ]
             for task in suite.tasks[:10]
@@ -284,7 +290,7 @@ def _qc_summary_lines(qc: QcReport) -> list[str]:
 
 
 def _item_result_table(run: EvalRun) -> str:
-    item_by_id = {item.id: item for item in run.dataset.items}
+    item_by_id = {item.id: item for item in run.suite.tasks}
     rows: list[list[str]] = []
     for result in run.results:
         item = item_by_id.get(result.item_id)
@@ -424,7 +430,7 @@ def _evidence_lines(result: ItemResult) -> list[str]:
 
 
 def _detailed_item_lines(run: EvalRun) -> list[str]:
-    item_by_id = {item.id: item for item in run.dataset.items}
+    item_by_id = {item.id: item for item in run.suite.tasks}
     lines = ["## Detailed Item Records", ""]
     if not run.results:
         lines.extend(["No item responses were recorded.", ""])

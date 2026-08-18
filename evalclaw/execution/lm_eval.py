@@ -10,7 +10,7 @@ import sysconfig
 from pathlib import Path
 
 from ..reporting.artifacts import write_lm_eval_artifacts
-from ..types import BenchmarkDataset, TargetModelConfig
+from ..types import TargetModelConfig, TaskSuite
 
 
 def _model_args(target: TargetModelConfig) -> str:
@@ -56,7 +56,7 @@ def _resolve_lm_eval_executable(executable: str | None = None) -> str | None:
 
 
 def run_lm_eval(
-    dataset: BenchmarkDataset,
+    suite: TaskSuite,
     target: TargetModelConfig,
     out_dir: Path,
     *,
@@ -67,7 +67,7 @@ def run_lm_eval(
     if not exe:
         raise RuntimeError("lm-eval-harness executable not found. Install lm-eval in the active environment.")
 
-    artifacts = write_lm_eval_artifacts(dataset, out_dir)
+    artifacts = write_lm_eval_artifacts(suite, out_dir)
     yaml_artifacts = {
         name: path for name, path in artifacts.items() if name.startswith("yaml_")
     }

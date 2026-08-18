@@ -12,11 +12,11 @@ from evalclaw.quality import improver, llm_checks
 from evalclaw.research import deep_research
 from evalclaw.types import (
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
     TargetModelConfig,
+    TaskSuite,
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
@@ -40,7 +40,7 @@ def _assert_role_call(captured: dict, role: str) -> None:
     assert captured["base_url"] == f"https://{role}.example"
 
 
-def _dataset() -> BenchmarkDataset:
+def _suite() -> TaskSuite:
     dimension = EvalDimension(
         id="analysis",
         name="Analysis",
@@ -55,9 +55,10 @@ def _dataset() -> BenchmarkDataset:
         task_types=[TaskType.generation],
         scale=1,
     )
-    return BenchmarkDataset(
+    return TaskSuite(
         spec=spec,
-        items=[
+        objective=spec.objective,
+        tasks=[
             BenchmarkItem(
                 id="analysis_1",
                 dimension_id=dimension.id,
@@ -117,7 +118,7 @@ def test_planner_uses_planner_role(monkeypatch) -> None:
 
 def test_task_builder_uses_task_builder_role(monkeypatch) -> None:
     captured: dict = {}
-    dataset = _dataset()
+    suite = _suite()
     blueprint = make_blueprint(
         "analysis_blueprint",
         "analysis",
@@ -134,7 +135,7 @@ def test_task_builder_uses_task_builder_role(monkeypatch) -> None:
 
     with pytest.raises(RuntimeError, match="stop after capture"):
         build_task_suite(
-            dataset.spec,
+            suite.spec,
             [blueprint],
             _config_for("task_builder").model_copy(
                 update={
@@ -157,7 +158,7 @@ def test_qc_uses_qc_role(monkeypatch) -> None:
 
     monkeypatch.setattr(llm_checks, "call_llm", fake_call_llm)
 
-    llm_checks._llm_qc(_dataset(), _config_for("qc"))
+    llm_checks._llm_qc(_suite(), _config_for("qc"))
     _assert_role_call(captured, "qc")
 
 

@@ -14,12 +14,12 @@ from ..protocols.agent_task_package import (
 from ..protocols.task_agent import TASK_AGENT_METADATA_KEY, compact_task_agent_for_qc
 from ..types import (
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     Message,
     QcCategory,
     QcIssue,
     QcSeverity,
+    TaskSuite,
     TaskType,
 )
 from .common import _issue
@@ -310,19 +310,18 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
     return issue
 
 
-def _llm_qc_sample(dataset: BenchmarkDataset, limit: int) -> tuple[list[BenchmarkItem], dict[str, object]]:
+def _llm_qc_sample(suite: TaskSuite, limit: int) -> tuple[list[BenchmarkItem], dict[str, object]]:
     if limit <= 0:
         return [], {"strategy": "disabled", "sample_size": 0}
-    groups: dict[tuple[str, str], list[BenchmarkItem]] = {}
-    for item in dataset.items:
-        batch_id = str(item.metadata.get("batch_id") or "")
-        groups.setdefault((batch_id or item.dimension_id, item.task_type.value), []).append(item)
+    groups: dict[str, list[BenchmarkItem]] = {}
+    for item in suite.tasks:
+        groups.setdefault(item.dimension_id, []).append(item)
     for group in groups.values():
         group.sort(key=lambda item: item.id)
     ordered_keys = sorted(groups)
     sample: list[BenchmarkItem] = []
     seen: set[str] = set()
-    while len(sample) < min(limit, len(dataset.items)):
+    while len(sample) < min(limit, len(suite.tasks)):
         progressed = False
         for key in ordered_keys:
             group = groups[key]
@@ -339,15 +338,15 @@ def _llm_qc_sample(dataset: BenchmarkDataset, limit: int) -> tuple[list[Benchmar
         if not progressed:
             break
     return sample, {
-        "strategy": "stratified_by_batch_or_dimension_and_task_type",
+        "strategy": "stratified_by_dimension_and_task_type",
         "sample_size": len(sample),
-        "total_items": len(dataset.items),
+        "total_items": len(suite.tasks),
         "groups": len(ordered_keys),
     }
 
 
 def _llm_qc(
-    dataset: BenchmarkDataset,
+    suite: TaskSuite,
     config: BenchmarkConfig,
     *,
     trace: dict[str, object] | None = None,
@@ -358,22 +357,14 @@ def _llm_qc(
             trace["status"] = "disabled"
         return []
     limit = 50
-    if is_large_scale_budget(dataset.spec.scale_budget):
+    if is_large_scale_budget(suite.spec.scale_budget):
         limit = max(1, int(config.large_scale_llm_qc_sample_size))
-    sampled_items, sampling = _llm_qc_sample(dataset, limit)
+    sampled_items, sampling = _llm_qc_sample(suite, limit)
     task_design_by_id = {
         design.id: design
-        for blueprint in dataset.blueprints
+        for blueprint in suite.blueprints
         for design in blueprint.task_designs
     }
-    if dataset.task_suite is not None:
-        task_design_by_id.update(
-            {
-                design.id: design
-                for blueprint in dataset.task_suite.blueprints
-                for design in blueprint.task_designs
-            }
-        )
     sampled_design_ids = {
         str(item.metadata.get("task_design_id") or "")
         for item in sampled_items
@@ -407,12 +398,11 @@ def _llm_qc(
         for item in sampled_items
     ]
     request = {
-        "objective": dataset.spec.objective,
-        "scale_budget": dataset.spec.scale_budget.value,
-        "constraints": dataset.spec.constraints,
-        "planner_notes": dataset.spec.planner_notes,
-        "dimensions": [d.model_dump(mode="json") for d in dataset.spec.dimensions],
-        "batches": [batch.model_dump(mode="json") for batch in dataset.batches],
+        "objective": suite.spec.objective,
+        "scale_budget": suite.spec.scale_budget.value,
+        "constraints": suite.spec.constraints,
+        "planner_notes": suite.spec.planner_notes,
+        "dimensions": [d.model_dump(mode="json") for d in suite.spec.dimensions],
         "task_designs": [
             task_design_by_id[design_id].model_dump(mode="json")
             for design_id in sorted(sampled_design_ids)
@@ -478,13 +468,13 @@ def _llm_qc(
                 QcSeverity.error,
                 QcCategory.clarity,
                 f"LLM QC failed; refusing to accept static QC as an equivalent fallback: {str(exc)[:240]}",
-                "Retry with a smaller dataset, a different QC model, or local/static-only QC.",
+                "Retry with a smaller suite, a different QC model, or local/static-only QC.",
             )
             ]
     if trace is not None:
         trace["status"] = "completed"
     issues: list[QcIssue] = []
-    item_by_id = {item.id: item for item in dataset.items}
+    item_by_id = {item.id: item for item in suite.tasks}
     for raw_issue in data.get("issues", []):
         try:
             issue = QcIssue(

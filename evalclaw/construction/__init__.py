@@ -1,6 +1,6 @@
 """TaskDesign-driven benchmark task construction."""
 
-from .packaging import task_suite_to_dataset
+from .packaging import pack_task_item
 from .suite import build_task_suite
 
-__all__ = ["build_task_suite", "task_suite_to_dataset"]
+__all__ = ["build_task_suite", "pack_task_item"]

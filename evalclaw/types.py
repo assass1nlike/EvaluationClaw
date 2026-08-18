@@ -528,21 +528,6 @@ class TaskDefinition(BaseModel):
 
 
 
-class TaskSuite(BaseModel):
-    id: str = "task_suite"
-    objective: str
-    dimensions: list[EvalDimension] = Field(default_factory=list)
-    blueprints: list[TaskBlueprint] = Field(default_factory=list)
-    resources: list[TaskResource] = Field(default_factory=list)
-    tasks: list[TaskDefinition] = Field(default_factory=list)
-    construction_notes: str = ""
-    created_at: str = Field(default_factory=utc_now)
-
-    @property
-    def builder_jobs(self) -> list[TaskBlueprint]:
-        return self.blueprints
-
-
 class BenchmarkItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -562,32 +547,27 @@ class BenchmarkItem(BaseModel):
     )
     tags: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
+    source_definition: Optional[TaskDefinition] = Field(default=None, exclude=True)
+
+    @property
+    def builder_job_id(self) -> str:
+        return str(self.metadata.get("builder_job_id") or "")
+
+    @property
+    def task_design_id(self) -> str:
+        return str(self.metadata.get("task_design_id") or "")
 
 
-
-class BenchmarkBatch(BaseModel):
-    id: str
-    dimension_id: str
-    description: str = ""
-    planned_item_count: int = 0
-    materialized_item_count: int = 0
-    source_backed_target: int = 0
-    generated_target: int = 0
-    task_types: list[TaskType] = Field(default_factory=list)
-    source_strategy: str = ""
-    qc_sample_size: int = 0
-    notes: str = ""
-
-
-class BenchmarkDataset(BaseModel):
+class TaskSuite(BaseModel):
+    id: str = "task_suite"
+    objective: str
     spec: EvalSpec
-    plan: Optional[BenchmarkPlan] = Field(default=None, exclude=True)
-    items: list[BenchmarkItem]
+    dimensions: list[EvalDimension] = Field(default_factory=list)
     blueprints: list[TaskBlueprint] = Field(default_factory=list)
-    sources: list[BenchmarkSource] = Field(default_factory=list)
-    batches: list[BenchmarkBatch] = Field(default_factory=list)
-    task_suite: Optional[TaskSuite] = None
-    generation_notes: str = ""
+    resources: list[TaskResource] = Field(default_factory=list)
+    tasks: list[BenchmarkItem] = Field(default_factory=list)
+    plan: Optional[BenchmarkPlan] = Field(default=None, exclude=True)
+    construction_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
 
     @property
@@ -717,7 +697,7 @@ class TargetSummary(BaseModel):
 
 
 class EvalRun(BaseModel):
-    dataset: BenchmarkDataset = Field(exclude=True)
+    suite: TaskSuite = Field(exclude=True)
     qc_report: QcReport = Field(exclude=True)
     results: list[ItemResult] = Field(default_factory=list)
     summaries: list[TargetSummary] = Field(default_factory=list)
@@ -736,7 +716,7 @@ class ImprovementAction(BaseModel):
 class ImprovementIteration(BaseModel):
     iteration: int
     actions: list[ImprovementAction] = Field(default_factory=list)
-    dataset: Optional[BenchmarkDataset] = None
+    suite: Optional[TaskSuite] = None
     qc_report: Optional[QcReport] = None
     run: Optional[EvalRun] = None
     notes: str = ""
@@ -753,7 +733,7 @@ class BenchmarkPackage(BaseModel):
     goal: str
     spec: EvalSpec
     plan: Optional[BenchmarkPlan] = None
-    dataset: BenchmarkDataset
+    suite: TaskSuite
     qc_report: QcReport
     run: EvalRun
     improvements: list[ImprovementIteration] = Field(default_factory=list)
@@ -769,7 +749,7 @@ class BenchmarkPackage(BaseModel):
         run = value.get("run")
         if isinstance(run, dict):
             hydrated = dict(run)
-            hydrated.setdefault("dataset", value.get("dataset"))
+            hydrated.setdefault("suite", value.get("suite"))
             hydrated.setdefault("qc_report", value.get("qc_report"))
             value = {**value, "run": hydrated}
         return value

@@ -31,7 +31,6 @@ from evalclaw.research.deep_research import (
 from evalclaw.sources.hf_discovery import discover_hf_datasets
 from evalclaw.types import (
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     BenchmarkPackage,
     BenchmarkSource,
@@ -47,6 +46,7 @@ from evalclaw.types import (
     ResearchTaxonomyEntry,
     ScaleBudget,
     SourceKind,
+    TaskSuite,
     TaskType,
 )
 from tests.config_helpers import dummy_config_kwargs
@@ -444,13 +444,13 @@ def _minimal_package(research_brief: ResearchBrief | None) -> BenchmarkPackage:
         expected_text="ok",
     )
     run = EvalRun(
-        dataset=BenchmarkDataset(spec=spec, items=[item]),
+        suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
         qc_report=QcReport(passed_item_ids=[item.id]),
     )
     return BenchmarkPackage(
         goal=spec.objective,
         spec=spec,
-        dataset=run.dataset,
+        suite=run.suite,
         qc_report=run.qc_report,
         run=run,
         report=build_report(run, research_brief=research_brief),
@@ -544,11 +544,11 @@ def test_pipeline_attaches_and_persists_brief(monkeypatch, tmp_path) -> None:
         prompt="Summarize the supplied meeting notes and preserve all decisions.",
         rubric="Score factual coverage and concision.",
     )
-    dataset = BenchmarkDataset(spec=spec, items=[item])
+    suite = TaskSuite(spec=spec, objective=spec.objective, tasks=[item])
     qc_report = QcReport(passed_item_ids=[item.id], quality_score=1.0)
     monkeypatch.setattr(
-        "evalclaw.pipeline.build_benchmark_dataset_with_qc_loop",
-        lambda goal, config, **kwargs: (spec, dataset, qc_report),
+        "evalclaw.pipeline.build_benchmark_suite_with_qc_loop",
+        lambda goal, config, **kwargs: (spec, suite, qc_report),
     )
     config = BenchmarkConfig(
         use_deep_research=True,

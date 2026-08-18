@@ -4,19 +4,19 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 
-from ..types import BenchmarkDataset, QcReport
+from ..types import QcReport, TaskSuite
 
 
 @dataclass(frozen=True)
 class ExecutionPlan:
-    dataset: BenchmarkDataset
+    suite: TaskSuite
     accepted_item_ids: tuple[str, ...]
     rejected_item_ids: tuple[str, ...]
 
 
-def build_execution_plan(dataset: BenchmarkDataset, qc_report: QcReport) -> ExecutionPlan:
-    item_by_id = {item.id: item for item in dataset.items}
-    if len(item_by_id) != len(dataset.items):
+def build_execution_plan(suite: TaskSuite, qc_report: QcReport) -> ExecutionPlan:
+    item_by_id = {item.id: item for item in suite.tasks}
+    if len(item_by_id) != len(suite.tasks):
         raise ValueError("Benchmark item ids must be unique before an execution plan can be built.")
     passed_ids = tuple(qc_report.passed_item_ids)
     rejected_ids = tuple(qc_report.rejected_item_ids)
@@ -37,9 +37,9 @@ def build_execution_plan(dataset: BenchmarkDataset, qc_report: QcReport) -> Exec
         raise ValueError(f"QC item ids cannot be both passed and rejected: {', '.join(overlap)}")
     accepted_ids = passed_ids
     accepted = [item_by_id[item_id] for item_id in accepted_ids]
-    execution_dataset = dataset.model_copy(update={"items": accepted})
+    execution_suite = suite.model_copy(update={"tasks": accepted})
     return ExecutionPlan(
-        dataset=execution_dataset,
+        suite=execution_suite,
         accepted_item_ids=accepted_ids,
         rejected_item_ids=rejected_ids,
     )

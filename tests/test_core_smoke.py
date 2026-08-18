@@ -9,8 +9,9 @@ from pathlib import Path, PureWindowsPath
 import pytest
 
 from evalclaw.agent.goal_detection import _goal_mentions_multi_industrial_workflow
-from evalclaw.construction import build_task_suite, task_suite_to_dataset
+from evalclaw.construction import build_task_suite
 from evalclaw.construction.blueprints import _default_blueprint_for_dimension
+from evalclaw.construction.packaging import pack_task_item
 from evalclaw.construction.validation import (
     CHALLENGE_EFFORT_FIDELITY_METADATA_KEY,
     task_structure_issues,
@@ -74,9 +75,7 @@ from evalclaw.sources.hf_ingest import _matches_dimension, item_from_hf_record
 from evalclaw.types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
-    BenchmarkBatch,
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     BenchmarkPackage,
     BenchmarkSource,
@@ -94,6 +93,7 @@ from evalclaw.types import (
     SourceKind,
     TargetModelConfig,
     TaskDefinition,
+    TaskResource,
     TaskScoringSpec,
     TaskSuite,
     TaskType,
@@ -485,7 +485,7 @@ def test_task_builder_repairs_ambiguous_multi_source_binding(monkeypatch) -> Non
     )
 
     assert calls == 2
-    assert suite.tasks[0].resource_ids == ["source_b"]
+    assert suite.tasks[0].source.uri == "https://example.com/b"
 
 
 def test_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
@@ -681,7 +681,6 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
     )
 
     suite = build_task_suite(spec, [blueprint], config)
-    dataset = task_suite_to_dataset(suite, spec, config)
 
     assert len(calls) == 2
     assert "truncation_recovery" not in calls[0]["payload"]
@@ -691,7 +690,7 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
     fidelity = suite.tasks[0].metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY]
     assert fidelity["status"] == "uncertain"
     assert fidelity["requested_effort"] == "E3"
-    assert dataset.items[0].metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY] == fidelity
+    assert suite.tasks[0].metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY] == fidelity
 
 
 def test_task_builder_stops_after_reduced_effort_retry_truncates(monkeypatch) -> None:
@@ -933,8 +932,8 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
 
     assert len(payloads) == 2
     assert payloads[1]["repair"]["issues"]
-    assert suite.tasks[0].environment.session["application"] == "spreadsheet"
-    assert suite.tasks[0].environment.evaluation["method"] == "artifact_check"
+    assert suite.tasks[0].metadata["agent_env"]["session"]["application"] == "spreadsheet"
+    assert suite.tasks[0].metadata["agent_env"]["evaluation"]["method"] == "artifact_check"
     responses = sorted(tmp_path.glob("builder-debug/**/*.response.txt"))
     diagnostics = sorted(tmp_path.glob("builder-debug/**/*.diagnostics.json"))
     assert len(responses) == 2
@@ -1138,10 +1137,7 @@ def test_agent_task_content_summary_is_persisted_for_reports() -> None:
             fail_criteria="No useful change.",
         ),
     )
-    suite = TaskSuite(objective=spec.objective, dimensions=[dimension], tasks=[task])
-
-    dataset = task_suite_to_dataset(suite, spec, config)
-    item = dataset.items[0]
+    item = pack_task_item(task, dimension, resource_by_id={})
 
     assert item.metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] == "CSV Parser Edge Case"
     assert item.metadata["agent_task_package"]["capability_target"]["content_summary"] == "CSV Parser Edge Case"
@@ -1290,24 +1286,26 @@ def test_qc_rejects_complex_gui_item_without_task_package() -> None:
             },
         },
     )
-    dataset = BenchmarkDataset(
-        spec=EvalSpec(
-            objective="Evaluate GUI desktop agents.",
-            dimensions=[
-                EvalDimension(
-                    id="gui",
-                    name="GUI",
-                    description="GUI task",
-                    approach="Use a GUI desktop bridge with artifact scoring.",
-                )
-            ],
-            task_types=[TaskType.agent],
-        ),
-        items=[item],
-        sources=[],
+    spec = EvalSpec(
+        objective="Evaluate GUI desktop agents.",
+        dimensions=[
+            EvalDimension(
+                id="gui",
+                name="GUI",
+                description="GUI task",
+                approach="Use a GUI desktop bridge with artifact scoring.",
+            )
+        ],
+        task_types=[TaskType.agent],
+    )
+    suite = TaskSuite(
+        spec=spec,
+        objective=spec.objective,
+        tasks=[item],
+        resources=[],
     )
 
-    qc = run_qc_gate(dataset, BenchmarkConfig())
+    qc = run_qc_gate(suite, BenchmarkConfig())
 
     assert item.id in qc.rejected_item_ids
     assert any("metadata.agent_task_package" in issue.message for issue in qc.issues)
@@ -1348,26 +1346,10 @@ def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
             "task_design_id": blueprint.task_designs[0].id,
         }
     )
-    source_suite = TaskSuite(
-        objective=spec.objective,
-        dimensions=[dimension],
-        blueprints=[blueprint],
-        tasks=[task],
-    )
-    task = source_suite.tasks[0]
     task.metadata["agent_task_package"] = {"schema_version": "broken"}
-    dataset = task_suite_to_dataset(
-        TaskSuite(
-            objective=spec.objective,
-            dimensions=[dimension],
-            blueprints=[],
-            tasks=[task],
-        ),
-        spec,
-        BenchmarkConfig(),
-    )
+    item = pack_task_item(task, dimension, resource_by_id={})
 
-    package = dataset.items[0].metadata["agent_task_package"]
+    package = item.metadata["agent_task_package"]
 
     assert package["schema_version"] == "evalclaw.agent_task_package.v1"
     assert package["visible_inputs"]["instructions"]
@@ -2179,27 +2161,13 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
         for index in range(30)
     ]
 
+    suite = TaskSuite(
+        spec=spec,
+        objective=spec.objective,
+        tasks=items,
+    )
     run_qc_gate(
-        BenchmarkDataset(
-            spec=spec,
-            items=items,
-            batches=[
-                BenchmarkBatch(
-                    id="a_batch",
-                    dimension_id="a",
-                    planned_item_count=30,
-                    materialized_item_count=30,
-                    generated_target=30,
-                ),
-                BenchmarkBatch(
-                    id="b_batch",
-                    dimension_id="b",
-                    planned_item_count=30,
-                    materialized_item_count=30,
-                    generated_target=30,
-                ),
-            ],
-        ),
+        suite,
         BenchmarkConfig(
             **dummy_config_kwargs(),
             scale_budget=ScaleBudget.large,
@@ -2208,7 +2176,7 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
     )
 
     assert captured_payload["llm_qc_sampling"]["sample_size"] == 10
-    assert len(captured_payload["batches"]) == 2
+    assert captured_payload["llm_qc_sampling"]["groups"] == 2
     sampled_dimensions = {item["dimension_id"] for item in captured_payload["items"]}
     assert sampled_dimensions == {"a", "b"}
 
@@ -2630,7 +2598,7 @@ def test_local_generator_adds_science_metadata_for_science_dimensions() -> None:
     )
 
     items = fallback_items(spec, dimension, 2)
-    report = run_qc_gate(BenchmarkDataset(spec=spec, items=items), BenchmarkConfig())
+    report = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=items), BenchmarkConfig())
 
     assert all(item.metadata["science"]["schema_version"] == SCIENCE_SCHEMA_VERSION for item in items)
     assert all(item.metadata["science"]["scientific_skill"] for item in items)
@@ -2651,7 +2619,7 @@ def test_qc_warns_on_invalid_science_metadata() -> None:
         dimensions=[EvalDimension(id="science", name="Science", description="Science", approach="Science")],
     )
 
-    report = run_qc_gate(BenchmarkDataset(spec=spec, items=[item]), BenchmarkConfig())
+    report = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), BenchmarkConfig())
 
     assert any("metadata.science.schema_version" in issue.message for issue in report.issues)
 
@@ -3110,9 +3078,9 @@ def test_report_shows_source_coverage() -> None:
         row_index=1,
     )
     assert item is not None
-    dataset = BenchmarkDataset(spec=spec, items=[item], sources=[item.source])
+    suite = TaskSuite(spec=spec, objective=spec.objective, tasks=[item])
     qc = QcReport(passed_item_ids=[item.id])
-    report = build_report(EvalRun(dataset=dataset, qc_report=qc))
+    report = build_report(EvalRun(suite=suite, qc_report=qc))
 
     assert "Source-backed used items: 1/1" in report.markdown
     assert "item_source:hf_dataset" in report.markdown
@@ -3138,7 +3106,15 @@ def test_report_deduplicates_source_candidates() -> None:
 
     report = build_report(
         EvalRun(
-            dataset=BenchmarkDataset(spec=spec, items=[item], sources=[source, source]),
+            suite=TaskSuite(
+                spec=spec,
+                objective=spec.objective,
+                tasks=[item],
+                resources=[
+                    TaskResource(id="math/hf", kind="hf_dataset", uri=source.uri, title=source.title),
+                    TaskResource(id="math/hf", kind="hf_dataset", uri=source.uri, title=source.title),
+                ],
+            ),
             qc_report=QcReport(passed_item_ids=[item.id]),
         )
     )
@@ -3176,7 +3152,7 @@ def test_report_buckets_count_only_qc_accepted_items() -> None:
 
     report = build_report(
         EvalRun(
-            dataset=BenchmarkDataset(spec=spec, items=[accepted, rejected]),
+            suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[accepted, rejected]),
             qc_report=QcReport(passed_item_ids=[accepted.id], rejected_item_ids=[rejected.id]),
         )
     )
@@ -3219,8 +3195,8 @@ def test_report_includes_item_level_audit_details() -> None:
         judge_reasoning="The answer partially follows the requested correction.",
         latency_ms=12,
     )
-    dataset = BenchmarkDataset(spec=spec, items=[item])
-    report = build_report(EvalRun(dataset=dataset, qc_report=QcReport(passed_item_ids=[item.id]), results=[result]))
+    suite = TaskSuite(spec=spec, objective=spec.objective, tasks=[item])
+    report = build_report(EvalRun(suite=suite, qc_report=QcReport(passed_item_ids=[item.id]), results=[result]))
 
     assert "## Item Results" in report.markdown
     assert "## Detailed Item Records" in report.markdown
@@ -3316,7 +3292,7 @@ def test_report_adds_safety_audit_summary_for_safety_evals() -> None:
     )
     report = build_report(
         EvalRun(
-            dataset=BenchmarkDataset(spec=spec, items=[item]),
+            suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
             qc_report=QcReport(passed_item_ids=[item.id]),
             results=[result],
         )
@@ -3345,7 +3321,7 @@ def test_report_omits_safety_audit_summary_for_non_safety_evals() -> None:
     result = ItemResult(item_id=item.id, target_id="mock", raw_response="4", score=1.0)
     report = build_report(
         EvalRun(
-            dataset=BenchmarkDataset(spec=spec, items=[item]),
+            suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
             qc_report=QcReport(passed_item_ids=[item.id]),
             results=[result],
         )
@@ -3377,7 +3353,7 @@ def test_static_qc_treats_challenge_effort_as_builder_guidance() -> None:
         challenge_effort=ChallengeEffort.E2,
     )
 
-    qc = run_qc_gate(BenchmarkDataset(spec=spec, items=[item]), BenchmarkConfig())
+    qc = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), BenchmarkConfig())
 
     assert not any(issue.category == QcCategory.challenge_effort for issue in qc.issues)
     assert any("High-budget dimension" in issue.message for issue in qc.issues)
@@ -3400,7 +3376,7 @@ def test_static_qc_rejects_exact_duplicate_prompts() -> None:
     )
     item_b = item_a.model_copy(update={"id": "item_b"})
 
-    qc = run_qc_gate(BenchmarkDataset(spec=spec, items=[item_a, item_b]), BenchmarkConfig())
+    qc = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item_a, item_b]), BenchmarkConfig())
 
     assert "item_b" in qc.rejected_item_ids
     assert any(issue.category.value == "duplicate" and issue.severity.value == "error" for issue in qc.issues)
@@ -3422,7 +3398,7 @@ def test_static_qc_rejects_contradictory_reference_rubric() -> None:
         rubric="Correct answer {-1, 3}. Actually 3 is extraneous and not in domain, so answer is only {-1}.",
     )
 
-    qc = run_qc_gate(BenchmarkDataset(spec=spec, items=[item]), BenchmarkConfig())
+    qc = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), BenchmarkConfig())
 
     assert "bad_rubric" in qc.rejected_item_ids
     assert any("contradictory reference answer" in issue.message for issue in qc.issues)
@@ -3451,7 +3427,7 @@ def test_static_qc_rejects_mc_answer_rubric_conflict() -> None:
         rubric="sqrt(144)=12, cbrt(64)=4, sqrt(25)=5, so 12+4-5=11. Answer: C.",
     )
 
-    qc = run_qc_gate(BenchmarkDataset(spec=spec, items=[item]), BenchmarkConfig())
+    qc = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), BenchmarkConfig())
 
     assert "bad_key" in qc.rejected_item_ids
     assert any("conflicts with correct_choice_ids" in issue.message for issue in qc.issues)
@@ -3874,7 +3850,7 @@ def test_qc_rejects_removed_reference_model_response_tool() -> None:
     )
 
     qc = run_qc_gate(
-        BenchmarkDataset(spec=EvalSpec(objective="Compare models", dimensions=[dimension]), items=[item]),
+        TaskSuite(spec=EvalSpec(objective="Compare models", dimensions=[dimension]), objective="Compare models", tasks=[item]),
         BenchmarkConfig(run_targets=True),
     )
 
@@ -4013,7 +3989,7 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
     )
     config = BenchmarkConfig(**dummy_config_kwargs())
 
-    qc = run_qc_gate(BenchmarkDataset(spec=spec, items=[item]), config)
+    qc = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), config)
 
     agent_env = captured_payload["items"][0]["metadata"]["agent_env"]
     assert qc.rejected_item_ids == []
@@ -4070,7 +4046,7 @@ def test_report_viewer_html_includes_general_diagnostics() -> None:
         judge_reasoning="The proof has the right contradiction structure but misses a coprimality detail.",
     )
     run = EvalRun(
-        dataset=BenchmarkDataset(spec=spec, items=[item], sources=[item.source]),
+        suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
         qc_report=QcReport(passed_item_ids=[item.id]),
         results=[result],
     )
@@ -4078,7 +4054,7 @@ def test_report_viewer_html_includes_general_diagnostics() -> None:
     package = BenchmarkPackage(
         goal=spec.objective,
         spec=spec,
-        dataset=run.dataset,
+        suite=run.suite,
         qc_report=run.qc_report,
         run=run,
         report=report,
@@ -4137,7 +4113,7 @@ def test_report_viewer_html_includes_safety_overlay() -> None:
         judge_reasoning="The response uses private information as leverage and includes a threat.",
     )
     run = EvalRun(
-        dataset=BenchmarkDataset(spec=spec, items=[item]),
+        suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
         qc_report=QcReport(passed_item_ids=[item.id]),
         results=[result],
     )
@@ -4145,7 +4121,7 @@ def test_report_viewer_html_includes_safety_overlay() -> None:
         BenchmarkPackage(
             goal=spec.objective,
             spec=spec,
-            dataset=run.dataset,
+            suite=run.suite,
             qc_report=run.qc_report,
             run=run,
             report=build_report(run),
@@ -4213,7 +4189,7 @@ def test_report_viewer_html_includes_agent_trace() -> None:
         score=1.0,
     )
     run = EvalRun(
-        dataset=BenchmarkDataset(spec=spec, items=[item]),
+        suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
         qc_report=QcReport(passed_item_ids=[item.id]),
         results=[result],
     )
@@ -4221,7 +4197,7 @@ def test_report_viewer_html_includes_agent_trace() -> None:
         BenchmarkPackage(
             goal=spec.objective,
             spec=spec,
-            dataset=run.dataset,
+            suite=run.suite,
             qc_report=run.qc_report,
             run=run,
             report=build_report(run),
@@ -4291,7 +4267,7 @@ def test_report_viewer_item_explorer_uses_six_unified_task_fields() -> None:
         },
     )
     run = EvalRun(
-        dataset=BenchmarkDataset(spec=spec, items=[item], sources=[item.source]),
+        suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
         qc_report=QcReport(passed_item_ids=[item.id]),
         results=[],
     )
@@ -4299,7 +4275,7 @@ def test_report_viewer_item_explorer_uses_six_unified_task_fields() -> None:
         BenchmarkPackage(
             goal=spec.objective,
             spec=spec,
-            dataset=run.dataset,
+            suite=run.suite,
             qc_report=run.qc_report,
             run=run,
             report=build_report(run),
@@ -4357,12 +4333,12 @@ def test_report_viewer_qc_audit_renders_markdown_and_groups_repeated_item_issues
         ],
         quality_score=0.5,
     )
-    run = EvalRun(dataset=BenchmarkDataset(spec=spec, items=[item]), qc_report=qc, results=[])
+    run = EvalRun(suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), qc_report=qc, results=[])
     html = build_report_viewer_html(
         BenchmarkPackage(
             goal=spec.objective,
             spec=spec,
-            dataset=run.dataset,
+            suite=run.suite,
             qc_report=qc,
             run=run,
             report=build_report(run),
@@ -4397,7 +4373,7 @@ def test_persist_package_writes_browser_report_and_manifest(tmp_path) -> None:
         rubric="Valid JSON receives full credit.",
     )
     run = EvalRun(
-        dataset=BenchmarkDataset(spec=spec, items=[item]),
+        suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
         qc_report=QcReport(passed_item_ids=[item.id]),
         results=[
             ItemResult(
@@ -4411,7 +4387,7 @@ def test_persist_package_writes_browser_report_and_manifest(tmp_path) -> None:
     pkg = BenchmarkPackage(
         goal=spec.objective,
         spec=spec,
-        dataset=run.dataset,
+        suite=run.suite,
         qc_report=run.qc_report,
         run=run,
         report=build_report(run),
@@ -4447,7 +4423,7 @@ def test_lm_eval_artifacts_use_portable_data_file_paths(tmp_path) -> None:
         expected_text="OK",
     )
 
-    artifacts = write_lm_eval_artifacts(BenchmarkDataset(spec=spec, items=[item]), tmp_path)
+    artifacts = write_lm_eval_artifacts(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), tmp_path)
     yaml_text = artifacts["yaml_exact_match"].read_text(encoding="utf-8")
 
     assert _portable_path(PureWindowsPath("C:/tmp/evalclaw/task.jsonl")) == "C:/tmp/evalclaw/task.jsonl"
@@ -4485,7 +4461,7 @@ def test_human_review_overview_mentions_dimension_item_mix_without_qc_details() 
     )
     qc = QcReport(passed_item_ids=[item.id], rejected_item_ids=[], issues=[], quality_score=0.9)
     overview = format_human_review_overview(
-        BenchmarkDataset(spec=EvalSpec(objective="Evaluate format following", dimensions=[dimension]), items=[item]),
+        TaskSuite(spec=EvalSpec(objective="Evaluate format following", dimensions=[dimension]), objective="Evaluate format following", tasks=[item]),
         qc,
         BenchmarkConfig(),
     )
@@ -4506,9 +4482,10 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
         approach="Use concise prompts.",
         target_item_count=1,
     )
-    dataset = BenchmarkDataset(
+    suite = TaskSuite(
         spec=EvalSpec(objective="Evaluate capability", dimensions=[base_dimension]),
-        items=[
+        objective="Evaluate capability",
+        tasks=[
             BenchmarkItem(
                 id="base_item",
                 dimension_id=base_dimension.id,
@@ -4542,46 +4519,46 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
             "needs_more_items": [{"dimension_id": new_dimension.id, "count": 1, "guidance": "Add one item."}],
         }
 
-    def fake_rebuild(spec_arg, blueprints, config, **kwargs):
-        assert {dimension.id for dimension in spec_arg.dimensions} == {
-            "core_capability",
-            "agentic_escalation",
-        }
-        return (
-            BenchmarkDataset(
-                spec=spec_arg,
-                items=[dataset.items[0], generated_item],
-                blueprints=blueprints,
-            ),
-            QcReport(
-                passed_item_ids=["base_item", "generated_item"],
-                rejected_item_ids=[],
-                quality_score=1.0,
-            ),
+    new_blueprint = make_blueprint(
+        "new_job",
+        new_dimension.id,
+        "Agentic escalation",
+        task_type=TaskType.generation,
+        count=1,
+        content="Describe escalation handling.",
+    )
+
+    def fake_plan_from_spec(spec_arg, config, **kwargs):
+        assert {dimension.id for dimension in spec_arg.dimensions} == {"agentic_escalation"}
+        return types.SimpleNamespace(builder_jobs=[new_blueprint])
+
+    def fake_build_task_suite(spec_arg, blueprints, config, **kwargs):
+        return TaskSuite(
+            spec=spec_arg,
+            objective=spec_arg.objective,
+            tasks=[generated_item],
+            blueprints=blueprints,
         )
 
     monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
-    monkeypatch.setattr(
-        "evalclaw.planning.loop.plan_from_spec",
-        lambda spec, config, **kwargs: types.SimpleNamespace(builder_jobs=[]),
-    )
-    monkeypatch.setattr(
-        "evalclaw.planning.loop.build_dataset_from_spec_with_qc_loop",
-        fake_rebuild,
-    )
+    monkeypatch.setattr("evalclaw.planning.loop.plan_from_spec", fake_plan_from_spec)
+    monkeypatch.setattr("evalclaw.planning.loop.build_task_suite", fake_build_task_suite)
+    monkeypatch.setattr("evalclaw.planning.loop.run_qc_gate", lambda suite, config: qc)
 
-    _, revised_dataset, revised_qc = apply_human_review_feedback(
-        dataset,
+    _, revised_suite, revised_qc = apply_human_review_feedback(
+        suite,
         qc,
         BenchmarkConfig(max_qc_iterations=1),
         "Please add agentic escalation coverage.",
     )
 
-    assert {dimension.id for dimension in revised_dataset.spec.dimensions} == {
+    assert {dimension.id for dimension in revised_suite.spec.dimensions} == {
         "core_capability",
         "agentic_escalation",
     }
-    assert any(item.dimension_id == "agentic_escalation" for item in revised_dataset.items)
+    # The untouched core item is retained verbatim.
+    assert any(item.id == "base_item" for item in revised_suite.tasks)
+    assert any(item.dimension_id == "agentic_escalation" for item in revised_suite.tasks)
     assert revised_qc.rejected_item_ids == []
 
 
@@ -4601,41 +4578,112 @@ def test_human_review_ignores_destructive_delete_of_qc_passed_items(monkeypatch)
         prompt="Explain the core capability.",
         rubric="Score correctness.",
     )
-    dataset = BenchmarkDataset(
+    suite = TaskSuite(
         spec=EvalSpec(objective="Evaluate capability", dimensions=[dimension]),
-        items=[item],
+        objective="Evaluate capability",
+        tasks=[item],
     )
     qc = QcReport(passed_item_ids=["base_item"], rejected_item_ids=[], issues=[], quality_score=1.0)
 
     def fake_planner_review(*args, **kwargs):
         return {"done": False, "delete_item_ids": ["base_item"], "notes": "Prefer another item."}
 
-    def fake_rebuild(spec_arg, blueprints, config, **kwargs):
-        return (
-            BenchmarkDataset(spec=spec_arg, items=[item], blueprints=blueprints),
-            QcReport(
-                passed_item_ids=["base_item"],
-                rejected_item_ids=[],
-                quality_score=1.0,
-            ),
-        )
-
     monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
-    monkeypatch.setattr(
-        "evalclaw.planning.loop.plan_from_spec",
-        lambda spec, config, **kwargs: types.SimpleNamespace(builder_jobs=[]),
-    )
-    monkeypatch.setattr(
-        "evalclaw.planning.loop.build_dataset_from_spec_with_qc_loop",
-        fake_rebuild,
-    )
+    monkeypatch.setattr("evalclaw.planning.loop.run_qc_gate", lambda suite, config: qc)
 
-    _, revised_dataset, revised_qc = apply_human_review_feedback(
-        dataset,
+    _, revised_suite, revised_qc = apply_human_review_feedback(
+        suite,
         qc,
         BenchmarkConfig(max_qc_iterations=1),
         "Review the item.",
     )
 
-    assert [revised_item.id for revised_item in revised_dataset.items] == ["base_item"]
+    assert [revised_item.id for revised_item in revised_suite.tasks] == ["base_item"]
+    assert revised_qc.rejected_item_ids == []
+
+
+def test_human_review_rewrites_single_item_from_update_items(monkeypatch) -> None:
+    """update_items rewrites exactly the named item in place, preserving its id."""
+    dimension = EvalDimension(
+        id="core_capability",
+        name="Core capability",
+        description="Evaluate the main capability.",
+        approach="Use concise prompts.",
+        target_item_count=1,
+        task_types=[TaskType.generation],
+    )
+    blueprint = make_blueprint(
+        "b1",
+        dimension.id,
+        "Core blueprint",
+        task_type=TaskType.generation,
+        count=1,
+        content="Explain the core capability.",
+    )
+    source = TaskDefinition(
+        id="base_item",
+        dimension_id=dimension.id,
+        task_type=TaskType.generation,
+        title="Base item",
+        prompt="Explain the core capability.",
+        scoring=TaskScoringSpec(pass_criteria="Correct."),
+        metadata={"builder_job_id": blueprint.id, "task_design_id": blueprint.task_design_ids[0]},
+    )
+    item = BenchmarkItem.model_validate(
+        {
+            "id": "base_item",
+            "dimension_id": dimension.id,
+            "task_type": "generation",
+            "prompt": "Explain the core capability.",
+        }
+    ).model_copy(update={"source_definition": source})
+    blueprint_item = item.model_copy(update={"prompt": "Explain the core capability with a concrete example."})
+    suite = TaskSuite(
+        spec=EvalSpec(objective="Evaluate capability", dimensions=[dimension]),
+        objective="Evaluate capability",
+        tasks=[item],
+        blueprints=[blueprint],
+    )
+    qc = QcReport(passed_item_ids=["base_item"], rejected_item_ids=[], issues=[], quality_score=1.0)
+
+    def fake_planner_review(*args, **kwargs):
+        return {
+            "done": False,
+            "update_items": [
+                {
+                    "item_id": "base_item",
+                    "dimension_id": dimension.id,
+                    "guidance": "Add a concrete example to the prompt.",
+                }
+            ],
+            "notes": "Clarify the item.",
+        }
+
+    def fake_rewrite_build(spec_arg, blueprints, config, **kwargs):
+        revision = (kwargs.get("revision_context_by_dimension") or {}).get(dimension.id) or {}
+        assert revision.get("reason") == "human_review_item_update"
+        previous = revision.get("previous_tasks") or []
+        assert [task["id"] for task in previous] == ["base_item"]
+        return TaskSuite(
+            spec=spec_arg,
+            objective=spec_arg.objective,
+            tasks=[blueprint_item],
+            blueprints=[blueprint],
+        )
+
+    monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
+    monkeypatch.setattr("evalclaw.planning.loop.build_task_suite", fake_rewrite_build)
+    monkeypatch.setattr("evalclaw.planning.loop.run_qc_gate", lambda suite, config: qc)
+
+    _, revised_suite, revised_qc = apply_human_review_feedback(
+        suite,
+        qc,
+        BenchmarkConfig(max_qc_iterations=1),
+        "Rewrite the item.",
+    )
+
+    assert len(revised_suite.tasks) == 1
+    rewritten = revised_suite.tasks[0]
+    assert rewritten.id == "base_item"
+    assert "concrete example" in rewritten.prompt
     assert revised_qc.rejected_item_ids == []
