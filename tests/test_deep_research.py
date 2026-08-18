@@ -344,6 +344,10 @@ def test_planner_resources_include_research_brief() -> None:
     assert '"source_material_index": [' in resources
     assert '"content_chars": 30' in resources
     assert "Complete retained source text." not in resources
+    # field guide is appended so the planner does not guess brief field semantics
+    assert "Field meanings for the deep-research brief above" in resources
+    assert "source_material_index: a list of {title, url, content_chars}" in resources
+    assert "challenge_effort_anchors: what E1-E3 construction effort means" in resources
 
 
 def test_planner_resources_mark_deepresearch_directory_empty_when_absent() -> None:
@@ -605,7 +609,7 @@ def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
             "--planner-model", "planner-model", "--planner-api-key", "planner-key",
             "--task-builder-model", "builder-model", "--task-builder-api-key", "builder-key",
             "--qc-model", "qc-model", "--qc-api-key", "qc-key",
-            "--judge-model", "judge-model",
+            "--task-model", "task-model",
             "--research-model", "research-model", "--research-api-key", "research-key",
             "--loop3-model", "loop3-model", "--loop3-api-key", "loop3-key",
         ],
@@ -614,7 +618,7 @@ def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
     assert captured["config"].planner_model == "planner-model"
     assert captured["config"].task_builder_model == "builder-model"
     assert captured["config"].qc_model == "qc-model"
-    assert captured["config"].judge_models[0].model == "judge-model"
+    assert captured["config"].task_models[0].model == "task-model"
     assert captured["config"].research_model == "research-model"
     assert captured["config"].loop3_model == "loop3-model"
 
@@ -634,3 +638,33 @@ def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
         ["generate", "-g", "goal", "--no-interactive", "--max-research-iterations", "0"],
     )
     assert result.exit_code == 1
+
+
+def test_cli_task_config_carries_credentials(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_run_pipeline(goal, config, **kwargs):
+        captured["config"] = config
+        return _minimal_package(None)
+
+    monkeypatch.setattr("evalclaw.cli.run_pipeline", fake_run_pipeline)
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        [
+            "generate", "-g", "goal", "--no-interactive",
+            "--task-config", (
+                '{"model": "task-model", "provider": "openai", '
+                '"api_key": "task-key", "base_url": "https://task.example/v1", "id": "tm1"}'
+            ),
+        ],
+    )
+    assert result.exit_code == 0
+    models = captured["config"].task_models
+    assert len(models) == 1
+    assert models[0].model == "task-model"
+    assert models[0].provider == "openai"
+    assert models[0].api_key == "task-key"
+    assert models[0].base_url == "https://task.example/v1"
+    assert models[0].id == "tm1"

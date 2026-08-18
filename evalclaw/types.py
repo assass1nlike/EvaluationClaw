@@ -790,7 +790,14 @@ class BenchmarkConfig(BaseModel):
     qc_provider: Optional[str] = None
     qc_api_key: Optional[str] = None
     qc_base_url: Optional[str] = None
-    judge_models: list[TargetModelConfig] = Field(default_factory=list)
+    task_models: list[TargetModelConfig] = Field(
+        default_factory=list,
+        description=(
+            "Models a built task may draw on at execution time (scoring judge, "
+            "multi-turn dialogue simulator). TaskBuilder selects one per item and "
+            "records its id in metadata.task_model_id."
+        ),
+    )
     research_model: Optional[str] = None
     research_provider: Optional[str] = None
     research_api_key: Optional[str] = None
@@ -799,7 +806,6 @@ class BenchmarkConfig(BaseModel):
     loop3_provider: Optional[str] = None
     loop3_api_key: Optional[str] = None
     loop3_base_url: Optional[str] = None
-    task_agent_models: list[TargetModelConfig] = Field(default_factory=list)
     targets: list[TargetModelConfig] = Field(default_factory=list)
     scale_budget: ScaleBudget = ScaleBudget.mid
     max_planner_iterations: int = 5
@@ -808,6 +814,13 @@ class BenchmarkConfig(BaseModel):
     max_hf_records_per_dimension: int = 1
     large_scale_generated_item_cap_per_dimension: int = 50
     source_backed_ratio: Optional[float] = None
+    challenge_effort_distribution: dict[str, float] = Field(
+        default_factory=dict,
+        description=(
+            "Global E1/E2/E3 task-count ratio such as {'E1': 0.2, 'E2': 0.3, 'E3': 0.5}; "
+            "empty dict means Planner decides per-TaskDesign effort freely."
+        ),
+    )
     large_scale_llm_qc_sample_size: int = 120
     output_dir: str = "./benchmark-output"
     task_builder_debug_dir: Optional[str] = None

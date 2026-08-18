@@ -283,20 +283,17 @@ def _task_builder_payload(
             "Provide the executable environment, output contract, and deterministic checks or a "
             "task-specific rubric for the resulting state, artifacts, answer, or trajectory."
         ]
-    if config is not None and config.judge_models:
-        judge_hint = (
-            "Select exactly one judge model from available_models.judge_models and record its id in "
-            "metadata.judge_model_id. Choose the model whose capability matches the task's scoring "
-            "complexity."
+    if config is not None and config.task_models:
+        task_model_hint = (
+            "Select exactly one task model from available_models.models and record its id in "
+            "metadata.task_model_id. This model is used at execution time for LLM scoring "
+            "(generation/multi_turn/agent rubric judging) and as the dialogue simulator for "
+            "adaptive multi_turn tasks. Choose the model whose capability matches the task's "
+            "scoring or simulation complexity."
         )
-        for judge_task_type in (TaskType.generation, TaskType.multi_turn, TaskType.agent):
-            if judge_task_type in task_types:
-                type_requirements[judge_task_type.value].append(judge_hint)
-    if config is not None and config.task_agent_models and TaskType.multi_turn in task_types:
-        type_requirements[TaskType.multi_turn.value].append(
-            "Select exactly one task-agent model from available_models.task_agent_models and record "
-            "its id in metadata.task_agent_model_id for the dialogue simulator."
-        )
+        for model_task_type in (TaskType.generation, TaskType.multi_turn, TaskType.agent):
+            if model_task_type in task_types:
+                type_requirements[model_task_type.value].append(task_model_hint)
     task_schema["type_requirements"] = type_requirements
 
     contract: dict[str, object] = {
@@ -333,15 +330,11 @@ def _task_builder_payload(
         },
         "task_builder_contract": contract,
     }
-    if config is not None and (config.judge_models or config.task_agent_models):
+    if config is not None and config.task_models:
         payload["available_models"] = {
-            "judge_models": [
+            "models": [
                 {"id": model.id, "model": model.model, "provider": model.provider or ""}
-                for model in config.judge_models
-            ],
-            "task_agent_models": [
-                {"id": model.id, "model": model.model, "provider": model.provider or ""}
-                for model in config.task_agent_models
+                for model in config.task_models
             ],
         }
     if revision_context:

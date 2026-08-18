@@ -7,9 +7,10 @@ import pytest
 from evalclaw.planning.task_planner import (
     _audit_plan,
     _explicit_total_task_count,
+    _valid_effort_distribution,
     plan_benchmark,
 )
-from evalclaw.types import BenchmarkConfig, BenchmarkPlan, TaskType
+from evalclaw.types import BenchmarkConfig, BenchmarkPlan, ChallengeEffort, TaskType
 from tests.config_helpers import dummy_config_kwargs
 
 
@@ -174,3 +175,119 @@ def test_low_effort_planner_uses_bounded_output_budget(monkeypatch) -> None:
     )
 
     assert captured["max_tokens"] == 4096
+
+
+def _multi_design_plan(
+    *,
+    counts_and_efforts: list[tuple[int, ChallengeEffort]],
+) -> BenchmarkPlan:
+    return BenchmarkPlan.model_validate(
+        {
+            "id": "test_plan",
+            "objective": "Test the requested capability.",
+            "dimensions": [
+                {
+                    "id": "capability",
+                    "name": "Capability",
+                    "measurement_target": "The requested capability.",
+                    "boundary": "Exclude unrelated capabilities.",
+                    "approach": "Measure it directly.",
+                    "task_designs": [
+                        {
+                            "id": f"design-{index}",
+                            "task_type": TaskType.generation.value,
+                            "task_count": task_count,
+                            "challenge_effort": effort.value,
+                            "content_design": {"description": "Concrete test cases."},
+                        }
+                        for index, (task_count, effort) in enumerate(counts_and_efforts)
+                    ],
+                }
+            ],
+        }
+    )
+
+
+def test_valid_effort_distribution_normalizes_and_validates() -> None:
+    assert _valid_effort_distribution({"E1": 0.2, "E2": 0.3, "E3": 0.5}) == {
+        ChallengeEffort.E1: 0.2,
+        ChallengeEffort.E2: 0.3,
+        ChallengeEffort.E3: 0.5,
+    }
+    assert _valid_effort_distribution({}) == {}
+    assert _valid_effort_distribution({"E1": 0.2, "E3": 0.3}) == {}  # sum != 1
+    assert _valid_effort_distribution({"E1": -0.2, "E2": 0.7, "E3": 0.5}) == {}
+    assert _valid_effort_distribution({"E1": 0.2, "E2": 0.3, "E3": 0.5, "E9": 1.0}) == {
+        ChallengeEffort.E1: 0.2,
+        ChallengeEffort.E2: 0.3,
+        ChallengeEffort.E3: 0.5,
+    }  # unknown keys ignored
+
+
+def test_valid_effort_distribution_accepts_case_insensitive_keys() -> None:
+    assert _valid_effort_distribution({"e1": 0.5, "e2": 0.5}) == {
+        ChallengeEffort.E1: 0.5,
+        ChallengeEffort.E2: 0.5,
+    }
+
+
+def test_plan_audit_accepts_matching_effort_distribution() -> None:
+    plan = _multi_design_plan(
+        counts_and_efforts=[
+            (2, ChallengeEffort.E1),
+            (3, ChallengeEffort.E2),
+            (5, ChallengeEffort.E3),
+        ]
+    )
+    issues = _audit_plan(
+        plan,
+        expected_effort_distribution={
+            ChallengeEffort.E1: 0.2,
+            ChallengeEffort.E2: 0.3,
+            ChallengeEffort.E3: 0.5,
+        },
+    )
+    assert issues == []
+
+
+def test_plan_audit_rejects_mismatched_effort_distribution() -> None:
+    plan = _multi_design_plan(
+        counts_and_efforts=[
+            (10, ChallengeEffort.E3),
+        ]
+    )
+    issues = _audit_plan(
+        plan,
+        expected_effort_distribution={
+            ChallengeEffort.E1: 0.2,
+            ChallengeEffort.E2: 0.3,
+            ChallengeEffort.E3: 0.5,
+        },
+    )
+    assert any("challenge_effort must match the required distribution" in issue for issue in issues)
+    assert any("E1: planned 0 tasks, expected ~2" in issue for issue in issues)
+
+
+def test_effort_distribution_is_passed_to_planner_constraints(monkeypatch) -> None:
+    responses = [_multi_design_plan(counts_and_efforts=[(1, ChallengeEffort.E3)]).model_dump(mode="json")]
+    payloads: list[str] = []
+
+    def fake_call_llm(messages, **kwargs):
+        payloads.append(messages[0].content if isinstance(messages[0].content, str) else "")
+        return json.dumps({"plan": responses[len(payloads) - 1]})
+
+    monkeypatch.setattr("evalclaw.planning.task_planner.call_llm", fake_call_llm)
+
+    plan_benchmark(
+        "Create one benchmark task.",
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            challenge_effort_distribution={"E1": 0.2, "E2": 0.3, "E3": 0.5},
+            max_planner_iterations=1,
+        ),
+    )
+
+    assert "challenge_effort_distribution" in payloads[0]
+    assert '"E1": 0.2' in payloads[0]
+    assert '"E3": 0.5' in payloads[0]
+    assert "The framework requires the total task count" in payloads[0]

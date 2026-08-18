@@ -6,7 +6,7 @@ import pytest
 
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.execution import runner as execution_runner
-from evalclaw.models.roles import resolve_judge_model, role_model_settings
+from evalclaw.models.roles import resolve_task_model, role_model_settings
 from evalclaw.planning import planner
 from evalclaw.quality import improver, llm_checks
 from evalclaw.research import deep_research
@@ -171,33 +171,33 @@ def test_judge_uses_selected_judge_model(monkeypatch) -> None:
     monkeypatch.setattr(execution_runner, "call_llm", fake_call_llm)
 
     config = BenchmarkConfig(
-        judge_models=[
+        task_models=[
             TargetModelConfig(provider="openai_compatible", model="judge-model", api_key="judge-key")
         ]
     )
-    assert execution_runner._call_judge_json({"item": "x"}, config, config.judge_models[0]) is not None
+    assert execution_runner._call_judge_json({"item": "x"}, config, config.task_models[0]) is not None
     assert captured["model"] == "judge-model"
     assert captured["provider"] == "openai_compatible"
     assert captured["api_key"] == "judge-key"
 
 
-def test_resolve_judge_model_uses_per_task_selection() -> None:
+def test_resolve_task_model_uses_per_task_selection() -> None:
     models = [
-        TargetModelConfig(provider="openai_compatible", model="judge-a", api_key="k"),
-        TargetModelConfig(provider="openai_compatible", model="judge-b", api_key="k"),
+        TargetModelConfig(provider="openai_compatible", model="task-a", api_key="k"),
+        TargetModelConfig(provider="openai_compatible", model="task-b", api_key="k"),
     ]
-    config = BenchmarkConfig(judge_models=models)
+    config = BenchmarkConfig(task_models=models)
     item = BenchmarkItem(
         id="i",
         dimension_id="d",
         task_type=TaskType.generation,
         prompt="p",
-        metadata={"judge_model_id": "judge-b"},
+        metadata={"task_model_id": "task-b"},
     )
 
-    assert resolve_judge_model(config, item).model == "judge-b"
-    assert resolve_judge_model(config).model == "judge-a"
-    assert resolve_judge_model(BenchmarkConfig(), item) is None
+    assert resolve_task_model(config, item).model == "task-b"
+    assert resolve_task_model(config).model == "task-a"
+    assert resolve_task_model(BenchmarkConfig(), item) is None
 
 
 def test_research_uses_research_role(monkeypatch) -> None:
