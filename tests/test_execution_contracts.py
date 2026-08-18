@@ -10,7 +10,6 @@ from evalclaw.reporting.artifacts import write_lm_eval_artifacts
 from evalclaw.reporting.viewer import _viewer_payload
 from evalclaw.types import (
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     BenchmarkPackage,
     ChallengeEffort,
@@ -21,12 +20,13 @@ from evalclaw.types import (
     ItemResult,
     QcReport,
     TargetModelConfig,
+    TaskSuite,
     TaskType,
     safe_challenge_effort,
 )
 
 
-def _dataset() -> BenchmarkDataset:
+def _suite() -> TaskSuite:
     dimension = EvalDimension(
         id="core",
         name="Core",
@@ -35,9 +35,10 @@ def _dataset() -> BenchmarkDataset:
         target_item_count=5,
     )
     spec = EvalSpec(objective="Evaluate core behavior.", dimensions=[dimension])
-    return BenchmarkDataset(
+    return TaskSuite(
         spec=spec,
-        items=[
+        objective=spec.objective,
+        tasks=[
             BenchmarkItem(
                 id="mc",
                 dimension_id="core",
@@ -72,17 +73,17 @@ def _dataset() -> BenchmarkDataset:
     )
 
 
-def _package(dataset: BenchmarkDataset, qc_report: QcReport) -> BenchmarkPackage:
+def _package(suite: TaskSuite, qc_report: QcReport) -> BenchmarkPackage:
     results = [
         ItemResult(item_id=item.id, target_id="target", raw_response="ok", score=1.0)
-        for item in dataset.items
+        for item in suite.tasks
     ]
     return BenchmarkPackage(
         goal="Evaluate core behavior.",
-        spec=dataset.spec,
-        dataset=dataset,
+        spec=suite.spec,
+        suite=suite,
         qc_report=qc_report,
-        run=EvalRun(dataset=dataset, qc_report=qc_report, results=results),
+        run=EvalRun(suite=suite, qc_report=qc_report, results=results),
         report=EvalReport(title="Report", markdown="Report", summaries=[]),
     )
 
@@ -146,11 +147,11 @@ def test_evaluator_result_ignores_stdout_score_unless_explicitly_enabled() -> No
 )
 def test_execution_plan_rejects_ambiguous_qc_ids(qc_report: QcReport, message: str) -> None:
     with pytest.raises(ValueError, match=message):
-        build_execution_plan(_dataset(), qc_report)
+        build_execution_plan(_suite(), qc_report)
 
 
 def test_direct_runner_and_lm_eval_share_the_accepted_item_view(monkeypatch, tmp_path) -> None:
-    dataset = _dataset()
+    suite = _suite()
     qc_report = QcReport(
         passed_item_ids=["mc", "short", "agent"],
         rejected_item_ids=["rejected"],
@@ -173,9 +174,9 @@ def test_direct_runner_and_lm_eval_share_the_accepted_item_view(monkeypatch, tmp
         ),
     )
 
-    run = run_eval(dataset, qc_report, config)
-    plan = build_execution_plan(dataset, qc_report)
-    artifacts = write_lm_eval_artifacts(plan.dataset, tmp_path)
+    run = run_eval(suite, qc_report, config)
+    plan = build_execution_plan(suite, qc_report)
+    artifacts = write_lm_eval_artifacts(plan.suite, tmp_path)
     exported_ids: set[str] = set()
     for key, path in artifacts.items():
         if key.startswith("jsonl_"):
@@ -191,10 +192,10 @@ def test_direct_runner_and_lm_eval_share_the_accepted_item_view(monkeypatch, tmp
 
 def test_mixed_lm_eval_export_splits_scoring_protocols(tmp_path) -> None:
     plan = build_execution_plan(
-        _dataset(),
+        _suite(),
         QcReport(passed_item_ids=["mc", "short", "agent"], rejected_item_ids=["rejected"]),
     )
-    artifacts = write_lm_eval_artifacts(plan.dataset, tmp_path)
+    artifacts = write_lm_eval_artifacts(plan.suite, tmp_path)
 
     multiple_choice_yaml = artifacts["yaml_multiple_choice"].read_text(encoding="utf-8")
     exact_match_yaml = artifacts["yaml_exact_match"].read_text(encoding="utf-8")
@@ -206,24 +207,24 @@ def test_mixed_lm_eval_export_splits_scoring_protocols(tmp_path) -> None:
 
 
 def test_package_round_trip_hydrates_run_context_without_duplicate_serialization() -> None:
-    dataset = _dataset()
-    qc_report = QcReport(passed_item_ids=[item.id for item in dataset.items])
-    package = _package(dataset, qc_report)
+    suite = _suite()
+    qc_report = QcReport(passed_item_ids=[item.id for item in suite.tasks])
+    package = _package(suite, qc_report)
 
     payload = package.model_dump(mode="json")
-    assert "dataset" not in payload["run"]
+    assert "suite" not in payload["run"]
     assert "qc_report" not in payload["run"]
 
     restored = BenchmarkPackage.model_validate(payload)
 
-    assert restored.run.dataset == restored.dataset
+    assert restored.run.suite == restored.suite
     assert restored.run.qc_report == restored.qc_report
 
 
 def test_viewer_payload_is_bounded() -> None:
-    dataset = _dataset()
-    qc_report = QcReport(passed_item_ids=[item.id for item in dataset.items])
-    package = _package(dataset, qc_report)
+    suite = _suite()
+    qc_report = QcReport(passed_item_ids=[item.id for item in suite.tasks])
+    package = _package(suite, qc_report)
 
     payload = _viewer_payload(package, item_limit=1, result_limit=1)
     truncation = payload["diagnostics"]["viewer_truncation"]
@@ -235,14 +236,14 @@ def test_viewer_payload_is_bounded() -> None:
         "results_total": 4,
     }
     assert payload["diagnostics"]["used_items"] == 4
-    assert len(payload["package"]["dataset"]["items"]) == 1
+    assert len(payload["package"]["suite"]["tasks"]) == 1
     assert len(payload["diagnostics"]["result_records"]) == 1
 
 
 def test_viewer_does_not_treat_rejected_results_as_evaluated() -> None:
-    dataset = _dataset()
-    qc_report = QcReport(passed_item_ids=[], rejected_item_ids=[item.id for item in dataset.items])
-    package = _package(dataset, qc_report)
+    suite = _suite()
+    qc_report = QcReport(passed_item_ids=[], rejected_item_ids=[item.id for item in suite.tasks])
+    package = _package(suite, qc_report)
 
     payload = _viewer_payload(package, item_limit=1, result_limit=1)
 
@@ -253,10 +254,10 @@ def test_viewer_does_not_treat_rejected_results_as_evaluated() -> None:
 
 
 def test_human_review_does_not_treat_empty_passed_ids_as_all_ready() -> None:
-    dataset = _dataset()
+    suite = _suite()
     overview = format_human_review_overview(
-        dataset,
-        QcReport(passed_item_ids=[], rejected_item_ids=[item.id for item in dataset.items]),
+        suite,
+        QcReport(passed_item_ids=[], rejected_item_ids=[item.id for item in suite.tasks]),
         BenchmarkConfig(),
     )
 

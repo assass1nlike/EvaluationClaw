@@ -1,4 +1,4 @@
-"""Dataset-level quality checks for coverage, duplicates, and batches."""
+"""TaskSuite-level quality checks for coverage and duplicates."""
 from __future__ import annotations
 
 import difflib
@@ -8,12 +8,11 @@ from collections import Counter
 from ..core.scaling import is_large_scale_budget
 from ..types import (
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     QcCategory,
     QcIssue,
     QcSeverity,
-    SourceKind,
+    TaskSuite,
 )
 from .common import _is_source_backed, _issue
 
@@ -80,10 +79,11 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
                 )
     return issues
 
-def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
+def _coverage_issues(suite: TaskSuite) -> list[QcIssue]:
     issues: list[QcIssue] = []
-    dimension_ids = {dimension.id for dimension in dataset.spec.dimensions}
-    for item in dataset.items:
+    item_count = len(suite.tasks)
+    dimension_ids = {dimension.id for dimension in suite.spec.dimensions}
+    for item in suite.tasks:
         if item.dimension_id not in dimension_ids:
             issues.append(
                 _issue(
@@ -94,9 +94,9 @@ def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
                     "Assign the item to one of the benchmark's planned dimensions.",
                 )
             )
-    task_counts = Counter(item.task_type for item in dataset.items)
-    for dimension in dataset.spec.dimensions:
-        dim_items = [item for item in dataset.items if item.dimension_id == dimension.id]
+    task_counts = Counter(item.task_type for item in suite.tasks)
+    for dimension in suite.spec.dimensions:
+        dim_items = [item for item in suite.tasks if item.dimension_id == dimension.id]
         if not dim_items:
             issues.append(
                 _issue(
@@ -108,12 +108,12 @@ def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
                 )
             )
             continue
-        if dataset.spec.scale_budget.value in {"high", "large", "xlarge"} and len(dim_items) < 2:
+        if suite.spec.scale_budget.value in {"high", "large", "xlarge"} and len(dim_items) < 2:
             budget_label = {
                 "high": "High",
                 "large": "Large",
                 "xlarge": "Xlarge",
-            }.get(dataset.spec.scale_budget.value, dataset.spec.scale_budget.value)
+            }.get(suite.spec.scale_budget.value, suite.spec.scale_budget.value)
             issues.append(
                 _issue(
                     None,
@@ -136,7 +136,7 @@ def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
                         "Materialize the planned source-backed coverage or revise the plan explicitly.",
                     )
                 )
-    for task_type in dataset.spec.task_types:
+    for task_type in suite.spec.task_types:
         if task_counts[task_type] == 0:
             issues.append(
                 _issue(
@@ -150,65 +150,9 @@ def _coverage_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
     return issues
 
 
-def _batch_issues(dataset: BenchmarkDataset) -> list[QcIssue]:
-    issues: list[QcIssue] = []
-    if not is_large_scale_budget(dataset.spec.scale_budget):
-        return issues
-    if not dataset.batches:
-        return [
-            _issue(
-                None,
-                QcSeverity.warning,
-                QcCategory.coverage,
-                "Large-scale dataset has no batch manifest.",
-                "Generate large/xlarge datasets with batch-level planning metadata.",
-            )
-        ]
-    items_by_batch: dict[str, list[BenchmarkItem]] = {}
-    for item in dataset.items:
-        batch_id = str(item.metadata.get("batch_id") or "")
-        if batch_id:
-            items_by_batch.setdefault(batch_id, []).append(item)
-    for batch in dataset.batches:
-        batch_items = items_by_batch.get(batch.id, [])
-        if not batch_items:
-            issues.append(
-                _issue(
-                    None,
-                    QcSeverity.warning,
-                    QcCategory.coverage,
-                    f"Batch {batch.id} has no materialized items.",
-                    "Materialize at least a representative sample for every planned batch.",
-                )
-            )
-            continue
-        source_backed = sum(1 for item in batch_items if _is_source_backed(item))
-        generated = sum(1 for item in batch_items if item.source.kind == SourceKind.self_generated)
-        if batch.source_backed_target > 0 and source_backed < min(batch.source_backed_target, len(batch_items)):
-            issues.append(
-                _issue(
-                    None,
-                    QcSeverity.warning,
-                    QcCategory.coverage,
-                    f"Batch {batch.id} has {source_backed}/{batch.source_backed_target} source-backed target items materialized.",
-                    "Treat this as a source availability gap; do not silently replace the gap with model-generated items.",
-                )
-            )
-        if batch.generated_target > 0 and generated > batch.generated_target:
-            issues.append(
-                _issue(
-                    None,
-                    QcSeverity.warning,
-                    QcCategory.coverage,
-                    f"Batch {batch.id} has {generated} self-generated items, above generated target {batch.generated_target}.",
-                    "Reduce generated items or increase source-backed/imported coverage for large-scale evaluation.",
-                )
-            )
-    return issues
-
-def _near_duplicate_limit(dataset: BenchmarkDataset, config: BenchmarkConfig) -> int | None:
-    if dataset.spec.scale_budget.value == "high":
+def _near_duplicate_limit(suite: TaskSuite, config: BenchmarkConfig) -> int | None:
+    if suite.spec.scale_budget.value == "high":
         return max(100, min(300, int(config.large_scale_llm_qc_sample_size) * 2))
-    if is_large_scale_budget(dataset.spec.scale_budget):
+    if is_large_scale_budget(suite.spec.scale_budget):
         return max(100, min(500, int(config.large_scale_llm_qc_sample_size) * 3))
     return None

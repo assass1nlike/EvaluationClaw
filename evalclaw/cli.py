@@ -143,8 +143,8 @@ def _print_summary(pkg: BenchmarkPackage) -> None:
     console.print(f"Spec: {pkg.spec.id}")
     console.print(f"Dimensions: {len(pkg.spec.dimensions)}")
     console.print(f"Scale budget: {pkg.spec.scale_budget.value}")
-    console.print(f"Items: {len(pkg.dataset.items)}")
-    average_qc_issues = len(pkg.qc_report.issues) / max(1, len(pkg.dataset.items))
+    console.print(f"Items: {len(pkg.suite.tasks)}")
+    average_qc_issues = len(pkg.qc_report.issues) / max(1, len(pkg.suite.tasks))
     console.print(f"Average QC issues: {average_qc_issues:.2f}")
 
     if pkg.report.summaries:

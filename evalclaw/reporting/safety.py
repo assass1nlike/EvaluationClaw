@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-from ..types import BenchmarkDataset, EvalRun, SourceKind, TaskType
+from ..types import EvalRun, SourceKind, TaskSuite, TaskType
 from .markdown import _escape_cell, _first_sentence, _markdown_table, _pct
 from .run_sections import _is_source_backed
 
@@ -159,12 +159,12 @@ def _item_text_for_risk_labels(item: object | None) -> str:
     return " ".join(fields).lower()
 
 
-def _is_safety_eval(dataset: BenchmarkDataset) -> bool:
+def _is_safety_eval(suite: TaskSuite) -> bool:
     fields = [
-        dataset.spec.id,
-        dataset.spec.objective,
-        " ".join(dataset.spec.subjects),
-        " ".join(dataset.spec.constraints),
+        suite.spec.id,
+        suite.spec.objective,
+        " ".join(suite.spec.subjects),
+        " ".join(suite.spec.constraints),
         " ".join(
             " ".join(
                 [
@@ -174,9 +174,9 @@ def _is_safety_eval(dataset: BenchmarkDataset) -> bool:
                     dimension.approach,
                 ]
             )
-            for dimension in dataset.spec.dimensions
+            for dimension in suite.spec.dimensions
         ),
-        " ".join(_item_text_for_detection(item) for item in dataset.items),
+        " ".join(_item_text_for_detection(item) for item in suite.tasks),
     ]
     text = " ".join(fields).lower()
     return any(signal in text for signal in _SAFETY_SIGNALS)
@@ -231,12 +231,12 @@ def _evidence_for_keywords(text: str, keywords: tuple[str, ...]) -> str:
     return _escape_cell(_first_sentence(normalized), 260)
 
 def _safety_audit_lines(run: EvalRun) -> list[str]:
-    dataset = run.dataset
-    if not _is_safety_eval(dataset):
+    suite = run.suite
+    if not _is_safety_eval(suite):
         return []
 
-    item_by_id = {item.id: item for item in dataset.items}
-    task_counts = Counter(item.task_type.value for item in dataset.items)
+    item_by_id = {item.id: item for item in suite.tasks}
+    task_counts = Counter(item.task_type.value for item in suite.tasks)
     risk_rows: dict[str, dict[str, object]] = {}
     evidence_rows: list[list[str]] = []
 
@@ -308,7 +308,7 @@ def _safety_audit_lines(run: EvalRun) -> list[str]:
 
     has_agent = task_counts.get(TaskType.agent.value, 0) > 0
     has_multi_turn = task_counts.get(TaskType.multi_turn.value, 0) > 0
-    source_backed = sum(1 for item in dataset.items if _is_source_backed(item))
+    source_backed = sum(1 for item in suite.tasks if _is_source_backed(item))
     lines = [
         "## Safety Audit Summary",
         "",
@@ -316,8 +316,8 @@ def _safety_audit_lines(run: EvalRun) -> list[str]:
         "- Risk severity is a safety overlay derived from item scores, dimensions/tags, and judge reasoning. It does not replace the main aligned-performance score.",
         f"- Human review priority: `{review_priority}`",
         f"- Highest observed risk severity: `{max_severity}`",
-        f"- Safety items: {len(dataset.items)}",
-        f"- Source-backed safety items: {source_backed}/{len(dataset.items)}",
+        f"- Safety items: {len(suite.tasks)}",
+        f"- Source-backed safety items: {source_backed}/{len(suite.tasks)}",
         f"- Multi-turn probes: {task_counts.get(TaskType.multi_turn.value, 0)}",
         f"- Agent/tool-environment probes: {task_counts.get(TaskType.agent.value, 0)}",
         "",

@@ -52,6 +52,11 @@ Your job:
 Allowed changes:
 - delete_item_ids: remove off-target or unrepairable items.
 - move_items: move an item to a better existing or newly created dimension.
+- update_items: rewrite a specific item (its prompt, rubric, choices, expected
+  answer, or environment) while keeping its id. Use this when a human reviewer
+  asks to change a concrete item's content rather than its dimension. For each
+  entry give the item_id, the dimension_id it belongs to, and a concrete
+  guidance string describing exactly what to change and how.
 - dimension_updates: update name/description/approach/requirements/counts.
 - add_dimensions: add clearly requested missing dimensions.
 - merge_dimensions: merge obviously overlapping dimensions.
@@ -63,6 +68,9 @@ Return JSON:
   "done": true,
   "delete_item_ids": ["..."],
   "move_items": [{"item_id": "...", "dimension_id": "...", "reason": "..."}],
+  "update_items": [
+    {"item_id": "...", "dimension_id": "...", "guidance": "Rewrite this item so that ..."}
+  ],
   "dimension_updates": [
     {
       "id": "...",

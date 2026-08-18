@@ -4,12 +4,12 @@ from evalclaw.execution.runner import run_eval, run_item
 from evalclaw.generation.generator import generate_dimension_items
 from evalclaw.types import (
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
     QcReport,
     TargetModelConfig,
+    TaskSuite,
     TaskType,
 )
 
@@ -160,7 +160,7 @@ def test_run_eval_reports_multimodal_incompatible_target() -> None:
             }
         },
     )
-    dataset = BenchmarkDataset(spec=spec, items=[item])
+    suite = TaskSuite(spec=spec, objective=spec.objective, tasks=[item])
     qc_report = QcReport(passed_item_ids=[item.id])
     config = BenchmarkConfig(
         targets=[TargetModelConfig(provider="deepseek", model="deepseek-chat", api_key="dummy")],
@@ -168,4 +168,4 @@ def test_run_eval_reports_multimodal_incompatible_target() -> None:
     )
 
     with pytest.raises(ValueError, match="Multimodal item\\(s\\): vision_item"):
-        run_eval(dataset, qc_report, config)
+        run_eval(suite, qc_report, config)

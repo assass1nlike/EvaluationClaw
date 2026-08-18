@@ -1,4 +1,4 @@
-﻿"""Conversion of general task suites into benchmark datasets."""
+﻿"""Conversion of constructed TaskDefinitions into runner-ready BenchmarkItems."""
 from __future__ import annotations
 
 from typing import Any
@@ -13,15 +13,13 @@ from ..protocols.agent_task_package import (
 from ..protocols.task_agent import public_task_agent_initial_content
 from ..types import (
     AgentEnvironmentType,
-    BenchmarkBatch,
-    BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     BenchmarkSource,
-    EvalSpec,
+    EvalDimension,
     SourceKind,
+    TaskBlueprint,
     TaskDefinition,
-    TaskSuite,
+    TaskDesign,
     TaskType,
 )
 from .validation import task_structure_issues, task_structure_validation_metadata
@@ -474,133 +472,80 @@ def _item_source_for_task(task: TaskDefinition, package: dict[str, Any] | None =
     )
 
 
-def task_suite_to_dataset(suite: TaskSuite, spec: EvalSpec, config: BenchmarkConfig) -> BenchmarkDataset:
-    items: list[BenchmarkItem] = []
-    sources: list[BenchmarkSource] = [
-        BenchmarkSource(
-            kind=_resource_source_kind(resource.kind),
-            uri=resource.uri if _has_real_source_uri(resource.uri) else "",
-            title=resource.title or resource.id,
-            notes=resource.content_summary,
-        )
-        for resource in suite.resources
-    ]
-    batches: list[BenchmarkBatch] = []
-    resource_by_id = {resource.id: resource for resource in suite.resources}
-    dimension_by_id = {dimension.id: dimension for dimension in suite.dimensions}
-    for index, task in enumerate(suite.tasks, 1):
-        metadata = dict(task.metadata)
-        builder_job_id = metadata.get("builder_job_id")
-        blueprint = next(
-            (candidate for candidate in suite.builder_jobs if candidate.id == builder_job_id),
-            None,
-        )
-        task_design_id = str(metadata.get("task_design_id") or "")
-        task_design = next(
-            (
-                candidate
-                for candidate in (blueprint.task_designs if blueprint is not None else [])
-                if candidate.id == task_design_id
-            ),
-            None,
-        )
-        validation_blueprint = (
-            blueprint.model_copy(
-                update={
-                    "task_design_ids": [task_design.id],
-                    "task_designs": [task_design],
-                }
-            )
-            if blueprint is not None and task_design is not None
-            else blueprint
-        )
-        structure_issues = task_structure_issues(
-            task,
-            dimension=dimension_by_id.get(task.dimension_id),
-            blueprint=validation_blueprint,
-            task_design=task_design,
-        )
-        metadata["task_structure_validation"] = task_structure_validation_metadata(structure_issues)
-        metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = _task_content_summary(task)
-        metadata.setdefault("builder_job_id", builder_job_id or "")
-        task_package: dict[str, Any] | None = None
-        if task.task_type == TaskType.multi_turn:
-            metadata["task_agent"] = _task_agent_metadata_for_task(task, {})
-        elif task.environment is not None:
-            agent_env = _environment_for_runner(task)
-            metadata["task_agent"] = _task_agent_metadata_for_task(task, agent_env)
-            metadata["agent_env"] = agent_env
-            task_package = _agent_task_package_for_task(task, agent_env)
-            metadata[AGENT_TASK_PACKAGE_METADATA_KEY] = task_package
-        item_source = _item_source_for_task(task, task_package)
-        if task_package is None and task.resource_ids:
-            resource = resource_by_id.get(task.resource_ids[0])
-            if resource is not None:
-                item_source = BenchmarkSource(
-                    kind=_resource_source_kind(resource.kind),
-                    uri=resource.uri if _has_real_source_uri(resource.uri) else "",
-                    title=resource.title or task.title,
-                    notes=resource.content_summary,
-                )
-        item = BenchmarkItem(
-            id=task.id,
-            dimension_id=task.dimension_id,
-            task_type=task.task_type,
-            prompt=task.prompt,
-            choices=task.choices,
-            correct_choice_ids=task.correct_choice_ids,
-            expected_text=task.expected_text,
-            rubric=task.rubric or task.scoring.instructions or (
-                f"{task.scoring.pass_criteria} {task.scoring.partial_criteria} {task.scoring.fail_criteria}".strip()
-                or None
-            ),
-            judge_tools=task.judge_tools,
-            output_contract=task.output_contract,
-            challenge_effort=task.challenge_effort,
-            source=item_source,
-            tags=task.tags,
-            metadata=metadata,
-        )
-        items.append(item)
-        sources.append(item_source)
+def pack_task_item(
+    task: TaskDefinition,
+    dimension: EvalDimension,
+    *,
+    resource_by_id: dict[str, TaskResource],
+    blueprint: TaskBlueprint | None = None,
+    task_design: TaskDesign | None = None,
+) -> BenchmarkItem:
+    """Convert one constructed TaskDefinition into a runner-ready BenchmarkItem.
 
-    if spec.dimensions:
-        for dimension in spec.dimensions:
-            dim_count = sum(1 for item in items if item.dimension_id == dimension.id)
-            batches.append(
-                BenchmarkBatch(
-                    id=f"{dimension.id}_task_batch",
-                    dimension_id=dimension.id,
-                    description=f"Constructed task batch for {dimension.name}.",
-                    planned_item_count=dimension.target_item_count or dim_count,
-                    materialized_item_count=dim_count,
-                    source_backed_target=dimension.target_source_backed_count,
-                    generated_target=dimension.target_generated_count or 0,
-                    task_types=list(
-                        dict.fromkeys(
-                            item.task_type
-                            for item in items
-                            if item.dimension_id == dimension.id
-                        )
-                    ) or dimension.task_types or spec.task_types,
-                    source_strategy="TaskDesign-driven task construction.",
-                    qc_sample_size=max(1, min(dim_count, 8)),
-                    notes="General task-builder batch.",
-                )
-            )
-
-    return BenchmarkDataset(
-        spec=spec.model_copy(
+    This is the single point where a TaskDefinition (the TaskBuilder's output
+    shape) becomes the runnable BenchmarkItem stored in the TaskSuite. It is pure
+    code: it attaches structural-validation metadata, a stable content summary,
+    a normalized rubric, runtime task_agent/agent_env/agent_task_package metadata
+    for interactive tasks, and a standard provenance source. The original
+    TaskDefinition is preserved on item.source_definition so repair loops can
+    hand it back to the TaskBuilder as previous_tasks.
+    """
+    metadata = dict(task.metadata)
+    validation_blueprint = (
+        blueprint.model_copy(
             update={
-                "task_types": list(
-                    dict.fromkeys(item.task_type for item in items)
-                ) or spec.task_types
+                "task_design_ids": [task_design.id],
+                "task_designs": [task_design],
             }
+        )
+        if blueprint is not None and task_design is not None
+        else blueprint
+    )
+    structure_issues = task_structure_issues(
+        task,
+        dimension=dimension,
+        blueprint=validation_blueprint,
+        task_design=task_design,
+    )
+    metadata["task_structure_validation"] = task_structure_validation_metadata(structure_issues)
+    metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = _task_content_summary(task)
+    metadata.setdefault("builder_job_id", task.metadata.get("builder_job_id") or "")
+    task_package: dict[str, Any] | None = None
+    if task.task_type == TaskType.multi_turn:
+        metadata["task_agent"] = _task_agent_metadata_for_task(task, {})
+    elif task.environment is not None:
+        agent_env = _environment_for_runner(task)
+        metadata["task_agent"] = _task_agent_metadata_for_task(task, agent_env)
+        metadata["agent_env"] = agent_env
+        task_package = _agent_task_package_for_task(task, agent_env)
+        metadata[AGENT_TASK_PACKAGE_METADATA_KEY] = task_package
+    item_source = _item_source_for_task(task, task_package)
+    if task_package is None and task.resource_ids:
+        resource = resource_by_id.get(task.resource_ids[0])
+        if resource is not None:
+            item_source = BenchmarkSource(
+                kind=_resource_source_kind(resource.kind),
+                uri=resource.uri if _has_real_source_uri(resource.uri) else "",
+                title=resource.title or task.title,
+                notes=resource.content_summary,
+            )
+    return BenchmarkItem(
+        id=task.id,
+        dimension_id=task.dimension_id,
+        task_type=task.task_type,
+        prompt=task.prompt,
+        choices=task.choices,
+        correct_choice_ids=task.correct_choice_ids,
+        expected_text=task.expected_text,
+        rubric=task.rubric or task.scoring.instructions or (
+            f"{task.scoring.pass_criteria} {task.scoring.partial_criteria} {task.scoring.fail_criteria}".strip()
+            or None
         ),
-        items=items,
-        blueprints=list(suite.blueprints),
-        sources=sources,
-        batches=batches,
-        task_suite=suite,
-        generation_notes=suite.construction_notes,
+        judge_tools=task.judge_tools,
+        output_contract=task.output_contract,
+        challenge_effort=task.challenge_effort,
+        source=item_source,
+        tags=task.tags,
+        metadata=metadata,
+        source_definition=task,
     )

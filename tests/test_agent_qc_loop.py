@@ -1,9 +1,8 @@
 import pytest
 
-from evalclaw.benchmark import _merge_repaired_suite, build_benchmark_dataset_with_qc_loop
+from evalclaw.benchmark import _merge_repaired_suite, build_benchmark_suite_with_qc_loop
 from evalclaw.quality.llm_checks import _stabilize_llm_issue
 from evalclaw.types import (
-    AgentEnvironmentSpec,
     AgentEnvironmentType,
     BenchmarkConfig,
     BenchmarkItem,
@@ -13,9 +12,7 @@ from evalclaw.types import (
     QcIssue,
     QcReport,
     QcSeverity,
-    TaskDefinition,
     TaskResource,
-    TaskScoringSpec,
     TaskSuite,
     TaskType,
 )
@@ -28,35 +25,32 @@ def _task(
     blueprint_id: str,
     *,
     interactive: bool = False,
-) -> TaskDefinition:
-    return TaskDefinition(
+) -> BenchmarkItem:
+    metadata: dict[str, object] = {
+        "builder_job_id": blueprint_id,
+        "task_design_id": f"{blueprint_id}_design",
+    }
+    if interactive:
+        metadata["agent_env"] = {
+            "type": "workspace",
+            "workspace": {
+                "start_room": "office",
+                "rooms": {"office": ["item"], "mailroom": []},
+                "goal": {"outgoing_bin": ["item"]},
+            },
+        }
+    return BenchmarkItem(
         id=task_id,
         dimension_id=dimension_id,
         task_type=TaskType.agent if interactive else TaskType.fill_blank,
-        title=task_id,
         prompt=(
             "Inspect the workspace and place the requested item in the outgoing bin."
             if interactive
             else "State the requested result from the supplied evidence."
         ),
         expected_text=None if interactive else "result",
-        environment=(
-            AgentEnvironmentSpec(
-                type=AgentEnvironmentType.workspace,
-                workspace={
-                    "start_room": "office",
-                    "rooms": {"office": ["item"], "mailroom": []},
-                    "goal": {"outgoing_bin": ["item"]},
-                },
-            )
-            if interactive
-            else None
-        ),
-        scoring=TaskScoringSpec(pass_criteria="The requested result is correct."),
-        metadata={
-            "builder_job_id": blueprint_id,
-            "task_design_id": f"{blueprint_id}_design",
-        },
+        rubric="The requested result is correct.",
+        metadata=metadata,
     )
 
 
@@ -104,6 +98,7 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
     knowledge_job_id = builder_jobs[0].id
     tool_job_id = builder_jobs[1].id
     initial_suite = TaskSuite(
+        spec=spec,
         objective=spec.objective,
         dimensions=dimensions,
         blueprints=builder_jobs,
@@ -113,6 +108,7 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
         ],
     )
     repaired_suite = TaskSuite(
+        spec=spec,
         objective=spec.objective,
         dimensions=dimensions,
         blueprints=[builder_jobs[0]],
@@ -137,7 +133,7 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
     monkeypatch.setattr("evalclaw.benchmark.build_task_suite", fake_build)
     qc_calls = 0
 
-    def fake_qc(dataset, config):
+    def fake_qc(suite, config):
         nonlocal qc_calls
         qc_calls += 1
         if qc_calls == 1:
@@ -158,7 +154,7 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
             )
         return QcReport(
             issues=[],
-            passed_item_ids=[item.id for item in dataset.items],
+            passed_item_ids=[item.id for item in suite.tasks],
             rejected_item_ids=[],
             quality_score=1.0,
             summary="All items passed.",
@@ -166,13 +162,13 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
 
     monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", fake_qc)
 
-    _, dataset, qc_report = build_benchmark_dataset_with_qc_loop(
+    _, run_ready_suite, qc_report = build_benchmark_suite_with_qc_loop(
         spec.objective,
         BenchmarkConfig(max_qc_iterations=2),
         log=lambda message: None,
     )
 
-    assert [item.id for item in dataset.items] == ["knowledge_old", "tool_kept"]
+    assert [item.id for item in run_ready_suite.tasks] == ["knowledge_old", "tool_kept"]
     assert qc_report.rejected_item_ids == []
     assert builder_calls[1]["blueprints"] == [knowledge_job_id]
     revision = builder_calls[1]["revision"]["knowledge"]
@@ -276,12 +272,14 @@ def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeyp
         update={"expected_text": "supported result"}
     )
     initial_suite = TaskSuite(
+        spec=spec,
         objective=spec.objective,
         dimensions=[dimension],
         blueprints=[blueprint],
         tasks=[failed, passed],
     )
     repaired_suite = TaskSuite(
+        spec=spec,
         objective=spec.objective,
         dimensions=[dimension],
         blueprints=[blueprint],
@@ -302,7 +300,7 @@ def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeyp
     monkeypatch.setattr("evalclaw.benchmark.build_task_suite", fake_build)
     qc_calls = 0
 
-    def fake_qc(dataset, config):
+    def fake_qc(suite, config):
         nonlocal qc_calls
         qc_calls += 1
         if qc_calls == 1:
@@ -321,21 +319,21 @@ def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeyp
                 summary="One failed task.",
             )
         return QcReport(
-            passed_item_ids=[item.id for item in dataset.items],
+            passed_item_ids=[item.id for item in suite.tasks],
             quality_score=1.0,
             summary="All tasks passed.",
         )
 
     monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", fake_qc)
-    _, dataset, _ = build_benchmark_dataset_with_qc_loop(
+    _, run_ready_suite, _ = build_benchmark_suite_with_qc_loop(
         spec.objective,
         BenchmarkConfig(max_qc_iterations=1),
         log=lambda _message: None,
     )
 
-    assert [item.id for item in dataset.items] == ["failed_task", "passed_task"]
-    assert dataset.items[0].expected_text == "supported result"
-    assert dataset.items[1].prompt == passed.prompt
+    assert [item.id for item in run_ready_suite.tasks] == ["failed_task", "passed_task"]
+    assert run_ready_suite.tasks[0].expected_text == "supported result"
+    assert run_ready_suite.tasks[1].prompt == passed.prompt
 
 
 def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -> None:
@@ -366,6 +364,7 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
             update={"expected_text": answer}
         )
         return TaskSuite(
+            spec=spec,
             objective=spec.objective,
             dimensions=[dimension],
             blueprints=[blueprint],
@@ -387,8 +386,8 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
             assert revision[dimension.id]["previous_tasks"][0]["expected_text"] == "best"
         return suite(next(answers))
 
-    def fake_qc(dataset, config):
-        answer = dataset.items[0].expected_text
+    def fake_qc(candidate_suite, config):
+        answer = candidate_suite.tasks[0].expected_text
         issue_count = {"initial": 2, "best": 1, "worse": 2, "fixed": 0}[answer]
         issues = [
             QcIssue(
@@ -411,24 +410,26 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
     monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", fake_qc)
     logs: list[str] = []
 
-    _, dataset, qc_report = build_benchmark_dataset_with_qc_loop(
+    _, run_ready_suite, qc_report = build_benchmark_suite_with_qc_loop(
         spec.objective,
         BenchmarkConfig(max_qc_iterations=3),
         log=logs.append,
     )
 
-    assert dataset.items[0].expected_text == "fixed"
+    assert run_ready_suite.tasks[0].expected_text == "fixed"
     assert qc_report.rejected_item_ids == []
     assert any("discarded non-improving replacement" in message for message in logs)
 
 
 def test_qc_repair_preserves_task_order_and_replaces_resource_by_id() -> None:
+    spec = EvalSpec(objective="Evaluate grounded knowledge.")
     kept = _task("z_kept", "knowledge", "knowledge_family")
     failed = _task("a_failed", "knowledge", "knowledge_family").model_copy(
         update={"resource_ids": ["failed_evidence"]}
     )
     repaired = failed.model_copy(update={"expected_text": "supported result"})
     previous = TaskSuite(
+        spec=spec,
         objective="Evaluate grounded knowledge.",
         tasks=[kept, failed],
         resources=[
@@ -441,6 +442,7 @@ def test_qc_repair_preserves_task_order_and_replaces_resource_by_id() -> None:
         ],
     )
     repair = TaskSuite(
+        spec=spec,
         objective=previous.objective,
         tasks=[repaired],
         resources=[
@@ -481,6 +483,7 @@ def _rejected_fixture():
         content="Core capability.",
     )
     suite = TaskSuite(
+        spec=spec,
         objective=spec.objective,
         dimensions=[dimension],
         blueprints=[blueprint],
@@ -510,11 +513,11 @@ def test_unified_qc_loop_fails_closed_after_repair_exhaustion(monkeypatch) -> No
         lambda goal, config, **kwargs: make_plan(spec, [blueprint]),
     )
     monkeypatch.setattr("evalclaw.benchmark.build_task_suite", lambda *args, **kwargs: suite)
-    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", lambda dataset, config: rejected)
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", lambda candidate_suite, config: rejected)
 
     progress: list[str] = []
-    with pytest.raises(RuntimeError, match="runner-ready dataset"):
-        build_benchmark_dataset_with_qc_loop(
+    with pytest.raises(RuntimeError, match="runner-ready suite"):
+        build_benchmark_suite_with_qc_loop(
             spec.objective,
             BenchmarkConfig(max_qc_iterations=0),
             log=progress.append,
@@ -534,13 +537,13 @@ def test_unified_qc_loop_allows_explicit_incomplete_draft(monkeypatch) -> None:
         lambda goal, config, **kwargs: make_plan(spec, [blueprint]),
     )
     monkeypatch.setattr("evalclaw.benchmark.build_task_suite", lambda *args, **kwargs: suite)
-    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", lambda dataset, config: rejected)
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", lambda candidate_suite, config: rejected)
 
-    _, dataset, qc_report = build_benchmark_dataset_with_qc_loop(
+    _, run_ready_suite, qc_report = build_benchmark_suite_with_qc_loop(
         spec.objective,
         BenchmarkConfig(max_qc_iterations=0, allow_incomplete_benchmark=True),
         log=lambda message: None,
     )
 
-    assert [item.id for item in dataset.items] == ["rejected_task"]
+    assert [item.id for item in run_ready_suite.tasks] == ["rejected_task"]
     assert qc_report.rejected_item_ids == ["rejected_task"]
