@@ -5,7 +5,7 @@ import json
 import re
 from pathlib import Path
 
-from ..types import BenchmarkDataset, TaskType
+from ..types import TaskSuite, TaskType
 
 
 def _safe_task_name(value: str) -> str:
@@ -83,25 +83,25 @@ def _write_lm_eval_task(
     return jsonl_path, yaml_path
 
 
-def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[str, Path]:
+def write_lm_eval_artifacts(suite: TaskSuite, out_dir: Path) -> dict[str, Path]:
     """Export only task families that lm-eval can score without changing semantics."""
     artifacts_dir = out_dir / "lm-eval"
     artifacts_dir.mkdir(parents=True, exist_ok=True)
-    base_name = _safe_task_name(dataset.spec.id)
+    base_name = _safe_task_name(suite.spec.id)
     multiple_choice = [
         item
-        for item in dataset.items
+        for item in suite.tasks
         if item.task_type == TaskType.choice
         and item.choices
         and len(item.correct_choice_ids) == 1
     ]
     exact_match = [
         item
-        for item in dataset.items
+        for item in suite.tasks
         if item.task_type == TaskType.fill_blank and item.expected_text
     ]
     supported_ids = {item.id for item in [*multiple_choice, *exact_match]}
-    unsupported_ids = [item.id for item in dataset.items if item.id not in supported_ids]
+    unsupported_ids = [item.id for item in suite.tasks if item.id not in supported_ids]
 
     artifacts: dict[str, Path] = {}
     if multiple_choice:
@@ -129,8 +129,8 @@ def write_lm_eval_artifacts(dataset: BenchmarkDataset, out_dir: Path) -> dict[st
     metadata_path.write_text(
         json.dumps(
             {
-                "spec": dataset.spec.model_dump(mode="json"),
-                "accepted_item_count": len(dataset.items),
+                "spec": suite.spec.model_dump(mode="json"),
+                "accepted_item_count": len(suite.tasks),
                 "exported_item_count": len(supported_ids),
                 "unsupported_item_ids": unsupported_ids,
                 "notes": (

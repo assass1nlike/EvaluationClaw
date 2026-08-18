@@ -16,7 +16,6 @@ from evalclaw.types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
@@ -27,6 +26,7 @@ from evalclaw.types import (
     QcSeverity,
     TaskDefinition,
     TaskDesign,
+    TaskSuite,
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
@@ -1022,10 +1022,10 @@ def test_removed_reference_model_tool_is_always_rejected() -> None:
         rubric="Prefer correctness, completeness, and clarity; return a tie when quality is equivalent.",
         judge_tools=[JudgeToolRef(tool="reference_model_response")],
     )
-    dataset = BenchmarkDataset(spec=spec, items=[item])
+    suite = TaskSuite(spec=spec, objective=spec.objective, tasks=[item])
 
-    draft_qc = run_qc_gate(dataset, BenchmarkConfig(run_targets=False))
-    execution_qc = run_qc_gate(dataset, BenchmarkConfig(run_targets=True))
+    draft_qc = run_qc_gate(suite, BenchmarkConfig(run_targets=False))
+    execution_qc = run_qc_gate(suite, BenchmarkConfig(run_targets=True))
 
     assert any("Unsupported judge tool" in issue.message for issue in draft_qc.issues)
     assert any("Unsupported judge tool" in issue.message for issue in execution_qc.issues)
@@ -1062,7 +1062,9 @@ def test_dataset_checks_duplicate_ids_unknown_dimensions_and_near_duplicates() -
     unknown = item_a.model_copy(update={"id": "unknown", "dimension_id": "missing"})
     assert any(
         "unknown dimension" in issue.message
-        for issue in _coverage_issues(BenchmarkDataset(spec=spec, items=[unknown]))
+        for issue in _coverage_issues(
+            TaskSuite(spec=spec, objective=spec.objective, tasks=[unknown])
+        )
     )
 
 
@@ -1146,9 +1148,9 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
             },
         },
     )
-    dataset = BenchmarkDataset(spec=spec, items=[item], blueprints=[blueprint])
+    suite = TaskSuite(spec=spec, objective=spec.objective, tasks=[item], blueprints=[blueprint])
 
-    _llm_qc(dataset, BenchmarkConfig(**dummy_config_kwargs()))
+    _llm_qc(suite, BenchmarkConfig(**dummy_config_kwargs()))
 
     assert captured["task_designs"][0]["id"] == design_id
     assert captured["items"][0]["prompt"] == item.prompt
@@ -1178,9 +1180,10 @@ def test_configured_llm_qc_failure_is_blocking(monkeypatch) -> None:
         dimensions=[dimension],
         task_types=[TaskType.generation],
     )
-    dataset = BenchmarkDataset(
+    suite = TaskSuite(
         spec=spec,
-        items=[
+        objective=spec.objective,
+        tasks=[
             BenchmarkItem(
                 id="analysis_1",
                 dimension_id=dimension.id,
@@ -1191,7 +1194,7 @@ def test_configured_llm_qc_failure_is_blocking(monkeypatch) -> None:
         ],
     )
 
-    issues = _llm_qc(dataset, BenchmarkConfig(**dummy_config_kwargs()))
+    issues = _llm_qc(suite, BenchmarkConfig(**dummy_config_kwargs()))
 
     assert len(issues) == 1
     assert issues[0].severity == QcSeverity.error

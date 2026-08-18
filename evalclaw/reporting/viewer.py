@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any
 
 from ..types import BenchmarkItem, BenchmarkPackage, SourceKind, TaskType
-from .reporter import _is_safety_eval, _is_source_backed, _risk_labels, _risk_severity
+from .reporter import _is_source_backed, _source_kind_label
+from .safety import _is_safety_eval, _risk_labels, _risk_severity
 from .viewer_template import HTML_TEMPLATE
 
 
@@ -48,32 +49,32 @@ def _display_label(value: object, *, strip_hash: bool = False) -> str:
 
 
 def _eval_families(pkg: BenchmarkPackage) -> list[str]:
-    dataset = pkg.dataset
-    item_types = {item.task_type for item in dataset.items}
+    suite = pkg.suite
+    item_types = {item.task_type for item in suite.tasks}
     metadata_types = {
         str(item.metadata.get("agent_env", {}).get("type", ""))
-        for item in dataset.items
+        for item in suite.tasks
         if isinstance(item.metadata.get("agent_env"), dict)
     }
     blob = _text_blob(
         pkg.goal,
-        dataset.spec.id,
-        dataset.spec.objective,
-        " ".join(dataset.spec.subjects),
-        " ".join(dataset.spec.constraints),
+        suite.spec.id,
+        suite.spec.objective,
+        " ".join(suite.spec.subjects),
+        " ".join(suite.spec.constraints),
         " ".join(
             _text_blob(dimension.id, dimension.name, dimension.description, dimension.approach)
-            for dimension in dataset.spec.dimensions
+            for dimension in suite.spec.dimensions
         ),
-        " ".join(_text_blob(item.id, item.dimension_id, item.prompt, item.rubric, " ".join(item.tags)) for item in dataset.items),
+        " ".join(_text_blob(item.id, item.dimension_id, item.prompt, item.rubric, " ".join(item.tags)) for item in suite.tasks),
     )
     families: list[str] = []
-    if _is_safety_eval(dataset):
+    if _is_safety_eval(suite):
         families.append("safety")
     if TaskType.agent in item_types or TaskType.multi_turn in item_types:
         families.append("agent")
     if (
-        any(tool.tool == "python_tests" for item in dataset.items for tool in item.judge_tools)
+        any(tool.tool == "python_tests" for item in suite.tasks for tool in item.judge_tools)
         or "code_sandbox" in metadata_types
     ):
         families.append("code")
@@ -140,12 +141,12 @@ def _agent_trace(raw_response: str) -> dict[str, Any] | None:
 
 
 def _result_records(pkg: BenchmarkPackage) -> list[dict[str, Any]]:
-    item_by_id = {item.id: item for item in pkg.dataset.items}
+    item_by_id = {item.id: item for item in pkg.suite.tasks}
     records: list[dict[str, Any]] = []
     for result in pkg.run.results:
         item = item_by_id.get(result.item_id)
         risks: list[str] = []
-        if item is not None and _is_safety_eval(pkg.dataset):
+        if item is not None and _is_safety_eval(pkg.suite):
             risk_text = _text_blob(
                 item.id,
                 item.dimension_id,
@@ -296,13 +297,13 @@ def _viewer_payload(
     item_limit: int = 1000,
     result_limit: int = 2000,
 ) -> dict[str, Any]:
-    dataset = pkg.dataset
+    suite = pkg.suite
     passed = set(pkg.qc_report.passed_item_ids)
     accepted_results = [result for result in pkg.run.results if result.item_id in passed]
     records = [
         record for record in _result_records(pkg) if record.get("item_id") in passed
     ][: max(0, result_limit)]
-    used_items = [item for item in dataset.items if item.id in passed]
+    used_items = [item for item in suite.tasks if item.id in passed]
     source_backed = sum(1 for item in used_items if _is_source_backed(item))
     item_source_counts = Counter(item.source.kind.value for item in used_items)
     task_counts = Counter(item.task_type.value for item in used_items)
@@ -318,22 +319,22 @@ def _viewer_payload(
     planned_deterministic = max(0, len(used_items) - planned_llm_judged)
     results_with_reasoning = sum(1 for record in records if record["judge_reasoning"])
     judge_double_pass_enabled = _judge_double_pass_enabled(pkg, records)
-    embedded_items = dataset.items[: max(0, item_limit)]
+    embedded_items = suite.tasks[: max(0, item_limit)]
     embedded_ids = {item.id for item in embedded_items}
-    embedded_dataset = dataset.model_copy(update={"items": embedded_items})
+    embedded_suite = suite.model_copy(update={"tasks": embedded_items})
     embedded_results = [
         result for result in accepted_results if result.item_id in embedded_ids
     ][: max(0, result_limit)]
     embedded_run = pkg.run.model_copy(
-        update={"dataset": embedded_dataset, "results": embedded_results}
+        update={"suite": embedded_suite, "results": embedded_results}
     )
     embedded_improvements = [
-        iteration.model_copy(update={"dataset": None, "qc_report": None, "run": None})
+        iteration.model_copy(update={"suite": None, "qc_report": None, "run": None})
         for iteration in pkg.improvements
     ]
     embedded_pkg = pkg.model_copy(
         update={
-            "dataset": embedded_dataset,
+            "suite": embedded_suite,
             "run": embedded_run,
             "improvements": embedded_improvements,
         }
@@ -343,16 +344,15 @@ def _viewer_payload(
         "diagnostics": {
             "viewer_truncation": {
                 "items_embedded": len(embedded_items),
-                "items_total": len(dataset.items),
+                "items_total": len(suite.tasks),
                 "results_embedded": len(embedded_results),
                 "results_total": len(accepted_results),
             },
             "families": _eval_families(pkg),
-            "generated_items": len(dataset.items),
+            "generated_items": len(suite.tasks),
             "used_items": len(used_items),
-            "rejected_items": len(dataset.items) - len(used_items),
-            "batch_count": len(dataset.batches),
-            "source_candidates": len({(source.kind.value, source.uri, source.title) for source in dataset.sources}),
+            "rejected_items": len(suite.tasks) - len(used_items),
+            "source_candidates": len({(_source_kind_label(source), source.uri, source.title) for source in suite.resources}),
             "source_backed_items": source_backed,
             "self_generated_items": sum(1 for item in used_items if item.source.kind == SourceKind.self_generated),
             "item_source_counts": dict(item_source_counts),
@@ -360,7 +360,7 @@ def _viewer_payload(
             "challenge_effort_counts": dict(challenge_effort_counts),
             "result_records": records,
             "failure_modes": _failure_modes(records),
-            "safety": _safety_diagnostics(records) if _is_safety_eval(dataset) else None,
+            "safety": _safety_diagnostics(records) if _is_safety_eval(suite) else None,
             "agent": {
                 "agent_result_count": len(agent_records),
                 "total_steps": sum(record["agent_trace"]["steps"] for record in agent_records if record.get("agent_trace")),

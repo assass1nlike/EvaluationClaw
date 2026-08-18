@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Callable, Optional
 
-from .benchmark import build_benchmark_dataset_with_qc_loop
+from .benchmark import build_benchmark_suite_with_qc_loop
 from .execution.environment_claw import format_environment_claw_report, run_environment_claw
 from .execution.lm_eval import run_lm_eval
 from .execution.plan import build_execution_plan
@@ -43,8 +43,8 @@ def _persist_package(
     json_path = out_dir / f"evalclaw_{stem}.json"
     md_path = out_dir / f"evalclaw_{stem}.md"
     html_path = out_dir / f"evalclaw_{stem}.html"
-    execution_plan = build_execution_plan(pkg.dataset, pkg.qc_report)
-    artifacts = write_lm_eval_artifacts(execution_plan.dataset, out_dir)
+    execution_plan = build_execution_plan(pkg.suite, pkg.qc_report)
+    artifacts = write_lm_eval_artifacts(execution_plan.suite, out_dir)
     research_brief_paths: dict[str, Path] = {}
     if pkg.research_brief is not None:
         brief_json_path = out_dir / "research_brief.json"
@@ -140,21 +140,21 @@ def run_pipeline(
             )
 
     log("\n[Planner/Builder/QC] Building benchmark through the single task-construction pipeline...")
-    spec, dataset, qc_report = build_benchmark_dataset_with_qc_loop(
+    spec, suite, qc_report = build_benchmark_suite_with_qc_loop(
         goal,
         config,
         log=log,
     )
-    benchmark_plan = dataset.plan
+    benchmark_plan = suite.plan
     log(f"  Final dimensions: {len(spec.dimensions)}")
-    log(f"  Final items: {len(dataset.items)}")
-    log(f"  Sources used: {len(dataset.sources)}")
+    log(f"  Final items: {len(suite.tasks)}")
+    log(f"  Sources used: {len(suite.resources)}")
     log(f"  {qc_report.summary}")
-    log(f"  Average QC issues: {_average_qc_issues(qc_report, len(dataset.items)):.2f}")
+    log(f"  Average QC issues: {_average_qc_issues(qc_report, len(suite.tasks)):.2f}")
 
     if config.human_review and ask_user is not None:
         for round_index in range(1, 4):
-            overview = format_human_review_overview(dataset, qc_report, config)
+            overview = format_human_review_overview(suite, qc_report, config)
             feedback = ask_user(
                 f"\n[Human Review] Round {round_index}/3\n{overview}\n"
                 "\nPress Enter, 'ok', or 'approve' to continue to runner.\n"
@@ -164,11 +164,11 @@ def run_pipeline(
                 log("\n[Human Review] Approved by user.")
                 break
             log("\n[Human Review] Applying user feedback...")
-            spec, dataset, qc_report = apply_human_review_feedback(dataset, qc_report, config, feedback, log=log)
-            benchmark_plan = dataset.plan or benchmark_plan
+            spec, suite, qc_report = apply_human_review_feedback(suite, qc_report, config, feedback, log=log)
+            benchmark_plan = suite.plan or benchmark_plan
             log(f"  Revised dimensions: {len(spec.dimensions)}")
-            log(f"  Revised items: {len(dataset.items)}")
-            log(f"  Revised average QC issues: {_average_qc_issues(qc_report, len(dataset.items)):.2f}")
+            log(f"  Revised items: {len(suite.tasks)}")
+            log(f"  Revised average QC issues: {_average_qc_issues(qc_report, len(suite.tasks)):.2f}")
 
     if interactive and ask_user is not None and not qc_report.is_acceptable:
         answer = ask_user("\nQC has blocking issues. Continue to runner anyway? [y/N]: ").strip().lower()
@@ -183,8 +183,8 @@ def run_pipeline(
 
     run_direct = config.runner in {"direct", "auto"}
     direct_config = config if run_direct else config.model_copy(update={"run_targets": False})
-    execution_plan = build_execution_plan(dataset, qc_report)
-    accepted_for_run = execution_plan.dataset.items
+    execution_plan = build_execution_plan(suite, qc_report)
+    accepted_for_run = execution_plan.suite.tasks
     direct_config, environment_claw_report = run_environment_claw(accepted_for_run, direct_config)
     for line in format_environment_claw_report(environment_claw_report):
         log(line)
@@ -198,7 +198,7 @@ def run_pipeline(
     def _on_progress(done: int, total: int, target_id: str, item_id: str) -> None:
         progress(f"  {done}/{total} {target_id} {item_id}")
 
-    run = run_eval(dataset, qc_report, direct_config, on_progress=_on_progress)
+    run = run_eval(suite, qc_report, direct_config, on_progress=_on_progress)
     run.runner_artifacts["environment_claw"] = environment_claw_report.as_dict()
     if config.runner in {"lm-eval", "auto"} and config.targets and config.output_dir:
         log("\nlm-eval: Running interoperability harness...")
@@ -206,7 +206,7 @@ def run_pipeline(
         lm_eval_artifacts: dict[str, object] = {}
         for target in config.targets:
             try:
-                lm_eval_artifacts[target.id] = run_lm_eval(execution_plan.dataset, target, out_dir)
+                lm_eval_artifacts[target.id] = run_lm_eval(execution_plan.suite, target, out_dir)
                 log(f"  lm-eval completed for {target.id}")
             except Exception as exc:
                 lm_eval_artifacts[target.id] = {"error": str(exc)}
@@ -217,16 +217,16 @@ def run_pipeline(
     improvements = []
     for iteration in range(1, max(0, config.improve_iterations) + 1):
         log(f"\n[Loop 3] Running self-improvement iteration {iteration}...")
-        improved = run_loop3_improvement(dataset, qc_report, run, config, iteration=iteration, log=log)
+        improved = run_loop3_improvement(suite, qc_report, run, config, iteration=iteration, log=log)
         improvements.append(improved)
         log(f"  Actions: {len(improved.actions)}")
         if improved.qc_report:
-            improved_item_count = len(improved.dataset.items) if improved.dataset else len(dataset.items)
+            improved_item_count = len(improved.suite.tasks) if improved.suite else len(suite.tasks)
             log(f"  Improved average QC issues: {_average_qc_issues(improved.qc_report, improved_item_count):.2f}")
         if improved.run:
             log(f"  Improved results: {len(improved.run.results)} item responses")
-        if improved.dataset and improved.qc_report and improved.run:
-            dataset = improved.dataset
+        if improved.suite and improved.qc_report and improved.run:
+            suite = improved.suite
             qc_report = improved.qc_report
             run = improved.run
 
@@ -237,7 +237,7 @@ def run_pipeline(
         goal=goal,
         spec=spec,
         plan=benchmark_plan,
-        dataset=dataset,
+        suite=suite,
         qc_report=qc_report,
         run=run,
         improvements=improvements,

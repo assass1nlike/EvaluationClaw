@@ -31,7 +31,6 @@ from ..runners.credentials import target_has_credentials as _target_has_credenti
 from ..runners.prompts import target_prompt as _target_prompt
 from ..types import (
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     EvalRun,
     EvalSpec,
@@ -39,6 +38,7 @@ from ..types import (
     Message,
     QcReport,
     TargetSummary,
+    TaskSuite,
     TaskType,
 )
 from .plan import build_execution_plan
@@ -539,11 +539,11 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
 
 
 def _summarize(
-    dataset: BenchmarkDataset,
+    suite: TaskSuite,
     results: list[ItemResult],
     config: BenchmarkConfig,
 ) -> list[TargetSummary]:
-    item_by_id = {item.id: item for item in dataset.items}
+    item_by_id = {item.id: item for item in suite.tasks}
     results_by_target: dict[str, list[ItemResult]] = defaultdict(list)
     for result in results:
         results_by_target[result.target_id].append(result)
@@ -555,7 +555,7 @@ def _summarize(
         scored_results = [result for result in target_results if not result.error]
         avg = sum(result.score for result in scored_results) / len(scored_results) if scored_results else 0.0
         by_dimension: dict[str, float] = {}
-        for dimension in dataset.spec.dimensions:
+        for dimension in suite.spec.dimensions:
             dim_results = [
                 result
                 for result in scored_results
@@ -589,15 +589,15 @@ def _summarize(
 
 
 def run_eval(
-    dataset: BenchmarkDataset,
+    suite: TaskSuite,
     qc_report: QcReport,
     config: BenchmarkConfig,
     *,
     on_progress: Callable[[int, int, str, str], None] | None = None,
 ) -> EvalRun:
     """Run accepted items against all configured target models."""
-    execution_plan = build_execution_plan(dataset, qc_report)
-    accepted = execution_plan.dataset.items
+    execution_plan = build_execution_plan(suite, qc_report)
+    accepted = execution_plan.suite.tasks
     validate_multimodal_target_support(accepted, config)
     results: list[ItemResult] = []
     if config.run_targets and config.targets:
@@ -609,9 +609,9 @@ def run_eval(
                 if on_progress:
                     on_progress(done, total, target.id, item.id)
                 results.append(_run_item(item, config, target.id))
-    summaries = _summarize(dataset, results, config)
+    summaries = _summarize(suite, results, config)
     return EvalRun(
-        dataset=dataset,
+        suite=suite,
         qc_report=qc_report,
         results=results,
         summaries=summaries,

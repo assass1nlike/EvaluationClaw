@@ -20,6 +20,7 @@ from ..prompts.task_builder import TASK_BUILDER_PROMPT
 from ..research.deep_research import compact_brief_context
 from ..types import (
     BenchmarkConfig,
+    BenchmarkItem,
     ChallengeEffort,
     EvalDimension,
     EvalSpec,
@@ -31,6 +32,7 @@ from ..types import (
     TaskType,
 )
 from .builders import _task_from_raw
+from .packaging import pack_task_item
 from .research import TASK_BUILDER_RESEARCH_PROMPT, run_task_builder_research
 from .resources import (
     _dedupe_resources,
@@ -392,8 +394,11 @@ def _revision_context_for_job(
         "qc_issues": job_issues,
         "expected_replacement_count": len(affected_tasks),
         "instruction": (
-            "Return replacements only for the tasks listed in previous_tasks. Preserve each task id. "
-            "Fix every listed QC issue, but do not return or modify any other task from the TaskDesign."
+            str(revision_context.get("instruction"))
+            or (
+                "Return replacements only for the tasks listed in previous_tasks. Preserve each task id. "
+                "Fix every listed QC issue, but do not return or modify any other task from the TaskDesign."
+            )
         ),
     }
 
@@ -1116,6 +1121,7 @@ def build_task_suite(
 
     _ensure_unique_task_ids(tasks)
 
+    resources = _dedupe_resources(resources)
     if not resources and blueprints:
         for blueprint in blueprints:
             resources.append(
@@ -1128,11 +1134,50 @@ def build_task_suite(
                 )
             )
 
+    blueprint_by_id = {blueprint.id: blueprint for blueprint in blueprints}
+    resource_by_id = {resource.id: resource for resource in resources}
+    items: list[BenchmarkItem] = []
+    for task in tasks:
+        blueprint = blueprint_by_id.get(str(task.metadata.get("builder_job_id") or ""))
+        task_design = None
+        if blueprint is not None:
+            task_design_id = str(task.metadata.get("task_design_id") or "")
+            task_design = next(
+                (
+                    candidate
+                    for candidate in blueprint.task_designs
+                    if candidate.id == task_design_id
+                ),
+                None,
+            )
+        dimension = next(
+            (candidate for candidate in spec.dimensions if candidate.id == task.dimension_id),
+            None,
+        )
+        items.append(
+            pack_task_item(
+                task,
+                dimension,
+                resource_by_id=resource_by_id,
+                blueprint=blueprint,
+                task_design=task_design,
+            )
+        )
+
+    materialized_spec = spec.model_copy(
+        update={
+            "task_types": list(
+                dict.fromkeys(item.task_type for item in items)
+            ) or spec.task_types
+        }
+    )
+
     return TaskSuite(
-        objective=spec.objective,
-        dimensions=spec.dimensions,
+        objective=materialized_spec.objective,
+        spec=materialized_spec,
+        dimensions=materialized_spec.dimensions,
         blueprints=blueprints,
-        resources=_dedupe_resources(resources),
-        tasks=tasks,
+        resources=resources,
+        tasks=items,
         construction_notes="\n".join(notes),
     )

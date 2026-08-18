@@ -1,6 +1,6 @@
 # EvaluationClaw 项目结构
 
-当前代码库按“少量顶层编排入口 + 领域子系统”组织。构题阶段只有一条通用路线：`用户需求 -> BenchmarkPlan（维度 + 自适应 TaskBlueprint）-> TaskBuilder -> TaskSuite -> BenchmarkDataset`。题型差异通过 Blueprint 的题型分配和任务实际字段表达，不再保留 static/agent 两套 planner 或 materializer。
+当前代码库按“少量顶层编排入口 + 领域子系统”组织。构题阶段只有一条通用路线：`用户需求 -> BenchmarkPlan（维度 + 自适应 TaskBlueprint）-> TaskBuilder -> run-ready TaskSuite`。`TaskSuite` 即正式容器，直接驱动 QoS、执行和报告，不再有独立的 `BenchmarkDataset`。题型差异通过 Blueprint 的题型分配和任务实际字段表达，不再保留 static/agent 两套 planner 或 materializer。
 
 ## 顶层入口
 
@@ -36,7 +36,7 @@
 - `resources.py`：仅在 dimension 明确 `needs_research=true` 时选择外部来源，并做资源归一化与去重。
 - `research.py`：source-backed 或 E3 初次构题可使用有界研究工具循环；QC repair 不重复研究。
 - `validation.py`：在全局 QC 前校验题型字段、challenge effort 自检和可选执行环境契约。
-- `packaging.py`：把统一 `TaskSuite` 转成 `BenchmarkDataset`。只有 task 带 `environment` 时才生成 `agent_env`、`task_agent` 和 `agent_task_package` metadata。
+- `packaging.py`：提供 `pack_task_item`——把单个 `TaskDefinition` 就地转换为 run-ready 的 `BenchmarkItem`（含结构校验元数据、内容摘要、rubric 归一化，及带 `environment` 任务所需的 `agent_env`、`task_agent`、`agent_task_package`）。由 `suite.py` 在每个 Builder job 合并时调用；原 `task_suite_to_dataset` 与 `BenchmarkDataset` 已删除，`TaskSuite` 即 run-ready 容器。
 
 ## Planning 子系统
 
@@ -57,7 +57,7 @@
 
 - `quality/qc.py`：统一 QC gate。
 - `quality/static_checks.py`：这里的 static 表示不调用 LLM 的程序化检查，不代表一条静态题构建路线。
-- `quality/dataset_checks.py`：重复、覆盖和 batch 检查。
+- `quality/dataset_checks.py`：重复与覆盖检查。
 - `quality/llm_checks.py`：LLM QC 抽样、上下文压缩和 issue 稳定化。
 - `quality/improver.py`：Loop 3 诊断后，仍通过 Planner Blueprint 和通用 TaskBuilder 重新生成目标内容。
 - `execution/plan.py`：只把 QC accepted items 交给 runner。
@@ -65,10 +65,10 @@
 
 ## 推荐导入路径
 
-- `evalclaw.benchmark.build_benchmark_dataset_with_qc_loop`
+- `evalclaw.benchmark.build_benchmark_suite_with_qc_loop`
 - `evalclaw.planning.task_planner.plan_benchmark`
 - `evalclaw.construction.suite.build_task_suite`
-- `evalclaw.construction.packaging.task_suite_to_dataset`
+- `evalclaw.construction.packaging.pack_task_item`
 - `evalclaw.construction.validation.task_structure_issues`
 - `evalclaw.quality.qc.run_qc_gate`
 - `evalclaw.execution.runner.run_eval`

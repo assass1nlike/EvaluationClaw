@@ -4,7 +4,6 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 
 from ..types import (
-    BenchmarkDataset,
     EvalReport,
     EvalRun,
     ItemResult,
@@ -30,27 +29,32 @@ from .run_sections import (
     _used_items,
     artifact_index_markdown,
 )
-from .safety import _is_safety_eval, _risk_labels, _risk_severity, _safety_audit_lines
+from .safety import _safety_audit_lines
+
+
+def _source_kind_label(source: object) -> str:
+    kind = getattr(source, "kind", None)
+    return getattr(kind, "value", str(kind or ""))
 
 
 def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -> EvalReport:
     """Build a Markdown report from an eval run."""
-    dataset: BenchmarkDataset = run.dataset
+    suite = run.suite
     qc: QcReport = run.qc_report
     lines: list[str] = [
-        f"# EvaluationClaw Report: {dataset.spec.id}",
+        f"# EvaluationClaw Report: {suite.spec.id}",
         "",
         "## Objective",
         "",
-        dataset.spec.objective,
+        suite.spec.objective,
         "",
         "## Planner Spec",
         "",
-        f"- Subjects: {', '.join(dataset.spec.subjects)}",
-        f"- Task types: {', '.join(t.value for t in dataset.spec.task_types)}",
-        f"- Scale budget: {dataset.spec.scale_budget.value}",
-        f"- Planned item count: {dataset.spec.scale:g}",
-        f"- Planner critique score: {dataset.spec.critique.score:.1f}/5",
+        f"- Subjects: {', '.join(suite.spec.subjects)}",
+        f"- Task types: {', '.join(t.value for t in suite.spec.task_types)}",
+        f"- Scale budget: {suite.spec.scale_budget.value}",
+        f"- Planned item count: {suite.spec.scale:g}",
+        f"- Planner critique score: {suite.spec.critique.score:.1f}/5",
         "",
         *_research_brief_lines(research_brief),
         *_score_semantics_lines(),
@@ -67,27 +71,26 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
             "yes" if dimension.needs_research else "no",
             dimension.description.replace("\n", " ")[:140],
         ]
-        for dimension in dataset.spec.dimensions
+        for dimension in suite.spec.dimensions
     ]
     lines.append(_markdown_table(["ID", "Name", "Weight", "Challenge Effort", "Research", "Description"], dimension_rows))
-    used_items = _used_items(dataset, qc)
-    rejected_count = len(dataset.items) - len(used_items)
+    used_items = _used_items(suite, qc)
+    rejected_count = len(suite.tasks) - len(used_items)
     lines.extend(
         [
             "",
             "## Dataset",
             "",
-            f"- Items generated: {len(dataset.items)}",
+            f"- Items generated: {len(suite.tasks)}",
             f"- Items accepted for run: {len(used_items)}",
             f"- Items rejected by QC: {rejected_count}",
-            f"- Batches: {len(dataset.batches)}",
-            f"- External source candidates: {len(_dedupe_sources(dataset.sources))}",
+            f"- External source candidates: {len(_dedupe_sources(suite.resources))}",
             f"- Source-backed used items: {sum(1 for item in used_items if _is_source_backed(item))}/{len(used_items)}",
             f"- Self-generated used items: {sum(1 for item in used_items if item.source.kind == SourceKind.self_generated)}",
             "",
         ]
     )
-    lines.extend(_task_suite_lines(dataset))
+    lines.extend(_task_suite_lines(suite))
     task_counts: dict[str, int] = defaultdict(int)
     challenge_effort_counts: dict[str, int] = defaultdict(int)
     item_source_counts: Counter[str] = Counter()
@@ -95,7 +98,7 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
         task_counts[item.task_type.value] += 1
         challenge_effort_counts[item.challenge_effort.value] += 1
         item_source_counts[item.source.kind.value] += 1
-    deduped_sources = _dedupe_sources(dataset.sources)
+    deduped_sources = _dedupe_sources(suite.resources)
     lines.append(
         _markdown_table(
             ["Bucket", "Count"],
@@ -104,42 +107,19 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
         )
     )
     lines.extend(["", "### Source Coverage", ""])
-    if dataset.batches:
-        lines.extend(
-            [
-                "### Batch Plan",
-                "",
-                _markdown_table(
-                    ["Batch", "Dimension", "Planned", "Materialized", "Source Target", "Generated Target", "QC Sample"],
-                    [
-                        [
-                            batch.id,
-                            batch.dimension_id,
-                            str(batch.planned_item_count),
-                            str(batch.materialized_item_count),
-                            str(batch.source_backed_target),
-                            str(batch.generated_target),
-                            str(batch.qc_sample_size),
-                        ]
-                        for batch in dataset.batches
-                    ],
-                ),
-                "",
-            ]
-        )
     source_rows = [[f"item_source:{key}", str(value)] for key, value in sorted(item_source_counts.items())]
     if source_rows:
         lines.append(_markdown_table(["Bucket", "Count"], source_rows))
         lines.append("")
     if deduped_sources:
         source_preview_rows = [
-            [source.kind.value, source.title or "-", source.uri[:140]]
+            [_source_kind_label(source), source.title or "-", source.uri[:140]]
             for source in deduped_sources[:10]
         ]
         lines.append(_markdown_table(["Kind", "Title", "URI"], source_preview_rows))
         lines.append("")
     lines.extend(_source_mapping_lines(used_items))
-    average_qc_issues = len(qc.issues) / max(1, len(dataset.items))
+    average_qc_issues = len(qc.issues) / max(1, len(suite.tasks))
     lines.extend(
         [
             "",
@@ -209,7 +189,7 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
 
     if run.results and run.summaries:
         lines.extend(["## Scores By Dimension", ""])
-        headers = ["Target"] + [dimension.id for dimension in dataset.spec.dimensions]
+        headers = ["Target"] + [dimension.id for dimension in suite.spec.dimensions]
         rows: list[list[str]] = []
         for summary in run.summaries:
             rows.append(
@@ -218,7 +198,7 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
                     _pct(summary.score_by_dimension[dimension.id])
                     if dimension.id in summary.score_by_dimension
                     else "-"
-                    for dimension in dataset.spec.dimensions
+                    for dimension in suite.spec.dimensions
                 ]
             )
         lines.append(_markdown_table(headers, rows))
@@ -234,7 +214,7 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
         lines.append("")
 
     lines.extend(["## Example Failures", ""])
-    item_by_id = {item.id: item for item in dataset.items}
+    item_by_id = {item.id: item for item in suite.tasks}
     failures: list[ItemResult] = sorted(
         [result for result in run.results if result.error or result.score < 1.0],
         key=lambda result: (result.error is None, result.score),
@@ -265,7 +245,7 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
     lines.append("")
 
     return EvalReport(
-        title=f"EvaluationClaw Report: {dataset.spec.id}",
+        title=f"EvaluationClaw Report: {suite.spec.id}",
         markdown="\n".join(lines),
         summaries=run.summaries,
         recommendations=recommendations,

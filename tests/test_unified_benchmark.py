@@ -4,18 +4,16 @@ import json
 
 import pytest
 
-from evalclaw.construction.packaging import task_suite_to_dataset
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.planning.task_planner import plan_benchmark
 from evalclaw.quality.improver import _replace_or_expand_items
 from evalclaw.types import (
     AgentEnvironmentType,
     BenchmarkConfig,
+    BenchmarkItem,
     EvalDimension,
     EvalSpec,
     ImprovementAction,
-    TaskDefinition,
-    TaskScoringSpec,
     TaskSuite,
     TaskType,
     TaskTypeAllocation,
@@ -254,22 +252,14 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together(monke
         blueprints,
         BenchmarkConfig(**dummy_config_kwargs(), task_builder_max_workers=1),
     )
-    dataset = task_suite_to_dataset(suite, spec, BenchmarkConfig())
 
     assert [task.task_type for task in suite.tasks] == [
         TaskType.choice,
         TaskType.agent,
     ]
-    assert suite.tasks[0].environment is None
-    assert suite.tasks[1].environment is not None
-    assert [item.task_type for item in dataset.items] == [
-        TaskType.choice,
-        TaskType.agent,
-    ]
-    assert "agent_env" not in dataset.items[0].metadata
-    assert dataset.items[1].metadata["agent_env"]["type"] == "workspace"
-    assert dataset.task_suite is suite
-    assert len(dataset.task_suite.tasks) == 2
+    assert "agent_env" not in suite.tasks[0].metadata
+    assert suite.tasks[1].metadata["agent_env"]["type"] == "workspace"
+    assert len(suite.tasks) == 2
 
 
 def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
@@ -294,28 +284,23 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
         task_type=TaskType.generation,
         content="One analysis task.",
     )
-    original = TaskDefinition(
+    original = BenchmarkItem(
         id="analysis_original",
         dimension_id=dimension.id,
         task_type=TaskType.generation,
-        title="Original",
         prompt="Analyze the original case and justify the conclusion.",
         rubric="Score correctness and justification.",
-        scoring=TaskScoringSpec(instructions="Score correctness and justification."),
         metadata={
             "builder_job_id": blueprint.id,
             "task_design_id": blueprint.task_design_ids[0],
         },
     )
-    dataset = task_suite_to_dataset(
-        TaskSuite(
-            objective=spec.objective,
-            dimensions=[dimension],
-            blueprints=[blueprint],
-            tasks=[original],
-        ),
-        spec,
-        BenchmarkConfig(),
+    suite = TaskSuite(
+        spec=spec,
+        objective=spec.objective,
+        dimensions=[dimension],
+        blueprints=[blueprint],
+        tasks=[original],
     )
     calls = 0
 
@@ -323,17 +308,16 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
         nonlocal calls
         calls += 1
         assert "Loop 3 guidance" in " ".join(blueprints[0].construction_requirements)
-        task = TaskDefinition(
+        task = BenchmarkItem(
             id="temporary",
             dimension_id=dimension.id,
             task_type=TaskType.generation,
-            title="Boundary case",
             prompt="Analyze a distinct boundary case and justify the conclusion.",
             rubric="Score correctness and justification.",
-            scoring=TaskScoringSpec(instructions="Score correctness and justification."),
             metadata={"builder_job_id": blueprints[0].id},
         )
         return TaskSuite(
+            spec=scoped_spec,
             objective=scoped_spec.objective,
             dimensions=scoped_spec.dimensions,
             blueprints=blueprints,
@@ -347,7 +331,7 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
     )
 
     improved = _replace_or_expand_items(
-        dataset,
+        suite,
         [
             ImprovementAction(
                 action_type="expand_weak_dimension",
@@ -360,7 +344,5 @@ def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
     )
 
     assert calls == 1
-    assert len(improved.items) == 2
-    assert improved.task_suite is not None
-    assert len(improved.task_suite.tasks) == 2
-    assert improved.items[-1].metadata["loop3_guidance"] == "Add a distinct boundary case."
+    assert len(improved.tasks) == 2
+    assert improved.tasks[-1].metadata["loop3_guidance"] == "Add a distinct boundary case."

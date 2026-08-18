@@ -3,10 +3,10 @@ import json
 from evalclaw.quality.qc import run_qc_gate
 from evalclaw.types import (
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
+    TaskSuite,
     TaskType,
 )
 from tests.config_helpers import dummy_config_kwargs
@@ -38,13 +38,14 @@ def test_qc_trace_persists_model_exchange_and_complete_report(tmp_path, monkeypa
         approach="Use a source-grounded generation task.",
         task_types=[TaskType.generation],
     )
-    dataset = BenchmarkDataset(
+    suite = TaskSuite(
         spec=EvalSpec(
             objective="Evaluate source-grounded medical reasoning.",
             dimensions=[dimension],
             task_types=[TaskType.generation],
         ),
-        items=[
+        objective="Evaluate source-grounded medical reasoning.",
+        tasks=[
             BenchmarkItem(
                 id="medical_1",
                 dimension_id="medical",
@@ -57,13 +58,13 @@ def test_qc_trace_persists_model_exchange_and_complete_report(tmp_path, monkeypa
     trace_dir = tmp_path / "debug" / "qc" / "run" / "00-initial"
 
     report = run_qc_gate(
-        dataset,
+        suite,
         BenchmarkConfig(**dummy_config_kwargs()),
         trace_dir=trace_dir,
     )
 
     assert (trace_dir / "llm-response.txt").read_text(encoding="utf-8") == raw_response
-    assert json.loads((trace_dir / "dataset.json").read_text(encoding="utf-8"))["items"][0][
+    assert json.loads((trace_dir / "suite.json").read_text(encoding="utf-8"))["tasks"][0][
         "id"
     ] == "medical_1"
     request = json.loads((trace_dir / "llm-request.json").read_text(encoding="utf-8"))

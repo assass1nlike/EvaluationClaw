@@ -4,28 +4,43 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter, defaultdict
+from dataclasses import dataclass, field as dataclass_field
 from typing import Any, Callable
 
-from ..benchmark import build_dataset_from_spec_with_qc_loop
+from ..construction.suite import build_task_suite
 from ..generation.generator import target_count_for_dimension
 from ..models.llm import call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..planning.task_planner import plan_from_spec
 from ..prompts.planning_loop import PLANNER_REVIEW_SYSTEM_PROMPT
 from ..protocols.task_agent import compact_task_agent_for_qc
+from ..quality.qc import run_qc_gate
 from ..types import (
     BenchmarkConfig,
-    BenchmarkDataset,
     BenchmarkItem,
     ChallengeEffort,
     EvalDimension,
     EvalSpec,
     Message,
     QcReport,
+    TaskSuite,
     TaskType,
     TaskTypeAllocation,
     safe_challenge_effort,
 )
+
+_RESULT_DIMENSION_FIELDS = ("measurement_target", "boundary", "task_types")
+
+
+@dataclass
+class _HumanReviewPlan:
+    """A fully-resolved human-review plan: what to keep, rewrite, and generate."""
+
+    spec: EvalSpec
+    notes: list[str]
+    retained_items: list[BenchmarkItem] = dataclass_field(default_factory=list)
+    update_requests: list[dict[str, object]] = dataclass_field(default_factory=list)
+    extra_guidance: dict[str, str] = dataclass_field(default_factory=dict)
 
 
 def _slug(text: str) -> str:
@@ -132,18 +147,15 @@ def _item_excerpt(item: BenchmarkItem) -> dict[str, object]:
     }
 
 
-def _dimension_dataset_summaries(dataset: BenchmarkDataset, config: BenchmarkConfig) -> list[dict[str, object]]:
-    batch_by_dimension = {batch.dimension_id: batch for batch in dataset.batches}
+def _dimension_suite_summaries(suite: TaskSuite, config: BenchmarkConfig) -> list[dict[str, object]]:
     summaries: list[dict[str, object]] = []
-    for dimension in dataset.spec.dimensions:
-        dim_items = [item for item in dataset.items if item.dimension_id == dimension.id]
+    for dimension in suite.spec.dimensions:
+        dim_items = [item for item in suite.tasks if item.dimension_id == dimension.id]
         source_counts = Counter(item.source.kind.value for item in dim_items)
         task_counts = Counter(item.task_type.value for item in dim_items)
-        batch = batch_by_dimension.get(dimension.id)
         summaries.append(
             {
                 "dimension_id": dimension.id,
-                "batch": batch.model_dump(mode="json") if batch else None,
                 "planned_materialized_target": target_count_for_dimension(dimension, config),
                 "current_items": len(dim_items),
                 "task_counts": dict(task_counts),
@@ -157,7 +169,7 @@ def _dimension_dataset_summaries(dataset: BenchmarkDataset, config: BenchmarkCon
 
 
 def _planner_review(
-    dataset: BenchmarkDataset,
+    suite: TaskSuite,
     qc_report: QcReport,
     config: BenchmarkConfig,
     *,
@@ -174,18 +186,18 @@ def _planner_review(
             "add_dimensions, dimension_updates, delete/move actions, and needs_more_items as needed."
         )
     payload = {
-        "objective": dataset.spec.objective,
-        "scale_budget": dataset.spec.scale_budget.value,
+        "objective": suite.spec.objective,
+        "scale_budget": suite.spec.scale_budget.value,
         "human_feedback": human_feedback,
-        "dimensions": [dimension.model_dump(mode="json") for dimension in dataset.spec.dimensions],
-        "dimension_dataset_summaries": _dimension_dataset_summaries(dataset, config),
+        "dimensions": [dimension.model_dump(mode="json") for dimension in suite.spec.dimensions],
+        "dimension_dataset_summaries": _dimension_suite_summaries(suite, config),
         "target_counts": {
             dimension.id: target_count_for_dimension(dimension, config)
-            for dimension in dataset.spec.dimensions
+            for dimension in suite.spec.dimensions
         },
-        "current_counts": Counter(item.dimension_id for item in dataset.items),
+        "current_counts": Counter(item.dimension_id for item in suite.tasks),
         "qc_issues": [issue.model_dump(mode="json") for issue in qc_report.issues[:60]],
-        "items": [_item_excerpt(item) for item in dataset.items[:80]],
+        "items": [_item_excerpt(item) for item in suite.tasks[:80]],
     }
     try:
         raw = call_llm(
@@ -202,29 +214,38 @@ def _planner_review(
 
 
 def _apply_review(
-    dataset: BenchmarkDataset,
+    suite: TaskSuite,
     review: dict[str, Any],
     qc_report: QcReport | None = None,
     config: BenchmarkConfig | None = None,
-) -> tuple[BenchmarkDataset, list[str]]:
-    notes: list[str] = []
-    dimensions = list(dataset.spec.dimensions)
-    items = list(dataset.items)
-    sources = list(dataset.sources)
-    by_dim = {dimension.id: dimension for dimension in dimensions}
+) -> _HumanReviewPlan:
+    """Resolve a planner/human review into a concrete build plan.
 
+    Applies everything in the review to the suite without doing any LLM
+    building. Returns a ``_HumanReviewPlan`` describing: the revised EvalSpec,
+    which existing items survive verbatim (``retained_items``), which items must
+    be rewritten in place (``update_requests``, from ``update_items``), and any
+    per-dimension extra generation guidance.
+
+    Retained items are only those that are (a) not deleted, (b) not queued for a
+    content rewrite, and (c) belong to a dimension whose identity is unchanged
+    (not merged, split, newly added, or given a new measurement
+    target/boundary/task types). Every other item is dropped and regenerated to
+    satisfy the dimension's target count, so a dimension change never leaves
+    stale items behind.
+    """
+    notes: list[str] = []
+    dimensions = list(suite.spec.dimensions)
+    by_dim = {dimension.id: dimension for dimension in dimensions}
+    items = list(suite.tasks)
+    item_by_id = {item.id: item for item in items}
+    restructured: set[str] = set()
+
+    # ---- delete (with QC-protection against underfilling) ----
     delete_ids = {str(item_id) for item_id in review.get("delete_item_ids", [])}
     if delete_ids and qc_report and config and qc_report.is_acceptable and not qc_report.rejected_item_ids:
-        delete_dimensions = {
-            item.dimension_id
-            for item in items
-            if item.id in delete_ids
-        }
-        remaining_counts = Counter(
-            item.dimension_id
-            for item in items
-            if item.id not in delete_ids
-        )
+        delete_dimensions = {item.dimension_id for item in items if item.id in delete_ids}
+        remaining_counts = Counter(item.dimension_id for item in items if item.id not in delete_ids)
         protected_dimensions = {
             dimension.id
             for dimension in dimensions
@@ -246,17 +267,45 @@ def _apply_review(
         items = [item for item in items if item.id not in delete_ids]
         notes.append(f"Deleted {len(delete_ids)} planner-flagged off-target item(s).")
 
+    # ---- update_items: pull these out of retention into rewrite requests ----
+    update_requests: list[dict[str, object]] = []
+    update_by_id: dict[str, dict[str, object]] = {}
+    for raw in review.get("update_items", []) or []:
+        if not isinstance(raw, dict):
+            continue
+        item_id = str(raw.get("item_id") or "")
+        existing = item_by_id.get(item_id)
+        dimension_id = str(raw.get("dimension_id") or (existing.dimension_id if existing is not None else ""))
+        guidance = str(raw.get("guidance") or "").strip()
+        if not item_id or not guidance:
+            continue
+        target_dimension_id = dimension_id if dimension_id in by_dim else (existing.dimension_id if existing is not None else "")
+        update_by_id[item_id] = {
+            "item_id": item_id,
+            "dimension_id": target_dimension_id,
+            "guidance": guidance,
+        }
+    if update_by_id:
+        items = [item for item in items if item.id not in update_by_id]
+        update_requests = list(update_by_id.values())
+        notes.append(f"Queued {len(update_requests)} item rewrite(s) from review.")
+
+    # ---- dimension_updates ----
     for raw_update in review.get("dimension_updates", []) or []:
         if not isinstance(raw_update, dict):
             continue
         dim_id = str(raw_update.get("id") or "")
         if dim_id not in by_dim:
             continue
-        updated = _dimension_from_data(raw_update, fallback=by_dim[dim_id])
+        previous = by_dim[dim_id]
+        updated = _dimension_from_data(raw_update, fallback=previous)
+        if any(getattr(updated, field, None) != getattr(previous, field, None) for field in _RESULT_DIMENSION_FIELDS):
+            restructured.add(dim_id)
         dimensions = [updated if dimension.id == dim_id else dimension for dimension in dimensions]
         by_dim[updated.id] = updated
         notes.append(f"Updated dimension {dim_id}.")
 
+    # ---- add_dimensions ----
     for raw_add in review.get("add_dimensions", []) or []:
         if not isinstance(raw_add, dict):
             continue
@@ -265,8 +314,10 @@ def _apply_review(
             continue
         dimensions.append(added)
         by_dim[added.id] = added
+        restructured.add(added.id)
         notes.append(f"Added dimension {added.id}.")
 
+    # ---- merge_dimensions ----
     for raw_merge in review.get("merge_dimensions", []) or []:
         if not isinstance(raw_merge, dict):
             continue
@@ -274,19 +325,19 @@ def _apply_review(
         if len(source_ids) < 2:
             continue
         new_data = raw_merge.get("new_dimension") if isinstance(raw_merge.get("new_dimension"), dict) else {}
-        base = by_dim[source_ids[0]]
-        merged_dimension = _dimension_from_data(new_data, fallback=base)
+        merged_dimension = _dimension_from_data(new_data, fallback=by_dim[source_ids[0]])
+        merged_dimension = merged_dimension.model_copy(
+            update={"target_item_count": max(1, int(merged_dimension.target_item_count or 1))}
+        )
         dimensions = [dimension for dimension in dimensions if dimension.id not in source_ids]
         dimensions.append(merged_dimension)
-        items = [
-            item.model_copy(update={"dimension_id": merged_dimension.id})
-            if item.dimension_id in source_ids
-            else item
-            for item in items
-        ]
+        restructured.update(source_ids)
+        restructured.add(merged_dimension.id)
+        items = [item for item in items if item.dimension_id not in source_ids]
         by_dim = {dimension.id: dimension for dimension in dimensions}
         notes.append(f"Merged dimensions {', '.join(source_ids)} into {merged_dimension.id}.")
 
+    # ---- split_dimensions ----
     for raw_split in review.get("split_dimensions", []) or []:
         if not isinstance(raw_split, dict):
             continue
@@ -301,41 +352,60 @@ def _apply_review(
         if len(new_dimensions) < 2:
             continue
         dimensions = [dimension for dimension in dimensions if dimension.id != source_id] + new_dimensions
-        new_ids = {dimension.id for dimension in new_dimensions}
-        assignments = {
-            str(raw.get("item_id")): str(raw.get("dimension_id"))
-            for raw in raw_split.get("item_assignments", [])
-            if isinstance(raw, dict) and str(raw.get("dimension_id")) in new_ids
-        }
-        fallback_id = new_dimensions[0].id
-        items = [
-            item.model_copy(update={"dimension_id": assignments.get(item.id, fallback_id)})
-            if item.dimension_id == source_id
-            else item
-            for item in items
-        ]
+        restructured.add(source_id)
+        restructured.update(dimension.id for dimension in new_dimensions)
+        items = [item for item in items if item.dimension_id != source_id]
         by_dim = {dimension.id: dimension for dimension in dimensions}
-        notes.append(f"Split dimension {source_id} into {', '.join(sorted(new_ids))}.")
+        notes.append(f"Split dimension {source_id} into {', '.join(sorted(dimension.id for dimension in new_dimensions))}.")
 
+    # ---- move_items (into a surviving dimension only) ----
     move_targets = {dimension.id for dimension in dimensions}
     for raw_move in review.get("move_items", []) or []:
         if not isinstance(raw_move, dict):
             continue
         item_id = str(raw_move.get("item_id") or "")
         target_dim = str(raw_move.get("dimension_id") or "")
-        if target_dim not in move_targets:
+        if target_dim not in move_targets or item_id not in item_by_id:
             continue
-        moved = False
-        updated_items: list[BenchmarkItem] = []
+        moved: list[BenchmarkItem] = []
         for item in items:
             if item.id == item_id:
-                updated_items.append(item.model_copy(update={"dimension_id": target_dim}))
-                moved = True
+                if target_dim not in restructured:
+                    moved.append(item.model_copy(update={"dimension_id": target_dim}))
             else:
-                updated_items.append(item)
-        items = updated_items
-        if moved:
+                moved.append(item)
+        items = moved
+        if target_dim not in restructured:
             notes.append(f"Moved item {item_id} to dimension {target_dim}.")
+
+    # ---- needs_more_items: raise target + collect per-dimension guidance ----
+    extra_guidance: dict[str, str] = {}
+    for raw in review.get("needs_more_items", []) or []:
+        if not isinstance(raw, dict):
+            continue
+        dimension_id = str(raw.get("dimension_id") or "")
+        if dimension_id not in by_dim:
+            continue
+        requested = max(0, int(raw.get("count") or 1))
+        guidance = str(raw.get("guidance") or "").strip()
+        dimension = by_dim[dimension_id]
+        kept_now = sum(1 for item in items if item.dimension_id == dimension_id)
+        target = int(dimension.target_item_count or 0) if dimension.target_item_count is not None else 0
+        new_target = max(target, kept_now + requested)
+        updated = dimension.model_copy(update={"target_item_count": new_target})
+        dimensions = [updated if d.id == dimension_id else d for d in dimensions]
+        by_dim[dimension_id] = updated
+        if guidance:
+            extra_guidance[dimension_id] = guidance
+        notes.append(f"Queued {requested} additional item(s) for {dimension_id}.")
+
+    # ---- drop items now dangling in restructured dimensions ----
+    if restructured:
+        kept_items = [item for item in items if item.dimension_id not in restructured]
+        dropped = len(items) - len(kept_items)
+        items = kept_items
+        if dropped:
+            notes.append(f"Regenerating {dropped} item(s) whose dimension changed structure.")
 
     planned_task_types = list(
         dict.fromkeys(
@@ -348,33 +418,30 @@ def _apply_review(
         max(1, int(dimension.target_item_count or 1))
         for dimension in dimensions
     )
-    spec = dataset.spec.model_copy(
+    spec = suite.spec.model_copy(
         update={
             "dimensions": dimensions,
-            "task_types": planned_task_types or dataset.spec.task_types,
+            "task_types": planned_task_types or suite.spec.task_types,
             "scale": planned_scale,
         }
     )
-    generation_notes = dataset.generation_notes
-    if notes:
-        generation_notes = (generation_notes.rstrip() + "\nPlanner pre-run review:\n" + "\n".join(notes)).strip()
-    return BenchmarkDataset(
+    return _HumanReviewPlan(
         spec=spec,
-        items=items,
-        sources=sources,
-        batches=dataset.batches,
-        generation_notes=generation_notes,
-    ), notes
+        notes=notes,
+        retained_items=items,
+        update_requests=update_requests,
+        extra_guidance=extra_guidance,
+    )
 
 
 def format_human_review_overview(
-    dataset: BenchmarkDataset,
+    suite: TaskSuite,
     qc_report: QcReport,
     config: BenchmarkConfig,
 ) -> str:
     """Build a compact human-review summary before runner execution."""
     ready_ids = set(qc_report.passed_item_ids)
-    ready_items = [item for item in dataset.items if item.id in ready_ids]
+    ready_items = [item for item in suite.tasks if item.id in ready_ids]
     counts = Counter(item.dimension_id for item in ready_items)
     type_counts: dict[str, Counter[str]] = defaultdict(Counter)
     for item in ready_items:
@@ -389,8 +456,8 @@ def format_human_review_overview(
     lines = [
         "EvaluationClaw benchmark is ready for human review.",
         "",
-        f"Objective: {dataset.spec.objective}",
-        f"Dimensions: {len(dataset.spec.dimensions)}",
+        f"Objective: {suite.spec.objective}",
+        f"Dimensions: {len(suite.spec.dimensions)}",
         f"Ready items: {len(ready_items)}",
         "",
         "## Dimension item mix",
@@ -398,7 +465,7 @@ def format_human_review_overview(
         "| Dimension | Target | Ready | Item types |",
         "| --- | ---: | ---: | --- |",
     ]
-    for dimension in dataset.spec.dimensions:
+    for dimension in suite.spec.dimensions:
         target_count = target_count_for_dimension(dimension, config)
         lines.append(
             f"| `{dimension.id}` {dimension.name} | {target_count} | {counts[dimension.id]} | "
@@ -406,8 +473,8 @@ def format_human_review_overview(
         )
 
     lines.extend(["", "## Dimension details"])
-    for dimension in dataset.spec.dimensions:
-        planned_types = ", ".join(task_type.value for task_type in (dimension.task_types or dataset.spec.task_types))
+    for dimension in suite.spec.dimensions:
+        planned_types = ", ".join(task_type.value for task_type in (dimension.task_types or suite.spec.task_types))
         requirements = "; ".join(dimension.item_requirements[:3]) or "-"
         lines.extend(
             [
@@ -432,33 +499,228 @@ def format_human_review_overview(
     return "\n".join(lines)
 
 
+def _rewrite_items(
+    current_items: list[BenchmarkItem],
+    source_suite: TaskSuite,
+    spec: EvalSpec,
+    update_requests: list[dict[str, object]],
+    config: BenchmarkConfig,
+    *,
+    log: Callable[[str], None] | None = None,
+) -> list[BenchmarkItem]:
+    """Rewrite the given items in place via a targeted Builder revision.
+
+    Each ``update_items`` request becomes a revision task that rewrites exactly
+    that one item (preserving its id) using the Builder's revision mechanism,
+    with the review's ``guidance`` passed as the concrete change request. Items
+    not listed in ``update_requests`` are returned untouched. A request whose
+    dimension no longer exists in the revised ``spec`` is dropped (it will be
+    regenerated by the missing-count pass instead).
+    """
+    original_by_id = {item.id: item for item in source_suite.tasks}
+    blueprint_by_id = {blueprint.id: blueprint for blueprint in source_suite.blueprints}
+    dim_ids = {dimension.id for dimension in spec.dimensions}
+    result = list(current_items)
+    result_by_id = {item.id: item for item in result}
+    by_blueprint: dict[str, list[dict[str, object]]] = defaultdict(list)
+    for request in update_requests:
+        item_id = str(request.get("item_id") or "")
+        original = original_by_id.get(item_id)
+        if original is None or original.source_definition is None:
+            continue
+        dimension_id = str(request.get("dimension_id") or original.dimension_id)
+        if dimension_id not in dim_ids:
+            continue
+        blueprint_id = str(original.source_definition.metadata.get("builder_job_id") or "")
+        by_blueprint[blueprint_id].append({**request, "dimension_id": dimension_id})
+
+    for blueprint_id, requests in by_blueprint.items():
+        blueprint = blueprint_by_id.get(blueprint_id)
+        if blueprint is None:
+            continue
+        revision_by_dimension: dict[str, dict[str, object]] = {}
+        for request in requests:
+            item_id = str(request.get("item_id") or "")
+            original = original_by_id[item_id]
+            dimension_id = str(request["dimension_id"])
+            guidance = str(request.get("guidance") or "")
+            revision_by_dimension.setdefault(
+                dimension_id,
+                {
+                    "reason": "human_review_item_update",
+                    "previous_tasks": [],
+                    "qc_issues": [],
+                    "instruction": (
+                        "Return replacements only for the tasks listed in previous_tasks, preserving "
+                        "each task id. Apply the concrete rewrite request in the listed guidance for "
+                        "each task; do not return or modify any other task from the TaskDesign."
+                    ),
+                },
+            )["previous_tasks"].append(original.source_definition.model_dump(mode="json"))
+            revision_by_dimension[dimension_id]["qc_issues"].append(
+                {"item_id": item_id, "message": guidance, "severity": "error"}
+            )
+
+        try:
+            rebuilt = build_task_suite(
+                spec,
+                [blueprint],
+                config,
+                revision_context_by_dimension=revision_by_dimension,
+                log=log,
+            )
+        except RuntimeError as exc:
+            if log:
+                log(f"  [Human Review] rewrite failed for {blueprint.id}: {exc}")
+            continue
+        for item in rebuilt.tasks:
+            if item.id in result_by_id:
+                result = [item if candidate.id == item.id else candidate for candidate in result]
+                result_by_id[item.id] = item
+            else:
+                result.append(item)
+                result_by_id[item.id] = item
+    if log:
+        log(f"  [Human Review] rewrote {len(update_requests)} item(s) per review guidance.")
+    return result
+
+
+def _generate_for_dimension(
+    source_suite: TaskSuite,
+    spec: EvalSpec,
+    dimension: EvalDimension,
+    *,
+    count: int,
+    config: BenchmarkConfig,
+    guidance: str | None,
+    log: Callable[[str], None] | None,
+) -> tuple[list[BenchmarkItem], list]:
+    """Generate ``count`` fresh items for ``dimension`` and return them."""
+    scoped_dimension = dimension.model_copy(
+        update={
+            "target_item_count": count,
+            "target_source_backed_count": min(count, int(dimension.target_source_backed_count or 0)),
+            "target_generated_count": count - min(count, int(dimension.target_source_backed_count or 0)),
+        }
+    )
+    scoped_spec = spec.model_copy(
+        update={
+            "dimensions": [scoped_dimension],
+            "task_types": dimension.task_types or spec.task_types,
+            "scale": count,
+        }
+    )
+    blueprints = list(plan_from_spec(scoped_spec, config, log=log).builder_jobs)
+    if guidance:
+        blueprints = [
+            blueprint.model_copy(
+                update={
+                    "task_designs": [
+                        design.model_copy(
+                            update={
+                                "construction_requirements": [
+                                    *(design.construction_requirements or []),
+                                    f"Review requirement: {guidance}",
+                                ]
+                            }
+                        )
+                        for design in blueprint.task_designs
+                    ]
+                }
+            )
+            for blueprint in blueprints
+        ]
+    partial = build_task_suite(scoped_spec, blueprints, config, log=log)
+    return list(partial.tasks), list(partial.blueprints)
+
+
+def _order_items_by_dimension(items: list[BenchmarkItem], spec: EvalSpec) -> list[BenchmarkItem]:
+    """Order items following the spec's dimension order; dangling items go last."""
+    order = {dimension.id: index for index, dimension in enumerate(spec.dimensions)}
+    known = [item for item in items if item.dimension_id in order]
+    known.sort(key=lambda item: order[item.dimension_id])
+    unknown = [item for item in items if item.dimension_id not in order]
+    return known + unknown
+
+
+def _dedupe_blueprints(blueprints: list) -> list:
+    seen: dict[str, object] = {}
+    for blueprint in blueprints:
+        seen.setdefault(getattr(blueprint, "id", id(blueprint)), blueprint)
+    return list(seen.values())
+
+
 def apply_human_review_feedback(
-    dataset: BenchmarkDataset,
+    suite: TaskSuite,
     qc_report: QcReport,
     config: BenchmarkConfig,
     feedback: str,
     *,
     log: Callable[[str], None] | None = None,
-) -> tuple[EvalSpec, BenchmarkDataset, QcReport]:
-    """Apply a human review request using the same planner/QC repair machinery."""
-    review = _planner_review(dataset, qc_report, config, human_feedback=feedback)
-    dataset, notes = _apply_review(dataset, review, qc_report, config)
+) -> tuple[EvalSpec, TaskSuite, QcReport]:
+    """Apply a human review request, keeping unaffected items verbatim.
+
+    Instead of discarding the whole suite and regenerating from scratch, this
+    keeps everything the review did not touch, rewrites the items named by
+    ``update_items`` in place (via a targeted Builder revision that preserves
+    their ids), and generates only the missing items each dimension still needs.
+    """
+    review = _planner_review(suite, qc_report, config, human_feedback=feedback)
+    outcome = _apply_review(suite, review, qc_report, config)
+    notes = outcome.notes
     if log and notes:
         for note in notes:
             log(f"  {note}")
 
-    plan = plan_from_spec(dataset.spec, config, log=log)
-    rebuilt, qc_report = build_dataset_from_spec_with_qc_loop(
-        dataset.spec,
-        plan.builder_jobs,
-        config,
-        log=log or (lambda _message: None),
+    materialized = list(outcome.retained_items)
+    generated_blueprints: list = list(suite.blueprints)
+
+    # 1) Rewrite items named by update_items, preserving their ids.
+    if outcome.update_requests:
+        materialized = _rewrite_items(
+            materialized,
+            suite,
+            outcome.spec,
+            outcome.update_requests,
+            config,
+            log=log,
+        )
+
+    # 2) Generate whatever each dimension is still short of its target.
+    for dimension in outcome.spec.dimensions:
+        target = int(dimension.target_item_count or 0)
+        current = sum(1 for item in materialized if item.dimension_id == dimension.id)
+        missing = max(0, target - current)
+        if missing <= 0:
+            continue
+        guidance = outcome.extra_guidance.get(dimension.id)
+        generated, blueprints = _generate_for_dimension(
+            suite,
+            outcome.spec,
+            dimension,
+            count=missing,
+            config=config,
+            guidance=guidance,
+            log=log,
+        )
+        materialized.extend(generated)
+        generated_blueprints.extend(blueprints)
+
+    new_suite = suite.model_copy(
+        update={
+            "spec": outcome.spec,
+            "dimensions": outcome.spec.dimensions,
+            "blueprints": _dedupe_blueprints(generated_blueprints),
+            "tasks": _order_items_by_dimension(materialized, outcome.spec),
+            "resources": suite.resources,
+            "construction_notes": (
+                suite.construction_notes.rstrip()
+                + "\nHuman review changes:\n"
+                + "\n".join(notes)
+            ).strip(),
+        }
     )
-    rebuilt.plan = plan
-    if notes:
-        rebuilt.generation_notes = (
-            rebuilt.generation_notes.rstrip()
-            + "\nHuman review changes:\n"
-            + "\n".join(notes)
-        ).strip()
-    return rebuilt.spec, rebuilt, qc_report
+    new_suite.plan = suite.plan
+    revised_spec = new_suite.spec
+    revised_qc = run_qc_gate(new_suite, config)
+    return revised_spec, new_suite, revised_qc

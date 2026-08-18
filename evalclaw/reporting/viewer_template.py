@@ -408,7 +408,7 @@ HTML_TEMPLATE = """<!doctype html>
     const pkg = payload.package;
     const diag = payload.diagnostics;
     const records = diag.result_records || [];
-    const itemById = new Map((pkg.dataset.items || []).map(item => [item.id, item]));
+    const itemById = new Map((pkg.suite.items || []).map(item => [item.id, item]));
     const resultRecordsByItem = new Map();
     records.forEach(record => {
       if (!resultRecordsByItem.has(record.item_id)) resultRecordsByItem.set(record.item_id, []);
@@ -460,7 +460,7 @@ HTML_TEMPLATE = """<!doctype html>
       const labelText = label === null || label === undefined ? "" : String(label);
       if (rawText && labelText && rawText !== labelText) displayReplacements.push([rawText, labelText]);
     }
-    ((pkg.dataset.spec || {}).dimensions || []).forEach(dimension => addDisplayReplacement(dimension.id, dimensionLabel(dimension.name || dimension.id)));
+    ((pkg.suite.spec || {}).dimensions || []).forEach(dimension => addDisplayReplacement(dimension.id, dimensionLabel(dimension.name || dimension.id)));
     displayReplacements.sort((a, b) => b[0].length - a[0].length);
     function displayText(value) {
       let text = value === null || value === undefined || value === "" ? "-" : String(value);
@@ -669,13 +669,13 @@ HTML_TEMPLATE = """<!doctype html>
     }
     function itemByIdMap() {
       const map = new Map();
-      (pkg.dataset.items || []).forEach(item => map.set(item.id, item));
+      (pkg.suite.items || []).forEach(item => map.set(item.id, item));
       return map;
     }
     const datasetItemById = itemByIdMap();
     function groupedPerformanceRows(groupKey, labelFn) {
       const groups = new Map();
-      (pkg.dataset.items || []).forEach(item => {
+      (pkg.suite.items || []).forEach(item => {
         const key = groupKey(item) || "-";
         if (!groups.has(key)) groups.set(key, {key, plannedTotal: 0, pass: 0, scoreSum: 0, scoreCount: 0});
         const group = groups.get(key);
@@ -754,7 +754,7 @@ HTML_TEMPLATE = """<!doctype html>
       const kind = itemOrRecord.source && itemOrRecord.source.kind ? String(itemOrRecord.source.kind) : "";
       return kind && kind !== "self_generated" ? "sourced" : "generated";
     }
-    (pkg.dataset.items || []).forEach(item => addDisplayReplacement(item.id, itemTaskTitle(item)));
+    (pkg.suite.items || []).forEach(item => addDisplayReplacement(item.id, itemTaskTitle(item)));
     displayReplacements.sort((a, b) => b[0].length - a[0].length);
     function itemDisplayTitle(itemId) {
       const item = itemById.get(itemId);
@@ -979,7 +979,7 @@ HTML_TEMPLATE = """<!doctype html>
         search,
       };
     }
-    const taskRows = (pkg.dataset.items || []).map(buildTaskRow);
+    const taskRows = (pkg.suite.items || []).map(buildTaskRow);
     function objectWithValues(entries) {
       const result = {};
       (entries || []).forEach(([key, value]) => {
@@ -1263,7 +1263,7 @@ HTML_TEMPLATE = """<!doctype html>
       section.innerHTML = "<h2>Overview</h2>";
       const summaries = pkg.run.summaries || [];
       const avg = summaries.length ? summaries.reduce((sum, row) => sum + Number(row.average_score || 0), 0) / summaries.length : 0;
-      const dimensions = ((pkg.dataset.spec || {}).dimensions || []).length;
+      const dimensions = ((pkg.suite.spec || {}).dimensions || []).length;
       const grid = node("div", {class: "grid cols-3"});
       grid.append(stat("Dimensions", dimensions));
       grid.append(stat("Used items", diag.used_items ?? (pkg.run.results || []).length));
@@ -1445,8 +1445,8 @@ HTML_TEMPLATE = """<!doctype html>
       const section = qs("qc");
       section.innerHTML = "<h2>Task Composition and QC</h2>";
       const qc = pkg.qc_report || {};
-      const totalItems = diag.generated_items ?? (pkg.dataset.items || []).length;
-      const usedItems = diag.used_items ?? (pkg.dataset.items || []).length;
+      const totalItems = diag.generated_items ?? (pkg.suite.items || []).length;
+      const usedItems = diag.used_items ?? (pkg.suite.items || []).length;
       const averageQcIssues = (qc.issues || []).length / Math.max(1, totalItems);
       const averageQcIssueTone = averageQcIssues === 0 ? "good" : averageQcIssues <= 0.25 ? "warn" : "bad";
       const grid = node("div", {class: "grid cols-3"});

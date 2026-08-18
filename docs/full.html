@@ -217,14 +217,14 @@
   </section>
 
   <section id="package">
-    <h2>7. 把 TaskSuite 包装成统一数据集</h2>
+    <h2>7. 把 TaskSuite 变成 run-ready 形态</h2>
     <div class="io">
       <p><strong>进入：</strong>完整构题集合和派生规格。</p>
-      <p><strong>离开：</strong>供 QC、执行和导出共同使用的 <code>BenchmarkDataset</code>。</p>
+      <p><strong>离开：</strong>供 QC、执行和导出共同使用的 run-ready <code>TaskSuite</code>。</p>
     </div>
-    <p>每道完整任务被转换成统一 benchmark item。题面、题型、选项、参考答案、rubric、测试代码、构题投入、来源、标签和 Builder 追踪信息被保留下来。任务的详细评分说明会在需要时合并为 item 的 rubric。</p>
+    <p>每道完整任务在构题整合时被就地转换成统一 benchmark item（保存在 <code>TaskSuite.tasks</code>）。题面、题型、选项、参考答案、rubric、测试代码、构题投入、来源、标签和 Builder 追踪信息被保留下来。任务的详细评分说明会在需要时合并为 item 的 rubric。</p>
     <p>任务带有环境时，框架在此自动生成三组规范化运行元数据：执行器需要的环境与文件定义；目标代理的 system prompt、初始内容、交互和评分信息；可执行任务包中的可见输入、隐藏参考、产物、轨迹和来源约束。Builder 不需要重复手写这些完整协议。</p>
-    <p>数据集同时保存完整计划、全部 Blueprint、来源列表、每个维度的计划/实际数量、完整 TaskSuite 和构建说明，后续 QC 修复可以由任意 item 找回原 Blueprint 和 TaskDesign。</p>
+    <p>TaskSuite 同时保存完整计划、全部 Blueprint、来源列表和构建说明，后续 QC 修复可以由任意 item 的 <code>source_definition</code> 找回原 TaskDesign 交给 TaskBuilder。</p>
   </section>
 
   <section id="qc">
@@ -360,7 +360,7 @@
   </section>
 
   <footer>
-    <p><strong>完整顺序：</strong>需求与配置 → 可选翻译 → 可选 Deep Research → 单个 Planner 阶段产出 Dimension、TaskDesign 和 Blueprint → 每个 Blueprint 一次 Builder 调用 → 结构修复 → TaskSuite → BenchmarkDataset → QC 与定点任务修复 → 可选人工复核 → 仅通过题目的执行准备 → task_type 硬分派与可选环境执行 → 可选 Loop 3 → 报告和产物。</p>
+    <p><strong>完整顺序：</strong>需求与配置 → 可选翻译 → 可选 Deep Research → 单个 Planner 阶段产出 Dimension、TaskDesign 和 Blueprint → 每个 Blueprint 一次 Builder 调用 → 结构修复 → 构题整合出 run-ready TaskSuite → QC 与定点任务修复 → 可选人工复核 → 仅通过题目的执行准备 → task_type 硬分派与可选环境执行 → 可选 Loop 3 → 报告和产物。</p>
   </footer>
 </main>
 </body>
