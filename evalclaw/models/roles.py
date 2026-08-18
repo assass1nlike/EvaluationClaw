@@ -55,28 +55,18 @@ def _resolve_model_from_list(
     return models[0]
 
 
-def resolve_judge_model(
+def resolve_task_model(
     config: BenchmarkConfig,
     item: object | None = None,
 ) -> TargetModelConfig | None:
-    """Resolve the judge model for one item from ``config.judge_models``."""
+    """Resolve the per-item task model (judge, dialogue simulator, etc.) from ``config.task_models``."""
     metadata = getattr(item, "metadata", None) if item is not None else None
-    return _resolve_model_from_list(config.judge_models, metadata, "judge_model_id")
-
-
-def resolve_task_agent_model(
-    config: BenchmarkConfig,
-    item: object | None = None,
-) -> TargetModelConfig | None:
-    """Resolve the task-agent model for one item from ``config.task_agent_models``."""
-    metadata = getattr(item, "metadata", None) if item is not None else None
-    return _resolve_model_from_list(config.task_agent_models, metadata, "task_agent_model_id")
+    return _resolve_model_from_list(config.task_models, metadata, "task_model_id")
 
 
 __all__ = [
     "ModelRole",
     "RoleModelSettings",
-    "resolve_judge_model",
-    "resolve_task_agent_model",
+    "resolve_task_model",
     "role_model_settings",
 ]

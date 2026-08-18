@@ -8,7 +8,7 @@ from collections import defaultdict
 from typing import Any, Callable
 
 from ..models.llm import call_llm, call_target_model, extract_json
-from ..models.roles import resolve_judge_model, resolve_task_agent_model
+from ..models.roles import resolve_task_model
 from ..protocols.multimodal import (
     build_multimodal_user_content,
     get_multimodal_spec,
@@ -220,7 +220,7 @@ def _call_task_agent_json(
     system_fallback: str,
     max_tokens: int = 1024,
 ) -> dict[str, Any] | None:
-    model_config = resolve_task_agent_model(config, item)
+    model_config = resolve_task_model(config, item)
     if model_config is None:
         return None
     messages = [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))]
@@ -273,9 +273,9 @@ def _judge_item(
             return 0.0, "Task agent judge returned invalid JSON."
         score, reason = _score_from_judge_data(data)
         return score, f"task_agent_judge: {reason}"
-    judge_config = resolve_judge_model(config, item)
+    judge_config = resolve_task_model(config, item)
     if judge_config is None:
-        return 0.0, "No judge model configured."
+        return 0.0, "No task model configured."
 
     base_prompt = {
         "instruction": "Score the model response from 1 to 5 using the rubric. Return JSON only.",
@@ -364,7 +364,7 @@ def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[
         return scripted
     if get_task_agent_spec(item):
         return []
-    judge_config = resolve_judge_model(config, item)
+    judge_config = resolve_task_model(config, item)
     if judge_config is None:
         return []
     prompt = {

@@ -13,6 +13,7 @@ from rich.table import Table
 
 from .models.providers import normalize_provider, resolve_role_connection, target_from_model
 from .pipeline import run_pipeline
+from .planning.task_planner import _valid_effort_distribution
 from .types import BenchmarkConfig, BenchmarkPackage, ScaleBudget, TargetModelConfig
 
 app = typer.Typer(
@@ -212,8 +213,17 @@ def generate(
     qc_provider: Optional[str] = typer.Option(None, "--qc-provider", help="Protocol/provider for --qc-model."),
     qc_api_key: Optional[str] = typer.Option(None, "--qc-api-key", help="API key for the LLM QC role."),
     qc_base_url: Optional[str] = typer.Option(None, "--qc-base-url", help="Base URL for the LLM QC role."),
-    judge_model: list[str] = typer.Option([], "--judge-model", help="Available scoring judge model. May be repeated."),
-    judge_config: list[str] = typer.Option([], "--judge-config", help="Per-judge-model JSON; may be repeated. Replaces --judge-model when supplied."),
+    task_model: list[str] = typer.Option(
+        [],
+        "--task-model",
+        help="Available task model (used for scoring judgment and dialogue simulation). May be repeated.",
+    ),
+    task_config: list[str] = typer.Option(
+        [],
+        "--task-config",
+        help="Per-task-model JSON with model/provider/api_key/api_key_env/base_url/id; "
+        "may be repeated. Supplements or replaces --task-model entries.",
+    ),
     research_model: Optional[str] = typer.Option(None, "--research-model", help="Optional Deep Research model override."),
     research_provider: Optional[str] = typer.Option(None, "--research-provider", help="Protocol/provider for --research-model."),
     research_api_key: Optional[str] = typer.Option(None, "--research-api-key", help="API key for the research role."),
@@ -222,16 +232,6 @@ def generate(
     loop3_provider: Optional[str] = typer.Option(None, "--loop3-provider", help="Protocol/provider for --loop3-model."),
     loop3_api_key: Optional[str] = typer.Option(None, "--loop3-api-key", help="API key for the Loop 3 diagnosis role."),
     loop3_base_url: Optional[str] = typer.Option(None, "--loop3-base-url", help="Base URL for the Loop 3 diagnosis role."),
-    task_agent_model: list[str] = typer.Option(
-        [],
-        "--task-agent-model",
-        help="Available task-agent model. May be repeated.",
-    ),
-    task_agent_config: list[str] = typer.Option(
-        [],
-        "--task-agent-config",
-        help="Per-task-agent-model JSON; may be repeated. Replaces --task-agent-model when supplied.",
-    ),
     target_api_key: Optional[str] = typer.Option(
         None,
         "--target-api-key",
@@ -259,6 +259,13 @@ def generate(
         None,
         "--source-backed-ratio",
         help="Optional target ratio of source-backed tasks across all scales. When unset, the planner decides.",
+    ),
+    challenge_effort_distribution: Optional[str] = typer.Option(
+        None,
+        "--challenge-effort-distribution",
+        help="Optional JSON map of task-count ratios across E1/E2/E3, e.g. "
+        '{"E1":0.2,"E2":0.3,"E3":0.5} (sum must be 1). When set, the planner must '
+        "distribute TaskDesign challenge_effort to approximate these ratios.",
     ),
     large_scale_qc_sample: int = typer.Option(
         120,
@@ -413,6 +420,27 @@ def generate(
     if source_backed_ratio is not None and not 0 <= source_backed_ratio <= 1:
         console.print("[red]--source-backed-ratio must be between 0 and 1.[/red]")
         raise typer.Exit(1)
+    parsed_effort_distribution: dict[str, float] = {}
+    if challenge_effort_distribution is not None:
+        try:
+            raw = json.loads(challenge_effort_distribution)
+            if not isinstance(raw, dict):
+                raise ValueError("must be a JSON object")
+            parsed_effort_distribution = {
+                str(key): float(value) for key, value in raw.items()
+            }
+        except (ValueError, TypeError) as exc:
+            console.print(
+                f"[red]--challenge-effort-distribution must be a JSON map of E1/E2/E3 "
+                f"ratios summing to 1: {exc}[/red]"
+            )
+            raise typer.Exit(1) from exc
+        if not _valid_effort_distribution(parsed_effort_distribution):
+            console.print(
+                "[red]--challenge-effort-distribution ratios must be non-negative, use "
+                "only E1/E2/E3, and sum to 1 (e.g. {\"E1\":0.2,\"E2\":0.3,\"E3\":0.5}).[/red]"
+            )
+            raise typer.Exit(1)
     if large_scale_qc_sample < 0:
         console.print("[red]--large-scale-qc-sample cannot be negative.[/red]")
         raise typer.Exit(1)
@@ -489,25 +517,18 @@ def generate(
                 target_provider=target_provider,
             )
         )
-        judge_models = _parse_model_config_objects(
-            judge_config,
-            judge_model,
+        task_models = _parse_model_config_objects(
+            task_config,
+            task_model,
             fallback_key=None,
-            option_name="--judge-config",
-        )
-        task_agent_models = _parse_model_config_objects(
-            task_agent_config,
-            task_agent_model,
-            fallback_key=None,
-            option_name="--task-agent-config",
+            option_name="--task-config",
         )
     except ValueError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(1) from exc
     config = BenchmarkConfig(
         **role_config,
-        judge_models=judge_models,
-        task_agent_models=task_agent_models,
+        task_models=task_models,
         targets=targets,
         scale_budget=parsed_scale_budget,
         max_planner_iterations=max_planner_iterations,
@@ -515,6 +536,7 @@ def generate(
         max_hf_records_per_dimension=max_hf_records,
         large_scale_generated_item_cap_per_dimension=large_scale_generated_cap,
         source_backed_ratio=source_backed_ratio,
+        challenge_effort_distribution=parsed_effort_distribution,
         large_scale_llm_qc_sample_size=large_scale_qc_sample,
         output_dir=output_dir,
         run_targets=bool(targets) and not no_run,
