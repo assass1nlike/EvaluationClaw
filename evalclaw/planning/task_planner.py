@@ -9,12 +9,13 @@ from collections.abc import Callable
 from ..models.llm import call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..prompts.planner import BENCHMARK_PLANNER_SYSTEM_PROMPT
-from ..research.deep_research import compact_brief_context
+from ..research.deep_research import compact_brief_context, compact_brief_field_guide
 from ..types import (
     AgentEnvironmentType,
     BenchmarkConfig,
     BenchmarkPlan,
     BenchmarkPlanAudit,
+    ChallengeEffort,
     EvalSpec,
     Message,
     TaskBlueprint,
@@ -63,6 +64,55 @@ def _explicit_total_task_count(instruction: str) -> int | None:
     return next(iter(candidates)) if len(candidates) == 1 else None
 
 
+def _valid_effort_distribution(
+    raw: dict[str, float],
+) -> dict[ChallengeEffort, float]:
+    """Return a normalized E1/E2/E3 ratio map, or {} when raw is invalid/empty.
+
+    Accepts keys as enum names ('E1'), lowercase names, or enum values. Weights
+    must be non-negative and sum to roughly 1.0 to be treated as a constraint.
+    """
+    if not isinstance(raw, dict) or not raw:
+        return {}
+    normalized: dict[ChallengeEffort, float] = {}
+    for key, value in raw.items():
+        token = str(key).strip().upper()
+        try:
+            level = ChallengeEffort(token)
+        except ValueError:
+            continue
+        try:
+            weight = float(value)
+        except (TypeError, ValueError):
+            continue
+        if weight < 0:
+            return {}
+        normalized[level] = weight
+    if not normalized:
+        return {}
+    total = sum(normalized.values())
+    if total <= 0:
+        return {}
+    # Require the weights to sum to a plausible distribution before treating
+    # them as a hard constraint; otherwise fall back to Planner freedom.
+    if abs(total - 1.0) > 0.01:
+        return {}
+    return {level: weight / total for level, weight in normalized.items()}
+
+
+def _effort_distribution_policy(distribution: dict[ChallengeEffort, float]) -> str:
+    parts = ", ".join(
+        f"{level.value} ≈ {round(weight * 100):.0f}%"
+        for level, weight in sorted(distribution.items(), key=lambda item: item[0].value)
+    )
+    return (
+        "The framework requires the total task count to be distributed across "
+        f"challenge_effort levels as follows: {parts}. "
+        "Set each TaskDesign.challenge_effort so the planned per-level task counts "
+        "approximate these ratios."
+    )
+
+
 def _instruction_resource(
     goal: str,
     config: BenchmarkConfig,
@@ -93,6 +143,12 @@ def _instruction_resource(
 
     if config.source_backed_ratio is not None:
         constraints["source_backed_ratio"] = config.source_backed_ratio
+    effort_distribution = _valid_effort_distribution(config.challenge_effort_distribution)
+    if effort_distribution:
+        constraints["challenge_effort_distribution"] = {
+            level.value: round(weight, 4) for level, weight in sorted(effort_distribution.items())
+        }
+        constraints["effort_policy"] = _effort_distribution_policy(effort_distribution)
     sections = [
         "# User Evaluation Request",
         "",
@@ -130,6 +186,8 @@ def _planner_resources(instruction: str, config: BenchmarkConfig) -> str:
                 ensure_ascii=False,
                 indent=2,
             )
+            + "\n\n"
+            + compact_brief_field_guide()
             + "\n</FILE>"
         )
     else:
@@ -146,6 +204,7 @@ def _audit_plan(
     plan: BenchmarkPlan,
     *,
     expected_task_count: int | None = None,
+    expected_effort_distribution: dict[ChallengeEffort, float] | None = None,
 ) -> list[str]:
     issues: list[str] = []
     if not plan.dimensions:
@@ -229,6 +288,27 @@ def _audit_plan(
             f"{planned_task_count}. Adjust TaskDesign.task_count values so their sum is exactly "
             f"{expected_task_count}."
         )
+    if expected_effort_distribution and planned_task_count:
+        actual: dict[ChallengeEffort, int] = {}
+        for dim in plan.dimensions:
+            for design in dim.task_designs:
+                actual[design.challenge_effort] = (
+                    actual.get(design.challenge_effort, 0) + design.task_count
+                )
+        tolerance_parts: list[str] = []
+        for level, ratio in sorted(expected_effort_distribution.items(), key=lambda item: item[0].value):
+            expected = round(planned_task_count * ratio)
+            actual_count = actual.get(level, 0)
+            if abs(actual_count - expected) > 1:
+                tolerance_parts.append(
+                    f"{level.value}: planned {actual_count} tasks, expected ~{expected}"
+                )
+        if tolerance_parts:
+            issues.append(
+                "TaskDesign.challenge_effort must match the required distribution: "
+                + "; ".join(tolerance_parts)
+                + "."
+            )
     return issues
 
 
@@ -246,7 +326,13 @@ def _parse_plan_response(
             "scale_budget": _safe_scale_budget(config.scale_budget),
         }
     )
-    issues = _audit_plan(plan, expected_task_count=expected_task_count)
+    issues = _audit_plan(
+        plan,
+        expected_task_count=expected_task_count,
+        expected_effort_distribution=_valid_effort_distribution(
+            config.challenge_effort_distribution
+        ),
+    )
     return plan, issues
 
 

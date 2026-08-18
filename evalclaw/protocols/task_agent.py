@@ -292,7 +292,7 @@ def task_agent_initial_content_text(item: BenchmarkItem, limit: int = 6000) -> s
 
 
 def task_agent_available(config: BenchmarkConfig) -> bool:
-    return bool(config.task_agent_models)
+    return bool(config.task_models)
 
 
 def compact_task_agent_for_qc(spec: dict[str, Any]) -> dict[str, Any]:

@@ -475,6 +475,34 @@ def compact_brief_context(brief: ResearchBrief) -> dict:
     }
 
 
+def compact_brief_field_guide() -> str:
+    """Field-by-field guidance for the compact brief payload the planner receives.
+
+    The compact brief is a condensed, planner-facing view of the deep-research
+    results. This text is appended after the JSON payload so the planner does not
+    have to guess field semantics from their names.
+    """
+    return (
+        "Field meanings for the deep-research brief above "
+        "(the brief is reference material, not an output schema):\n"
+        "- field_overview: a short summary of the domain under evaluation.\n"
+        "- taxonomy: subfields/capabilities in the domain; these are the natural "
+        "candidates to map onto benchmark dimensions.\n"
+        "- existing_benchmarks: known benchmarks/datasets for this capability and "
+        "their known weaknesses; useful to avoid duplication and position the new eval.\n"
+        "- findings: condensed research takeaways that can inspire task design and "
+        "source-grounded content.\n"
+        "- seed_sources: concrete documents/datasets (title + url) that item generation "
+        "can build source-backed tasks from.\n"
+        "- citations: claim-to-source mapping supporting the brief's assertions.\n"
+        "- source_material_index: a list of {title, url, content_chars} describing the "
+        "fetched source bodies retained by the framework; the TaskBuilder may read a "
+        "full source body by URL via read_research_source rather than re-fetching.\n"
+        "- challenge_effort_anchors: what E1-E3 construction effort means concretely "
+        "in this domain, as a guide for choosing each TaskDesign.challenge_effort."
+    )
+
+
 def render_brief_markdown(brief: ResearchBrief) -> str:
     """Render a ResearchBrief as a readable Markdown document."""
     lines: list[str] = ["# Research Brief", "", f"- Created at: {brief.created_at}", ""]

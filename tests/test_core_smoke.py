@@ -3274,7 +3274,7 @@ def test_multi_turn_runner_uses_task_agent_for_followups_and_scoring(monkeypatch
         },
     )
     config = BenchmarkConfig(
-        task_agent_models=[
+        task_models=[
             TargetModelConfig(provider="mock", model="mock-task-agent", api_key="dummy")
         ],
         targets=[TargetModelConfig(provider="mock", model="mock-target")],

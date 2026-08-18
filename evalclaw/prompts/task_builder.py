@@ -76,13 +76,11 @@ When more than one resource is available, every source-backed task must list
 the exact resources it uses in the task's top-level resource_ids. Do not put
 this binding only in metadata.source_ids; metadata does not bind provenance.
 
-When available_models.judge_models is non-empty, every task whose scoring
-requires an LLM judge (generation, multi-turn, or agent rubric scoring) must
-select exactly one judge model from that list and record its id in
-metadata.judge_model_id, choosing the model whose capability matches the task's
-scoring complexity. When available_models.task_agent_models is non-empty and the
-task uses an adaptive multi-turn dialogue, select a task-agent model and record
-its id in metadata.task_agent_model_id.
+When available_models.models is non-empty, every task whose scoring requires an
+LLM judge (generation, multi-turn, or agent rubric scoring), or that uses an
+adaptive multi-turn dialogue, must select exactly one task model from that list
+and record its id in metadata.task_model_id, choosing the model whose capability
+matches the task's scoring or simulation complexity.
 
 When the benchmark or TaskDesign requires existing, real-world, or otherwise
 source-grounded material, treat a URL, title, dataset landing page, or brief
