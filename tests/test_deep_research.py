@@ -256,9 +256,8 @@ def test_deep_research_returns_none_without_research_key() -> None:
     assert run_deep_research("evaluate tax law reasoning", config) is None
 
 
-def test_deep_research_returns_none_when_search_disabled() -> None:
+def test_deep_research_returns_none_when_search_backend_disabled() -> None:
     assert run_deep_research("goal", _research_config(search_backend="none")) is None
-    assert run_deep_research("goal", _research_config(use_web_research=False)) is None
 
 
 # ---------------------------------------------------------------------------
@@ -277,7 +276,10 @@ def test_deep_research_stops_when_reflection_reports_no_gaps(monkeypatch) -> Non
     search_calls: list[str] = []
     _patch_search(monkeypatch, search_calls)
 
-    brief = run_deep_research("evaluate tax law reasoning", _research_config())
+    brief = run_deep_research(
+        "evaluate tax law reasoning",
+        _research_config(use_web_research=False),
+    )
 
     assert brief is not None
     assert counts["reflect"] == 1  # stopped after round 1
@@ -676,13 +678,22 @@ def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
     )
     assert result.exit_code == 0
     assert captured["config"].use_deep_research is True
+    assert captured["config"].use_web_research is False
     assert captured["config"].max_research_iterations == 5
 
     result = runner.invoke(app, ["generate", "-g", "goal", "--no-interactive"])
     assert result.exit_code == 0
     assert captured["config"].use_deep_research is False
+    assert captured["config"].use_web_research is False
     assert captured["config"].targets == []
     assert captured["config"].run_targets is False
+
+    result = runner.invoke(
+        app,
+        ["generate", "-g", "goal", "--no-interactive", "--web-research"],
+    )
+    assert result.exit_code == 0
+    assert captured["config"].use_web_research is True
 
     result = runner.invoke(
         app,

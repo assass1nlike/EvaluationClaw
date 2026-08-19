@@ -132,8 +132,7 @@ def run_pipeline(
         if brief is None:
             raise RuntimeError(
                 "Deep research was requested but could not run. Configure the Research role "
-                "and enable web research with a non-none search backend, or disable "
-                "--deep-research."
+                "with a non-none search backend, or disable --deep-research."
             )
         config = config.model_copy(update={"research_brief": brief})
         log(

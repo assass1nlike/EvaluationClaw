@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -63,7 +63,6 @@ class SourceKind(str, Enum):
 
 
 class QcSeverity(str, Enum):
-    info = "info"
     warning = "warning"
     error = "error"
 
@@ -582,6 +581,12 @@ class QcIssue(BaseModel):
     message: str
     suggested_action: str = ""
 
+    @model_validator(mode="after")
+    def dataset_level_issues_are_non_blocking(self) -> "QcIssue":
+        if not self.item_id and self.severity == QcSeverity.error:
+            self.severity = QcSeverity.warning
+        return self
+
 
 class QcReport(BaseModel):
     issues: list[QcIssue] = Field(default_factory=list)
@@ -818,7 +823,7 @@ class BenchmarkConfig(BaseModel):
     output_dir: str = "./benchmark-output"
     task_builder_debug_dir: Optional[str] = None
     run_targets: bool = True
-    use_web_research: bool = True
+    use_web_research: bool = False
     search_backend: str = "auto"  # auto | gemini | keyless | none
     use_deep_research: bool = False
     max_research_iterations: int = 3
@@ -829,7 +834,7 @@ class BenchmarkConfig(BaseModel):
     task_builder_research_max_calls: int = 6
     task_builder_research_max_chars: int = 50_000
     judge_double_pass: bool = True
-    llm_backend: str = "auto"  # auto | litellm | legacy
+    llm_backend: Literal["auto", "litellm"] = "auto"
     runner: str = "direct"  # direct | lm-eval | auto
     environment_claw: bool = True
     environment_claw_auto_configure: bool = True

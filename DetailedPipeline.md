@@ -13,44 +13,39 @@
 
 **1. 用户目标(goal)**
 
-它用自然语言描述“想测什么”。
-
-如果判断 goal 为非英文，框架会调用一次 Planner 模型将其翻译为英文。这是其[系统提示词](#appendix-b-translation)和[ prompt 结构](#appendix-a)。
+它用自然语言描述“想测什么”。如果判断 goal 为非英文，框架会调用一次 Planner 模型将其翻译为英文，这是其[系统提示词](#appendix-b-translation)和[ prompt 结构](#appendix-a)。
 
 **2. 运行配置(BenchmarkConfig)**
 
 定义 benchmark 的一些配置，例如：
 
-  - Planner、TaskBuilder 所使用的模型
+  - Planner、TaskBuilder 等使用的模型
   - 题目数量、难度分布
 
 这是其[完整字段](#appendix-g)。
 
   ## 二、可选的 Deep Research
 
-若启用了 `--deep-research`，框架在规划前先围绕目标做研究，产出结构化简报 **ResearchBrief**（完整字段契约见[附录 H](#appendix-h)；四类 R1–R4 调用的执行过程与搜索后端边界见[附录 A.0](#appendix-a)）。
+若启用了 `--deep-research`，框架在规划前先围绕目标做研究，调用过程见[附录 A.0](#appendix-a)。
 
-ResearchBrief 是 Benchmark Design Research 的中间产物，只保留会改变当前 benchmark 设计的证据：
+最终产出结构化简报 ResearchBrief，包含如：
 
-- **dimensions**：有证据支持的可测量候选维度及其边界；
-- **difficulty_factors**：可观察、可评分的任务困难因素及其构题影响；
-- **task_patterns**：适合当前目标的任务形态、题型和评分方向；
-- **source_recommendations**：可用于 source-backed 构题的已验证文档或数据集；
-- **evidence**：外部观察、直接设计影响和来源 URL；
-- **source_materials**：框架归档并保留正文的来源，供 TaskBuilder 经 `read_research_source(url)` 按需读取；
-- **challenge_effort_anchors**：当前目标下 E1–E3 构题投入的具体含义。
+- dimensions：有证据支持的候选评估维度；
+- difficulty_factors：可观察、可评分的任务困难因素及其构题影响；
+- task_patterns：适合当前目标的任务形态、题型和评分方向；
+- source_recommendations：可作为构题来源的已验证文档或数据集；
 
-它不是通用领域综述，不为了填充字段而搜索学术 gap、市场背景或与构题无关的观点。
+完整字段契约见[附录 H](#appendix-h)。
 
-Planner 只收到这份 brief 的紧凑索引（候选维度、设计证据、来源 URL、正文长度等），不收到来源全文——可见范围见[附录 C.1](#appendix-c)。需要来源细节的 TaskBuilder 可调用 `read_research_source(url)` 从本次归档读取正文，不必再次联网。
+它不是普通 deepResearch 的通用领域综述，都是为构建 benchmark 设计的。
+
+Planner 只收到这份 brief 的紧凑索引（候选维度、设计证据、来源 URL、正文长度等），不收到来源全文，可见范围见[附录 C.1](#appendix-c)。需要来源细节的 TaskBuilder 可调用 `read_research_source(url)` 从本次归档读取正文。
 
   ## 三、Planner 设计完整 BenchmarkPlan
 
   ### Planner 的输入
 
-Planner 收到：用户目标、题量指导、支持的题型与执行环境、可选 Deep Research 紧凑结果。
-
-Planner 收到的完整 prompt 结构见[附录 C](#appendix-c)；固定 prompt、完整 Planner Skill 和 JSON reference 见[附录 B.3](#appendix-b-planner)。
+Planner 收到：用户目标、题量指导、支持的题型与执行环境、可选 Deep Research 紧凑结果。完整 prompt 结构见[附录 C](#appendix-c)；固定 prompt、完整 Planner Skill 和 JSON reference 见[附录 B.3](#appendix-b-planner)。
 
 可用执行环境是 `workspace`、`code_sandbox`、`docker_workspace`、`gui_desktop`，各自能力边界见 Planner Skill 的「Choose the environment category」一节（[附录 B.3](#appendix-b-planner)）和各题型字段契约（[附录 D.3](#appendix-d-task-types)）。
 
@@ -60,22 +55,22 @@ Planner 收到的完整 prompt 结构见[附录 C](#appendix-c)；固定 prompt�
 
   ## 四、按 TaskDesign 构造具体任务
 
-每个 Planner 产出的 TaskDesign 派生一个独立 Builder job，全部 job 走同一套构题流程：收集来源 → 组装 payload 调用 TaskBuilder → 生成 TaskDefinition → 结构修复 → 整合出 run-ready TaskSuite。
+每个 Planner 产出的 TaskDesign 派生一个独立 Builder job。
 
   ### 1. 收集来源资源
 
 为当前 TaskDesign 收集候选来源：来自 Planner 显式提供的 URL、TaskDesign 研究查询的网页搜索结果（它没有时，再考虑使用 Dimension 研究查询）；
-来源不足且维度需研究时，框架会展开一个独立的构题前来源搜索阶段（触发条件与判定细节见[附录 D.0](#appendix-d)；TaskBuilder 在产出阶段自行返回的新资源随后也会并入 suite 的 resources）。
+TaskBuilder 在产出阶段自行返回的新资源随后也会并入 suite 的 resources。
 
 每个来源标准化为 `TaskResource`（完整字段见[附录 I.1](#appendix-i)）；如何呈现给 TaskBuilder 见 payload 的 `resources.context`（[附录 D.1](#appendix-d-payload)）。
 
-  ### 2. 构造 TaskBuilder payload 并调用
+  ### 2. 调用 TaskBuilder
 
-组装一次完整模型调用：system prompt（base prompt、可选环境 Skill、可选构题研究 prompt，见[附录 B.4](#appendix-b-task-builder)）+ user message（即 payload，含 benchmark 上下文、当前 TaskDesign、题量/题型契约、可用来源、各题型字段契约、可用任务模型池、修复调用时的旧题与 QC 问题，逐字段见[附录 D.1](#appendix-d-payload)）。
+组装一次完整模型调用：system prompt（base prompt、可选环境 Skill、可选构题研究 prompt，见[附录 B.4](#appendix-b-task-builder)）+ user message（含当前题目设计信息、题量/题型规定、可用来源等，见[附录 D.1](#appendix-d-payload)）。
 
 若当前 TaskDesign 需来源研究（或允许网页研究的 E3 任务）且不是 QC 修复，调用在同一次对话里展开为工具循环：TaskBuilder 可调用 `read_research_source`、`search_web`、`fetch_url` 三个工具边搜边写，框架把工具结果追加进消息历史继续对话，直到 TaskBuilder 不再调用工具（工具 schema、预算与收尾见[附录 D.2](#appendix-d-tools)）。
 
-无论是否启用研究工具，TaskBuilder 最终在同一次对话的末条回复里返回完整构题结果 `{"construction_notes":"...","resources":[],"tasks":[]}`，其中 `tasks` 每项都是一个完整 `TaskDefinition`。
+无论是否启用研究工具，TaskBuilder 最终在同一次对话的末条回复里返回完整构题结果 `{"construction_notes":"...","resources":[],"tasks":[]}`。
 
   ### 3. 生成 TaskDefinition
 
@@ -87,87 +82,65 @@ TaskBuilder 返回后立即做纯代码结构检查，按题型分支校验各�
 
   ### 5. 构题整合出 run-ready TaskSuite
 
-全部 Builder job 完成后，`build_task_suite`（`evalclaw/construction/suite.py`）按维度顺序把各 job 的 TaskDefinition 合并，并把每个 TaskDefinition 就地转换为 run-ready 的 `BenchmarkItem`（转换规则见[附录 I.8](#appendix-i)），同时检查全局任务 ID 唯一性、去重规范化资源、汇总 construction notes。
-
-这一步就是构题阶段的**返回值**——`build_task_suite` 是第 1-4 步所在的构题主体，打包派生也被内化于此，所以整个构题流程只打包一次，QC 直接在 TaskSuite 上运行。产出的 `TaskSuite` 是 run-ready 的正式容器（完整字段见[附录 I.2](#appendix-i)），贯穿 QC、执行、报告全程；每个 `BenchmarkItem` 保留原始 `TaskDefinition` 到 `item.source_definition`（序列化时排除）供 QC repair 取回。`metadata.builder_job_id` 是任务到 Builder job 的唯一关联，`item.builder_job_id` / `item.task_design_id` 是其便捷属性。
+全部 Builder job 完成后，把各 TaskDefinition 合并，转换为 run-ready 的 `BenchmarkItem`（转换规则见[附录 I.8](#appendix-i)），同时检查全局任务 ID 唯一性、去重规范化资源、汇总 construction notes。`TaskSuite` 完整字段见[附录 I.2](#appendix-i)
 
   ## 五、全局 QC Gate 与修复
 
-QC 分三层，由 `run_qc_gate` 串联：单题静态检查、数据集级检查、可选 LLM QC。
+  ### 1. 单题静态检查
 
-  ### 1. 单题静态检查（不调用 LLM）
+逐题程序化进行检查，例如 fill_blank 的 expected_text 存在、generation 的 rubric 存在等检查。完整清单见[附录 I.6](#appendix-i)。
 
-逐题程序化检查 prompt 空/过短、choice 选项与答案一致、fill_blank 的 expected_text、generation/multi-turn 的 rubric、judge tool 受支持、agent 评分器/evaluator，以及多模态/science/task-agent/environment 等按 metadata 是否出现而进入的专项检查。这些专项检查不是对基础字段的通用校验，而是只有在题目带有对应 metadata 时才触发（例如只有 `metadata.multimodal` 存在才去验它的 schema_version/assets）；完整清单见[附录 I.6](#appendix-i)。
+  ### 2. 整体静态检查
 
-  ### 2. 数据集级检查（不调用 LLM）
-
-检查重复 ID、完全/近似重复题、Dimension 是否有题、是否引用未知 Dimension、计划题型是否真正出现、source-backed 覆盖是否达标。完整检查清单见[附录 I.5](#appendix-i)。
+完全/近似重复题、Dimension 是否有题、是否引用未知 Dimension、计划题型是否真正出现、source-backed 覆盖是否达标。完整检查清单见[附录 I.5](#appendix-i)。
 
   ### 3. 可选 LLM QC
 
 若配置了 QC 模型，把题目、TaskDesign、Dimension 和必要 metadata 交给 LLM 审核。抽样、prompt 截断标记、metadata 压缩方式和完整用户 JSON 见[附录 E](#appendix-e)；固定 QC prompt 见[附录 B.5](#appendix-b-qc)。普通规模最多约 50 题；大规模按 `dimension_id` 分组轮转抽样（规则见[附录 E](#appendix-e)）。
 
+QC 模型调用失败、响应无法解析或不符合响应契约时，框架最多完整尝试 3 次；仍失败则直接抛出异常并停止流程。此类基础设施或协议失败不会被包装成 `QcIssue`，也不会进入 TaskBuilder 修题循环。
+
   ### QC 输出
 
-产出 `QcReport`（`issues`、`passed_item_ids`、`rejected_item_ids` 等，完整字段见[附录 I.6](#appendix-i)）。规则：`error` 是阻塞问题、题目进入 rejected；`warning` 允许通过但记录风险；`info` 仅记录；没有 error 且 rejected 为空时 `is_acceptable=True`。`issues` 中 `item_id` 为空的项是数据集级问题，不计入逐题通过/拒绝。
+产出 `QcReport`（`issues`、`passed_item_ids`、`rejected_item_ids` 等，完整字段见[附录 I.6](#appendix-i)）。规则：绑定具体 `item_id` 的 `error` 是阻塞问题、题目进入 rejected；`warning` 表示存在但不阻塞的问题。没有 error 且 rejected 为空时 `is_acceptable=True`。`item_id` 为空的数据集级问题只能记为 warning，不计入逐题通过/拒绝。
 
 ### 4. QC 定向修复循环
 
-这和前面的“构题结构修复”是第二套独立循环。每一轮严格按以下顺序执行：
+1. **归因 Builder job**：对每条绑定具体题目的 error，找到其所属的 TaskDesign job。数据集级 warning 不触发 Builder 修复。
+2. **调用 TaskBuilder 进行修复**：对每个受影响的 job，只收集它自己的 error issues 和它自己的旧题目（从 `item.source_definition` 还原 `revision_context`），加一条「只替换列出的题、保留各自 id」的指令，见[附录 D.4](#appendix-d-repair)。调用 TaskBuilder，JobContext 里只有失败题，通过题不进入输入、不被修改。
+4. **逐题选择并重新跑完整 QC**：先把本轮 replacement 题按原 id 合并成候选 TaskSuite 并重跑三层 QC，再分别比较每道 replacement 题在当前版本和候选版本中的阻塞 error 数量。只有数量严格减少的题保留候选版本，其余题各自回退到历史最佳版本；如果一轮中只有部分题改善，框架合并出混合 TaskSuite 并再次跑完整 QC。若某个已选 replacement 在混合结果中不再严格改善，则继续回退该题并复检，直到所有保留的 replacement 都满足单题单调改善。
 
-  1. **定位问题**：从 QC 报告里收集所有 `severity=error` 的 issue。
-  2. **归因 Builder job**：对每条 error，用 `item_id` 在 TaskSuite 里找到题目，再取其 `builder_job_id` 得到所属 TaskDesign job。`item_id` 为空的 error 是数据集级问题，归因到全部 job（见下）。
-  3. **组 revision**：对每个受影响的 job，只收集它自己的 error issues 和它自己的旧题目（从 `item.source_definition` 还原 `revision_context`），加一条「只替换列出的题、保留各自 id」的指令，见[附录 D.4](#appendix-d-repair)。
-  4. **只重build这些 job**：调用普通 TaskBuilder，但 payload 带 `revision`，JobContext 里只有失败题，通过题不进入输入、不被修改。
-  5. **合并候选**：把返回的 replacement 题按原 id 并入当前 TaskSuite（`_merge_repaired_suite`，replace 时同步更新 `source_definition`）。
-  6. **重新跑完整 QC**：对合并后的整个 TaskSuite 重跑三层 QC。
+历史最佳版本按 item 独立维护，因此同一轮可以保留部分修复、回退部分修复。`item_id` 为空的数据集级 warning 只保留在完整 QC 报告中，不参与修复。通过 QC 的题不会重新生成。最多运行 `max_qc_iterations` 轮。
 
-判定与收敛：新候选只有在「阻塞 error 数量**严格减少**」时才会替换当前最佳版本；没有改善的修复被丢弃，下一轮仍从当前最佳版本继续。通过 QC 的题不会重新生成。最多运行 `max_qc_iterations` 轮。
-
-修复结束后：如果能接受，benchmark 正式完成；仍有阻塞则默认抛异常拒绝产出 runner-ready benchmark；只有显式设置 `allow_incomplete_benchmark=true` 才保留不完整草稿。
+修复结束后，如果通过了 QC，benchmark 正式完成。仍有阻塞则默认抛异常拒绝产出 runner-ready benchmark；只有显式设置 `allow_incomplete_benchmark=true` 才保留不完整草稿。
 
   ## 六、可选人工审核
 
-人工审核发生在**构题 + QC 循环之后、目标模型执行之前**：此时基准已通过 QC、可执行，但还没跑分。启用 `human_review` 时，用户可以在此处最多审核三轮，批准则进入 runner，否则提交修改意见重新构题。
+构题 + QC 循环之后，如果启用 `human_review`，用户可以在此处审核。审核摘要先按维度展示题量与题型，再列出 `TaskSuite.tasks` 中全部题目的 id、完整 prompt、答案字段、rubric、判分配置和交互/环境配置。批准则进入 runner，否则提交修改意见然后进行修改。
 
-review 的工作方式是：**保留未被触碰的题，只改该改的**。用户反馈先被解析成一个 Planner-role review 调用（`_planner_review`），再落到 `_apply_review` 解析成一个明确的构建计划——未受影响的题原样保留，单题操作精准落地，只有缺失的题才重新生成。因此可表达的修改意见有：
+这个过程保留未被触碰的题，只改要改的。可表达的修改意见有：
 
 - **维度/数据集层**：拆分或新增 Dimension、调整能力边界与目标题数、合并维度、修改题型、改变多轮/环境要求、请求某维度补题（`needs_more_items`）。
 - **单题归属层**：把某道题移到别的维度（`move_items`）、删除偏题（`delete_item_ids`）。
-- **单题内容层**：改写某道具体题的 prompt/rubric/选项/答案/环境（`update_items`）——这是 review 提供的**单题级文本改写通道**，用户写明想改哪个 id、改成什么，TaskBuilder 以定向 revision 重写该题并保留其 id。
+- **单题内容层**：引用审核摘要中展示的准确 item id，改写该题的 prompt/rubric/选项/答案/环境（`update_items`）。例如 `Update item_17: add an ambiguous edge case but keep its rubric.`。TaskBuilder 以定向 revision 重写该题并保留其 id。
 
-被删除、被改写、或其所在维度被结构性改变（合并/拆分/改动测量目标或边界/新增）的题不保留，交由定向构建补齐：改写题用 Builder 的 revision 机制就地重写，缺失题按各维度目标 `target_item_count` 补足。其余题原样保留，不做重复构题。
-
-经过 review 后**不会全量重做已有题目**：
-
-  评审后仅定向构建：
-    -> 改写 `update_items` 命中的题（保留 id）
-    -> 按 spec 目标补齐缺失的题
-    -> 与保留的题合并成新的 run-ready TaskSuite
-    -> 重新跑一遍 QC
+被删除、被改写、或其所在维度被结构性改变（合并/拆分/改动测量目标或边界/新增）的题不保留，交由定向构建补齐：改写题用 Builder 的 revision 机制就地重写，缺失题按各维度目标 `target_item_count` 补足。新增维度必须显式给出正整数 `target_item_count`，否则拒绝该重构。新得到的题也会重新跑 QC。
 
 人工反馈先进入一次 Planner-role dataset review 调用；`_apply_review` 把 review action 解析为保留/改写/补题计划，随后定向构建 + 重跑 QC。两次调用的消息组成见 [附录 F](#appendix-f)，review system prompt 见 [附录 B.6](#appendix-b-review)。
 
-  ## 七、benchmark 完成时拥有什么
+  ## 七、后续执行
 
-在进入执行阶段前，核心产物是：
+TaskSuite           run-ready 的任务容器（含全部 BenchmarkItem 与 executor 所需规格）
+QcReport            哪些题通过、哪些题拒绝以及原因
 
-   产物                含义
-
-   ResearchBrief       可选的 Benchmark Design Research 设计证据
-   BenchmarkPlan       Planner 的完整设计决策
-   EvalSpec            benchmark 的总体规格
-   TaskSuite           run-ready 的任务容器（含全部 BenchmarkItem 与 executor 所需规格）
-   QcReport            哪些题通过、哪些题拒绝以及原因
-
-其中 TaskSuite.tasks 包含全部构造结果，而 QcReport.passed_item_ids 明确规定哪些题可以执行。
+其中 `TaskSuite.tasks` 包含全部构造结果，而 QcReport.passed_item_ids 明确规定哪些题可以执行。
 
 执行阶段随后才会：
 
-    1. 根据 QC 构造只含 passed items 的 ExecutionPlan。
-    2. 探测 Docker、VM、GUI bridge 和多模态兼容性。
-    3. 调用目标模型。
-    4. 评分、汇总、Loop 3 改进和生成最终报告。
+1. 根据 QC 构造只含 passed items 的 ExecutionPlan。
+2. 探测 Docker、VM、GUI bridge 和多模态兼容性。
+3. 调用目标模型。
+4. 评分、汇总、Loop 3 改进和生成最终报告。
 
 有环境的题在 benchmark 完成时已经包含环境规格、文件、工具和 evaluator，但真正创建容器、物化 VM 或连接桌面是在执行准备阶段。
 
@@ -176,6 +149,7 @@ review 的工作方式是：**保留未被触碰的题，只改该改的**。用
 ---
 
 <a id="appendix-a"></a>
+
 ## 附录 A：执行前 LLM 调用总表
 
 这里的“一次调用”指一次独立模型请求。除 TaskBuilder 工具循环会持续扩展 `messages` 外，
@@ -1611,7 +1585,8 @@ Return pure JSON only, with no markdown. Format:
   &quot;summary&quot;: &quot;...&quot;
 }
 <!-- -->
-severity must be one of info/warning/error.
+severity must be one of warning/error. Use warning for a real but non-blocking
+problem; omit observations that do not identify a problem.
 category must be one of schema/duplicate/scoring/clarity/coverage.
 Mark error only for issues that make an item unexecutable or make the answer
 clearly unreliable.</code></pre></details>
@@ -1682,7 +1657,8 @@ Allowed changes:
   entry give the item_id, the dimension_id it belongs to, and a concrete
   guidance string describing exactly what to change and how.
 - dimension_updates: update name/description/approach/requirements/counts.
-- add_dimensions: add clearly requested missing dimensions.
+- add_dimensions: add clearly requested missing dimensions. Every added
+  dimension must define a positive integer target_item_count.
 - merge_dimensions: merge obviously overlapping dimensions.
 - split_dimensions: split an obviously too-broad dimension and assign items.
 - needs_more_items: request item generation for a dimension.
@@ -2558,14 +2534,16 @@ HTTP/传输重试是底层另一套机制。
 
 `evalclaw/construction/resources.py::_select_blueprint_sources` 为当前 TaskDesign job 收集候选来源，顺序是：
 
-1. 先把 Planner `source_plan.suggested_urls`（受 `max_research_sources` 上限）直接存成 `web` 来源——这是 Planner 已给的建议，不触发搜索；
-2. 若来源数已达 `max_research_sources`，直接返回；
-3. 若 `Dimension.needs_research=false` 或 `use_web_research=false`，返回当前名单（不再补来源）；若需要并启用了研究但 Research 角色未配置，则直接报错；
-4. 否则从 `blueprint.resource_queries`（缺省回落 `dimension.research_queries`；两者都空时用 `f"{dimension.name} {blueprint.title} benchmark task resources"` 之类的默认查询）取其前 2 条做 `web_search`，把结果各 citation 的 URL 去重后追加为 `web` 来源，直到来源数达 `max_research_sources`。
+1. 先把 Planner `source_plan.suggested_urls` 依次存成 `web` 来源，最多保留 `max_research_sources` 个。这些 URL 是 Planner 明确选择的来源，不属于自动搜索；即使普通 web research 关闭，框架仍会保留并尝试读取它们。
+2. 若来源数已达 `max_research_sources`，或 `Dimension.needs_research=false`，直接返回当前名单。
+3. `use_web_research` 默认为 `false`。未显式使用 `--web-research` 时直接返回当前名单，即使它为空或少于 `max_research_sources`，也不会为了补足数量进行搜索。
+4. 只有显式开启普通 web research 后，框架才要求 Research 角色已配置，并从 `blueprint.resource_queries`（缺省回落 `dimension.research_queries`；两者都空时生成默认查询）取前 2 条调用 `web_search`。框架按搜索后端返回的 citation 顺序提取 URL、去重并追加，达到 `max_research_sources` 时停止。
 
-「来源不足」不是一个显式的布尔判断，而是由上面第 3/4 步共同决定：只要需要研究、网页研究开启、Research 已配置、且当前来源未满上限，就会用研究查询补齐。`max_research_sources` 是这条来源数上限（配置见[附录 G](#appendix-g)）。收集结果随后被标准化为 `TaskResource` 经去重进入 suite 的 resources，并以 `resources.context` 呈现给 TaskBuilder（见 D.1）。
+`max_research_sources` 只是候选来源的硬上限，不是目标数量或最低配额。来源少于该值是合法状态；没有外部来源且 TaskDesign 不要求 source-backed 材料时，TaskBuilder 可以自行构造材料并如实标记为 self-generated。若 TaskDesign 明确要求外部来源，缺失状态不会被伪装成 source-backed。收集到的来源会标准化为 `TaskResource`，经去重进入 suite 的 resources，并以 `resources.context` 呈现给 TaskBuilder（见 D.1）。
 
-这里的查询回落只发生在选择查询之前：TaskDesign 没有 `search_queries` 时才使用 Dimension 查询。执行某条查询后若遇到 `search_backend="none"`、缺少所需 API key 或后端/API 错误，构题流程直接报错，不会改用 Dimension 查询掩盖故障。搜索超时会对同一条查询最多尝试 3 次，仍然超时则报错。合法但没有搜索结果不属于系统故障，此时可以继续尝试所选查询列表中的下一条查询。
+自动搜索阶段没有独立的内容评估或重排：`source_plan.requirements` 会传给 TaskBuilder，但 Python 不会据此筛选 citation。查询回落只发生在搜索前，TaskDesign 没有 `search_queries` 时才使用 Dimension 查询；某条查询执行失败后不会改用 Dimension 查询掩盖故障。`search_backend="none"`、缺少所需 API key 或后端/API 错误会直接报错；搜索超时会对同一查询最多尝试 3 次，仍然超时则报错。合法但没有结果时，可以继续尝试已选查询列表中的下一条。
+
+`use_web_research` 只控制 Planner 返回后的自动补源和 TaskBuilder web tools，不控制用户显式开启的 `--deep-research`；Benchmark Design Research 的执行边界见附录 A.0。
 
 <a id="appendix-d-payload"></a>
 ### D.1 初次 payload
@@ -2897,6 +2875,7 @@ excerpts，不会伪装成 canonical 全文；task_agent 和 agent_task_package 
 
 QC 模型只返回 issues 和 summary。passed/rejected ids、quality score 和 acceptability 由框架结合静态检查计算。
 静态检查本身不调用 LLM，LLM QC 也不直接修改题。
+QC 模型调用、JSON 解析或响应契约校验失败时最多完整尝试 3 次；耗尽后直接抛出异常。基础设施或协议失败不写入 `QcReport.issues`。
 
 <a id="appendix-f"></a>
 ## 附录 F：人工审核与重新规划输入契约
@@ -2922,16 +2901,13 @@ H1 的单条 user JSON：
       &quot;target_generated_count&quot;: 3
     }
   ],
-  &quot;target_counts&quot;: {&quot;dimension_id&quot;: 3},
-  &quot;current_counts&quot;: {&quot;dimension_id&quot;: 3},
   &quot;qc_issues&quot;: [&quot;最多 60 条&quot;],
-  &quot;items&quot;: [&quot;最多 80 个 item excerpt&quot;]
+  &quot;items&quot;: [&quot;默认前 80 个 item excerpt，加上反馈中点名的其余题目&quot;]
 }
 <!-- --></code></pre></details>
-
-item excerpt 包含 id、dimension、type、effort、prompt 前 700 字符、答案字段、rubric 前 500 字符、
+普通 item excerpt 包含 id、dimension、type、effort、prompt 前 700 字符、答案字段、rubric 前 500 字符、
 Judge tools、output contract、source、tags，以及 compact task_agent、最多 5 turns、agent env type
-和 compact science metadata。模型输出 delete/move/update/add/merge/split/needs_more_items actions，
+和 compact science metadata。为控制常规 review payload，默认只传前 80 道题；若 `human_feedback` 引用了这个范围之外的准确 item id，框架会额外加入该题，并传递其未截断的 prompt、rubric，以及完整的非敏感 TaskDefinition（标题、描述、系统提示、交互、环境和评分）。这样用户可以修改审核摘要中的任意题目，而无需把全部大规模数据集重复发送给 Planner。模型输出 delete/move/update/add/merge/split/needs_more_items actions，
 其中 `update_items` 是单题内容改写请求；框架把这些 actions 解析成保留/改写/补题计划（见[正文第六节](#六可选人工审核)），
 而不是让模型直接改题——改写题由 TaskBuilder 以定向 revision 落地，未受影响的题原样保留。
 
@@ -3004,7 +2980,7 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `source_backed_ratio` | `Optional[float]` | `None` | 全规模 source-backed 题量比例；显式设置时传给 Planner 作为约束，未设置时 LLM 看不到 | 直接：Planner constraints（仅显式设置时） |
 | `challenge_effort_distribution` | `dict[str, float]` | `{}` | 全局 E1/E2/E3 题量比例，如 `{"E1": 0.2, "E2": 0.3, "E3": 0.5}`；各档比例和为 1 时作为硬约束传给 Planner，审计校验每档偏差 ≤1 题；为空时 Planner 自由决定各 TaskDesign 档位 | 直接：Planner constraints（非空时） |
 | `large_scale_llm_qc_sample_size` | `int` | `120` | large/xlarge LLM QC 分层抽样基数 | 派生：改变 QC 模型收到的 items |
-| `use_web_research` | `bool` | `True` | 是否允许构题前搜索和 TaskBuilder web tools | 派生：决定来源与工具是否可用 |
+| `use_web_research` | `bool` | `False` | 是否允许构题前自动补源和 TaskBuilder web tools；默认不为填满 `max_research_sources` 而搜索 | 派生：决定构题阶段的来源搜索与工具是否可用；不控制显式开启的 Deep Research |
 | `search_backend` | `str` | `"auto"` | `auto/gemini/keyless/none` 搜索后端 | 否；搜索结果可能进入模型上下文 |
 | `use_deep_research` | `bool` | `False` | 是否在 Planner 前运行 Deep Research | 派生：决定是否产生 ResearchBrief |
 | `max_research_iterations` | `int` | `3` | Deep Research 最大轮数 | 直接：R3 的 `max_rounds` |
@@ -3020,7 +2996,7 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `task_builder_research_max_calls` | `int` | `6` | 单次 Builder 构题研究工具调用预算，运行时限制为 1-12 | 直接：`interactive_research.max_tool_calls` |
 | `task_builder_research_max_chars` | `int` | `50_000` | 每次构题研究工具结果的最大字符数，运行时限制为 1,000-100,000 | 派生：限制工具结果正文 |
 | `judge_double_pass` | `bool` | `True` | 执行阶段 Judge 是否进行双遍审计 | 派生：决定 Judge 调用次数和第二遍输入 |
-| `llm_backend` | `str` | `"auto"` | `auto/litellm/legacy` 模型调用实现 | 调用参数 |
+| `llm_backend` | `Literal["auto", "litellm"]` | `"auto"` | 标准模型调用使用 LiteLLM；`auto` 允许显式配置的 Responses、Anthropic native、target native tools 和 streaming adapter，`litellm` 则强制可由 LiteLLM 承担的调用使用 LiteLLM。LiteLLM 失败时不会切换协议或回退到手写 HTTP 实现 | 调用参数 |
 | `allow_incomplete_benchmark` | `bool` | `False` | QC 仍有阻塞问题时是否允许保留不完整草稿 | 否 |
 
 ### G.4 流程、输出、人工审核与 Loop 3（13 个字段）
@@ -3262,7 +3238,7 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 
 `QcReport`：`issues: list[QcIssue]`、`passed_item_ids: list[str]`、`rejected_item_ids: list[str]`、`quality_score: float`、`summary: str`。`is_acceptable` 属性 = 无 error issue 且 `rejected_item_ids` 为空。
 
-`QcIssue`：`item_id: Optional[str]`（空表示数据集级问题）、`severity: info|warning|error`、`category: schema|duplicate|scoring|clarity|coverage|challenge_effort`、`message`、`suggested_action`。
+`QcIssue`：`item_id: Optional[str]`（空表示数据集级问题）、`severity: warning|error`、`category: schema|duplicate|scoring|clarity|coverage|challenge_effort`、`message`、`suggested_action`。数据集级问题只能是 `warning`，不触发修复；`error` 必须绑定具体题目，表示该题不可执行或答案明显不可靠。非问题的普通观察不进入 `issues`。
 
 ### I.7 构题阶段单题结构检查（`task_structure_issues`）
 

@@ -7,7 +7,7 @@ from evalclaw.cli import _parse_target_configs
 from evalclaw.models import llm
 from evalclaw.models.providers import infer_provider, target_from_model
 from evalclaw.protocols.tool import ToolSpec, object_schema
-from evalclaw.types import Message, TargetModelConfig
+from evalclaw.types import BenchmarkConfig, Message, TargetModelConfig
 
 
 @pytest.fixture(autouse=True)
@@ -119,19 +119,19 @@ def test_post_with_retry_enforces_total_deadline(monkeypatch) -> None:
     assert request_timeouts == [6.0, 1.0]
 
 
-def test_call_llm_does_not_fallback_to_legacy_after_truncation(monkeypatch) -> None:
-    legacy_calls = 0
+def test_call_llm_does_not_switch_to_direct_http_after_truncation(monkeypatch) -> None:
+    direct_calls = 0
 
     def truncated(**kwargs):
         raise llm.LLMOutputTruncatedError("output truncated")
 
-    def legacy(*args, **kwargs):
-        nonlocal legacy_calls
-        legacy_calls += 1
+    def direct(*args, **kwargs):
+        nonlocal direct_calls
+        direct_calls += 1
         return {}
 
     monkeypatch.setattr(llm, "_call_litellm", truncated)
-    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
     with pytest.raises(llm.LLMOutputTruncatedError):
         llm.call_llm(
@@ -142,22 +142,22 @@ def test_call_llm_does_not_fallback_to_legacy_after_truncation(monkeypatch) -> N
             backend="auto",
         )
 
-    assert legacy_calls == 0
+    assert direct_calls == 0
 
 
-def test_call_llm_does_not_fallback_to_legacy_after_network_error(monkeypatch) -> None:
-    legacy_calls = 0
+def test_call_llm_does_not_switch_to_direct_http_after_network_error(monkeypatch) -> None:
+    direct_calls = 0
 
     def disconnected(**kwargs):
         raise llm.httpx.ConnectError("disconnected")
 
-    def legacy(*args, **kwargs):
-        nonlocal legacy_calls
-        legacy_calls += 1
+    def direct(*args, **kwargs):
+        nonlocal direct_calls
+        direct_calls += 1
         return {}
 
     monkeypatch.setattr(llm, "_call_litellm", disconnected)
-    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
     with pytest.raises(llm.httpx.ConnectError):
         llm.call_llm(
@@ -168,14 +168,14 @@ def test_call_llm_does_not_fallback_to_legacy_after_network_error(monkeypatch) -
             backend="auto",
         )
 
-    assert legacy_calls == 0
+    assert direct_calls == 0
 
 
-def test_orchestrator_tool_truncation_does_not_fallback_to_legacy(monkeypatch) -> None:
+def test_orchestrator_tool_truncation_does_not_switch_to_direct_http(monkeypatch) -> None:
     import litellm as _litellm
 
     completion_calls = 0
-    legacy_calls = 0
+    direct_calls = 0
 
     def truncated(**kwargs):
         nonlocal completion_calls
@@ -189,13 +189,13 @@ def test_orchestrator_tool_truncation_does_not_fallback_to_legacy(monkeypatch) -
             ]
         )
 
-    def legacy(*args, **kwargs):
-        nonlocal legacy_calls
-        legacy_calls += 1
+    def direct(*args, **kwargs):
+        nonlocal direct_calls
+        direct_calls += 1
         return {}
 
     monkeypatch.setattr(_litellm, "completion", truncated)
-    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
     with pytest.raises(llm.LLMOutputTruncatedError):
         llm.call_orchestrator_with_tools(
@@ -208,10 +208,39 @@ def test_orchestrator_tool_truncation_does_not_fallback_to_legacy(monkeypatch) -
         )
 
     assert completion_calls == 2
-    assert legacy_calls == 0
+    assert direct_calls == 0
 
 
-def test_call_llm_uses_legacy_for_litellm_adapter_failure(monkeypatch) -> None:
+def test_orchestrator_tool_adapter_failure_does_not_switch_to_direct_http(monkeypatch) -> None:
+    import litellm as _litellm
+
+    direct_calls = 0
+
+    def direct(*args, **kwargs):
+        nonlocal direct_calls
+        direct_calls += 1
+        return {}
+
+    monkeypatch.setattr(
+        _litellm,
+        "completion",
+        lambda **kwargs: SimpleNamespace(choices=[]),
+    )
+    monkeypatch.setattr(llm, "_post_with_retry", direct)
+
+    with pytest.raises(llm.LLMProtocolAdapterError, match="no choices"):
+        llm.call_orchestrator_with_tools(
+            [{"role": "user", "content": "build one task"}],
+            model="deepseek-v4-pro",
+            api_key="test-key",
+            base_url="https://api.deepseek.com",
+            tools=[],
+        )
+
+    assert direct_calls == 0
+
+
+def test_call_llm_propagates_litellm_adapter_failure(monkeypatch) -> None:
     import litellm as _litellm
 
     def unsupported(**kwargs):
@@ -221,33 +250,29 @@ def test_call_llm_uses_legacy_for_litellm_adapter_failure(monkeypatch) -> None:
             model="deepseek-v4-pro",
         )
 
-    legacy_calls = 0
+    direct_calls = 0
 
-    def legacy(*args, **kwargs):
-        nonlocal legacy_calls
-        legacy_calls += 1
-        return {
-            "choices": [
-                {"finish_reason": "stop", "message": {"content": "legacy response"}}
-            ]
-        }
+    def direct(*args, **kwargs):
+        nonlocal direct_calls
+        direct_calls += 1
+        return {}
 
     monkeypatch.setattr(llm, "_call_litellm", unsupported)
-    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
-    result = llm.call_llm(
-        [Message(role="user", content="hello")],
-        model="deepseek-v4-pro",
-        api_key="test-key",
-        base_url="https://api.deepseek.com",
-        backend="auto",
-    )
+    with pytest.raises(_litellm.UnsupportedParamsError, match="unsupported parameter"):
+        llm.call_llm(
+            [Message(role="user", content="hello")],
+            model="deepseek-v4-pro",
+            api_key="test-key",
+            base_url="https://api.deepseek.com",
+            backend="auto",
+        )
 
-    assert result == "legacy response"
-    assert legacy_calls == 1
+    assert direct_calls == 0
 
 
-def test_call_llm_uses_legacy_for_unadaptable_litellm_response(monkeypatch) -> None:
+def test_call_llm_propagates_unadaptable_litellm_response(monkeypatch) -> None:
     import litellm as _litellm
 
     monkeypatch.setattr(
@@ -255,51 +280,33 @@ def test_call_llm_uses_legacy_for_unadaptable_litellm_response(monkeypatch) -> N
         "completion",
         lambda **kwargs: SimpleNamespace(choices=[]),
     )
-    legacy_calls = 0
+    direct_calls = 0
 
-    def legacy(*args, **kwargs):
-        nonlocal legacy_calls
-        legacy_calls += 1
-        return {
-            "choices": [
-                {"finish_reason": "stop", "message": {"content": "adapted directly"}}
-            ]
-        }
+    def direct(*args, **kwargs):
+        nonlocal direct_calls
+        direct_calls += 1
+        return {}
 
-    monkeypatch.setattr(llm, "_post_with_retry", legacy)
+    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
-    result = llm.call_llm(
-        [Message(role="user", content="hello")],
-        model="deepseek-v4-pro",
-        api_key="test-key",
-        base_url="https://api.deepseek.com",
-        backend="auto",
-    )
+    with pytest.raises(llm.LLMProtocolAdapterError, match="unsupported response shape"):
+        llm.call_llm(
+            [Message(role="user", content="hello")],
+            model="deepseek-v4-pro",
+            api_key="test-key",
+            base_url="https://api.deepseek.com",
+            backend="auto",
+        )
 
-    assert result == "adapted directly"
-    assert legacy_calls == 1
+    assert direct_calls == 0
 
 
-def test_legacy_openai_compatible_forwards_reasoning_effort(monkeypatch) -> None:
-    captured: dict = {}
+def test_legacy_llm_backend_is_rejected() -> None:
+    with pytest.raises(ValueError, match="llm_backend"):
+        BenchmarkConfig(llm_backend="legacy")
 
-    def fake_post(url, headers, body, **kwargs):
-        captured.update(body)
-        return {"choices": [{"finish_reason": "stop", "message": {"content": "ok"}}]}
-
-    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
-    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
-
-    result = llm.call_llm(
-        [Message(role="user", content="hello")],
-        model="gpt-5.6-luna",
-        api_key="test-key",
-        base_url="https://model.example/v1",
-        backend="legacy",
-    )
-
-    assert result == "ok"
-    assert captured["reasoning_effort"] == "low"
+    with pytest.raises(ValueError, match="Unsupported LLM backend"):
+        llm.call_llm([Message(role="user", content="hello")], backend="legacy")
 
 
 def test_openai_responses_provider_uses_responses_api(monkeypatch) -> None:
@@ -706,45 +713,6 @@ def test_orchestrator_native_tools_use_custom_anthropic_endpoint(monkeypatch) ->
     assert client.messages.calls[0]["tools"][0]["name"] == "search"
 
 
-def test_legacy_orchestrator_tool_call_retries_truncation_and_requests_json_object(monkeypatch) -> None:
-    requests: list[dict] = []
-
-    def fake_post(url, headers, body, **kwargs):
-        requests.append(body)
-        if len(requests) == 1:
-            return {
-                "choices": [
-                    {"finish_reason": "length", "message": {"content": '[{"partial": true}]'}}
-                ]
-            }
-        return {
-            "choices": [
-                {
-                    "finish_reason": "stop",
-                    "message": {"content": '{"tasks": []}'},
-                }
-            ]
-        }
-
-    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
-
-    response = llm.call_orchestrator_with_tools(
-        [{"role": "user", "content": "Return one complete JSON object."}],
-        model="deepseek-v4-pro",
-        api_key="test-key",
-        base_url="https://api.deepseek.com",
-        backend="legacy",
-        tools=[],
-        max_tokens=16384,
-    )
-
-    assert response.content == '{"tasks": []}'
-    assert [request["max_tokens"] for request in requests] == [16384, 32768]
-    assert all("tools" not in request for request in requests)
-    assert all(request["response_format"] == {"type": "json_object"} for request in requests)
-    assert all(request["thinking"] == {"type": "disabled"} for request in requests)
-
-
 def test_repeated_target_configs_keep_protocol_url_and_key_independent(monkeypatch) -> None:
     monkeypatch.setenv("CLAUDE_TARGET_KEY", "claude-secret")
     configs = [
@@ -803,11 +771,13 @@ def test_multiple_targets_call_their_own_protocol_endpoint_and_key(monkeypatch) 
         ],
         fallback_key=None,
     )
-    openai_requests: list[tuple[str, dict]] = []
+    openai_requests: list[tuple[str, str | None, str | None]] = []
 
-    def fake_post(url, headers, body, **kwargs):
-        openai_requests.append((url, headers))
-        return {"choices": [{"message": {"content": "openai response"}}]}
+    def fake_litellm(**kwargs):
+        openai_requests.append(
+            (kwargs["model"], kwargs.get("base_url"), kwargs.get("api_key"))
+        )
+        return "openai response"
 
     anthropic_client = _FakeAnthropicClient()
     anthropic_clients: list[tuple[str | None, str | None]] = []
@@ -816,19 +786,46 @@ def test_multiple_targets_call_their_own_protocol_endpoint_and_key(monkeypatch) 
         anthropic_clients.append((api_key, base_url))
         return anthropic_client
 
-    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
+    monkeypatch.setattr(llm, "_call_litellm", fake_litellm)
     monkeypatch.setattr(llm, "_get_anthropic_client", fake_anthropic_client)
 
-    responses = [llm.call_target_model("hello", target, backend="legacy") for target in targets]
+    responses = [llm.call_target_model("hello", target) for target in targets]
 
     assert responses == ["openai response", "anthropic response"]
     assert openai_requests == [
         (
-            "https://relay.example/v1/chat/completions",
-            {"Authorization": "Bearer relay-key", "Content-Type": "application/json"},
+            "relay-model",
+            "https://relay.example/v1",
+            "relay-key",
         )
     ]
     assert anthropic_clients == [("claude-key", "https://claude.example/v1")]
+
+
+def test_target_adapter_failure_does_not_switch_to_direct_http(monkeypatch) -> None:
+    target = TargetModelConfig(
+        provider="openai_compatible",
+        model="relay-model",
+        api_key="relay-key",
+        base_url="https://relay.example/v1",
+    )
+    direct_calls = 0
+
+    def fail_litellm(**kwargs):
+        raise llm.LLMProtocolAdapterError("unsupported response")
+
+    def direct(*args, **kwargs):
+        nonlocal direct_calls
+        direct_calls += 1
+        return {}
+
+    monkeypatch.setattr(llm, "_call_litellm", fail_litellm)
+    monkeypatch.setattr(llm, "_post_with_retry", direct)
+
+    with pytest.raises(llm.LLMProtocolAdapterError, match="unsupported response"):
+        llm.call_target_model("hello", target)
+
+    assert direct_calls == 0
 
 
 def test_target_config_requires_unique_ids() -> None:

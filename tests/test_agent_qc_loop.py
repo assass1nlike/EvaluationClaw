@@ -1,6 +1,11 @@
 import pytest
 
-from evalclaw.benchmark import _merge_repaired_suite, build_benchmark_suite_with_qc_loop
+from evalclaw.benchmark import (
+    _affected_builder_job_ids,
+    _merge_repaired_suite,
+    build_benchmark_suite_with_qc_loop,
+    build_suite_from_spec_with_qc_loop,
+)
 from evalclaw.quality.llm_checks import _stabilize_llm_issue
 from evalclaw.types import (
     AgentEnvironmentType,
@@ -12,6 +17,7 @@ from evalclaw.types import (
     QcIssue,
     QcReport,
     QcSeverity,
+    TaskDefinition,
     TaskResource,
     TaskSuite,
     TaskType,
@@ -52,6 +58,58 @@ def _task(
         rubric="The requested result is correct.",
         metadata=metadata,
     )
+
+
+def test_full_suite_rejects_dimension_without_builder_job() -> None:
+    dimensions = [
+        EvalDimension(id="covered", name="Covered", description="Covered", approach="Build it."),
+        EvalDimension(id="missing", name="Missing", description="Missing", approach="Build it."),
+    ]
+    spec = EvalSpec(objective="Evaluate coverage.", dimensions=dimensions)
+    blueprint = make_blueprint(
+        "covered_blueprint",
+        "covered",
+        "Covered",
+        task_type=TaskType.fill_blank,
+        content="Build one covered task.",
+    )
+
+    with pytest.raises(ValueError, match=r"Missing TaskDesign Builder jobs.*missing"):
+        build_suite_from_spec_with_qc_loop(
+            spec,
+            [blueprint],
+            BenchmarkConfig(),
+            log=lambda _: None,
+        )
+
+
+def test_dataset_level_qc_issue_is_warning_and_does_not_trigger_repair() -> None:
+    dimension = EvalDimension(
+        id="coverage",
+        name="Coverage",
+        description="Evaluate coverage.",
+        approach="Use representative tasks.",
+    )
+    blueprint = make_blueprint(
+        "coverage_blueprint",
+        dimension.id,
+        "Coverage",
+        task_type=TaskType.fill_blank,
+        content="Build one coverage task.",
+    )
+    suite = TaskSuite(
+        spec=EvalSpec(objective="Evaluate coverage.", dimensions=[dimension]),
+        objective="Evaluate coverage.",
+        blueprints=[blueprint],
+    )
+    issue = QcIssue(
+        severity=QcSeverity.error,
+        category=QcCategory.coverage,
+        message="The dimension design is too broad.",
+    )
+
+    assert issue.severity == QcSeverity.warning
+    assert _affected_builder_job_ids(suite, QcReport(issues=[issue])) == set()
 
 
 def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
@@ -421,6 +479,108 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
     assert any("discarded non-improving replacement" in message for message in logs)
 
 
+def test_qc_loop_keeps_only_items_with_fewer_blocking_errors(monkeypatch) -> None:
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate grounded knowledge.",
+        approach="Use short-answer tasks.",
+        task_types=[TaskType.fill_blank],
+        target_item_count=2,
+    )
+    spec = EvalSpec(
+        objective="Evaluate grounded knowledge.",
+        dimensions=[dimension],
+        task_types=[TaskType.fill_blank],
+        scale=2,
+    )
+    blueprints = [
+        make_blueprint(
+            "knowledge_a",
+            dimension.id,
+            "Knowledge A",
+            task_type=TaskType.fill_blank,
+            content="Evidence question A.",
+        ),
+        make_blueprint(
+            "knowledge_b",
+            dimension.id,
+            "Knowledge B",
+            task_type=TaskType.fill_blank,
+            content="Evidence question B.",
+        ),
+    ]
+    original_a = _task("task_a", dimension.id, blueprints[0].id).model_copy(
+        update={"expected_text": "a-original"}
+    )
+    original_b = _task("task_b", dimension.id, blueprints[1].id).model_copy(
+        update={"expected_text": "b-original"}
+    )
+    repaired_a = original_a.model_copy(update={"expected_text": "a-fixed"})
+    repaired_b = original_b.model_copy(update={"expected_text": "b-regressed"})
+    initial_suite = TaskSuite(
+        spec=spec,
+        objective=spec.objective,
+        dimensions=[dimension],
+        blueprints=blueprints,
+        tasks=[original_a, original_b],
+    )
+    repaired_suite = initial_suite.model_copy(update={"tasks": [repaired_a, repaired_b]})
+
+    monkeypatch.setattr(
+        "evalclaw.benchmark.plan_benchmark",
+        lambda *args, **kwargs: make_plan(spec, blueprints),
+    )
+    build_calls = 0
+
+    def fake_build(*args, **kwargs):
+        nonlocal build_calls
+        build_calls += 1
+        return initial_suite if build_calls == 1 else repaired_suite
+
+    def report(*counts: tuple[str, int]) -> QcReport:
+        issues = [
+            QcIssue(
+                item_id=item_id,
+                severity=QcSeverity.error,
+                category=QcCategory.scoring,
+                message=f"Blocking issue {index} for {item_id}.",
+            )
+            for item_id, count in counts
+            for index in range(count)
+        ]
+        rejected = sorted({issue.item_id for issue in issues if issue.item_id})
+        return QcReport(
+            issues=issues,
+            passed_item_ids=[item.id for item in initial_suite.tasks if item.id not in rejected],
+            rejected_item_ids=rejected,
+            summary=f"{len(issues)} blocking issue(s).",
+        )
+
+    def fake_qc(candidate, config):
+        answers = [item.expected_text for item in candidate.tasks]
+        if answers == ["a-original", "b-original"]:
+            return report(("task_a", 1), ("task_b", 1))
+        if answers == ["a-fixed", "b-regressed"]:
+            return report(("task_b", 2))
+        assert answers == ["a-fixed", "b-original"]
+        return report(("task_b", 1))
+
+    monkeypatch.setattr("evalclaw.benchmark.build_task_suite", fake_build)
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", fake_qc)
+    logs: list[str] = []
+
+    _, result, qc_report = build_benchmark_suite_with_qc_loop(
+        spec.objective,
+        BenchmarkConfig(max_qc_iterations=1, allow_incomplete_benchmark=True),
+        log=logs.append,
+    )
+
+    assert [item.expected_text for item in result.tasks] == ["a-fixed", "b-original"]
+    assert [issue.item_id for issue in qc_report.issues] == ["task_b"]
+    assert any("kept 1 improved item repair(s), rolled back 1" in message for message in logs)
+
+
 def test_qc_repair_preserves_task_order_and_replaces_resource_by_id() -> None:
     spec = EvalSpec(objective="Evaluate grounded knowledge.")
     kept = _task("z_kept", "knowledge", "knowledge_family")
@@ -460,6 +620,58 @@ def test_qc_repair_preserves_task_order_and_replaces_resource_by_id() -> None:
     assert [task.id for task in merged.tasks] == ["z_kept", "a_failed"]
     assert merged.tasks[1].expected_text == "supported result"
     assert merged.resources[0].content_summary == "Corrected supporting evidence."
+
+
+def test_partial_qc_repair_merges_only_resources_used_by_kept_items() -> None:
+    spec = EvalSpec(objective="Evaluate grounded knowledge.")
+
+    def item_with_resource(item_id: str, resource_id: str, answer: str) -> BenchmarkItem:
+        item = _task(item_id, "knowledge", "knowledge_family").model_copy(
+            update={"expected_text": answer}
+        )
+        definition = TaskDefinition(
+            id=item_id,
+            dimension_id="knowledge",
+            task_type=TaskType.fill_blank,
+            title=item_id,
+            prompt=item.prompt,
+            expected_text=answer,
+            resource_ids=[resource_id],
+        )
+        return item.model_copy(update={"source_definition": definition})
+
+    previous = TaskSuite(
+        spec=spec,
+        objective=spec.objective,
+        tasks=[
+            item_with_resource("task_a", "resource_a", "a-original"),
+            item_with_resource("task_b", "resource_b", "b-original"),
+        ],
+        resources=[
+            TaskResource(id="resource_a", content_summary="A original"),
+            TaskResource(id="resource_b", content_summary="B original"),
+        ],
+    )
+    repaired = TaskSuite(
+        spec=spec,
+        objective=spec.objective,
+        tasks=[
+            item_with_resource("task_a", "resource_a", "a-fixed"),
+            item_with_resource("task_b", "resource_b", "b-regressed"),
+        ],
+        resources=[
+            TaskResource(id="resource_a", content_summary="A repaired"),
+            TaskResource(id="resource_b", content_summary="B repaired"),
+        ],
+    )
+
+    merged = _merge_repaired_suite(previous, repaired, item_ids={"task_a"})
+
+    assert [item.expected_text for item in merged.tasks] == ["a-fixed", "b-original"]
+    assert [resource.content_summary for resource in merged.resources] == [
+        "A repaired",
+        "B original",
+    ]
 
 
 def _rejected_fixture():

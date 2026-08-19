@@ -115,7 +115,7 @@ def _dimension_from_data(
     )
 
 
-def _item_excerpt(item: BenchmarkItem) -> dict[str, object]:
+def _item_excerpt(item: BenchmarkItem, *, truncate: bool = True) -> dict[str, object]:
     task_agent = item.metadata.get("task_agent")
     metadata: dict[str, object] = {}
     if isinstance(task_agent, dict):
@@ -135,22 +135,62 @@ def _item_excerpt(item: BenchmarkItem) -> dict[str, object]:
             "answer_type": science.get("answer_type"),
             "units": science.get("units"),
         }
-    return {
+    excerpt: dict[str, object] = {
         "id": item.id,
         "dimension_id": item.dimension_id,
         "task_type": item.task_type.value,
         "challenge_effort": item.challenge_effort.value,
-        "prompt": item.prompt[:700],
+        "prompt": item.prompt[:700] if truncate else item.prompt,
         "choices": [choice.model_dump(mode="json") for choice in item.choices],
         "correct_choice_ids": item.correct_choice_ids,
         "expected_text": item.expected_text,
-        "rubric": (item.rubric or "")[:500],
+        "rubric": (item.rubric or "")[:500] if truncate else (item.rubric or ""),
         "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
         "output_contract": item.output_contract,
         "source": item.source.model_dump(mode="json"),
         "tags": item.tags,
         "metadata": metadata,
     }
+    if not truncate and item.source_definition is not None:
+        definition = item.source_definition
+        excerpt["task_definition"] = {
+            "title": definition.title,
+            "content_summary": definition.content_summary,
+            "description": definition.description,
+            "system_prompt": definition.system_prompt,
+            "resource_ids": definition.resource_ids,
+            "interaction": definition.interaction,
+            "environment": (
+                definition.environment.model_dump(
+                    mode="json",
+                    exclude={"bridge_api_key", "vm_provider_api_key"},
+                )
+                if definition.environment is not None
+                else None
+            ),
+            "scoring": definition.scoring.model_dump(mode="json"),
+        }
+    return excerpt
+
+
+def _review_item_excerpts(
+    suite: TaskSuite,
+    human_feedback: str | None,
+) -> list[dict[str, object]]:
+    feedback = human_feedback or ""
+    mentioned_ids = {
+        item.id
+        for item in suite.tasks
+        if re.search(
+            rf"(?<![A-Za-z0-9_.-]){re.escape(item.id)}(?![A-Za-z0-9_.-])",
+            feedback,
+        )
+    }
+    return [
+        _item_excerpt(item, truncate=item.id not in mentioned_ids)
+        for index, item in enumerate(suite.tasks)
+        if index < 80 or item.id in mentioned_ids
+    ]
 
 
 def _dimension_suite_summaries(suite: TaskSuite, config: BenchmarkConfig) -> list[dict[str, object]]:
@@ -197,13 +237,8 @@ def _planner_review(
         "human_feedback": human_feedback,
         "dimensions": [dimension.model_dump(mode="json") for dimension in suite.spec.dimensions],
         "dimension_dataset_summaries": _dimension_suite_summaries(suite, config),
-        "target_counts": {
-            dimension.id: target_count_for_dimension(dimension, config)
-            for dimension in suite.spec.dimensions
-        },
-        "current_counts": Counter(item.dimension_id for item in suite.tasks),
         "qc_issues": [issue.model_dump(mode="json") for issue in qc_report.issues[:60]],
-        "items": [_item_excerpt(item) for item in suite.tasks[:80]],
+        "items": _review_item_excerpts(suite, human_feedback),
     }
     try:
         raw = call_llm(
@@ -328,6 +363,10 @@ def _apply_review(
     for raw_add in review.get("add_dimensions", []) or []:
         if not isinstance(raw_add, dict):
             continue
+        if _safe_positive_int(raw_add.get("target_item_count")) is None:
+            raise ValueError(
+                "Each added dimension must define a positive integer target_item_count."
+            )
         proposed_id = str(raw_add.get("ref") or raw_add.get("id") or "").strip()
         added_id = next_dimension_id()
         added = _dimension_from_data(raw_add, framework_id=added_id)
@@ -536,13 +575,124 @@ def format_human_review_overview(
                 f"- Requirements: {requirements}",
             ]
         )
+
+    lines.extend(["", "## All Items"])
+    for item in suite.tasks:
+        source_definition = item.source_definition
+        scoring = (
+            source_definition.scoring.model_dump(mode="json", exclude_defaults=True)
+            if source_definition is not None
+            else {}
+        )
+        lines.extend(
+            [
+                "",
+                f"### `{item.id}`",
+                f"- Dimension: `{item.dimension_id}`",
+                f"- Type: `{item.task_type.value}`",
+                f"- Challenge effort: `{item.challenge_effort.value}`",
+                f"- QC status: {'passed' if item.id in ready_ids else 'not passed'}",
+                f"- Source: `{item.source.kind.value}`"
+                + (f" - {item.source.uri}" if item.source.uri else ""),
+                f"- Source notes: {item.source.notes or '-'}",
+                f"- Tags: {', '.join(item.tags) or '-'}",
+            ]
+        )
+        if source_definition is not None:
+            lines.extend(
+                [
+                    f"- Title: {source_definition.title}",
+                    f"- Content summary: {source_definition.content_summary or '-'}",
+                    f"- Description: {source_definition.description or '-'}",
+                    f"- Resource ids: {', '.join(source_definition.resource_ids) or '-'}",
+                ]
+            )
+        lines.extend(
+            [
+                "- Prompt:",
+                "```text",
+                item.prompt,
+                "```",
+            ]
+        )
+        if item.choices:
+            correct_ids = set(item.correct_choice_ids)
+            lines.append("- Choices:")
+            for choice in item.choices:
+                marker = "correct" if choice.id in correct_ids else "incorrect"
+                lines.append(f"  - `{choice.id}` ({marker}): {choice.text}")
+        if item.expected_text is not None:
+            lines.extend(["- Expected text:", "```text", item.expected_text, "```"])
+        if item.rubric:
+            lines.extend(["- Rubric:", "```text", item.rubric, "```"])
+        if item.judge_tools:
+            lines.extend(
+                [
+                    "- Judge tools:",
+                    "```json",
+                    json.dumps(
+                        [tool.model_dump(mode="json") for tool in item.judge_tools],
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                    "```",
+                ]
+            )
+        if item.output_contract:
+            lines.extend(
+                [
+                    "- Output contract:",
+                    "```json",
+                    json.dumps(item.output_contract, ensure_ascii=False, indent=2),
+                    "```",
+                ]
+            )
+        if source_definition is not None and source_definition.system_prompt:
+            lines.extend(
+                ["- System prompt:", "```text", source_definition.system_prompt, "```"]
+            )
+        if source_definition is not None and source_definition.interaction:
+            lines.extend(
+                [
+                    "- Interaction:",
+                    "```json",
+                    json.dumps(source_definition.interaction, ensure_ascii=False, indent=2),
+                    "```",
+                ]
+            )
+        if source_definition is not None and source_definition.environment is not None:
+            lines.extend(
+                [
+                    "- Environment:",
+                    "```json",
+                    json.dumps(
+                        source_definition.environment.model_dump(
+                            mode="json",
+                            exclude_defaults=True,
+                            exclude={"bridge_api_key", "vm_provider_api_key"},
+                        ),
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                    "```",
+                ]
+            )
+        if scoring:
+            lines.extend(
+                [
+                    "- Scoring:",
+                    "```json",
+                    json.dumps(scoring, ensure_ascii=False, indent=2),
+                    "```",
+                ]
+            )
     lines.extend(
         [
             "",
             "Reply with an empty line, 'approve', or 'ok' to run targets.",
-            "Or describe requested changes, for example: 'Split dimension X into A/B', "
-            "'delete item Y', 'add 2 code-sandbox items to dimension Z', or "
-            "'make dimension A focus on multi-turn escalation'.",
+            "For dimension-level changes, describe the requested dimension update. For a "
+            "single-item change, cite the exact item id shown above and state what to change, "
+            "for example: 'Update item_17: add an ambiguous edge case but keep its rubric.'",
         ]
     )
     return "\n".join(lines)

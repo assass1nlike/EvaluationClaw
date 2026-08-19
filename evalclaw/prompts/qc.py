@@ -231,8 +231,11 @@ Return pure JSON only, with no markdown. Format:
   "summary": "..."
 }
 
-severity must be one of info/warning/error.
+severity must be one of warning/error. Use warning for a real but non-blocking
+problem; omit observations that do not identify a problem.
 category must be one of schema/duplicate/scoring/clarity/coverage.
-Mark error only for issues that make an item unexecutable or make the answer
+An error must identify the affected existing item_id. Dataset-level issues such
+as dimension design, overall coverage, scoring strategy, or source bias must be
+warnings. Mark an item error only when it is unexecutable or its answer is
 clearly unreliable.
 """

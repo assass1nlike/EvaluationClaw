@@ -16,13 +16,13 @@ from ..types import (
     BenchmarkConfig,
     BenchmarkItem,
     Message,
-    QcCategory,
     QcIssue,
     QcSeverity,
     TaskSuite,
     TaskType,
 )
-from .common import _issue
+
+LLM_QC_MAX_ATTEMPTS = 3
 
 
 def _file_review_excerpt(content: object, limit: int = 3000) -> str:
@@ -423,68 +423,62 @@ def _llm_qc(
                 "max_tokens": 4096,
             }
         )
-    try:
-        raw = call_llm(
-            [
-                Message(
-                    role="user",
-                    content=json.dumps(request, ensure_ascii=False, indent=2),
-                )
-            ],
-            system=QC_SYSTEM_PROMPT,
-            **settings.call_kwargs(),
-            backend=config.llm_backend,
-            max_tokens=4096,
-        )
-        if trace is not None:
-            trace["raw_response"] = raw
-        data = extract_json(raw)
-        if trace is not None:
-            trace["parsed_response"] = data
-        if not isinstance(data, dict):
+    item_by_id = {item.id: item for item in suite.tasks}
+    for attempt in range(1, LLM_QC_MAX_ATTEMPTS + 1):
+        try:
+            raw = call_llm(
+                [
+                    Message(
+                        role="user",
+                        content=json.dumps(request, ensure_ascii=False, indent=2),
+                    )
+                ],
+                system=QC_SYSTEM_PROMPT,
+                **settings.call_kwargs(),
+                backend=config.llm_backend,
+                max_tokens=4096,
+            )
+            data = extract_json(raw)
+            if not isinstance(data, dict):
+                raise ValueError(f"expected a JSON object, got {type(data).__name__}")
+            raw_issues = data.get("issues")
+            if not isinstance(raw_issues, list):
+                raise ValueError("response field 'issues' must be a list")
+            issues: list[QcIssue] = []
+            for index, raw_issue in enumerate(raw_issues, 1):
+                if not isinstance(raw_issue, dict):
+                    raise ValueError(f"issue #{index} must be a JSON object")
+                try:
+                    issue = QcIssue.model_validate(raw_issue)
+                except ValueError as exc:
+                    raise ValueError(f"issue #{index} is invalid: {exc}") from exc
+                if not issue.message.strip():
+                    raise ValueError(f"issue #{index} has an empty message")
+                issues.append(_stabilize_llm_issue(issue, item_by_id))
+        except Exception as exc:
             if trace is not None:
-                trace["status"] = "invalid_response"
-            return [
-                _issue(
-                    None,
-                    QcSeverity.error,
-                    QcCategory.clarity,
-                    f"LLM QC returned {type(data).__name__}; configured LLM QC did not complete.",
-                    "Retry with a QC model that returns the requested object schema.",
+                trace.update(
+                    {
+                        "status": "retrying" if attempt < LLM_QC_MAX_ATTEMPTS else "failed",
+                        "attempt": attempt,
+                        "error_type": type(exc).__name__,
+                        "error": str(exc),
+                    }
                 )
-            ]
-    except Exception as exc:
+            if attempt == LLM_QC_MAX_ATTEMPTS:
+                raise RuntimeError(
+                    f"LLM QC failed after {LLM_QC_MAX_ATTEMPTS} attempts: "
+                    f"{type(exc).__name__}: {exc}"
+                ) from exc
+            continue
         if trace is not None:
             trace.update(
                 {
-                    "status": "failed",
-                    "error_type": type(exc).__name__,
-                    "error": str(exc),
+                    "status": "completed",
+                    "attempt": attempt,
+                    "raw_response": raw,
+                    "parsed_response": data,
                 }
             )
-        return [
-            _issue(
-                None,
-                QcSeverity.error,
-                QcCategory.clarity,
-                f"LLM QC failed; refusing to accept static QC as an equivalent fallback: {str(exc)[:240]}",
-                "Retry with a smaller suite, a different QC model, or local/static-only QC.",
-            )
-            ]
-    if trace is not None:
-        trace["status"] = "completed"
-    issues: list[QcIssue] = []
-    item_by_id = {item.id: item for item in suite.tasks}
-    for raw_issue in data.get("issues", []):
-        try:
-            issue = QcIssue(
-                item_id=raw_issue.get("item_id"),
-                severity=QcSeverity(raw_issue.get("severity", "warning")),
-                category=QcCategory(raw_issue.get("category", "clarity")),
-                message=str(raw_issue.get("message", "")),
-                suggested_action=str(raw_issue.get("suggested_action", "")),
-            )
-            issues.append(_stabilize_llm_issue(issue, item_by_id))
-        except ValueError:
-            continue
-    return issues
+        return issues
+    raise AssertionError("unreachable")

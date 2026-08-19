@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from evalclaw.construction.packaging import (
     _agent_task_package_for_task,
     _task_agent_metadata_for_task,
@@ -760,6 +762,10 @@ def test_qc_warnings_do_not_make_a_runner_ready_dataset_unacceptable() -> None:
     assert report.is_acceptable is True
 
 
+def test_qc_severity_contains_only_problem_levels() -> None:
+    assert set(QcSeverity) == {QcSeverity.warning, QcSeverity.error}
+
+
 def test_agent_task_package_preserves_alternative_artifact_semantics() -> None:
     task = _task(
         TaskType.agent,
@@ -1163,11 +1169,7 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
     assert "QC review excerpt clipped" not in captured_env["vm_provisioning"]["powershell_commands"][0]
 
 
-def test_configured_llm_qc_failure_is_blocking(monkeypatch) -> None:
-    monkeypatch.setattr(
-        "evalclaw.quality.llm_checks.call_llm",
-        lambda *args, **kwargs: (_ for _ in ()).throw(ConnectionError("endpoint unavailable")),
-    )
+def _minimal_llm_qc_suite() -> TaskSuite:
     dimension = EvalDimension(
         id="analysis",
         name="Analysis",
@@ -1180,7 +1182,7 @@ def test_configured_llm_qc_failure_is_blocking(monkeypatch) -> None:
         dimensions=[dimension],
         task_types=[TaskType.generation],
     )
-    suite = TaskSuite(
+    return TaskSuite(
         spec=spec,
         objective=spec.objective,
         tasks=[
@@ -1194,11 +1196,61 @@ def test_configured_llm_qc_failure_is_blocking(monkeypatch) -> None:
         ],
     )
 
-    issues = _llm_qc(suite, BenchmarkConfig(**dummy_config_kwargs()))
 
-    assert len(issues) == 1
-    assert issues[0].severity == QcSeverity.error
-    assert "refusing to accept static QC" in issues[0].message
+def test_configured_llm_qc_retries_then_raises_on_failure(monkeypatch) -> None:
+    attempts = 0
+
+    def fail_qc(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        raise ConnectionError("endpoint unavailable")
+
+    monkeypatch.setattr("evalclaw.quality.llm_checks.call_llm", fail_qc)
+    trace: dict[str, object] = {}
+
+    with pytest.raises(RuntimeError, match="LLM QC failed after 3 attempts"):
+        _llm_qc(
+            _minimal_llm_qc_suite(),
+            BenchmarkConfig(**dummy_config_kwargs()),
+            trace=trace,
+        )
+
+    assert attempts == 3
+    assert trace["status"] == "failed"
+    assert trace["attempt"] == 3
+
+
+def test_configured_llm_qc_retries_invalid_responses_until_success(monkeypatch) -> None:
+    responses = iter(
+        [
+            "not json",
+            json.dumps({"issues": [{"item_id": None}]}),
+            json.dumps({"issues": [], "summary": "ok"}),
+        ]
+    )
+    attempts = 0
+
+    def answer_qc(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        return next(responses)
+
+    monkeypatch.setattr("evalclaw.quality.llm_checks.call_llm", answer_qc)
+    trace: dict[str, object] = {}
+
+    issues = _llm_qc(
+        _minimal_llm_qc_suite(),
+        BenchmarkConfig(**dummy_config_kwargs()),
+        trace=trace,
+    )
+
+    assert issues == []
+    assert attempts == 3
+    assert trace["status"] == "completed"
+    assert trace["attempt"] == 3
+
+
+def test_llm_qc_metadata_compaction_keeps_execution_details() -> None:
 
     compact = _compact_metadata_for_qc(
         {
