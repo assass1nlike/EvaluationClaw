@@ -365,6 +365,11 @@ def _parse_plan_response(
             config.challenge_effort_distribution
         ),
     )
+    if framework_dimension_ids is not None and len(plan.dimensions) != len(framework_dimension_ids):
+        issues.append(
+            "Planner must return exactly one dimension for each dimension in the existing EvalSpec: "
+            f"expected {len(framework_dimension_ids)}, got {len(plan.dimensions)}."
+        )
     return plan, issues
 
 

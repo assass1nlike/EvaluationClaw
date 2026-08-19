@@ -56,6 +56,7 @@ from evalclaw.models.json_utils import extract_json
 from evalclaw.models.llm import LLMOutputTruncatedError, TargetToolModelResponse
 from evalclaw.pipeline import _persist_package
 from evalclaw.planning.loop import (
+    _planner_review,
     apply_human_review_feedback,
     format_human_review_overview,
 )
@@ -4465,6 +4466,27 @@ def test_human_review_overview_mentions_dimension_item_mix_without_qc_details() 
         choices=[{"id": "A", "text": "{}"}, {"id": "B", "text": "prose"}],
         correct_choice_ids=["A"],
     )
+    item = item.model_copy(
+        update={
+            "source_definition": TaskDefinition(
+                id=item.id,
+                dimension_id=dimension.id,
+                task_type=TaskType.choice,
+                title="JSON response selection",
+                content_summary="Choose the syntactically valid JSON response.",
+                description="A strict output-format check.",
+                prompt=item.prompt,
+                choices=item.choices,
+                correct_choice_ids=item.correct_choice_ids,
+                system_prompt="Return only the selected option.",
+                resource_ids=["json_spec"],
+                environment=AgentEnvironmentSpec(
+                    bridge_api_key="hidden-bridge-key",
+                    vm_provider_api_key="hidden-vm-key",
+                ),
+            )
+        }
+    )
     qc = QcReport(passed_item_ids=[item.id], rejected_item_ids=[], issues=[], quality_score=0.9)
     overview = format_human_review_overview(
         TaskSuite(spec=EvalSpec(objective="Evaluate format following", dimensions=[dimension]), objective="Evaluate format following", tasks=[item]),
@@ -4478,6 +4500,138 @@ def test_human_review_overview_mentions_dimension_item_mix_without_qc_details() 
     assert "choice: 1" in overview
     assert "QC quality" not in overview
     assert "QC issues" not in overview
+    assert "## All Items" in overview
+    assert "### `item_1`" in overview
+    assert "Which response is valid JSON?" in overview
+    assert "`A` (correct): {}" in overview
+    assert "JSON response selection" in overview
+    assert "Choose the syntactically valid JSON response." in overview
+    assert "Return only the selected option." in overview
+    assert "hidden-bridge-key" not in overview
+    assert "hidden-vm-key" not in overview
+    assert "cite the exact item id shown above" in overview
+
+
+def test_planner_review_uses_dimension_summaries_as_the_only_count_fields(monkeypatch) -> None:
+    dimension = EvalDimension(
+        id="format_following",
+        name="Format following",
+        description="Evaluate strict format constraints.",
+        approach="Use answer-keyed checks.",
+        target_item_count=2,
+        task_types=[TaskType.choice],
+    )
+    item = BenchmarkItem(
+        id="item_1",
+        dimension_id=dimension.id,
+        task_type=TaskType.choice,
+        prompt="Which response is valid JSON?",
+        choices=[{"id": "A", "text": "{}"}, {"id": "B", "text": "prose"}],
+        correct_choice_ids=["A"],
+    )
+    suite = TaskSuite(
+        spec=EvalSpec(objective="Evaluate format following", dimensions=[dimension]),
+        objective="Evaluate format following",
+        tasks=[item],
+    )
+    captured: dict = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured.update(json.loads(messages[0].content))
+        return '{"done": true}'
+
+    monkeypatch.setattr("evalclaw.planning.loop.call_llm", fake_call_llm)
+    review = _planner_review(
+        suite,
+        QcReport(passed_item_ids=[item.id]),
+        BenchmarkConfig(planner_model="planner", planner_api_key="key"),
+        human_feedback="Keep the benchmark concise.",
+    )
+
+    assert review["done"] is True
+    assert "target_counts" not in captured
+    assert "current_counts" not in captured
+    assert captured["dimension_dataset_summaries"] == [
+        {
+            "dimension_id": dimension.id,
+            "planned_materialized_target": 2,
+            "current_items": 1,
+            "task_counts": {"choice": 1},
+            "source_counts": {"self_generated": 1},
+            "target_item_count": 2,
+            "target_source_backed_count": 0,
+            "target_generated_count": None,
+        }
+    ]
+
+
+def test_planner_review_includes_named_item_beyond_default_excerpt_limit(monkeypatch) -> None:
+    dimension = EvalDimension(
+        id="review_dimension",
+        name="Review dimension",
+        description="Exercise item-specific human review.",
+        approach="Use generated prompts.",
+        target_item_count=82,
+        task_types=[TaskType.generation],
+    )
+    tasks = [
+        BenchmarkItem(
+            id=f"item_{index}",
+            dimension_id=dimension.id,
+            task_type=TaskType.generation,
+            prompt=(f"Prompt {index}: " + "x" * 800),
+            rubric=(f"Rubric {index}: " + "y" * 600),
+        )
+        for index in range(82)
+    ]
+    tasks[-1] = tasks[-1].model_copy(
+        update={
+            "source_definition": TaskDefinition(
+                id=tasks[-1].id,
+                dimension_id=dimension.id,
+                task_type=TaskType.generation,
+                title="Named item definition",
+                content_summary="The complete definition for a specifically requested item.",
+                description="Used to verify targeted human review context.",
+                prompt=tasks[-1].prompt,
+                rubric=tasks[-1].rubric,
+                system_prompt="Follow the requested output contract.",
+                interaction={"mode": "single_turn"},
+                environment=AgentEnvironmentSpec(bridge_api_key="hidden-key"),
+                scoring=TaskScoringSpec(pass_criteria="Satisfy every rubric criterion."),
+            )
+        }
+    )
+    suite = TaskSuite(
+        spec=EvalSpec(objective="Evaluate review targeting", dimensions=[dimension]),
+        objective="Evaluate review targeting",
+        tasks=tasks,
+    )
+    captured: dict = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured.update(json.loads(messages[0].content))
+        return '{"done": true}'
+
+    monkeypatch.setattr("evalclaw.planning.loop.call_llm", fake_call_llm)
+    _planner_review(
+        suite,
+        QcReport(passed_item_ids=[item.id for item in tasks]),
+        BenchmarkConfig(planner_model="planner", planner_api_key="key"),
+        human_feedback="Update item_81: make its edge case explicit.",
+    )
+
+    excerpts = captured["items"]
+    assert len(excerpts) == 81
+    assert [entry["id"] for entry in excerpts[-2:]] == ["item_79", "item_81"]
+    assert "item_80" not in {entry["id"] for entry in excerpts}
+    assert excerpts[-1]["prompt"] == tasks[-1].prompt
+    assert excerpts[-1]["rubric"] == tasks[-1].rubric
+    assert excerpts[-1]["task_definition"]["title"] == "Named item definition"
+    assert excerpts[-1]["task_definition"]["system_prompt"] == (
+        "Follow the requested output contract."
+    )
+    assert "hidden-key" not in json.dumps(excerpts[-1])
 
 
 def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None:

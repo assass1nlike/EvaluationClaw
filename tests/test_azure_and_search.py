@@ -17,7 +17,7 @@ from evalclaw.research.backends import (
     get_backend,
     resolve_backend_name,
 )
-from evalclaw.types import Message, TargetModelConfig
+from evalclaw.types import Message
 
 
 @pytest.fixture(autouse=True)
@@ -71,34 +71,25 @@ def test_target_from_model_azure(monkeypatch) -> None:
     assert target.base_url is None
 
 
-# ---------------------------------------------------------------------------
-# Azure legacy (non-litellm) backend behaviour
-# ---------------------------------------------------------------------------
-def test_azure_legacy_completion_builds_url(monkeypatch) -> None:
-    monkeypatch.setenv("AZURE_API_BASE", "https://res.openai.azure.com")
-    monkeypatch.setenv("AZURE_API_VERSION", "2024-06-01")
-    monkeypatch.setenv("AZURE_API_KEY", "azkey")
-
+def test_azure_calls_use_litellm(monkeypatch) -> None:
     captured: dict = {}
 
-    def fake_post(url, headers, body, **kwargs):
-        captured["url"] = url
-        captured["headers"] = headers
-        return {"choices": [{"message": {"content": "hi from azure"}}]}
+    def fake_litellm(**kwargs):
+        captured.update(kwargs)
+        return "hi from azure"
 
-    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
+    monkeypatch.setattr(llm, "_call_litellm", fake_litellm)
 
     out = llm.call_llm(
         [Message(role="user", content="hello")],
         model="azure/my-dep",
-        backend="legacy",
+        api_key="azkey",
     )
+
     assert out == "hi from azure"
-    assert captured["url"] == (
-        "https://res.openai.azure.com/openai/deployments/my-dep"
-        "/chat/completions?api-version=2024-06-01"
-    )
-    assert captured["headers"]["api-key"] == "azkey"
+    assert captured["model"] == "azure/my-dep"
+    assert captured["api_key"] == "azkey"
+    assert captured["base_url"] is None
 
 
 def test_is_reasoning_model() -> None:
@@ -121,54 +112,6 @@ def test_effective_max_tokens_respects_explicit_low_effort(monkeypatch) -> None:
     monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
 
     assert llm._effective_max_tokens("gpt-5.6-luna", 1024) == 1024
-
-
-def test_legacy_orchestrator_tools_forward_reasoning_effort(monkeypatch) -> None:
-    captured: dict = {}
-
-    def fake_post(url, headers, body, **kwargs):
-        captured.update(body)
-        return {
-            "choices": [
-                {"finish_reason": "stop", "message": {"content": "ok", "tool_calls": []}}
-            ]
-        }
-
-    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
-    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
-
-    llm.call_orchestrator_with_tools(
-        [{"role": "user", "content": "hello"}],
-        model="gpt-5.6-luna",
-        api_key="test-key",
-        base_url="https://model.example/v1",
-        backend="legacy",
-        tools=[],
-    )
-
-    assert captured["reasoning_effort"] == "low"
-
-
-def test_azure_legacy_reasoning_model_uses_max_completion_tokens(monkeypatch) -> None:
-    monkeypatch.setenv("AZURE_API_BASE", "https://res.openai.azure.com")
-    monkeypatch.setenv("AZURE_API_VERSION", "2024-06-01")
-    monkeypatch.setenv("AZURE_API_KEY", "azkey")
-
-    captured: dict = {}
-
-    def fake_post(url, headers, body, **kwargs):
-        captured["body"] = body
-        return {"choices": [{"message": {"content": "ok"}}]}
-
-    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
-
-    llm.call_llm(
-        [Message(role="user", content="hello")],
-        model="azure/gpt-5.5",
-        backend="legacy",
-    )
-    assert "max_tokens" not in captured["body"]
-    assert captured["body"]["max_completion_tokens"] == llm._REASONING_MAX_TOKENS_FLOOR
 
 
 class _FakeChoice:
@@ -281,58 +224,6 @@ def test_call_litellm_custom_openai_endpoint_uses_json_mode(monkeypatch) -> None
 
     assert result == '{"tasks": []}'
     assert requests[0]["response_format"] == {"type": "json_object"}
-
-
-def test_azure_legacy_retries_then_raises_on_truncation(monkeypatch) -> None:
-    monkeypatch.setenv("AZURE_API_BASE", "https://res.openai.azure.com")
-    monkeypatch.setenv("AZURE_API_VERSION", "2024-06-01")
-    monkeypatch.setenv("AZURE_API_KEY", "azkey")
-
-    budgets: list[int] = []
-
-    def fake_post(url, headers, body, **kwargs):
-        budgets.append(body["max_completion_tokens"])
-        return {
-            "choices": [
-                {"finish_reason": "length", "message": {"content": "partial"}}
-            ]
-        }
-
-    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
-
-    with pytest.raises(RuntimeError, match="truncated"):
-        llm.call_llm(
-            [Message(role="user", content="hello")],
-            model="azure/gpt-5.5",
-            backend="legacy",
-        )
-    assert budgets == [llm._REASONING_MAX_TOKENS_FLOOR, llm._REASONING_MAX_TOKENS_FLOOR * 2]
-
-
-def test_azure_legacy_completion_missing_env_raises(monkeypatch) -> None:
-    monkeypatch.delenv("AZURE_API_BASE", raising=False)
-    monkeypatch.delenv("AZURE_API_VERSION", raising=False)
-    with pytest.raises(RuntimeError, match="Azure OpenAI models require"):
-        llm.call_llm(
-            [Message(role="user", content="hello")],
-            model="azure/my-dep",
-            backend="legacy",
-        )
-
-
-def test_call_target_model_azure_legacy(monkeypatch) -> None:
-    monkeypatch.setenv("AZURE_API_BASE", "https://res.openai.azure.com")
-    monkeypatch.setenv("AZURE_API_VERSION", "2024-06-01")
-    monkeypatch.setenv("AZURE_API_KEY", "azkey")
-
-    def fake_post(url, headers, body, **kwargs):
-        assert "deployments/dep2" in url
-        return {"choices": [{"message": {"content": "target azure"}}]}
-
-    monkeypatch.setattr(llm, "_post_with_retry", fake_post)
-    target = TargetModelConfig(provider="azure", model="azure/dep2", api_key="azkey")
-    out = llm.call_target_model("q", target, backend="legacy")
-    assert out == "target azure"
 
 
 # ---------------------------------------------------------------------------

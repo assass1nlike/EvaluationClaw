@@ -35,33 +35,9 @@ class LLMProtocolAdapterError(RuntimeError):
     """LiteLLM could not adapt the request or response for the selected provider."""
 
 
-def _is_litellm_protocol_adapter_failure(exc: Exception) -> bool:
-    """Whether direct protocol fallback can plausibly bypass a LiteLLM failure."""
-    if isinstance(exc, (ImportError, ModuleNotFoundError, LLMProtocolAdapterError)):
-        return True
-    try:
-        import litellm
-    except ImportError:
-        return True
-
-    unsupported = getattr(litellm, "UnsupportedParamsError", None)
-    if isinstance(unsupported, type) and isinstance(exc, unsupported):
-        return True
-
-    bad_request = getattr(litellm, "BadRequestError", None)
-    if not isinstance(bad_request, type) or not isinstance(exc, bad_request):
-        return False
-    message = str(exc).lower()
-    adapter_markers = (
-        "llm provider not provided",
-        "unsupported parameter",
-        "unsupported param",
-        "parameter is not supported",
-        "provider not supported",
-        "unknown provider",
-        "unrecognized request argument",
-    )
-    return any(marker in message for marker in adapter_markers)
+def _require_supported_backend(backend: str) -> None:
+    if backend not in {"auto", "litellm"}:
+        raise ValueError(f"Unsupported LLM backend {backend!r}; expected 'auto' or 'litellm'.")
 
 
 def _post_with_retry(
@@ -619,66 +595,6 @@ def _call_litellm(
     raise AssertionError("unreachable")
 
 
-def _azure_legacy_completion(
-    *,
-    model: str,
-    messages: list[dict],
-    max_tokens: int,
-    api_key: Optional[str] = None,
-    retry_on_truncation: bool = True,
-) -> str:
-    """Call an Azure OpenAI deployment via httpx (legacy, non-litellm backend).
-
-    Azure OpenAI exposes chat completions at
-    ``{AZURE_API_BASE}/openai/deployments/{deployment}/chat/completions?api-version=...``
-    and authenticates with an ``api-key`` header. When the required Azure
-    environment variables are missing we raise an actionable error telling the
-    user to use the litellm backend instead.
-    """
-    base = os.environ.get("AZURE_API_BASE")
-    version = os.environ.get("AZURE_API_VERSION")
-    key = (
-        api_key
-        or os.environ.get("AZURE_API_KEY")
-        or os.environ.get("AZURE_OPENAI_API_KEY")
-    )
-    if not base or not version:
-        raise RuntimeError(
-            "Azure OpenAI models require either the litellm backend "
-            "(llm_backend='auto' or 'litellm') or, for the legacy backend, "
-            "AZURE_API_BASE and AZURE_API_VERSION to be set. "
-            "Export AZURE_API_BASE, AZURE_API_VERSION, and AZURE_API_KEY, "
-            "or switch to the litellm backend."
-        )
-    deployment = model.split("/", 1)[1] if "/" in model else model
-    url = (
-        f"{base.rstrip('/')}/openai/deployments/{deployment}"
-        f"/chat/completions?api-version={version}"
-    )
-    # Reasoning deployments reject max_tokens and require max_completion_tokens.
-    token_field = "max_completion_tokens" if _is_reasoning_model(model) else "max_tokens"
-    # Same truncation guard as the litellm path: a length-cut completion would
-    # be silently "repaired" by json-repair downstream.
-    budget = _effective_max_tokens(model, max_tokens)
-    for attempt in range(2 if retry_on_truncation else 1):
-        data = _post_with_retry(
-            url,
-            headers={"api-key": key or "", "Content-Type": "application/json"},
-            body={"messages": messages, token_field: budget},
-        )
-        choice = data["choices"][0]
-        if choice.get("finish_reason") == "length":
-            if retry_on_truncation and attempt == 0:
-                budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
-                continue
-            raise LLMOutputTruncatedError(
-                f"LLM output truncated at {budget} completion tokens "
-                f"(finish_reason=length) for model {model}"
-            )
-        return choice["message"]["content"]
-    raise AssertionError("unreachable")
-
-
 def _get_anthropic_client(
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
@@ -739,6 +655,7 @@ def call_llm(
     custom base URL use the native Anthropic SDK; other custom endpoints
     default to the OpenAI-compatible protocol.
     """
+    _require_supported_backend(backend)
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
     resolved_provider, _ = infer_provider(model_name, base_url, provider)
     messages_dict = _message_dicts(messages, system)
@@ -778,37 +695,7 @@ def call_llm(
         and resolved_provider == "openai_compatible"
         and backend != "litellm"
     )
-    if backend in {"auto", "litellm"} and not stream_openai_compatible:
-        try:
-            return _call_litellm(
-                model=model_name,
-                messages=messages_dict,
-                max_tokens=max_tokens,
-                api_key=api_key,
-                base_url=base_url,
-                reduce_reasoning_effort=reduce_reasoning_effort,
-                retry_on_truncation=retry_on_truncation,
-            )
-        except Exception as exc:
-            if backend == "litellm" or not _is_litellm_protocol_adapter_failure(exc):
-                raise
-            print(
-                f"  [llm] litellm adapter failed for {model_name} "
-                f"({type(exc).__name__}: {str(exc)[:160]}); falling back to legacy backend"
-            )
-
-    if model_name.startswith("azure/"):
-        # Legacy backend path for Azure OpenAI deployments.
-        return _azure_legacy_completion(
-            model=model_name,
-            messages=messages_dict,
-            max_tokens=max_tokens,
-            api_key=api_key,
-            retry_on_truncation=retry_on_truncation,
-        )
-
-    if base_url and resolved_provider != "anthropic":
-        # OpenAI-compatible path (covers Gemini, local models, etc.)
+    if stream_openai_compatible:
         key = (
             api_key
             or (os.environ.get("DEEPSEEK_API_KEY") if model_name.startswith("deepseek-") else None)
@@ -829,24 +716,12 @@ def call_llm(
                 body["thinking"] = {"type": "disabled"}
             url = f"{base_url.rstrip('/')}/chat/completions"
             headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-            if stream_openai_compatible:
-                content, finish_reason = _post_streaming_openai_compatible(
-                    url,
-                    headers=headers,
-                    body=body,
-                )
-                if finish_reason == "length":
-                    if retry_on_truncation and attempt == 0:
-                        budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
-                        continue
-                    raise LLMOutputTruncatedError(
-                        f"LLM output truncated at {budget} completion tokens "
-                        f"(finish_reason=length) for model {model_name}"
-                    )
-                return content
-            data = _post_with_retry(url, headers=headers, body=body)
-            choice = data["choices"][0]
-            if choice.get("finish_reason") == "length":
+            content, finish_reason = _post_streaming_openai_compatible(
+                url,
+                headers=headers,
+                body=body,
+            )
+            if finish_reason == "length":
                 if retry_on_truncation and attempt == 0:
                     budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                     continue
@@ -854,23 +729,18 @@ def call_llm(
                     f"LLM output truncated at {budget} completion tokens "
                     f"(finish_reason=length) for model {model_name}"
                 )
-            message = choice["message"]
-            content = message.get("content")
-            if isinstance(content, str) and content:
-                return content
-            reasoning = message.get("reasoning_content")
-            return reasoning if isinstance(reasoning, str) else ""
+            return content
+        raise AssertionError("unreachable")
 
-    if resolved_provider == "anthropic":
-        return _call_anthropic_text(
-            messages,
-            system=system,
-            model=model_name,
-            max_tokens=max_tokens,
-            api_key=api_key,
-            base_url=base_url,
-        )
-    raise RuntimeError(f"No LLM backend is configured for provider {resolved_provider}.")
+    return _call_litellm(
+        model=model_name,
+        messages=messages_dict,
+        max_tokens=max_tokens,
+        api_key=api_key,
+        base_url=base_url,
+        reduce_reasoning_effort=reduce_reasoning_effort,
+        retry_on_truncation=retry_on_truncation,
+    )
 
 
 def call_orchestrator_with_tools(
@@ -892,6 +762,7 @@ def call_orchestrator_with_tools(
     provider-native assistant message and tool-result message structure. The
     task-builder research loop uses this for bounded external retrieval.
     """
+    _require_supported_backend(backend)
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
     resolved_provider, _ = infer_provider(model_name, base_url, provider)
     tool_specs = tools or []
@@ -941,128 +812,45 @@ def call_orchestrator_with_tools(
             raw_response=_jsonable(response),
         )
 
-    if backend in {"auto", "litellm"}:
-        try:
-            import litellm
+    import litellm
 
-            litellm.suppress_debug_info = True
-            request_messages = list(messages)
-            if system_prompt:
-                request_messages.insert(0, {"role": "system", "content": system_prompt})
-            budget = _effective_max_tokens(model_name, max_tokens)
-            for attempt in range(2 if retry_on_truncation else 1):
-                kwargs: dict[str, Any] = {
-                    "model": model_name,
-                    "messages": request_messages,
-                    "timeout": 300,
-                    "max_tokens": budget,
-                }
-                if tool_specs:
-                    kwargs["tools"] = openai_tools(tool_specs)
-                    kwargs["tool_choice"] = "auto"
-                elif model_name.startswith("deepseek-v4") and _messages_request_json(request_messages):
-                    kwargs["response_format"] = {"type": "json_object"}
-                if api_key:
-                    kwargs["api_key"] = api_key
-                if base_url:
-                    kwargs["base_url"] = base_url
-                reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
-                if reasoning_effort and _is_reasoning_model(model_name):
-                    kwargs["reasoning_effort"] = reasoning_effort
-                response = litellm.completion(**kwargs)
-                choices = getattr(response, "choices", None)
-                if choices is None and isinstance(response, dict):
-                    choices = response.get("choices")
-                if not choices:
-                    raise LLMProtocolAdapterError(
-                        f"LiteLLM returned no choices for model {model_name}."
-                    )
-                first = (choices or [None])[0]
-                finish_reason = getattr(first, "finish_reason", None)
-                if finish_reason is None and isinstance(first, dict):
-                    finish_reason = first.get("finish_reason")
-                if finish_reason == "length":
-                    if retry_on_truncation and attempt == 0:
-                        budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
-                        continue
-                    raise LLMOutputTruncatedError(
-                        f"Orchestrator tool response truncated at {budget} completion tokens "
-                        f"(finish_reason=length) for model {model_name}."
-                    )
-                message = getattr(first, "message", None)
-                if message is None and isinstance(first, dict):
-                    message = first.get("message")
-                if message is None:
-                    raise LLMProtocolAdapterError(
-                        f"LiteLLM returned no assistant message for model {model_name}."
-                    )
-                assistant_message = _jsonable(message) if message is not None else {}
-                tool_calls = openai_tool_calls_from_response(response)
-                return TargetToolModelResponse(
-                    adapter="litellm",
-                    content=_extract_litellm_content(response) if message and not tool_calls else "",
-                    tool_calls=tool_calls,
-                    assistant_message=assistant_message,
-                    raw_response=_jsonable(response),
-                )
-        except Exception as exc:
-            if backend == "litellm" or not _is_litellm_protocol_adapter_failure(exc):
-                raise
-
-    if resolved_provider == "anthropic":
-        client = _get_anthropic_client(api_key, base_url)
-        response = client.messages.create(
-            model=_anthropic_model_name(model_name),
-            max_tokens=_effective_max_tokens(model_name, max_tokens),
-            system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
-            messages=messages,
-            tools=anthropic_tools(tool_specs),
-        )
-        content_blocks = _jsonable(getattr(response, "content", []))
-        return TargetToolModelResponse(
-            adapter="anthropic",
-            content=_anthropic_text(response),
-            tool_calls=anthropic_tool_calls_from_response(response),
-            assistant_message={"role": "assistant", "content": content_blocks},
-            raw_response=_jsonable(response),
-        )
-
-    if not base_url:
-        raise RuntimeError(
-            f"No tool-capable orchestrator backend is configured for model {model_name}."
-        )
-    key = (
-        api_key
-        or (os.environ.get("DEEPSEEK_API_KEY") if model_name.startswith("deepseek-") else None)
-        or os.environ.get("OPENAI_API_KEY", "")
-    )
+    litellm.suppress_debug_info = True
     request_messages = list(messages)
     if system_prompt:
         request_messages.insert(0, {"role": "system", "content": system_prompt})
     budget = _effective_max_tokens(model_name, max_tokens)
     for attempt in range(2 if retry_on_truncation else 1):
-        body: dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "model": model_name,
             "messages": request_messages,
+            "timeout": 300,
             "max_tokens": budget,
         }
+        if tool_specs:
+            kwargs["tools"] = openai_tools(tool_specs)
+            kwargs["tool_choice"] = "auto"
+        elif model_name.startswith("deepseek-v4") and _messages_request_json(request_messages):
+            kwargs["response_format"] = {"type": "json_object"}
+        if api_key:
+            kwargs["api_key"] = api_key
+        if base_url:
+            kwargs["base_url"] = base_url
         reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
         if reasoning_effort and _is_reasoning_model(model_name):
-            body["reasoning_effort"] = reasoning_effort
-        if tool_specs:
-            body["tools"] = openai_tools(tool_specs)
-            body["tool_choice"] = "auto"
-        if "api.deepseek.com" in base_url and model_name.startswith("deepseek-v4"):
-            body["thinking"] = {"type": "disabled"}
-            if not tool_specs and _messages_request_json(request_messages):
-                body["response_format"] = {"type": "json_object"}
-        data = _post_with_retry(
-            f"{base_url.rstrip('/')}/chat/completions",
-            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-            body=body,
-        )
-        choice = data["choices"][0]
-        if choice.get("finish_reason") == "length":
+            kwargs["reasoning_effort"] = reasoning_effort
+        response = litellm.completion(**kwargs)
+        choices = getattr(response, "choices", None)
+        if choices is None and isinstance(response, dict):
+            choices = response.get("choices")
+        if not choices:
+            raise LLMProtocolAdapterError(
+                f"LiteLLM returned no choices for model {model_name}."
+            )
+        first = (choices or [None])[0]
+        finish_reason = getattr(first, "finish_reason", None)
+        if finish_reason is None and isinstance(first, dict):
+            finish_reason = first.get("finish_reason")
+        if finish_reason == "length":
             if retry_on_truncation and attempt == 0:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
@@ -1070,16 +858,23 @@ def call_orchestrator_with_tools(
                 f"Orchestrator tool response truncated at {budget} completion tokens "
                 f"(finish_reason=length) for model {model_name}."
             )
-        message = choice["message"]
-        content = message.get("content")
+        message = getattr(first, "message", None)
+        if message is None and isinstance(first, dict):
+            message = first.get("message")
+        if message is None:
+            raise LLMProtocolAdapterError(
+                f"LiteLLM returned no assistant message for model {model_name}."
+            )
+        assistant_message = _jsonable(message)
+        tool_calls = openai_tool_calls_from_response(response)
         return TargetToolModelResponse(
-            adapter="openai",
-            content=content if isinstance(content, str) else "",
-            tool_calls=openai_tool_calls_from_response(data),
-            assistant_message=message,
-            raw_response=data,
+            adapter="litellm",
+            content=_extract_litellm_content(response) if not tool_calls else "",
+            tool_calls=tool_calls,
+            assistant_message=assistant_message,
+            raw_response=_jsonable(response),
         )
-    raise RuntimeError(f"Orchestrator tool call failed for model {model_name}.")
+    raise AssertionError("unreachable")
 
 
 def call_target_model_with_tools(
@@ -1099,6 +894,7 @@ def call_target_model_with_tools(
     appended without lossy conversion through EvalClaw's simple ``Message``
     model.
     """
+    _require_supported_backend(backend)
     adapter = tool_adapter_for_target(target)
     if adapter == "anthropic":
         client = _get_anthropic_client(target.api_key, target.base_url)
@@ -1171,6 +967,7 @@ def call_target_model(
     user_content: Any | None = None,
 ) -> str:
     """Call the target model under evaluation."""
+    _require_supported_backend(backend)
     history = history or []
 
     if user_content is not None:
@@ -1205,23 +1002,12 @@ def call_target_model(
             messages.append({"role": m.role, "content": m.content})
         messages.append({"role": "user", "content": user_content})
         if target.provider == "azure" or target.model.startswith("azure/"):
-            if backend in {"auto", "litellm"}:
-                try:
-                    return _call_litellm(
-                        model=target.model,
-                        messages=messages,
-                        max_tokens=4096,
-                        api_key=target.api_key,
-                        base_url=target.base_url,
-                    )
-                except Exception as exc:
-                    if backend == "litellm" or not _is_litellm_protocol_adapter_failure(exc):
-                        raise
-            return _azure_legacy_completion(
+            return _call_litellm(
                 model=target.model,
                 messages=messages,
                 max_tokens=4096,
                 api_key=target.api_key,
+                base_url=target.base_url,
             )
         data = _post_with_retry(
             f"{base_url.rstrip('/')}/chat/completions",
@@ -1258,32 +1044,12 @@ def call_target_model(
         messages.append({"role": m.role, "content": m.content})
     messages.append({"role": "user", "content": prompt})
 
-    if backend in {"auto", "litellm"}:
-        try:
-            return _call_litellm(
-                model=target.model,
-                messages=messages,
-                max_tokens=4096,
-                api_key=api_key,
-                base_url=base_url,
-            )
-        except Exception as exc:
-            if backend == "litellm" or not _is_litellm_protocol_adapter_failure(exc):
-                raise
-
-    if target.provider == "azure" or target.model.startswith("azure/"):
-        return _azure_legacy_completion(
-            model=target.model,
-            messages=messages,
-            max_tokens=4096,
-            api_key=target.api_key,
-        )
-
-    data = _post_with_retry(
-        f"{base_url.rstrip('/')}/chat/completions",
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        body={"model": target.model, "messages": messages, "max_tokens": 4096},
+    return _call_litellm(
+        model=target.model,
+        messages=messages,
+        max_tokens=4096,
+        api_key=api_key,
+        base_url=base_url,
     )
-    return data["choices"][0]["message"]["content"]
 
 

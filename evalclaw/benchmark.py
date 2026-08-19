@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+from collections import Counter
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,12 +27,8 @@ def _affected_builder_job_ids(
 ) -> set[str]:
     item_by_id = {item.id: item for item in suite.tasks}
     affected: set[str] = set()
-    global_error = False
     for issue in qc_report.issues:
-        if issue.severity != QcSeverity.error:
-            continue
-        if not issue.item_id:
-            global_error = True
+        if issue.severity != QcSeverity.error or not issue.item_id:
             continue
         item = item_by_id.get(issue.item_id)
         if item is None:
@@ -39,8 +36,6 @@ def _affected_builder_job_ids(
         builder_job_id = item.builder_job_id
         if builder_job_id:
             affected.add(builder_job_id)
-    if global_error:
-        affected.update(job.id for job in suite.builder_jobs)
     return affected
 
 
@@ -99,16 +94,35 @@ def _merge_repaired_resources(
 def _merge_repaired_suite(
     previous: TaskSuite,
     repaired: TaskSuite,
+    *,
+    item_ids: set[str] | None = None,
 ) -> TaskSuite:
-    replacements = {item.id: item for item in repaired.tasks}
+    repaired_tasks = [
+        item for item in repaired.tasks if item_ids is None or item.id in item_ids
+    ]
+    replacements = {item.id: item for item in repaired_tasks}
     tasks = [replacements.pop(item.id, item) for item in previous.tasks]
     tasks.extend(replacements.values())
+    repaired_resources = repaired.resources
+    if item_ids is not None:
+        resource_ids: set[str] = set()
+        source_uris: set[str] = set()
+        for item in repaired_tasks:
+            if item.source_definition is not None:
+                resource_ids.update(item.source_definition.resource_ids)
+            if item.source.uri:
+                source_uris.add(item.source.uri)
+        repaired_resources = [
+            resource
+            for resource in repaired.resources
+            if resource.id in resource_ids or resource.uri in source_uris
+        ]
     return previous.model_copy(
         update={
             "tasks": tasks,
             "resources": _merge_repaired_resources(
                 previous.resources,
-                repaired.resources,
+                repaired_resources,
             ),
             "construction_notes": (
                 previous.construction_notes.rstrip()
@@ -119,8 +133,12 @@ def _merge_repaired_suite(
     )
 
 
-def _blocking_error_count(report: QcReport) -> int:
-    return sum(issue.severity == QcSeverity.error for issue in report.issues)
+def _item_blocking_error_counts(report: QcReport) -> Counter[str]:
+    return Counter(
+        issue.item_id
+        for issue in report.issues
+        if issue.severity == QcSeverity.error and issue.item_id
+    )
 
 
 def build_benchmark_suite_with_qc_loop(
@@ -170,6 +188,18 @@ def build_suite_from_spec_with_qc_loop(
         log(f"  QC: saved complete trace: {trace_dir}.")
         return report
 
+    planned_dimension_ids = {job.dimension_id for job in builder_jobs}
+    missing_dimension_ids = [
+        dimension.id
+        for dimension in spec.dimensions
+        if dimension.id not in planned_dimension_ids
+    ]
+    if missing_dimension_ids:
+        raise ValueError(
+            "Missing TaskDesign Builder jobs for dimension(s): "
+            + ", ".join(missing_dimension_ids)
+        )
+
     suite = build_task_suite(spec, builder_jobs, config, log=log)
     qc_report = run_traced_qc(suite, "00-initial")
     log(f"  QC: reviewing {len(suite.tasks)} constructed task(s). {qc_report.summary}")
@@ -198,16 +228,73 @@ def build_suite_from_spec_with_qc_loop(
         candidate_suite = _merge_repaired_suite(suite, repaired)
         candidate_qc = run_traced_qc(candidate_suite, f"{repair_round:02d}-repair-candidate")
         log(f"  QC after repair round {repair_round}: {candidate_qc.summary}")
-        previous_errors = _blocking_error_count(qc_report)
-        candidate_errors = _blocking_error_count(candidate_qc)
-        if candidate_errors >= previous_errors:
+        previous_errors = _item_blocking_error_counts(qc_report)
+        candidate_errors = _item_blocking_error_counts(candidate_qc)
+        repaired_ids = {item.id for item in repaired.tasks}
+        improved_ids = {
+            item_id
+            for item_id in repaired_ids
+            if candidate_errors[item_id] < previous_errors[item_id]
+        }
+        if not improved_ids:
             log(
-                f"  QC repair round {repair_round}: discarded non-improving replacement "
-                f"({candidate_errors} blocking issue(s), current best {previous_errors})."
+                f"  QC repair round {repair_round}: discarded non-improving replacement(s); "
+                "no repaired item strictly reduced its blocking error count."
             )
             continue
-        suite = candidate_suite
-        qc_report = candidate_qc
+
+        selected_suite = candidate_suite
+        selected_qc = candidate_qc
+        selection_pass = 0
+        if improved_ids != repaired_ids:
+            selected_suite = _merge_repaired_suite(
+                suite,
+                repaired,
+                item_ids=improved_ids,
+            )
+            selection_pass += 1
+            selected_qc = run_traced_qc(
+                selected_suite,
+                f"{repair_round:02d}-selected-{selection_pass:02d}",
+            )
+
+        while improved_ids:
+            selected_errors = _item_blocking_error_counts(selected_qc)
+            no_longer_improved = {
+                item_id
+                for item_id in improved_ids
+                if selected_errors[item_id] >= previous_errors[item_id]
+            }
+            if not no_longer_improved:
+                break
+            improved_ids -= no_longer_improved
+            if not improved_ids:
+                break
+            selected_suite = _merge_repaired_suite(
+                suite,
+                repaired,
+                item_ids=improved_ids,
+            )
+            selection_pass += 1
+            selected_qc = run_traced_qc(
+                selected_suite,
+                f"{repair_round:02d}-selected-{selection_pass:02d}",
+            )
+
+        if not improved_ids:
+            log(
+                f"  QC repair round {repair_round}: discarded non-improving replacement(s); "
+                "no repaired item remained improved after partial merge."
+            )
+            continue
+
+        rolled_back = repaired_ids - improved_ids
+        log(
+            f"  QC repair round {repair_round}: kept {len(improved_ids)} improved item repair(s), "
+            f"rolled back {len(rolled_back)} non-improving item repair(s)."
+        )
+        suite = selected_suite
+        qc_report = selected_qc
 
     if (not qc_report.is_acceptable or qc_report.rejected_item_ids) and not config.allow_incomplete_benchmark:
         blocking = [issue for issue in qc_report.issues if issue.severity == QcSeverity.error]

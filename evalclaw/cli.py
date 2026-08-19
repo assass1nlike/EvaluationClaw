@@ -280,7 +280,11 @@ def generate(
     output_dir: str = typer.Option("./benchmark-output", "-o", "--output-dir", help="Output directory."),
     no_interactive: bool = typer.Option(False, "--no-interactive", help="Skip confirmation prompts."),
     no_run: bool = typer.Option(False, "--no-run", help="Build and QC the benchmark without running targets."),
-    no_research: bool = typer.Option(False, "--no-research", help="Disable web research during generation."),
+    web_research: bool = typer.Option(
+        False,
+        "--web-research/--no-web-research",
+        help="Enable automatic source search and TaskBuilder web research during generation.",
+    ),
     search_backend: str = typer.Option(
         "auto",
         "--search-backend",
@@ -318,7 +322,7 @@ def generate(
         help="Maximum characters returned by each task-builder research tool call.",
     ),
     single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one judge pass instead of the default double-pass audit."),
-    llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto, litellm, or legacy."),
+    llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto or litellm."),
     runner: str = typer.Option("direct", "--runner", help="Runner mode: direct, lm-eval, or auto."),
     no_environment_claw: bool = typer.Option(
         False,
@@ -540,7 +544,7 @@ def generate(
         large_scale_llm_qc_sample_size=large_scale_qc_sample,
         output_dir=output_dir,
         run_targets=bool(targets) and not no_run,
-        use_web_research=not no_research,
+        use_web_research=web_research,
         search_backend=search_backend.lower(),
         use_deep_research=deep_research,
         max_research_iterations=max_research_iterations,

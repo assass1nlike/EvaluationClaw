@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from evalclaw.agent.task_builders.parsing import _task_from_raw
 from evalclaw.construction.resources import _resource_from_raw
 from evalclaw.core.identifiers import normalize_choice_data
@@ -70,6 +72,36 @@ def test_planner_assigns_dimension_and_task_design_ids() -> None:
     assert plan.dimensions[0].task_designs[0].id == "dimension_1_task_design_1"
 
 
+def test_planner_rejects_missing_existing_spec_dimension() -> None:
+    config = BenchmarkConfig(**dummy_config_kwargs())
+    _, issues = _parse_plan_response(
+        {
+            "plan": {
+                "objective": "Evaluate reasoning.",
+                "dimensions": [
+                    {
+                        "name": "Reasoning",
+                        "measurement_target": "Reasoning",
+                        "boundary": "No tools.",
+                        "approach": "Short answers.",
+                        "task_designs": [
+                            {
+                                "task_type": "generation",
+                                "task_count": 1,
+                                "content_design": {"description": "Explain one case."},
+                            }
+                        ],
+                    }
+                ],
+            }
+        },
+        config,
+        framework_dimension_ids=["reasoning", "robustness"],
+    )
+
+    assert any("expected 2, got 1" in issue for issue in issues)
+
+
 def test_choice_indices_are_zero_based_and_canonical() -> None:
     choices, correct = normalize_choice_data(
         [{"id": "ignored", "text": "one"}, {"id": "also-ignored", "text": "two"}],
@@ -131,3 +163,31 @@ def test_review_refs_can_target_new_framework_dimension_ids() -> None:
     added = next(dimension for dimension in outcome.spec.dimensions if dimension.id != "source")
     assert added.id == "dimension_2"
     assert added.target_item_count == 2
+
+
+def test_review_rejects_added_dimension_without_target_count() -> None:
+    source = EvalDimension(
+        id="source",
+        name="Source",
+        description="Source dimension.",
+        approach="Keep it.",
+        target_item_count=1,
+    )
+    suite = TaskSuite(
+        spec=EvalSpec(objective="Objective", dimensions=[source]),
+        objective="Objective",
+    )
+
+    with pytest.raises(ValueError, match="positive integer target_item_count"):
+        _apply_review(
+            suite,
+            {
+                "add_dimensions": [
+                    {
+                        "name": "Missing count",
+                        "description": "Invalid added dimension.",
+                        "approach": "No count was supplied.",
+                    }
+                ]
+            },
+        )
