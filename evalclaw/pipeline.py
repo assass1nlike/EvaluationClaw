@@ -127,17 +127,20 @@ def run_pipeline(
         log(f"  English goal: {goal}")
 
     if config.use_deep_research and config.research_brief is None:
-        log("\n[Deep Research] Running bounded research loop before planning...")
+        log("\n[Benchmark Design Research] Running bounded research loop before planning...")
         brief = run_deep_research(goal, config, log=log)
         if brief is None:
-            log("  Deep research unavailable (no research-role key or search disabled); continuing without a brief.")
-        else:
-            config = config.model_copy(update={"research_brief": brief})
-            log(
-                f"  Research brief: {len(brief.taxonomy)} taxonomy entries, "
-                f"{len(brief.existing_benchmarks)} known benchmarks, "
-                f"{len(brief.seed_sources)} seed sources"
+            raise RuntimeError(
+                "Deep research was requested but could not run. Configure the Research role "
+                "and enable web research with a non-none search backend, or disable "
+                "--deep-research."
             )
+        config = config.model_copy(update={"research_brief": brief})
+        log(
+            f"  Design brief: {len(brief.dimensions)} candidate dimensions, "
+            f"{len(brief.task_patterns)} task patterns, "
+            f"{len(brief.source_recommendations)} source recommendations"
+        )
 
     log("\n[Planner/Builder/QC] Building benchmark through the single task-construction pipeline...")
     spec, suite, qc_report = build_benchmark_suite_with_qc_loop(

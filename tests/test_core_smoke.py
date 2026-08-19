@@ -407,7 +407,10 @@ def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
         log=progress.append,
     )
 
-    assert [task.id for task in suite.tasks] == ["task_1", "task_2"]
+    assert [task.id for task in suite.tasks] == [
+        "agent_blueprint_task_1",
+        "agent_blueprint_task_2",
+    ]
     assert len(payloads) == 1
     construction = payloads[0]["task_plan"]["task_design"]
     assert construction["required_return_task_count"] == 2
@@ -831,7 +834,10 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
     )
 
     assert max_active_calls >= 2
-    assert [task.id for task in suite.tasks] == ["first_blueprint_task", "second_blueprint_task"]
+    assert [task.id for task in suite.tasks] == [
+        "first_blueprint_task_1",
+        "second_blueprint_task_1",
+    ]
 
 
 def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path) -> None:
@@ -1100,7 +1106,7 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
     assert len(payloads) == 2
     assert payloads[1]["repair"]["issues"] == ["ValueError: expected a JSON object, got list"]
     assert payloads[1]["repair"]["previous_response"] == [{"unexpected": "top-level list"}]
-    assert suite.tasks[0].id == "repaired_workspace_task"
+    assert suite.tasks[0].id == "tool_use_blueprint_task_1"
 
 
 def test_agent_task_content_summary_is_persisted_for_reports() -> None:
@@ -4506,7 +4512,7 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
     )
     generated_item = BenchmarkItem(
         id="generated_item",
-        dimension_id=new_dimension.id,
+        dimension_id="dimension_2",
         task_type=TaskType.generation,
         prompt="Describe escalation handling.",
         rubric="Score clarity.",
@@ -4521,7 +4527,7 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
 
     new_blueprint = make_blueprint(
         "new_job",
-        new_dimension.id,
+        "dimension_2",
         "Agentic escalation",
         task_type=TaskType.generation,
         count=1,
@@ -4529,7 +4535,7 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
     )
 
     def fake_plan_from_spec(spec_arg, config, **kwargs):
-        assert {dimension.id for dimension in spec_arg.dimensions} == {"agentic_escalation"}
+        assert {dimension.id for dimension in spec_arg.dimensions} == {"dimension_2"}
         return types.SimpleNamespace(builder_jobs=[new_blueprint])
 
     def fake_build_task_suite(spec_arg, blueprints, config, **kwargs):
@@ -4554,11 +4560,11 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
 
     assert {dimension.id for dimension in revised_suite.spec.dimensions} == {
         "core_capability",
-        "agentic_escalation",
+        "dimension_2",
     }
     # The untouched core item is retained verbatim.
     assert any(item.id == "base_item" for item in revised_suite.tasks)
-    assert any(item.dimension_id == "agentic_escalation" for item in revised_suite.tasks)
+    assert any(item.dimension_id == "dimension_2" for item in revised_suite.tasks)
     assert revised_qc.rejected_item_ids == []
 
 

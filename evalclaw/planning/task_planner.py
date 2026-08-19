@@ -317,10 +317,42 @@ def _parse_plan_response(
     config: BenchmarkConfig,
     *,
     expected_task_count: int | None = None,
+    framework_dimension_ids: list[str] | None = None,
 ) -> tuple[BenchmarkPlan, list[str]]:
     if not isinstance(data, dict) or not isinstance(data.get("plan"), dict):
         raise ValueError("Planner response must be an object with a plan object at its root.")
-    plan = BenchmarkPlan.model_validate(data["plan"]).model_copy(
+    raw_plan = dict(data["plan"])
+    raw_plan["id"] = "evalclaw_plan"
+    raw_dimensions = raw_plan.get("dimensions")
+    if not isinstance(raw_dimensions, list):
+        raw_dimensions = []
+    normalized_dimensions: list[dict[str, object]] = []
+    for dimension_index, raw_dimension in enumerate(raw_dimensions, 1):
+        if not isinstance(raw_dimension, dict):
+            normalized_dimensions.append({})
+            continue
+        dimension = dict(raw_dimension)
+        dimension_id = (
+            framework_dimension_ids[dimension_index - 1]
+            if framework_dimension_ids and dimension_index <= len(framework_dimension_ids)
+            else f"dimension_{dimension_index}"
+        )
+        dimension["id"] = dimension_id
+        raw_designs = dimension.get("task_designs")
+        if not isinstance(raw_designs, list):
+            raw_designs = []
+        normalized_designs: list[dict[str, object]] = []
+        for design_index, raw_design in enumerate(raw_designs, 1):
+            if not isinstance(raw_design, dict):
+                normalized_designs.append({})
+                continue
+            design = dict(raw_design)
+            design["id"] = f"{dimension_id}_task_design_{design_index}"
+            normalized_designs.append(design)
+        dimension["task_designs"] = normalized_designs
+        normalized_dimensions.append(dimension)
+    raw_plan["dimensions"] = normalized_dimensions
+    plan = BenchmarkPlan.model_validate(raw_plan).model_copy(
         update={
             "subjects": [target.id for target in config.targets],
             "scale_budget": _safe_scale_budget(config.scale_budget),
@@ -342,6 +374,7 @@ def _run_planner(
     *,
     log: Callable[[str], None] | None,
     expected_task_count: int | None = None,
+    framework_dimension_ids: list[str] | None = None,
 ) -> BenchmarkPlan:
     settings = role_model_settings(config, "planner")
     if not settings.configured:
@@ -390,6 +423,7 @@ def _run_planner(
                 previous_response,
                 config,
                 expected_task_count=expected_task_count,
+                framework_dimension_ids=framework_dimension_ids,
             )
         except Exception as exc:
             errors = [f"{type(exc).__name__}: {exc}"]
@@ -473,6 +507,7 @@ def plan_from_spec(
         config,
         log=log,
         expected_task_count=expected_task_count,
+        framework_dimension_ids=[dimension.id for dimension in spec.dimensions],
     )
 
 

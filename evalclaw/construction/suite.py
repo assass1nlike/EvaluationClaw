@@ -17,6 +17,7 @@ from ..generation.generator import _source_context
 from ..models.llm import LLMOutputTruncatedError, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..prompts.task_builder import TASK_BUILDER_PROMPT
+from ..protocols.multimodal import normalize_multimodal_metadata
 from ..research.deep_research import compact_brief_context
 from ..types import (
     BenchmarkConfig,
@@ -67,10 +68,6 @@ def _ensure_unique_task_ids(tasks: list[TaskDefinition]) -> None:
             candidate = f"{prefix}__{original_id}__{duplicate_counts[original_id]}"
         task.id = candidate
         seen.add(candidate)
-
-
-def _is_local_task_id(value: str) -> bool:
-    return bool(re.fullmatch(r"(?:task|item|question|problem)[_-]?\d+", value, re.IGNORECASE))
 
 
 def _task_duplicate_key(task: TaskDefinition) -> str:
@@ -207,21 +204,22 @@ def _task_builder_payload(
     }
     optional_fields = ["content_summary", "resource_ids", "tags"]
     task_schema: dict[str, object] = {
-        "required": ["id", "dimension_id", "task_type", "title", "prompt", "challenge_effort", "metadata"],
+        "required": ["task_type", "title", "prompt", "challenge_effort", "metadata"],
         "optional": optional_fields,
         "allowed_task_types": [task_type.value for task_type in task_types],
         "required_task_type_counts": {
             **required_type_counts
         },
         "required_task_design_counts": required_task_design_counts,
-        "task_design_metadata_field": "task_design_id",
+        "framework_injected_fields": ["id", "dimension_id", "metadata.task_design_id"],
     }
     type_requirements: dict[str, list[str]] = {}
     if TaskType.choice in task_types:
-        optional_fields.extend(["choices", "correct_choice_ids"])
+        optional_fields.extend(["choices", "correct_choice_indices"])
         type_requirements[TaskType.choice.value] = [
-            "Provide at least two choices as objects with unique ids and text, and provide a non-empty "
-            "correct_choice_ids list. One id means single-choice; multiple ids mean multi-select. "
+            "Provide at least two choices as objects with text only, and provide a non-empty "
+            "correct_choice_indices list using zero-based positions. One index means single-choice; multiple "
+            "indices mean multi-select. The framework assigns canonical option ids. "
             "Do not put a multi-part answer object in a choice task."
         ]
     if TaskType.fill_blank in task_types:
@@ -396,8 +394,9 @@ def _revision_context_for_job(
         "instruction": (
             str(revision_context.get("instruction"))
             or (
-                "Return replacements only for the tasks listed in previous_tasks. Preserve each task id. "
-                "Fix every listed QC issue, but do not return or modify any other task from the TaskDesign."
+                "Return replacements only for the tasks listed in previous_tasks, in the same order. "
+                "The framework restores each existing task id by slot. Fix every listed QC issue, "
+                "but do not return or modify any other task from the TaskDesign."
             )
         ),
     }
@@ -673,6 +672,9 @@ def build_task_suite(
             ),
             config=config,
         )
+        payload["resources"]["available"] = [
+            resource.model_dump(mode="json") for resource in local_resources
+        ]
 
         def call_task_builder(
             call_payload: dict[str, object],
@@ -753,16 +755,35 @@ def build_task_suite(
                     f"LLM returned {len(parsed_tasks)} task object(s), "
                     f"but this Builder job requires {target_task_count}."
                 )
-            parsed_resource_ids: list[str] = []
             parsed_task_resources: list[TaskResource] = []
+            resource_aliases: dict[str, str] = {}
             seen_task_prompts: dict[str, str] = {}
             for idx, raw_resource in enumerate(parsed_resources, 1):
                 if not isinstance(raw_resource, dict):
                     raise ValueError(f"resource #{idx} is not a JSON object.")
-                resource = _resource_from_raw(raw_resource, f"{blueprint.id}_resource_{idx}")
-                attempt_resources.append(resource)
+                resource = _resource_from_raw(raw_resource, f"{blueprint.id}_llm_resource_{idx}")
+                raw_resource_id = str(raw_resource.get("id") or "").strip()
+                existing_resource = next(
+                    (
+                        candidate
+                        for candidate in attempt_resources
+                        if (
+                            candidate.kind,
+                            candidate.uri,
+                            candidate.title,
+                        )
+                        == (resource.kind, resource.uri, resource.title)
+                    ),
+                    None,
+                )
+                if existing_resource is not None:
+                    resource = existing_resource
+                else:
+                    attempt_resources.append(resource)
                 parsed_task_resources.append(resource)
-                parsed_resource_ids.append(resource.id)
+                if raw_resource_id:
+                    resource_aliases[raw_resource_id] = resource.id
+                resource_aliases[f"resource_{idx}"] = resource.id
             duplicate_resource_ids = sorted(
                 resource_id
                 for resource_id, count in Counter(
@@ -795,6 +816,20 @@ def build_task_suite(
                     ) from exc
                 if not task.prompt.strip():
                     raise ValueError(f"task #{idx} has an empty prompt.")
+                task.resource_ids = [
+                    resource_aliases.get(resource_id, resource_id)
+                    for resource_id in task.resource_ids
+                ]
+                planned_design = planned_task_designs[
+                    min(idx - 1, len(planned_task_designs) - 1)
+                ]
+                task = tag_task(task, planned_design.id)
+                multimodal = normalize_multimodal_metadata(
+                    task.metadata.get("multimodal"),
+                    owner_id=task.id,
+                )
+                if multimodal is not None:
+                    task.metadata["multimodal"] = multimodal
                 if not task.resource_ids and len(known_resource_ids) == 1:
                     task.resource_ids = [next(iter(known_resource_ids))]
                 elif not task.resource_ids and len(known_resource_ids) > 1:
@@ -804,7 +839,7 @@ def build_task_suite(
                         "metadata.source_ids does not bind task provenance."
                     )
                 task = ensure_task_content_summary(
-                    tag_task(task),
+                    task,
                     blueprint,
                     local_resources or parsed_task_resources[-1:],
                 )
@@ -896,12 +931,7 @@ def build_task_suite(
                 ]
                 expected_ids = set(expected_id_order)
                 returned_ids = {task.id for task in attempt_tasks}
-                if (
-                    len(attempt_tasks) == len(expected_id_order)
-                    and len(returned_ids) == len(attempt_tasks)
-                    and returned_ids != expected_ids
-                    and all(_is_local_task_id(task.id) for task in attempt_tasks)
-                ):
+                if len(attempt_tasks) == len(expected_id_order):
                     for task, expected_id in zip(attempt_tasks, expected_id_order, strict=True):
                         task.id = expected_id
                     returned_ids = expected_ids
@@ -1138,6 +1168,12 @@ def build_task_suite(
     resource_by_id = {resource.id: resource for resource in resources}
     items: list[BenchmarkItem] = []
     for task in tasks:
+        multimodal = normalize_multimodal_metadata(
+            task.metadata.get("multimodal"),
+            owner_id=task.id,
+        )
+        if multimodal is not None:
+            task.metadata["multimodal"] = multimodal
         blueprint = blueprint_by_id.get(str(task.metadata.get("builder_job_id") or ""))
         task_design = None
         if blueprint is not None:

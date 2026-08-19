@@ -30,21 +30,19 @@
 
 若启用了 `--deep-research`，框架在规划前先围绕目标做研究，产出结构化简报 **ResearchBrief**（完整字段契约见[附录 H](#appendix-h)；四类 R1–R4 调用的执行过程与搜索后端边界见[附录 A.0](#appendix-a)）。
 
-ResearchBrief 承载本次研究的全部语义结果：
+ResearchBrief 是 Benchmark Design Research 的中间产物，只保留会改变当前 benchmark 设计的证据：
 
-- **field_overview**：被测领域的概况摘要；
-- **taxonomy**：领域子能力 / 子主题列表，是维度的自然候选；
-- **existing_benchmarks**：已知 benchmark 及其已知短板，用于避免重复、定位新评测；
-- **findings**：压缩过的研究要点，可启发任务设计与来源绑定内容；
-- **seed_sources**：可作为 source-backed 构题依据的具体文档/数据集（title + url）；
-- **citations**：结论到来源的映射，支撑 brief 的断言；
-- **source_materials**：框架归档、保留正文的来源（含正文全文），供 TaskBuilder 经 `read_research_source(url)` 按需读取；
-- **exemplar_items**：可启发构题的具体示例题；
-- **challenge_effort_anchors**：本领域 E1–E3 构题投入的具体含义，用于选择 `TaskDesign.challenge_effort`。
+- **dimensions**：有证据支持的可测量候选维度及其边界；
+- **difficulty_factors**：可观察、可评分的任务困难因素及其构题影响；
+- **task_patterns**：适合当前目标的任务形态、题型和评分方向；
+- **source_recommendations**：可用于 source-backed 构题的已验证文档或数据集；
+- **evidence**：外部观察、直接设计影响和来源 URL；
+- **source_materials**：框架归档并保留正文的来源，供 TaskBuilder 经 `read_research_source(url)` 按需读取；
+- **challenge_effort_anchors**：当前目标下 E1–E3 构题投入的具体含义。
 
-Planner 只收到这份 brief 的紧凑索引（findings、来源 URL、正文长度等），不收到来源全文——可见范围见[附录 C.1](#appendix-c)。需要来源细节的 TaskBuilder 可调用 `read_research_source(url)` 从本次归档读取正文，不必再次联网。
+它不是通用领域综述，不为了填充字段而搜索学术 gap、市场背景或与构题无关的观点。
 
-若未配置 Research 模型、关闭搜索或 `search_backend=none`，这一步返回 `None` 并继续规划。此时 Planner 的资源包里没有 research brief，而是收到空的 `<DIRECTORY path="resources/deepresearch" empty="true" />`（见[附录 C.1](#appendix-c)）。
+Planner 只收到这份 brief 的紧凑索引（候选维度、设计证据、来源 URL、正文长度等），不收到来源全文——可见范围见[附录 C.1](#appendix-c)。需要来源细节的 TaskBuilder 可调用 `read_research_source(url)` 从本次归档读取正文，不必再次联网。
 
   ## 三、Planner 设计完整 BenchmarkPlan
 
@@ -60,18 +58,14 @@ Planner 收到的完整 prompt 结构见[附录 C](#appendix-c)；固定 prompt�
 
 含两个设计层级，**Dimension** 定义互不重叠的测评维度，**TaskDesign** 定义某类具体任务的题型、题量、内容等。二者共同的完整字段见 `universal_format.json`（[附录 B.3](#appendix-b-planner)），各字段的精确语义（含 `task_count`、`scoring_contract` 等）见[附录 I.3](#appendix-i)。
 
-  ### Planner 确定性审计
-
-Planner 输出不会直接采用，而是先经过纯代码的确定性审计，检查：必填字段都完整、复核用户显式总题数等，见[附录 C.3](#appendix-c)。
-如果发现错误，会把完整错误列表和上一次输出交回 Planner 要求返回修复后的完整计划，此时给 planner 的输入见[附录 C.2](#appendix-c)。
-
   ## 四、按 TaskDesign 构造具体任务
 
 每个 Planner 产出的 TaskDesign 派生一个独立 Builder job，全部 job 走同一套构题流程：收集来源 → 组装 payload 调用 TaskBuilder → 生成 TaskDefinition → 结构修复 → 整合出 run-ready TaskSuite。
 
   ### 1. 收集来源资源
 
-为当前 TaskDesign 收集候选来源：依次来自 Planner 显式提供的 URL、TaskDesign 研究查询、Dimension 研究查询、可选网页搜索结果；没有外部来源时用 self-generated fixture 兜底。来源不足且维度需研究时，框架会展开一个独立的构题前来源搜索阶段（触发条件与判定细节见[附录 D.0](#appendix-d)；TaskBuilder 在产出阶段自行返回的新资源随后也会并入 suite 的 resources）。
+为当前 TaskDesign 收集候选来源：来自 Planner 显式提供的 URL、TaskDesign 研究查询的网页搜索结果（它没有时，再考虑使用 Dimension 研究查询）；
+来源不足且维度需研究时，框架会展开一个独立的构题前来源搜索阶段（触发条件与判定细节见[附录 D.0](#appendix-d)；TaskBuilder 在产出阶段自行返回的新资源随后也会并入 suite 的 resources）。
 
 每个来源标准化为 `TaskResource`（完整字段见[附录 I.1](#appendix-i)）；如何呈现给 TaskBuilder 见 payload 的 `resources.context`（[附录 D.1](#appendix-d-payload)）。
 
@@ -160,7 +154,7 @@ review 的工作方式是：**保留未被触碰的题，只改该改的**。用
 
    产物                含义
 
-   ResearchBrief       可选的领域研究结果
+   ResearchBrief       可选的 Benchmark Design Research 设计证据
    BenchmarkPlan       Planner 的完整设计决策
    EvalSpec            benchmark 的总体规格
    TaskSuite           run-ready 的任务容器（含全部 BenchmarkItem 与 executor 所需规格）
@@ -191,9 +185,9 @@ review 的工作方式是：**保留未被触碰的题，只改该改的**。用
 |---|---|---|---|---|---|---|
 | T1 | pipeline 开始 | Planner | `TRANSLATION_SYSTEM_PROMPT` | 原始 goal 字符串 | 无 | `{"english_goal":"..."}` |
 | R1 | Deep Research 开始 | Research | query prompt | `{"goal","max_queries":4}` | 无 | 查询数组 |
-| R2 | 每轮取得材料后 | Research | compress prompt | `{"goal","material"}` | 无 | findings |
-| R3 | 每轮压缩后 | Research | reflect prompt | `{"goal","findings","round","max_rounds"}` | 无 | done/gaps/follow-up |
-| R4 | 研究循环结束 | Research | synthesis prompt | `{"goal","findings","known_sources"}` | 无 | ResearchBrief 主体 |
+| R2 | 每轮取得材料后 | Research | compress prompt | `{"goal","material"}` | 无 | evidence |
+| R3 | 每轮压缩后 | Research | reflect prompt | `{"goal","evidence","round","max_rounds"}` | 无 | done/gaps/follow-up |
+| R4 | 研究循环结束 | Research | synthesis prompt | `{"goal","evidence","known_sources"}` | 无 | ResearchBrief 主体 |
 | P1 | 初次规划 | Planner | base + Planner Skill + format reference | `<PLANNER_RESOURCES>` | 无 | 完整 plan JSON |
 | P2 | 计划解析/审计失败 | Planner | 与 P1 相同 | P1 输入 + repair file | 无 | 完整替换 plan |
 | B1 | 每个 TaskDesign | TaskBuilder | base + 可选环境 Skill + 可选研究补充 | TaskBuilder payload JSON | 可选 | resources/tasks |
@@ -211,9 +205,9 @@ Deep Research 由四类独立 LLM 调用串成，不是一次长对话；搜索�
 
 1. **R1 初始查询**：Research 角色 LLM 收到 `{"goal", "max_queries"}`，生成首批搜索查询。
 2. **搜索与抓取（非 LLM）**：`web_search`、`fetch_url_text` 与 HuggingFace discovery 按查询取回原始材料。
-3. **R2 材料压缩**：Research 角色 LLM 把本轮材料压缩成 findings。
+3. **R2 材料压缩**：Research 角色 LLM 把本轮材料压缩成带设计影响和来源 URL 的 evidence。
 4. **R3 缺口反思**：Research 角色 LLM 判断是否还有关键缺口；有则生成下一轮查询，否则结束循环。
-5. **R4 最终综合**：Research 角色 LLM 把累计 findings 综合成 ResearchBrief 的语义字段。
+5. **R4 最终综合**：Research 角色 LLM 把累计 evidence 综合成 ResearchBrief 的设计字段。
 
 四类调用的精确 `system`/`user` 组成见上方「执行前 LLM 调用总表」的 `R1-R4` 行与附录 B.2；`web_search`、`fetch_url_text` 和 HuggingFace discovery 是搜索后端而非角色 LLM 调用，其边界见下方「边界说明」。
 
@@ -290,15 +284,18 @@ user message 不是 JSON，也不包含 BenchmarkConfig。模型应返回：
 }
 ~~~
 
-每个研究轮次单独调用一次。期望输出 `{"findings":[...]}`。失败时框架保留每个 material 的前 400
-字符作为带来源标签的 fallback finding，而不是重跑完整研究。
+每个研究轮次单独调用一次。期望输出 `{"evidence":[...]}`，每项包含外部观察、直接设计影响和
+已知来源 URL。失败时框架保留每个 material 的前 400 字符作为需要进一步核验的设计线索，而不是
+把它包装成未经验证的领域结论。
 
 #### R3 缺口反思
 
 ~~~json
 {
   "goal": "英文 goal",
-  "findings": ["累计 findings 的最后最多 60 条"],
+  "evidence": [
+    {"observation": "...", "design_implication": "...", "source_urls": ["..."]}
+  ],
   "round": 1,
   "max_rounds": "config.max_research_iterations，至少 1"
 }
@@ -321,7 +318,9 @@ user message 不是 JSON，也不包含 BenchmarkConfig。模型应返回：
 ~~~json
 {
   "goal": "英文 goal",
-  "findings": ["累计 findings 的最后最多 60 条"],
+  "evidence": [
+    {"observation": "...", "design_implication": "...", "source_urls": ["..."]}
+  ],
   "known_sources": [
     {"title": "最多 20 个 citation 的标题", "url": "..."},
     {"title": "最多 5 个 HF 候选的标题", "url": "..."}
@@ -329,12 +328,10 @@ user message 不是 JSON，也不包含 BenchmarkConfig。模型应返回：
 }
 ~~~
 
-R4 最多用同一 payload 尝试两次。模型输出 ResearchBrief 的 field overview、taxonomy、已有 benchmark、
-seed sources、示例、E1-E3 anchors、citations 和 notes。若两次都失败，Python 从累计 findings/citations/HF
-候选构造 fallback brief。无论模型综合是否成功，最终都会由框架覆盖写入：
-
-- `findings`：累计 findings 的最后最多 60 条。
-- `source_materials`：搜索阶段真实抓取并按 URL 去重后保留的正文；这不是 R4 模型生成内容。
+R4 最多用同一 payload 尝试两次。模型输出当前 Benchmark Design Research Brief 的设计字段；若两次都
+失败，Python 从累计 evidence、搜索 citations 和 HuggingFace 候选构造最小 fallback brief。无论模型
+综合是否成功，`source_materials` 都由框架覆盖写入：它只包含搜索阶段真实抓取并按 URL 去重后保留的正文，
+不是 R4 模型生成内容。
 
 <a id="appendix-b"></a>
 ## 附录 B：固定 prompt 与动态 `system` 组成
@@ -377,92 +374,88 @@ runtime when they are relevant. Do not construct final benchmark tasks.</code></
 ### B.2 Deep Research 四个 prompt
 <details><summary>完整源码：<code>evalclaw/prompts/research.py</code></summary><pre><code class="language-text">RESEARCH_QUERY_SYSTEM_PROMPT:
 <!-- -->
-You generate the initial web-search query set for EvaluationClaw&#39;s deep-research
-stage. The goal is to ground an automatically-built benchmark in the real
-structure of a domain.
+You generate initial web-search queries for EvaluationClaw's Benchmark Design
+Research stage. Research only what can change the construction of a benchmark
+for the stated evaluation goal.
 <!-- -->
-Input JSON: {&quot;goal&quot;: &quot;...&quot;, &quot;max_queries&quot;: N}
+Input JSON: {"goal": "...", "max_queries": N}
 <!-- -->
-Return pure JSON only, no markdown: {&quot;queries&quot;: [&quot;...&quot;, &quot;...&quot;]}
+Return pure JSON only: {"queries": ["...", "..."]}
 <!-- -->
 Rules:
-- Emit at most max_queries queries, each self-contained and specific.
-- Cover complementary angles: the domain&#39;s subfield taxonomy, existing
-  benchmarks/datasets for the capability, representative task examples, and
-  what makes tasks easy vs. expert-level in this domain.
-- Prefer queries that surface authoritative/technical sources (papers, docs,
-  benchmark pages) over news or marketing content.
+- Emit at most max_queries self-contained, specific queries.
+- Cover measurable capability boundaries, observable failure modes and
+  difficulty factors, useful task/scoring patterns, and authoritative sources
+  that can ground concrete tasks.
+- Do not search broad field history, academic novelty, market context, or
+  generic benchmark gaps unless the result changes a design choice.
 <!-- -->
 RESEARCH_COMPRESS_SYSTEM_PROMPT:
 <!-- -->
-You compress raw research material (search syntheses and fetched page text)
-into concise, reusable findings for EvaluationClaw&#39;s deep-research stage.
+You compress raw research material into evidence for EvaluationClaw's
+Benchmark Design Research stage.
 <!-- -->
-Input JSON: {&quot;goal&quot;: &quot;...&quot;, &quot;material&quot;: [{&quot;query&quot;|&quot;url&quot;: ..., &quot;content&quot;: &quot;...&quot;}]}
+Input JSON: {"goal": "...", "material": [{"query"|"url": ..., "content": "..."}]}
 <!-- -->
-Return pure JSON only: {&quot;findings&quot;: [&quot;...&quot;, &quot;...&quot;]}
+Return pure JSON only:
+{"evidence": [{"observation": "...", "design_implication": "...", "source_urls": ["..."]}]}
 <!-- -->
 Rules:
-- Each finding is one factual sentence or short paragraph relevant to designing
-  an evaluation for the goal: subfields, existing benchmarks and their
-  weaknesses, useful source documents, example task shapes, and challenge-effort signals.
-- Append the supporting URL in parentheses when known, e.g. &quot;(source: https://...)&quot;.
-- Drop marketing fluff, navigation text, and anything irrelevant to the goal.
-- Emit at most 12 findings per call.
+- Pair each external observation with a concrete consequence for a dimension,
+  task input, environment, interaction, scoring rule, or source choice.
+- Use only URLs present in the supplied material.
+- Drop broad field commentary, unsupported opinions, marketing fluff, and
+  observations with no design consequence.
+- Emit at most 12 evidence entries per call.
 <!-- -->
 RESEARCH_REFLECT_SYSTEM_PROMPT:
 <!-- -->
-You review accumulated deep-research findings against the ResearchBrief schema
-and decide whether more research is needed.
+You review accumulated evidence for EvaluationClaw's Benchmark Design Research
+stage and decide whether more research is needed.
 <!-- -->
-The ResearchBrief fields that must eventually be populated:
-- field_overview: summary of the domain
-- taxonomy: subfields/capabilities (these become benchmark dimensions)
-- existing_benchmarks: known benchmarks and their weaknesses
-- seed_sources: groundable document/data URLs for item generation
-- exemplar_items: representative example tasks
-- challenge_effort_anchors: what E1-E3 task-builder effort means in this domain
-- citations: claim-to-source mapping
+Research is sufficient when it supports candidate measurable dimensions and
+boundaries, observable difficulty factors, useful task/scoring patterns, and
+sources for source-backed construction. Do not search merely to fill a field
+or produce a generic account of the domain.
 <!-- -->
-Input JSON: {&quot;goal&quot;: &quot;...&quot;, &quot;findings&quot;: [&quot;...&quot;], &quot;round&quot;: N, &quot;max_rounds&quot;: M}
+Input JSON: {"goal": "...", "evidence": [{"observation": "...", "design_implication": "...", "source_urls": ["..."]}], "round": N, "max_rounds": M}
 <!-- -->
 Return pure JSON only:
-{&quot;done&quot;: true|false, &quot;gaps&quot;: [&quot;missing field or weak area&quot;, ...], &quot;follow_up_queries&quot;: [&quot;...&quot;, ...]}
+{"done": true|false, "gaps": ["missing design area", ...], "follow_up_queries": ["...", ...]}
 <!-- -->
 Rules:
-- done=true when the findings can adequately populate every brief field.
-- When done=false, list the concrete gaps and emit up to 4 targeted follow-up
-  search queries that would close them. Do not repeat queries whose answers are
-  already in the findings.
+- done=true when additional research is unlikely to change dimensions, task
+  patterns, difficulty factors, or source choices.
+- When done=false, list only design-relevant gaps and emit up to 4 targeted
+  follow-up queries. Do not repeat answered questions.
 <!-- -->
 RESEARCH_SYNTHESIS_SYSTEM_PROMPT:
 <!-- -->
-You synthesize the final ResearchBrief for EvaluationClaw from accumulated
-research findings. The brief grounds the benchmark planner and item generator.
+You synthesize the final ResearchBrief from accumulated evidence. This is a
+Benchmark Design Research artifact, not a general field survey or literature
+review. Every entry must help the Planner or Task Builder make a concrete design
+decision.
 <!-- -->
-Input JSON: {&quot;goal&quot;: &quot;...&quot;, &quot;findings&quot;: [&quot;...&quot;], &quot;known_sources&quot;: [{&quot;title&quot;, &quot;url&quot;}]}
+Input JSON: {"goal": "...", "evidence": [{"observation", "design_implication", "source_urls"}], "known_sources": [{"title", "url"}]}
 <!-- -->
-Return pure JSON only, no markdown, exactly this shape (fields may be empty when
-the findings do not support them; never invent URLs):
+Return pure JSON only, exactly this shape (omit unsupported sections; never
+invent URLs):
 {
-  &quot;field_overview&quot;: &quot;2-5 sentence summary of the domain&quot;,
-  &quot;taxonomy&quot;: [{&quot;name&quot;: &quot;subfield/capability&quot;, &quot;description&quot;: &quot;...&quot;}],
-  &quot;existing_benchmarks&quot;: [{&quot;name&quot;: &quot;...&quot;, &quot;url&quot;: &quot;...&quot;, &quot;known_weaknesses&quot;: [&quot;...&quot;]}],
-  &quot;seed_sources&quot;: [{&quot;title&quot;: &quot;...&quot;, &quot;url&quot;: &quot;...&quot;, &quot;why_useful&quot;: &quot;...&quot;}],
-  &quot;exemplar_items&quot;: [{&quot;prompt&quot;: &quot;...&quot;, &quot;answer&quot;: &quot;...&quot;, &quot;notes&quot;: &quot;...&quot;}],
-  &quot;challenge_effort_anchors&quot;: {&quot;E1&quot;: &quot;...&quot;, &quot;E2&quot;: &quot;...&quot;, &quot;E3&quot;: &quot;...&quot;},
-  &quot;citations&quot;: [{&quot;claim&quot;: &quot;...&quot;, &quot;url&quot;: &quot;...&quot;}],
-  &quot;research_notes&quot;: &quot;caveats, open questions, coverage limits&quot;
+  "dimensions": [{"name": "...", "measurement_target": "...", "boundary": "...", "task_shapes": ["..."]}],
+  "difficulty_factors": [{"factor": "...", "observable_signal": "...", "design_implication": "..."}],
+  "task_patterns": [{"name": "...", "description": "...", "suitable_task_types": ["..."], "scoring_direction": "..."}],
+  "source_recommendations": [{"title": "...", "url": "...", "why_useful": "..."}],
+  "evidence": [{"observation": "...", "design_implication": "...", "source_urls": ["..."]}],
+  "challenge_effort_anchors": {"E1": "...", "E2": "...", "E3": "..."},
+  "research_notes": "uncertainty, open design questions, and coverage limits"
 }
 <!-- -->
 Rules:
-- taxonomy entries should be usable directly as benchmark dimensions:
-  non-overlapping, measurable, 3-8 entries.
-- seed_sources must be URLs that actually appeared in the findings or
-  known_sources; explain why each is useful for grounding items.
-- challenge_effort_anchors must describe the construction/reasoning effort needed in this domain.
-- Every non-obvious claim in field_overview/existing_benchmarks should have a
-  matching citation entry.</code></pre></details>
+- Dimensions must be non-overlapping, measurable candidates for this goal, not
+  an exhaustive survey of the field.
+- Difficulty factors need observable signals; task patterns need scoring direction.
+- Source recommendation URLs and evidence source_urls must appear in known_sources.
+- Challenge-effort anchors describe construction effort for this goal.</code></pre></details>
 
 
 <a id="appendix-b-planner"></a>
@@ -2496,7 +2489,9 @@ call_llm(
 &lt;/FILE&gt;
 &lt;/PLANNER_RESOURCES&gt;
 <!-- --></code></pre></details>
-上例展示的是用户**未**显式指定题数的路径（传 `scale_budget`）。若用户显式指定了无歧义总题数，则 `scale_budget`/`scale_budget_guidance` 会被替换为 `explicit_total_task_count`（此时 `count_policy` 对应改为 "The user explicitly requested exactly this many tasks..."），审计阶段会强制各 `TaskDesign.task_count` 之和精确等于该数（见附录 C.3）。`source_backed_ratio` 只在显式设置时出现。`challenge_effort_distribution` 与 `effort_policy` 仅在配置了全局 E1/E2/E3 比例（非空且和为 1）时出现。没有 research brief 时第二个 FILE 替换为：
+上例展示的是用户**未**显式指定题数的路径（传 `scale_budget`）。若用户显式指定了无歧义总题数，则 `scale_budget`/`scale_budget_guidance` 会被替换为 `explicit_total_task_count`（此时 `count_policy` 对应改为 "The user explicitly requested exactly this many tasks..."），审计阶段会强制各 `TaskDesign.task_count` 之和精确等于该数（见附录 C.3）。`source_backed_ratio` 只在显式设置时出现。`challenge_effort_distribution` 与 `effort_policy` 仅在配置了全局 E1/E2/E3 比例（非空且和为 1）时出现。
+
+在 deep research 未开启，从而没有 research brief 时，第二个 FILE 替换为：
 
 ~~~xml
 <DIRECTORY path="resources/deepresearch" empty="true" />
@@ -2506,12 +2501,11 @@ Planner 可见的 compact brief 字段：
 
 ~~~json
 {
-  "field_overview": "最多 1500 字符",
-  "taxonomy": [{"name": "...", "description": "最多 300 字符"}],
-  "existing_benchmarks": [{"name": "...", "url": "...", "known_weaknesses": ["最多 3 条"]}],
-  "findings": ["最多 30 条"],
-  "seed_sources": ["最多 10 个"],
-  "citations": ["最多 20 个"],
+  "dimensions": [{"name": "...", "measurement_target": "...", "boundary": "...", "task_shapes": ["..."]}],
+  "difficulty_factors": [{"factor": "...", "observable_signal": "...", "design_implication": "..."}],
+  "task_patterns": [{"name": "...", "description": "...", "suitable_task_types": ["..."], "scoring_direction": "..."}],
+  "source_recommendations": [{"title": "...", "url": "...", "why_useful": "..."}],
+  "evidence": [{"observation": "...", "design_implication": "...", "source_urls": ["..."]}],
   "source_material_index": [{"title": "...", "url": "...", "content_chars": 12345}],
   "challenge_effort_anchors": {"最多": "4 个"}
 }
@@ -2520,18 +2514,19 @@ Planner 可见的 compact brief 字段：
 框架在 brief 的 `<FILE>` 内容里、JSON 之后追加一段字段释义（`evalclaw/research/deep_research.py::compact_brief_field_guide`，英文原文如下），这样 Planner 不必从变量名猜字段语义。释义为参考材料不是输出 schema：
 
 ```
-Field meanings for the deep-research brief above (the brief is reference material, not an output schema):
-- field_overview: a short summary of the domain under evaluation.
-- taxonomy: subfields/capabilities in the domain; these are the natural candidates to map onto benchmark dimensions.
-- existing_benchmarks: known benchmarks/datasets for this capability and their known weaknesses; useful to avoid duplication and position the new eval.
-- findings: condensed research takeaways that can inspire task design and source-grounded content.
-- seed_sources: concrete documents/datasets (title + url) that item generation can build source-backed tasks from.
-- citations: claim-to-source mapping supporting the brief's assertions.
+Field meanings for the Benchmark Design Research brief above (the brief is reference material, not an output schema):
+- dimensions: evidence-supported candidates for measurable, non-overlapping benchmark dimensions; the Planner decides whether to adopt them.
+- difficulty_factors: observable sources of task difficulty and their direct construction implications.
+- task_patterns: task shapes that can measure the goal, including suitable task types and scoring directions.
+- source_recommendations: verified documents or datasets that can ground source-backed tasks.
+- evidence: external observations paired with concrete benchmark-design implications and their source URLs.
 - source_material_index: a list of {title, url, content_chars} describing the fetched source bodies retained by the framework; the TaskBuilder may read a full source body by URL via read_research_source rather than re-fetching.
-- challenge_effort_anchors: what E1-E3 construction effort means concretely in this domain, as a guide for choosing each TaskDesign.challenge_effort.
+- challenge_effort_anchors: what E1-E3 construction effort means for this evaluation goal, as a guide for choosing TaskDesign.challenge_effort.
 ```
 
 ### C.2 计划修复输入
+
+Planner 输出不会直接采用，而是先经过纯代码的确定性审计，检查：必填字段都完整、复核用户显式总题数等。如果不通过，会让 Planner 进行修复，本节介绍修复时给 Planner 的 prompt。确定性审计内容见下一节 C.3。
 
 每次是新的单 user-message 调用，system 不变，在原资源包后追加：
 
@@ -2565,10 +2560,12 @@ HTTP/传输重试是底层另一套机制。
 
 1. 先把 Planner `source_plan.suggested_urls`（受 `max_research_sources` 上限）直接存成 `web` 来源——这是 Planner 已给的建议，不触发搜索；
 2. 若来源数已达 `max_research_sources`，直接返回；
-3. 若 `Dimension.needs_research=false`、`use_web_research=false` 或 Research 角色未配置，返回当前名单（不再补来源）；
+3. 若 `Dimension.needs_research=false` 或 `use_web_research=false`，返回当前名单（不再补来源）；若需要并启用了研究但 Research 角色未配置，则直接报错；
 4. 否则从 `blueprint.resource_queries`（缺省回落 `dimension.research_queries`；两者都空时用 `f"{dimension.name} {blueprint.title} benchmark task resources"` 之类的默认查询）取其前 2 条做 `web_search`，把结果各 citation 的 URL 去重后追加为 `web` 来源，直到来源数达 `max_research_sources`。
 
 「来源不足」不是一个显式的布尔判断，而是由上面第 3/4 步共同决定：只要需要研究、网页研究开启、Research 已配置、且当前来源未满上限，就会用研究查询补齐。`max_research_sources` 是这条来源数上限（配置见[附录 G](#appendix-g)）。收集结果随后被标准化为 `TaskResource` 经去重进入 suite 的 resources，并以 `resources.context` 呈现给 TaskBuilder（见 D.1）。
+
+这里的查询回落只发生在选择查询之前：TaskDesign 没有 `search_queries` 时才使用 Dimension 查询。执行某条查询后若遇到 `search_backend="none"`、缺少所需 API key 或后端/API 错误，构题流程直接报错，不会改用 Dimension 查询掩盖故障。搜索超时会对同一条查询最多尝试 3 次，仍然超时则报错。合法但没有搜索结果不属于系统故障，此时可以继续尝试所选查询列表中的下一条查询。
 
 <a id="appendix-d-payload"></a>
 ### D.1 初次 payload
@@ -3068,24 +3065,29 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 <a id="appendix-h"></a>
 ## 附录 H：ResearchBrief 完整数据契约
 
-定义位置：`evalclaw/types.py` 的 `ResearchBrief` 及六个嵌套模型；R4 容错解析位于
-`evalclaw/research/deep_research.py::_parse_brief()`。最终对象共有 11 个顶层字段。
+ResearchBrief 是 **Benchmark Design Research** 的中间产物，不是通用领域研究报告。它只保留
+会改变当前 benchmark 维度、难点、任务/评分、来源选择或构题投入判断的内容；领域综述、学术
+新颖性、市场背景和与构题无关的 benchmark gap 不属于这个对象。
+
+定义位置：`evalclaw/types.py` 的 `ResearchBrief` 及其六个嵌套模型；R4 解析位于
+`evalclaw/research/deep_research.py::_parse_brief()`。当前对象有 9 个顶层字段：
+`dimensions`、`difficulty_factors`、`task_patterns`、`source_recommendations`、`evidence`、
+`challenge_effort_anchors`、`source_materials`、`research_notes` 和 `created_at`。
 
 ### H.1 字段所有权与生成顺序
 
 ```text
-R1-R3 累计 findings 和抓取正文
-    -> R4 只综合 8 个语义字段
+R1-R3 累计 evidence 和抓取正文
+    -> R4 综合 7 个设计字段
     -> _parse_brief() 规范化 R4 JSON
-    -> 框架覆盖写入 findings、source_materials
+    -> 框架覆盖写入 source_materials
     -> created_at 使用模型默认值
     -> 最终 ResearchBrief
 ```
 
-R4 被要求返回的 8 个字段是 `field_overview`、`taxonomy`、`existing_benchmarks`、
-`seed_sources`、`exemplar_items`、`challenge_effort_anchors`、`citations` 和
-`research_notes`。即使 R4 自行返回 `findings` 或 `source_materials`，`_parse_brief()` 也不会采用；
-这两个字段由框架依据实际研究过程写入，防止综合模型伪造抓取正文。
+R4 返回 `dimensions`、`difficulty_factors`、`task_patterns`、`source_recommendations`、
+`evidence`、`challenge_effort_anchors` 和 `research_notes`。`source_materials` 始终由框架依据
+真实抓取过程写入，防止综合模型伪造来源正文；R4 只能引用 `known_sources` 中的 URL。
 
 ### H.2 最终完整 JSON 结构
 
@@ -3093,46 +3095,48 @@ R4 被要求返回的 8 个字段是 `field_overview`、`taxonomy`、`existing_b
 
 ```json
 {
-  "field_overview": "领域的 2-5 句概述",
-  "taxonomy": [
+  "dimensions": [
     {
-      "name": "可测量的子领域或能力名称",
-      "description": "该子领域的边界和内容"
+      "name": "可测量的能力维度",
+      "measurement_target": "要观察的能力",
+      "boundary": "纳入与排除范围",
+      "task_shapes": ["适合的任务形态"]
     }
   ],
-  "existing_benchmarks": [
+  "difficulty_factors": [
     {
-      "name": "已有 benchmark 名称",
-      "url": "https://example.com/benchmark",
-      "known_weaknesses": ["已知不足"]
+      "factor": "可观察的困难因素",
+      "observable_signal": "题目或输出中的信号",
+      "design_implication": "如何把它设计成可测任务"
     }
   ],
-  "seed_sources": [
+  "task_patterns": [
     {
-      "title": "可用于构题的来源标题",
+      "name": "任务模式",
+      "description": "任务测量的内容",
+      "suitable_task_types": ["choice"],
+      "scoring_direction": "评分应关注什么"
+    }
+  ],
+  "source_recommendations": [
+    {
+      "title": "可用于 source-backed 构题的来源",
       "url": "https://example.com/source",
-      "why_useful": "来源为什么有助于构题"
+      "why_useful": "为什么有助于当前目标的构题"
     }
   ],
-  "exemplar_items": [
+  "evidence": [
     {
-      "prompt": "代表性示例题",
-      "answer": "可选示例答案",
-      "notes": "可选说明"
+      "observation": "外部来源中的观察",
+      "design_implication": "对当前 benchmark 设计的直接影响",
+      "source_urls": ["https://example.com/source"]
     }
   ],
   "challenge_effort_anchors": {
-    "E1": "本领域的简单直接构题",
-    "E2": "本领域包含有效边界情况的中等规划",
-    "E3": "本领域的最高投入构题"
+    "E1": "简单直接的构题投入",
+    "E2": "需要边界情况和验证的构题投入",
+    "E3": "需要高投入材料、环境或多步验证的构题投入"
   },
-  "citations": [
-    {
-      "claim": "研究摘要中的结论",
-      "url": "https://example.com/evidence"
-    }
-  ],
-  "findings": ["R1-R3 从材料中压缩出的研究结论"],
   "source_materials": [
     {
       "title": "抓取来源标题",
@@ -3152,14 +3156,12 @@ R4 被要求返回的 8 个字段是 `field_overview`、`taxonomy`、`existing_b
 
 | 字段 | 类型 | 默认值 | 生产者与约束 |
 |---|---|---|---|
-| `field_overview` | `str` | `""` | R4；领域概述 |
-| `taxonomy` | `list[ResearchTaxonomyEntry]` | `[]` | R4；prompt 建议 3-8 个互不重叠、可测量的条目 |
-| `existing_benchmarks` | `list[ResearchBenchmarkNote]` | `[]` | R4；已有 benchmark 及其不足 |
-| `seed_sources` | `list[ResearchSeedSource]` | `[]` | R4；URL 不得由模型凭空编造，应来自 findings 或 known sources |
-| `exemplar_items` | `list[ResearchExemplarItem]` | `[]` | R4；用于说明代表性任务形态，不是最终 benchmark 题 |
-| `challenge_effort_anchors` | `dict[ChallengeEffort, str]` | `{}` | R4；键只允许 `E1`、`E2`、`E3` |
-| `citations` | `list[ResearchCitation]` | `[]` | R4；将非显然结论关联到来源 URL |
-| `findings` | `list[str]` | `[]` | 框架；累计 findings 的最后最多 60 条 |
+| `dimensions` | `list[ResearchDimension]` | `[]` | R4；当前目标下有证据支持的可测量候选维度 |
+| `difficulty_factors` | `list[ResearchDifficultyFactor]` | `[]` | R4；困难因素必须对应可观察信号和构题影响 |
+| `task_patterns` | `list[ResearchTaskPattern]` | `[]` | R4；任务形态、适用题型和评分方向 |
+| `source_recommendations` | `list[ResearchSourceRecommendation]` | `[]` | R4；URL 必须出现在 `known_sources` 中 |
+| `evidence` | `list[ResearchEvidence]` | `[]` | R4；外部观察、直接设计影响和来源 URL |
+| `challenge_effort_anchors` | `dict[ChallengeEffort, str]` | `{}` | R4；描述当前目标的 E1/E2/E3 构题投入 |
 | `source_materials` | `list[ResearchSourceMaterial]` | `[]` | 框架；按 URL 去重，同 URL 保留正文更长的版本 |
 | `research_notes` | `str` | `""` | R4；记录局限、开放问题和覆盖范围 |
 | `created_at` | `str` | 当前 UTC 时间 | Pydantic 默认工厂；ISO-8601 字符串 |
@@ -3168,38 +3170,28 @@ R4 被要求返回的 8 个字段是 `field_overview`、`taxonomy`、`existing_b
 
 | 模型 | 必填字段 | 有默认值的字段 |
 |---|---|---|
-| `ResearchTaxonomyEntry` | `name: str` | `description=""` |
-| `ResearchBenchmarkNote` | `name: str` | `url=""`、`known_weaknesses=[]` |
-| `ResearchSeedSource` | `title: str` | `url=""`、`why_useful=""` |
-| `ResearchExemplarItem` | `prompt: str` | `answer=""`、`notes=""` |
-| `ResearchCitation` | `claim: str` | `url=""` |
+| `ResearchDimension` | `name: str` | `measurement_target=""`、`boundary=""`、`task_shapes=[]` |
+| `ResearchDifficultyFactor` | `factor: str` | `observable_signal=""`、`design_implication=""` |
+| `ResearchTaskPattern` | `name: str` | `description=""`、`suitable_task_types=[]`、`scoring_direction=""` |
+| `ResearchSourceRecommendation` | `title: str`、`url: str` | `why_useful=""` |
+| `ResearchEvidence` | `observation: str`、`design_implication: str` | `source_urls=[]` |
 | `ResearchSourceMaterial` | `url: str`、`content: str` | `title=""`、`query=""` |
 
 模型层本身没有验证 URL 必须可访问，也没有在 `ResearchSourceMaterial.content` 上声明字符数约束；
 来源真实性和每个来源最多保留约 50,000 字符由抓取流程负责。
 
-### H.5 R4 容错解析
+### H.5 R4 解析边界
 
-R4 prompt 要求固定 JSON，但 `_parse_brief()` 会规范化少量常见简写：
-
-| 字段 | 规范形态 | 兼容输入 |
-|---|---|---|
-| `taxonomy[]` | `{name, description}` | 非空字符串；或以 `id` 代替 `name` |
-| `existing_benchmarks[]` | `{name, url, known_weaknesses[]}` | benchmark 名称字符串；`source` 可代替 `url`；单个 weakness 字符串会转为列表 |
-| `seed_sources[]` | `{title, url, why_useful}` | 必须是对象，但只给 URL 时以 URL 补 title |
-| `exemplar_items[]` | `{prompt, answer, notes}` | 非空字符串会作为 `prompt` |
-| `challenge_effort_anchors` | `{E1: ..., E2: ..., E3: ...}` | `[{level, meaning}]` 或 `[{level, description}]`；最终仍须通过 E1-E3 枚举验证 |
-| `citations[]` | `{claim, url}` | 只要 claim 或 URL 至少有一个就会保留，缺失值规范化为空字符串 |
-
-无法识别、缺少识别键或为空的条目会被跳过。`ResearchBrief` 及其嵌套模型没有设置
-`extra="forbid"`，因此额外字段默认被 Pydantic 忽略；这只是容错行为，不代表它们属于正式契约。
+R4 必须返回当前 schema 的 JSON 对象。`_parse_brief()` 只做类型规范化、丢弃缺少核心字段的
+条目，以及过滤不在 `known_sources` 中的 URL；不会把旧字段映射回新字段，也不会接受未声明的
+嵌套字段。ResearchBrief 及其嵌套模型使用 `extra="forbid"`，契约外字段会被拒绝。
 
 ### H.6 下游可见范围
 
 完整 `ResearchBrief` 会写入 `research_brief.json`。Planner 不接收完整对象，而只接收
-`compact_brief_context()`：截断后的 field overview、最多 12 个 taxonomy、10 个已有 benchmark、
-30 条 findings、10 个 seed sources、20 个 citations、来源的 title/URL/content 字符数索引，以及
-最多 3 个 E1-E3 anchors；不包含 `source_materials[].content` 正文和 exemplar items。
+`compact_brief_context()`：最多 12 个候选维度、困难因素和任务模式，10 个来源建议，30 条设计
+evidence，来源的 title/URL/content 字符数索引，以及最多 4 个 E1-E3 anchors；不包含
+`source_materials[].content` 正文。
 
 TaskBuilder payload 同样携带 compact brief。需要来源细节时，TaskBuilder 可调用
 `read_research_source(url)` 从本次完整 brief 中读取对应正文；因此“正文被保留”和“正文直接塞进

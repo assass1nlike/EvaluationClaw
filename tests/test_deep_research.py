@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 
+import pytest
 from typer.testing import CliRunner
 
 from evalclaw.cli import app
@@ -39,11 +40,13 @@ from evalclaw.types import (
     EvalRun,
     EvalSpec,
     QcReport,
-    ResearchBenchmarkNote,
     ResearchBrief,
-    ResearchSeedSource,
+    ResearchDifficultyFactor,
+    ResearchDimension,
+    ResearchEvidence,
     ResearchSourceMaterial,
-    ResearchTaxonomyEntry,
+    ResearchSourceRecommendation,
+    ResearchTaskPattern,
     ScaleBudget,
     SourceKind,
     TaskSuite,
@@ -53,20 +56,46 @@ from tests.config_helpers import dummy_config_kwargs
 
 SYNTHESIS_JSON = json.dumps(
     {
-        "field_overview": "Tax law reasoning spans statutes, regulations, and case application.",
-        "taxonomy": [
-            {"name": "statute_interpretation", "description": "Apply statutory text to facts."},
-            {"name": "deduction_analysis", "description": "Compute allowable deductions."},
+        "dimensions": [
+            {
+                "name": "statute_interpretation",
+                "measurement_target": "Apply statutory text to facts.",
+                "boundary": "Exclude tax filing mechanics.",
+                "task_shapes": ["fact pattern with conflicting provisions"],
+            },
+            {
+                "name": "deduction_analysis",
+                "measurement_target": "Compute allowable deductions.",
+                "boundary": "Exclude investment advice.",
+                "task_shapes": ["structured deduction calculation"],
+            },
         ],
-        "existing_benchmarks": [
-            {"name": "TaxBench", "url": "https://ex.com/taxbench", "known_weaknesses": ["small"]}
+        "difficulty_factors": [
+            {
+                "factor": "conflicting jurisdictional rules",
+                "observable_signal": "selects and applies the controlling rule",
+                "design_implication": "include explicit jurisdiction context",
+            }
         ],
-        "seed_sources": [
+        "task_patterns": [
+            {
+                "name": "grounded tax case",
+                "description": "Apply a cited rule to a concrete case.",
+                "suitable_task_types": ["generation"],
+                "scoring_direction": "rubric checks rule selection and reasoning",
+            }
+        ],
+        "source_recommendations": [
             {"title": "IRS Pub 17", "url": "https://ex.com/pub17", "why_useful": "authoritative rules"}
         ],
-        "exemplar_items": [{"prompt": "Is X deductible?", "answer": "No", "notes": ""}],
+        "evidence": [
+            {
+                "observation": "Tax guidance distinguishes statutory interpretation from deduction calculation.",
+                "design_implication": "keep these as separate dimensions",
+                "source_urls": ["https://ex.com/pub17"],
+            }
+        ],
         "challenge_effort_anchors": {"E1": "single rule lookup", "E3": "multi-jurisdiction planning"},
-        "citations": [{"claim": "TaxBench exists", "url": "https://ex.com/taxbench"}],
         "research_notes": "coverage is US-centric",
     }
 )
@@ -174,14 +203,40 @@ def test_hf_discovery_stops_after_service_failure(monkeypatch) -> None:
 
 def _sample_brief() -> ResearchBrief:
     return ResearchBrief(
-        field_overview="Overview of the domain.",
-        taxonomy=[ResearchTaxonomyEntry(name="subskill_a", description="First capability.")],
-        existing_benchmarks=[ResearchBenchmarkNote(name="BenchA", url="https://ex.com/a")],
-        seed_sources=[
-            ResearchSeedSource(title="Seed One", url="https://ex.com/seed1", why_useful="grounding"),
-            ResearchSeedSource(title="Seed Two", url="https://ex.com/seed2", why_useful="examples"),
+        dimensions=[
+            ResearchDimension(
+                name="subskill_a",
+                measurement_target="First capability.",
+                boundary="Keep it distinct.",
+                task_shapes=["grounded case"],
+            )
         ],
-        findings=["A retained finding backed by Seed One."],
+        difficulty_factors=[
+            ResearchDifficultyFactor(
+                factor="ambiguous evidence",
+                observable_signal="states uncertainty",
+                design_implication="include incomplete inputs",
+            )
+        ],
+        task_patterns=[
+            ResearchTaskPattern(
+                name="grounded answer",
+                description="Answer from retained evidence.",
+                suitable_task_types=["generation"],
+                scoring_direction="rubric",
+            )
+        ],
+        source_recommendations=[
+            ResearchSourceRecommendation(title="Seed One", url="https://ex.com/seed1", why_useful="grounding"),
+            ResearchSourceRecommendation(title="Seed Two", url="https://ex.com/seed2", why_useful="examples"),
+        ],
+        evidence=[
+            ResearchEvidence(
+                observation="The source contains a relevant rule.",
+                design_implication="use a source-grounded prompt",
+                source_urls=["https://ex.com/seed1"],
+            )
+        ],
         source_materials=[
             ResearchSourceMaterial(
                 title="Seed One",
@@ -213,7 +268,7 @@ def test_deep_research_stops_when_reflection_reports_no_gaps(monkeypatch) -> Non
     fake_llm, counts = _scripted_call_llm(
         {
             "query": '{"queries": ["q1", "q2"]}',
-            "compress": '{"findings": ["finding one (source: https://ex.com/1)"]}',
+            "compress": '{"evidence": [{"observation": "finding one", "design_implication": "use a grounded task", "source_urls": ["https://ex.com/1"]}]}',
             "reflect": '{"done": true, "gaps": [], "follow_up_queries": []}',
             "synthesize": SYNTHESIS_JSON,
         }
@@ -229,10 +284,9 @@ def test_deep_research_stops_when_reflection_reports_no_gaps(monkeypatch) -> Non
     assert counts["compress"] == 1
     assert counts["synthesize"] == 1
     assert search_calls == ["q1", "q2"]
-    assert brief.field_overview.startswith("Tax law reasoning")
-    assert [t.name for t in brief.taxonomy] == ["statute_interpretation", "deduction_analysis"]
+    assert [t.name for t in brief.dimensions] == ["statute_interpretation", "deduction_analysis"]
     assert brief.challenge_effort_anchors["E3"] == "multi-jurisdiction planning"
-    assert brief.findings == ["finding one (source: https://ex.com/1)"]
+    assert brief.evidence[0].observation.startswith("Tax guidance")
     assert brief.source_materials
     assert brief.source_materials[0].content.startswith("page text of https://ex.com/")
 
@@ -241,7 +295,7 @@ def test_deep_research_runs_follow_up_round_then_stops(monkeypatch) -> None:
     fake_llm, counts = _scripted_call_llm(
         {
             "query": '{"queries": ["q1"]}',
-            "compress": '{"findings": ["a finding"]}',
+            "compress": '{"evidence": [{"observation": "a finding", "design_implication": "use it", "source_urls": []}]}',
             "reflect": [
                 '{"done": false, "gaps": ["missing benchmarks"], "follow_up_queries": ["q_follow"]}',
                 '{"done": true, "gaps": [], "follow_up_queries": []}',
@@ -264,7 +318,7 @@ def test_deep_research_stops_at_max_iterations(monkeypatch) -> None:
     fake_llm, counts = _scripted_call_llm(
         {
             "query": '{"queries": ["q1"]}',
-            "compress": '{"findings": ["a finding"]}',
+            "compress": '{"evidence": [{"observation": "a finding", "design_implication": "use it", "source_urls": []}]}',
             # Reflection never satisfied: would loop forever without the cap.
             "reflect": '{"done": false, "gaps": ["more"], "follow_up_queries": ["again"]}',
             "synthesize": SYNTHESIS_JSON,
@@ -288,7 +342,7 @@ def test_deep_research_synthesis_failure_builds_best_effort_brief(monkeypatch) -
         if system is RESEARCH_QUERY_SYSTEM_PROMPT:
             return '{"queries": ["q1"]}'
         if system is RESEARCH_COMPRESS_SYSTEM_PROMPT:
-            return '{"findings": ["tax reasoning finding"]}'
+            return '{"evidence": [{"observation": "tax reasoning finding", "design_implication": "use a grounded task", "source_urls": ["https://ex.com/1"]}]}'
         if system is RESEARCH_REFLECT_SYSTEM_PROMPT:
             return '{"done": true}'
         if system is RESEARCH_SYNTHESIS_SYSTEM_PROMPT:
@@ -302,26 +356,23 @@ def test_deep_research_synthesis_failure_builds_best_effort_brief(monkeypatch) -
     brief = run_deep_research("evaluate tax law reasoning", _research_config())
 
     assert brief is not None
-    assert "tax reasoning finding" in brief.field_overview
-    assert brief.seed_sources and brief.seed_sources[0].url.startswith("https://ex.com/")
-    assert brief.citations
+    assert brief.evidence and "tax reasoning finding" in brief.evidence[0].observation
+    assert brief.source_recommendations and brief.source_recommendations[0].url.startswith("https://ex.com/")
     assert "Best-effort" in brief.research_notes
 
 
 def test_parse_brief_tolerates_partial_and_loose_shapes() -> None:
     brief = _parse_brief(
         {
-            "field_overview": "x",
-            "taxonomy": ["loose_string_entry", {"name": "structured", "description": "d"}],
-            "existing_benchmarks": ["NamedOnly"],
+            "dimensions": [{"name": "structured", "measurement_target": "d"}],
+            "difficulty_factors": [{"factor": "ambiguity", "observable_signal": "uncertainty", "design_implication": "test it"}],
             "challenge_effort_anchors": [{"level": "E2", "meaning": "intermediate"}],
-            "citations": [{"claim": "c", "url": "u"}],
+            "evidence": [{"observation": "c", "design_implication": "test it", "source_urls": []}],
         }
     )
-    assert [t.name for t in brief.taxonomy] == ["loose_string_entry", "structured"]
-    assert brief.existing_benchmarks[0].name == "NamedOnly"
+    assert [t.name for t in brief.dimensions] == ["structured"]
     assert brief.challenge_effort_anchors == {"E2": "intermediate"}
-    assert brief.seed_sources == []  # missing field validates as empty
+    assert brief.source_recommendations == []  # missing field validates as empty
 
 
 # ---------------------------------------------------------------------------
@@ -336,16 +387,15 @@ def test_planner_resources_include_research_brief() -> None:
 
     assert 'path="resources/instruction.md"' in resources
     assert 'path="resources/deepresearch/brief.json"' in resources
-    assert '"field_overview": "Overview of the domain."' in resources
+    assert '"dimensions": [' in resources
     assert '"name": "subskill_a"' in resources
-    assert '"name": "BenchA"' in resources
     assert '"E3": "expert synthesis"' in resources
-    assert '"findings": [' in resources
+    assert '"evidence": [' in resources
     assert '"source_material_index": [' in resources
     assert '"content_chars": 30' in resources
     assert "Complete retained source text." not in resources
     # field guide is appended so the planner does not guess brief field semantics
-    assert "Field meanings for the deep-research brief above" in resources
+    assert "Field meanings for the Benchmark Design Research brief above" in resources
     assert "source_material_index: a list of {title, url, content_chars}" in resources
     assert "challenge_effort_anchors: what E1-E3 construction effort means" in resources
 
@@ -460,11 +510,11 @@ def _minimal_package(research_brief: ResearchBrief | None) -> BenchmarkPackage:
 
 def test_report_includes_research_brief_section() -> None:
     pkg = _minimal_package(_sample_brief())
-    assert "## Research Brief" in pkg.report.markdown
-    assert "Known benchmarks surveyed: 1" in pkg.report.markdown
-    assert "Seed sources collected: 2" in pkg.report.markdown
+    assert "## Benchmark Design Research" in pkg.report.markdown
+    assert "Candidate dimensions: 1" in pkg.report.markdown
+    assert "Source recommendations: 2" in pkg.report.markdown
     # Without a brief the section is absent.
-    assert "## Research Brief" not in _minimal_package(None).report.markdown
+    assert "## Benchmark Design Research" not in _minimal_package(None).report.markdown
 
 
 def test_persist_package_writes_research_brief_artifacts(tmp_path) -> None:
@@ -475,9 +525,9 @@ def test_persist_package_writes_research_brief_artifacts(tmp_path) -> None:
     brief_md = tmp_path / "research_brief.md"
     assert brief_json.exists() and brief_md.exists()
     payload = json.loads(brief_json.read_text(encoding="utf-8"))
-    assert payload["field_overview"] == "Overview of the domain."
+    assert payload["dimensions"][0]["name"] == "subskill_a"
     md_text = brief_md.read_text(encoding="utf-8")
-    assert "# Research Brief" in md_text
+    assert "# Benchmark Design Research Brief" in md_text
     assert "subskill_a" in md_text
     manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["research_brief"]["json"] == str(brief_json)
@@ -496,13 +546,12 @@ def test_render_brief_markdown_covers_all_sections() -> None:
     brief = _parse_brief(json.loads(SYNTHESIS_JSON))
     text = render_brief_markdown(brief)
     for heading in [
-        "## Field Overview",
-        "## Taxonomy",
-        "## Existing Benchmarks",
-        "## Seed Sources",
-        "## Exemplar Items",
+        "## Candidate Dimensions",
+        "## Difficulty Factors",
+        "## Task Patterns",
+        "## Source Recommendations",
+        "## Design Evidence",
         "## Challenge Effort Anchors",
-        "## Citations",
         "## Research Notes",
     ]:
         assert heading in text
@@ -512,12 +561,11 @@ def test_compact_brief_context_is_compact() -> None:
     brief = _sample_brief()
     context = compact_brief_context(brief)
     assert set(context) == {
-        "field_overview",
-        "taxonomy",
-        "existing_benchmarks",
-        "findings",
-        "seed_sources",
-        "citations",
+        "dimensions",
+        "difficulty_factors",
+        "task_patterns",
+        "source_recommendations",
+        "evidence",
         "source_material_index",
         "challenge_effort_anchors",
     }
@@ -569,10 +617,44 @@ def test_pipeline_attaches_and_persists_brief(monkeypatch, tmp_path) -> None:
     )
 
     assert pkg.research_brief is not None
-    assert pkg.research_brief.field_overview == "Overview of the domain."
+    assert pkg.research_brief.dimensions[0].name == "subskill_a"
     assert (tmp_path / "research_brief.json").exists()
     assert (tmp_path / "research_brief.md").exists()
-    assert "## Research Brief" in pkg.report.markdown
+    assert "## Benchmark Design Research" in pkg.report.markdown
+
+
+@pytest.mark.parametrize(
+    "config_kwargs",
+    [
+        {},
+        {"research_model": "dummy-research", "research_api_key": "dummy", "search_backend": "none"},
+    ],
+    ids=["research-role-missing", "search-backend-none"],
+)
+def test_pipeline_fails_when_requested_deep_research_is_unavailable(
+    monkeypatch,
+    config_kwargs,
+) -> None:
+    monkeypatch.setattr("evalclaw.pipeline.translate_goal_to_english", lambda goal, config: goal)
+    monkeypatch.setattr(
+        "evalclaw.pipeline.build_benchmark_suite_with_qc_loop",
+        lambda *args, **kwargs: pytest.fail("benchmark construction must not start after research failure"),
+    )
+    config = BenchmarkConfig(
+        use_deep_research=True,
+        run_targets=False,
+        environment_claw=False,
+        **config_kwargs,
+    )
+
+    with pytest.raises(RuntimeError, match="Deep research was requested"):
+        run_pipeline(
+            "Evaluate research failure handling",
+            config,
+            log=lambda _msg: None,
+            progress=lambda _msg: None,
+            interactive=False,
+        )
 
 
 def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
