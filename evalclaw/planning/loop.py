@@ -67,10 +67,15 @@ def _safe_positive_int(value: object, fallback: int | None = None) -> int | None
     return parsed if parsed > 0 else fallback
 
 
-def _dimension_from_data(data: dict[str, Any], fallback: EvalDimension | None = None) -> EvalDimension:
+def _dimension_from_data(
+    data: dict[str, Any],
+    fallback: EvalDimension | None = None,
+    *,
+    framework_id: str | None = None,
+) -> EvalDimension:
     base = fallback.model_dump(mode="json") if fallback else {}
     merged = {**base, **data}
-    dim_id = str(merged.get("id") or _slug(str(merged.get("name") or "dimension")))
+    dim_id = framework_id or str(merged.get("id") or _slug(str(merged.get("name") or "dimension")))
     challenge_effort = _safe_effort(
         merged.get("challenge_effort")
         or merged.get("target_challenge_effort")
@@ -241,6 +246,16 @@ def _apply_review(
     items = list(suite.tasks)
     item_by_id = {item.id: item for item in items}
     restructured: set[str] = set()
+    dimension_aliases: dict[str, str] = {}
+    allocated_dimension_ids: set[str] = set()
+
+    def next_dimension_id() -> str:
+        index = len(dimensions) + 1
+        while f"dimension_{index}" in by_dim or f"dimension_{index}" in allocated_dimension_ids:
+            index += 1
+        generated = f"dimension_{index}"
+        allocated_dimension_ids.add(generated)
+        return generated
 
     # ---- delete (with QC-protection against underfilling) ----
     delete_ids = {str(item_id) for item_id in review.get("delete_item_ids", [])}
@@ -295,11 +310,14 @@ def _apply_review(
     for raw_update in review.get("dimension_updates", []) or []:
         if not isinstance(raw_update, dict):
             continue
-        dim_id = str(raw_update.get("id") or "")
+        dim_id = dimension_aliases.get(
+            str(raw_update.get("id") or ""),
+            str(raw_update.get("id") or ""),
+        )
         if dim_id not in by_dim:
             continue
         previous = by_dim[dim_id]
-        updated = _dimension_from_data(raw_update, fallback=previous)
+        updated = _dimension_from_data(raw_update, fallback=previous, framework_id=previous.id)
         if any(getattr(updated, field, None) != getattr(previous, field, None) for field in _RESULT_DIMENSION_FIELDS):
             restructured.add(dim_id)
         dimensions = [updated if dimension.id == dim_id else dimension for dimension in dimensions]
@@ -310,9 +328,11 @@ def _apply_review(
     for raw_add in review.get("add_dimensions", []) or []:
         if not isinstance(raw_add, dict):
             continue
-        added = _dimension_from_data(raw_add)
-        if added.id in by_dim:
-            continue
+        proposed_id = str(raw_add.get("ref") or raw_add.get("id") or "").strip()
+        added_id = next_dimension_id()
+        added = _dimension_from_data(raw_add, framework_id=added_id)
+        if proposed_id:
+            dimension_aliases[proposed_id] = added.id
         dimensions.append(added)
         by_dim[added.id] = added
         restructured.add(added.id)
@@ -322,11 +342,22 @@ def _apply_review(
     for raw_merge in review.get("merge_dimensions", []) or []:
         if not isinstance(raw_merge, dict):
             continue
-        source_ids = [str(x) for x in raw_merge.get("source_dimension_ids", []) if str(x) in by_dim]
+        source_ids = [
+            dimension_aliases.get(str(x), str(x))
+            for x in raw_merge.get("source_dimension_ids", [])
+            if dimension_aliases.get(str(x), str(x)) in by_dim
+        ]
         if len(source_ids) < 2:
             continue
         new_data = raw_merge.get("new_dimension") if isinstance(raw_merge.get("new_dimension"), dict) else {}
-        merged_dimension = _dimension_from_data(new_data, fallback=by_dim[source_ids[0]])
+        proposed_id = str(new_data.get("ref") or new_data.get("id") or "").strip()
+        merged_dimension = _dimension_from_data(
+            new_data,
+            fallback=by_dim[source_ids[0]],
+            framework_id=next_dimension_id(),
+        )
+        if proposed_id:
+            dimension_aliases[proposed_id] = merged_dimension.id
         merged_dimension = merged_dimension.model_copy(
             update={"target_item_count": max(1, int(merged_dimension.target_item_count or 1))}
         )
@@ -342,14 +373,25 @@ def _apply_review(
     for raw_split in review.get("split_dimensions", []) or []:
         if not isinstance(raw_split, dict):
             continue
-        source_id = str(raw_split.get("source_dimension_id") or "")
+        source_id = dimension_aliases.get(
+            str(raw_split.get("source_dimension_id") or ""),
+            str(raw_split.get("source_dimension_id") or ""),
+        )
         if source_id not in by_dim:
             continue
-        new_dimensions = [
-            _dimension_from_data(raw_dim, fallback=by_dim[source_id])
-            for raw_dim in raw_split.get("new_dimensions", [])
-            if isinstance(raw_dim, dict)
-        ]
+        new_dimensions: list[EvalDimension] = []
+        for raw_dim in raw_split.get("new_dimensions", []):
+            if not isinstance(raw_dim, dict):
+                continue
+            proposed_id = str(raw_dim.get("ref") or raw_dim.get("id") or "").strip()
+            generated = _dimension_from_data(
+                raw_dim,
+                fallback=by_dim[source_id],
+                framework_id=next_dimension_id(),
+            )
+            if proposed_id:
+                dimension_aliases[proposed_id] = generated.id
+            new_dimensions.append(generated)
         if len(new_dimensions) < 2:
             continue
         dimensions = [dimension for dimension in dimensions if dimension.id != source_id] + new_dimensions
@@ -365,7 +407,10 @@ def _apply_review(
         if not isinstance(raw_move, dict):
             continue
         item_id = str(raw_move.get("item_id") or "")
-        target_dim = str(raw_move.get("dimension_id") or "")
+        target_dim = dimension_aliases.get(
+            str(raw_move.get("dimension_id") or ""),
+            str(raw_move.get("dimension_id") or ""),
+        )
         if target_dim not in move_targets or item_id not in item_by_id:
             continue
         moved: list[BenchmarkItem] = []
@@ -384,7 +429,10 @@ def _apply_review(
     for raw in review.get("needs_more_items", []) or []:
         if not isinstance(raw, dict):
             continue
-        dimension_id = str(raw.get("dimension_id") or "")
+        dimension_id = dimension_aliases.get(
+            str(raw.get("dimension_id") or ""),
+            str(raw.get("dimension_id") or ""),
+        )
         if dimension_id not in by_dim:
             continue
         requested = max(0, int(raw.get("count") or 1))
@@ -552,9 +600,10 @@ def _rewrite_items(
                     "previous_tasks": [],
                     "qc_issues": [],
                     "instruction": (
-                        "Return replacements only for the tasks listed in previous_tasks, preserving "
-                        "each task id. Apply the concrete rewrite request in the listed guidance for "
-                        "each task; do not return or modify any other task from the TaskDesign."
+                        "Return replacements only for the tasks listed in previous_tasks, in the same "
+                        "order. The framework restores each task id by slot. Apply the concrete rewrite "
+                        "request in the listed guidance for each task; do not return or modify any other "
+                        "task from the TaskDesign."
                     ),
                 },
             )["previous_tasks"].append(original.source_definition.model_dump(mode="json"))

@@ -596,46 +596,62 @@ class QcReport(BaseModel):
         return not hard_failures and not self.rejected_item_ids
 
 
-class ResearchTaxonomyEntry(BaseModel):
-    """A subfield or capability identified during deep research."""
+class ResearchDimension(BaseModel):
+    """A candidate measurement dimension supported by design research."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    measurement_target: str = ""
+    boundary: str = ""
+    task_shapes: list[str] = Field(default_factory=list)
+
+
+class ResearchDifficultyFactor(BaseModel):
+    """A difficulty factor that can become observable benchmark behavior."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    factor: str
+    observable_signal: str = ""
+    design_implication: str = ""
+
+
+class ResearchTaskPattern(BaseModel):
+    """A task construction pattern relevant to the current goal."""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str
     description: str = ""
+    suitable_task_types: list[str] = Field(default_factory=list)
+    scoring_direction: str = ""
 
 
-class ResearchBenchmarkNote(BaseModel):
-    """An existing benchmark surfaced during deep research."""
+class ResearchSourceRecommendation(BaseModel):
+    """A verified source candidate for source-backed task construction."""
 
-    name: str
-    url: str = ""
-    known_weaknesses: list[str] = Field(default_factory=list)
-
-
-class ResearchSeedSource(BaseModel):
-    """A groundable document/data URL for the generator."""
+    model_config = ConfigDict(extra="forbid")
 
     title: str
-    url: str = ""
+    url: str
     why_useful: str = ""
 
 
-class ResearchExemplarItem(BaseModel):
-    """A representative example item for the researched domain."""
+class ResearchEvidence(BaseModel):
+    """An external observation paired with its benchmark-design consequence."""
 
-    prompt: str
-    answer: str = ""
-    notes: str = ""
+    model_config = ConfigDict(extra="forbid")
 
-
-class ResearchCitation(BaseModel):
-    """A claim-to-source mapping backing brief conclusions."""
-
-    claim: str
-    url: str = ""
+    observation: str
+    design_implication: str
+    source_urls: list[str] = Field(default_factory=list)
 
 
 class ResearchSourceMaterial(BaseModel):
     """Readable source text retained from deep research for later task construction."""
+
+    model_config = ConfigDict(extra="forbid")
 
     title: str = ""
     url: str
@@ -644,19 +660,16 @@ class ResearchSourceMaterial(BaseModel):
 
 
 class ResearchBrief(BaseModel):
-    """Structured output of the deep-research loop.
+    """Benchmark-design evidence produced before Planner runs."""
 
-    All fields are optional with defaults so partial briefs validate.
-    """
+    model_config = ConfigDict(extra="forbid")
 
-    field_overview: str = ""
-    taxonomy: list[ResearchTaxonomyEntry] = Field(default_factory=list)
-    existing_benchmarks: list[ResearchBenchmarkNote] = Field(default_factory=list)
-    seed_sources: list[ResearchSeedSource] = Field(default_factory=list)
-    exemplar_items: list[ResearchExemplarItem] = Field(default_factory=list)
+    dimensions: list[ResearchDimension] = Field(default_factory=list)
+    difficulty_factors: list[ResearchDifficultyFactor] = Field(default_factory=list)
+    task_patterns: list[ResearchTaskPattern] = Field(default_factory=list)
+    source_recommendations: list[ResearchSourceRecommendation] = Field(default_factory=list)
+    evidence: list[ResearchEvidence] = Field(default_factory=list)
     challenge_effort_anchors: dict[ChallengeEffort, str] = Field(default_factory=dict)
-    citations: list[ResearchCitation] = Field(default_factory=list)
-    findings: list[str] = Field(default_factory=list)
     source_materials: list[ResearchSourceMaterial] = Field(default_factory=list)
     research_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
@@ -840,3 +853,12 @@ class BenchmarkConfig(BaseModel):
     vm_provider_api_key: Optional[str] = None
     vm_provider_timeout_s: int = 600
     vm_provider_destroy_on_cleanup: bool = True
+    model_config = ConfigDict(extra="forbid")
+
+    model_config = ConfigDict(extra="forbid")
+
+    model_config = ConfigDict(extra="forbid")
+
+    model_config = ConfigDict(extra="forbid")
+
+    model_config = ConfigDict(extra="forbid")

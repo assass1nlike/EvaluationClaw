@@ -513,13 +513,14 @@ def artifact_index_markdown(
 def _research_brief_lines(research_brief: ResearchBrief | None) -> list[str]:
     if research_brief is None:
         return []
-    overview = _first_sentence(research_brief.field_overview, 320) if research_brief.field_overview else "-"
     return [
-        "## Research Brief",
+        "## Benchmark Design Research",
         "",
-        "- Planning and generation were grounded in a deep-research brief (see research_brief.md / research_brief.json).",
-        f"- Field overview: {overview}",
-        f"- Known benchmarks surveyed: {len(research_brief.existing_benchmarks)}",
-        f"- Seed sources collected: {len(research_brief.seed_sources)}",
+        "- Planning and generation used a benchmark-design research brief "
+        "(see research_brief.md / research_brief.json).",
+        f"- Candidate dimensions: {len(research_brief.dimensions)}",
+        f"- Difficulty factors: {len(research_brief.difficulty_factors)}",
+        f"- Task patterns: {len(research_brief.task_patterns)}",
+        f"- Source recommendations: {len(research_brief.source_recommendations)}",
         "",
     ]

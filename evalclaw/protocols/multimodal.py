@@ -43,7 +43,7 @@ MULTIMODAL_SCHEMA: dict[str, Any] = {
     "modalities": ["image"],
     "assets": [
         {
-            "id": "image_1",
+            "asset_ref": "asset_1",
             "kind": "image",
             "uri": "https://example.com/image.png",
             "mime_type": "image/png",
@@ -53,7 +53,7 @@ MULTIMODAL_SCHEMA: dict[str, Any] = {
     ],
     "content": [
         {"type": "text", "text": "Analyze the attached image and answer the question."},
-        {"type": "asset", "asset_id": "image_1", "detail": "high"},
+        {"type": "asset", "asset_ref": "asset_1", "detail": "high"},
     ],
     "scoring": {
         "method": "judge_score",
@@ -68,7 +68,8 @@ metadata.multimodal as a JSON object using schema_version evalclaw.multimodal.v1
 Required fields:
 - schema_version: evalclaw.multimodal.v1
 - modalities: ["image"] or ["image", "text"]; the current target adapter does not send audio or video natively
-- assets: list of media assets with stable ids and source information
+- assets: list of media assets with source information and optional local
+  ``asset_ref`` values; the framework assigns their canonical ids
 - content: ordered multimodal prompt parts; use text parts and asset references
 - scoring: the scoring guidance for the item, including rubric or pass/fail rules
 
@@ -91,6 +92,56 @@ def text_requests_multimodal(text: str) -> bool:
 def get_multimodal_spec(item: BenchmarkItem) -> dict[str, Any] | None:
     spec = item.metadata.get(MULTIMODAL_METADATA_KEY)
     return spec if isinstance(spec, dict) else None
+
+
+def normalize_multimodal_metadata(
+    value: object,
+    *,
+    owner_id: str,
+) -> dict[str, Any] | None:
+    """Assign framework asset ids and rewrite content references."""
+    if not isinstance(value, dict):
+        return None
+    normalized = dict(value)
+    raw_assets = value.get("assets")
+    if not isinstance(raw_assets, list):
+        return normalized
+    assets: list[dict[str, Any]] = []
+    aliases: dict[str, str] = {}
+    for index, raw_asset in enumerate(raw_assets, 1):
+        if not isinstance(raw_asset, dict):
+            continue
+        asset = dict(raw_asset)
+        canonical_id = f"{owner_id}_asset_{index}"
+        raw_id = str(
+            asset.get("id") or asset.get("asset_ref") or asset.get("asset_id") or ""
+        ).strip()
+        if raw_id:
+            aliases[raw_id] = canonical_id
+        aliases[f"asset_{index}"] = canonical_id
+        asset["id"] = canonical_id
+        assets.append(asset)
+    normalized["assets"] = assets
+    raw_content = value.get("content")
+    if isinstance(raw_content, list):
+        content: list[dict[str, Any]] = []
+        for raw_part in raw_content:
+            if not isinstance(raw_part, dict):
+                continue
+            part = dict(raw_part)
+            if str(part.get("type") or "").lower() == "asset":
+                reference = str(
+                    part.get("asset_id")
+                    or part.get("assetId")
+                    or part.get("asset_ref")
+                    or ""
+                ).strip()
+                part["asset_id"] = aliases.get(reference, reference)
+                part.pop("assetId", None)
+                part.pop("asset_ref", None)
+            content.append(part)
+        normalized["content"] = content
+    return normalized
 
 
 def has_multimodal_assets(item: BenchmarkItem) -> bool:

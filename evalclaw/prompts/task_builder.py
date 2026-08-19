@@ -23,16 +23,14 @@ pure JSON only, with no markdown. The top-level object must contain:
   "resources": [],
   "tasks": [
     {
-      "id": "...",
-      "dimension_id": "...",
       "task_type": "...",
       "title": "...",
       "content_summary": "...",
       "description": "...",
       "prompt": "...",
       "resource_ids": [],
-      "choices": [{"id": "A", "text": "..."}],
-      "correct_choice_ids": [],
+      "choices": [{"text": "..."}],
+      "correct_choice_indices": [],
       "expected_text": null,
       "rubric": null,
       "judge_tools": [],
@@ -61,20 +59,27 @@ pure JSON only, with no markdown. The top-level object must contain:
   ]
 }
 
+The framework owns all task, dimension, TaskDesign, resource, and choice-option
+ids. Do not emit task ``id`` or ``dimension_id`` fields, resource object ids, or
+choice option ids. For choice answers, use zero-based ``correct_choice_indices``;
+the framework assigns canonical option ids and maps the answer key.
+
 For initial construction, the tasks array length and per-type counts must
 exactly match the TaskDesign. For QC repair, they must instead exactly match
 task_builder_contract.task_schema.required_task_type_counts.
-Generate exactly task_count concrete tasks for every TaskDesign. In each task's
-metadata, set task_design_id to the id of the TaskDesign it implements; the
-per-design counts must exactly match
+Generate exactly task_count concrete tasks for every TaskDesign. The framework
+injects metadata.task_design_id after parsing; the per-design counts must exactly match
 task_builder_contract.task_schema.required_task_design_counts. Populate only
 the fields required by the task's type and TaskDesign. Choice and fill-blank
 tasks use their deterministic keys; generation, multi-turn, and agent tasks use
 their rubric and any requested Judge tools or runtime evaluator. Do not repeat
 the same scoring rule in several fields.
 When more than one resource is available, every source-backed task must list
-the exact resources it uses in the task's top-level resource_ids. Do not put
-this binding only in metadata.source_ids; metadata does not bind provenance.
+the exact framework-provided resource ids it uses in the task's top-level
+resource_ids. Resources returned in this response have positional aliases
+resource_1, resource_2, and so on while the framework assigns their canonical
+ids. Do not put this binding only in metadata.source_ids; metadata does not bind
+provenance.
 
 When available_models.models is non-empty, every task whose scoring requires an
 LLM judge (generation, multi-turn, or agent rubric scoring), or that uses an
@@ -93,9 +98,10 @@ source-backed. If the required material cannot be accessed or verified, keep
 the provenance honest and state the limitation in construction_notes rather
 than claiming that the task is grounded in details you did not obtain.
 
-During QC repair, return replacements only for revision.previous_tasks, preserve
-their ids, and fix every listed issue. Do not return or modify tasks that are not
-listed for repair.
+During QC repair, return replacements only for revision.previous_tasks and keep
+the same order as that list. The framework restores each affected task's
+existing id by slot, so do not emit a replacement id. Fix every listed issue
+and do not return or modify tasks that are not listed for repair.
 """
 
 __all__ = ["TASK_BUILDER_PROMPT"]

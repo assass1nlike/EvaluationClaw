@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from evalclaw.construction.research import (
     _append_tool_results,
     _execute_research_tool,
@@ -11,7 +13,7 @@ from evalclaw.construction.resources import _select_blueprint_sources
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.protocols.tool import ToolCall, ToolResult
-from evalclaw.research.backends import SearchResult
+from evalclaw.research.backends import SearchBackendError, SearchResult, SearchTimeoutError
 from evalclaw.types import (
     AgentEnvironmentType,
     BenchmarkConfig,
@@ -144,6 +146,143 @@ def test_planner_suggested_urls_are_available_without_an_extra_search() -> None:
     )
 
     assert [source.uri for source in sources] == ["https://example.com/reference"]
+
+
+def _required_source_search_case():
+    dimension = EvalDimension(
+        id="grounded",
+        name="Grounded",
+        description="Build source-grounded tasks.",
+        approach="Search for authoritative material.",
+        needs_research=True,
+        research_queries=["dimension fallback query"],
+    )
+    blueprint = make_blueprint(
+        "grounded_blueprint",
+        dimension.id,
+        "Grounded questions",
+        source_plan={"search_queries": ["task design query"]},
+    )
+    return dimension, blueprint
+
+
+def test_required_source_search_rejects_disabled_backend() -> None:
+    dimension, blueprint = _required_source_search_case()
+
+    with pytest.raises(RuntimeError, match="search_backend='none'"):
+        _select_blueprint_sources(
+            dimension,
+            blueprint,
+            BenchmarkConfig(
+                **dummy_config_kwargs(),
+                use_web_research=True,
+                search_backend="none",
+            ),
+        )
+
+
+def test_required_source_search_rejects_missing_research_role_key() -> None:
+    dimension, blueprint = _required_source_search_case()
+
+    with pytest.raises(RuntimeError, match="Research role has no API key"):
+        _select_blueprint_sources(
+            dimension,
+            blueprint,
+            BenchmarkConfig(use_web_research=True, search_backend="keyless"),
+        )
+
+
+def test_required_gemini_source_search_rejects_missing_key(monkeypatch) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    dimension, blueprint = _required_source_search_case()
+
+    with pytest.raises(RuntimeError, match="Gemini search requires"):
+        _select_blueprint_sources(
+            dimension,
+            blueprint,
+            BenchmarkConfig(
+                **dummy_config_kwargs(),
+                use_web_research=True,
+                search_backend="gemini",
+            ),
+        )
+
+
+def test_source_search_retries_timeout_without_dimension_fallback(monkeypatch) -> None:
+    queries: list[str] = []
+
+    def fake_search(query, **kwargs):
+        queries.append(query)
+        if len(queries) < 3:
+            raise SearchTimeoutError("timed out")
+        return SearchResult(
+            content="result",
+            citations=[{"url": "https://example.com/source", "title": "Source"}],
+        )
+
+    monkeypatch.setattr("evalclaw.construction.resources.web_search", fake_search)
+    dimension, blueprint = _required_source_search_case()
+
+    sources = _select_blueprint_sources(
+        dimension,
+        blueprint,
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            use_web_research=True,
+            search_backend="keyless",
+        ),
+    )
+
+    assert queries == ["task design query"] * 3
+    assert [source.uri for source in sources] == ["https://example.com/source"]
+
+
+def test_source_search_raises_after_timeout_retry_limit(monkeypatch) -> None:
+    queries: list[str] = []
+
+    def fake_search(query, **kwargs):
+        queries.append(query)
+        raise SearchTimeoutError("timed out")
+
+    monkeypatch.setattr("evalclaw.construction.resources.web_search", fake_search)
+    dimension, blueprint = _required_source_search_case()
+
+    with pytest.raises(RuntimeError, match="timed out after 3 attempts"):
+        _select_blueprint_sources(
+            dimension,
+            blueprint,
+            BenchmarkConfig(
+                **dummy_config_kwargs(),
+                use_web_research=True,
+                search_backend="keyless",
+            ),
+        )
+
+    assert queries == ["task design query"] * 3
+
+
+def test_source_search_surfaces_api_error_without_fallback(monkeypatch) -> None:
+    queries: list[str] = []
+
+    def fake_search(query, **kwargs):
+        queries.append(query)
+        raise SearchBackendError("API unavailable")
+
+    monkeypatch.setattr("evalclaw.construction.resources.web_search", fake_search)
+    dimension, blueprint = _required_source_search_case()
+
+    with pytest.raises(RuntimeError, match="API unavailable"):
+        _select_blueprint_sources(
+            dimension,
+            blueprint,
+            BenchmarkConfig(
+                **dummy_config_kwargs(),
+                use_web_research=True,
+                search_backend="keyless",
+            ),
+        )
+
+    assert queries == ["task design query"]
 
 
 def test_task_builder_research_executes_search_and_returns_final_json(monkeypatch) -> None:
