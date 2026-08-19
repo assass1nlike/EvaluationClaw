@@ -435,14 +435,14 @@ def run_deep_research(
 ) -> Optional[ResearchBrief]:
     """Run the bounded deep-research loop and return a ResearchBrief.
 
-    Returns ``None`` when the loop cannot run (no research-role key, web
-    research disabled, or the ``none`` search backend), so callers can fall
-    back to the existing single-shot research path.
+    Returns ``None`` when the loop cannot run because the Research role is not
+    configured or the search backend is disabled. The ordinary construction
+    web-research toggle does not govern this explicitly requested stage.
     """
     _log = log or (lambda _msg: None)
     if not role_model_settings(config, "research").configured:
         return None
-    if not config.use_web_research or (config.search_backend or "auto").lower() == "none":
+    if (config.search_backend or "auto").lower() == "none":
         return None
 
     queries = _initial_queries(goal, config)

@@ -26,8 +26,8 @@ scoring, or source choices. It is not intended to produce a general field survey
 - Direct model execution with rule scoring, code execution sandboxing, multi-turn tasks,
   simulated agent interaction tasks, and double-pass LLM judge audit.
 - Loop 3 self-improvement that diagnoses QC/run results and regenerates targeted items.
-- LiteLLM-backed provider calls with a protocol/adapter-only legacy fallback, including **Azure OpenAI**
-  deployments via `azure/<deployment-name>` model names.
+- LiteLLM-backed standard model calls, including **Azure OpenAI** deployments via
+  `azure/<deployment-name>` model names, plus explicit native protocol adapters where required.
 - lm-eval-harness interoperability via generated JSONL/YAML artifacts and optional runner.
 - Markdown reports with source coverage, canonical JSON packages, and artifact manifests.
 - An A/B experiment harness under `experiments/` (baseline vs deep-research, plus a
@@ -81,7 +81,6 @@ ANTHROPIC_API_KEY="..." python evalclaw_cli.py generate \
   --planner-model claude-sonnet-4-6 \
   --task-builder-model claude-sonnet-4-6 \
   --no-interactive \
-  --no-research \
   --scale-budget low
 ```
 
@@ -109,7 +108,6 @@ DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   --task-builder-model deepseek-v4-pro \
   -m deepseek-v4-flash \
   --no-interactive \
-  --no-research \
   --scale-budget mid \
   --max-hf-records 1 \
   --runner direct \
@@ -125,7 +123,6 @@ DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   --task-builder-model deepseek-v4-pro \
   -m deepseek-v4-flash \
   --no-interactive \
-  --no-research \
   --runner direct \
   --llm-backend litellm \
   --single-pass-judge \
@@ -138,6 +135,10 @@ DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
 provided, EvalClaw plans, builds, QC-checks, and exports the benchmark without
 running a target. Use `--no-run` when targets are configured but should be
 recorded without being called in the current run.
+
+Automatic source search and TaskBuilder web research are disabled by default;
+enable them with `--web-research`. Explicit `--deep-research` is independent
+and still runs its Benchmark Design Research search stage.
 
 ### Custom endpoints and multiple targets
 
