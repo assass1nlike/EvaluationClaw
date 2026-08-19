@@ -5,12 +5,16 @@ from natural-language goals.
 
 It currently supports:
 
+Deep Research is a Benchmark Design Research stage: it gathers evidence that can
+change the requested benchmark's dimensions, difficulty factors, task patterns,
+scoring, or source choices. It is not intended to produce a general field survey.
+
 - Skill-driven `BenchmarkPlan` generation from vague goals: non-overlapping dimensions plus
   adaptive `family`/`archetype`/`per_task` Blueprints sized for one TaskBuilder call.
 - **Deep research** (`--deep-research`): a bounded search→compress→reflect loop that
-  turns a vague field into a structured `ResearchBrief` (taxonomy, existing benchmarks
-  and their weaknesses, seed sources, challenge-effort anchors, citations) that grounds the
-  planner and task builder.
+  produces a Benchmark Design Research `ResearchBrief` containing candidate dimensions,
+  observable difficulty factors, task/scoring patterns, verified source recommendations,
+  and design evidence for the requested evaluation. It is not a general field survey.
 - Pluggable web-search backends (`--search-backend auto|gemini|keyless|none`):
   Gemini Google-Search grounding when `GEMINI_API_KEY` is set, or a key-free
   combination of arXiv + Wikipedia + DuckDuckGo otherwise.
@@ -56,6 +60,16 @@ Model-name → provider routing is automatic:
 For reasoning models (`gpt-5*`, `o1/o3/o4`, `deepseek-reasoner`) the completion budget
 is raised automatically and truncated responses are retried; set
 `EVALCLAW_REASONING_EFFORT=low` to cut latency and cost substantially.
+
+## ID Ownership
+
+Canonical benchmark entity IDs are assigned by the framework. Planner and Task
+Builder responses should provide content, not IDs for plans, dimensions,
+TaskDesigns, tasks, resources, choice options, or multimodal assets. Choice
+answers use zero-based `correct_choice_indices`; the framework maps them to
+canonical option IDs. IDs such as `item_id`, existing `dimension_id`,
+`resource_ids`, and `task_model_id` remain references to objects already supplied
+by the framework, not newly generated identities.
 
 ## Quick Start
 

@@ -552,6 +552,9 @@ def test_keyless_backend_disables_timed_out_source_for_run(monkeypatch) -> None:
     assert backend.search("second query") is not None
     assert wikipedia_calls == 1
 
+    assert backend.search_or_raise("strict query") is not None
+    assert wikipedia_calls == 2
+
 
 def test_process_keyless_backend_shares_query_cache(monkeypatch) -> None:
     calls: list[str] = []

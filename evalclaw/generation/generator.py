@@ -6,6 +6,7 @@ import re
 import uuid
 from itertools import cycle
 
+from ..core.identifiers import normalize_choice_data
 from ..core.scaling import is_large_scale_budget
 from ..core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
 from ..models.llm import call_llm, extract_json
@@ -18,6 +19,7 @@ from ..protocols.agent_task_package import (
 from ..protocols.multimodal import (
     MULTIMODAL_GENERATION_GUIDANCE,
     MULTIMODAL_SCHEMA,
+    normalize_multimodal_metadata,
     text_requests_multimodal,
 )
 from ..protocols.science import SCIENCE_GENERATION_GUIDANCE, SCIENCE_SCHEMA, text_requests_science
@@ -51,20 +53,6 @@ def _safe_task_type(value: object, fallback: TaskType) -> TaskType:
         return TaskType(str(value))
     except ValueError:
         return fallback
-
-
-def _choice_options(value: object) -> list[ChoiceOption]:
-    if not isinstance(value, list):
-        return []
-    options: list[ChoiceOption] = []
-    for option in value:
-        if not isinstance(option, dict):
-            continue
-        option_id = str(option.get("id") or "").strip()
-        text = str(option.get("text") or "").strip()
-        if option_id and text:
-            options.append(ChoiceOption(id=option_id, text=text))
-    return options
 
 
 def _normalize_source(source_uri: object, source_title: object = "") -> BenchmarkSource:
@@ -164,10 +152,8 @@ def _select_research_sources(
     sources: list[BenchmarkSource] = []
     settings = role_model_settings(config, "research")
     if config.research_brief is not None:
-        # Deep-research seed sources take priority over fresh discovery/search.
-        for seed in config.research_brief.seed_sources:
-            if not seed.url:
-                continue
+        # Design-research source recommendations take priority over fresh search.
+        for seed in config.research_brief.source_recommendations:
             sources.append(
                 BenchmarkSource(
                     kind=SourceKind.web,
@@ -307,8 +293,20 @@ def _parse_items(
         if not prompt:
             continue
         source = _normalize_source(raw.get("source_uri"), raw.get("source_title"))
-        choices = _choice_options(raw.get("choices"))
         metadata = raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {}
+        item_id = f"{dimension.id}_{uuid.uuid4().hex[:10]}"
+        choice_data, correct_choice_ids = normalize_choice_data(
+            raw.get("choices"),
+            correct_choice_indices=raw.get("correct_choice_indices"),
+            correct_choice_ids=raw.get("correct_choice_ids"),
+        )
+        choices = [ChoiceOption(**choice) for choice in choice_data]
+        multimodal = normalize_multimodal_metadata(
+            metadata.get("multimodal"),
+            owner_id=item_id,
+        )
+        if multimodal is not None:
+            metadata = {**metadata, "multimodal": multimodal}
         if not metadata.get(TASK_CONTENT_SUMMARY_METADATA_KEY):
             metadata[TASK_CONTENT_SUMMARY_METADATA_KEY] = compact_task_content_summary(
                 raw.get("content_summary"),
@@ -328,14 +326,12 @@ def _parse_items(
         if task_plan and task_type not in task_plan:
             task_type = task_fallback
         item = BenchmarkItem(
-            id=f"{dimension.id}_{uuid.uuid4().hex[:10]}",
+            id=item_id,
             dimension_id=dimension.id,
             task_type=task_type,
             prompt=prompt,
             choices=choices,
-            correct_choice_ids=[str(value) for value in raw.get("correct_choice_ids", [])]
-            if isinstance(raw.get("correct_choice_ids"), list)
-            else [],
+            correct_choice_ids=correct_choice_ids,
             expected_text=str(raw["expected_text"]) if raw.get("expected_text") is not None else None,
             rubric=str(rubric) if rubric is not None else None,
             judge_tools=[value for value in raw.get("judge_tools", []) if isinstance(value, dict)]

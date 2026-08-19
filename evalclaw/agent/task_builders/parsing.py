@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ...core.identifiers import normalize_choice_data, remap_indexed_references
 from ...types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
@@ -15,18 +16,13 @@ from ...types import (
 )
 
 
-def _choice_options(raw_choices: object) -> list[ChoiceOption]:
-    if not isinstance(raw_choices, list):
-        return []
-    options: list[ChoiceOption] = []
-    for value in raw_choices:
-        if not isinstance(value, dict):
-            continue
-        option_id = str(value.get("id") or "").strip()
-        text = str(value.get("text") or "").strip()
-        if text:
-            options.append(ChoiceOption(id=option_id, text=text))
-    return options
+def _choice_data(raw: dict[str, Any]) -> tuple[list[ChoiceOption], list[str]]:
+    choices, correct_ids = normalize_choice_data(
+        raw.get("choices"),
+        correct_choice_indices=raw.get("correct_choice_indices"),
+        correct_choice_ids=raw.get("correct_choice_ids"),
+    )
+    return [ChoiceOption(**choice) for choice in choices], correct_ids
 
 
 def _safe_environment_type(
@@ -46,9 +42,11 @@ def _task_from_raw(
     default_dimension_id: str,
     default_task_type: TaskType = TaskType.generation,
 ) -> TaskDefinition:
+    """Normalize Builder content while keeping identity framework-owned."""
     environment = raw.get("environment") if isinstance(raw.get("environment"), dict) else {}
     scoring = raw.get("scoring") if isinstance(raw.get("scoring"), dict) else {}
     task_type = TaskType(str(raw.get("task_type") or default_task_type.value))
+    choices, correct_choice_ids = _choice_data(raw)
     environment_spec = AgentEnvironmentSpec(
             type=_safe_environment_type(environment.get("type")),
             tools=[tool for tool in environment.get("tools", []) if isinstance(tool, dict)],
@@ -95,23 +93,21 @@ def _task_from_raw(
             notes=str(environment.get("notes") or ""),
         ) if environment else None
     return TaskDefinition(
-        id=str(raw.get("id") or fallback_id),
-        dimension_id=str(raw.get("dimension_id") or default_dimension_id),
+        id=fallback_id,
+        dimension_id=default_dimension_id,
         task_type=task_type,
         title=str(raw.get("title") or fallback_id),
         content_summary=str(raw.get("content_summary") or ""),
         description=str(raw.get("description") or ""),
         prompt=str(raw.get("prompt") or ""),
-        choices=_choice_options(raw.get("choices")),
-        correct_choice_ids=[str(value) for value in raw.get("correct_choice_ids", []) if str(value).strip()]
-        if isinstance(raw.get("correct_choice_ids"), list)
-        else [],
+        choices=choices,
+        correct_choice_ids=correct_choice_ids,
         expected_text=str(raw["expected_text"]) if raw.get("expected_text") is not None else None,
         rubric=str(raw["rubric"]) if raw.get("rubric") is not None else None,
         judge_tools=[value for value in raw.get("judge_tools", []) if isinstance(value, dict)],
         output_contract=raw.get("output_contract") if isinstance(raw.get("output_contract"), dict) else {},
         system_prompt=str(raw.get("system_prompt") or ""),
-        resource_ids=[str(x) for x in raw.get("resource_ids", []) if x],
+        resource_ids=remap_indexed_references(raw.get("resource_ids"), {}),
         environment=environment_spec,
         interaction=raw.get("interaction") if isinstance(raw.get("interaction"), dict) else {},
         scoring=TaskScoringSpec(

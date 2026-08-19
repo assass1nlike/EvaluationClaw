@@ -5,7 +5,13 @@ import re
 from typing import Any
 
 from ..models.roles import role_model_settings
-from ..research.backends import format_search_result, web_search
+from ..research.backends import (
+    SearchError,
+    SearchResult,
+    SearchTimeoutError,
+    format_search_result,
+    web_search,
+)
 from ..types import (
     BenchmarkConfig,
     BenchmarkSource,
@@ -15,6 +21,8 @@ from ..types import (
     TaskResource,
 )
 
+_SOURCE_SEARCH_MAX_ATTEMPTS = 3
+
 
 def _slug(text: str) -> str:
     slug = re.sub(r"[^a-zA-Z0-9]+", "_", text.lower()).strip("_")
@@ -22,8 +30,9 @@ def _slug(text: str) -> str:
 
 
 def _resource_from_raw(raw: dict[str, Any], fallback_id: str) -> TaskResource:
+    """Normalize resource content; ``fallback_id`` is always canonical."""
     return TaskResource(
-        id=str(raw.get("id") or fallback_id),
+        id=fallback_id,
         kind=str(raw.get("kind") or "web"),
         uri=str(raw.get("uri") or ""),
         title=str(raw.get("title") or ""),
@@ -43,6 +52,35 @@ def _resource_from_source(source: BenchmarkSource, fallback_id: str) -> TaskReso
     )
 
 
+def _search_source_query(
+    query: str,
+    config: BenchmarkConfig,
+    *,
+    api_key: str | None,
+    model: str | None,
+) -> SearchResult | None:
+    for attempt in range(1, _SOURCE_SEARCH_MAX_ATTEMPTS + 1):
+        try:
+            return web_search(
+                query,
+                api_key=api_key,
+                model=model or "",
+                backend=config.search_backend,
+                raise_on_error=True,
+            )
+        except (SearchTimeoutError, TimeoutError) as exc:
+            if attempt == _SOURCE_SEARCH_MAX_ATTEMPTS:
+                raise RuntimeError(
+                    "Task Builder source search timed out after "
+                    f"{_SOURCE_SEARCH_MAX_ATTEMPTS} attempts for query {query!r}."
+                ) from exc
+        except SearchError as exc:
+            raise RuntimeError(
+                f"Task Builder source search failed for query {query!r}: {exc}"
+            ) from exc
+    raise AssertionError("source search retry loop terminated unexpectedly")
+
+
 def _select_blueprint_sources(
     dimension: EvalDimension,
     blueprint: TaskBlueprint,
@@ -60,12 +98,12 @@ def _select_blueprint_sources(
     if len(sources) >= config.max_research_sources:
         return sources
     settings = role_model_settings(config, "research")
-    if (
-        not dimension.needs_research
-        or not config.use_web_research
-        or not settings.configured
-    ):
+    if not dimension.needs_research or not config.use_web_research:
         return sources
+    if not settings.configured:
+        raise RuntimeError(
+            "Task Builder source search was required, but the Research role has no API key."
+        )
     queries = blueprint.resource_queries or dimension.research_queries
     if not queries:
         queries = [
@@ -74,11 +112,11 @@ def _select_blueprint_sources(
         ]
     seen: set[str] = {source.uri for source in sources}
     for query in queries[:2]:
-        result = web_search(
+        result = _search_source_query(
             query,
+            config,
             api_key=settings.api_key,
             model=settings.model,
-            backend=config.search_backend,
         )
         if not result:
             continue
@@ -114,6 +152,6 @@ def _dedupe_resources(resources: list[TaskResource]) -> list[TaskResource]:
         if resource_id in used_ids:
             resource_id = f"{resource_id}_{len(used_ids) + 1}"
             resource = resource.model_copy(update={"id": resource_id})
-        used_ids.add(resource.id)
+        used_ids.add(resource_id)
         deduped.append(resource)
     return deduped

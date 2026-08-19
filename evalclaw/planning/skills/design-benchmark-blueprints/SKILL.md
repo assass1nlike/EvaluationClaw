@@ -54,7 +54,7 @@ Further design the substantive content that makes up each dimension. Determine:
 
 Use only these task types:
 
-- `choice`: two or more candidate choices and one or more correct choice ids; two choices can express a binary judgment, and multiple correct ids express multi-select.
+- `choice`: two or more candidate choices and one or more correct choice positions; the framework assigns option ids, and multiple positions express multi-select.
 - `fill_blank`: one uniquely formatted expected text, scored by exact text match after trimming surrounding whitespace.
 - `generation`: an open response scored by a Judge against a rubric. When useful, the Judge may use registered external-verification tools such as Python tests.
 - `multi_turn`: a scripted or response-adaptive dialogue scored over the complete transcript.
@@ -86,6 +86,10 @@ If a task requires editable artifacts, scripts, schemas, hashes, tests, or other
 For every `multi_turn` TaskDesign, set `interaction_requirements.followup_mode` to exactly `adaptive` or `scripted`. Use `adaptive` when later turns must respond to the target's actual replies, and `scripted` only when predetermined follow-up turns are substantively appropriate. Preserve any explicit user requirement about this choice.
 
 At the end of this step, determine the JSON for every task group and express all information in your design through JSON fields. The complete field set for one task-group JSON object is `plan.dimensions[].task_designs` in `reference/universal_format.json`. This field specification is shared by all tasks, so an individual task does not necessarily need—and usually will not need—to fill every field.
+
+The framework owns canonical plan, dimension, TaskDesign, task, resource, and
+choice-option ids. Do not invent ids in the planning JSON. Existing ids supplied
+back to later review or repair calls are references to framework-owned objects.
 
 ### Step Four: Perform a Global Audit
 

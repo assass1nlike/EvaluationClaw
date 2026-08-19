@@ -24,8 +24,8 @@ Return pure JSON only, with no markdown. Format:
       "task_type": "choice",
       "content_summary": "3-8 words naming the task content",
       "prompt": "...",
-      "choices": [{"id": "A", "text": "..."}, {"id": "B", "text": "..."}],
-      "correct_choice_ids": ["A"],
+      "choices": [{"text": "..."}, {"text": "..."}],
+      "correct_choice_indices": [0],
       "expected_text": null,
       "rubric": null,
       "judge_tools": [],
@@ -123,10 +123,11 @@ Requirements:
   present, all prompts/rubrics/system prompts are complete strings, all code
   blocks or file contents are syntactically closed, and the item can be answered
   without unstated context.
-- choice must include at least two distinct objects with non-empty unique ids
-  and text, plus one or more correct_choice_ids. Two choices may represent a
-  binary judgment; multiple correct ids represent multi-select. The selected-id
-  set must match exactly, with no partial credit.
+- The framework owns item ids, choice option ids, and multimodal asset ids. Do
+  not emit an item ``id`` or option ``id``. Choice objects contain text only and
+  ``correct_choice_indices`` uses zero-based positions. Two choices may represent
+  a binary judgment; multiple indices represent multi-select. The selected set
+  must match exactly, with no partial credit.
 - fill_blank must include exactly one non-empty expected_text. State the output
   format in the prompt so only that text is correct. Scoring trims only outer
   whitespace and is otherwise exact.

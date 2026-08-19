@@ -7,6 +7,7 @@ import uuid
 from itertools import cycle
 from typing import Any
 
+from ..core.identifiers import choice_id
 from ..core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY, compact_task_content_summary
 from ..types import (
     BenchmarkItem,
@@ -412,7 +413,7 @@ def item_from_hf_record(
     category = row.get("category") or row.get("subject") or row.get("topic") or row.get("domain")
     if task_type == TaskType.choice:
         correct_ids = [
-            chr(ord("A") + index)
+            choice_id(index)
             for index, choice in enumerate(choices)
             if choice == answer
         ]
@@ -431,7 +432,7 @@ def item_from_hf_record(
         dimension_id=dimension.id,
         task_type=task_type,
         prompt=_compact(prompt, 4000),
-        choices=[{"id": chr(ord("A") + index), "text": value} for index, value in enumerate(choices)],
+        choices=[{"id": choice_id(index), "text": value} for index, value in enumerate(choices)],
         correct_choice_ids=correct_ids,
         expected_text=expected_text,
         rubric=rubric,

@@ -4,6 +4,7 @@ from __future__ import annotations
 import uuid
 from itertools import cycle
 
+from ..core.identifiers import choice_id
 from ..protocols.multimodal import (
     MULTIMODAL_METADATA_KEY,
     MULTIMODAL_SCHEMA_VERSION,
@@ -16,7 +17,7 @@ from ..types import BenchmarkItem, ChallengeEffort, ChoiceOption, EvalDimension,
 def _choice_options(values: list[object]) -> list[ChoiceOption]:
     options: list[ChoiceOption] = []
     for index, value in enumerate(values):
-        option_id = chr(ord("A") + index)
+        option_id = choice_id(index)
         text = str(value).strip()
         for separator in (". ", ") ", ": "):
             prefix = option_id + separator

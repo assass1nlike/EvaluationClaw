@@ -1,10 +1,7 @@
 ﻿"""Deep research loop: bounded search -> compress -> reflect -> synthesize.
 
-Produces a structured :class:`~evalclaw.types.ResearchBrief` that grounds the
-planner (taxonomy, challenge-effort anchors) and the generator (seed sources). The
-loop is research-role-LLM driven and degrades gracefully: with no research-role
-key or with search disabled it returns ``None`` and the pipeline continues on
-the existing single-shot research path.
+Produces a structured :class:`~evalclaw.types.ResearchBrief` containing only
+benchmark-design evidence for the Planner and Task Builder.
 """
 from __future__ import annotations
 
@@ -28,20 +25,20 @@ from ..types import (
     BenchmarkSource,
     EvalDimension,
     Message,
-    ResearchBenchmarkNote,
     ResearchBrief,
-    ResearchCitation,
-    ResearchExemplarItem,
-    ResearchSeedSource,
+    ResearchDifficultyFactor,
+    ResearchDimension,
+    ResearchEvidence,
     ResearchSourceMaterial,
-    ResearchTaxonomyEntry,
+    ResearchSourceRecommendation,
+    ResearchTaskPattern,
 )
 from .backends import fetch_url_text, web_search
 
 MAX_QUERIES_PER_ROUND = 4
 MAX_FETCHES_PER_ROUND = 3
 FETCH_MAX_CHARS = 50_000
-MAX_FINDINGS = 60
+MAX_EVIDENCE = 60
 
 
 def _call_orchestrator_json(
@@ -99,10 +96,18 @@ def _gather_round(
             api_key=settings.api_key,
             model=settings.model,
             backend=config.search_backend,
+            raise_on_error=True,
         )
         if not result:
             continue
-        material.append({"query": query, "content": result.content[:3000]})
+        result_urls = [
+            str(citation.get("url") or "")
+            for citation in result.citations
+            if citation.get("url")
+        ]
+        material.append(
+            {"query": query, "content": result.content[:3000], "source_urls": result_urls}
+        )
         for citation in result.citations:
             url = str(citation.get("url") or "")
             if url:
@@ -135,7 +140,7 @@ def _gather_round(
     return material, citations
 
 
-def _compress(goal: str, material: list[dict], config: BenchmarkConfig) -> list[str]:
+def _compress(goal: str, material: list[dict], config: BenchmarkConfig) -> list[dict]:
     if not material:
         return []
     try:
@@ -144,21 +149,56 @@ def _compress(goal: str, material: list[dict], config: BenchmarkConfig) -> list[
             RESEARCH_COMPRESS_SYSTEM_PROMPT,
             {"goal": goal, "material": material},
         )
-        findings = [str(f).strip() for f in data.get("findings", []) if str(f).strip()]
-        if findings:
-            return findings
+        allowed_urls = {
+            str(url)
+            for entry in material
+            for url in ([entry.get("url")] + list(entry.get("source_urls", [])))
+            if url
+        }
+        evidence: list[dict] = []
+        for raw in data.get("evidence", []) or []:
+            if not isinstance(raw, dict):
+                continue
+            observation = str(raw.get("observation") or "").strip()
+            implication = str(raw.get("design_implication") or "").strip()
+            if not observation or not implication:
+                continue
+            evidence.append(
+                {
+                    "observation": observation,
+                    "design_implication": implication,
+                    "source_urls": [
+                        str(url).strip()
+                        for url in raw.get("source_urls", [])
+                        if str(url).strip() in allowed_urls
+                    ],
+                }
+            )
+        if evidence:
+            return evidence
     except Exception:
         pass
     # Fallback: keep clipped raw snippets so synthesis still has material.
     return [
-        f"[{entry.get('query') or entry.get('url') or 'material'}] {str(entry.get('content', ''))[:400]}"
+        {
+            "observation": str(entry.get("content", ""))[:400],
+            "design_implication": (
+                "Use this only as a lead for benchmark design; verify the concrete implication."
+            ),
+            "source_urls": (
+                [str(entry["url"])]
+                if entry.get("url")
+                else [str(url) for url in entry.get("source_urls", []) if url]
+            ),
+        }
         for entry in material
+        if str(entry.get("content", "")).strip()
     ]
 
 
 def _reflect(
     goal: str,
-    findings: list[str],
+    evidence: list[dict],
     round_index: int,
     max_rounds: int,
     config: BenchmarkConfig,
@@ -169,7 +209,7 @@ def _reflect(
             RESEARCH_REFLECT_SYSTEM_PROMPT,
             {
                 "goal": goal,
-                "findings": findings[-MAX_FINDINGS:],
+                "evidence": evidence[-MAX_EVIDENCE:],
                 "round": round_index,
                 "max_rounds": max_rounds,
             },
@@ -187,138 +227,154 @@ def _reflect(
         return {"done": True, "gaps": [], "follow_up_queries": []}
 
 
-def _parse_brief(data: dict) -> ResearchBrief:
-    """Tolerantly convert synthesized JSON into a ResearchBrief."""
+def _parse_brief(data: dict, *, known_source_urls: set[str] | None = None) -> ResearchBrief:
+    """Convert synthesized design research into the canonical brief."""
+
+    allowed_urls = known_source_urls
 
     def _as_dict(value: object) -> dict:
         return value if isinstance(value, dict) else {}
 
-    taxonomy: list[ResearchTaxonomyEntry] = []
-    for entry in data.get("taxonomy", []) or []:
-        if isinstance(entry, str) and entry.strip():
-            taxonomy.append(ResearchTaxonomyEntry(name=entry.strip()))
-        elif isinstance(entry, dict) and (entry.get("name") or entry.get("id")):
-            taxonomy.append(
-                ResearchTaxonomyEntry(
-                    name=str(entry.get("name") or entry.get("id")),
+    dimensions: list[ResearchDimension] = []
+    for raw in data.get("dimensions", []) or []:
+        entry = _as_dict(raw)
+        name = str(entry.get("name") or "").strip()
+        if name:
+            dimensions.append(
+                ResearchDimension(
+                    name=name,
+                    measurement_target=str(entry.get("measurement_target") or ""),
+                    boundary=str(entry.get("boundary") or ""),
+                    task_shapes=[str(value) for value in entry.get("task_shapes", []) if str(value).strip()],
+                )
+            )
+
+    difficulty_factors: list[ResearchDifficultyFactor] = []
+    for raw in data.get("difficulty_factors", []) or []:
+        entry = _as_dict(raw)
+        factor = str(entry.get("factor") or "").strip()
+        if factor:
+            difficulty_factors.append(
+                ResearchDifficultyFactor(
+                    factor=factor,
+                    observable_signal=str(entry.get("observable_signal") or ""),
+                    design_implication=str(entry.get("design_implication") or ""),
+                )
+            )
+
+    task_patterns: list[ResearchTaskPattern] = []
+    for raw in data.get("task_patterns", []) or []:
+        entry = _as_dict(raw)
+        name = str(entry.get("name") or "").strip()
+        if name:
+            task_patterns.append(
+                ResearchTaskPattern(
+                    name=name,
                     description=str(entry.get("description") or ""),
+                    suitable_task_types=[
+                        str(value) for value in entry.get("suitable_task_types", []) if str(value).strip()
+                    ],
+                    scoring_direction=str(entry.get("scoring_direction") or ""),
                 )
             )
 
-    benchmarks: list[ResearchBenchmarkNote] = []
-    for entry in data.get("existing_benchmarks", []) or []:
-        entry = _as_dict(entry) if not isinstance(entry, str) else {"name": entry}
-        if not entry.get("name"):
-            continue
-        weaknesses = entry.get("known_weaknesses") or []
-        if isinstance(weaknesses, str):
-            weaknesses = [weaknesses]
-        benchmarks.append(
-            ResearchBenchmarkNote(
-                name=str(entry["name"]),
-                url=str(entry.get("url") or entry.get("source") or ""),
-                known_weaknesses=[str(w) for w in weaknesses if w],
-            )
-        )
-
-    seeds: list[ResearchSeedSource] = []
-    for entry in data.get("seed_sources", []) or []:
-        entry = _as_dict(entry)
-        if not (entry.get("title") or entry.get("url")):
-            continue
-        seeds.append(
-            ResearchSeedSource(
-                title=str(entry.get("title") or entry.get("url")),
-                url=str(entry.get("url") or ""),
-                why_useful=str(entry.get("why_useful") or ""),
-            )
-        )
-
-    exemplars: list[ResearchExemplarItem] = []
-    for entry in data.get("exemplar_items", []) or []:
-        if isinstance(entry, str) and entry.strip():
-            exemplars.append(ResearchExemplarItem(prompt=entry.strip()))
-        elif isinstance(entry, dict) and entry.get("prompt"):
-            exemplars.append(
-                ResearchExemplarItem(
-                    prompt=str(entry["prompt"]),
-                    answer=str(entry.get("answer") or ""),
-                    notes=str(entry.get("notes") or ""),
+    source_recommendations: list[ResearchSourceRecommendation] = []
+    for raw in data.get("source_recommendations", []) or []:
+        entry = _as_dict(raw)
+        url = str(entry.get("url") or "").strip()
+        if url and (allowed_urls is None or url in allowed_urls):
+            source_recommendations.append(
+                ResearchSourceRecommendation(
+                    title=str(entry.get("title") or url),
+                    url=url,
+                    why_useful=str(entry.get("why_useful") or ""),
                 )
             )
+
+    evidence: list[ResearchEvidence] = []
+    for raw in data.get("evidence", []) or []:
+        entry = _as_dict(raw)
+        observation = str(entry.get("observation") or "").strip()
+        implication = str(entry.get("design_implication") or "").strip()
+        if not observation or not implication:
+            continue
+        urls = [str(url).strip() for url in entry.get("source_urls", []) if str(url).strip()]
+        if allowed_urls is not None:
+            urls = [url for url in urls if url in allowed_urls]
+        evidence.append(
+            ResearchEvidence(
+                observation=observation,
+                design_implication=implication,
+                source_urls=list(dict.fromkeys(urls)),
+            )
+        )
 
     anchors_raw = data.get("challenge_effort_anchors") or {}
     anchors: dict[str, str] = {}
     if isinstance(anchors_raw, dict):
-        anchors = {str(k): str(v) for k, v in anchors_raw.items() if v}
+        anchors = {str(key): str(value) for key, value in anchors_raw.items() if value}
     elif isinstance(anchors_raw, list):
         for entry in anchors_raw:
             if isinstance(entry, dict) and entry.get("level"):
-                anchors[str(entry["level"])] = str(entry.get("meaning") or entry.get("description") or "")
-
-    citations: list[ResearchCitation] = []
-    for entry in data.get("citations", []) or []:
-        entry = _as_dict(entry)
-        if not (entry.get("claim") or entry.get("url")):
-            continue
-        citations.append(
-            ResearchCitation(
-                claim=str(entry.get("claim") or ""),
-                url=str(entry.get("url") or ""),
-            )
-        )
+                anchors[str(entry["level"])] = str(
+                    entry.get("meaning") or entry.get("description") or ""
+                )
 
     return ResearchBrief(
-        field_overview=str(data.get("field_overview") or ""),
-        taxonomy=taxonomy,
-        existing_benchmarks=benchmarks,
-        seed_sources=seeds,
-        exemplar_items=exemplars,
+        dimensions=dimensions,
+        difficulty_factors=difficulty_factors,
+        task_patterns=task_patterns,
+        source_recommendations=source_recommendations,
+        evidence=evidence,
         challenge_effort_anchors=anchors,
-        citations=citations,
         research_notes=str(data.get("research_notes") or ""),
     )
 
 
 def _fallback_brief(
     goal: str,
-    findings: list[str],
+    evidence: list[dict],
     citations: list[dict],
     hf_sources: list[BenchmarkSource],
 ) -> ResearchBrief:
-    """Best-effort brief from accumulated raw material when synthesis fails."""
+    """Best-effort design brief from raw evidence when synthesis fails."""
     seen: set[str] = set()
-    seeds: list[ResearchSeedSource] = []
-    brief_citations: list[ResearchCitation] = []
+    sources: list[ResearchSourceRecommendation] = []
     for citation in citations:
         url = str(citation.get("url") or "")
         if not url or url in seen:
             continue
         seen.add(url)
         title = str(citation.get("title") or url)
-        seeds.append(
-            ResearchSeedSource(title=title, url=url, why_useful="Collected during deep research search.")
+        sources.append(
+            ResearchSourceRecommendation(
+                title=title,
+                url=url,
+                why_useful="Collected during benchmark-design research.",
+            )
         )
-        brief_citations.append(ResearchCitation(claim=f"Search result relevant to: {goal}", url=url))
-    benchmarks = [
-        ResearchBenchmarkNote(name=source.title or source.uri, url=source.uri)
+    sources.extend(
+        ResearchSourceRecommendation(
+            title=source.title or source.uri,
+            url=source.uri,
+            why_useful="Dataset candidate discovered for benchmark construction.",
+        )
         for source in hf_sources
-    ]
+        if source.uri and source.uri not in seen
+    )
     return ResearchBrief(
-        field_overview="\n".join(findings)[:4000],
-        seed_sources=seeds[:10],
-        existing_benchmarks=benchmarks[:10],
-        citations=brief_citations[:20],
+        evidence=[ResearchEvidence(**item) for item in evidence[-MAX_EVIDENCE:] if item.get("observation")],
+        source_recommendations=sources[:10],
         research_notes=(
             "Best-effort brief assembled locally because LLM synthesis failed; "
-            "field_overview contains raw findings."
+            "evidence may require further design review."
         ),
     )
 
 
 def _synthesize(
     goal: str,
-    findings: list[str],
+    evidence: list[dict],
     citations: list[dict],
     hf_sources: list[BenchmarkSource],
     config: BenchmarkConfig,
@@ -332,9 +388,10 @@ def _synthesize(
     )
     payload = {
         "goal": goal,
-        "findings": findings[-MAX_FINDINGS:],
+        "evidence": evidence[-MAX_EVIDENCE:],
         "known_sources": known_sources,
     }
+    known_source_urls = {str(source.get("url") or "") for source in known_sources if source.get("url")}
     for _attempt in range(2):
         try:
             data = _call_orchestrator_json(
@@ -344,10 +401,10 @@ def _synthesize(
                 max_tokens=8192,
             )
             if data:
-                return _parse_brief(data)
+                return _parse_brief(data, known_source_urls=known_source_urls)
         except Exception:
             continue
-    return _fallback_brief(goal, findings, citations, hf_sources)
+    return _fallback_brief(goal, evidence, citations, hf_sources)
 
 
 def _discover_benchmark_sources(
@@ -395,7 +452,7 @@ def run_deep_research(
     if hf_sources:
         _log(f"  [deep-research] HF benchmark candidates: {len(hf_sources)}")
 
-    findings: list[str] = []
+    evidence: list[dict] = []
     citations: list[dict] = []
     source_materials: dict[str, ResearchSourceMaterial] = {}
     fetched_urls: set[str] = set()
@@ -418,23 +475,22 @@ def run_deep_research(
             current = source_materials.get(url)
             if current is None or len(retained.content) > len(current.content):
                 source_materials[url] = retained
-        new_findings = _compress(goal, material, config)
-        findings.extend(new_findings)
+        new_evidence = _compress(goal, material, config)
+        evidence.extend(new_evidence)
         _log(
             f"  [deep-research] Round {round_index}/{max_rounds}: "
-            f"{len(material)} materials -> {len(new_findings)} findings"
+            f"{len(material)} materials -> {len(new_evidence)} design evidence entries"
         )
-        reflection = _reflect(goal, findings, round_index, max_rounds, config)
+        reflection = _reflect(goal, evidence, round_index, max_rounds, config)
         if reflection["done"] or not reflection["follow_up_queries"]:
             _log("  [deep-research] Reflection: no remaining gaps.")
             break
         queries = reflection["follow_up_queries"]
         _log(f"  [deep-research] Gaps: {reflection['gaps']} -> follow-up queries: {queries}")
 
-    brief = _synthesize(goal, findings, citations, hf_sources, config)
+    brief = _synthesize(goal, evidence, citations, hf_sources, config)
     return brief.model_copy(
         update={
-            "findings": findings[-MAX_FINDINGS:],
             "source_materials": list(source_materials.values()),
         }
     )
@@ -443,25 +499,42 @@ def run_deep_research(
 def compact_brief_context(brief: ResearchBrief) -> dict:
     """Compact serialization of a brief for injection into the planner context."""
     return {
-        "field_overview": brief.field_overview[:1500],
-        "taxonomy": [
-            {"name": entry.name, "description": entry.description[:300]}
-            for entry in brief.taxonomy[:12]
-        ],
-        "existing_benchmarks": [
+        "dimensions": [
             {
-                "name": benchmark.name,
-                "url": benchmark.url,
-                "known_weaknesses": benchmark.known_weaknesses[:3],
+                "name": entry.name,
+                "measurement_target": entry.measurement_target[:500],
+                "boundary": entry.boundary[:500],
+                "task_shapes": entry.task_shapes[:5],
             }
-            for benchmark in brief.existing_benchmarks[:10]
+            for entry in brief.dimensions[:12]
         ],
-        "findings": brief.findings[:30],
-        "seed_sources": [
-            source.model_dump(mode="json") for source in brief.seed_sources[:10]
+        "difficulty_factors": [
+            {
+                "factor": factor.factor,
+                "observable_signal": factor.observable_signal[:500],
+                "design_implication": factor.design_implication[:500],
+            }
+            for factor in brief.difficulty_factors[:12]
         ],
-        "citations": [
-            citation.model_dump(mode="json") for citation in brief.citations[:20]
+        "task_patterns": [
+            {
+                "name": pattern.name,
+                "description": pattern.description[:500],
+                "suitable_task_types": pattern.suitable_task_types,
+                "scoring_direction": pattern.scoring_direction[:500],
+            }
+            for pattern in brief.task_patterns[:12]
+        ],
+        "source_recommendations": [
+            source.model_dump(mode="json") for source in brief.source_recommendations[:10]
+        ],
+        "evidence": [
+            {
+                "observation": item.observation[:600],
+                "design_implication": item.design_implication[:600],
+                "source_urls": item.source_urls[:5],
+            }
+            for item in brief.evidence[:30]
         ],
         "source_material_index": [
             {
@@ -483,71 +556,74 @@ def compact_brief_field_guide() -> str:
     have to guess field semantics from their names.
     """
     return (
-        "Field meanings for the deep-research brief above "
+        "Field meanings for the Benchmark Design Research brief above "
         "(the brief is reference material, not an output schema):\n"
-        "- field_overview: a short summary of the domain under evaluation.\n"
-        "- taxonomy: subfields/capabilities in the domain; these are the natural "
-        "candidates to map onto benchmark dimensions.\n"
-        "- existing_benchmarks: known benchmarks/datasets for this capability and "
-        "their known weaknesses; useful to avoid duplication and position the new eval.\n"
-        "- findings: condensed research takeaways that can inspire task design and "
-        "source-grounded content.\n"
-        "- seed_sources: concrete documents/datasets (title + url) that item generation "
-        "can build source-backed tasks from.\n"
-        "- citations: claim-to-source mapping supporting the brief's assertions.\n"
+        "- dimensions: evidence-supported candidates for measurable, non-overlapping "
+        "benchmark dimensions; the Planner decides whether to adopt them.\n"
+        "- difficulty_factors: observable sources of task difficulty and their direct "
+        "construction implications.\n"
+        "- task_patterns: task shapes that can measure the goal, including suitable "
+        "task types and scoring directions.\n"
+        "- source_recommendations: verified documents or datasets that can ground "
+        "source-backed tasks.\n"
+        "- evidence: external observations paired with concrete benchmark-design "
+        "implications and their source URLs.\n"
         "- source_material_index: a list of {title, url, content_chars} describing the "
         "fetched source bodies retained by the framework; the TaskBuilder may read a "
         "full source body by URL via read_research_source rather than re-fetching.\n"
-        "- challenge_effort_anchors: what E1-E3 construction effort means concretely "
-        "in this domain, as a guide for choosing each TaskDesign.challenge_effort."
+        "- challenge_effort_anchors: what E1-E3 construction effort means for this "
+        "evaluation goal, as a guide for choosing TaskDesign.challenge_effort."
     )
 
 
 def render_brief_markdown(brief: ResearchBrief) -> str:
     """Render a ResearchBrief as a readable Markdown document."""
-    lines: list[str] = ["# Research Brief", "", f"- Created at: {brief.created_at}", ""]
-    if brief.field_overview:
-        lines.extend(["## Field Overview", "", brief.field_overview, ""])
-    if brief.taxonomy:
-        lines.extend(["## Taxonomy", ""])
-        for entry in brief.taxonomy:
-            suffix = f": {entry.description}" if entry.description else ""
-            lines.append(f"- **{entry.name}**{suffix}")
+    lines: list[str] = ["# Benchmark Design Research Brief", "", f"- Created at: {brief.created_at}", ""]
+    if brief.dimensions:
+        lines.extend(["## Candidate Dimensions", ""])
+        for dimension in brief.dimensions:
+            lines.append(f"- **{dimension.name}**: {dimension.measurement_target}")
+            if dimension.boundary:
+                lines.append(f"  - Boundary: {dimension.boundary}")
+            for shape in dimension.task_shapes:
+                lines.append(f"  - Task shape: {shape}")
         lines.append("")
-    if brief.existing_benchmarks:
-        lines.extend(["## Existing Benchmarks", ""])
-        for benchmark in brief.existing_benchmarks:
-            url = f" ({benchmark.url})" if benchmark.url else ""
-            lines.append(f"- **{benchmark.name}**{url}")
-            for weakness in benchmark.known_weaknesses:
-                lines.append(f"  - weakness: {weakness}")
+    if brief.difficulty_factors:
+        lines.extend(["## Difficulty Factors", ""])
+        for factor in brief.difficulty_factors:
+            lines.append(f"- **{factor.factor}**")
+            if factor.observable_signal:
+                lines.append(f"  - Observable signal: {factor.observable_signal}")
+            if factor.design_implication:
+                lines.append(f"  - Design implication: {factor.design_implication}")
         lines.append("")
-    if brief.seed_sources:
-        lines.extend(["## Seed Sources", ""])
-        for seed in brief.seed_sources:
-            url = f" ({seed.url})" if seed.url else ""
-            why = f" - {seed.why_useful}" if seed.why_useful else ""
-            lines.append(f"- {seed.title}{url}{why}")
+    if brief.task_patterns:
+        lines.extend(["## Task Patterns", ""])
+        for pattern in brief.task_patterns:
+            lines.append(f"- **{pattern.name}**: {pattern.description}")
+            if pattern.suitable_task_types:
+                lines.append(f"  - Task types: {', '.join(pattern.suitable_task_types)}")
+            if pattern.scoring_direction:
+                lines.append(f"  - Scoring: {pattern.scoring_direction}")
         lines.append("")
-    if brief.exemplar_items:
-        lines.extend(["## Exemplar Items", ""])
-        for exemplar in brief.exemplar_items:
-            lines.append(f"- Prompt: {exemplar.prompt}")
-            if exemplar.answer:
-                lines.append(f"  - Answer: {exemplar.answer}")
-            if exemplar.notes:
-                lines.append(f"  - Notes: {exemplar.notes}")
+    if brief.source_recommendations:
+        lines.extend(["## Source Recommendations", ""])
+        for source in brief.source_recommendations:
+            why = f" - {source.why_useful}" if source.why_useful else ""
+            lines.append(f"- {source.title} ({source.url}){why}")
+        lines.append("")
+    if brief.evidence:
+        lines.extend(["## Design Evidence", ""])
+        for item in brief.evidence:
+            lines.append(f"- Observation: {item.observation}")
+            lines.append(f"  - Design implication: {item.design_implication}")
+            if item.source_urls:
+                lines.append(f"  - Sources: {', '.join(item.source_urls)}")
         lines.append("")
     if brief.challenge_effort_anchors:
         lines.extend(["## Challenge Effort Anchors", ""])
         for level in sorted(brief.challenge_effort_anchors):
             lines.append(f"- {level}: {brief.challenge_effort_anchors[level]}")
-        lines.append("")
-    if brief.citations:
-        lines.extend(["## Citations", ""])
-        for citation in brief.citations:
-            url = f" - {citation.url}" if citation.url else ""
-            lines.append(f"- {citation.claim}{url}")
         lines.append("")
     if brief.research_notes:
         lines.extend(["## Research Notes", "", brief.research_notes, ""])

@@ -53,6 +53,22 @@ class SearchResult:
     citations: list[dict] = field(default_factory=list)  # [{"url": ..., "title": ...}]
 
 
+class SearchError(RuntimeError):
+    """A search backend failed for a reason callers may need to surface."""
+
+
+class SearchConfigurationError(SearchError):
+    """The selected search backend cannot run with the current configuration."""
+
+
+class SearchTimeoutError(SearchError, TimeoutError):
+    """A search request timed out and may be retried by the caller."""
+
+
+class SearchBackendError(SearchError):
+    """The selected backend returned an operational/API error."""
+
+
 # ---------------------------------------------------------------------------
 # Shared primitives
 # ---------------------------------------------------------------------------
@@ -157,6 +173,10 @@ class SearchBackend:
     def search(self, query: str) -> SearchResult | None:  # pragma: no cover - abstract
         raise NotImplementedError
 
+    def search_or_raise(self, query: str) -> SearchResult | None:
+        """Search while surfacing operational failures to a strict caller."""
+        return self.search(query)
+
 
 class NoneBackend(SearchBackend):
     """Disabled backend that always returns no result."""
@@ -201,9 +221,18 @@ class GeminiBackend(SearchBackend):
             return url
 
     def search(self, query: str) -> SearchResult | None:
+        try:
+            return self.search_or_raise(query)
+        except SearchError as exc:
+            print(f"  [search] {exc}")
+            return None
+
+    def search_or_raise(self, query: str) -> SearchResult | None:
         key = self.api_key or os.environ.get("GEMINI_API_KEY", "")
         if not key:
-            return None
+            raise SearchConfigurationError(
+                "Gemini search requires GEMINI_API_KEY or a Gemini search API key."
+            )
 
         endpoint = f"{GEMINI_API_BASE}/models/{self.model}:generateContent"
         payload = {
@@ -220,13 +249,14 @@ class GeminiBackend(SearchBackend):
             )
             resp.raise_for_status()
             data = resp.json()
+        except httpx.TimeoutException as exc:
+            raise SearchTimeoutError("Gemini search timed out.") from exc
         except Exception as exc:
-            print(f"  [search] Gemini search failed: {exc}")
-            return None
+            raise SearchBackendError(f"Gemini search failed: {exc}") from exc
 
         if "error" in data:
-            print(f"  [search] Gemini API error: {data['error'].get('message', data['error'])}")
-            return None
+            message = data["error"].get("message", data["error"])
+            raise SearchBackendError(f"Gemini API error: {message}")
 
         candidate = (data.get("candidates") or [{}])[0]
 
@@ -264,8 +294,9 @@ class KeylessBackend(SearchBackend):
     """Free, no-API-key backend combining arXiv, Wikipedia and DuckDuckGo.
 
     Every source is best-effort and wrapped in try/except so a single failing
-    source degrades silently. Content is a concatenation of source snippets;
-    citations are ``[{"title", "url"}]``.
+    source degrades silently for normal callers. Strict callers receive an
+    error when no source succeeds. Content is a concatenation of source
+    snippets; citations are ``[{"title", "url"}]``.
     """
 
     name = "keyless"
@@ -295,20 +326,26 @@ class KeylessBackend(SearchBackend):
             self._disabled_sources.clear()
             self._last_source_request.clear()
 
-    def _run_source(self, name: str, source, query: str) -> list[dict]:
+    def _run_source(self, name: str, source, query: str, *, strict: bool) -> list[dict]:
         normalized_query = " ".join(query.lower().split())
         cache_key = (name, normalized_query)
         with self._state_lock:
             if cache_key in self._query_cache:
                 return self._query_cache[cache_key]
             if name in self._disabled_sources:
-                return []
+                if strict:
+                    self._disabled_sources.pop(name, None)
+                else:
+                    return []
         with self._source_locks[name]:
             with self._state_lock:
                 if cache_key in self._query_cache:
                     return self._query_cache[cache_key]
                 if name in self._disabled_sources:
-                    return []
+                    if strict:
+                        self._disabled_sources.pop(name, None)
+                    else:
+                        return []
                 elapsed = time.monotonic() - self._last_source_request.get(name, 0.0)
             if elapsed < self.min_source_interval_s:
                 time.sleep(self.min_source_interval_s - elapsed)
@@ -317,35 +354,41 @@ class KeylessBackend(SearchBackend):
             except httpx.HTTPStatusError as exc:
                 status = exc.response.status_code
                 with self._state_lock:
-                    self._query_cache[cache_key] = []
                     self._last_source_request[name] = time.monotonic()
-                    if status in _TERMINAL_SOURCE_STATUSES:
+                    if not strict and status in _TERMINAL_SOURCE_STATUSES:
                         first_block = name not in self._disabled_sources
                         self._disabled_sources[name] = status
                     else:
                         first_block = False
-                if first_block:
-                    print(f"  [search] disabled keyless source {name} for this run after HTTP {status}.")
-                else:
-                    print(f"  [search] keyless source {name} returned HTTP {status}; query skipped.")
+                detail = (
+                    f"disabled keyless source {name} for this run after HTTP {status}"
+                    if first_block
+                    else f"keyless source {name} returned HTTP {status}"
+                )
+                if strict:
+                    raise SearchBackendError(detail) from exc
+                print(f"  [search] {detail}; query skipped.")
                 return []
             except httpx.TimeoutException:
                 with self._state_lock:
-                    self._query_cache[cache_key] = []
                     self._last_source_request[name] = time.monotonic()
-                    first_timeout = name not in self._disabled_sources
-                    self._disabled_sources[name] = "timeout"
+                    if not strict:
+                        first_timeout = name not in self._disabled_sources
+                        self._disabled_sources[name] = "timeout"
+                    else:
+                        first_timeout = False
+                if strict:
+                    raise SearchTimeoutError(f"keyless source {name} timed out.") from None
                 if first_timeout:
                     print(f"  [search] disabled keyless source {name} for this run after timeout.")
                 return []
             except Exception as exc:
                 with self._state_lock:
-                    self._query_cache[cache_key] = []
                     self._last_source_request[name] = time.monotonic()
-                print(
-                    f"  [search] keyless source {name} failed once "
-                    f"({type(exc).__name__}); query skipped."
-                )
+                detail = f"keyless source {name} failed ({type(exc).__name__}): {exc}"
+                if strict:
+                    raise SearchBackendError(detail) from exc
+                print(f"  [search] {detail}; query skipped.")
                 return []
             with self._state_lock:
                 self._query_cache[cache_key] = entries
@@ -353,9 +396,16 @@ class KeylessBackend(SearchBackend):
             return entries
 
     def search(self, query: str) -> SearchResult | None:
+        return self._search(query, strict=False)
+
+    def search_or_raise(self, query: str) -> SearchResult | None:
+        return self._search(query, strict=True)
+
+    def _search(self, query: str, *, strict: bool) -> SearchResult | None:
         snippets: list[str] = []
         citations: list[dict] = []
         seen: set[str] = set()
+        failures: list[SearchError] = []
 
         sources = (
             ("arxiv", self._arxiv),
@@ -364,11 +414,15 @@ class KeylessBackend(SearchBackend):
         )
         with ThreadPoolExecutor(max_workers=len(sources)) as executor:
             requests = {
-                name: executor.submit(self._run_source, name, source, query)
+                name: executor.submit(self._run_source, name, source, query, strict=strict)
                 for name, source in sources
             }
         for name, _source in sources:
-            entries = requests[name].result()
+            try:
+                entries = requests[name].result()
+            except SearchError as exc:
+                failures.append(exc)
+                continue
             for entry in entries:
                 url = entry.get("url", "")
                 if not url or url in seen:
@@ -383,6 +437,13 @@ class KeylessBackend(SearchBackend):
                 snippets.append(block)
 
         if not citations and not snippets:
+            if strict and failures:
+                error_type = (
+                    SearchTimeoutError
+                    if all(isinstance(error, SearchTimeoutError) for error in failures)
+                    else SearchBackendError
+                )
+                raise error_type("All keyless search sources failed for this query.") from failures[0]
             return None
 
         content = "\n".join(snippets) if snippets else "No content returned"
@@ -558,6 +619,7 @@ def web_search(
     model: str = DEFAULT_SEARCH_MODEL,
     resolve_redirects: bool = True,
     backend: str | None = "auto",
+    raise_on_error: bool = False,
 ) -> SearchResult | None:
     """Run a web search using the selected backend.
 
@@ -568,16 +630,31 @@ def web_search(
     backend. They are only forwarded to Gemini when they look Gemini-shaped so
     an orchestrator key/model for a different provider (e.g. Azure) does not
     clobber the ``GEMINI_API_KEY`` environment fallback.
+
+    Set ``raise_on_error`` when configuration and operational failures must be
+    distinguished from a valid search that found no results.
     """
     gemini_key = api_key if (model or "").startswith("gemini") else None
     gemini_model = model if (model or "").startswith("gemini") else DEFAULT_SEARCH_MODEL
+    backend_name = resolve_backend_name(backend, gemini_key=gemini_key)
+    if backend_name == "none":
+        error = SearchConfigurationError("Web search is disabled by search_backend='none'.")
+        if raise_on_error:
+            raise error
+        return None
     impl = get_backend(
-        backend,
+        backend_name,
         gemini_api_key=gemini_key,
         gemini_model=gemini_model,
         resolve_redirects=resolve_redirects,
     )
-    return impl.search(query)
+    try:
+        return impl.search_or_raise(query) if raise_on_error else impl.search(query)
+    except SearchError as exc:
+        if raise_on_error:
+            raise
+        print(f"  [search] {exc}")
+        return None
 
 
 def reset_network_state() -> None:

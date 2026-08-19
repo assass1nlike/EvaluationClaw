@@ -49,6 +49,12 @@ Your job:
    install/start commands unless the task explicitly depends on a prebuilt
    proprietary VM image.
 
+The framework owns canonical ids. Existing item_id, dimension_id, and
+source_dimension_id values are references supplied by the framework and must be
+copied when selecting existing objects. New dimensions in add/merge/split
+operations must not rely on model-generated ids; the framework assigns them.
+Use local `ref` tokens only for same-response cross-references.
+
 Allowed changes:
 - delete_item_ids: remove off-target or unrepairable items.
 - move_items: move an item to a better existing or newly created dimension.
@@ -58,9 +64,13 @@ Allowed changes:
   entry give the item_id, the dimension_id it belongs to, and a concrete
   guidance string describing exactly what to change and how.
 - dimension_updates: update name/description/approach/requirements/counts.
-- add_dimensions: add clearly requested missing dimensions.
+- add_dimensions: add clearly requested missing dimensions. Do not include an
+  id; the framework assigns the new dimension id. Use an optional local `ref`
+  only when another operation in this same response must refer to the new
+  dimension.
 - merge_dimensions: merge obviously overlapping dimensions.
-- split_dimensions: split an obviously too-broad dimension and assign items.
+- split_dimensions: split an obviously too-broad dimension; existing items in
+  the source dimension are rematerialized for the new framework-owned dimensions.
 - needs_more_items: request item generation for a dimension.
 
 Return JSON:
@@ -90,7 +100,7 @@ Return JSON:
   ],
   "add_dimensions": [
     {
-      "id": "...",
+      "ref": "new_dimension_ref",
       "name": "...",
       "measurement_target": "...",
       "boundary": "...",
@@ -106,16 +116,15 @@ Return JSON:
   "merge_dimensions": [
     {
       "source_dimension_ids": ["...", "..."],
-      "new_dimension": {"id": "...", "name": "...", "description": "...", "approach": "..."}
+      "new_dimension": {"ref": "merged_dimension_ref", "name": "...", "description": "...", "approach": "..."}
     }
   ],
   "split_dimensions": [
     {
       "source_dimension_id": "...",
       "new_dimensions": [
-        {"id": "...", "name": "...", "description": "...", "approach": "..."}
-      ],
-      "item_assignments": [{"item_id": "...", "dimension_id": "..."}]
+        {"ref": "split_dimension_ref", "name": "...", "description": "...", "approach": "..."}
+      ]
     }
   ],
   "needs_more_items": [{"dimension_id": "...", "count": 1, "guidance": "..."}],
