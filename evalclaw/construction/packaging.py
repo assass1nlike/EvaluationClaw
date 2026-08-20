@@ -118,7 +118,7 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
     scoring.update(
         {
             "method": scoring.get("method") or "deterministic",
-            "instructions": scoring.get("instructions") or task.scoring.oracle_notes or task.description,
+            "instructions": scoring.get("instructions") or task.description,
             "pass_fail": {
                 "pass": pass_criteria,
                 "partial": partial_criteria,

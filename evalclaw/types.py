@@ -223,8 +223,6 @@ class TaskBlueprint(BaseModel):
     title: str
     task_design_ids: list[str] = Field(default_factory=list)
     task_designs: list[TaskDesign] = Field(default_factory=list)
-    grouping_rationale: str = ""
-    workload_reason: str = ""
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @property
@@ -278,11 +276,6 @@ class TaskBlueprint(BaseModel):
         )
 
     @property
-    def scoring_strategy(self) -> str:
-        contracts = [design.scoring_contract for design in self.task_designs if design.scoring_contract]
-        return json.dumps(contracts, ensure_ascii=False) if contracts else ""
-
-    @property
     def environment_type(self) -> Optional[AgentEnvironmentType]:
         aliases = {
             "workspace": AgentEnvironmentType.workspace,
@@ -314,19 +307,6 @@ class TaskBlueprint(BaseModel):
             if design.environment_requirements
         ]
         return environments[0] if len(environments) == 1 else {}
-
-    @property
-    def tool_requirements(self) -> list[str]:
-        return list(
-            dict.fromkeys(
-                str(tool)
-                for design in self.task_designs
-                for tool in design.interaction_requirements.get(
-                    "allowed_action_or_tool_categories", []
-                )
-                if tool
-            )
-        )
 
     @property
     def resource_queries(self) -> list[str]:
@@ -425,7 +405,7 @@ class BenchmarkPlan(BaseModel):
                     name=dimension.name,
                     measurement_target=dimension.measurement_target,
                     boundary=dimension.boundary,
-                    description=dimension.measurement_target,
+                    description="",
                     approach=dimension.approach,
                     challenge_effort=highest_effort,
                     needs_research=bool(queries or source_backed_count),
@@ -497,7 +477,6 @@ class TaskScoringSpec(BaseModel):
     partial_criteria: str = ""
     fail_criteria: str = ""
     score_levels: dict[str, str] = Field(default_factory=dict)
-    oracle_notes: str = ""
 
 
 class TaskDefinition(BaseModel):
@@ -540,7 +519,7 @@ class BenchmarkItem(BaseModel):
     rubric: Optional[str] = None
     judge_tools: list[JudgeToolRef] = Field(default_factory=list)
     output_contract: dict[str, Any] = Field(default_factory=dict)
-    challenge_effort: ChallengeEffort = ChallengeEffort.E2
+    challenge_effort: ChallengeEffort = ChallengeEffort.E3
     source: BenchmarkSource = Field(
         default_factory=lambda: BenchmarkSource(kind=SourceKind.self_generated)
     )

@@ -57,7 +57,7 @@ def _has_scoring_guidance(task: TaskDefinition) -> bool:
             task.scoring.pass_criteria,
             task.scoring.partial_criteria,
             task.scoring.fail_criteria,
-            task.scoring.oracle_notes,
+            task.scoring.instructions,
         )
         or task.scoring.score_levels
     )
