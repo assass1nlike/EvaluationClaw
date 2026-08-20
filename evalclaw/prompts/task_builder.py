@@ -44,7 +44,6 @@ pure JSON only, with no markdown. The top-level object must contain:
         "partial_criteria": "...",
         "fail_criteria": "...",
         "score_levels": {},
-        "oracle_notes": "..."
       },
       "challenge_effort": "E3",
       "tags": [],

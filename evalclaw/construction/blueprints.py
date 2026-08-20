@@ -41,8 +41,6 @@ def _default_blueprint_for_dimension(dimension: EvalDimension) -> TaskBlueprint:
         title=dimension.name,
         task_design_ids=[design.id],
         task_designs=[design],
-        grouping_rationale="The fallback contains one coherent task group.",
-        workload_reason="The group is handled by one local Builder job.",
         metadata={"planning_source": "local_fallback"},
     )
 
