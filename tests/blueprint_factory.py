@@ -87,8 +87,6 @@ def make_blueprint(
         title=title,
         task_design_ids=[design.id for design in designs],
         task_designs=designs,
-        grouping_rationale="These task groups form one coherent Builder job.",
-        workload_reason="One Builder call can implement this workload at sufficient quality.",
         metadata=metadata or {},
     )
 

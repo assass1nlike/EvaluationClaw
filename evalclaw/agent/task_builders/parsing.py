@@ -122,7 +122,6 @@ def _task_from_raw(
             }
             if isinstance(scoring.get("score_levels") or scoring.get("levels"), dict)
             else {},
-            oracle_notes=str(scoring.get("oracle_notes") or ""),
         ),
         challenge_effort=safe_challenge_effort(raw.get("challenge_effort")),
         tags=[str(tag) for tag in raw.get("tags", []) if tag],

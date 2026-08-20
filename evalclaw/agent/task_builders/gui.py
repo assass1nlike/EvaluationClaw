@@ -1277,12 +1277,14 @@ def _gui_desktop_task_for_blueprint(
         },
         scoring=TaskScoringSpec(
             method="deterministic",
-            instructions="Score using the GUI desktop bridge evaluation contract in environment.evaluation.",
+            instructions=(
+                "Score using the GUI desktop bridge evaluation contract in environment.evaluation. "
+                "The bridge owns the concrete VM/browser/software runtime and artifact inspection."
+            ),
             pass_criteria=str(evaluation["pass_criteria"]),
             partial_criteria=str(evaluation["partial_criteria"]),
             fail_criteria=str(evaluation["fail_criteria"]),
             score_levels={"1": "all bridge checks pass", "0.5": "partial artifact or GUI progress", "0": "failed"},
-            oracle_notes="The bridge owns the concrete VM/browser/software runtime and artifact inspection.",
         ),
         challenge_effort=dimension.challenge_effort,
         tags=[dimension.id, *tags],
