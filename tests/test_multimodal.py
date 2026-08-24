@@ -1,7 +1,6 @@
 import pytest
 
 from evalclaw.execution.runner import run_eval, run_item
-from evalclaw.generation.generator import generate_dimension_items
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkItem,
@@ -12,32 +11,6 @@ from evalclaw.types import (
     TaskSuite,
     TaskType,
 )
-
-
-def test_fallback_generation_attaches_multimodal_metadata() -> None:
-    dimension = EvalDimension(
-        id="vision_reasoning",
-        name="Vision reasoning",
-        description="Evaluate image understanding and visual reasoning.",
-        approach="Use attached images and ask questions grounded in the visual evidence.",
-        task_types=[TaskType.generation],
-        target_item_count=1,
-    )
-    spec = EvalSpec(
-        objective="Evaluate multimodal image reasoning.",
-        dimensions=[dimension],
-        task_types=[TaskType.generation],
-    )
-    config = BenchmarkConfig(use_hf_discovery=False, use_web_research=False)
-
-    items, _, _ = generate_dimension_items(spec, dimension, 1, config)
-
-    multimodal = items[0].metadata["multimodal"]
-    assert multimodal["schema_version"] == "evalclaw.multimodal.v1"
-    assert multimodal["modalities"] == ["image"]
-    assert multimodal["assets"][0]["kind"] == "image"
-    assert multimodal["content"][0]["type"] == "text"
-    assert multimodal["content"][1]["type"] == "asset"
 
 
 def test_runner_sends_multimodal_content_to_target(monkeypatch) -> None:

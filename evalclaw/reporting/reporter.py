@@ -29,7 +29,6 @@ from .run_sections import (
     _used_items,
     artifact_index_markdown,
 )
-from .safety import _safety_audit_lines
 
 
 def _source_kind_label(source: object) -> str:
@@ -232,8 +231,6 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
     lines.append("")
 
     lines.extend(_detailed_item_lines(run))
-
-    lines.extend(_safety_audit_lines(run))
 
     recommendations = _recommendations(run)
     lines.extend(["## Recommendations", ""])

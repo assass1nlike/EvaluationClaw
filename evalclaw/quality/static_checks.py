@@ -117,26 +117,6 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     "Rewrite choices so every candidate is distinct.",
                 )
             )
-        if item.rubric:
-            explicit_key = re.search(
-                r"\b(?:answer|correct\s+(?:answer|choice|option))\s*(?:is|:|=)\s*([A-Za-z0-9_-]+)\b",
-                item.rubric,
-                flags=re.IGNORECASE,
-            )
-            if explicit_key:
-                declared_id = explicit_key.group(1)
-                canonical_ids = {choice.id.lower(): choice.id for choice in item.choices}
-                declared_id = canonical_ids.get(declared_id.lower(), declared_id)
-                if declared_id not in item.correct_choice_ids:
-                    issues.append(
-                        _issue(
-                            item.id,
-                            QcSeverity.error,
-                            QcCategory.scoring,
-                            "The rubric's explicit answer key conflicts with correct_choice_ids.",
-                            "Make the rubric and correct_choice_ids name the same correct option set.",
-                        )
-                    )
     if item.task_type == TaskType.fill_blank and not item.expected_text:
         issues.append(
             _issue(item.id, QcSeverity.error, QcCategory.scoring, "Fill-blank item lacks expected_text.")
@@ -368,7 +348,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                             "Reference one of metadata.multimodal.assets by its stable id.",
                         )
                     )
-    if _rubric_has_explicit_self_correction(item.rubric):
+    if item.task_type != TaskType.choice and _rubric_has_explicit_self_correction(item.rubric):
         issues.append(
             _issue(
                 item.id,

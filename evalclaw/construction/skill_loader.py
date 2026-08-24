@@ -96,6 +96,8 @@ def environment_skill_payload(blueprint: TaskBlueprint) -> dict[str, object] | N
 
 
 def environment_skill_system_prompt(blueprint: TaskBlueprint) -> str:
+    # The assembled prompt must carry the runtime contract only for the routes
+    # selected in the structured environment Skill payload.
     payload = environment_skill_payload(blueprint)
     if payload is None:
         return ""

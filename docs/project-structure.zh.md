@@ -16,23 +16,20 @@
 - `evalclaw/core/`：跨子系统共享的小型工具，包括规模预算和任务内容摘要。
 - `evalclaw/models/`：模型调用、JSON 提取、provider/protocol 选择、重试和截断恢复；`roles.py` 解析 Planner、TaskBuilder、QC、Research 和 Loop 3 的独立模型连接。Planner、TaskBuilder 未配置时主流程 fail-closed，Research、QC 和 Loop 3 可按各自配置使用对应的无 LLM 路径。
 - `evalclaw/planning/`：自然语言需求到维度纲要，再由 Planner Skill 生成并审计完整 `BenchmarkPlan` 和自适应 `TaskBlueprint`。
-- `evalclaw/construction/`：唯一的构题实现，负责 Blueprint 资源选择、每 Blueprint 一次 Builder 调用、多题结构校验和 dataset 包装。
-- `evalclaw/generation/`：通用构题路线使用的程序化静态题 fallback 与底层 item 生成能力；不是独立顶层路线。
-- `evalclaw/sources/`：外部数据源发现和导入，包括 HuggingFace 支持。
+- `evalclaw/construction/`：唯一的构题实现，负责 Blueprint 资源选择、每 Blueprint 一次 Builder 调用、TaskBuilder 响应解析、多题结构校验和 dataset 包装。
+- `evalclaw/sources/`：外部数据源发现，包括 HuggingFace 数据集发现。
 - `evalclaw/quality/`：逐题/数据集/LLM QC 和 Loop 3 改进。
 - `evalclaw/execution/`：执行计划、隔离容器、Docker、VM、桌面桥和 EnvironmentClaw preflight。
 - `evalclaw/runners/`：按 `task_type` 和实际字段执行、评分的 runner 实现。
 - `evalclaw/protocols/`：任务代理、工具调用、多模态、science metadata 和可执行任务包协议。
-- `evalclaw/agent/`：仅保留可选交互环境的识别规则和本地 fallback 实现，不是构题主路线。
 - `evalclaw/research/`：deep research 和搜索 backend。
 - `evalclaw/reporting/`：Markdown/HTML 报告、artifact manifest 和前端模板。
 - `evalclaw/prompts/`：planner、通用 task builder、QC、research 和改进 prompt。
 
 ## Construction 子系统
 
-- `blueprints.py`：保留供离线 smoke test 显式调用的保守本地 Blueprint helper；主规划入口不会在 Planner 不可用时自动采用它。
 - `suite.py`：每个 Blueprint 形成一次 Builder 调用；严格校验其题量和混合题型分配，并处理 Blueprint 并发、结构 repair、截断恢复和进度日志。QC repair 时只返回有问题的题并按题目 ID 合并。
-- `builders.py`：通用本地 fallback 分派。无环境任务复用程序化 item fallback；有环境任务调用对应交互环境实现。
+- `parsing.py`：把 TaskBuilder 返回的 JSON 解析为框架拥有 ID 的 `TaskDefinition`。
 - `resources.py`：仅在 dimension 明确 `needs_research=true` 时选择外部来源，并做资源归一化与去重。
 - `research.py`：source-backed 或 E3 初次构题可使用有界研究工具循环；QC repair 不重复研究。
 - `validation.py`：在全局 QC 前校验题型字段、challenge effort 自检和可选执行环境契约。
@@ -45,13 +42,6 @@
 - `skill_loader.py`：以 UTF-8 读取 Planner Skill，并把它注入维度和 Blueprint 规划调用。
 - `skills/design-benchmark-blueprints/SKILL.md`：需求、研究结果、维度和 Builder 工作量到完整 Blueprint 计划的规范。
 - `loop.py`：人工 review 的摘要、review action 解析和 spec 更新。更新后的 spec 重新进入通用 blueprint/builder/QC 路线。
-
-## Agent 子系统
-
-`evalclaw/agent/` 不再拥有 planner、suite、packaging 或 QC loop。当前保留内容：
-
-- `goal_detection.py`：识别 browser、GUI、VM、工业软件、代码沙盒等可选执行需求。
-- `task_builders/`：workspace、code sandbox、Docker、dialogue、GUI 等交互环境的本地 fallback 实现。
 
 ## Quality 与执行
 
@@ -73,5 +63,3 @@
 - `evalclaw.quality.qc.run_qc_gate`
 - `evalclaw.execution.runner.run_eval`
 - `evalclaw.reporting.viewer.build_report_viewer_html`
-
-旧脚本如果仍依赖已删除的 agent planner/suite/packaging 或旧顶层兼容路径，应直接迁移到以上真实路径，不要恢复 shim。

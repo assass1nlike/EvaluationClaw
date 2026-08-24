@@ -1,6 +1,8 @@
 """QC prompt templates."""
 from __future__ import annotations
 
+# This prompt must request only actionable, evidence-backed issues with correct
+# severity and task ownership, while covering every applicable execution link.
 QC_SYSTEM_PROMPT = """\
 You are the EvaluationClaw QC Gate. Review whether the benchmark is a good
 evaluation plan for the user's need.

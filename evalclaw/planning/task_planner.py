@@ -272,7 +272,33 @@ def _audit_plan(
                     "for agent tasks. Remove the environment or change the task type when executable "
                     "interaction is essential."
                 )
-            for url in _unique_strings(design.source_plan.get("suggested_urls")):
+            source_strategy = str(design.source_plan.get("strategy") or "").strip()
+            source_queries = _unique_strings(design.source_plan.get("search_queries"))
+            source_urls = _unique_strings(design.source_plan.get("suggested_urls"))
+            external_strategies = {
+                "adapted",
+                "reused",
+                "imported_dataset",
+            }
+            if source_strategy not in {
+                "generated",
+                *external_strategies,
+            }:
+                issues.append(
+                    f"{design_prefix}: source_plan.strategy must be generated, adapted, reused, "
+                    "or imported_dataset."
+                )
+            elif source_strategy == "generated" and (source_urls or source_queries):
+                issues.append(
+                    f"{design_prefix}: generated source_plan.strategy requires empty "
+                    "suggested_urls and search_queries."
+                )
+            elif source_strategy in external_strategies and not source_urls:
+                issues.append(
+                    f"{design_prefix}: {source_strategy} source_plan.strategy requires at least "
+                    "one suggested URL."
+                )
+            for url in source_urls:
                 if not url.lower().startswith(("https://", "http://")):
                     issues.append(f"{design_prefix}: suggested URL is invalid: {url!r}.")
 

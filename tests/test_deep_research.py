@@ -11,7 +11,7 @@ import pytest
 from typer.testing import CliRunner
 
 from evalclaw.cli import app
-from evalclaw.generation.generator import _select_research_sources, _source_context
+from evalclaw.construction.resources import _source_context
 from evalclaw.pipeline import _persist_package, run_pipeline
 from evalclaw.planning.task_planner import _planner_resources
 from evalclaw.prompts.research import (
@@ -409,60 +409,9 @@ def test_planner_resources_mark_deepresearch_directory_empty_when_absent() -> No
     assert 'path="resources/deepresearch/brief.json"' not in resources
 
 
-# ---------------------------------------------------------------------------
-# Generator integration
-# ---------------------------------------------------------------------------
-def _dimension(needs_research: bool = True) -> EvalDimension:
-    return EvalDimension(
-        id="statute_interpretation",
-        name="Statute interpretation",
-        description="Apply statutes to facts.",
-        approach="Grounded questions.",
-        needs_research=needs_research,
-        research_queries=["tax statute interpretation dataset"],
-    )
-
-
-def test_generator_prefers_brief_seed_sources(monkeypatch) -> None:
-    import evalclaw.generation.generator as generator_module
-
-    def fake_web_search(query, **kwargs):
-        return SearchResult(
-            content="web synth",
-            citations=[{"url": "https://ex.com/web-found", "title": "Web Found"}],
-        )
-
-    monkeypatch.setattr(generator_module, "web_search", fake_web_search)
-    config = BenchmarkConfig(
-        **dummy_config_kwargs(),
-        use_hf_discovery=False,
-        use_web_research=True,
-        max_research_sources=3,
-        research_brief=_sample_brief(),
-    )
-
-    sources = _select_research_sources(_dimension(), config)
-
-    assert [s.uri for s in sources[:2]] == ["https://ex.com/seed1", "https://ex.com/seed2"]
-    assert all(s.kind == SourceKind.web for s in sources[:2])
-    assert sources[0].notes == "grounding"
-    assert any(s.uri == "https://ex.com/web-found" for s in sources)  # web search still fills the rest
-
-
-def test_generator_seed_sources_respect_cap_and_no_research_dimensions() -> None:
-    config = BenchmarkConfig(
-        use_hf_discovery=False,
-        use_web_research=False,
-        max_research_sources=1,
-        research_brief=_sample_brief(),
-    )
-    sources = _select_research_sources(_dimension(needs_research=False), config)
-    assert [s.uri for s in sources] == ["https://ex.com/seed1"]
-
-
 def test_source_context_reuses_retained_material_without_refetch(monkeypatch) -> None:
     monkeypatch.setattr(
-        "evalclaw.generation.generator.fetch_url_text",
+        "evalclaw.construction.resources.fetch_url_text",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not refetch")),
     )
 

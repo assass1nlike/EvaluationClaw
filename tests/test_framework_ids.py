@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from evalclaw.agent.task_builders.parsing import _task_from_raw
+from evalclaw.construction.parsing import _task_from_raw
 from evalclaw.construction.resources import _resource_from_raw
 from evalclaw.core.identifiers import normalize_choice_data
 from evalclaw.planning.loop import _apply_review
@@ -54,10 +54,11 @@ def test_planner_assigns_dimension_and_task_design_ids() -> None:
                         "task_designs": [
                             {
                                 "id": "model-design",
-                                "task_type": "generation",
-                                "task_count": 1,
-                                "content_design": {"description": "Explain one case."},
-                            }
+                                    "task_type": "generation",
+                                    "task_count": 1,
+                                    "content_design": {"description": "Explain one case."},
+                                    "source_plan": {"strategy": "generated"},
+                                }
                         ],
                     }
                 ],

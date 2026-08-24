@@ -13,7 +13,6 @@ from pathlib import Path
 from threading import Lock
 
 from ..core.task_summary import compact_task_content_summary
-from ..generation.generator import _source_context
 from ..models.llm import LLMOutputTruncatedError, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..prompts.task_builder import TASK_BUILDER_PROMPT
@@ -32,14 +31,15 @@ from ..types import (
     TaskSuite,
     TaskType,
 )
-from .builders import _task_from_raw
 from .packaging import pack_task_item
+from .parsing import _task_from_raw
 from .research import TASK_BUILDER_RESEARCH_PROMPT, run_task_builder_research
 from .resources import (
     _dedupe_resources,
     _resource_from_raw,
     _resource_from_source,
     _select_blueprint_sources,
+    _source_context,
 )
 from .skill_loader import environment_skill_payload, environment_skill_system_prompt
 from .validation import (
@@ -213,6 +213,8 @@ def _task_builder_payload(
         "required_task_design_counts": required_task_design_counts,
         "framework_injected_fields": ["id", "dimension_id", "metadata.task_design_id"],
     }
+    # These instructions must state the fields and runtime semantics required by
+    # each selected task type.
     type_requirements: dict[str, list[str]] = {}
     if TaskType.choice in task_types:
         optional_fields.extend(["choices", "correct_choice_indices"])
@@ -663,11 +665,15 @@ def build_task_suite(
             spec,
             dimension,
             blueprint,
-            _source_context(source_candidates, config.research_brief),
+            _source_context(
+                source_candidates,
+                config.research_brief if blueprint.source_strategy != "generated" else None,
+            ),
             job_revision,
             deep_research_context=(
                 compact_brief_context(config.research_brief)
                 if config.research_brief is not None
+                and blueprint.source_strategy != "generated"
                 else None
             ),
             config=config,
@@ -691,6 +697,7 @@ def build_task_suite(
             research_enabled = (
                 job_revision is None
                 and not reduce_effort
+                and blueprint.source_strategy != "generated"
                 and (
                     (dimension.needs_research and (has_retained_sources or web_tools_enabled))
                     or (dimension.challenge_effort == ChallengeEffort.E3 and web_tools_enabled)
@@ -797,6 +804,10 @@ def build_task_suite(
                     + ", ".join(duplicate_resource_ids)
                 )
             known_resource_ids = {resource.id for resource in attempt_resources}
+            if blueprint.source_strategy == "generated" and parsed_resources:
+                validation_issues.append(
+                    "generated source_plan.strategy requires an empty resources array."
+                )
             added_for_blueprint = 0
             for idx, raw_task in enumerate(parsed_tasks, 1):
                 if not isinstance(raw_task, dict):
@@ -830,12 +841,18 @@ def build_task_suite(
                 )
                 if multimodal is not None:
                     task.metadata["multimodal"] = multimodal
-                if not task.resource_ids and len(known_resource_ids) == 1:
-                    task.resource_ids = [next(iter(known_resource_ids))]
-                elif not task.resource_ids and len(known_resource_ids) > 1:
+                planned_source_strategy = str(
+                    planned_design.source_plan.get("strategy") or "generated"
+                )
+                if planned_source_strategy == "generated":
+                    if task.resource_ids:
+                        validation_issues.append(
+                            f"task #{idx} ({task.id}): generated tasks must not set resource_ids."
+                        )
+                elif not task.resource_ids:
                     validation_issues.append(
-                        f"task #{idx} ({task.id}): multiple resources are available; set the "
-                        "task's top-level resource_ids to the exact source ids it uses. "
+                        f"task #{idx} ({task.id}): {planned_source_strategy} tasks must set "
+                        "top-level resource_ids to the exact source ids they use. "
                         "metadata.source_ids does not bind task provenance."
                     )
                 task = ensure_task_content_summary(
@@ -1152,18 +1169,20 @@ def build_task_suite(
     _ensure_unique_task_ids(tasks)
 
     resources = _dedupe_resources(resources)
-    if not resources and blueprints:
-        for blueprint in blueprints:
-            resources.append(
-                TaskResource(
-                    id=f"{blueprint.id}_resource",
-                    kind="generated_fixture",
-                    title=blueprint.title,
-                    content_summary=blueprint.description,
-                    notes=blueprint.source_strategy,
-                )
-            )
-
+    canonical_resource_ids = {
+        (resource.kind, resource.uri, resource.title): resource.id
+        for resource in resources
+    }
+    for result in build_results_by_order.values():
+        resource_id_map = {
+            resource.id: canonical_resource_ids[(resource.kind, resource.uri, resource.title)]
+            for resource in result.resources
+        }
+        for task in result.tasks:
+            task.resource_ids = [
+                resource_id_map.get(resource_id, resource_id)
+                for resource_id in task.resource_ids
+            ]
     blueprint_by_id = {blueprint.id: blueprint for blueprint in blueprints}
     resource_by_id = {resource.id: resource for resource in resources}
     items: list[BenchmarkItem] = []

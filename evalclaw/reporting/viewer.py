@@ -10,7 +10,6 @@ from typing import Any
 
 from ..types import BenchmarkItem, BenchmarkPackage, SourceKind, TaskType
 from .reporter import _is_source_backed, _source_kind_label
-from .safety import _is_safety_eval, _risk_labels, _risk_severity
 from .viewer_template import HTML_TEMPLATE
 
 
@@ -69,8 +68,6 @@ def _eval_families(pkg: BenchmarkPackage) -> list[str]:
         " ".join(_text_blob(item.id, item.dimension_id, item.prompt, item.rubric, " ".join(item.tags)) for item in suite.tasks),
     )
     families: list[str] = []
-    if _is_safety_eval(suite):
-        families.append("safety")
     if TaskType.agent in item_types or TaskType.multi_turn in item_types:
         families.append("agent")
     if (
@@ -145,18 +142,6 @@ def _result_records(pkg: BenchmarkPackage) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for result in pkg.run.results:
         item = item_by_id.get(result.item_id)
-        risks: list[str] = []
-        if item is not None and _is_safety_eval(pkg.suite):
-            risk_text = _text_blob(
-                item.id,
-                item.dimension_id,
-                " ".join(item.tags),
-                result.judge_reasoning if result.score < 0.8 else "",
-                result.error,
-            )
-            risks = _risk_labels(risk_text)
-            if not risks and result.score < 0.8:
-                risks = ["role_overreach"]
         records.append(
             {
                 "item_id": result.item_id,
@@ -182,8 +167,6 @@ def _result_records(pkg: BenchmarkPackage) -> list[dict[str, Any]]:
                 "metadata": item.metadata if item else {},
                 "source": item.source.model_dump(mode="json") if item else None,
                 "source_backed": _is_source_backed(item) if item else False,
-                "risks": risks,
-                "risk_severity": _risk_severity(result.score, has_error=bool(result.error)) if risks else "none",
                 "agent_trace": _agent_trace(result.raw_response),
             }
         )
@@ -240,55 +223,6 @@ def _first_sentence(value: str, limit: int = 260) -> str:
     if len(sentence) <= limit:
         return sentence
     return sentence[: limit - 1] + "..."
-
-
-def _safety_diagnostics(records: list[dict[str, Any]]) -> dict[str, Any]:
-    risk_rows: dict[str, dict[str, Any]] = {}
-    evidence: list[dict[str, Any]] = []
-    severity_rank = {"none": 0, "low": 1, "medium": 2, "unknown": 2, "high": 3}
-    for record in records:
-        for risk in record["risks"]:
-            row = risk_rows.setdefault(
-                risk,
-                {
-                    "risk": risk,
-                    "severity": record["risk_severity"],
-                    "items": set(),
-                    "worst_score": record["score"],
-                    "evidence": "",
-                },
-            )
-            row["items"].add(record["item_id"])
-            row["worst_score"] = min(float(row["worst_score"]), float(record["score"]))
-            if severity_rank.get(record["risk_severity"], 0) > severity_rank.get(row["severity"], 0):
-                row["severity"] = record["risk_severity"]
-            if not row["evidence"]:
-                row["evidence"] = record["error"] or _first_sentence(record["judge_reasoning"])
-            evidence.append(
-                {
-                    "item_id": record["item_id"],
-                    "target_id": record["target_id"],
-                    "risk": risk,
-                    "severity": record["risk_severity"],
-                    "score": record["score"],
-                    "evidence": record["error"] or _first_sentence(record["judge_reasoning"]),
-                }
-            )
-    rows = []
-    max_severity = "none"
-    for payload in sorted(risk_rows.values(), key=lambda row: (-severity_rank.get(row["severity"], 0), row["risk"])):
-        max_severity = payload["severity"] if severity_rank.get(payload["severity"], 0) > severity_rank.get(max_severity, 0) else max_severity
-        rows.append(
-            {
-                "risk": payload["risk"],
-                "severity": payload["severity"],
-                "items": len(payload["items"]),
-                "worst_score": payload["worst_score"],
-                "evidence": payload["evidence"],
-            }
-        )
-    priority = "high" if max_severity == "high" else "medium" if max_severity in {"medium", "unknown"} else "low"
-    return {"priority": priority, "max_severity": max_severity, "risk_rows": rows, "evidence": evidence[:30]}
 
 
 def _viewer_payload(
@@ -360,7 +294,6 @@ def _viewer_payload(
             "challenge_effort_counts": dict(challenge_effort_counts),
             "result_records": records,
             "failure_modes": _failure_modes(records),
-            "safety": _safety_diagnostics(records) if _is_safety_eval(suite) else None,
             "agent": {
                 "agent_result_count": len(agent_records),
                 "total_steps": sum(record["agent_trace"]["steps"] for record in agent_records if record.get("agent_trace")),

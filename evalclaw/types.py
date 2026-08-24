@@ -174,7 +174,7 @@ class JudgeToolRef(BaseModel):
 
 
 class BlueprintSourcePlan(BaseModel):
-    strategy: str = "self_contained"
+    strategy: str = "generated"
     search_queries: list[str] = Field(default_factory=list)
     suggested_urls: list[str] = Field(default_factory=list)
     requirements: list[str] = Field(default_factory=list)
@@ -259,7 +259,11 @@ class TaskBlueprint(BaseModel):
             requirements.extend(str(item) for item in source.get("requirements", []) if item)
         unique_strategies = list(dict.fromkeys(strategies))
         return BlueprintSourcePlan(
-            strategy=(unique_strategies[0] if len(unique_strategies) == 1 else "mixed"),
+            strategy=(
+                unique_strategies[0]
+                if len(unique_strategies) == 1
+                else "adapted" if unique_strategies else "generated"
+            ),
             search_queries=list(dict.fromkeys(queries)),
             suggested_urls=list(dict.fromkeys(urls)),
             requirements=list(dict.fromkeys(requirements)),
@@ -390,9 +394,9 @@ class BenchmarkPlan(BaseModel):
                     str(item) for item in design.source_plan.get("search_queries", []) if item
                 )
                 if str(design.source_plan.get("strategy") or "") in {
-                    "source_backed",
+                    "reused",
                     "imported_dataset",
-                    "mixed",
+                    "adapted",
                 }:
                     source_backed_count += design.task_count
             task_types = list(allocations)
