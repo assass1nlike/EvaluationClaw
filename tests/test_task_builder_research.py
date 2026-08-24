@@ -84,7 +84,7 @@ def test_responses_tool_result_is_appended_as_function_output() -> None:
     }
 
 
-def test_blueprint_source_search_requires_explicit_research_need(monkeypatch) -> None:
+def test_generated_blueprint_never_collects_sources(monkeypatch) -> None:
     calls = 0
 
     def fake_search(*args, **kwargs):
@@ -94,19 +94,23 @@ def test_blueprint_source_search_requires_explicit_research_need(monkeypatch) ->
 
     monkeypatch.setattr("evalclaw.construction.resources.web_search", fake_search)
     dimension = EvalDimension(
-        id="self_contained",
-        name="Self contained",
-        description="Evaluate a self-contained capability.",
+        id="generated",
+        name="Generated",
+        description="Evaluate a generated capability.",
         approach="Generate the fixture locally.",
-        needs_research=False,
+        needs_research=True,
     )
     blueprint = make_blueprint(
-        "self_contained_blueprint",
+        "generated_blueprint",
         dimension.id,
-        "Self contained",
+        "Generated",
         task_type=TaskType.generation,
-        content="Self-contained task.",
-        source_plan={"search_queries": ["this query must not run"]},
+        content="Generated task.",
+        source_plan={
+            "strategy": "generated",
+            "search_queries": ["this query must not run"],
+            "suggested_urls": ["https://example.com/this-must-not-be-used"],
+        },
     )
 
     sources = _select_blueprint_sources(
@@ -134,7 +138,7 @@ def test_planner_suggested_urls_are_available_without_an_extra_search() -> None:
         task_type=TaskType.fill_blank,
         content="One source-grounded question.",
         source_plan={
-            "strategy": "source_backed",
+            "strategy": "reused",
             "suggested_urls": ["https://example.com/reference"],
         },
     )
@@ -161,7 +165,10 @@ def _required_source_search_case():
         "grounded_blueprint",
         dimension.id,
         "Grounded questions",
-        source_plan={"search_queries": ["task design query"]},
+        source_plan={
+            "strategy": "adapted",
+            "search_queries": ["task design query"],
+        },
     )
     return dimension, blueprint
 
@@ -419,7 +426,7 @@ def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) ->
     assert captured[1][2]["content"][0]["tool_use_id"] == "fetch_1"
 
 
-def test_source_backed_task_builder_enables_research_loop(monkeypatch) -> None:
+def test_reused_task_builder_enables_research_loop(monkeypatch) -> None:
     captured: dict = {}
 
     def fake_research(payload, *, system_prompt, config):
@@ -428,6 +435,13 @@ def test_source_backed_task_builder_enables_research_loop(monkeypatch) -> None:
         return (
             json.dumps(
                 {
+                    "resources": [
+                        {
+                            "kind": "web",
+                            "uri": "https://example.com/source",
+                            "title": "Retained source",
+                        }
+                    ],
                     "tasks": [
                         {
                             "id": "research_task",
@@ -435,6 +449,7 @@ def test_source_backed_task_builder_enables_research_loop(monkeypatch) -> None:
                             "challenge_effort": "E2",
                             "title": "Research task",
                             "prompt": "Inspect the workspace and produce the requested result.",
+                            "resource_ids": ["resource_1"],
                             "environment": {
                                 "type": "workspace",
                                 "workspace": {
@@ -482,7 +497,7 @@ def test_source_backed_task_builder_enables_research_loop(monkeypatch) -> None:
         challenge_effort=ChallengeEffort.E2,
         environment_type=AgentEnvironmentType.workspace,
         source_plan={
-            "strategy": "source_backed",
+            "strategy": "reused",
             "suggested_urls": ["https://example.com/source"],
         },
     )
@@ -511,7 +526,83 @@ def test_source_backed_task_builder_enables_research_loop(monkeypatch) -> None:
     assert captured["payload"]["resources"]["deep_research"]["source_material_index"][0][
         "url"
     ] == "https://example.com/source"
-    assert "read_research_source" in captured["system_prompt"]
+
+
+def test_generated_task_builder_does_not_receive_or_use_research(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_call_llm(messages, **kwargs):
+        captured["payload"] = json.loads(messages[0].content)
+        return json.dumps(
+            {
+                "resources": [],
+                "tasks": [
+                    {
+                        "task_type": "fill_blank",
+                        "title": "Generated task",
+                        "prompt": "Provide the exact generated answer requested by this task.",
+                        "expected_text": "answer",
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": "E3",
+                                "meets_requested_effort": True,
+                                "rationale": "The task is constructed directly from the TaskDesign.",
+                            }
+                        },
+                    }
+                ],
+            }
+        )
+
+    def fail_research(*args, **kwargs):
+        raise AssertionError("generated construction must not enable research tools")
+
+    monkeypatch.setattr("evalclaw.construction.suite.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_research", fail_research)
+    dimension = EvalDimension(
+        id="generated",
+        name="Generated",
+        description="Evaluate generated material.",
+        approach="Construct a task directly.",
+        challenge_effort=ChallengeEffort.E3,
+        needs_research=True,
+        task_types=[TaskType.fill_blank],
+    )
+    blueprint = make_blueprint(
+        "generated_blueprint",
+        dimension.id,
+        "Generated task",
+        task_type=TaskType.fill_blank,
+        source_plan={"strategy": "generated"},
+    )
+
+    suite = build_task_suite(
+        EvalSpec(
+            objective="Evaluate generated material.",
+            dimensions=[dimension],
+            task_types=[TaskType.fill_blank],
+        ),
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            use_web_research=True,
+            search_backend="keyless",
+            research_brief=ResearchBrief(
+                source_materials=[
+                    ResearchSourceMaterial(
+                        title="Unrelated retained source",
+                        url="https://example.com/unrelated",
+                        content="This must not reach generated construction.",
+                    )
+                ]
+            ),
+        ),
+    )
+
+    assert suite.resources == []
+    assert captured["payload"]["resources"]["available"] == []
+    assert captured["payload"]["resources"]["deep_research"] == {}
+    assert "No external sources" in captured["payload"]["resources"]["context"]
 
 
 def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> None:

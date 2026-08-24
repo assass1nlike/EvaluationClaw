@@ -23,6 +23,8 @@ Use the following information together:
   - It can supplement your own knowledge when you do not know enough about the relevant domain.
   - Its links and similar materials can serve as content sources when concrete tasks are constructed and can be placed in the relevant TaskDesign's `source_plan` for the Task Builder to use.
 
+When Deep Research is enabled, it produces a ResearchBrief for any evaluation request. The brief is reference material derived from already collected sources. Use its sources when they materially support large-scale task construction or when the evaluation request requires source grounding. When the requested tasks can be constructed faithfully from the model's own capabilities, they need not be source-backed merely because a ResearchBrief is available.
+
 ## Workflow
 
 ### Step One: Understand the Evaluation Goal
@@ -84,6 +86,15 @@ Choose the environment category according to its actual runtime capabilities:
 If a task requires editable artifacts, scripts, schemas, hashes, tests, or other executable validation, do not select `workspace`; select `code_sandbox` or `docker_workspace` according to the required software and services.
 
 For every `multi_turn` TaskDesign, set `interaction_requirements.followup_mode` to exactly `adaptive` or `scripted`. Use `adaptive` when later turns must respond to the target's actual replies, and `scripted` only when predetermined follow-up turns are substantively appropriate. Preserve any explicit user requirement about this choice.
+
+Choose exactly one `source_plan.strategy` for every TaskDesign:
+
+- `generated`: the Task Builder creates the tasks from the TaskDesign using its own capabilities. Leave `suggested_urls` and `search_queries` empty.
+- `adapted`: the Task Builder reads the supplied external material and makes content-level changes to create the tasks.
+- `reused`: the Task Builder reads and uses existing material without content-level changes.
+- `imported_dataset`: the Task Builder reads and uses items from an existing dataset or benchmark without content-level changes.
+
+For `adapted`, `reused`, and `imported_dataset`, provide at least one usable URL in `suggested_urls`. Formatting or packaging changes are not content-level changes. When only a source's format or style matters, express those requirements directly in the TaskDesign and use `generated` without a URL.
 
 At the end of this step, determine the JSON for every task group and express all information in your design through JSON fields. The complete field set for one task-group JSON object is `plan.dimensions[].task_designs` in `reference/universal_format.json`. This field specification is shared by all tasks, so an individual task does not necessarily need—and usually will not need—to fill every field.
 

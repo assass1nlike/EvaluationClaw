@@ -7,8 +7,6 @@
     → 全局 QC 检查题目质量并定向修复问题
     → 输出正式、可执行的 benchmark
 
-源码发生变化后，应同步更新本文。
-
   ## 一、输入
 
 **1. 用户目标(goal)**
@@ -71,7 +69,7 @@ QC 由三层检查组成：逐题程序化检查（完整清单见[I.4](#appendi
 
   ### 3. QC 定向修复循环
 
-QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调用 TaskBuilder 针对失败题进行修复：只收集该 job 自己的 error issues 和失败题的旧版本，要求 TaskBuilder 保留 id 并返回替换题（修复 payload 见[D.4](#appendix-d-repair)）。通过题不进入输入、不被修改。
+QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调用 TaskBuilder 针对失败题进行修复：只收集该 job 自己的 error issues 和失败题的旧版本，要求 TaskBuilder 按原顺序返回替换题，框架再按位置恢复原题 id（修复 payload 见[D.4](#appendix-d-repair)）。通过题不进入输入、不被修改。
 
 替换题生成后，框架重跑完整三层 QC，并按单题严格比较：只有阻塞 error 数量严格减少的题才保留候选版本，其余题回退历史最佳版本。每道题独立维护历史最佳，所以同一轮可以部分保留、部分回退。如此循环，最多运行 `max_qc_iterations` 轮。
 
@@ -126,9 +124,9 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 | B3 | Builder 输出截断 | TaskBuilder | 与 B1 相同，关闭研究 | payload + truncation recovery | 无 | 紧凑替换 JSON |
 | B4 | Builder 结构不合法 | TaskBuilder | 与 B1 相同 | payload + repair | 依条件 | 完整替换 JSON |
 | Q1 | 配置 QC 模型 | QC | `QC_SYSTEM_PROMPT` | 抽样数据集 JSON | 无 | issues/summary |
-| B5 | QC 拒绝具体题 | TaskBuilder | 普通 Builder system | 仅失败题的 revision payload | 无研究工具 | 保持 ID 的替换题 |
+| B5 | QC 拒绝具体题 | TaskBuilder | 普通 Builder system | 仅失败题的 revision payload | 无研究工具 | 按原顺序返回替换题，框架恢复 ID |
 | H1 | 人工反馈 | Planner | review prompt + 可选反馈说明 | 数据集摘要/QC/item excerpts | 无 | review actions |
-| H2 | 改写/补题 | TaskBuilder | 普通 Builder system | 定向 revision（update_items）或按缺失量裁剪 spec 生成的 payload | 视情况 | 保持 ID 的改写题 / 补齐题 |
+| H2 | 改写/补题 | TaskBuilder | 普通 Builder system | 定向 revision（update_items）或按缺失量裁剪 spec 生成的 payload | 视情况 | 框架恢复 ID 的改写题 / 框架生成 ID 的补齐题 |
 
 <a id="appendix-a-execution"></a>
 
@@ -302,8 +300,6 @@ You are an EvaluationClaw planning agent. Follow the active Planner Skill
 exactly. Read the supplied resources by their declared paths and treat their
 contents as authoritative. Use any tools explicitly made available by the
 runtime when they are relevant. Do not construct final benchmark tasks.</code></pre></details>
-
-
 <a id="appendix-b-research"></a>
 
 ### B.2 Deep Research 四个 prompt
@@ -391,8 +387,6 @@ Rules:
 - Difficulty factors need observable signals; task patterns need scoring direction.
 - Source recommendation URLs and evidence source_urls must appear in known_sources.
 - Challenge-effort anchors describe construction effort for this goal.</code></pre></details>
-
-
 <a id="appendix-b-planner"></a>
 ### B.3 Planner Skill 和输出 reference
 
@@ -431,6 +425,8 @@ Use the following information together:
   - It searches comprehensive information and gives you richer references and supplements for dimension planning.
   - It can supplement your own knowledge when you do not know enough about the relevant domain.
   - Its links and similar materials can serve as content sources when concrete tasks are constructed and can be placed in the relevant TaskDesign&#39;s `source_plan` for the Task Builder to use.
+<!-- -->
+When Deep Research is enabled, it produces a ResearchBrief for any evaluation request. The brief is reference material derived from already collected sources. Use its sources when they materially support large-scale task construction or when the evaluation request requires source grounding. When the requested tasks can be constructed faithfully from the model&#39;s own capabilities, they need not be source-backed merely because a ResearchBrief is available.
 <!-- -->
 ## Workflow
 <!-- -->
@@ -492,6 +488,15 @@ If a task requires editable artifacts, scripts, schemas, hashes, tests, or other
 <!-- -->
 For every `multi_turn` TaskDesign, set `interaction_requirements.followup_mode` to exactly `adaptive` or `scripted`. Use `adaptive` when later turns must respond to the target&#39;s actual replies, and `scripted` only when predetermined follow-up turns are substantively appropriate. Preserve any explicit user requirement about this choice.
 <!-- -->
+Choose exactly one `source_plan.strategy` for every TaskDesign:
+<!-- -->
+- `generated`: the Task Builder creates the tasks from the TaskDesign using its own capabilities. Leave `suggested_urls` and `search_queries` empty.
+- `adapted`: the Task Builder reads the supplied external material and makes content-level changes to create the tasks.
+- `reused`: the Task Builder reads and uses existing material without content-level changes.
+- `imported_dataset`: the Task Builder reads and uses items from an existing dataset or benchmark without content-level changes.
+<!-- -->
+For `adapted`, `reused`, and `imported_dataset`, provide at least one usable URL in `suggested_urls`. Formatting or packaging changes are not content-level changes. When only a source&#39;s format or style matters, express those requirements directly in the TaskDesign and use `generated` without a URL.
+<!-- -->
 At the end of this step, determine the JSON for every task group and express all information in your design through JSON fields. The complete field set for one task-group JSON object is `plan.dimensions[].task_designs` in `reference/universal_format.json`. This field specification is shared by all tasks, so an individual task does not necessarily need—and usually will not need—to fill every field.
 <!-- -->
 ### Step Four: Perform a Global Audit
@@ -509,8 +514,6 @@ If you find that your design does not satisfy these requirements, revise it.
 Return one complete JSON object that strictly follows `reference/universal_format.json`. Include the complete benchmark-level plan, every dimension, and every TaskDesign produced in Step Three. Do not add Blueprint, batch, job-allocation, grouping-rationale, or workload-partition fields; the framework deterministically creates one concurrent Builder job for each TaskDesign after planning.
 <!-- -->
 Your entire final response must be the contents of the planning JSON file. Return pure JSON only, without Markdown fences, commentary, an audit narrative, or any text before or after the JSON.</code></pre></details>
-
-
 <details><summary>Planner JSON reference：<code>evalclaw/planning/skills/design-benchmark-blueprints/reference/universal_format.json</code></summary><pre><code class="language-json">{
   &quot;plan&quot;: {
     &quot;id&quot;: &quot;benchmark_plan_id&quot;,
@@ -608,17 +611,17 @@ Your entire final response must be the contents of the planning JSON file. Retur
               &quot;failure_conditions&quot;: [&quot;Conditions that must result in task failure.&quot;]
             },
             &quot;source_plan&quot;: {
-              &quot;strategy&quot;: &quot;self_contained, generated, source_backed, imported_dataset, or mixed&quot;,
-              &quot;search_queries&quot;: [&quot;Queries the Builder may use to find suitable material.&quot;],
-              &quot;suggested_urls&quot;: [&quot;https://example.com/verified-source&quot;],
+              &quot;strategy&quot;: &quot;Choose exactly one: generated, adapted, reused, or imported_dataset.&quot;,
+              &quot;search_queries&quot;: [&quot;Optional supplementary queries for adapted, reused, or imported_dataset construction.&quot;],
+              &quot;suggested_urls&quot;: [&quot;Required source URLs for adapted, reused, or imported_dataset construction.&quot;],
               &quot;requirements&quot;: [&quot;Authority, recency, reproducibility, licensing, or provenance requirements.&quot;],
               &quot;asset_source_overrides&quot;: [
                 {
-                  &quot;asset_id&quot;: &quot;input_asset_id&quot;,
-                  &quot;strategy&quot;: &quot;generated, provided, imported, or source-backed&quot;
+                  &quot;asset_ref&quot;: &quot;input_asset&quot;,
+                  &quot;strategy&quot;: &quot;generated, provided, imported, or reused&quot;
                 }
               ],
-              &quot;usage_guidance&quot;: [&quot;How sources should inform tasks without being copied mechanically.&quot;]
+              &quot;usage_guidance&quot;: [&quot;How the selected strategy should use the supplied material.&quot;]
             },
             &quot;construction_requirements&quot;: [&quot;Requirements for turning this description into the requested number of complete tasks.&quot;],
             &quot;type_specific_requirements&quot;: {
@@ -634,8 +637,6 @@ Your entire final response must be the contents of the planning JSON file. Retur
     ]
   }
 }</code></pre></details>
-
-
 <a id="appendix-b-task-builder"></a>
 
 ### B.4 TaskBuilder base、构题研究与环境 Skill
@@ -652,6 +653,7 @@ TASK_BUILDER_PROMPT
 
 `environment_skill_system_prompt()` 包含完整环境 Skill、当前 TaskDesign 到 reference
 路由 JSON，以及只被该路由选中的 reference 全文。因此不同 Builder job 的 system 可能不同。
+
 <details><summary>TaskBuilder base prompt：<code>evalclaw/prompts/task_builder.py</code></summary><pre><code class="language-text">TASK_BUILDER_PROMPT:
 <!-- -->
 You are the EvaluationClaw Task Builder.
@@ -669,6 +671,15 @@ needed to perform and evaluate it; do not merely describe a dependency that the
 target or evaluator cannot access. Keep target-visible material separate from
 runner-private setup and oracle material.
 <!-- -->
+Follow task_plan.task_design.source_plan.strategy exactly:
+- generated: construct the tasks from the TaskDesign using your own capabilities;
+  return no source resources or resource_ids.
+- adapted: read the supplied external material and make content-level changes.
+- reused: read and use existing material without content-level changes.
+- imported_dataset: read and use items from an existing dataset or benchmark
+  without content-level changes.
+Formatting and packaging normalization do not count as content-level changes.
+<!-- -->
 Use English unless the evaluation explicitly tests another language. Return
 pure JSON only, with no markdown. The top-level object must contain:
 {
@@ -676,16 +687,14 @@ pure JSON only, with no markdown. The top-level object must contain:
   &quot;resources&quot;: [],
   &quot;tasks&quot;: [
     {
-      &quot;id&quot;: &quot;...&quot;,
-      &quot;dimension_id&quot;: &quot;...&quot;,
       &quot;task_type&quot;: &quot;...&quot;,
       &quot;title&quot;: &quot;...&quot;,
       &quot;content_summary&quot;: &quot;...&quot;,
       &quot;description&quot;: &quot;...&quot;,
       &quot;prompt&quot;: &quot;...&quot;,
       &quot;resource_ids&quot;: [],
-      &quot;choices&quot;: [{&quot;id&quot;: &quot;A&quot;, &quot;text&quot;: &quot;...&quot;}],
-      &quot;correct_choice_ids&quot;: [],
+      &quot;choices&quot;: [{&quot;text&quot;: &quot;...&quot;}],
+      &quot;correct_choice_indices&quot;: [],
       &quot;expected_text&quot;: null,
       &quot;rubric&quot;: null,
       &quot;judge_tools&quot;: [],
@@ -713,20 +722,26 @@ pure JSON only, with no markdown. The top-level object must contain:
   ]
 }
 <!-- -->
+The framework owns all task, dimension, TaskDesign, resource, and choice-option
+ids. Do not emit task ``id`` or ``dimension_id`` fields, resource object ids, or
+choice option ids. For choice answers, use zero-based ``correct_choice_indices``;
+the framework assigns canonical option ids and maps the answer key.
+<!-- -->
 For initial construction, the tasks array length and per-type counts must
 exactly match the TaskDesign. For QC repair, they must instead exactly match
 task_builder_contract.task_schema.required_task_type_counts.
-Generate exactly task_count concrete tasks for every TaskDesign. In each task&#39;s
-metadata, set task_design_id to the id of the TaskDesign it implements; the
-per-design counts must exactly match
+Generate exactly task_count concrete tasks for every TaskDesign. The framework
+injects metadata.task_design_id after parsing; the per-design counts must exactly match
 task_builder_contract.task_schema.required_task_design_counts. Populate only
 the fields required by the task&#39;s type and TaskDesign. Choice and fill-blank
 tasks use their deterministic keys; generation, multi-turn, and agent tasks use
 their rubric and any requested Judge tools or runtime evaluator. Do not repeat
 the same scoring rule in several fields.
-When more than one resource is available, every source-backed task must list
-the exact resources it uses in the task&#39;s top-level resource_ids. Do not put
-this binding only in metadata.source_ids; metadata does not bind provenance.
+Every adapted, reused, or imported_dataset task must list the exact resource ids
+it uses in the task&#39;s top-level resource_ids. Use ids from resources.available,
+or resource_1, resource_2, and so on for resources added in this response while
+the framework assigns their canonical ids. Do not put this binding only in
+metadata.source_ids; metadata does not bind provenance.
 <!-- -->
 When available_models.models is non-empty, every task whose scoring requires an
 LLM judge (generation, multi-turn, or agent rubric scoring), or that uses an
@@ -745,11 +760,10 @@ source-backed. If the required material cannot be accessed or verified, keep
 the provenance honest and state the limitation in construction_notes rather
 than claiming that the task is grounded in details you did not obtain.
 <!-- -->
-During QC repair, return replacements only for revision.previous_tasks, preserve
-their ids, and fix every listed issue. Do not return or modify tasks that are not
-listed for repair.</code></pre></details>
-
-
+During QC repair, return replacements only for revision.previous_tasks and keep
+the same order as that list. The framework restores each affected task&#39;s
+existing id by slot, so do not emit a replacement id. Fix every listed issue
+and do not return or modify tasks that are not listed for repair.</code></pre></details>
 <details><summary>研究补充、工具 schema 与消息循环：<code>evalclaw/construction/research.py</code></summary><pre><code class="language-python">&quot;&quot;&quot;Bounded external research tools for high-effort task construction.&quot;&quot;&quot;
 from __future__ import annotations
 <!-- -->
@@ -1096,8 +1110,6 @@ __all__ = [
     &quot;TASK_BUILDER_RESEARCH_TOOLS&quot;,
     &quot;run_task_builder_research&quot;,
 ]</code></pre></details>
-
-
 <details><summary>环境构题 Skill：<code>evalclaw/construction/skills/build-environment-tasks/SKILL.md</code></summary><pre><code class="language-markdown">---
 name: build-environment-tasks
 description: Construct agent benchmark tasks that require workspace, code-sandbox, container, browser, desktop, VM, or other executable environments. Use only for TaskDesigns with non-empty environment requirements.
@@ -1140,8 +1152,6 @@ Read only the references selected by the runtime:
 - `references/gui-desktop.md`
 - `references/task-agent.md`
 - `references/agent-task-package.md`</code></pre></details>
-
-
 <details><summary>workspace reference：<code>evalclaw/construction/skills/build-environment-tasks/references/workspace.md</code></summary><pre><code class="language-markdown"># Workspace Environment
 <!-- -->
 Use runtime environment type `workspace`.
@@ -1175,8 +1185,6 @@ Use runtime environment type `workspace`.
 - `goal.outgoing_bin` must be a non-empty array of item IDs, and every required item must appear in one of the `rooms` arrays. Include the `mailroom` required by the built-in `place` action.
 - Use only the built-in look, move, inspect, take, place, and final actions. `environment.tools` cannot add custom behavior.
 - Do not add files, shell setup, browser state, VM state, or evaluator commands; the runtime scores the final room/inventory/outgoing-bin state directly.</code></pre></details>
-
-
 <details><summary>code_sandbox reference：<code>evalclaw/construction/skills/build-environment-tasks/references/code-sandbox.md</code></summary><pre><code class="language-markdown"># Code Sandbox Environment
 <!-- -->
 Use runtime environment type `code_sandbox`.
@@ -1187,8 +1195,6 @@ Use runtime environment type `code_sandbox`.
 - Keep hidden tests out of the prompt, visible files, setup commands, and task-visible tool output.
 - Make the requested code change and the evaluator agree on paths, APIs, dependencies, and expected behavior.
 - Prefer the minimal runtime needed for the task; use Docker workspace only when OS packages, non-Python runtimes, services, or native builds are genuinely required.</code></pre></details>
-
-
 <details><summary>docker_workspace reference：<code>evalclaw/construction/skills/build-environment-tasks/references/docker-workspace.md</code></summary><pre><code class="language-markdown"># Docker Workspace Environment
 <!-- -->
 Use runtime environment type `docker_workspace`.
@@ -1201,8 +1207,6 @@ Use runtime environment type `docker_workspace`.
 - Ensure the selected image or image build actually contains the declared runtime dependencies, but do not infer capabilities from image names alone.
 - Do not expose raw command execution when protected runtime or hidden files exist; use structured workspace tools and runner-private evaluation.
 - Keep image-build packages, commands, Dockerfile, and context files only as detailed as required by the TaskDesign.</code></pre></details>
-
-
 <details><summary>gui_desktop reference：<code>evalclaw/construction/skills/build-environment-tasks/references/gui-desktop.md</code></summary><pre><code class="language-markdown"># GUI Desktop Environment
 <!-- -->
 Use runtime environment type `gui_desktop`.
@@ -1284,8 +1288,6 @@ Use runtime environment type `gui_desktop`.
 - The desktop bridge executes both target actions and final-state evaluator commands as the signed-in target user. An evaluator therefore cannot read an oracle directory protected for only SYSTEM or Administrators. Keep private oracle material inaccessible to the target and embed the required expected values or hashes directly in evaluator commands; never make a private oracle target-readable merely so scoring can access it.
 - For multi-application workflows, require observable handoffs and provenance instead of reducing the task to one application.
 - Never include bridge URLs, API keys, VM-provider credentials, or other runtime secrets in task metadata.</code></pre></details>
-
-
 <details><summary>task-agent reference：<code>evalclaw/construction/skills/build-environment-tasks/references/task-agent.md</code></summary><pre><code class="language-markdown"># Task-Agent Interaction Contract
 <!-- -->
 Use `system_prompt` and `interaction` to describe task-specific agent behavior. EvaluationClaw packages them into canonical `metadata.task_agent`.
@@ -1295,8 +1297,6 @@ Use `system_prompt` and `interaction` to describe task-specific agent behavior. 
 - For multi-turn tasks, use the exact `interaction` fields `initial_user_message`, `max_turns`, `user_turns` (a list of strings) or `followup_instruction`, and `stop_condition`. Do not invent aliases or nest these fields under `environment`.
 - Make interaction scoring inspect the relevant transcript, state, artifact, or tool trace.
 - Do not describe a code sandbox or workspace controller as a conversational helper when the target itself is meant to operate the environment.</code></pre></details>
-
-
 <details><summary>agent-task-package reference：<code>evalclaw/construction/skills/build-environment-tasks/references/agent-task-package.md</code></summary><pre><code class="language-markdown"># Executable Agent Task Package
 <!-- -->
 EvaluationClaw derives canonical `metadata.agent_task_package` during packaging. Construct enough structured task and environment information for that package to be complete.
@@ -1310,8 +1310,6 @@ EvaluationClaw derives canonical `metadata.agent_task_package` during packaging.
 - Specify required tools and forbidden shortcuts when process behavior matters.
 - Record source kind, public source URIs, license requirements, and construction notes when relevant.
 - Do not copy environment file contents or secrets into package-like metadata; the environment remains the sole executable state definition.</code></pre></details>
-
-
 <a id="appendix-b-qc"></a>
 ### B.5 QC prompt
 <details><summary>完整源码：<code>evalclaw/prompts/qc.py</code></summary><pre><code class="language-text">QC_SYSTEM_PROMPT:
@@ -1550,8 +1548,6 @@ problem; omit observations that do not identify a problem.
 category must be one of schema/duplicate/scoring/clarity/coverage.
 Mark error only for issues that make an item unexecutable or make the answer
 clearly unreliable.</code></pre></details>
-
-
 <a id="appendix-b-review"></a>
 ### B.6 人工审核 prompt 与协议 guidance
 
@@ -1682,8 +1678,6 @@ Return JSON:
   &quot;notes&quot;: &quot;...&quot;
 }
 &quot;&quot;&quot; + &quot;\n\nTask-agent guidance for complex interactive item requirements:\n&quot; + TASK_AGENT_GENERATION_GUIDANCE + &quot;\n\nExecutable agent task package guidance:\n&quot; + AGENT_TASK_PACKAGE_GENERATION_GUIDANCE + &quot;\n&quot;</code></pre></details>
-
-
 <details><summary>Task-agent guidance 来源：<code>evalclaw/protocols/task_agent.py</code></summary><pre><code class="language-python">&quot;&quot;&quot;Task-level agent specification helpers.
 <!-- -->
 Complex interactive items can provide ``metadata.task_agent`` as a structured
@@ -2075,8 +2069,6 @@ def compact_task_agent_for_qc(spec: dict[str, Any]) -&gt; dict[str, Any]:
 <!-- -->
 def transcript_text(history: list[Message]) -&gt; str:
     return &quot;\n\n&quot;.join(f&quot;[{message.role.upper()}] {message.content}&quot; for message in history)</code></pre></details>
-
-
 <details><summary>Agent task package guidance 来源：<code>evalclaw/protocols/agent_task_package.py</code></summary><pre><code class="language-python">&quot;&quot;&quot;Executable agent task package protocol.&quot;&quot;&quot;
 from __future__ import annotations
 <!-- -->
@@ -2378,8 +2370,6 @@ def compact_agent_task_package(package: dict[str, Any]) -&gt; dict[str, Any]:
         if compact_hidden:
             compact[&quot;hidden_references&quot;] = compact_hidden
     return compact</code></pre></details>
-
-
 <a id="appendix-g"></a>
 ## 附录 G：BenchmarkConfig 完整字段表
 
@@ -2735,7 +2725,8 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
 - Dimension/TaskDesign 的 id 必须全局/维度内唯一，必填字段（id、name、measurement_target、boundary、approach、task_designs）完整；
 - 总题数精确匹配用户显式请求（若指定）；
 - 配置了全局 E1/E2/E3 比例时，各档实际题数与目标偏差 ≤1；
-- `environment_requirements` 只允许用于 agent 题、category 必须在可用环境集合内、URL 必须 http(s)；
+- `environment_requirements` 只允许用于 agent 题、category 必须在可用环境集合内；
+- `source_plan.strategy` 必须为 generated、adapted、reused 或 imported_dataset；generated 的 `suggested_urls`/`search_queries` 必须为空，其他策略必须至少提供一个 http(s) URL；
 - multi_turn 必须声明 `interaction_requirements.followup_mode` 为 adaptive 或 scripted。
 
 它不审计任何构题包归属，因为 Planner 输出里没有这类字段。`subjects`（= target ids）和标准化 `scale_budget` 是模型返回后由框架写入；`builder_jobs` 则在访问时由 TaskDesign 确定性派生。
@@ -2747,14 +2738,15 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
 
 ### D.0 构题前来源收集
 
-`evalclaw/construction/resources.py::_select_blueprint_sources` 为当前 TaskDesign job 收集候选来源，顺序是：
+框架按当前 TaskDesign 的 `source_plan.strategy` 处理来源：
 
-1. 先把 Planner `source_plan.suggested_urls` 依次存成 `web` 来源，最多保留 `max_research_sources` 个。这些 URL 是 Planner 明确选择的来源，不属于自动搜索；即使普通 web research 关闭，框架仍会保留并尝试读取它们。
-2. 若来源数已达 `max_research_sources`，或 `Dimension.needs_research=false`，直接返回当前名单。
-3. `use_web_research` 默认为 `false`。未显式使用 `--web-research` 时直接返回当前名单，即使它为空或少于 `max_research_sources`，也不会为了补足数量进行搜索。
-4. 只有显式开启普通 web research 后，框架才要求 Research 角色已配置，并从 `blueprint.resource_queries`（缺省回落 `dimension.research_queries`；两者都空时生成默认查询）取前 2 条调用 `web_search`。框架按搜索后端返回的 citation 顺序提取 URL、去重并追加，达到 `max_research_sources` 时停止。
+1. `generated` 不收集 Planner URL、不搜索，也不向 TaskBuilder 传递 ResearchBrief。
+2. 其余三种策略先把 Planner `source_plan.suggested_urls` 依次存成 `web` 来源，最多保留 `max_research_sources` 个。这些 URL 不属于自动搜索；即使普通 web research 关闭，框架仍会保留并尝试读取它们。
+3. 若来源数已达 `max_research_sources`，或 `Dimension.needs_research=false`，直接返回当前名单。
+4. `use_web_research` 默认为 `false`。未显式使用 `--web-research` 时直接返回当前名单，不会为了补足数量进行搜索。
+5. 只有显式开启普通 web research 后，框架才要求 Research 角色已配置，并从当前 TaskDesign 查询（缺省回落 Dimension 查询；两者都空时生成默认查询）取前 2 条调用 `web_search`。框架按搜索后端返回的 citation 顺序提取 URL、去重并追加，达到 `max_research_sources` 时停止。
 
-`max_research_sources` 只是候选来源的硬上限，不是目标数量或最低配额。来源少于该值是合法状态；没有外部来源且 TaskDesign 不要求 source-backed 材料时，TaskBuilder 可以自行构造材料并如实标记为 self-generated。若 TaskDesign 明确要求外部来源，缺失状态不会被伪装成 source-backed。收集到的来源会标准化为 `TaskResource`，经去重进入 suite 的 resources，并以 `resources.context` 呈现给 TaskBuilder（见 D.1）。
+`max_research_sources` 只是候选来源的硬上限，不是目标数量。adapted、reused 和 imported_dataset 在 Planner 审计时已经要求至少一个明确 URL；来源少于上限是合法状态。收集到的来源会标准化为 `TaskResource`，经去重进入 suite 的 resources，并以 `resources.context` 呈现给 TaskBuilder。generated 题不产生 `TaskResource`，打包后的题目来源标记为 self-generated。
 
 自动搜索阶段没有独立的内容评估或重排：`source_plan.requirements` 会传给 TaskBuilder，但 Python 不会据此筛选 citation。查询回落只发生在搜索前，TaskDesign 没有 `search_queries` 时才使用 Dimension 查询；某条查询执行失败后不会改用 Dimension 查询掩盖故障。`search_backend="none"`、缺少所需 API key 或后端/API 错误会直接报错；搜索超时会对同一查询最多尝试 3 次，仍然超时则报错。合法但没有结果时，可以继续尝试已选查询列表中的下一条。
 
@@ -2817,6 +2809,7 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
   &quot;resources&quot;: {
     &quot;context&quot;: &quot;候选资源文本&quot;,
     &quot;deep_research&quot;: {&quot;compact brief 或空对象&quot;: &quot;...&quot;},
+    &quot;available&quot;: [{&quot;id&quot;: &quot;...&quot;, &quot;kind&quot;: &quot;web&quot;, &quot;uri&quot;: &quot;...&quot;, &quot;title&quot;: &quot;...&quot;}],
     &quot;selection&quot;: {
       &quot;queries&quot;: [&quot;...&quot;],
       &quot;suggested_urls&quot;: [&quot;...&quot;],
@@ -2829,13 +2822,13 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
   },
   &quot;task_builder_contract&quot;: {
     &quot;task_schema&quot;: {
-      &quot;required&quot;: [&quot;id&quot;, &quot;dimension_id&quot;, &quot;task_type&quot;, &quot;title&quot;, &quot;prompt&quot;, &quot;challenge_effort&quot;, &quot;metadata&quot;],
+      &quot;required&quot;: [&quot;task_type&quot;, &quot;title&quot;, &quot;prompt&quot;, &quot;challenge_effort&quot;, &quot;metadata&quot;],
       &quot;optional&quot;: [&quot;按当前题型动态生成&quot;],
       &quot;allowed_task_types&quot;: [&quot;...&quot;],
       &quot;required_task_type_counts&quot;: {&quot;choice&quot;: 5},
       &quot;required_task_design_counts&quot;: {&quot;design_id&quot;: 5},
-      &quot;task_design_metadata_field&quot;: &quot;task_design_id&quot;,
-      &quot;type_requirements&quot;: {&quot;generation&quot;: [&quot;完整规则&quot;]}
+      &quot;framework_injected_fields&quot;: [&quot;id&quot;, &quot;dimension_id&quot;, &quot;metadata.task_design_id&quot;],
+      &quot;type_requirements&quot;: {&quot;choice&quot;: [&quot;完整规则&quot;]}
     },
     &quot;response_format&quot;: &quot;Return one complete JSON object with construction_notes, resources, and tasks.&quot;,
     &quot;environment_skill&quot;: {&quot;仅需要环境的 TaskDesign 出现&quot;: &quot;...&quot;}
@@ -2843,13 +2836,12 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
 }
 <!-- --></code></pre></details>
 
-`resources.context` 可包含 Planner URL、构题前搜索候选、ResearchBrief 索引或 self-generated fixture。
-TaskBuilder 返回的 resources 会标准化、去重，再由每题顶层 `resource_ids` 建立 provenance。
+对于 generated，`resources.context` 表示没有外部来源，`deep_research` 为空且 `available` 为空。其他策略会收到已选来源正文、可用资源列表和 ResearchBrief 上下文。TaskBuilder 返回的 resources 会标准化、去重，再由每题顶层 `resource_ids` 建立 provenance。
 
 <a id="appendix-d-tools"></a>
 ### D.2 构题研究消息
 
-满足“需要研究且有保留正文/网页工具”，或“E3 且网页工具可用”，并且不是 QC repair 时启用。
+仅对 adapted、reused 和 imported_dataset，在满足“需要研究且有保留正文/网页工具”或“E3 且网页工具可用”，并且不是 QC repair 时启用。
 首条 user JSON 在 D.1 的 `resources` 中增加：
 
 ~~~json
@@ -2887,21 +2879,18 @@ The bounded research budget is exhausted. Return the complete final task-builder
 
 | 字段 | 要求 |
 |---|---|
-| `id` | 本次返回内非空；全局冲突由框架稳定改名 |
-| `dimension_id` | 等于当前维度 |
 | `task_type` | 等于当前 TaskDesign 的题型 |
 | `title` | 非空 |
 | `prompt` | 完整、自足的 target-visible 任务内容 |
 | `challenge_effort` | 与所属 TaskDesign 一致 |
-| `metadata` | 含 `task_design_id`，满足逐设计精确题量 |
+| `metadata` | 含构题自检及题型所需的其他元数据 |
 
-公共可选字段为 `content_summary`、`description`、`resource_ids`、`tags`、`scoring`。
+`id`、`dimension_id` 和 `metadata.task_design_id` 由框架在解析后写入；TaskBuilder 不返回这些字段。公共可选字段为 `content_summary`、`resource_ids`、`tags`，其他字段按当前题型动态加入。
 正常构题还要求：
 
 ~~~json
 {
   "metadata": {
-    "task_design_id": "...",
     "challenge_effort_self_assessment": {
       "requested_effort": "E3",
       "meets_requested_effort": true,
@@ -2911,19 +2900,18 @@ The bounded research budget is exhausted. Return the complete final task-builder
 }
 ~~~
 
-多资源 source-backed 题必须在顶层 `resource_ids` 明确绑定实际资源；只写 metadata 不算 provenance。
+generated 的 `resources` 和每题 `resource_ids` 必须为空。adapted、reused 和 imported_dataset 的每道题都必须在顶层 `resource_ids` 明确绑定实际使用的资源，无论候选资源有几个；只写 metadata 不算 provenance。
 
 #### `choice`
 
 ~~~json
 {
-  "choices": [{"id": "A", "text": "..."}, {"id": "B", "text": "..."}],
-  "correct_choice_ids": ["A"]
+  "choices": [{"text": "..."}, {"text": "..."}],
+  "correct_choice_indices": [0]
 }
 ~~~
 
-至少两个 id/text 非空且 id 唯一的选项；正确 id 非空且必须存在。一个 id 表示单选，多个 id
-表示 exact-set 多选。评分由答案键完成，不应另造 benchmark 级 accuracy 指标。
+至少两个文本非空且互不相同的选项；正确答案索引必须非空、从 0 开始且不能越界。一个索引表示单选，多个索引表示 exact-set 多选。框架为选项生成 id，并把索引转换为 `correct_choice_ids`；评分只使用该答案键。
 
 #### `fill_blank`
 
@@ -3038,7 +3026,7 @@ QC 定向重构增加：
 }
 ~~~
 
-此时 contract 题量分布按旧失败题重算。Builder 只返回这些替换题并保留 ID；通过题不进入输入。
+此时 contract 题量分布按旧失败题重算。Builder 按 `previous_tasks` 的顺序只返回这些替换题，框架按位置恢复原题 ID；通过题不进入输入。
 QC repair 不启用构题研究工具。
 
 <a id="appendix-e"></a>
@@ -3071,7 +3059,7 @@ QC repair 不启用构题研究工具。
       &quot;choices&quot;: [],
       &quot;correct_choice_ids&quot;: [],
       &quot;expected_text&quot;: null,
-      &quot;rubric&quot;: &quot;...&quot;,
+      &quot;rubric&quot;: &quot;非 choice 题的 rubric；choice 为 null&quot;,
       &quot;judge_tools&quot;: [],
       &quot;output_contract&quot;: {},
       &quot;source&quot;: {},
@@ -3180,7 +3168,7 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 
 ### I.3 `to_eval_spec()` 的派生字段
 
-`BenchmarkPlan.to_eval_spec()` 逐维度汇总出 `EvalDimension`：`id`/`name`/`measurement_target`/`boundary`/`approach` 直接来自对应 `BenchmarkPlanDimension`；`challenge_effort` 取该维度各 TaskDesign 中最高的 effort 档；`needs_research` 由 `source_plan.search_queries` 非空或 source-backed 题量 > 0 推导；`target_item_count` = 该维度 `task_count` 之和；`target_source_backed_count` 为 `source_plan.strategy` 属 source_backed/imported_dataset/mixed 的题量；`target_generated_count` = 总数减 source-backed 数；`task_types`/`task_type_allocation` 由各 TaskDesign 聚合；`challenge_effort_distribution` 是各 effort 题量占比。spec 级 `scale` = 全 plan 的 `task_count` 之和，`task_types` 去重、`constraints`/`planner_notes` 直接透传。
+`BenchmarkPlan.to_eval_spec()` 逐维度汇总出 `EvalDimension`：`id`/`name`/`measurement_target`/`boundary`/`approach` 直接来自对应 `BenchmarkPlanDimension`；`challenge_effort` 取该维度各 TaskDesign 中最高的 effort 档；`needs_research` 由 `source_plan.search_queries` 非空或 source-backed 题量 > 0 推导；`target_item_count` = 该维度 `task_count` 之和；`target_source_backed_count` 为 `source_plan.strategy` 属 adapted/reused/imported_dataset 的题量；`target_generated_count` = 总数减 source-backed 数；`task_types`/`task_type_allocation` 由各 TaskDesign 聚合；`challenge_effort_distribution` 是各 effort 题量占比。spec 级 `scale` = 全 plan 的 `task_count` 之和，`task_types` 去重、`constraints`/`planner_notes` 直接透传。
 
 <a id="appendix-i-static"></a>
 
@@ -3189,14 +3177,14 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 `_static_item_issues` 逐题、不调用 LLM，主要检查：
 
 - **基础**：`prompt` 非空（error）、不过短（<20 字符 warning）。
-- **choice**：至少两个选项（error）；选项 id 唯一非空（error）；有 `correct_choice_ids` 且指向存在的选项（error）；选项文本去规范化后无重复（error）；rubric 里若出现显式答案键，须与 `correct_choice_ids` 一致（error）。
+- **choice**：至少两个选项（error）；选项 id 唯一非空（error）；有 `correct_choice_ids` 且指向存在的选项（error）；选项文本去规范化后无重复（error）。choice 的 rubric 不参与 QC。
 - **fill_blank**：`expected_text` 非空（error）。
 - **generation / multi_turn**：有 rubric（error）。
 - **judge_tools**：只允许 `python_tests`（error）；仅 generation/multi-turn/agent 可用（error）；`test_code` 必须消费 `{model_output}`（error）。
 - **agent**：无 rubric 时必须有可执行环境 evaluator（error）；`metadata.agent_env` 必须存在（error）；环境文件路径无跨生命周期重叠（error）；`setup_commands` 不引用 hidden_files（error）；workspace/code_sandbox/gui_desktop 各有必填契约。
 - **多模态**：`metadata.multimodal` 的 schema_version、modalities、assets、content 引用完整。该字段由 TaskBuilder 在构题时按需填充（需要图像、音频等非纯文本模态时；schema_version=evalclaw.multimodal.v1），五个基础题型均可携带，题型本身不限制模态（见 `evalclaw/protocols/multimodal.py`）。
 - **science / task_agent / agent_task_package**：schema_version、system_prompt、scoring guidance 等 metadata 契约。
-- **rubric 自纠正**：检测 rubric 中自纠正/矛盾参考答案（error）。
+- **rubric 自纠正**：对非 choice 题检测 rubric 中自纠正/矛盾参考答案（error）。
 
 <a id="appendix-i-dataset"></a>
 

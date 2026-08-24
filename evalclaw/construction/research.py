@@ -16,6 +16,8 @@ from ..protocols.tool_adapters import (
 from ..research.backends import fetch_url_text, web_search
 from ..types import BenchmarkConfig
 
+# This prompt must identify the available research operations, their proper use,
+# and the requirement to return the complete Builder response after tool use.
 TASK_BUILDER_RESEARCH_PROMPT = """\
 You may use the supplied research tools when source material would materially
 improve the benchmark task. Use read_research_source to inspect text retained by

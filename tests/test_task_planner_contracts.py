@@ -20,6 +20,9 @@ def _plan(
     task_type: TaskType = TaskType.generation,
     environment_category: str = "",
     followup_mode: str = "adaptive",
+    source_strategy: str = "generated",
+    suggested_urls: list[str] | None = None,
+    search_queries: list[str] | None = None,
 ) -> BenchmarkPlan:
     environment = (
         {"category": environment_category, "purpose": "Run the interaction."}
@@ -49,6 +52,11 @@ def _plan(
                                 else {}
                             ),
                             "environment_requirements": environment,
+                            "source_plan": {
+                                "strategy": source_strategy,
+                                "suggested_urls": suggested_urls or [],
+                                "search_queries": search_queries or [],
+                            },
                         }
                     ],
                 }
@@ -100,6 +108,52 @@ def test_plan_audit_rejects_workspace_for_static_task() -> None:
     )
 
     assert any("only valid for agent tasks" in issue for issue in issues)
+
+
+@pytest.mark.parametrize(
+    "strategy",
+    ["generated", "adapted", "reused", "imported_dataset"],
+)
+def test_plan_audit_accepts_source_strategies(strategy: str) -> None:
+    urls = [] if strategy == "generated" else ["https://example.com/source"]
+
+    assert _audit_plan(_plan(source_strategy=strategy, suggested_urls=urls)) == []
+
+
+@pytest.mark.parametrize(
+    "strategy",
+    ["", "self_contained", "source_backed", "mixed", "unsupported"],
+)
+def test_plan_audit_rejects_unknown_source_strategy(strategy: str) -> None:
+    issues = _audit_plan(_plan(source_strategy=strategy))
+
+    assert any("source_plan.strategy must be" in issue for issue in issues)
+
+
+@pytest.mark.parametrize(
+    ("suggested_urls", "search_queries"),
+    [(["https://example.com/source"], []), ([], ["source query"])],
+)
+def test_plan_audit_rejects_sources_for_generated_strategy(
+    suggested_urls: list[str],
+    search_queries: list[str],
+) -> None:
+    issues = _audit_plan(
+        _plan(
+            source_strategy="generated",
+            suggested_urls=suggested_urls,
+            search_queries=search_queries,
+        )
+    )
+
+    assert any("requires empty suggested_urls and search_queries" in issue for issue in issues)
+
+
+@pytest.mark.parametrize("strategy", ["adapted", "reused", "imported_dataset"])
+def test_plan_audit_requires_url_for_external_source_strategy(strategy: str) -> None:
+    issues = _audit_plan(_plan(source_strategy=strategy))
+
+    assert any("requires at least one suggested URL" in issue for issue in issues)
 
 
 def test_planner_repairs_wrong_explicit_total(monkeypatch) -> None:
@@ -199,6 +253,7 @@ def _multi_design_plan(
                             "task_count": task_count,
                             "challenge_effort": effort.value,
                             "content_design": {"description": "Concrete test cases."},
+                            "source_plan": {"strategy": "generated"},
                         }
                         for index, (task_count, effort) in enumerate(counts_and_efforts)
                     ],

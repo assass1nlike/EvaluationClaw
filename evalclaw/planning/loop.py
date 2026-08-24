@@ -9,7 +9,7 @@ from dataclasses import field as dataclass_field
 from typing import Any, Callable
 
 from ..construction.suite import build_task_suite
-from ..generation.generator import target_count_for_dimension
+from ..core.scaling import target_count_for_dimension
 from ..models.llm import call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..planning.task_planner import plan_from_spec
