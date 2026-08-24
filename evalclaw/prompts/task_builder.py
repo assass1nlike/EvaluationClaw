@@ -1,5 +1,7 @@
 """Prompt for the single general task-construction route."""
 
+# This prompt must communicate the exact TaskDesign/count/schema contract, source
+# strategy semantics, resource binding, concrete dependencies, and repair scope.
 TASK_BUILDER_PROMPT = """\
 You are the EvaluationClaw Task Builder.
 
@@ -15,6 +17,15 @@ actual inputs, assets, files, services, interaction state, and scoring evidence
 needed to perform and evaluate it; do not merely describe a dependency that the
 target or evaluator cannot access. Keep target-visible material separate from
 runner-private setup and oracle material.
+
+Follow task_plan.task_design.source_plan.strategy exactly:
+- generated: construct the tasks from the TaskDesign using your own capabilities;
+  return no source resources or resource_ids.
+- adapted: read the supplied external material and make content-level changes.
+- reused: read and use existing material without content-level changes.
+- imported_dataset: read and use items from an existing dataset or benchmark
+  without content-level changes.
+Formatting and packaging normalization do not count as content-level changes.
 
 Use English unless the evaluation explicitly tests another language. Return
 pure JSON only, with no markdown. The top-level object must contain:
@@ -73,12 +84,11 @@ the fields required by the task's type and TaskDesign. Choice and fill-blank
 tasks use their deterministic keys; generation, multi-turn, and agent tasks use
 their rubric and any requested Judge tools or runtime evaluator. Do not repeat
 the same scoring rule in several fields.
-When more than one resource is available, every source-backed task must list
-the exact framework-provided resource ids it uses in the task's top-level
-resource_ids. Resources returned in this response have positional aliases
-resource_1, resource_2, and so on while the framework assigns their canonical
-ids. Do not put this binding only in metadata.source_ids; metadata does not bind
-provenance.
+Every adapted, reused, or imported_dataset task must list the exact resource ids
+it uses in the task's top-level resource_ids. Use ids from resources.available,
+or resource_1, resource_2, and so on for resources added in this response while
+the framework assigns their canonical ids. Do not put this binding only in
+metadata.source_ids; metadata does not bind provenance.
 
 When available_models.models is non-empty, every task whose scoring requires an
 LLM judge (generation, multi-turn, or agent rubric scoring), or that uses an

@@ -9,6 +9,7 @@ from ..research.backends import (
     SearchError,
     SearchResult,
     SearchTimeoutError,
+    fetch_url_text,
     format_search_result,
     web_search,
 )
@@ -16,12 +17,40 @@ from ..types import (
     BenchmarkConfig,
     BenchmarkSource,
     EvalDimension,
+    ResearchBrief,
     SourceKind,
     TaskBlueprint,
     TaskResource,
 )
 
 _SOURCE_SEARCH_MAX_ATTEMPTS = 3
+
+
+def _source_context(
+    sources: list[BenchmarkSource],
+    research_brief: ResearchBrief | None = None,
+) -> str:
+    if not sources:
+        return "No external sources. Generate from the spec and clearly label source as self_generated."
+    retained_by_url = {
+        material.url: material.content
+        for material in (
+            research_brief.source_materials if research_brief is not None else []
+        )
+    }
+    parts: list[str] = []
+    for source in sources:
+        if source.kind == SourceKind.hf_dataset:
+            parts.append(f"--- {source.title} ---\nURI: {source.uri}\n{source.notes}")
+            continue
+        text = retained_by_url.get(source.uri)
+        if text is None and source.uri:
+            text = fetch_url_text(source.uri, max_chars=3000)
+        content = (text[:3000] if text is not None else None) or source.notes or "(content unavailable)"
+        parts.append(
+            f"--- {source.title or source.uri} ---\nURI: {source.uri}\n{content}"
+        )
+    return "\n\n".join(parts)
 
 
 def _slug(text: str) -> str:
@@ -86,6 +115,8 @@ def _select_blueprint_sources(
     blueprint: TaskBlueprint,
     config: BenchmarkConfig,
 ) -> list[BenchmarkSource]:
+    if blueprint.source_strategy == "generated":
+        return []
     sources = [
         BenchmarkSource(
             kind=SourceKind.web,

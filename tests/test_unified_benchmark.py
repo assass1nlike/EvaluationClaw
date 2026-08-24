@@ -104,21 +104,23 @@ def test_planner_derives_one_builder_job_per_requested_task_design(monkeypatch) 
                                     "task_type": "choice",
                                     "task_count": 5,
                                     "challenge_effort": "E3",
-                                    "content_design": {
-                                        "purpose": "Test supported facts.",
-                                        "description": "Five distinct factual questions over one case.",
+                                        "content_design": {
+                                            "purpose": "Test supported facts.",
+                                            "description": "Five distinct factual questions over one case.",
+                                        },
+                                        "source_plan": {"strategy": "generated"},
                                     },
-                                },
                                 {
                                     "id": "shared_case_explanation",
                                     "task_type": "generation",
                                     "task_count": 10,
                                     "challenge_effort": "E3",
-                                    "content_design": {
-                                        "purpose": "Test explanation.",
-                                        "description": "Ten distinct explanations over the same case.",
+                                        "content_design": {
+                                            "purpose": "Test explanation.",
+                                            "description": "Ten distinct explanations over the same case.",
+                                        },
+                                        "source_plan": {"strategy": "generated"},
                                     },
-                                },
                             ],
                         }
                     ],
@@ -212,36 +214,48 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together(monke
         ),
     ]
 
-    blueprint_by_id = {blueprint.id: blueprint for blueprint in blueprints}
-
     def fake_call_llm(messages, **kwargs):
-        from evalclaw.construction.builders import _fallback_task_for_blueprint
-
         payload = json.loads(messages[0].content)
         blueprint_id = payload["task_plan"]["builder_job_id"]
-        blueprint = blueprint_by_id[blueprint_id]
-        task = _fallback_task_for_blueprint(
-            spec,
-            spec.dimensions[0],
-            blueprint,
-            index=1,
-            task_type=blueprint.task_designs[0].task_type,
-        )
-        task.metadata.update(
+        assessment = {
+            "requested_effort": "E3",
+            "meets_requested_effort": True,
+            "rationale": "The task implements the complete planned contract.",
+        }
+        task = (
             {
-                "task_design_id": blueprint.task_designs[0].id,
-                "challenge_effort_self_assessment": {
-                    "requested_effort": blueprint.task_designs[0].challenge_effort.value,
-                    "meets_requested_effort": True,
-                    "rationale": "The task implements the complete planned contract.",
+                "task_type": "choice",
+                "title": "Mixed MCQ",
+                "prompt": "Which option is the correct factual answer?",
+                "choices": [
+                    {"id": "A", "text": "The correct answer."},
+                    {"id": "B", "text": "An incorrect answer."},
+                ],
+                "correct_choice_ids": ["A"],
+                "metadata": {"challenge_effort_self_assessment": assessment},
+            }
+            if blueprint_id == "mixed_mcq"
+            else {
+                "task_type": "agent",
+                "title": "Mixed interaction",
+                "prompt": "Move the blue notebook from the office to the mailroom.",
+                "environment": {
+                    "type": "workspace",
+                    "workspace": {
+                        "start_room": "office",
+                        "rooms": {"office": ["blue_notebook"], "mailroom": []},
+                        "goal": {"outgoing_bin": ["blue_notebook"]},
+                    },
                 },
+                "scoring": {"pass_criteria": "The blue notebook is in the outgoing bin."},
+                "metadata": {"challenge_effort_self_assessment": assessment},
             }
         )
         return json.dumps(
             {
                 "construction_notes": "Model-built test fixture.",
                 "resources": [],
-                "tasks": [task.model_dump(mode="json")],
+                "tasks": [task],
             }
         )
 

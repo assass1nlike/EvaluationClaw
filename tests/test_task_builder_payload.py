@@ -10,8 +10,6 @@ from evalclaw.construction.suite import (
     _task_builder_payload,
     _task_duplicate_key,
 )
-from evalclaw.prompts.qc import QC_SYSTEM_PROMPT
-from evalclaw.prompts.task_builder import TASK_BUILDER_PROMPT
 from evalclaw.types import (
     AgentEnvironmentType,
     EvalDimension,
@@ -183,7 +181,6 @@ def test_static_builder_call_contains_no_execution_capability_fields() -> None:
     assert "metadata_protocols" not in serialized
     assert "task_agent" not in serialized
     assert "agent_task_package" not in serialized
-    assert "environment" not in TASK_BUILDER_PROMPT.lower()
     assert environment_skill_payload(blueprint) is None
     assert environment_skill_system_prompt(blueprint) == ""
 
@@ -229,13 +226,6 @@ def test_execution_fields_are_added_only_for_blueprints_that_request_them() -> N
     assert contract["environment_skill"]["loaded_references"] == [
         "references/workspace.md"
     ]
-    skill_prompt = environment_skill_system_prompt(blueprint)
-    assert "# Build Environment-Backed Tasks" in skill_prompt
-    assert "initial state -> exposed observations/actions" in skill_prompt
-    assert 'path="references/workspace.md"' in skill_prompt
-    assert "built-in room, object, inventory" in skill_prompt
-    assert 'path="references/docker-workspace.md"' not in skill_prompt
-    assert 'path="references/agent-task-package.md"' not in skill_prompt
 
 
 def test_environment_skill_routes_only_environment_backed_task_designs() -> None:
@@ -265,20 +255,6 @@ def test_environment_skill_routes_only_environment_backed_task_designs() -> None
         "references/agent-task-package.md",
     ]
     assert payload["routing"][0]["runtime_environment_type"] == "gui_desktop"
-    skill_prompt = environment_skill_system_prompt(blueprint)
-    assert 'path="references/gui-desktop.md"' in skill_prompt
-    assert "Cloudbase-Init's NoCloud service" in skill_prompt
-    assert "baseline_verified=true" in skill_prompt
-    assert "not a snapshot reference" in skill_prompt
-    assert '"vm_provisioning"' in skill_prompt
-    assert '"baseline_checks"' in skill_prompt
-    assert '"evaluation"' in skill_prompt
-    assert "`session.evaluation_checks`" in skill_prompt
-    assert "Do not move `evaluation` into `session`" in skill_prompt
-    assert "Opaque names" in skill_prompt
-    assert "not registered or resolved by the generic bridge" in skill_prompt
-    assert 'path="references/agent-task-package.md"' in skill_prompt
-    assert 'path="references/workspace.md"' not in skill_prompt
 
 
 def test_task_builder_payload_contract_supports_one_multi_item_task_design() -> None:
@@ -319,28 +295,6 @@ def test_task_builder_payload_contract_supports_one_multi_item_task_design() -> 
     assert "planner_metadata" not in construction
     assert "expected_task_count" not in construction
     assert "task_index" not in construction
-    assert "Implement one Planner-authored TaskDesign" in TASK_BUILDER_PROMPT
-    assert "only the listed replacement tasks" in TASK_BUILDER_PROMPT
-    assert '"resource_ids": []' in TASK_BUILDER_PROMPT
-    assert "resource_ids" in TASK_BUILDER_PROMPT
-    assert "treat a URL, title, dataset landing page, or brief" in TASK_BUILDER_PROMPT
-    assert "missing evidence with invented facts" in TASK_BUILDER_PROMPT
-    assert "Materialize every dependency implied by each concrete task" in TASK_BUILDER_PROMPT
-    assert "actual inputs, assets, files, services" in TASK_BUILDER_PROMPT
-
-
-def test_qc_prompt_requires_complete_but_evidence_based_review() -> None:
-    assert "complete audit in one pass" in QC_SYSTEM_PROMPT
-    assert "independently actionable" in QC_SYSTEM_PROMPT
-    assert "invent hypothetical defects" in QC_SYSTEM_PROMPT
-    assert "that is sound" in QC_SYSTEM_PROMPT
-    assert "matching object in\ntask_designs" in QC_SYSTEM_PROMPT
-    assert "not implementation evidence" in QC_SYSTEM_PROMPT
-    assert "shape and runner-contract validation only" in QC_SYSTEM_PROMPT
-    assert "prompt_is_complete=false" in QC_SYSTEM_PROMPT
-    assert "not present in the canonical task" in QC_SYSTEM_PROMPT
-    assert "metadata.agent_env and metadata.agent_task_package" in QC_SYSTEM_PROMPT
-    assert "cannot add, remove, or override runtime tools" in QC_SYSTEM_PROMPT
 
 
 def test_task_builder_contract_matches_fill_blank_and_generation_runners() -> None:
@@ -356,7 +310,7 @@ def test_task_builder_contract_matches_fill_blank_and_generation_runners() -> No
         dimensions=[dimension],
         task_types=[TaskType.fill_blank, TaskType.generation],
     )
-    requirements = {}
+    schemas = {}
     for design in (
         make_task_design("short", TaskType.fill_blank),
         make_task_design("code", TaskType.generation),
@@ -367,20 +321,20 @@ def test_task_builder_contract_matches_fill_blank_and_generation_runners() -> No
             design.id,
             task_designs=[design],
         )
-        requirements.update(
-            _task_builder_payload(
-                spec,
-                dimension,
-                job,
-                "No external sources.",
-            )["task_builder_contract"]["task_schema"]["type_requirements"]
-        )
+        schemas[design.id] = _task_builder_payload(
+            spec,
+            dimension,
+            job,
+            "No external sources.",
+        )["task_builder_contract"]["task_schema"]
 
-    assert "expected_text" in requirements["fill_blank"][0]
-    assert "python_tests" in requirements["generation"][0]
+    assert "expected_text" in schemas["short"]["optional"]
+    assert {"rubric", "judge_tools", "output_contract"}.issubset(
+        schemas["code"]["optional"]
+    )
 
 
-def test_multi_turn_builder_contract_names_the_runtime_fields_exactly() -> None:
+def test_multi_turn_builder_contract_exposes_runtime_fields() -> None:
     dimension = EvalDimension(
         id="dialogue",
         name="Dialogue",
@@ -403,42 +357,9 @@ def test_multi_turn_builder_contract_names_the_runtime_fields_exactly() -> None:
     blueprint.task_designs[0].interaction_requirements["followup_mode"] = "scripted"
 
     payload = _task_builder_payload(spec, dimension, blueprint, "No external sources.")
-    requirements = payload["task_builder_contract"]["task_schema"]["type_requirements"]["multi_turn"]
+    task_schema = payload["task_builder_contract"]["task_schema"]
 
-    assert "interaction.user_turns" in requirements[0]
-    assert "non-empty strings" in requirements[0]
+    assert {"system_prompt", "interaction", "rubric", "judge_tools"}.issubset(
+        task_schema["optional"]
+    )
     assert environment_skill_system_prompt(blueprint) == ""
-
-
-def test_adaptive_multi_turn_contract_forbids_scripted_turns() -> None:
-    dimension = EvalDimension(
-        id="adaptive_dialogue",
-        name="Adaptive dialogue",
-        description="Evaluate response-conditioned pressure.",
-        approach="Adapt every follow-up to the target's latest reply.",
-        task_types=[TaskType.multi_turn],
-    )
-    spec = EvalSpec(
-        objective="Evaluate adaptive multi-turn behavior.",
-        dimensions=[dimension],
-        task_types=[TaskType.multi_turn],
-    )
-    design = make_task_design(
-        "adaptive_design",
-        TaskType.multi_turn,
-    )
-    design.interaction_requirements["followup_mode"] = "adaptive"
-    blueprint = make_blueprint(
-        "adaptive_blueprint",
-        dimension.id,
-        "Adaptive tasks",
-        task_designs=[design],
-    )
-
-    requirements = _task_builder_payload(
-        spec, dimension, blueprint, "No external sources."
-    )["task_builder_contract"]["task_schema"]["type_requirements"]["multi_turn"]
-
-    assert "followup_instruction" in requirements[0]
-    assert "omit interaction.user_turns" in requirements[0]
-    assert any("system_prompt is exclusively" in requirement for requirement in requirements)

@@ -1314,7 +1314,6 @@ HTML_TEMPLATE = """<!doctype html>
         record.judge_reasoning,
         record.error,
         record.raw_response,
-        (record.risks || []).join(" "),
       ].join(" ").toLowerCase();
     }
     function explorerTarget(entry) {

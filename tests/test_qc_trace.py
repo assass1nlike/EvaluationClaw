@@ -80,3 +80,44 @@ def test_qc_trace_persists_model_exchange_and_complete_report(tmp_path, monkeypa
     assert saved_report["issues"][0]["suggested_action"] == report.issues[0].suggested_action
     diagnostics = json.loads((trace_dir / "diagnostics.json").read_text(encoding="utf-8"))
     assert diagnostics["status"] == "completed"
+
+
+def test_llm_qc_omits_choice_rubric(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_call(messages, **_kwargs):
+        captured.update(json.loads(messages[0].content))
+        return '{"issues": [], "summary": "No issues."}'
+
+    monkeypatch.setattr("evalclaw.quality.llm_checks.call_llm", fake_call)
+    dimension = EvalDimension(
+        id="arithmetic",
+        name="Arithmetic",
+        description="Arithmetic accuracy",
+        approach="Use exact calculations.",
+        task_types=[TaskType.choice],
+    )
+    item = BenchmarkItem(
+        id="arithmetic_1",
+        dimension_id=dimension.id,
+        task_type=TaskType.choice,
+        prompt="What is two plus two?",
+        choices=[{"id": "A", "text": "3"}, {"id": "B", "text": "4"}],
+        correct_choice_ids=["B"],
+        rubric="This must not be used by QC.",
+    )
+
+    run_qc_gate(
+        TaskSuite(
+            spec=EvalSpec(
+                objective="Evaluate arithmetic",
+                dimensions=[dimension],
+                task_types=[TaskType.choice],
+            ),
+            objective="Evaluate arithmetic",
+            tasks=[item],
+        ),
+        BenchmarkConfig(**dummy_config_kwargs()),
+    )
+
+    assert captured["items"][0]["rubric"] is None

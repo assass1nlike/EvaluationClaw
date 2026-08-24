@@ -47,7 +47,7 @@ def make_task_design(
         scoring_contract={
             "components": [{"method": "task-appropriate", "criteria": ["Correctness"]}]
         },
-        source_plan=source_plan or {"strategy": "self_contained"},
+        source_plan=source_plan or {"strategy": "generated"},
         construction_requirements=construction_requirements or [],
     )
 

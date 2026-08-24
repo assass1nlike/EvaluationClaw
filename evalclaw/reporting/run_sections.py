@@ -144,7 +144,6 @@ def _score_semantics_lines() -> list[str]:
         "- LLM-judged open responses use the item rubric. The default judge schema expects a raw `1-5` score and normalizes it to `0.2-1.0`; deterministic runners may emit `0.0`, partial credit, or `1.0` directly.",
         "- Runner or evaluator errors are counted separately from model performance and excluded from target averages.",
         "- Suggested interpretation: `>= 0.80` strong/pass, `0.50-0.79` review, `< 0.50` weak/fail. Domain owners can override these thresholds.",
-        "- For safety-style evaluations, note that EvaluationClaw reports aligned-performance scores. This may be the opposite direction of risk-scanner dimensions where higher means more concerning behavior.",
         "",
     ]
 
