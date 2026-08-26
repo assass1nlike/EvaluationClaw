@@ -153,6 +153,19 @@ class AgentEnvironmentType(str, Enum):
     gui_desktop = "gui_desktop"
 
 
+def environment_category(design: "TaskDesign") -> Optional[AgentEnvironmentType]:
+    """Resolve a TaskDesign's declared environment category.
+
+    The planning contract requires one canonical AgentEnvironmentType value, so
+    an unrecognized category resolves to None and the plan audit reports it.
+    """
+    raw = str(design.environment_requirements.get("category") or "").strip().lower()
+    try:
+        return AgentEnvironmentType(raw)
+    except ValueError:
+        return None
+
+
 class TaskResource(BaseModel):
     id: str
     kind: str = "web"
@@ -281,21 +294,10 @@ class TaskBlueprint(BaseModel):
 
     @property
     def environment_type(self) -> Optional[AgentEnvironmentType]:
-        aliases = {
-            "workspace": AgentEnvironmentType.workspace,
-            "code_sandbox": AgentEnvironmentType.code_sandbox,
-            "code sandbox": AgentEnvironmentType.code_sandbox,
-            "container": AgentEnvironmentType.docker_workspace,
-            "docker_workspace": AgentEnvironmentType.docker_workspace,
-            "browser": AgentEnvironmentType.gui_desktop,
-            "desktop": AgentEnvironmentType.gui_desktop,
-            "gui_desktop": AgentEnvironmentType.gui_desktop,
-        }
         categories = {
-            aliases[str(design.environment_requirements.get("category") or "").strip().lower()]
+            resolved
             for design in self.task_designs
-            if str(design.environment_requirements.get("category") or "").strip().lower()
-            in aliases
+            if (resolved := environment_category(design)) is not None
         }
         return next(iter(categories)) if len(categories) == 1 else None
 
@@ -480,7 +482,14 @@ class TaskScoringSpec(BaseModel):
     pass_criteria: str = ""
     partial_criteria: str = ""
     fail_criteria: str = ""
+    allows_partial_credit: bool = False
     score_levels: dict[str, str] = Field(default_factory=dict)
+
+
+class TaskAsset(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    path: str
 
 
 class TaskDefinition(BaseModel):
@@ -493,6 +502,7 @@ class TaskDefinition(BaseModel):
     content_summary: str = ""
     description: str = ""
     prompt: str
+    assets: list[TaskAsset] = Field(default_factory=list)
     choices: list[ChoiceOption] = Field(default_factory=list)
     correct_choice_ids: list[str] = Field(default_factory=list)
     expected_text: Optional[str] = None
@@ -517,6 +527,7 @@ class BenchmarkItem(BaseModel):
     dimension_id: str
     task_type: TaskType
     prompt: str
+    assets: list[TaskAsset] = Field(default_factory=list)
     choices: list[ChoiceOption] = Field(default_factory=list)
     correct_choice_ids: list[str] = Field(default_factory=list)
     expected_text: Optional[str] = None
@@ -804,6 +815,7 @@ class BenchmarkConfig(BaseModel):
     )
     large_scale_llm_qc_sample_size: int = 120
     output_dir: str = "./benchmark-output"
+    planner_debug_dir: Optional[str] = None
     task_builder_debug_dir: Optional[str] = None
     run_targets: bool = True
     use_web_research: bool = False
@@ -814,8 +826,8 @@ class BenchmarkConfig(BaseModel):
     use_hf_discovery: bool = True
     task_builder_max_workers: int = 4
     task_builder_repair_attempts: int = 2
-    task_builder_research_max_calls: int = 6
-    task_builder_research_max_chars: int = 50_000
+    task_builder_tool_max_calls: int = 6
+    task_builder_tool_max_chars: int = 50_000
     judge_double_pass: bool = True
     llm_backend: Literal["auto", "litellm"] = "auto"
     runner: str = "direct"  # direct | lm-eval | auto

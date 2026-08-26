@@ -19,6 +19,7 @@ from evalclaw.types import (
     AgentEnvironmentType,
     BenchmarkConfig,
     BenchmarkItem,
+    ChoiceOption,
     EvalDimension,
     EvalSpec,
     JudgeToolRef,
@@ -1074,27 +1075,84 @@ def test_dataset_checks_duplicate_ids_unknown_dimensions_and_near_duplicates() -
     )
 
 
-def test_multimodal_qc_requires_resolvable_assets_and_valid_references() -> None:
+def test_dataset_duplicate_check_includes_choice_options() -> None:
+    first = BenchmarkItem(
+        id="choice_1",
+        dimension_id="vision",
+        task_type=TaskType.choice,
+        prompt="What object is shown in the blurred image?",
+        choices=[
+            {"id": "A", "text": "Lion"},
+            {"id": "B", "text": "Tiger"},
+        ],
+        correct_choice_ids=["A"],
+    )
+    different_options = first.model_copy(
+        update={
+            "id": "choice_2",
+            "choices": [
+                ChoiceOption(id="A", text="Bus"),
+                ChoiceOption(id="B", text="Truck"),
+            ],
+        }
+    )
+    identical = first.model_copy(update={"id": "choice_3"})
+
+    assert not any(
+        issue.severity == QcSeverity.error
+        and issue.category == QcCategory.duplicate
+        for issue in _duplicate_issues([first, different_options])
+    )
+    assert any(
+        issue.item_id == identical.id
+        and issue.severity == QcSeverity.error
+        and issue.category == QcCategory.duplicate
+        for issue in _duplicate_issues([first, identical])
+    )
+
+
+def test_asset_qc_requires_existing_prompt_referenced_paths(tmp_path) -> None:
+    missing_path = tmp_path / "missing.png"
     item = BenchmarkItem(
         id="image_1",
         dimension_id="vision",
         task_type=TaskType.generation,
         prompt="Inspect the supplied image and describe the main visible anomaly.",
+        assets=[{"path": str(missing_path)}],
         rubric="Score against visible evidence.",
-        metadata={
-            "multimodal": {
-                "schema_version": "evalclaw.multimodal.v1",
-                "modalities": ["image"],
-                "assets": [{"id": "actual", "kind": "image"}],
-                "content": [{"type": "asset", "asset_id": "missing"}],
-            }
-        },
     )
 
     messages = [issue.message for issue in _static_item_issues(item)]
 
-    assert any("no resolvable source" in message for message in messages)
-    assert any("unknown asset" in message for message in messages)
+    assert any("does not reference asset path" in message for message in messages)
+    assert any("does not exist" in message for message in messages)
+
+
+def test_task_design_file_inputs_require_assets(tmp_path) -> None:
+    design = TaskDesign(
+        id="vision_design",
+        task_type=TaskType.generation,
+        task_count=1,
+        input_requirements={
+            "modalities": ["text", "image"],
+            "asset_requirements": [{"asset_ref": "question_image"}],
+        },
+    )
+    missing = _task(TaskType.generation, rubric="Score correctness.")
+    image_path = tmp_path / "question.png"
+    image_path.write_bytes(b"\x89PNG\r\n\x1a\n")
+    valid = TaskDefinition(
+        id="task_2",
+        dimension_id="dimension_1",
+        task_type=TaskType.generation,
+        title="Asset contract test",
+        prompt=f"Inspect {image_path} and describe the object.",
+        assets=[{"path": str(image_path)}],
+        rubric="Score correctness.",
+    )
+
+    assert any("must provide assets" in issue for issue in task_structure_issues(missing, task_design=design))
+    assert task_structure_issues(valid, task_design=design) == []
 
 
 def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(monkeypatch) -> None:

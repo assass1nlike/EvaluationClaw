@@ -20,6 +20,7 @@ from evalclaw.types import (
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
+from tests.config_helpers import patch_task_builder_model
 
 
 def _config_for(role: str) -> BenchmarkConfig:
@@ -131,7 +132,7 @@ def test_task_builder_uses_task_builder_role(monkeypatch) -> None:
         captured.update(kwargs)
         raise RuntimeError("stop after capture")
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", fake_call_llm)
+    patch_task_builder_model(monkeypatch, fake_call_llm)
 
     with pytest.raises(RuntimeError, match="stop after capture"):
         build_task_suite(
@@ -218,7 +219,7 @@ def test_research_uses_research_role(monkeypatch) -> None:
     _assert_role_call(captured, "research")
 
 
-def test_low_effort_research_caps_structured_output_budget(monkeypatch) -> None:
+def test_low_effort_research_keeps_uniform_output_budget(monkeypatch) -> None:
     captured: dict = {}
 
     def fake_call_llm(*args, **kwargs):
@@ -232,10 +233,9 @@ def test_low_effort_research_caps_structured_output_budget(monkeypatch) -> None:
         _config_for("research"),
         "system",
         {"goal": "goal"},
-        max_tokens=8192,
     )
 
-    assert captured["max_tokens"] == 2048
+    assert captured["max_tokens"] == 32768
 
 
 def test_loop3_uses_loop3_role(monkeypatch) -> None:

@@ -311,15 +311,15 @@ def generate(
         "--task-builder-repair-attempts",
         help="Maximum per-TaskDesign Builder structural repair attempts before QC.",
     ),
-    task_builder_research_max_calls: int = typer.Option(
+    task_builder_tool_max_calls: int = typer.Option(
         6,
-        "--task-builder-research-max-calls",
-        help="Maximum research tool calls for a source-backed or E3 task-builder invocation.",
+        "--task-builder-tool-max-calls",
+        help="Maximum tool calls for one task-builder invocation.",
     ),
-    task_builder_research_max_chars: int = typer.Option(
+    task_builder_tool_max_chars: int = typer.Option(
         50_000,
-        "--task-builder-research-max-chars",
-        help="Maximum characters returned by each task-builder research tool call.",
+        "--task-builder-tool-max-chars",
+        help="Maximum characters returned by each task-builder tool call.",
     ),
     single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one judge pass instead of the default double-pass audit."),
     llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto or litellm."),
@@ -551,8 +551,8 @@ def generate(
         use_hf_discovery=not no_hf_discovery,
         task_builder_max_workers=task_builder_max_workers,
         task_builder_repair_attempts=task_builder_repair_attempts,
-        task_builder_research_max_calls=task_builder_research_max_calls,
-        task_builder_research_max_chars=task_builder_research_max_chars,
+        task_builder_tool_max_calls=task_builder_tool_max_calls,
+        task_builder_tool_max_chars=task_builder_tool_max_chars,
         judge_double_pass=not single_pass_judge,
         llm_backend=llm_backend,
         runner=runner,

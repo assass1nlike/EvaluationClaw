@@ -31,8 +31,15 @@ class LLMOutputTruncatedError(RuntimeError):
     """The provider ended a completion because its output budget was exhausted."""
 
 
+class LLMFinalContentMissingError(RuntimeError):
+    """The provider completed without returning a usable final response."""
+
+
 class LLMProtocolAdapterError(RuntimeError):
     """LiteLLM could not adapt the request or response for the selected provider."""
+
+
+DEFAULT_MAX_OUTPUT_TOKENS = 32_768
 
 
 def _require_supported_backend(backend: str) -> None:
@@ -222,11 +229,6 @@ def _message_dicts(messages: list[Message], system: Optional[str] = None) -> lis
         result.append({"role": "system", "content": system})
     result.extend({"role": m.role, "content": m.content} for m in messages)
     return result
-
-
-def _messages_request_json(messages: list[dict]) -> bool:
-    text = "\n".join(str(message.get("content") or "") for message in messages).lower()
-    return "json" in text
 
 
 def _extract_litellm_content(response: object) -> str:
@@ -491,7 +493,6 @@ class TargetToolModelResponse:
 
 
 _REASONING_MODEL_MARKERS = ("gpt-5", "o1", "o3", "o4", "deepseek-reasoner")
-_REASONING_MAX_TOKENS_FLOOR = 16384
 _MAX_COMPLETION_TOKENS_CAP = 65536
 
 
@@ -506,16 +507,14 @@ def _is_reasoning_model(model: str) -> bool:
 
 
 def _effective_max_tokens(model: str, max_tokens: int) -> int:
-    """Raise max_tokens for reasoning models unless low effort was explicit.
+    """Apply the framework-wide minimum output budget."""
+    return max(max_tokens, DEFAULT_MAX_OUTPUT_TOKENS)
 
-    Reasoning models consume the completion budget with internal reasoning
-    tokens first; a 4096 budget routinely yields truncated or empty text.
-    Low-effort calls deliberately trade reasoning depth for latency, so keep
-    the caller's stage-specific budget instead of expanding small JSON calls.
-    """
-    if _is_reasoning_model(model) and os.environ.get("EVALCLAW_REASONING_EFFORT") != "low":
-        return max(max_tokens, _REASONING_MAX_TOKENS_FLOOR)
-    return max_tokens
+
+def _litellm_model_name(model: str, base_url: Optional[str]) -> str:
+    if base_url and not model.startswith(("openai/", "anthropic/", "gemini/", "azure/")):
+        return f"openai/{model}"
+    return model
 
 
 def _call_litellm(
@@ -527,28 +526,25 @@ def _call_litellm(
     base_url: Optional[str] = None,
     reduce_reasoning_effort: bool = False,
     retry_on_truncation: bool = True,
+    expect_json: bool = False,
 ) -> str:
     import litellm
 
     # Silence litellm's ANSI "Provider List" banner spam on every exception.
     litellm.suppress_debug_info = True
 
-    litellm_model = model
-    if base_url and not model.startswith(("openai/", "anthropic/", "gemini/", "azure/")):
-        litellm_model = f"openai/{model}"
     kwargs = {
-        "model": litellm_model,
+        "model": _litellm_model_name(model, base_url),
         "messages": messages,
         "timeout": 300,
     }
-    requests_json = _messages_request_json(messages)
     if (
-        requests_json
+        expect_json
         and base_url
         and not model.startswith(("claude-", "anthropic/"))
     ):
         kwargs["response_format"] = {"type": "json_object"}
-    if model.startswith("deepseek-v4") and requests_json:
+    if model.startswith("deepseek-v4") and expect_json:
         # DeepSeek V4's thinking mode can consume the entire response window
         # before emitting the JSON body. Match the direct OpenAI-compatible
         # path for framework calls that explicitly require structured JSON.
@@ -641,19 +637,22 @@ def call_llm(
     *,
     system: Optional[str] = None,
     model: Optional[str] = None,
-    max_tokens: int = 4096,
+    max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
     provider: Optional[str] = None,
     backend: str = "auto",
     reduce_reasoning_effort: bool = False,
     retry_on_truncation: bool = True,
+    expect_json: bool = False,
 ) -> str:
     """Call the orchestrator LLM.
 
     The explicit provider selects the wire protocol. Claude models with a
     custom base URL use the native Anthropic SDK; other custom endpoints
-    default to the OpenAI-compatible protocol.
+    default to the OpenAI-compatible protocol. Set ``expect_json`` when the
+    caller parses the response as JSON, so providers that support a structured
+    output mode are asked for one.
     """
     _require_supported_backend(backend)
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
@@ -685,7 +684,7 @@ def call_llm(
             messages,
             system=system,
             model=model_name,
-            max_tokens=max_tokens,
+            max_tokens=_effective_max_tokens(model_name, max_tokens),
             api_key=api_key,
             base_url=base_url,
         )
@@ -710,9 +709,13 @@ def call_llm(
             )
             if reasoning_effort and _is_reasoning_model(model_name):
                 body["reasoning_effort"] = reasoning_effort
-            if _messages_request_json(messages_dict):
+            if expect_json:
                 body["response_format"] = {"type": "json_object"}
-            if "api.deepseek.com" in base_url and model_name.startswith("deepseek-v4"):
+            if (
+                "api.deepseek.com" in base_url
+                and model_name.startswith("deepseek-v4")
+                and (expect_json or reduce_reasoning_effort)
+            ):
                 body["thinking"] = {"type": "disabled"}
             url = f"{base_url.rstrip('/')}/chat/completions"
             headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
@@ -740,6 +743,7 @@ def call_llm(
         base_url=base_url,
         reduce_reasoning_effort=reduce_reasoning_effort,
         retry_on_truncation=retry_on_truncation,
+        expect_json=expect_json,
     )
 
 
@@ -753,14 +757,16 @@ def call_orchestrator_with_tools(
     provider: Optional[str] = None,
     backend: str = "auto",
     tools: list[ToolSpec] | None = None,
-    max_tokens: int = 4096,
+    max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
     retry_on_truncation: bool = True,
+    expect_json: bool = False,
 ) -> TargetToolModelResponse:
     """Call the orchestrator with provider-native tools.
 
     This is separate from ``call_llm`` because a tool round must preserve the
     provider-native assistant message and tool-result message structure. The
-    task-builder research loop uses this for bounded external retrieval.
+    task-builder research loop uses this for bounded external retrieval. Set
+    ``expect_json`` when the caller parses a tool-free response as JSON.
     """
     _require_supported_backend(backend)
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
@@ -821,7 +827,7 @@ def call_orchestrator_with_tools(
     budget = _effective_max_tokens(model_name, max_tokens)
     for attempt in range(2 if retry_on_truncation else 1):
         kwargs: dict[str, Any] = {
-            "model": model_name,
+            "model": _litellm_model_name(model_name, base_url),
             "messages": request_messages,
             "timeout": 300,
             "max_tokens": budget,
@@ -829,8 +835,9 @@ def call_orchestrator_with_tools(
         if tool_specs:
             kwargs["tools"] = openai_tools(tool_specs)
             kwargs["tool_choice"] = "auto"
-        elif model_name.startswith("deepseek-v4") and _messages_request_json(request_messages):
+        elif model_name.startswith("deepseek-v4") and expect_json:
             kwargs["response_format"] = {"type": "json_object"}
+            kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
         if api_key:
             kwargs["api_key"] = api_key
         if base_url:
@@ -884,7 +891,7 @@ def call_target_model_with_tools(
     *,
     system_prompt: Optional[str] = None,
     backend: str = "auto",
-    max_tokens: int = 4096,
+    max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
 ) -> TargetToolModelResponse:
     """Call a target model with provider-native tool declarations.
 
@@ -900,7 +907,7 @@ def call_target_model_with_tools(
         client = _get_anthropic_client(target.api_key, target.base_url)
         response = client.messages.create(
             model=_anthropic_model_name(target.model),
-            max_tokens=max_tokens,
+            max_tokens=_effective_max_tokens(target.model, max_tokens),
             system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
             messages=messages,
             tools=anthropic_tools(tools),
@@ -975,7 +982,7 @@ def call_target_model(
             client = _get_anthropic_client(target.api_key, target.base_url)
             response = client.messages.create(
                 model=_anthropic_model_name(target.model),
-                max_tokens=4096,
+                max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
                 system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
                 messages=[
                     {"role": m.role, "content": m.content}
@@ -1005,14 +1012,18 @@ def call_target_model(
             return _call_litellm(
                 model=target.model,
                 messages=messages,
-                max_tokens=4096,
+                max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
                 api_key=target.api_key,
                 base_url=target.base_url,
             )
         data = _post_with_retry(
             f"{base_url.rstrip('/')}/chat/completions",
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-            body={"model": target.model, "messages": messages, "max_tokens": 4096},
+            body={
+                "model": target.model,
+                "messages": messages,
+                "max_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
+            },
         )
         return data["choices"][0]["message"]["content"]
 
@@ -1047,9 +1058,7 @@ def call_target_model(
     return _call_litellm(
         model=target.model,
         messages=messages,
-        max_tokens=4096,
+        max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
         api_key=api_key,
         base_url=base_url,
     )
-
-

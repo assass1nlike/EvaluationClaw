@@ -1,7 +1,35 @@
 """Shared test helpers for building configured BenchmarkConfig instances."""
 from __future__ import annotations
 
-from evalclaw.types import TargetModelConfig
+import json
+
+from evalclaw.types import Message, TargetModelConfig
+
+
+def patch_task_builder_model(monkeypatch, responder) -> None:
+    def run_tools(payload, *, system_prompt, config, **kwargs):
+        messages = [
+            Message(
+                role="user",
+                content=json.dumps(payload, ensure_ascii=False, indent=2),
+            )
+        ]
+        return (
+            responder(
+                messages,
+                system=system_prompt,
+                model=config.task_builder_model,
+                api_key=config.task_builder_api_key,
+                base_url=config.task_builder_base_url,
+                provider=config.task_builder_provider,
+                backend=config.llm_backend,
+                retry_on_truncation=False,
+            ),
+            [],
+        )
+
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", run_tools)
+    monkeypatch.setattr("evalclaw.construction.suite.call_llm", responder)
 
 
 def dummy_config_kwargs() -> dict:

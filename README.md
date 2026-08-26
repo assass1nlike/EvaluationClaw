@@ -19,7 +19,7 @@ scoring, or source choices. It is not intended to produce a general field survey
   Gemini Google-Search grounding when `GEMINI_API_KEY` is set, or a key-free
   combination of arXiv + Wikipedia + DuckDuckGo otherwise.
 - One blueprint-driven construction route for multiple-choice, open-generation, code,
-  multimodal, multi-turn, and environment-interaction tasks. Execution fields are optional.
+  file-backed, multi-turn, and environment-interaction tasks. Execution fields are optional.
 - Model-generated benchmark tasks with optional web research and HuggingFace support.
 - Deterministic and LLM-assisted QC gates that replace only failed tasks and preserve
   QC-passed tasks from the same Blueprint.
@@ -65,7 +65,7 @@ is raised automatically and truncated responses are retried; set
 
 Canonical benchmark entity IDs are assigned by the framework. Planner and Task
 Builder responses should provide content, not IDs for plans, dimensions,
-TaskDesigns, tasks, resources, choice options, or multimodal assets. Choice
+TaskDesigns, tasks, resources, or choice options. Choice
 answers use zero-based `correct_choice_indices`; the framework maps them to
 canonical option IDs. IDs such as `item_id`, existing `dimension_id`,
 `resource_ids`, and `task_model_id` remain references to objects already supplied

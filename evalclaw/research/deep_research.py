@@ -6,12 +6,11 @@ benchmark-design evidence for the Planner and Task Builder.
 from __future__ import annotations
 
 import json
-import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Optional
 
 from ..models.json_utils import extract_json
-from ..models.llm import call_llm
+from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm
 from ..models.roles import role_model_settings
 from ..prompts.research import (
     RESEARCH_COMPRESS_SYSTEM_PROMPT,
@@ -45,18 +44,15 @@ def _call_orchestrator_json(
     config: BenchmarkConfig,
     system: str,
     payload: dict,
-    *,
-    max_tokens: int = 4096,
 ) -> dict:
     settings = role_model_settings(config, "research")
-    if os.environ.get("EVALCLAW_REASONING_EFFORT") == "low":
-        max_tokens = min(max_tokens, 2048)
     raw = call_llm(
         [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
         system=system,
         **settings.call_kwargs(),
         backend=config.llm_backend,
-        max_tokens=max_tokens,
+        max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+        expect_json=True,
     )
     data = extract_json(raw)
     return data if isinstance(data, dict) else {}
@@ -68,7 +64,6 @@ def _initial_queries(goal: str, config: BenchmarkConfig) -> list[str]:
             config,
             RESEARCH_QUERY_SYSTEM_PROMPT,
             {"goal": goal, "max_queries": MAX_QUERIES_PER_ROUND},
-            max_tokens=1024,
         )
         queries = [str(q).strip() for q in data.get("queries", []) if str(q).strip()]
         if queries:
@@ -213,7 +208,6 @@ def _reflect(
                 "round": round_index,
                 "max_rounds": max_rounds,
             },
-            max_tokens=1024,
         )
         return {
             "done": bool(data.get("done", False)),
@@ -398,7 +392,6 @@ def _synthesize(
                 config,
                 RESEARCH_SYNTHESIS_SYSTEM_PROMPT,
                 payload,
-                max_tokens=8192,
             )
             if data:
                 return _parse_brief(data, known_source_urls=known_source_urls)

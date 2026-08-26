@@ -13,10 +13,15 @@ from pathlib import Path
 from threading import Lock
 
 from ..core.task_summary import compact_task_content_summary
-from ..models.llm import LLMOutputTruncatedError, call_llm, extract_json
+from ..models.llm import (
+    DEFAULT_MAX_OUTPUT_TOKENS,
+    LLMFinalContentMissingError,
+    LLMOutputTruncatedError,
+    call_llm,
+    extract_json,
+)
 from ..models.roles import role_model_settings
 from ..prompts.task_builder import TASK_BUILDER_PROMPT
-from ..protocols.multimodal import normalize_multimodal_metadata
 from ..research.deep_research import compact_brief_context
 from ..types import (
     BenchmarkConfig,
@@ -33,7 +38,7 @@ from ..types import (
 )
 from .packaging import pack_task_item
 from .parsing import _task_from_raw
-from .research import TASK_BUILDER_RESEARCH_PROMPT, run_task_builder_research
+from .research import TASK_BUILDER_TOOL_PROMPT, run_task_builder_tools
 from .resources import (
     _dedupe_resources,
     _resource_from_raw,
@@ -71,8 +76,13 @@ def _ensure_unique_task_ids(tasks: list[TaskDefinition]) -> None:
 
 
 def _task_duplicate_key(task: TaskDefinition) -> str:
-    content: dict[str, object] = {"prompt": task.prompt}
-    if task.task_type == TaskType.multi_turn:
+    content: dict[str, object] = {
+        "prompt": task.prompt,
+        "assets": [asset.path for asset in task.assets],
+    }
+    if task.task_type == TaskType.choice:
+        content["choices"] = [choice.text for choice in task.choices]
+    elif task.task_type == TaskType.multi_turn:
         content.update(
             {
                 "system_prompt": task.system_prompt,
@@ -116,6 +126,7 @@ class _BlueprintBuildResult:
 class _ParsedBuilderResponse:
     resources: list[TaskResource]
     tasks: list[TaskDefinition]
+    valid_tasks: list[TaskDefinition]
     notes: list[str]
     validation_issues: list[str]
 
@@ -202,7 +213,7 @@ def _task_builder_payload(
         "challenge_effort": task_design.challenge_effort.value,
         "required_return_task_count": required_return_count,
     }
-    optional_fields = ["content_summary", "resource_ids", "tags"]
+    optional_fields = ["content_summary", "assets", "resource_ids", "tags"]
     task_schema: dict[str, object] = {
         "required": ["task_type", "title", "prompt", "challenge_effort", "metadata"],
         "optional": optional_fields,
@@ -222,7 +233,8 @@ def _task_builder_payload(
             "Provide at least two choices as objects with text only, and provide a non-empty "
             "correct_choice_indices list using zero-based positions. One index means single-choice; multiple "
             "indices mean multi-select. The framework assigns canonical option ids. "
-            "Do not put a multi-part answer object in a choice task."
+            "Do not put a multi-part answer object in a choice task. For choice tasks, you should put all "
+            "answer options only in choices; do not include option labels or repeat option text in prompt."
         ]
     if TaskType.fill_blank in task_types:
         optional_fields.append("expected_text")
@@ -647,10 +659,10 @@ def build_task_suite(
                     "requested_effort": (
                         design.challenge_effort.value if design else task.challenge_effort.value
                     ),
-                    "recovery_strategy": "reduced_effort_litellm_retry",
+                    "recovery_strategy": "compact_construction_retry",
                     "reason": (
                         "The original task-builder completion exhausted its output budget; "
-                        "the task was regenerated with reduced construction and reasoning effort."
+                        "the task was regenerated with a more compact construction scope."
                     ),
                 }
             return task
@@ -686,70 +698,62 @@ def build_task_suite(
             call_payload: dict[str, object],
             *,
             force_litellm: bool = False,
-            reduce_effort: bool = False,
         ) -> str:
-            has_retained_sources = bool(
-                config.research_brief and config.research_brief.source_materials
-            )
-            web_tools_enabled = (
-                config.use_web_research and str(config.search_backend).lower() != "none"
-            )
-            research_enabled = (
-                job_revision is None
-                and not reduce_effort
-                and blueprint.source_strategy != "generated"
-                and (
-                    (dimension.needs_research and (has_retained_sources or web_tools_enabled))
-                    or (dimension.challenge_effort == ChallengeEffort.E3 and web_tools_enabled)
-                )
-            )
+            tools_enabled = job_revision is None
             system_prompt = TASK_BUILDER_PROMPT
             if blueprint.requires_environment:
                 system_prompt += "\n\n" + environment_skill_system_prompt(blueprint)
-            if research_enabled:
-                system_prompt += "\n\n" + TASK_BUILDER_RESEARCH_PROMPT
-                try:
-                    raw_response, research_notes = run_task_builder_research(
-                        call_payload,
-                        system_prompt=system_prompt,
-                        config=config,
-                    )
-                    result_notes.extend(research_notes)
-                except LLMOutputTruncatedError:
-                    raise
-                except Exception as exc:
-                    result_notes.append(
-                        "Task-builder research tools were unavailable; continued with the regular "
-                        f"task-builder call ({type(exc).__name__}: {str(exc)[:180]})."
-                    )
-                    raw_response = call_llm(
-                        [Message(role="user", content=json.dumps(call_payload, ensure_ascii=False, indent=2))],
-                        system=system_prompt,
-                        **builder_settings.call_kwargs(),
-                        backend="litellm" if force_litellm else config.llm_backend,
-                        max_tokens=16384,
-                        reduce_reasoning_effort=reduce_effort,
-                        retry_on_truncation=False,
-                    )
+            if tools_enabled:
+                system_prompt += "\n\n" + TASK_BUILDER_TOOL_PROMPT
+                debug_kwargs = (
+                    {"debug_dir": debug_job_dir / "tool-trace"}
+                    if debug_job_dir is not None
+                    else {}
+                )
+                raw_response, tool_notes = run_task_builder_tools(
+                    call_payload,
+                    system_prompt=system_prompt,
+                    config=config,
+                    include_source_tools=blueprint.source_strategy != "generated",
+                    **debug_kwargs,
+                )
+                result_notes.extend(tool_notes)
             else:
                 raw_response = call_llm(
                     [Message(role="user", content=json.dumps(call_payload, ensure_ascii=False, indent=2))],
                     system=system_prompt,
                     **builder_settings.call_kwargs(),
                     backend="litellm" if force_litellm else config.llm_backend,
-                    max_tokens=16384,
-                    reduce_reasoning_effort=reduce_effort,
+                    max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
                     retry_on_truncation=False,
                 )
             if not raw_response.strip():
-                raise ValueError("empty response")
+                emit(
+                    f"  Task builder: final content missing for {label}; retrying once "
+                    "with thinking disabled."
+                )
+                raw_response = call_llm(
+                    [Message(role="user", content=json.dumps(call_payload, ensure_ascii=False, indent=2))],
+                    system=system_prompt,
+                    **builder_settings.call_kwargs(),
+                    backend="litellm" if force_litellm else config.llm_backend,
+                    max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+                    reduce_reasoning_effort=True,
+                    retry_on_truncation=False,
+                )
+            if not raw_response.strip():
+                raise LLMFinalContentMissingError(
+                    "TaskBuilder returned no final content after one no-thinking recovery attempt."
+                )
             return raw_response
 
         def parse_builder_response(parsed: dict[str, object]) -> _ParsedBuilderResponse:
             attempt_resources: list[TaskResource] = list(local_resources)
             attempt_tasks: list[TaskDefinition] = []
+            valid_tasks: list[TaskDefinition] = []
             attempt_notes: list[str] = []
             validation_issues: list[str] = []
+            response_level_issues: list[str] = []
             parsed_resources = parsed.get("resources", []) if isinstance(parsed.get("resources"), list) else []
             parsed_tasks = parsed.get("tasks", []) if isinstance(parsed.get("tasks"), list) else []
             if parsed.get("construction_notes"):
@@ -757,6 +761,11 @@ def build_task_suite(
             if not parsed_tasks:
                 keys = ", ".join(sorted(str(key) for key in parsed.keys()))
                 raise ValueError(f"LLM returned no tasks; parsed object keys were [{keys}].")
+            if job_revision and len(parsed_tasks) != target_task_count:
+                raise ValueError(
+                    f"LLM returned {len(parsed_tasks)} task object(s), "
+                    f"but this repair requires exactly {target_task_count} for positional matching."
+                )
             if len(parsed_tasks) > target_task_count:
                 raise ValueError(
                     f"LLM returned {len(parsed_tasks)} task object(s), "
@@ -799,34 +808,52 @@ def build_task_suite(
                 if count > 1
             )
             if duplicate_resource_ids:
-                validation_issues.append(
+                issue = (
                     "Resource ids must be unique within this Builder job: "
                     + ", ".join(duplicate_resource_ids)
                 )
+                validation_issues.append(issue)
+                response_level_issues.append(issue)
             known_resource_ids = {resource.id for resource in attempt_resources}
             if blueprint.source_strategy == "generated" and parsed_resources:
-                validation_issues.append(
-                    "generated source_plan.strategy requires an empty resources array."
-                )
+                issue = "generated source_plan.strategy requires an empty resources array."
+                validation_issues.append(issue)
+                response_level_issues.append(issue)
+            expected_id_order = (
+                [
+                    str(task.get("id") or "")
+                    for task in job_revision.get("previous_tasks", [])
+                    if isinstance(task, dict) and str(task.get("id") or "")
+                ]
+                if job_revision
+                else []
+            )
             added_for_blueprint = 0
             for idx, raw_task in enumerate(parsed_tasks, 1):
                 if not isinstance(raw_task, dict):
-                    raise ValueError(f"task #{idx} is not a JSON object.")
+                    validation_issues.append(f"task #{idx} is not a JSON object.")
+                    continue
                 try:
                     task = _task_from_raw(
                         raw_task,
-                        f"{blueprint.id}_task_{idx}",
+                        (
+                            expected_id_order[idx - 1]
+                            if idx <= len(expected_id_order)
+                            else f"{blueprint.id}_task_{idx}"
+                        ),
                         default_dimension_id=dimension.id,
                         default_task_type=planned_task_types[
                             min(idx - 1, len(planned_task_types) - 1)
                         ],
                     )
                 except Exception as exc:
-                    raise ValueError(
+                    validation_issues.append(
                         f"task #{idx} could not be normalized ({type(exc).__name__}: {exc})."
-                    ) from exc
+                    )
+                    continue
+                task_issues: list[str] = []
                 if not task.prompt.strip():
-                    raise ValueError(f"task #{idx} has an empty prompt.")
+                    task_issues.append("Task prompt is required.")
                 task.resource_ids = [
                     resource_aliases.get(resource_id, resource_id)
                     for resource_id in task.resource_ids
@@ -835,23 +862,15 @@ def build_task_suite(
                     min(idx - 1, len(planned_task_designs) - 1)
                 ]
                 task = tag_task(task, planned_design.id)
-                multimodal = normalize_multimodal_metadata(
-                    task.metadata.get("multimodal"),
-                    owner_id=task.id,
-                )
-                if multimodal is not None:
-                    task.metadata["multimodal"] = multimodal
                 planned_source_strategy = str(
                     planned_design.source_plan.get("strategy") or "generated"
                 )
                 if planned_source_strategy == "generated":
                     if task.resource_ids:
-                        validation_issues.append(
-                            f"task #{idx} ({task.id}): generated tasks must not set resource_ids."
-                        )
+                        task_issues.append("generated tasks must not set resource_ids.")
                 elif not task.resource_ids:
-                    validation_issues.append(
-                        f"task #{idx} ({task.id}): {planned_source_strategy} tasks must set "
+                    task_issues.append(
+                        f"{planned_source_strategy} tasks must set "
                         "top-level resource_ids to the exact source ids they use. "
                         "metadata.source_ids does not bind task provenance."
                     )
@@ -862,8 +881,8 @@ def build_task_suite(
                 )
                 unknown_resource_ids = sorted(set(task.resource_ids) - known_resource_ids)
                 if unknown_resource_ids:
-                    validation_issues.append(
-                        f"task #{idx} ({task.id}): resource_ids reference unknown resources: "
+                    task_issues.append(
+                        "resource_ids reference unknown resources: "
                         + ", ".join(unknown_resource_ids)
                     )
                 task_design_id = str(task.metadata.get("task_design_id") or "")
@@ -885,12 +904,14 @@ def build_task_suite(
                     if task_design is not None
                     else blueprint
                 )
-                task_issues = task_structure_issues(
-                    task,
-                    dimension=dimension,
-                    blueprint=validation_blueprint,
-                    task_design=task_design,
-                    require_challenge_effort_self_assessment=True,
+                task_issues.extend(
+                    task_structure_issues(
+                        task,
+                        dimension=dimension,
+                        blueprint=validation_blueprint,
+                        task_design=task_design,
+                        require_challenge_effort_self_assessment=True,
+                    )
                 )
                 if not task_design_id:
                     task_issues.append("Task metadata.task_design_id is required.")
@@ -916,9 +937,11 @@ def build_task_suite(
                     seen_task_prompts[duplicate_key] = task.id
                 validation_issues.extend(f"task #{idx} ({task.id}): {issue}" for issue in task_issues)
                 attempt_tasks.append(task)
+                if not task_issues:
+                    valid_tasks.append(task)
                 added_for_blueprint += 1
-            while added_for_blueprint < target_task_count:
-                raise ValueError(
+            if added_for_blueprint < target_task_count:
+                validation_issues.append(
                     f"LLM produced {added_for_blueprint} usable task(s), "
                     f"but this Builder job requires {target_task_count} usable task(s)."
                 )
@@ -941,17 +964,8 @@ def build_task_suite(
                     f"expected {dict(expected_design_counts)}, got {dict(actual_design_counts)}."
                 )
             if job_revision:
-                expected_id_order = [
-                    str(task.get("id") or "")
-                    for task in job_revision.get("previous_tasks", [])
-                    if isinstance(task, dict) and str(task.get("id") or "")
-                ]
                 expected_ids = set(expected_id_order)
                 returned_ids = {task.id for task in attempt_tasks}
-                if len(attempt_tasks) == len(expected_id_order):
-                    for task, expected_id in zip(attempt_tasks, expected_id_order, strict=True):
-                        task.id = expected_id
-                    returned_ids = expected_ids
                 if returned_ids != expected_ids:
                     validation_issues.append(
                         "Repair must preserve exactly the affected task ids: "
@@ -960,6 +974,7 @@ def build_task_suite(
             return _ParsedBuilderResponse(
                 resources=attempt_resources,
                 tasks=attempt_tasks,
+                valid_tasks=[] if response_level_issues else valid_tasks,
                 notes=attempt_notes,
                 validation_issues=validation_issues,
             )
@@ -973,7 +988,6 @@ def build_task_suite(
                 return call_task_builder(
                     call_payload,
                     force_litellm=force_litellm,
-                    reduce_effort=effort_fidelity_uncertain,
                 )
             except LLMOutputTruncatedError:
                 if force_litellm:
@@ -1000,22 +1014,23 @@ def build_task_suite(
                 recovery_payload = {**call_payload, "truncation_recovery": recovery}
                 emit(
                     f"  Task builder: output truncated for {label}; retrying once with "
-                    "reduced effort through LiteLLM."
+                    "compact construction guidance."
                 )
                 result_notes.append(
-                    f"{blueprint.id}: regenerated after output truncation with reduced effort; "
+                    f"{blueprint.id}: regenerated after output truncation with compact construction guidance; "
                     "challenge-effort fidelity marked uncertain."
                 )
                 return call_task_builder(
                     recovery_payload,
                     force_litellm=True,
-                    reduce_effort=True,
                 )
 
         parsed: object | None = None
         raw = ""
         repair_attempts = max(0, int(getattr(config, "task_builder_repair_attempts", 2) or 0))
         last_validation_issues: list[str] = []
+        last_failure_is_output = False
+        best_partial_result: _ParsedBuilderResponse | None = None
         repair_fields = (
             "missing or inconsistent type-specific fields, rubric, Judge tools, challenge_effort, and "
             "metadata.challenge_effort_self_assessment fields"
@@ -1053,8 +1068,10 @@ def build_task_suite(
             raw = ""
             parsed = None
             parsed_keys: list[str] = []
+            response_received = False
             try:
                 raw = request_builder_response(call_payload)
+                response_received = True
                 persist_builder_debug(
                     attempt=attempt,
                     status="response_received",
@@ -1066,6 +1083,7 @@ def build_task_suite(
                 parsed_keys = sorted(str(key) for key in parsed)
                 attempt_result = parse_builder_response(parsed)
             except LLMOutputTruncatedError as exc:
+                last_failure_is_output = True
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
                 persist_builder_debug(
                     attempt=attempt,
@@ -1077,7 +1095,17 @@ def build_task_suite(
                     f"  Task builder: reduced-effort LiteLLM retry also truncated for {label}."
                 )
                 break
+            except LLMFinalContentMissingError as exc:
+                last_validation_issues = [f"{type(exc).__name__}: {exc}"]
+                persist_builder_debug(
+                    attempt=attempt,
+                    status="final_content_missing",
+                    validation_issues=last_validation_issues,
+                    error=exc,
+                )
+                raise strict_error(blueprint, str(exc)) from exc
             except Exception as exc:
+                last_failure_is_output = response_received
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
                 persist_builder_debug(
                     attempt=attempt,
@@ -1109,6 +1137,12 @@ def build_task_suite(
                     tasks=attempt_result.tasks,
                     notes=result_notes + attempt_result.notes,
                 )
+            if job_revision and attempt_result.valid_tasks and (
+                best_partial_result is None
+                or len(attempt_result.valid_tasks) > len(best_partial_result.valid_tasks)
+            ):
+                best_partial_result = attempt_result
+            last_failure_is_output = True
             last_validation_issues = attempt_result.validation_issues
             persist_builder_debug(
                 attempt=attempt,
@@ -1127,11 +1161,43 @@ def build_task_suite(
                     f"({len(last_validation_issues)} issue(s))."
                 )
 
-        raise strict_error(
-            blueprint,
+        failure_message = (
             "structural validation failed after "
-            f"{repair_attempts} repair attempt(s): {'; '.join(last_validation_issues[:6])}",
+            f"{repair_attempts} repair attempt(s): {'; '.join(last_validation_issues[:6])}"
         )
+        if job_revision is not None and best_partial_result is not None:
+            retained_resource_ids = {
+                resource_id
+                for task in best_partial_result.valid_tasks
+                for resource_id in task.resource_ids
+            }
+            emit(
+                f"  Task builder: keeping {len(best_partial_result.valid_tasks)} structurally valid "
+                f"replacement(s) from {label}; its other previous tasks remain unchanged."
+            )
+            return _BlueprintBuildResult(
+                order=job.order,
+                resources=[
+                    resource
+                    for resource in best_partial_result.resources
+                    if resource.id in retained_resource_ids
+                ],
+                tasks=best_partial_result.valid_tasks,
+                notes=result_notes + best_partial_result.notes,
+            )
+        if job_revision is not None and last_failure_is_output:
+            emit(
+                f"  Task builder: no valid replacement produced for {label}; "
+                "keeping its previous tasks."
+            )
+            result_notes.append(f"{blueprint.id}: {failure_message}")
+            return _BlueprintBuildResult(
+                order=job.order,
+                resources=[],
+                tasks=[],
+                notes=result_notes,
+            )
+        raise strict_error(blueprint, failure_message)
 
     max_workers = max(1, int(getattr(config, "task_builder_max_workers", 4) or 1))
     completed_jobs = 0
@@ -1187,12 +1253,6 @@ def build_task_suite(
     resource_by_id = {resource.id: resource for resource in resources}
     items: list[BenchmarkItem] = []
     for task in tasks:
-        multimodal = normalize_multimodal_metadata(
-            task.metadata.get("multimodal"),
-            owner_id=task.id,
-        )
-        if multimodal is not None:
-            task.metadata["multimodal"] = multimodal
         blueprint = blueprint_by_id.get(str(task.metadata.get("builder_job_id") or ""))
         task_design = None
         if blueprint is not None:

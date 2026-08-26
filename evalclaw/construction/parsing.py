@@ -152,6 +152,7 @@ def _task_from_raw(
         content_summary=str(raw.get("content_summary") or ""),
         description=str(raw.get("description") or ""),
         prompt=str(raw.get("prompt") or ""),
+        assets=raw.get("assets", []),
         choices=choices,
         correct_choice_ids=correct_choice_ids,
         expected_text=(
@@ -182,6 +183,7 @@ def _task_from_raw(
                 scoring.get("partial_criteria") or pass_fail.get("partial") or ""
             ),
             fail_criteria=str(scoring.get("fail_criteria") or pass_fail.get("fail") or ""),
+            allows_partial_credit=bool(scoring.get("allows_partial_credit", False)),
             score_levels=(
                 {str(key): str(value) for key, value in levels.items()}
                 if isinstance(levels, dict)

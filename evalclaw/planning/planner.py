@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ..core.scaling import scale_budget_target_items
-from ..models.llm import call_llm, extract_json
+from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..prompts.planner import TRANSLATION_SYSTEM_PROMPT
 from ..types import (
@@ -25,7 +25,8 @@ def translate_goal_to_english(goal: str, config: BenchmarkConfig) -> str:
             system=TRANSLATION_SYSTEM_PROMPT,
             **settings.call_kwargs(),
             backend=config.llm_backend,
-            max_tokens=1024,
+            max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+            expect_json=True,
         )
         data = extract_json(raw)
         translated = str(data.get("english_goal") or "").strip()

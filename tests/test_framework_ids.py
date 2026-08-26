@@ -7,7 +7,6 @@ from evalclaw.construction.resources import _resource_from_raw
 from evalclaw.core.identifiers import normalize_choice_data
 from evalclaw.planning.loop import _apply_review
 from evalclaw.planning.task_planner import _parse_plan_response
-from evalclaw.protocols.multimodal import normalize_multimodal_metadata
 from evalclaw.types import BenchmarkConfig, EvalDimension, EvalSpec, QcReport, TaskSuite, TaskType
 from tests.config_helpers import dummy_config_kwargs
 
@@ -113,20 +112,34 @@ def test_choice_indices_are_zero_based_and_canonical() -> None:
     assert correct == ["B"]
 
 
-def test_resources_and_multimodal_assets_ignore_model_ids() -> None:
+def test_resources_ignore_model_ids_and_task_assets_only_accept_paths() -> None:
     resource = _resource_from_raw({"id": "model-resource", "uri": "https://example.com"}, "framework-resource-1")
-    metadata = normalize_multimodal_metadata(
+    task = _task_from_raw(
         {
-            "assets": [{"id": "model-asset", "kind": "image", "uri": "https://example.com/a.png"}],
-            "content": [{"type": "asset", "asset_id": "model-asset"}],
+            "task_type": "fill_blank",
+            "title": "Image task",
+            "prompt": "Inspect fixture.png.",
+            "assets": [{"path": "fixture.png"}],
+            "expected_text": "yes",
         },
-        owner_id="framework-task-1",
+        "framework-task-1",
+        default_dimension_id="vision",
     )
 
     assert resource.id == "framework-resource-1"
-    assert metadata is not None
-    assert metadata["assets"][0]["id"] == "framework-task-1_asset_1"
-    assert metadata["content"][0]["asset_id"] == "framework-task-1_asset_1"
+    assert task.assets[0].path == "fixture.png"
+    with pytest.raises(ValueError):
+        _task_from_raw(
+            {
+                "task_type": "fill_blank",
+                "title": "Invalid image task",
+                "prompt": "Inspect fixture.png.",
+                "assets": [{"path": "fixture.png", "kind": "image"}],
+                "expected_text": "yes",
+            },
+            "framework-task-2",
+            default_dimension_id="vision",
+        )
 
 
 def test_review_refs_can_target_new_framework_dimension_ids() -> None:

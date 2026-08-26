@@ -7,12 +7,17 @@ import time
 from collections import defaultdict
 from typing import Any, Callable
 
-from ..models.llm import call_llm, call_target_model, extract_json
+from ..models.llm import (
+    DEFAULT_MAX_OUTPUT_TOKENS,
+    call_llm,
+    call_target_model,
+    extract_json,
+)
 from ..models.roles import resolve_task_model
-from ..protocols.multimodal import (
-    build_multimodal_user_content,
-    get_multimodal_spec,
-    multimodal_unsupported_reason,
+from ..protocols.assets import (
+    build_asset_user_content,
+    image_input_unsupported_reason,
+    is_image_asset,
 )
 from ..protocols.task_agent import (
     get_task_agent_spec,
@@ -153,7 +158,7 @@ def _call_judge_json(prompt: dict, config: BenchmarkConfig, judge_config) -> dic
             api_key=judge_config.api_key,
             base_url=judge_config.base_url,
             backend=config.llm_backend,
-            max_tokens=1024,
+            max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
         )
         try:
             parsed = extract_json(raw)
@@ -178,29 +183,40 @@ def _call_judge_json(prompt: dict, config: BenchmarkConfig, judge_config) -> dic
 
 
 def _target_user_content(item: BenchmarkItem, target: object) -> str | list[dict[str, Any]] | None:
-    if not get_multimodal_spec(item):
+    if not item.assets:
         return None
-    return build_multimodal_user_content(item, _target_prompt(item), getattr(target, "provider", "openai"))
+    return build_asset_user_content(item, _target_prompt(item), getattr(target, "provider", "openai"))
 
 
-def _multimodal_items(items: list[BenchmarkItem]) -> list[BenchmarkItem]:
-    return [item for item in items if get_multimodal_spec(item)]
+def _asset_items(items: list[BenchmarkItem]) -> list[BenchmarkItem]:
+    return [item for item in items if item.assets]
 
 
-def validate_multimodal_target_support(items: list[BenchmarkItem], config: BenchmarkConfig) -> None:
-    """Raise before running multimodal items on targets that cannot accept them."""
-    multimodal_items = _multimodal_items(items)
-    if not multimodal_items or not config.run_targets:
+def validate_asset_target_support(items: list[BenchmarkItem], config: BenchmarkConfig) -> None:
+    """Raise before sending task assets to incompatible target models."""
+    asset_items = _asset_items(items)
+    if not asset_items or not config.run_targets:
         return
-    item_ids = ", ".join(item.id for item in multimodal_items[:5])
-    if len(multimodal_items) > 5:
-        item_ids += f", ... (+{len(multimodal_items) - 5} more)"
+    unsupported_paths = [
+        asset.path
+        for item in asset_items
+        for asset in item.assets
+        if not is_image_asset(asset)
+    ]
+    if unsupported_paths:
+        raise ValueError(
+            "Native target calls support image assets only: "
+            + ", ".join(unsupported_paths[:5])
+        )
+    item_ids = ", ".join(item.id for item in asset_items[:5])
+    if len(asset_items) > 5:
+        item_ids += f", ... (+{len(asset_items) - 5} more)"
 
     errors: list[str] = []
     for target in config.targets:
-        reason = multimodal_unsupported_reason(target)
+        reason = image_input_unsupported_reason(target)
         if reason:
-            errors.append(f"{reason} Multimodal item(s): {item_ids}.")
+            errors.append(f"{reason} Asset item(s): {item_ids}.")
     if errors:
         raise ValueError("\n".join(errors))
 
@@ -218,7 +234,6 @@ def _call_task_agent_json(
     config: BenchmarkConfig,
     *,
     system_fallback: str,
-    max_tokens: int = 1024,
 ) -> dict[str, Any] | None:
     model_config = resolve_task_model(config, item)
     if model_config is None:
@@ -232,7 +247,7 @@ def _call_task_agent_json(
         base_url=model_config.base_url,
         provider=model_config.provider,
         backend=config.llm_backend,
-        max_tokens=max_tokens,
+        max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
     )
     try:
         parsed = extract_json(raw)
@@ -379,7 +394,7 @@ def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[
         api_key=judge_config.api_key,
         base_url=judge_config.base_url,
         backend=config.llm_backend,
-        max_tokens=1024,
+        max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
     )
     data = extract_json(raw)
     parsed = data.get("turns", [])
@@ -430,7 +445,18 @@ def _task_agent_next_turn(
 def _run_multi_turn(item: BenchmarkItem, target: object, config: BenchmarkConfig) -> tuple[str, float, str]:
     history: list[Message] = []
     initial_prompt = task_agent_initial_user_message(item)
-    first = call_target_model(initial_prompt, target, history=history, backend=config.llm_backend)
+    initial_content = (
+        build_asset_user_content(item, initial_prompt, getattr(target, "provider", "openai"))
+        if item.assets
+        else None
+    )
+    first = call_target_model(
+        initial_prompt,
+        target,
+        history=history,
+        backend=config.llm_backend,
+        user_content=initial_content,
+    )
     history.extend([Message(role="user", content=initial_prompt), Message(role="assistant", content=first)])
     scripted = _multi_turn_followups(item, config)
     task_agent_errors: list[str] = []
@@ -598,7 +624,7 @@ def run_eval(
     """Run accepted items against all configured target models."""
     execution_plan = build_execution_plan(suite, qc_report)
     accepted = execution_plan.suite.tasks
-    validate_multimodal_target_support(accepted, config)
+    validate_asset_target_support(accepted, config)
     results: list[ItemResult] = []
     if config.run_targets and config.targets:
         total = len(accepted) * len(config.targets)
@@ -628,5 +654,5 @@ def run_eval(
 def run_item(item: BenchmarkItem, config: BenchmarkConfig) -> ItemResult:
     if not config.targets:
         raise ValueError("BenchmarkConfig.targets is empty")
-    validate_multimodal_target_support([item], config)
+    validate_asset_target_support([item], config)
     return _run_item(item, config, config.targets[0].id)
