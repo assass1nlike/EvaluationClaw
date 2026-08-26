@@ -6,10 +6,12 @@ import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
+from pathlib import Path
 from typing import Any, Callable
 
 from ..construction.suite import build_task_suite
 from ..core.scaling import target_count_for_dimension
+from ..diagnostics import error_record, new_debug_dir, write_json
 from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..planning.task_planner import plan_from_spec
@@ -221,6 +223,7 @@ def _planner_review(
     config: BenchmarkConfig,
     *,
     human_feedback: str | None = None,
+    trace_dir: Path | None = None,
 ) -> dict[str, Any]:
     settings = role_model_settings(config, "planner")
     if not settings.configured:
@@ -241,6 +244,9 @@ def _planner_review(
         "qc_issues": [issue.model_dump(mode="json") for issue in qc_report.issues[:60]],
         "items": _review_item_excerpts(suite, human_feedback),
     }
+    if trace_dir is not None:
+        write_json(trace_dir / "request.json", {"system": system, "payload": payload})
+    raw: str | None = None
     try:
         raw = call_llm(
             [Message(role="user", content=json.dumps(payload, ensure_ascii=False, indent=2))],
@@ -249,10 +255,19 @@ def _planner_review(
             backend=config.llm_backend,
             max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
             expect_json=True,
+            trace_dir=trace_dir / "llm" if trace_dir is not None else None,
+            trace_name="planner-review",
         )
         data = extract_json(raw)
+        if trace_dir is not None:
+            write_json(trace_dir / "response.json", {"raw": raw, "parsed": data})
         return data if isinstance(data, dict) else {"done": True, "notes": "Planner review returned non-object JSON."}
     except Exception as exc:
+        if trace_dir is not None:
+            write_json(
+                trace_dir / "failure.json",
+                {"raw_response": raw, **error_record(exc)},
+            )
         return {"done": True, "notes": f"Planner dataset review failed; task rebuild used: {exc}"}
 
 
@@ -868,7 +883,16 @@ def apply_human_review_feedback(
     ``update_items`` in place (via a targeted Builder revision that preserves
     their ids), and generates only the missing items each dimension still needs.
     """
-    review = _planner_review(suite, qc_report, config, human_feedback=feedback)
+    trace_dir = new_debug_dir(config.output_dir, "human-review")
+    if trace_dir is not None:
+        write_json(trace_dir / "input.json", {"feedback": feedback})
+    review = _planner_review(
+        suite,
+        qc_report,
+        config,
+        human_feedback=feedback,
+        trace_dir=trace_dir,
+    )
     outcome = _apply_review(suite, review, qc_report, config)
     notes = outcome.notes
     if log and notes:
@@ -925,5 +949,19 @@ def apply_human_review_feedback(
     )
     new_suite.plan = suite.plan
     revised_spec = new_suite.spec
-    revised_qc = run_qc_gate(new_suite, config)
+    revised_qc = run_qc_gate(
+        new_suite,
+        config,
+        trace_dir=trace_dir / "qc" if trace_dir is not None else None,
+    )
+    if trace_dir is not None:
+        write_json(
+            trace_dir / "result.json",
+            {
+                "review": review,
+                "spec": revised_spec.model_dump(mode="json"),
+                "suite": new_suite.model_dump(mode="json"),
+                "qc_report": revised_qc.model_dump(mode="json"),
+            },
+        )
     return revised_spec, new_suite, revised_qc

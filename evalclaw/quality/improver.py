@@ -5,11 +5,13 @@ import difflib
 import json
 import uuid
 from collections import Counter, defaultdict
+from pathlib import Path
 from queue import Empty, Queue
 from threading import Thread
 from typing import Callable
 
 from ..construction.suite import build_task_suite
+from ..diagnostics import error_record, new_debug_dir, write_json
 from ..execution.runner import run_eval
 from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
@@ -225,7 +227,12 @@ def _diagnosis_payload(
     }
 
 
-def _call_loop3_llm_json(payload: dict, config: BenchmarkConfig) -> dict:
+def _call_loop3_llm_json(
+    payload: dict,
+    config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
+) -> dict:
     result_queue: Queue[tuple[dict | None, BaseException | None]] = Queue(maxsize=1)
     settings = role_model_settings(config, "loop3")
 
@@ -238,6 +245,8 @@ def _call_loop3_llm_json(payload: dict, config: BenchmarkConfig) -> dict:
                 backend=config.llm_backend,
                 max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
                 expect_json=True,
+                trace_dir=trace_dir / "llm" if trace_dir is not None else None,
+                trace_name="diagnosis",
             )
             data = extract_json(raw)
             result_queue.put_nowait((data, None))
@@ -262,14 +271,22 @@ def _diagnose_with_llm(
     qc_report: QcReport,
     run: EvalRun,
     config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
 ) -> tuple[list[ImprovementAction], str]:
     if config.loop3_diagnosis == "local" or not role_model_settings(config, "loop3").configured:
         return _diagnose_locally(suite, qc_report, run), "Local Loop 3 diagnosis."
     payload = _diagnosis_payload(suite, qc_report, run, config)
+    if trace_dir is not None:
+        write_json(trace_dir / "diagnosis-request.json", payload)
     try:
-        data = _call_loop3_llm_json(payload, config)
+        data = _call_loop3_llm_json(payload, config, trace_dir=trace_dir)
     except Exception as exc:
+        if trace_dir is not None:
+            write_json(trace_dir / "diagnosis-failure.json", error_record(exc))
         return _diagnose_locally(suite, qc_report, run), f"LLM Loop 3 diagnosis failed; used local fallback: {exc}"
+    if trace_dir is not None:
+        write_json(trace_dir / "diagnosis-response.json", data)
     actions: list[ImprovementAction] = []
     for raw_action in data.get("actions", []):
         if not isinstance(raw_action, dict):
@@ -434,27 +451,45 @@ def run_loop3_improvement(
     log: Callable[[str], None] | None = None,
 ) -> ImprovementIteration:
     """Diagnose and apply one self-improvement iteration."""
+    trace_dir = new_debug_dir(config.output_dir, "loop3")
     if log:
         log(
             f"  [Loop 3] Diagnosing with mode={config.loop3_diagnosis}, "
             f"timeout={config.loop3_diagnosis_timeout_s}s..."
         )
-    actions, notes = _diagnose_with_llm(suite, qc_report, run, config)
+    actions, notes = _diagnose_with_llm(
+        suite,
+        qc_report,
+        run,
+        config,
+        trace_dir=trace_dir,
+    )
     max_actions = _loop3_action_limit(config)
     actions = actions[:max_actions]
     if log:
         log(f"  [Loop 3] Diagnosis produced {len(actions)} action(s).")
     if not actions:
-        return ImprovementIteration(iteration=iteration, actions=[], notes=notes or "No improvements needed.")
+        result = ImprovementIteration(
+            iteration=iteration,
+            actions=[],
+            notes=notes or "No improvements needed.",
+        )
+        if trace_dir is not None:
+            write_json(trace_dir / "result.json", result.model_dump(mode="json"))
+        return result
     improved_suite = _replace_or_expand_items(suite, actions, config, log=log)
     if log:
         log(f"  [Loop 3] Improved suite has {len(improved_suite.tasks)} item(s).")
         log("  [Loop 3] Running improved QC...")
-    improved_qc = run_qc_gate(improved_suite, config)
+    improved_qc = run_qc_gate(
+        improved_suite,
+        config,
+        trace_dir=trace_dir / "qc" if trace_dir is not None else None,
+    )
     if log:
         log("  [Loop 3] Rerunning targets on improved suite...")
     improved_run = run_eval(improved_suite, improved_qc, config)
-    return ImprovementIteration(
+    result = ImprovementIteration(
         iteration=iteration,
         actions=actions,
         suite=improved_suite,
@@ -462,3 +497,6 @@ def run_loop3_improvement(
         run=improved_run,
         notes=notes,
     )
+    if trace_dir is not None:
+        write_json(trace_dir / "result.json", result.model_dump(mode="json"))
+    return result

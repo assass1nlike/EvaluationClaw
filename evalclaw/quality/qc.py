@@ -27,7 +27,7 @@ def _persist_qc_trace(
     trace_dir: Path,
     suite: TaskSuite,
     llm_trace: dict[str, object],
-    report: QcReport,
+    report: QcReport | None,
 ) -> None:
     trace_dir.mkdir(parents=True, exist_ok=True)
     (trace_dir / "suite.json").write_text(
@@ -60,10 +60,11 @@ def _persist_qc_trace(
         json.dumps(diagnostics, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-    (trace_dir / "report.json").write_text(
-        json.dumps(report.model_dump(mode="json"), ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    if report is not None:
+        (trace_dir / "report.json").write_text(
+            json.dumps(report.model_dump(mode="json"), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
 
 
 def run_qc_gate(
@@ -79,7 +80,12 @@ def run_qc_gate(
     issues.extend(_duplicate_issues(suite.tasks, near_duplicate_limit=_near_duplicate_limit(suite, config)))
     issues.extend(_coverage_issues(suite))
     llm_trace: dict[str, object] = {}
-    issues.extend(_llm_qc(suite, config, trace=llm_trace))
+    try:
+        issues.extend(_llm_qc(suite, config, trace=llm_trace, trace_dir=trace_dir))
+    except Exception:
+        if trace_dir is not None:
+            _persist_qc_trace(Path(trace_dir), suite, llm_trace, None)
+        raise
 
     rejected_ids = {
         issue.item_id

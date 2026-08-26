@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import json
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from typing import Callable, Optional
 
+from ..diagnostics import error_record, write_json
 from ..models.json_utils import extract_json
 from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm
 from ..models.roles import role_model_settings
@@ -44,6 +46,9 @@ def _call_orchestrator_json(
     config: BenchmarkConfig,
     system: str,
     payload: dict,
+    *,
+    trace_dir: Path | None = None,
+    trace_name: str = "research",
 ) -> dict:
     settings = role_model_settings(config, "research")
     raw = call_llm(
@@ -53,23 +58,33 @@ def _call_orchestrator_json(
         backend=config.llm_backend,
         max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
         expect_json=True,
+        trace_dir=trace_dir,
+        trace_name=trace_name,
     )
     data = extract_json(raw)
     return data if isinstance(data, dict) else {}
 
 
-def _initial_queries(goal: str, config: BenchmarkConfig) -> list[str]:
+def _initial_queries(
+    goal: str,
+    config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
+) -> list[str]:
     try:
         data = _call_orchestrator_json(
             config,
             RESEARCH_QUERY_SYSTEM_PROMPT,
             {"goal": goal, "max_queries": MAX_QUERIES_PER_ROUND},
+            trace_dir=trace_dir,
+            trace_name="initial-queries",
         )
         queries = [str(q).strip() for q in data.get("queries", []) if str(q).strip()]
         if queries:
             return queries[:MAX_QUERIES_PER_ROUND]
-    except Exception:
-        pass
+    except Exception as exc:
+        if trace_dir is not None:
+            write_json(trace_dir / "initial-query-fallback.json", error_record(exc))
     return [goal, f"{goal} benchmark dataset", f"{goal} evaluation examples"]
 
 
@@ -77,6 +92,8 @@ def _gather_round(
     queries: list[str],
     config: BenchmarkConfig,
     fetched_urls: set[str],
+    *,
+    trace_dir: Path | None = None,
 ) -> tuple[list[dict], list[dict]]:
     """Search each query and fetch top result URLs.
 
@@ -84,17 +101,32 @@ def _gather_round(
     """
     material: list[dict] = []
     citations: list[dict] = []
+    searches: list[dict] = []
     settings = role_model_settings(config, "research")
     for query in queries[:MAX_QUERIES_PER_ROUND]:
-        result = web_search(
-            query,
-            api_key=settings.api_key,
-            model=settings.model,
-            backend=config.search_backend,
-            raise_on_error=True,
-        )
+        try:
+            result = web_search(
+                query,
+                api_key=settings.api_key,
+                model=settings.model,
+                backend=config.search_backend,
+                raise_on_error=True,
+            )
+        except Exception as exc:
+            searches.append({"query": query, **error_record(exc)})
+            if trace_dir is not None:
+                write_json(trace_dir / "searches.json", searches)
+            raise
         if not result:
+            searches.append({"query": query, "result": None})
             continue
+        searches.append(
+            {
+                "query": query,
+                "content": result.content,
+                "citations": result.citations,
+            }
+        )
         result_urls = [
             str(citation.get("url") or "")
             for citation in result.citations
@@ -132,10 +164,29 @@ def _gather_round(
     for url, text in zip(fetch_urls, fetched_text):
         if text:
             material.append({"url": url, "title": titles_by_url.get(url, url), "content": text})
+    if trace_dir is not None:
+        write_json(trace_dir / "searches.json", searches)
+        write_json(
+            trace_dir / "fetches.json",
+            [
+                {
+                    "url": url,
+                    "status": "fetched" if text else "unavailable",
+                    "content": text,
+                }
+                for url, text in zip(fetch_urls, fetched_text)
+            ],
+        )
     return material, citations
 
 
-def _compress(goal: str, material: list[dict], config: BenchmarkConfig) -> list[dict]:
+def _compress(
+    goal: str,
+    material: list[dict],
+    config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
+) -> list[dict]:
     if not material:
         return []
     try:
@@ -143,6 +194,8 @@ def _compress(goal: str, material: list[dict], config: BenchmarkConfig) -> list[
             config,
             RESEARCH_COMPRESS_SYSTEM_PROMPT,
             {"goal": goal, "material": material},
+            trace_dir=trace_dir,
+            trace_name="compress",
         )
         allowed_urls = {
             str(url)
@@ -171,8 +224,9 @@ def _compress(goal: str, material: list[dict], config: BenchmarkConfig) -> list[
             )
         if evidence:
             return evidence
-    except Exception:
-        pass
+    except Exception as exc:
+        if trace_dir is not None:
+            write_json(trace_dir / "compress-fallback.json", error_record(exc))
     # Fallback: keep clipped raw snippets so synthesis still has material.
     return [
         {
@@ -197,6 +251,8 @@ def _reflect(
     round_index: int,
     max_rounds: int,
     config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
 ) -> dict:
     try:
         data = _call_orchestrator_json(
@@ -208,6 +264,8 @@ def _reflect(
                 "round": round_index,
                 "max_rounds": max_rounds,
             },
+            trace_dir=trace_dir,
+            trace_name="reflect",
         )
         return {
             "done": bool(data.get("done", False)),
@@ -216,7 +274,9 @@ def _reflect(
                 str(q).strip() for q in data.get("follow_up_queries", []) if str(q).strip()
             ][:MAX_QUERIES_PER_ROUND],
         }
-    except Exception:
+    except Exception as exc:
+        if trace_dir is not None:
+            write_json(trace_dir / "reflection-fallback.json", error_record(exc))
         # If reflection fails, stop iterating rather than looping blindly.
         return {"done": True, "gaps": [], "follow_up_queries": []}
 
@@ -372,6 +432,8 @@ def _synthesize(
     citations: list[dict],
     hf_sources: list[BenchmarkSource],
     config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
 ) -> ResearchBrief:
     known_sources = [
         {"title": str(c.get("title") or c.get("url") or ""), "url": str(c.get("url") or "")}
@@ -386,17 +448,29 @@ def _synthesize(
         "known_sources": known_sources,
     }
     known_source_urls = {str(source.get("url") or "") for source in known_sources if source.get("url")}
-    for _attempt in range(2):
+    attempts: list[dict] = []
+    for attempt in range(1, 3):
         try:
             data = _call_orchestrator_json(
                 config,
                 RESEARCH_SYNTHESIS_SYSTEM_PROMPT,
                 payload,
+                trace_dir=trace_dir,
+                trace_name=f"synthesis-{attempt:02d}",
             )
             if data:
+                attempts.append({"attempt": attempt, "status": "completed", "parsed": data})
+                if trace_dir is not None:
+                    write_json(trace_dir / "synthesis.json", attempts)
                 return _parse_brief(data, known_source_urls=known_source_urls)
-        except Exception:
+            attempts.append({"attempt": attempt, "status": "empty"})
+        except Exception as exc:
+            attempts.append({"attempt": attempt, "status": "failed", **error_record(exc)})
+            if trace_dir is not None:
+                write_json(trace_dir / "synthesis.json", attempts)
             continue
+    if trace_dir is not None:
+        write_json(trace_dir / "synthesis.json", attempts + [{"status": "local_fallback"}])
     return _fallback_brief(goal, evidence, citations, hf_sources)
 
 
@@ -404,6 +478,8 @@ def _discover_benchmark_sources(
     goal: str,
     queries: list[str],
     config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
 ) -> list[BenchmarkSource]:
     if not config.use_hf_discovery:
         return []
@@ -416,7 +492,9 @@ def _discover_benchmark_sources(
     )
     try:
         return discover_hf_datasets(dimension, limit=config.max_research_sources)
-    except Exception:
+    except Exception as exc:
+        if trace_dir is not None:
+            write_json(trace_dir / "hf-discovery-error.json", error_record(exc))
         return []
 
 
@@ -425,6 +503,7 @@ def run_deep_research(
     config: BenchmarkConfig,
     *,
     log: Optional[Callable[[str], None]] = None,
+    trace_dir: str | Path | None = None,
 ) -> Optional[ResearchBrief]:
     """Run the bounded deep-research loop and return a ResearchBrief.
 
@@ -433,15 +512,36 @@ def run_deep_research(
     web-research toggle does not govern this explicitly requested stage.
     """
     _log = log or (lambda _msg: None)
+    trace_root = Path(trace_dir) if trace_dir is not None else None
+    if trace_root is not None:
+        trace_root.mkdir(parents=True, exist_ok=True)
+        write_json(trace_root / "input.json", {"goal": goal})
     if not role_model_settings(config, "research").configured:
+        if trace_root is not None:
+            write_json(trace_root / "failure.json", {"error": "Research role is not configured."})
         return None
     if (config.search_backend or "auto").lower() == "none":
+        if trace_root is not None:
+            write_json(trace_root / "failure.json", {"error": "Search backend is disabled."})
         return None
 
-    queries = _initial_queries(goal, config)
+    queries = _initial_queries(goal, config, trace_dir=trace_root / "llm" if trace_root else None)
     _log(f"  [deep-research] Initial queries: {queries}")
 
-    hf_sources = _discover_benchmark_sources(goal, queries, config)
+    hf_sources = _discover_benchmark_sources(
+        goal,
+        queries,
+        config,
+        trace_dir=trace_root,
+    )
+    if trace_root is not None:
+        write_json(
+            trace_root / "initial-state.json",
+            {
+                "queries": queries,
+                "hf_sources": [source.model_dump(mode="json") for source in hf_sources],
+            },
+        )
     if hf_sources:
         _log(f"  [deep-research] HF benchmark candidates: {len(hf_sources)}")
 
@@ -452,7 +552,20 @@ def run_deep_research(
     max_rounds = max(1, config.max_research_iterations)
 
     for round_index in range(1, max_rounds + 1):
-        material, round_citations = _gather_round(queries, config, fetched_urls)
+        round_trace = trace_root / f"round-{round_index:02d}" if trace_root else None
+        if round_trace is not None:
+            write_json(round_trace / "input.json", {"queries": queries})
+        try:
+            material, round_citations = _gather_round(
+                queries,
+                config,
+                fetched_urls,
+                trace_dir=round_trace,
+            )
+        except Exception as exc:
+            if round_trace is not None:
+                write_json(round_trace / "failure.json", error_record(exc))
+            raise
         citations.extend(round_citations)
         for entry in material:
             url = str(entry.get("url") or "")
@@ -468,25 +581,57 @@ def run_deep_research(
             current = source_materials.get(url)
             if current is None or len(retained.content) > len(current.content):
                 source_materials[url] = retained
-        new_evidence = _compress(goal, material, config)
+        new_evidence = _compress(
+            goal,
+            material,
+            config,
+            trace_dir=round_trace / "llm" if round_trace else None,
+        )
         evidence.extend(new_evidence)
         _log(
             f"  [deep-research] Round {round_index}/{max_rounds}: "
             f"{len(material)} materials -> {len(new_evidence)} design evidence entries"
         )
-        reflection = _reflect(goal, evidence, round_index, max_rounds, config)
+        reflection = _reflect(
+            goal,
+            evidence,
+            round_index,
+            max_rounds,
+            config,
+            trace_dir=round_trace / "llm" if round_trace else None,
+        )
+        if round_trace is not None:
+            write_json(
+                round_trace / "result.json",
+                {
+                    "material": material,
+                    "citations": round_citations,
+                    "new_evidence": new_evidence,
+                    "reflection": reflection,
+                },
+            )
         if reflection["done"] or not reflection["follow_up_queries"]:
             _log("  [deep-research] Reflection: no remaining gaps.")
             break
         queries = reflection["follow_up_queries"]
         _log(f"  [deep-research] Gaps: {reflection['gaps']} -> follow-up queries: {queries}")
 
-    brief = _synthesize(goal, evidence, citations, hf_sources, config)
-    return brief.model_copy(
+    brief = _synthesize(
+        goal,
+        evidence,
+        citations,
+        hf_sources,
+        config,
+        trace_dir=trace_root / "synthesis" if trace_root else None,
+    )
+    result = brief.model_copy(
         update={
             "source_materials": list(source_materials.values()),
         }
     )
+    if trace_root is not None:
+        write_json(trace_root / "brief.json", result.model_dump(mode="json"))
+    return result
 
 
 def compact_brief_context(brief: ResearchBrief) -> dict:

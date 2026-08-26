@@ -203,6 +203,7 @@ For task_type=multi_turn or task_type=agent:
 
 For items with assets:
 - Every asset should contain one path to a real local file.
+- Absolute local paths are valid; do not flag a path merely because it is absolute.
 - The prompt should refer to each asset by that exact path.
 - The current native target adapter supports image files only.
 

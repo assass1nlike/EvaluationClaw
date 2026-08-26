@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import uuid
 from collections import Counter, defaultdict
 from collections.abc import Callable
@@ -14,10 +15,8 @@ from threading import Lock
 
 from ..core.task_summary import compact_task_content_summary
 from ..models.llm import (
-    DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
     LLMOutputTruncatedError,
-    call_llm,
     extract_json,
 )
 from ..models.roles import role_model_settings
@@ -29,7 +28,6 @@ from ..types import (
     ChallengeEffort,
     EvalDimension,
     EvalSpec,
-    Message,
     TaskBlueprint,
     TaskDefinition,
     TaskResource,
@@ -38,7 +36,7 @@ from ..types import (
 )
 from .packaging import pack_task_item
 from .parsing import _task_from_raw
-from .research import TASK_BUILDER_TOOL_PROMPT, run_task_builder_tools
+from .research import TASK_BUILDER_TOOL_PROMPT, run_task_builder_tools, task_builder_work_dir
 from .resources import (
     _dedupe_resources,
     _resource_from_raw,
@@ -312,7 +310,12 @@ def _task_builder_payload(
 
     contract: dict[str, object] = {
         "task_schema": task_schema,
-        "response_format": "Return one complete JSON object with construction_notes, resources, and tasks.",
+        "response_format": (
+            "Edit the complete JSON object at revision.path in place, then return a compact JSON "
+            "confirmation."
+            if revision_context
+            else "Return one complete JSON object with construction_notes, resources, and tasks."
+        ),
     }
     if blueprint.requires_environment:
         optional_fields.extend(["environment", "system_prompt", "interaction"])
@@ -352,7 +355,11 @@ def _task_builder_payload(
             ],
         }
     if revision_context:
-        payload["revision"] = revision_context
+        payload["revision"] = {
+            key: revision_context[key]
+            for key in ("path", "qc_issues", "instruction")
+            if key in revision_context
+        }
     return payload
 
 
@@ -400,17 +407,29 @@ def _revision_context_for_job(
     ]
     if job_issues and not affected_ids:
         affected_tasks = matched
+    resource_ids = {
+        resource_id
+        for task in affected_tasks
+        for resource_id in task.get("resource_ids", [])
+        if isinstance(resource_id, str)
+    }
+    previous_resources = revision_context.get("previous_resources", [])
     return {
         **revision_context,
         "previous_tasks": affected_tasks,
+        "previous_resources": [
+            resource
+            for resource in previous_resources
+            if isinstance(resource, dict) and resource.get("id") in resource_ids
+        ],
         "qc_issues": job_issues,
         "expected_replacement_count": len(affected_tasks),
         "instruction": (
             str(revision_context.get("instruction"))
             or (
-                "Return replacements only for the tasks listed in previous_tasks, in the same order. "
-                "The framework restores each existing task id by slot. Fix every listed QC issue, "
-                "but do not return or modify any other task from the TaskDesign."
+                "Use run_python to read and edit the task-builder JSON at revision.path in place. "
+                "Fix every listed QC issue, preserve the order and read-only ids of the tasks in "
+                "that file, and do not add any other task from the TaskDesign."
             )
         ),
     }
@@ -592,6 +611,34 @@ def build_task_suite(
             _resource_from_source(source, f"{blueprint.id}_resource_{idx}")
             for idx, source in enumerate(source_candidates, 1)
         ]
+        if job_revision:
+            work_dir = task_builder_work_dir(config, blueprint.id)
+            if work_dir is None:
+                raise strict_error(
+                    blueprint,
+                    "benchmark output_dir is required for file-based QC repair.",
+                )
+            revision_dir = work_dir / "qc-repair" / debug_invocation_id
+            revision_dir.mkdir(parents=True, exist_ok=True)
+            best_path = revision_dir / "best.json"
+            candidate_path = revision_dir / "candidate.json"
+            best_path.write_text(
+                json.dumps(
+                    {
+                        "construction_notes": "",
+                        "resources": job_revision.get("previous_resources", []),
+                        "tasks": job_revision.get("previous_tasks", []),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            shutil.copyfile(best_path, candidate_path)
+            job_revision = {**job_revision, "path": str(candidate_path.resolve())}
+            emit(
+                f"  Task builder: saved QC best and candidate JSON for {label}: {revision_dir}."
+            )
         result_resources: list[TaskResource] = list(local_resources)
         result_tasks: list[TaskDefinition] = []
         result_notes: list[str] = []
@@ -699,51 +746,28 @@ def build_task_suite(
             *,
             force_litellm: bool = False,
         ) -> str:
-            tools_enabled = job_revision is None
             system_prompt = TASK_BUILDER_PROMPT
             if blueprint.requires_environment:
                 system_prompt += "\n\n" + environment_skill_system_prompt(blueprint)
-            if tools_enabled:
-                system_prompt += "\n\n" + TASK_BUILDER_TOOL_PROMPT
-                debug_kwargs = (
-                    {"debug_dir": debug_job_dir / "tool-trace"}
-                    if debug_job_dir is not None
-                    else {}
-                )
-                raw_response, tool_notes = run_task_builder_tools(
-                    call_payload,
-                    system_prompt=system_prompt,
-                    config=config,
-                    include_source_tools=blueprint.source_strategy != "generated",
-                    **debug_kwargs,
-                )
-                result_notes.extend(tool_notes)
-            else:
-                raw_response = call_llm(
-                    [Message(role="user", content=json.dumps(call_payload, ensure_ascii=False, indent=2))],
-                    system=system_prompt,
-                    **builder_settings.call_kwargs(),
-                    backend="litellm" if force_litellm else config.llm_backend,
-                    max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
-                    retry_on_truncation=False,
-                )
-            if not raw_response.strip():
-                emit(
-                    f"  Task builder: final content missing for {label}; retrying once "
-                    "with thinking disabled."
-                )
-                raw_response = call_llm(
-                    [Message(role="user", content=json.dumps(call_payload, ensure_ascii=False, indent=2))],
-                    system=system_prompt,
-                    **builder_settings.call_kwargs(),
-                    backend="litellm" if force_litellm else config.llm_backend,
-                    max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
-                    reduce_reasoning_effort=True,
-                    retry_on_truncation=False,
-                )
-            if not raw_response.strip():
+            system_prompt += "\n\n" + TASK_BUILDER_TOOL_PROMPT
+            debug_kwargs = (
+                {"debug_dir": debug_job_dir / "tool-trace"}
+                if debug_job_dir is not None
+                else {}
+            )
+            raw_response, tool_notes = run_task_builder_tools(
+                call_payload,
+                system_prompt=system_prompt,
+                config=config,
+                include_source_tools=blueprint.source_strategy != "generated",
+                **debug_kwargs,
+            )
+            result_notes.extend(tool_notes)
+            if job_revision:
+                raw_response = Path(str(job_revision["path"])).read_text(encoding="utf-8")
+            if job_revision and not raw_response.strip():
                 raise LLMFinalContentMissingError(
-                    "TaskBuilder returned no final content after one no-thinking recovery attempt."
+                    "TaskBuilder produced an empty QC candidate file."
                 )
             return raw_response
 
@@ -1042,9 +1066,28 @@ def build_task_suite(
         for attempt in range(repair_attempts + 1):
             call_payload = active_payload
             if attempt > 0:
-                previous_response = parsed
-                if previous_response is None and raw:
-                    previous_response = {"raw_response_prefix": raw[:4000]}
+                previous_response = None
+                if not job_revision:
+                    previous_response = parsed
+                    if previous_response is None and raw:
+                        previous_response = {"raw_response_prefix": raw[:4000]}
+                repair_instruction = (
+                    "Use run_python to repair the complete JSON object at revision.path in place. "
+                    "Do not return a patch. Preserve the intended capability target and all unaffected "
+                    "task content while fixing every listed structural issue. The tasks array in that "
+                    f"file must contain exactly {target_task_count} complete task(s)."
+                    if job_revision
+                    else (
+                        "Return a complete replacement JSON object with resources and tasks. "
+                        "Do not return a patch. Preserve the intended capability target, but repair "
+                        "all malformed JSON, incorrect top-level response types, and "
+                        f"{repair_fields} that the listed issues identify. "
+                        "Do not redesign or extensively modify unaffected task content. Preserve sound "
+                        "prompts, fixtures, files, environment behavior, evaluator checks, scoring, and "
+                        "metadata byte-for-byte where practical. The tasks array must contain "
+                        f"exactly {target_task_count} complete task(s) with the required type counts."
+                    )
+                )
                 call_payload = {
                     **active_payload,
                     "repair": {
@@ -1052,19 +1095,11 @@ def build_task_suite(
                         "attempt": attempt,
                         "max_repair_attempts": repair_attempts,
                         "issues": last_validation_issues,
-                        "instruction": (
-                            "Return a complete replacement JSON object with resources and tasks. "
-                            "Do not return a patch. Preserve the intended capability target, but repair "
-                            "all malformed JSON, incorrect top-level response types, and "
-                            f"{repair_fields} that the listed issues identify. "
-                            "Do not redesign or extensively modify unaffected task content. Preserve sound "
-                            "prompts, fixtures, files, environment behavior, evaluator checks, scoring, and "
-                            "metadata byte-for-byte where practical. The tasks array must contain "
-                            f"exactly {target_task_count} complete task(s) with the required type counts."
-                        ),
-                        "previous_response": previous_response,
+                        "instruction": repair_instruction,
                     },
                 }
+                if previous_response is not None:
+                    call_payload["repair"]["previous_response"] = previous_response
             raw = ""
             parsed = None
             parsed_keys: list[str] = []

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from ..core.scaling import scale_budget_target_items
+from ..diagnostics import new_debug_dir
 from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..prompts.planner import TRANSLATION_SYSTEM_PROMPT
@@ -19,6 +20,7 @@ def translate_goal_to_english(goal: str, config: BenchmarkConfig) -> str:
         raise RuntimeError(
             "Planner model is not configured; an LLM is required to normalize the evaluation goal."
         )
+    trace_dir = new_debug_dir(config.output_dir, "translation")
     try:
         raw = call_llm(
             [Message(role="user", content=goal)],
@@ -27,6 +29,8 @@ def translate_goal_to_english(goal: str, config: BenchmarkConfig) -> str:
             backend=config.llm_backend,
             max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
             expect_json=True,
+            trace_dir=trace_dir,
+            trace_name="translation",
         )
         data = extract_json(raw)
         translated = str(data.get("english_goal") or "").strip()

@@ -47,9 +47,9 @@ Planner 收到用户目标、题量指导、支持的题型与执行环境，以
 
 一次完整调用由 system prompt（base prompt、可选环境 Skill、构题工具 prompt，见[B.4](#appendix-b-task-builder)）与 user message（当前题目设计信息、题量/题型规定、可用来源等，见[D.1](#appendix-d-payload)）组成。
 
-TaskBuilder 初次构题时可调用 `run_python` 做计算、验证或生成题目文件；非 generated 的 TaskDesign 还可调用 `read_research_source`、`search_web`、`fetch_url` 和 `download_files` 读取来源。框架把工具结果追加进消息历史继续对话，直到 TaskBuilder 不再调用工具（工具 schema、预算与收尾见[D.2](#appendix-d-tools)）。`search_web` 是否可用仍由网页搜索配置决定；QC 修复不启用构题工具。TaskBuilder 最终在同一次对话的末条回复里返回完整的构题 JSON，每道题是一个完整的 `TaskDefinition`，评分指标属单题契约，各题型的完整字段与分支见[D.3](#appendix-d-task-types)。
+TaskBuilder 可调用 `run_python` 做计算、验证、生成题目文件或编辑 QC 候选；非 generated 的 TaskDesign 还可调用 `read_research_source`、`search_web`、`fetch_url` 和 `download_files` 读取来源。框架把工具结果追加进消息历史继续对话，直到 TaskBuilder 不再调用工具（工具 schema、预算与收尾见[D.2](#appendix-d-tools)）。`search_web` 是否可用仍由网页搜索配置决定。初次构题时，TaskBuilder 在末条回复中返回完整构题 JSON；QC 修复时，它编辑框架提供的候选 JSON 文件并返回简短确认。每道题是一个完整的 `TaskDefinition`，评分指标属单题契约，各题型的完整字段与分支见[D.3](#appendix-d-task-types)。
 
-TaskBuilder 返回后，框架立即做纯代码结构检查，按题型分支校验各种字段契约（完整清单见[I.7](#appendix-i-structure)，与全局 QC 的静态检查[I.4](#appendix-i-static)是两层）。发现错误后，把结构错误和上次返回内容交回 TaskBuilder，要求重新返回完整 JSON（repair 输入见[D.4](#appendix-d-repair)）。
+TaskBuilder 返回后，框架立即做纯代码结构检查，按题型分支校验各种字段契约（完整清单见[I.7](#appendix-i-structure)，与全局 QC 的静态检查[I.4](#appendix-i-static)是两层）。初次构题发现错误时，把结构错误和上次返回内容交回 TaskBuilder，要求重新返回完整 JSON；QC 候选发现错误时，只发送错误并让 TaskBuilder 继续编辑同一个候选文件（repair 输入见[D.4](#appendix-d-repair)）。
 
   ### 3. 构题整合出 run-ready TaskSuite
 
@@ -122,9 +122,9 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 | B1 | 每个 TaskDesign | TaskBuilder | base + 可选环境 Skill + 构题工具 prompt | TaskBuilder payload JSON | `run_python`；非 generated 另有 4 个来源工具 | resources/tasks |
 | B2 | 使用构题工具 | TaskBuilder | 与 B1 相同 | user + assistant tool call + tool result | 与 B1 相同 | 最终完整 JSON |
 | B3 | Builder 输出截断 | TaskBuilder | 与 B1 相同 | payload + truncation recovery | 与 B1 相同 | 紧凑替换 JSON |
-| B4 | Builder 结构不合法 | TaskBuilder | 与 B1 相同 | payload + repair | 依条件 | 完整替换 JSON |
+| B4 | Builder 结构不合法 | TaskBuilder | 与 B1 相同 | payload + repair | 与 B1 相同 | 初次构题返回完整 JSON；QC repair 编辑候选文件 |
 | Q1 | 配置 QC 模型 | QC | `QC_SYSTEM_PROMPT` | 抽样数据集 JSON | 无 | issues/summary |
-| B5 | QC 拒绝具体题 | TaskBuilder | 普通 Builder system | 仅失败题的 revision payload | 无构题工具 | 按原顺序返回替换题，框架恢复 ID |
+| B5 | QC 拒绝具体题 | TaskBuilder | base + 可选环境 Skill + 构题工具 prompt | 候选 JSON 路径与失败题 issues | 与 B1 相同 | 原地修改候选文件，框架读取并恢复 ID |
 | H1 | 人工反馈 | Planner | review prompt + 可选反馈说明 | 数据集摘要/QC/item excerpts | 无 | review actions |
 | H2 | 改写/补题 | TaskBuilder | 普通 Builder system | 定向 revision（update_items）或按缺失量裁剪 spec 生成的 payload | 视情况 | 框架恢复 ID 的改写题 / 框架生成 ID 的补齐题 |
 
@@ -139,6 +139,8 @@ Deep Research 由四类独立 LLM 调用串成，不是一次长对话；搜索�
 3. **R2 材料压缩**：Research 角色 LLM 把本轮材料压缩成带设计影响和来源 URL 的 evidence。
 4. **R3 缺口反思**：Research 角色 LLM 判断是否还有关键缺口；有则生成下一轮查询，否则结束循环。
 5. **R4 最终综合**：Research 角色 LLM 把累计 evidence 综合成 ResearchBrief 的设计字段。
+
+研究目录逐轮保存查询、搜索结果、抓取正文与状态、压缩 evidence、反思结果和模型调用；最终 `brief.json` 在综合完成后立即写入，Planner 尚未开始或后续阶段失败也不会丢失。
 
 四类调用的精确 `system`/`user` 组成见上方「执行前 LLM 调用总表」的 `R1-R4` 行与附录 B.2；`web_search`、`fetch_url_text` 和 HuggingFace discovery 是搜索后端而非角色 LLM 调用，其边界见下方「边界说明」。
 
@@ -649,8 +651,7 @@ Your entire final response must be the contents of the planning JSON file. Retur
 TASK_BUILDER_PROMPT
 + 若 builder_job.requires_environment:
     "\n\n" + environment_skill_system_prompt(builder_job)
-+ 若 tools_enabled:
-    "\n\n" + TASK_BUILDER_TOOL_PROMPT
++ "\n\n" + TASK_BUILDER_TOOL_PROMPT
 ~~~
 
 `environment_skill_system_prompt()` 包含完整环境 Skill、当前 TaskDesign 到 reference
@@ -660,8 +661,8 @@ TASK_BUILDER_PROMPT
 <!-- -->
 You are the EvaluationClaw Task Builder.
 <!-- -->
-Implement one Planner-authored TaskDesign. When revision is present, implement
-only the listed replacement tasks from that TaskDesign. Generate the number and
+Implement one Planner-authored TaskDesign. When revision is present, repair only
+the tasks stored in the referenced JSON file. Generate the number and
 task type required by task_builder_contract. Treat the TaskDesign, resources,
 and response schema as authoritative. A TaskDesign with task_count greater than
 one describes a group of distinct tasks that all follow that design. Do not
@@ -682,8 +683,9 @@ Follow task_plan.task_design.source_plan.strategy exactly:
   without content-level changes.
 Formatting and packaging normalization do not count as content-level changes.
 <!-- -->
-Use English unless the evaluation explicitly tests another language. Return
-pure JSON only, with no markdown. The top-level object must contain:
+Use English unless the evaluation explicitly tests another language. During
+initial construction, return pure JSON only, with no markdown. The top-level
+object must contain:
 {
   &quot;construction_notes&quot;: &quot;...&quot;,
   &quot;resources&quot;: [],
@@ -734,8 +736,9 @@ the framework assigns canonical option ids and maps the answer key.
 Use each task&#39;s top-level assets list for files that are part of the task input.
 Every asset object must contain exactly one field, path, whose value names a real
 local file available to the runner. Refer to an asset in prompt only by that exact
-path. Return an empty assets list when the task has no file input. Do not put task
-input files in metadata.
+path. Asset paths and filenames are visible to the evaluated model, so name files
+without revealing answers or other unintended information. Return an empty assets
+list when the task has no file input. Do not put task input files in metadata.
 <!-- -->
 For initial construction, the tasks array length and per-type counts must
 exactly match the TaskDesign. For QC repair, they must instead exactly match
@@ -770,10 +773,11 @@ source-backed. If the required material cannot be accessed or verified, keep
 the provenance honest and state the limitation in construction_notes rather
 than claiming that the task is grounded in details you did not obtain.
 <!-- -->
-During QC repair, return replacements only for revision.previous_tasks and keep
-the same order as that list. The framework restores each affected task&#39;s
-existing id by slot, so do not emit a replacement id. Fix every listed issue
-and do not return or modify tasks that are not listed for repair.</code></pre></details>
+During QC repair, use run_python to read and edit the complete task-builder JSON
+at revision.path in place. The tasks already in that file are the only tasks to
+repair. Keep their order and treat their existing ids as read-only so the
+framework can match them to revision.qc_issues. Fix every listed issue, save the
+file, and return only a compact JSON confirmation after editing.</code></pre></details>
 <details><summary>构题工具 schema 与消息循环：<code>evalclaw/construction/research.py</code></summary><pre><code class="language-python">&quot;&quot;&quot;Bounded tools for TaskBuilder construction.&quot;&quot;&quot;
 from __future__ import annotations
 <!-- -->
@@ -810,8 +814,10 @@ verbatim in prompt. When source tools are available, use read_research_source to
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
-Return the complete task-builder JSON object after tool use. The tool budget is
-bounded; stop once the task is adequately constructed.
+During QC repair, use run_python to edit the JSON file at revision.path in place,
+then return a compact JSON confirmation. Otherwise, return the complete task-builder
+JSON object after tool use. The tool budget is bounded; stop once the task is
+adequately constructed.
 &quot;&quot;&quot;
 <!-- -->
 <!-- -->
@@ -932,6 +938,18 @@ def _file_state(directory: Path) -&gt; dict[Path, tuple[int, int]]:
             stat = path.stat()
             state[path] = (stat.st_size, stat.st_mtime_ns)
     return state
+<!-- -->
+<!-- -->
+def task_builder_work_dir(config: BenchmarkConfig, builder_job_id: str) -&gt; Path | None:
+    if not str(config.output_dir).strip():
+        return None
+    safe_job_id = re.sub(r&quot;[^A-Za-z0-9._-]+&quot;, &quot;_&quot;, builder_job_id).strip(&quot;._&quot;)
+    return (
+        Path(config.output_dir).expanduser().resolve()
+        / &quot;assets&quot;
+        / &quot;task-builder&quot;
+        / (safe_job_id or &quot;task-builder&quot;)
+    )
 <!-- -->
 <!-- -->
 def _execute_task_builder_tool(
@@ -1179,14 +1197,13 @@ def run_task_builder_tools(
     calls_used = 0
     task_plan = payload.get(&quot;task_plan&quot;) if isinstance(payload.get(&quot;task_plan&quot;), dict) else {}
     builder_job_id = str(task_plan.get(&quot;builder_job_id&quot;) or &quot;task-builder&quot;)
-    safe_job_id = re.sub(r&quot;[^A-Za-z0-9._-]+&quot;, &quot;_&quot;, builder_job_id).strip(&quot;._&quot;)
-    work_dir = (
-        Path(config.output_dir).expanduser().resolve()
-        / &quot;assets&quot;
-        / &quot;task-builder&quot;
-        / (safe_job_id or &quot;task-builder&quot;)
-        if str(config.output_dir).strip()
-        else None
+    work_dir = task_builder_work_dir(config, builder_job_id)
+    revision = payload.get(&quot;revision&quot;) if isinstance(payload.get(&quot;revision&quot;), dict) else {}
+    revision_path = str(revision.get(&quot;path&quot;) or &quot;&quot;).strip()
+    final_instruction = (
+        &quot;The candidate file has been edited. Return a compact JSON confirmation now.&quot;
+        if revision_path
+        else &quot;Return the complete final task-builder JSON now.&quot;
     )
     while True:
         response = call_orchestrator_with_tools(
@@ -1206,7 +1223,7 @@ def run_task_builder_tools(
             messages.append(
                 {
                     &quot;role&quot;: &quot;user&quot;,
-                    &quot;content&quot;: &quot;The bounded tool budget is exhausted. Return the complete final task-builder JSON now without further tool calls.&quot;,
+                    &quot;content&quot;: f&quot;The bounded tool budget is exhausted. {final_instruction}&quot;,
                 }
             )
             response = call_orchestrator_with_tools(
@@ -1245,7 +1262,7 @@ def run_task_builder_tools(
             messages.append(
                 {
                     &quot;role&quot;: &quot;user&quot;,
-                    &quot;content&quot;: &quot;The bounded tool budget is exhausted. Return the complete final task-builder JSON now without further tool calls.&quot;,
+                    &quot;content&quot;: f&quot;The bounded tool budget is exhausted. {final_instruction}&quot;,
                 }
             )
             response = call_orchestrator_with_tools(
@@ -1669,6 +1686,7 @@ For task_type=multi_turn or task_type=agent:
 <!-- -->
 For items with assets:
 - Every asset should contain one path to a real local file.
+- Absolute local paths are valid; do not flag a path merely because it is absolute.
 - The prompt should refer to each asset by that exact path.
 - The current native target adapter supports image files only.
 <!-- -->
@@ -2994,7 +3012,7 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
 <a id="appendix-d-tools"></a>
 ### D.2 构题工具消息
 
-所有 TaskDesign 在初次构题时都可使用 `run_python`；adapted、reused 和 imported_dataset 还可使用四个来源工具。QC repair 不启用构题工具。关闭网页搜索只会禁用 `search_web`，不会阻止读取既有正文、抓取 URL 正文或下载明确给出的文件。工具 schema 由模型调用接口直接提供，不在 D.1 的 user JSON 中重复声明。
+所有 TaskDesign 在初次构题和 QC repair 时都可使用 `run_python`；adapted、reused 和 imported_dataset 还可使用四个来源工具。关闭网页搜索只会禁用 `search_web`，不会阻止读取既有正文、抓取 URL 正文或下载明确给出的文件。工具 schema 由模型调用接口直接提供，不在 D.1 的 user JSON 中重复声明。
 
 工具：
 
@@ -3008,10 +3026,10 @@ assistant tool call 与 tool results 继续追加进同一 `messages`。Anthropi
 OpenAI Responses 分别使用各自原生 tool-result 格式。达到预算后追加：
 
 ~~~text
-The bounded tool budget is exhausted. Return the complete final task-builder JSON now without further tool calls.
+The bounded tool budget is exhausted. Return the complete final task-builder JSON now.
 ~~~
 
-然后以 `tools=[]` 做最终请求。
+然后以 `tools=[]` 做最终请求；QC repair 改为要求确认候选文件已经保存。
 
 <a id="appendix-d-task-types"></a>
 ### D.3 各题型完整字段契约
@@ -3028,7 +3046,7 @@ The bounded tool budget is exhausted. Return the complete final task-builder JSO
 | `challenge_effort` | 与所属 TaskDesign 一致 |
 | `metadata` | 含构题自检及题型所需的其他元数据 |
 
-`id`、`dimension_id` 和 `metadata.task_design_id` 由框架在解析后写入；TaskBuilder 不返回这些字段。公共可选字段为 `content_summary`、`assets`、`resource_ids`、`tags`，其他字段按当前题型动态加入。`assets` 是由 `{"path":"..."}` 组成的列表；路径必须指向真实本地文件，且 prompt 必须原样引用使用到的路径。没有文件输入时返回空列表。
+`id`、`dimension_id` 和 `metadata.task_design_id` 由框架在解析后写入；TaskBuilder 不返回这些字段。公共可选字段为 `content_summary`、`assets`、`resource_ids`、`tags`，其他字段按当前题型动态加入。`assets` 是由 `{"path":"..."}` 组成的列表；路径必须指向真实本地文件，且 prompt 必须原样引用使用到的路径。完整路径会进入目标模型输入，因此文件名不得泄露答案或其他非预期信息。没有文件输入时返回空列表。
 正常构题还要求：
 
 ~~~json
@@ -3159,21 +3177,19 @@ evaluator/checks 或任务特定 rubric。environment 只允许用于 agent。�
 
 若模型正常结束但没有返回最终正文，框架仅关闭 thinking，以原 payload 重试一次；仍无正文则报模型输出失败。该恢复不属于结构修复，也不消耗结构修复次数。工具调用会保留已有工具结果后执行同样的最终正文恢复。
 
-QC 定向重构增加：
+QC 定向重构时，框架把当前最佳版本中仅需修复的题目及其资源写入 `best.json`，复制为同目录的 `candidate.json`，并发送：
 
 ~~~json
 {
   "revision": {
-    "previous_tasks": ["仅失败题的完整旧 JSON"],
+    "path": "candidate.json 的绝对路径",
     "qc_issues": ["相关 QC issues"],
-    "expected_replacement_count": 2,
-    "replacement_context": "轮次上下文"
+    "instruction": "用 run_python 原地编辑该文件，只修复其中题目并保留顺序和 id"
   }
 }
 ~~~
 
-此时 contract 题量分布按旧失败题重算。Builder 按 `previous_tasks` 的顺序只返回这些替换题，框架按位置恢复原题 ID；通过题不进入输入。返回题数与 `previous_tasks` 一致时，各题独立接受结构校验，合法替换题可以单独进入 QC；题数不一致时无法确定位置对应关系，整份响应无效。
-QC repair 不启用构题工具。
+TaskBuilder 用 `run_python` 读取并原地编辑 `candidate.json`，框架不把旧题正文序列化进 user prompt。`best.json` 保留进入本轮时的历史最佳版本。通过题不写入该文件；候选题顺序和只读 id 用于对应 QC issue。框架从编辑后的文件加载任务，各题独立接受结构校验，合法替换题可以单独进入 QC；题数不一致时无法确定位置对应关系，整份候选无效。QC 候选的结构修复继续编辑同一文件，repair payload 只增加结构问题，不附带 `previous_response`。
 
 <a id="appendix-e"></a>
 ## 附录 E：LLM QC 输入契约
@@ -3328,7 +3344,7 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 - **generation / multi_turn**：有 rubric（error）。
 - **judge_tools**：只允许 `python_tests`（error）；仅 generation/multi-turn/agent 可用（error）；`test_code` 必须消费 `{model_output}`（error）。
 - **agent**：无 rubric 时必须有可执行环境 evaluator（error）；`metadata.agent_env` 必须存在（error）；环境文件路径无跨生命周期重叠（error）；`setup_commands` 不引用 hidden_files（error）；workspace/code_sandbox/gui_desktop 各有必填契约。
-- **题目文件**：`assets` 中每项只有 `path`；路径非空、指向真实文件，并被 prompt 原样引用。TaskDesign 声明非文本输入或文件要求时，`assets` 不得为空。
+- **题目文件**：`assets` 中每项只有 `path`；路径非空、指向真实文件，并被 prompt 原样引用。TaskDesign 声明非文本输入或文件要求时，`assets` 不得为空。路径会进入目标模型输入，文件名不得泄露答案或其他非预期信息。
 - **science / task_agent / agent_task_package**：schema_version、system_prompt、scoring guidance 等 metadata 契约。
 - **rubric 自纠正**：对非 choice 题检测 rubric 中自纠正/矛盾参考答案（error）。
 
@@ -3392,7 +3408,7 @@ TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结�
 5. **生成 `task_agent` metadata**（`_task_agent_metadata_for_task`，不调用模型）：仅当题目是 `multi_turn` 或带 `environment` 时执行。内容包括 `agent_role`（multi_turn 为 `dialogue_simulator`，其余为 `target_agent_executor`）、`system_prompt`（沿用 `task.system_prompt` 或按角色给默认值）、`initial_content`（汇总环境的可见文件/session/vm/browser 等公开信息）、归一化后的 `scoring`（`allows_partial_credit=true` 且未给出 `score_levels` 时补 0/0.5/1 映射）。
 6. **生成 `agent_env` 与 `agent_task_package`**（仅带 `environment` 的题目，不调用模型）：`_environment_for_runner` 把 `TaskDefinition.environment` 按环境类型（workspace/code_sandbox/docker_workspace/gui_desktop）铺开成 runner 可直接消费的字典，补默认值（如 workspace 缺 `rooms` 时补一个最小房间布局，`code_sandbox` 缺 `test_command` 时补 `python3 tests.py`）；`_agent_task_package_for_task` 在此基础上组装完整的 `agent_task_package`（能力目标、环境需求、可见输入、隐藏引用、输出契约、执行/求值/产物采集/轨迹要求、来源溯源），若 Builder 已给出同 schema 版本的旧值则做字段级合并而非整体覆盖。
 7. **构造 `BenchmarkSource`**：优先从 `agent_task_package.resource_provenance` 取来源类型与 URI；若无则退回 `task.resource_ids` 指向的 `TaskResource`；两者都没有则标记为 `self_generated`。
-8. **组装 `BenchmarkItem`**：字段为 `id`、`dimension_id`、`task_type`、`prompt`、`assets`、`choices`、`correct_choice_ids`、`expected_text`、`rubric`（第 4 步结果）、`judge_tools`、`output_contract`、`challenge_effort`、`source`（第 7 步结果）、`tags`、`metadata`（含前述步骤写入的所有字段），并保留原始 `TaskDefinition` 到 `source_definition`（`exclude=True`，不写入 JSON）供 QC repair 取回传给 TaskBuilder。`build_task_suite` 最终把它加入 `TaskSuite.tasks`。
+8. **组装 `BenchmarkItem`**：字段为 `id`、`dimension_id`、`task_type`、`prompt`、`assets`、`choices`、`correct_choice_ids`、`expected_text`、`rubric`（第 4 步结果）、`judge_tools`、`output_contract`、`challenge_effort`、`source`（第 7 步结果）、`tags`、`metadata`（含前述步骤写入的所有字段），并保留原始 `TaskDefinition` 到 `source_definition`（`exclude=True`，不写入 JSON），用于创建 QC repair 的候选文件。`build_task_suite` 最终把它加入 `TaskSuite.tasks`。
 
 ### I.9 BenchmarkItem 字段
 
@@ -3415,7 +3431,7 @@ run-ready 的单题格式，定义在 `evalclaw/types.py`：
 | `source` | `BenchmarkSource` | self_generated | 来源 provenance |
 | `tags` | `list[str]` | `[]` | 标签 |
 | `metadata` | `dict` | `{}` | 含 `task_content_summary`、`task_structure_validation`、`task_agent`、`agent_env`、`agent_task_package` 等打包期写入字段 |
-| `source_definition` | `Optional[TaskDefinition]` | `None` | 打包前的原始 `TaskDefinition`；`exclude=True`，不写入 JSON，仅供内存中 QC repair 取回 |
+| `source_definition` | `Optional[TaskDefinition]` | `None` | 打包前的原始 `TaskDefinition`；`exclude=True`，不写入 suite JSON，用于创建 QC repair 候选文件 |
 
 `metadata.builder_job_id` / `metadata.task_design_id` 记录题目所属 Builder job 与 TaskDesign；`item.builder_job_id` / `item.task_design_id` 是读取它们的便捷属性。
 
@@ -3446,6 +3462,8 @@ run-ready 的单题格式，定义在 `evalclaw/types.py`：
 - **阻塞错误**：`blocking_errors` 非空且 `run_targets=true` 时流程直接报错停止；`run_environment_claw` 同时返回更新后的 config（用于把探测到的 bridge/VM 地址注入目标执行）。
 
 随后检查题目文件与 target 协议的兼容性：普通目标模型调用当前只支持图像文件，target 不支持图像输入时直接抛错。当存在 `code_sandbox`/`docker_workspace` 题且 `environment_preflight=true` 时，还会对这些可执行题做 setup/evaluator preflight（`_preflight_executable_items`），发现的问题计入 `blocking_errors`。
+
+每次环境准备都会先在 `output_dir/debug/environment/` 保存报告；可执行题的 preflight 在销毁容器前另存环境状态、完整 evaluator 输出和不含 runner-private 文件的工作区。即使 `blocking_errors` 使 pipeline 停止，这些产物仍然保留。
 
 ### J.3 目标模型调用
 
@@ -3481,7 +3499,9 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 - `manifest.json`：artifact 索引。
 - `lm-eval/`：`runner=lm-eval` 或 `auto` 时的 JSONL/YAML/metadata 导出；`run_lm_eval` 对每个 target 运行 lm-eval-harness（若可解析出可执行文件），结果写入 `lm-eval-results/<target>/`。
 
-持久化前所有产物统一执行 `_redact_secrets`（掩码 `sk-` 开头的密钥串）。
+`debug/` 保存可恢复和排障所需的中间状态：`runs/` 含脱敏配置、原始/标准化 goal、pipeline 日志、Plan/Suite/QC 阶段检查点及最终状态或异常；`planner/`、`task-builder/`、`qc/`、`human-review/`、`loop3/` 保存各阶段请求、响应和校验结果；`runner/` 在每个 target × item 完成后立即保存结果。Agent 题还会逐步保存交互轨迹，并在清理环境前导出最终工作区、完整 evaluator 输出或桌面桥状态。
+
+公开 package、报告与 viewer 会掩码 `sk-` 密钥串；调试配置、provider 请求和异常记录还会按敏感字段名及 Authorization/Bearer 形式递归脱敏。HTTP 请求头不写入调试文件。
 
 ### J.6 Loop 3 自我改进
 
@@ -3526,6 +3546,7 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 - **网络重试**：`_post_with_retry` 对传输错误、429、5xx 做最多 3 次指数退避重试，受 `total_timeout_s` 总体时限约束；流式与 Responses 路径同理。
 - **截断**：`finish_reason=length`（或 Responses `incomplete/max_output_tokens`）时，`retry_on_truncation=true` 则加倍 budget 重试一次（上限 65536），仍截断则抛 `LLMOutputTruncatedError`——框架不会静默 json-repair 截断输出。TaskBuilder 的截断恢复路径见 D.4。
 - **JSON 解析**：`extract_json`（`evalclaw/models/json_utils.py`）负责从模型文本提取 JSON；各调用点对非 JSON/结构不符做明确失败或重试。
+- **调用记录**：启用输出目录时，每次框架发起的 provider 尝试都保存脱敏请求、原始响应、usage、结束原因和错误；截断异常保留当次原始响应。阶段目录负责把这些调用记录与对应的 Planner、TaskBuilder、QC、Research、Judge、Task Agent 或 target item 关联。
 
 ### K.5 角色与任务模型解析
 
