@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
+from evalclaw.models.llm import LLMFinalContentMissingError
 from evalclaw.types import Message, TargetModelConfig
 
 
@@ -14,8 +16,18 @@ def patch_task_builder_model(monkeypatch, responder) -> None:
                 content=json.dumps(payload, ensure_ascii=False, indent=2),
             )
         ]
-        return (
-            responder(
+        response = responder(
+            messages,
+            system=system_prompt,
+            model=config.task_builder_model,
+            api_key=config.task_builder_api_key,
+            base_url=config.task_builder_base_url,
+            provider=config.task_builder_provider,
+            backend=config.llm_backend,
+            retry_on_truncation=False,
+        )
+        if not response.strip():
+            response = responder(
                 messages,
                 system=system_prompt,
                 model=config.task_builder_model,
@@ -23,13 +35,20 @@ def patch_task_builder_model(monkeypatch, responder) -> None:
                 base_url=config.task_builder_base_url,
                 provider=config.task_builder_provider,
                 backend=config.llm_backend,
+                reduce_reasoning_effort=True,
                 retry_on_truncation=False,
-            ),
-            [],
-        )
+            )
+        if not response.strip():
+            raise LLMFinalContentMissingError(
+                "TaskBuilder returned no final content after one no-thinking recovery attempt."
+            )
+        revision = payload.get("revision") if isinstance(payload.get("revision"), dict) else {}
+        if revision.get("path"):
+            Path(revision["path"]).write_text(response, encoding="utf-8")
+            response = '{"status":"saved"}'
+        return response, []
 
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", run_tools)
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", responder)
 
 
 def dummy_config_kwargs() -> dict:

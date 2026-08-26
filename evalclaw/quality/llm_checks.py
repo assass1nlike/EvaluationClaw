@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from ..core.scaling import is_large_scale_budget
 from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
@@ -350,6 +351,7 @@ def _llm_qc(
     config: BenchmarkConfig,
     *,
     trace: dict[str, object] | None = None,
+    trace_dir: str | Path | None = None,
 ) -> list[QcIssue]:
     settings = role_model_settings(config, "qc")
     if not settings.configured:
@@ -425,7 +427,11 @@ def _llm_qc(
             }
         )
     item_by_id = {item.id: item for item in suite.tasks}
+    attempts: list[dict[str, object]] = []
+    if trace is not None:
+        trace["attempts"] = attempts
     for attempt in range(1, LLM_QC_MAX_ATTEMPTS + 1):
+        raw: str | None = None
         try:
             raw = call_llm(
                 [
@@ -439,6 +445,8 @@ def _llm_qc(
                 backend=config.llm_backend,
                 max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
                 expect_json=True,
+                trace_dir=Path(trace_dir) / "llm" if trace_dir is not None else None,
+                trace_name=f"qc-attempt-{attempt:02d}",
             )
             data = extract_json(raw)
             if not isinstance(data, dict):
@@ -458,6 +466,15 @@ def _llm_qc(
                     raise ValueError(f"issue #{index} has an empty message")
                 issues.append(_stabilize_llm_issue(issue, item_by_id))
         except Exception as exc:
+            attempts.append(
+                {
+                    "attempt": attempt,
+                    "status": "failed",
+                    "raw_response": raw,
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                }
+            )
             if trace is not None:
                 trace.update(
                     {
@@ -473,6 +490,14 @@ def _llm_qc(
                     f"{type(exc).__name__}: {exc}"
                 ) from exc
             continue
+        attempts.append(
+            {
+                "attempt": attempt,
+                "status": "completed",
+                "raw_response": raw,
+                "parsed_response": data,
+            }
+        )
         if trace is not None:
             trace.update(
                 {

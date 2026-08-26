@@ -418,6 +418,7 @@ def _run_planner(
         + "-"
         + uuid.uuid4().hex[:8]
     )
+    debug_dir = debug_root / debug_invocation_id if debug_root is not None else None
 
     def persist_planner_debug(
         *,
@@ -432,8 +433,8 @@ def _run_planner(
             return
         phase = "initial" if attempt == 1 else "repair"
         stem = f"attempt-{attempt:02d}-{phase}"
-        debug_dir = debug_root / debug_invocation_id
         try:
+            assert debug_dir is not None
             debug_dir.mkdir(parents=True, exist_ok=True)
             response_path = debug_dir / f"{stem}.response.txt"
             if raw_response is not None:
@@ -495,6 +496,8 @@ def _run_planner(
                 backend=config.llm_backend,
                 max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
                 expect_json=True,
+                trace_dir=debug_dir / "llm" if debug_dir is not None else None,
+                trace_name=f"planner-attempt-{attempt:02d}",
             )
             parsed_response = extract_json(raw)
             previous_response = parsed_response

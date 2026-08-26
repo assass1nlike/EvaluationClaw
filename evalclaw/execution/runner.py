@@ -5,8 +5,10 @@ import json
 import re
 import time
 from collections import defaultdict
+from pathlib import Path
 from typing import Any, Callable
 
+from ..diagnostics import new_debug_dir, safe_name, write_json
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     call_llm,
@@ -147,10 +149,17 @@ def _score_fill_blank(response: str, expected_text: str | None) -> float:
     return 1.0 if response.strip() == expected_text.strip() else 0.0
 
 
-def _call_judge_json(prompt: dict, config: BenchmarkConfig, judge_config) -> dict | None:
+def _call_judge_json(
+    prompt: dict,
+    config: BenchmarkConfig,
+    judge_config,
+    *,
+    trace_dir: Path | None = None,
+    trace_name: str = "judge",
+) -> dict | None:
     messages = [Message(role="user", content=json.dumps(prompt, ensure_ascii=False, indent=2))]
     data: dict | None = None
-    for _ in range(2):
+    for attempt in range(1, 3):
         raw = call_llm(
             messages,
             model=judge_config.model,
@@ -159,6 +168,8 @@ def _call_judge_json(prompt: dict, config: BenchmarkConfig, judge_config) -> dic
             base_url=judge_config.base_url,
             backend=config.llm_backend,
             max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+            trace_dir=trace_dir,
+            trace_name=f"{trace_name}-{attempt:02d}",
         )
         try:
             parsed = extract_json(raw)
@@ -234,6 +245,8 @@ def _call_task_agent_json(
     config: BenchmarkConfig,
     *,
     system_fallback: str,
+    trace_dir: Path | None = None,
+    trace_name: str = "task-agent",
 ) -> dict[str, Any] | None:
     model_config = resolve_task_model(config, item)
     if model_config is None:
@@ -248,6 +261,8 @@ def _call_task_agent_json(
         provider=model_config.provider,
         backend=config.llm_backend,
         max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+        trace_dir=trace_dir,
+        trace_name=trace_name,
     )
     try:
         parsed = extract_json(raw)
@@ -262,6 +277,7 @@ def _judge_item(
     config: BenchmarkConfig,
     *,
     external_evidence: list[dict[str, object]] | None = None,
+    trace_dir: Path | None = None,
 ) -> tuple[float, str]:
     scoring = task_agent_scoring(item)
     scoring_method = str(scoring.get("method") or "").strip().lower()
@@ -283,6 +299,8 @@ def _judge_item(
                 "You are the task-specific evaluation judge for this item. "
                 "Apply only the provided scoring guidance and return JSON only."
             ),
+            trace_dir=trace_dir,
+            trace_name="task-agent-judge",
         )
         if data is None:
             return 0.0, "Task agent judge returned invalid JSON."
@@ -301,7 +319,13 @@ def _judge_item(
         "external_evidence": external_evidence or [],
         "output_schema": {"score_raw": 3, "score_normalized": 0.6, "reasoning": "..."},
     }
-    first = _call_judge_json(base_prompt, config, judge_config)
+    first = _call_judge_json(
+        base_prompt,
+        config,
+        judge_config,
+        trace_dir=trace_dir,
+        trace_name="judge-first-pass",
+    )
     if first is None:
         return 0.0, "Judge returned invalid JSON after retry."
     first_score, first_reason = _score_from_judge_data(first)
@@ -317,7 +341,13 @@ def _judge_item(
         "first_pass_score": first_score,
         "first_pass_reasoning": first_reason,
     }
-    second = _call_judge_json(swap_prompt, config, judge_config)
+    second = _call_judge_json(
+        swap_prompt,
+        config,
+        judge_config,
+        trace_dir=trace_dir,
+        trace_name="judge-second-pass",
+    )
     if second is None:
         return first_score, f"{first_reason}\nJudge second pass failed; using first pass."
     second_score, second_reason = _score_from_judge_data(second)
@@ -373,7 +403,12 @@ def _judge_tool_evidence(
     return evidence
 
 
-def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[str]:
+def _multi_turn_followups(
+    item: BenchmarkItem,
+    config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
+) -> list[str]:
     scripted = task_agent_scripted_turns(item)
     if scripted:
         return scripted
@@ -395,6 +430,8 @@ def _multi_turn_followups(item: BenchmarkItem, config: BenchmarkConfig) -> list[
         base_url=judge_config.base_url,
         backend=config.llm_backend,
         max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+        trace_dir=trace_dir,
+        trace_name="multi-turn-plan",
     )
     data = extract_json(raw)
     parsed = data.get("turns", [])
@@ -409,6 +446,7 @@ def _task_agent_next_turn(
     config: BenchmarkConfig,
     *,
     step_index: int,
+    trace_dir: Path | None = None,
 ) -> tuple[str | None, str | None]:
     if not get_task_agent_spec(item) or not task_agent_available(config):
         return None, "No task_agent metadata or task agent credentials configured."
@@ -431,6 +469,8 @@ def _task_agent_next_turn(
             "You are a task-specific user simulator for a multi-turn model evaluation. "
             "Follow the item instructions, keep turns concise, and return JSON only."
         ),
+        trace_dir=trace_dir,
+        trace_name=f"task-agent-turn-{step_index:02d}",
     )
     if not isinstance(data, dict):
         return None, "Task agent returned invalid JSON for next turn."
@@ -442,7 +482,13 @@ def _task_agent_next_turn(
     return turn, None
 
 
-def _run_multi_turn(item: BenchmarkItem, target: object, config: BenchmarkConfig) -> tuple[str, float, str]:
+def _run_multi_turn(
+    item: BenchmarkItem,
+    target: object,
+    config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
+) -> tuple[str, float, str]:
     history: list[Message] = []
     initial_prompt = task_agent_initial_user_message(item)
     initial_content = (
@@ -456,31 +502,59 @@ def _run_multi_turn(item: BenchmarkItem, target: object, config: BenchmarkConfig
         history=history,
         backend=config.llm_backend,
         user_content=initial_content,
+        trace_dir=trace_dir,
+        trace_name="target-turn-01",
     )
     history.extend([Message(role="user", content=initial_prompt), Message(role="assistant", content=first)])
-    scripted = _multi_turn_followups(item, config)
+    scripted = _multi_turn_followups(item, config, trace_dir=trace_dir)
     task_agent_errors: list[str] = []
-    for followup in scripted:
-        answer = call_target_model(followup, target, history=history, backend=config.llm_backend)
+    for turn_index, followup in enumerate(scripted, 2):
+        answer = call_target_model(
+            followup,
+            target,
+            history=history,
+            backend=config.llm_backend,
+            trace_dir=trace_dir,
+            trace_name=f"target-turn-{turn_index:02d}",
+        )
         history.extend([Message(role="user", content=followup), Message(role="assistant", content=answer)])
     if not scripted and get_task_agent_spec(item):
         for step_index in range(task_agent_max_turns(item)):
-            followup, error = _task_agent_next_turn(item, history, config, step_index=step_index + 1)
+            followup, error = _task_agent_next_turn(
+                item,
+                history,
+                config,
+                step_index=step_index + 1,
+                trace_dir=trace_dir,
+            )
             if error:
                 task_agent_errors.append(error)
                 break
             if not followup:
                 break
-            answer = call_target_model(followup, target, history=history, backend=config.llm_backend)
+            answer = call_target_model(
+                followup,
+                target,
+                history=history,
+                backend=config.llm_backend,
+                trace_dir=trace_dir,
+                trace_name=f"target-turn-{len(history) // 2 + 1:02d}",
+            )
             history.extend([Message(role="user", content=followup), Message(role="assistant", content=answer)])
     transcript = transcript_text(history)
-    score, reasoning = _judge_item(item, transcript, config)
+    score, reasoning = _judge_item(item, transcript, config, trace_dir=trace_dir)
     if task_agent_errors:
         reasoning = reasoning + "\n" + "\n".join(f"task_agent_error={error}" for error in task_agent_errors)
     return json.dumps([message.model_dump() for message in history], ensure_ascii=False), score, reasoning
 
 
-def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> ItemResult:
+def _run_item(
+    item: BenchmarkItem,
+    config: BenchmarkConfig,
+    target_id: str,
+    *,
+    trace_dir: Path | None = None,
+) -> ItemResult:
     target = next(target for target in config.targets if target.id == target_id)
     has_credentials, env_name = _target_has_credentials(target_id, config)
     if not has_credentials:
@@ -493,7 +567,12 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
     start = time.monotonic()
     try:
         if item.task_type == TaskType.multi_turn:
-            raw, score, reasoning = _run_multi_turn(item, target, config)
+            raw, score, reasoning = _run_multi_turn(
+                item,
+                target,
+                config,
+                trace_dir=trace_dir,
+            )
             latency_ms = round((time.monotonic() - start) * 1000)
             return ItemResult(
                 item_id=item.id,
@@ -505,7 +584,12 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 latency_ms=latency_ms,
             )
         if item.task_type == TaskType.agent:
-            raw, score, reasoning = _run_agent_interaction(item, target, config)
+            raw, score, reasoning = _run_agent_interaction(
+                item,
+                target,
+                config,
+                artifact_dir=trace_dir,
+            )
             latency_ms = round((time.monotonic() - start) * 1000)
             return ItemResult(
                 item_id=item.id,
@@ -518,13 +602,21 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
         prompt_text = _target_prompt(item)
         user_content = _target_user_content(item, target)
         if user_content is None:
-            response = call_target_model(prompt_text, target, backend=config.llm_backend)
+            response = call_target_model(
+                prompt_text,
+                target,
+                backend=config.llm_backend,
+                trace_dir=trace_dir,
+                trace_name="target",
+            )
         else:
             response = call_target_model(
                 prompt_text,
                 target,
                 backend=config.llm_backend,
                 user_content=user_content,
+                trace_dir=trace_dir,
+                trace_name="target",
             )
         latency_ms = round((time.monotonic() - start) * 1000)
         if item.task_type == TaskType.choice:
@@ -540,6 +632,7 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 response,
                 config,
                 external_evidence=evidence,
+                trace_dir=trace_dir,
             )
             return ItemResult(
                 item_id=item.id,
@@ -550,7 +643,7 @@ def _run_item(item: BenchmarkItem, config: BenchmarkConfig, target_id: str) -> I
                 error=reasoning if _is_judge_failure(reasoning) else None,
                 latency_ms=latency_ms,
             )
-        score, reasoning = _judge_item(item, response, config)
+        score, reasoning = _judge_item(item, response, config, trace_dir=trace_dir)
         return ItemResult(
             item_id=item.id,
             target_id=target.id,
@@ -622,9 +715,20 @@ def run_eval(
     on_progress: Callable[[int, int, str, str], None] | None = None,
 ) -> EvalRun:
     """Run accepted items against all configured target models."""
+    debug_dir = new_debug_dir(config.output_dir, "runner")
     execution_plan = build_execution_plan(suite, qc_report)
     accepted = execution_plan.suite.tasks
     validate_asset_target_support(accepted, config)
+    if debug_dir is not None:
+        write_json(
+            debug_dir / "input.json",
+            {
+                "accepted_item_ids": [item.id for item in accepted],
+                "targets": [target.model_dump(mode="json") for target in config.targets],
+                "run_targets": config.run_targets,
+            },
+            redact=True,
+        )
     results: list[ItemResult] = []
     if config.run_targets and config.targets:
         total = len(accepted) * len(config.targets)
@@ -634,21 +738,35 @@ def run_eval(
                 done += 1
                 if on_progress:
                     on_progress(done, total, target.id, item.id)
-                results.append(_run_item(item, config, target.id))
+                item_dir = (
+                    debug_dir / safe_name(target.id) / safe_name(item.id)
+                    if debug_dir is not None
+                    else None
+                )
+                if item_dir is not None:
+                    write_json(item_dir / "item.json", item.model_dump(mode="json"))
+                result = _run_item(item, config, target.id, trace_dir=item_dir)
+                results.append(result)
+                if item_dir is not None:
+                    write_json(item_dir / "result.json", result.model_dump(mode="json"))
     summaries = _summarize(suite, results, config)
-    return EvalRun(
+    run = EvalRun(
         suite=suite,
         qc_report=qc_report,
         results=results,
         summaries=summaries,
         runner_artifacts={
             "judge": {"double_pass_enabled": bool(config.judge_double_pass)},
+            "debug_dir": str(debug_dir) if debug_dir is not None else None,
             "execution_plan": {
                 "accepted_item_ids": list(execution_plan.accepted_item_ids),
                 "rejected_item_ids": list(execution_plan.rejected_item_ids),
             },
         },
     )
+    if debug_dir is not None:
+        write_json(debug_dir / "run.json", run.model_dump(mode="json"))
+    return run
 
 
 def run_item(item: BenchmarkItem, config: BenchmarkConfig) -> ItemResult:

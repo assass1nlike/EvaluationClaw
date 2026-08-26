@@ -66,6 +66,37 @@ def test_docker_workspace_environment_runs_hidden_tests(monkeypatch) -> None:
         env.cleanup()
 
 
+def test_docker_workspace_exports_workspace_and_full_evaluator_output(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    calls: list[list[str]] = []
+    _mock_docker(monkeypatch, calls)
+    env = DockerWorkspaceAgentEnvironment.from_config(
+        {
+            "type": "docker_workspace",
+            "image": "python:3.11-slim",
+            "visible_files": {"solution.py": "def solve():\n    return 1\n"},
+            "hidden_files": {"tests.py": "assert True\n"},
+            "test_command": "pytest -q tests.py",
+            "pull_image": False,
+        }
+    )
+
+    try:
+        env.step({"action": "run_tests", "args": {}})
+        exported = env.export_artifacts(tmp_path)
+
+        evaluator_runs = Path(exported["evaluator_runs"]).read_text(encoding="utf-8")
+        assert "1 passed" in evaluator_runs
+        assert any(
+            command[1] == "cp" and command[2].endswith(":/workspace/.")
+            for command in calls
+        )
+    finally:
+        env.cleanup()
+
+
 def test_runtime_files_precede_setup_and_workspace_is_restored_after_evaluation(monkeypatch) -> None:
     calls: list[list[str]] = []
     _mock_docker(monkeypatch, calls)

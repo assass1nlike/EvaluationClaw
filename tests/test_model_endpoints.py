@@ -578,7 +578,7 @@ def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
 def test_deepseek_streaming_preserves_thinking_until_json_recovery(monkeypatch) -> None:
     bodies: list[dict] = []
 
-    def fake_stream(url, headers, body):
+    def fake_stream(url, headers, body, **kwargs):
         bodies.append(body)
         return '{"tasks": []}', "stop"
 

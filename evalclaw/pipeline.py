@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import json
 import re
+import traceback
 from pathlib import Path
 from typing import Callable, Optional
 
 from .benchmark import build_benchmark_suite_with_qc_loop
+from .diagnostics import error_record, new_debug_dir, write_json, write_text
 from .execution.environment_claw import format_environment_claw_report, run_environment_claw
 from .execution.lm_eval import run_lm_eval
 from .execution.plan import build_execution_plan
@@ -101,7 +103,7 @@ def _persist_package(
     log(f"Saved manifest: {manifest_path}")
 
 
-def run_pipeline(
+def _run_pipeline(
     goal: str,
     config: BenchmarkConfig,
     *,
@@ -109,6 +111,7 @@ def run_pipeline(
     progress: Callable[[str], None] = print,
     ask_user: Optional[Callable[[str], str]] = None,
     interactive: bool = True,
+    debug_run_dir: Path | None = None,
 ) -> BenchmarkPackage:
     """Run preparation -> unified construction/QC -> execution -> reporting."""
     reset_network_state()
@@ -122,19 +125,38 @@ def run_pipeline(
     if debug_dirs:
         config = config.model_copy(update=debug_dirs)
     original_goal = goal
+    if debug_run_dir is not None:
+        write_json(
+            debug_run_dir / "input.json",
+            {"original_goal": original_goal, "normalized_goal": None},
+        )
     goal = translate_goal_to_english(goal, config)
+    if debug_run_dir is not None:
+        write_json(
+            debug_run_dir / "input.json",
+            {"original_goal": original_goal, "normalized_goal": goal},
+        )
     if goal != original_goal:
         log("\n[Input] Normalized the evaluation goal to English before planning.")
         log(f"  English goal: {goal}")
 
     if config.use_deep_research and config.research_brief is None:
         log("\n[Benchmark Design Research] Running bounded research loop before planning...")
-        brief = run_deep_research(goal, config, log=log)
+        brief = run_deep_research(
+            goal,
+            config,
+            log=log,
+            trace_dir=debug_run_dir / "research" if debug_run_dir is not None else None,
+        )
         if brief is None:
             raise RuntimeError(
                 "Deep research was requested but could not run. Configure the Research role "
                 "with a non-none search backend, or disable --deep-research."
             )
+        if config.output_dir:
+            output_root = Path(config.output_dir)
+            write_json(output_root / "research_brief.json", brief.model_dump(mode="json"))
+            write_text(output_root / "research_brief.md", render_brief_markdown(brief))
         config = config.model_copy(update={"research_brief": brief})
         log(
             f"  Design brief: {len(brief.dimensions)} candidate dimensions, "
@@ -147,8 +169,19 @@ def run_pipeline(
         goal,
         config,
         log=log,
+        trace_dir=debug_run_dir / "construction" if debug_run_dir is not None else None,
     )
     benchmark_plan = suite.plan
+    if debug_run_dir is not None:
+        write_json(
+            debug_run_dir / "construction.json",
+            {
+                "spec": spec.model_dump(mode="json"),
+                "plan": benchmark_plan.model_dump(mode="json") if benchmark_plan else None,
+                "suite": suite.model_dump(mode="json"),
+                "qc_report": qc_report.model_dump(mode="json"),
+            },
+        )
     log(f"  Final dimensions: {len(spec.dimensions)}")
     log(f"  Final items: {len(suite.tasks)}")
     log(f"  Sources used: {len(suite.resources)}")
@@ -169,6 +202,16 @@ def run_pipeline(
             log("\n[Human Review] Applying user feedback...")
             spec, suite, qc_report = apply_human_review_feedback(suite, qc_report, config, feedback, log=log)
             benchmark_plan = suite.plan or benchmark_plan
+            if debug_run_dir is not None:
+                write_json(
+                    debug_run_dir / f"human-review-{round_index:02d}.json",
+                    {
+                        "feedback": feedback,
+                        "spec": spec.model_dump(mode="json"),
+                        "suite": suite.model_dump(mode="json"),
+                        "qc_report": qc_report.model_dump(mode="json"),
+                    },
+                )
             log(f"  Revised dimensions: {len(spec.dimensions)}")
             log(f"  Revised items: {len(suite.tasks)}")
             log(f"  Revised average QC issues: {_average_qc_issues(qc_report, len(suite.tasks)):.2f}")
@@ -189,6 +232,8 @@ def run_pipeline(
     execution_plan = build_execution_plan(suite, qc_report)
     accepted_for_run = execution_plan.suite.tasks
     direct_config, environment_claw_report = run_environment_claw(accepted_for_run, direct_config)
+    if debug_run_dir is not None:
+        write_json(debug_run_dir / "environment.json", environment_claw_report.as_dict())
     for line in format_environment_claw_report(environment_claw_report):
         log(line)
     if direct_config.run_targets and environment_claw_report.blocking_errors:
@@ -203,6 +248,8 @@ def run_pipeline(
 
     run = run_eval(suite, qc_report, direct_config, on_progress=_on_progress)
     run.runner_artifacts["environment_claw"] = environment_claw_report.as_dict()
+    if debug_run_dir is not None:
+        write_json(debug_run_dir / "run.json", run.model_dump(mode="json"))
     if config.runner in {"lm-eval", "auto"} and config.targets and config.output_dir:
         log("\nlm-eval: Running interoperability harness...")
         out_dir = Path(config.output_dir)
@@ -250,3 +297,60 @@ def run_pipeline(
     if config.output_dir:
         _persist_package(pkg, config, config.output_dir, log)
     return pkg
+
+
+def run_pipeline(
+    goal: str,
+    config: BenchmarkConfig,
+    *,
+    log: Callable[[str], None] = print,
+    progress: Callable[[str], None] = print,
+    ask_user: Optional[Callable[[str], str]] = None,
+    interactive: bool = True,
+) -> BenchmarkPackage:
+    """Run the pipeline with durable diagnostics even when a later stage fails."""
+    debug_run_dir = new_debug_dir(config.output_dir, "runs")
+    if debug_run_dir is None:
+        return _run_pipeline(
+            goal,
+            config,
+            log=log,
+            progress=progress,
+            ask_user=ask_user,
+            interactive=interactive,
+        )
+
+    write_json(
+        debug_run_dir / "config.json",
+        config.model_dump(mode="json"),
+        redact=True,
+    )
+    log_path = debug_run_dir / "pipeline.log"
+
+    def traced_log(message: str) -> None:
+        write_text(log_path, str(message) + "\n", append=True)
+        log(message)
+
+    def traced_progress(message: str) -> None:
+        write_text(log_path, str(message) + "\n", append=True)
+        progress(message)
+
+    try:
+        package = _run_pipeline(
+            goal,
+            config,
+            log=traced_log,
+            progress=traced_progress,
+            ask_user=ask_user,
+            interactive=interactive,
+            debug_run_dir=debug_run_dir,
+        )
+    except BaseException as exc:
+        write_json(
+            debug_run_dir / "failure.json",
+            {**error_record(exc), "traceback": traceback.format_exc()},
+            redact=True,
+        )
+        raise
+    write_json(debug_run_dir / "status.json", {"status": "completed"})
+    return package

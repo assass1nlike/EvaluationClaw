@@ -41,8 +41,10 @@ verbatim in prompt. When source tools are available, use read_research_source to
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
-Return the complete task-builder JSON object after tool use. The tool budget is
-bounded; stop once the task is adequately constructed.
+During QC repair, use run_python to edit the JSON file at revision.path in place,
+then return a compact JSON confirmation. Otherwise, return the complete task-builder
+JSON object after tool use. The tool budget is bounded; stop once the task is
+adequately constructed.
 """
 
 
@@ -164,6 +166,18 @@ def _file_state(directory: Path) -> dict[Path, tuple[int, int]]:
             stat = path.stat()
             state[path] = (stat.st_size, stat.st_mtime_ns)
     return state
+
+
+def task_builder_work_dir(config: BenchmarkConfig, builder_job_id: str) -> Path | None:
+    if not str(config.output_dir).strip():
+        return None
+    safe_job_id = re.sub(r"[^A-Za-z0-9._-]+", "_", builder_job_id).strip("._")
+    return (
+        Path(config.output_dir).expanduser().resolve()
+        / "assets"
+        / "task-builder"
+        / (safe_job_id or "task-builder")
+    )
 
 
 def _execute_task_builder_tool(
@@ -418,14 +432,13 @@ def run_task_builder_tools(
     trace_index = len(list(debug_dir.glob("tool-round-*.json"))) if debug_dir else 0
     task_plan = payload.get("task_plan") if isinstance(payload.get("task_plan"), dict) else {}
     builder_job_id = str(task_plan.get("builder_job_id") or "task-builder")
-    safe_job_id = re.sub(r"[^A-Za-z0-9._-]+", "_", builder_job_id).strip("._")
-    work_dir = (
-        Path(config.output_dir).expanduser().resolve()
-        / "assets"
-        / "task-builder"
-        / (safe_job_id or "task-builder")
-        if str(config.output_dir).strip()
-        else None
+    work_dir = task_builder_work_dir(config, builder_job_id)
+    revision = payload.get("revision") if isinstance(payload.get("revision"), dict) else {}
+    revision_path = str(revision.get("path") or "").strip()
+    final_instruction = (
+        "The candidate file has been edited. Return a compact JSON confirmation now."
+        if revision_path
+        else "Return the complete final task-builder JSON now."
     )
 
     def call_model(
@@ -441,6 +454,8 @@ def run_task_builder_tools(
             tools=current_tools,
             max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
             retry_on_truncation=False,
+            trace_dir=debug_dir / "llm" if debug_dir is not None else None,
+            trace_name=f"task-builder-{trace_index + 1:03d}",
         )
         if debug_dir is not None:
             trace_index += 1
@@ -475,7 +490,7 @@ def run_task_builder_tools(
                 *messages,
                 {
                     "role": "user",
-                    "content": "Return the complete final task-builder JSON now.",
+                    "content": final_instruction,
                 },
             ],
             [],
@@ -497,7 +512,7 @@ def run_task_builder_tools(
             messages.append(
                 {
                     "role": "user",
-                    "content": "The bounded tool budget is exhausted. Return the complete final task-builder JSON now without further tool calls.",
+                    "content": f"The bounded tool budget is exhausted. {final_instruction}",
                 }
             )
             response = call_model(messages, [])
@@ -529,7 +544,7 @@ def run_task_builder_tools(
             messages.append(
                 {
                     "role": "user",
-                    "content": "The bounded tool budget is exhausted. Return the complete final task-builder JSON now without further tool calls.",
+                    "content": f"The bounded tool budget is exhausted. {final_instruction}",
                 }
             )
             response = call_model(messages, [])
@@ -542,4 +557,5 @@ __all__ = [
     "TASK_BUILDER_SOURCE_TOOLS",
     "TASK_BUILDER_TOOL_PROMPT",
     "run_task_builder_tools",
+    "task_builder_work_dir",
 ]

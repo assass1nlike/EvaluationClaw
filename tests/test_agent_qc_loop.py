@@ -237,11 +237,12 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
     assert revision["qc_issues"][0]["message"] == (
         "The reference answer is not supported by the evidence."
     )
-    assert "Do not return or modify any QC-passed task" in revision["instruction"]
+    assert "do not add any other task" in revision["instruction"]
 
 
 def test_qc_round_keeps_valid_task_design_repairs_when_another_output_is_invalid(
     monkeypatch,
+    tmp_path,
 ) -> None:
     dimension = EvalDimension(
         id="knowledge",
@@ -341,6 +342,7 @@ def test_qc_round_keeps_valid_task_design_repairs_when_another_output_is_invalid
             task_builder_max_workers=2,
             use_hf_discovery=False,
             allow_incomplete_benchmark=True,
+            output_dir=str(tmp_path),
         ),
         log=logs.append,
     )
@@ -354,6 +356,7 @@ def test_qc_round_keeps_valid_task_design_repairs_when_another_output_is_invalid
 
 def test_qc_round_keeps_valid_repairs_within_partially_invalid_task_design(
     monkeypatch,
+    tmp_path,
 ) -> None:
     dimension = EvalDimension(
         id="knowledge",
@@ -443,6 +446,7 @@ def test_qc_round_keeps_valid_repairs_within_partially_invalid_task_design(
             task_builder_max_workers=1,
             use_hf_discovery=False,
             allow_incomplete_benchmark=True,
+            output_dir=str(tmp_path),
         ),
         log=logs.append,
     )

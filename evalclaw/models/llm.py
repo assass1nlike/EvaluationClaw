@@ -5,6 +5,7 @@ import json
 import os
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Optional
 
 import anthropic
@@ -14,6 +15,7 @@ import httpx
 # unreachable GitHub endpoint cannot delay every EvalClaw process at import.
 os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
 
+from ..diagnostics import error_record, invocation_id, safe_name, write_json
 from ..protocols.tool import ToolCall, ToolSpec
 from ..protocols.tool_adapters import (
     anthropic_tool_calls_from_response,
@@ -29,6 +31,10 @@ from .providers import infer_provider
 
 class LLMOutputTruncatedError(RuntimeError):
     """The provider ended a completion because its output budget was exhausted."""
+
+    def __init__(self, message: str, *, raw_response: Any = None) -> None:
+        super().__init__(message)
+        self.raw_response = raw_response
 
 
 class LLMFinalContentMissingError(RuntimeError):
@@ -55,12 +61,16 @@ def _post_with_retry(
     *,
     request_timeout_s: float = 300.0,
     total_timeout_s: float = 300.0,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "http",
 ) -> dict:
     """POST with bounded retries for transient transport, 429, and 5xx errors."""
     delay = 5.0
     started = time.monotonic()
     endpoint = httpx.URL(url).host or "model endpoint"
     for attempt in range(max_retries):
+        trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
+        request = {"url": url, "body": body}
         remaining = total_timeout_s - (time.monotonic() - started)
         if remaining <= 0:
             raise TimeoutError(
@@ -74,6 +84,7 @@ def _post_with_retry(
                 timeout=min(request_timeout_s, remaining),
             )
         except httpx.TransportError as exc:
+            _write_llm_trace(trace_path, request=request, status="failed", error=exc)
             if attempt == max_retries - 1:
                 raise
             wait_s = min(delay, max(0.0, total_timeout_s - (time.monotonic() - started)))
@@ -89,6 +100,12 @@ def _post_with_retry(
             delay = min(delay * 2, 30.0)
             continue
         if resp.status_code == 429 or resp.status_code >= 500:
+            _write_llm_trace(
+                trace_path,
+                request=request,
+                status="failed",
+                response={"status_code": resp.status_code, "body": resp.text},
+            )
             if attempt == max_retries - 1:
                 resp.raise_for_status()
             retry_after = resp.headers.get("retry-after")
@@ -110,8 +127,30 @@ def _post_with_retry(
             time.sleep(wait_s)
             delay = min(delay * 2, 30.0)
             continue
+        if resp.is_error:
+            error = httpx.HTTPStatusError(
+                f"HTTP {resp.status_code}",
+                request=resp.request,
+                response=resp,
+            )
+            _write_llm_trace(
+                trace_path,
+                request=request,
+                status="failed",
+                response={"status_code": resp.status_code, "body": resp.text},
+                error=error,
+            )
         resp.raise_for_status()
-        return resp.json()
+        data = resp.json()
+        finish_reason = str((data.get("choices") or [{}])[0].get("finish_reason") or "") or None
+        _write_llm_trace(
+            trace_path,
+            request=request,
+            status="completed",
+            response=data,
+            finish_reason=finish_reason,
+        )
+        return data
     raise RuntimeError("Max retries exceeded")
 
 
@@ -137,6 +176,9 @@ def _post_streaming_openai_compatible(
     max_retries: int = 3,
     request_timeout_s: float = 300.0,
     total_timeout_s: float = 300.0,
+    raw_events: list[dict[str, Any]] | None = None,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "stream-http",
 ) -> tuple[str, str | None]:
     """Read an OpenAI-compatible streaming chat response and return full text.
 
@@ -149,6 +191,8 @@ def _post_streaming_openai_compatible(
     started = time.monotonic()
     endpoint = httpx.URL(url).host or "model endpoint"
     for attempt in range(max_retries):
+        trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
+        request = {"url": url, "body": stream_body}
         remaining = total_timeout_s - (time.monotonic() - started)
         if remaining <= 0:
             raise TimeoutError(
@@ -157,6 +201,7 @@ def _post_streaming_openai_compatible(
             )
         content_parts: list[str] = []
         reasoning_parts: list[str] = []
+        attempt_events: list[dict[str, Any]] = []
         finish_reason: str | None = None
         try:
             with httpx.stream(
@@ -176,6 +221,7 @@ def _post_streaming_openai_compatible(
                     if payload == "[DONE]":
                         break
                     chunk = json.loads(payload)
+                    attempt_events.append(chunk)
                     if isinstance(chunk.get("error"), dict):
                         raise RuntimeError(str(chunk["error"]))
                     choices = chunk.get("choices") or []
@@ -191,6 +237,16 @@ def _post_streaming_openai_compatible(
                     if isinstance(reasoning, str):
                         reasoning_parts.append(reasoning)
         except (httpx.TransportError, httpx.HTTPStatusError, RuntimeError) as exc:
+            if raw_events is not None:
+                raw_events.extend(attempt_events)
+            _write_llm_trace(
+                trace_path,
+                request=request,
+                status="failed",
+                response=attempt_events,
+                finish_reason=finish_reason,
+                error=exc,
+            )
             if attempt == max_retries - 1 or not _is_transient_streaming_error(exc):
                 raise
             wait_s = min(
@@ -212,6 +268,15 @@ def _post_streaming_openai_compatible(
             delay = min(delay * 2, 30.0)
             continue
         content = "".join(content_parts)
+        if raw_events is not None:
+            raw_events.extend(attempt_events)
+        _write_llm_trace(
+            trace_path,
+            request=request,
+            status="completed",
+            response=attempt_events,
+            finish_reason=finish_reason,
+        )
         if content:
             return content, finish_reason
         return "".join(reasoning_parts), finish_reason
@@ -323,12 +388,17 @@ def _post_streaming_responses(
     max_retries: int = 3,
     request_timeout_s: float = 300.0,
     total_timeout_s: float = 900.0,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "responses-http",
 ) -> dict[str, Any]:
     """Return the complete response object from a Responses API SSE stream."""
     delay = 5.0
     started = time.monotonic()
     endpoint = httpx.URL(url).host or "model endpoint"
     for attempt in range(max_retries):
+        trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
+        request = {"url": url, "body": {**body, "stream": True}}
+        events: list[dict[str, Any]] = []
         remaining = total_timeout_s - (time.monotonic() - started)
         if remaining <= 0:
             raise TimeoutError(
@@ -351,10 +421,22 @@ def _post_streaming_responses(
                     if payload == "[DONE]":
                         break
                     event = json.loads(payload)
+                    events.append(event)
                     event_type = str(event.get("type") or "")
                     if event_type in {"response.completed", "response.incomplete"}:
                         completed = event.get("response")
                         if isinstance(completed, dict):
+                            _write_llm_trace(
+                                trace_path,
+                                request=request,
+                                status=(
+                                    "truncated"
+                                    if event_type == "response.incomplete"
+                                    else "completed"
+                                ),
+                                response=events,
+                                finish_reason=str(completed.get("status") or "") or None,
+                            )
                             return completed
                         raise LLMProtocolAdapterError(
                             f"Responses API {event_type} event has no response object."
@@ -366,6 +448,13 @@ def _post_streaming_responses(
                 "Responses API stream ended without a completed response."
             )
         except (httpx.TransportError, httpx.HTTPStatusError, RuntimeError) as exc:
+            _write_llm_trace(
+                trace_path,
+                request=request,
+                status="failed",
+                response=events,
+                error=exc,
+            )
             if attempt == max_retries - 1 or not _is_transient_streaming_error(exc):
                 raise
             wait_s = min(
@@ -399,6 +488,8 @@ def _call_openai_responses(
     reduce_reasoning_effort: bool,
     retry_on_truncation: bool,
     tools: list[ToolSpec] | None = None,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "llm",
 ) -> dict[str, Any]:
     if not base_url:
         raise RuntimeError("The openai_responses provider requires a base URL.")
@@ -420,26 +511,53 @@ def _call_openai_responses(
         )
         if reasoning_effort and _is_reasoning_model(model):
             body["reasoning"] = {"effort": reasoning_effort}
-        response = _post_streaming_responses(
-            f"{base_url.rstrip('/')}/responses",
-            headers={
-                "Authorization": f"Bearer {api_key or os.environ.get('OPENAI_API_KEY', '')}",
-                "Content-Type": "application/json",
-            },
-            body=body,
-        )
+        trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
+        request = {
+            "provider": "openai_responses",
+            "base_url": base_url,
+            "body": body,
+        }
+        try:
+            response = _post_streaming_responses(
+                f"{base_url.rstrip('/')}/responses",
+                headers={
+                    "Authorization": f"Bearer {api_key or os.environ.get('OPENAI_API_KEY', '')}",
+                    "Content-Type": "application/json",
+                },
+                body=body,
+                trace_dir=Path(trace_dir) / "http" if trace_dir is not None else None,
+                trace_name=trace_name,
+            )
+        except BaseException as exc:
+            _write_llm_trace(trace_path, request=request, status="failed", error=exc)
+            raise
         status = response.get("status")
         incomplete = response.get("incomplete_details")
         reason = None
         if isinstance(incomplete, dict):
             reason = incomplete.get("reason")
         if status == "incomplete" and reason == "max_output_tokens":
+            _write_llm_trace(
+                trace_path,
+                request=request,
+                status="truncated",
+                response=response,
+                finish_reason=reason,
+            )
             if retry_on_truncation and attempt == 0:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
             raise LLMOutputTruncatedError(
-                f"Responses API output truncated at {budget} output tokens for model {model}."
+                f"Responses API output truncated at {budget} output tokens for model {model}.",
+                raw_response=_jsonable(response),
             )
+        _write_llm_trace(
+            trace_path,
+            request=request,
+            status="completed",
+            response=response,
+            finish_reason=str(status or "") or None,
+        )
         return response
     raise AssertionError("unreachable")
 
@@ -464,6 +582,50 @@ def _jsonable(value: Any) -> Any:
             if not key.startswith("_")
         }
     return repr(value)
+
+
+def _llm_trace_path(
+    trace_dir: str | Path | None,
+    trace_name: str,
+    attempt: int,
+) -> Path | None:
+    if trace_dir is None:
+        return None
+    return Path(trace_dir) / f"{safe_name(trace_name)}-{attempt:02d}-{invocation_id()}.json"
+
+
+def _response_usage(response: Any) -> Any:
+    data = _jsonable(response)
+    if isinstance(data, dict):
+        return data.get("usage")
+    if isinstance(data, list):
+        for event in reversed(data):
+            if isinstance(event, dict) and event.get("usage") is not None:
+                return event["usage"]
+    return None
+
+
+def _write_llm_trace(
+    path: Path | None,
+    *,
+    request: dict[str, Any],
+    status: str,
+    response: Any = None,
+    finish_reason: str | None = None,
+    error: BaseException | None = None,
+) -> None:
+    if path is None:
+        return
+    payload: dict[str, Any] = {
+        "status": status,
+        "request": request,
+        "response": _jsonable(response),
+        "usage": _response_usage(response),
+        "finish_reason": finish_reason,
+    }
+    if error is not None:
+        payload.update(error_record(error))
+    write_json(path, payload, redact=True)
 
 
 def _anthropic_text(response: Any) -> str:
@@ -527,6 +689,8 @@ def _call_litellm(
     reduce_reasoning_effort: bool = False,
     retry_on_truncation: bool = True,
     expect_json: bool = False,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "llm",
 ) -> str:
     import litellm
 
@@ -570,24 +734,58 @@ def _call_litellm(
     budget = _effective_max_tokens(model, max_tokens)
     for attempt in range(2 if retry_on_truncation else 1):
         kwargs["max_tokens"] = budget
-        response = litellm.completion(**kwargs)
+        trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
+        try:
+            response = litellm.completion(**kwargs)
+        except BaseException as exc:
+            _write_llm_trace(
+                trace_path,
+                request={"provider": "litellm", **kwargs},
+                status="failed",
+                error=exc,
+            )
+            raise
         finish_reason = getattr(
             (getattr(response, "choices", None) or [None])[0], "finish_reason", None
         )
         if finish_reason == "length":
+            _write_llm_trace(
+                trace_path,
+                request={"provider": "litellm", **kwargs},
+                status="truncated",
+                response=response,
+                finish_reason=finish_reason,
+            )
             if retry_on_truncation and attempt == 0:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
             raise LLMOutputTruncatedError(
                 f"LLM output truncated at {budget} completion tokens "
-                f"(finish_reason=length) for model {model}"
+                f"(finish_reason=length) for model {model}",
+                raw_response=_jsonable(response),
             )
         try:
-            return _extract_litellm_content(response)
+            content = _extract_litellm_content(response)
         except ValueError as exc:
+            _write_llm_trace(
+                trace_path,
+                request={"provider": "litellm", **kwargs},
+                status="invalid_response",
+                response=response,
+                finish_reason=finish_reason,
+                error=exc,
+            )
             raise LLMProtocolAdapterError(
                 f"LiteLLM returned an unsupported response shape for model {model}."
             ) from exc
+        _write_llm_trace(
+            trace_path,
+            request={"provider": "litellm", **kwargs},
+            status="completed",
+            response=response,
+            finish_reason=finish_reason,
+        )
+        return content
     raise AssertionError("unreachable")
 
 
@@ -618,14 +816,42 @@ def _call_anthropic_text(
     max_tokens: int,
     api_key: Optional[str],
     base_url: Optional[str],
+    trace_dir: str | Path | None = None,
+    trace_name: str = "llm",
 ) -> str:
     client = _get_anthropic_client(api_key, base_url)
-    response = client.messages.create(
-        model=_anthropic_model_name(model),
-        max_tokens=max_tokens,
-        system=system or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
-        messages=[{"role": message.role, "content": message.content} for message in messages],
+    request = {
+        "provider": "anthropic",
+        "model": _anthropic_model_name(model),
+        "max_tokens": max_tokens,
+        "system": system,
+        "messages": [{"role": message.role, "content": message.content} for message in messages],
+        "base_url": base_url,
+    }
+    trace_path = _llm_trace_path(trace_dir, trace_name, 1)
+    try:
+        response = client.messages.create(
+            model=_anthropic_model_name(model),
+            max_tokens=max_tokens,
+            system=system or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
+            messages=request["messages"],
+        )
+    except BaseException as exc:
+        _write_llm_trace(trace_path, request=request, status="failed", error=exc)
+        raise
+    stop_reason = str(getattr(response, "stop_reason", "") or "") or None
+    _write_llm_trace(
+        trace_path,
+        request=request,
+        status="truncated" if stop_reason == "max_tokens" else "completed",
+        response=response,
+        finish_reason=stop_reason,
     )
+    if stop_reason == "max_tokens":
+        raise LLMOutputTruncatedError(
+            f"Anthropic output truncated for model {model}.",
+            raw_response=_jsonable(response),
+        )
     for block in response.content:
         if block.type == "text":
             return block.text
@@ -645,6 +871,8 @@ def call_llm(
     reduce_reasoning_effort: bool = False,
     retry_on_truncation: bool = True,
     expect_json: bool = False,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "llm",
 ) -> str:
     """Call the orchestrator LLM.
 
@@ -668,6 +896,8 @@ def call_llm(
             base_url=base_url,
             reduce_reasoning_effort=reduce_reasoning_effort,
             retry_on_truncation=retry_on_truncation,
+            trace_dir=trace_dir,
+            trace_name=trace_name,
         )
         content = _extract_responses_content(response)
         if content:
@@ -687,6 +917,8 @@ def call_llm(
             max_tokens=_effective_max_tokens(model_name, max_tokens),
             api_key=api_key,
             base_url=base_url,
+            trace_dir=trace_dir,
+            trace_name=trace_name,
         )
     stream_openai_compatible = (
         _env_enabled("EVALCLAW_LLM_STREAMING")
@@ -719,19 +951,48 @@ def call_llm(
                 body["thinking"] = {"type": "disabled"}
             url = f"{base_url.rstrip('/')}/chat/completions"
             headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-            content, finish_reason = _post_streaming_openai_compatible(
-                url,
-                headers=headers,
-                body=body,
-            )
+            trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
+            request = {
+                "provider": "openai_compatible_stream",
+                "base_url": base_url,
+                "body": body,
+            }
+            try:
+                raw_response: list[dict[str, Any]] = []
+                content, finish_reason = _post_streaming_openai_compatible(
+                    url,
+                    headers=headers,
+                    body=body,
+                    raw_events=raw_response,
+                    trace_dir=Path(trace_dir) / "http" if trace_dir is not None else None,
+                    trace_name=trace_name,
+                )
+            except BaseException as exc:
+                _write_llm_trace(trace_path, request=request, status="failed", error=exc)
+                raise
             if finish_reason == "length":
+                _write_llm_trace(
+                    trace_path,
+                    request=request,
+                    status="truncated",
+                    response=raw_response,
+                    finish_reason=finish_reason,
+                )
                 if retry_on_truncation and attempt == 0:
                     budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                     continue
                 raise LLMOutputTruncatedError(
                     f"LLM output truncated at {budget} completion tokens "
-                    f"(finish_reason=length) for model {model_name}"
+                    f"(finish_reason=length) for model {model_name}",
+                    raw_response=raw_response,
                 )
+            _write_llm_trace(
+                trace_path,
+                request=request,
+                status="completed",
+                response=raw_response,
+                finish_reason=finish_reason,
+            )
             return content
         raise AssertionError("unreachable")
 
@@ -744,6 +1005,8 @@ def call_llm(
         reduce_reasoning_effort=reduce_reasoning_effort,
         retry_on_truncation=retry_on_truncation,
         expect_json=expect_json,
+        trace_dir=trace_dir,
+        trace_name=trace_name,
     )
 
 
@@ -760,6 +1023,8 @@ def call_orchestrator_with_tools(
     max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
     retry_on_truncation: bool = True,
     expect_json: bool = False,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "llm-tools",
 ) -> TargetToolModelResponse:
     """Call the orchestrator with provider-native tools.
 
@@ -784,6 +1049,8 @@ def call_orchestrator_with_tools(
             reduce_reasoning_effort=False,
             retry_on_truncation=retry_on_truncation,
             tools=tool_specs,
+            trace_dir=trace_dir,
+            trace_name=trace_name,
         )
         output = getattr(response, "output", None)
         if output is None and isinstance(response, dict):
@@ -802,13 +1069,40 @@ def call_orchestrator_with_tools(
         and backend != "litellm"
     ):
         client = _get_anthropic_client(api_key, base_url)
-        response = client.messages.create(
-            model=_anthropic_model_name(model_name),
-            max_tokens=_effective_max_tokens(model_name, max_tokens),
-            system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
-            messages=messages,
-            tools=anthropic_tools(tool_specs),
+        request = {
+            "provider": "anthropic",
+            "model": _anthropic_model_name(model_name),
+            "max_tokens": _effective_max_tokens(model_name, max_tokens),
+            "system": system_prompt,
+            "messages": messages,
+            "tools": anthropic_tools(tool_specs),
+            "base_url": base_url,
+        }
+        trace_path = _llm_trace_path(trace_dir, trace_name, 1)
+        try:
+            response = client.messages.create(
+                model=request["model"],
+                max_tokens=request["max_tokens"],
+                system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
+                messages=messages,
+                tools=request["tools"],
+            )
+        except BaseException as exc:
+            _write_llm_trace(trace_path, request=request, status="failed", error=exc)
+            raise
+        stop_reason = str(getattr(response, "stop_reason", "") or "") or None
+        _write_llm_trace(
+            trace_path,
+            request=request,
+            status="truncated" if stop_reason == "max_tokens" else "completed",
+            response=response,
+            finish_reason=stop_reason,
         )
+        if stop_reason == "max_tokens":
+            raise LLMOutputTruncatedError(
+                f"Anthropic tool response truncated for model {model_name}.",
+                raw_response=_jsonable(response),
+            )
         content_blocks = _jsonable(getattr(response, "content", []))
         return TargetToolModelResponse(
             adapter="anthropic",
@@ -845,11 +1139,27 @@ def call_orchestrator_with_tools(
         reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
         if reasoning_effort and _is_reasoning_model(model_name):
             kwargs["reasoning_effort"] = reasoning_effort
-        response = litellm.completion(**kwargs)
+        trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
+        try:
+            response = litellm.completion(**kwargs)
+        except BaseException as exc:
+            _write_llm_trace(
+                trace_path,
+                request={"provider": "litellm", **kwargs},
+                status="failed",
+                error=exc,
+            )
+            raise
         choices = getattr(response, "choices", None)
         if choices is None and isinstance(response, dict):
             choices = response.get("choices")
         if not choices:
+            _write_llm_trace(
+                trace_path,
+                request={"provider": "litellm", **kwargs},
+                status="invalid_response",
+                response=response,
+            )
             raise LLMProtocolAdapterError(
                 f"LiteLLM returned no choices for model {model_name}."
             )
@@ -858,25 +1168,61 @@ def call_orchestrator_with_tools(
         if finish_reason is None and isinstance(first, dict):
             finish_reason = first.get("finish_reason")
         if finish_reason == "length":
+            _write_llm_trace(
+                trace_path,
+                request={"provider": "litellm", **kwargs},
+                status="truncated",
+                response=response,
+                finish_reason=finish_reason,
+            )
             if retry_on_truncation and attempt == 0:
                 budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
                 continue
             raise LLMOutputTruncatedError(
                 f"Orchestrator tool response truncated at {budget} completion tokens "
-                f"(finish_reason=length) for model {model_name}."
+                f"(finish_reason=length) for model {model_name}.",
+                raw_response=_jsonable(response),
             )
         message = getattr(first, "message", None)
         if message is None and isinstance(first, dict):
             message = first.get("message")
         if message is None:
+            _write_llm_trace(
+                trace_path,
+                request={"provider": "litellm", **kwargs},
+                status="invalid_response",
+                response=response,
+                finish_reason=finish_reason,
+            )
             raise LLMProtocolAdapterError(
                 f"LiteLLM returned no assistant message for model {model_name}."
             )
         assistant_message = _jsonable(message)
         tool_calls = openai_tool_calls_from_response(response)
+        try:
+            content = _extract_litellm_content(response) if not tool_calls else ""
+        except ValueError as exc:
+            _write_llm_trace(
+                trace_path,
+                request={"provider": "litellm", **kwargs},
+                status="invalid_response",
+                response=response,
+                finish_reason=finish_reason,
+                error=exc,
+            )
+            raise LLMProtocolAdapterError(
+                f"LiteLLM returned no final content for model {model_name}."
+            ) from exc
+        _write_llm_trace(
+            trace_path,
+            request={"provider": "litellm", **kwargs},
+            status="completed",
+            response=response,
+            finish_reason=finish_reason,
+        )
         return TargetToolModelResponse(
             adapter="litellm",
-            content=_extract_litellm_content(response) if not tool_calls else "",
+            content=content,
             tool_calls=tool_calls,
             assistant_message=assistant_message,
             raw_response=_jsonable(response),
@@ -892,6 +1238,8 @@ def call_target_model_with_tools(
     system_prompt: Optional[str] = None,
     backend: str = "auto",
     max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "target-tools",
 ) -> TargetToolModelResponse:
     """Call a target model with provider-native tool declarations.
 
@@ -905,13 +1253,40 @@ def call_target_model_with_tools(
     adapter = tool_adapter_for_target(target)
     if adapter == "anthropic":
         client = _get_anthropic_client(target.api_key, target.base_url)
-        response = client.messages.create(
-            model=_anthropic_model_name(target.model),
-            max_tokens=_effective_max_tokens(target.model, max_tokens),
-            system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
-            messages=messages,
-            tools=anthropic_tools(tools),
+        request = {
+            "provider": "anthropic",
+            "model": _anthropic_model_name(target.model),
+            "max_tokens": _effective_max_tokens(target.model, max_tokens),
+            "system": system_prompt,
+            "messages": messages,
+            "tools": anthropic_tools(tools),
+            "base_url": target.base_url,
+        }
+        trace_path = _llm_trace_path(trace_dir, trace_name, 1)
+        try:
+            response = client.messages.create(
+                model=request["model"],
+                max_tokens=request["max_tokens"],
+                system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
+                messages=messages,
+                tools=request["tools"],
+            )
+        except BaseException as exc:
+            _write_llm_trace(trace_path, request=request, status="failed", error=exc)
+            raise
+        stop_reason = str(getattr(response, "stop_reason", "") or "") or None
+        _write_llm_trace(
+            trace_path,
+            request=request,
+            status="truncated" if stop_reason == "max_tokens" else "completed",
+            response=response,
+            finish_reason=stop_reason,
         )
+        if stop_reason == "max_tokens":
+            raise LLMOutputTruncatedError(
+                f"Target Anthropic tool response truncated for model {target.model}.",
+                raw_response=_jsonable(response),
+            )
         content_blocks = _jsonable(getattr(response, "content", []))
         return TargetToolModelResponse(
             adapter="anthropic",
@@ -948,11 +1323,32 @@ def call_target_model_with_tools(
         # runner needs the native assistant message. For now, keep this path
         # explicit instead of silently returning a lossy text-only response.
         raise RuntimeError("Native agent tool calls currently require the direct OpenAI-compatible backend.")
-    data = _post_with_retry(
-        f"{base_url.rstrip('/')}/chat/completions",
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        body=body,
+    request = {"provider": "openai_compatible", "base_url": base_url, "body": body}
+    trace_path = _llm_trace_path(trace_dir, trace_name, 1)
+    try:
+        data = _post_with_retry(
+            f"{base_url.rstrip('/')}/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            body=body,
+            trace_dir=Path(trace_dir) / "http" if trace_dir is not None else None,
+            trace_name=trace_name,
+        )
+    except BaseException as exc:
+        _write_llm_trace(trace_path, request=request, status="failed", error=exc)
+        raise
+    finish_reason = str((data.get("choices") or [{}])[0].get("finish_reason") or "") or None
+    _write_llm_trace(
+        trace_path,
+        request=request,
+        status="truncated" if finish_reason == "length" else "completed",
+        response=data,
+        finish_reason=finish_reason,
     )
+    if finish_reason == "length":
+        raise LLMOutputTruncatedError(
+            f"Target tool response truncated for model {target.model}.",
+            raw_response=data,
+        )
     message = data["choices"][0]["message"]
     content = message.get("content")
     return TargetToolModelResponse(
@@ -972,6 +1368,8 @@ def call_target_model(
     history: Optional[list[Message]] = None,
     backend: str = "auto",
     user_content: Any | None = None,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "target",
 ) -> str:
     """Call the target model under evaluation."""
     _require_supported_backend(backend)
@@ -980,16 +1378,39 @@ def call_target_model(
     if user_content is not None:
         if target.provider == "anthropic":
             client = _get_anthropic_client(target.api_key, target.base_url)
-            response = client.messages.create(
-                model=_anthropic_model_name(target.model),
-                max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
-                system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
-                messages=[
-                    {"role": m.role, "content": m.content}
-                    for m in history
-                ]
+            request = {
+                "provider": "anthropic",
+                "model": _anthropic_model_name(target.model),
+                "max_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
+                "system": system_prompt,
+                "messages": [{"role": m.role, "content": m.content} for m in history]
                 + [{"role": "user", "content": user_content}],
+                "base_url": target.base_url,
+            }
+            trace_path = _llm_trace_path(trace_dir, trace_name, 1)
+            try:
+                response = client.messages.create(
+                    model=request["model"],
+                    max_tokens=request["max_tokens"],
+                    system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
+                    messages=request["messages"],
+                )
+            except BaseException as exc:
+                _write_llm_trace(trace_path, request=request, status="failed", error=exc)
+                raise
+            stop_reason = str(getattr(response, "stop_reason", "") or "") or None
+            _write_llm_trace(
+                trace_path,
+                request=request,
+                status="truncated" if stop_reason == "max_tokens" else "completed",
+                response=response,
+                finish_reason=stop_reason,
             )
+            if stop_reason == "max_tokens":
+                raise LLMOutputTruncatedError(
+                    f"Target Anthropic response truncated for model {target.model}.",
+                    raw_response=_jsonable(response),
+                )
             for block in response.content:
                 if block.type == "text":
                     return block.text
@@ -1015,16 +1436,40 @@ def call_target_model(
                 max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
                 api_key=target.api_key,
                 base_url=target.base_url,
+                trace_dir=trace_dir,
+                trace_name=trace_name,
             )
-        data = _post_with_retry(
-            f"{base_url.rstrip('/')}/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-            body={
-                "model": target.model,
-                "messages": messages,
-                "max_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
-            },
+        body = {
+            "model": target.model,
+            "messages": messages,
+            "max_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
+        }
+        request = {"provider": "openai_compatible", "base_url": base_url, "body": body}
+        trace_path = _llm_trace_path(trace_dir, trace_name, 1)
+        try:
+            data = _post_with_retry(
+                f"{base_url.rstrip('/')}/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                body=body,
+                trace_dir=Path(trace_dir) / "http" if trace_dir is not None else None,
+                trace_name=trace_name,
+            )
+        except BaseException as exc:
+            _write_llm_trace(trace_path, request=request, status="failed", error=exc)
+            raise
+        finish_reason = str((data.get("choices") or [{}])[0].get("finish_reason") or "") or None
+        _write_llm_trace(
+            trace_path,
+            request=request,
+            status="truncated" if finish_reason == "length" else "completed",
+            response=data,
+            finish_reason=finish_reason,
         )
+        if finish_reason == "length":
+            raise LLMOutputTruncatedError(
+                f"Target response truncated for model {target.model}.",
+                raw_response=data,
+            )
         return data["choices"][0]["message"]["content"]
 
     if target.provider == "anthropic":
@@ -1037,6 +1482,8 @@ def call_target_model(
             base_url=target.base_url,
             provider=target.provider,
             backend=backend,
+            trace_dir=trace_dir,
+            trace_name=trace_name,
         )
 
     # OpenAI or OpenAI-compatible
@@ -1061,4 +1508,6 @@ def call_target_model(
         max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
         api_key=api_key,
         base_url=base_url,
+        trace_dir=trace_dir,
+        trace_name=trace_name,
     )

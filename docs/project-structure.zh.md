@@ -8,6 +8,7 @@
 - `evalclaw/pipeline.py`：端到端编排，串联预处理、统一构题、QC、环境准备、runner、Loop 3 和 reporting。
 - `evalclaw/benchmark.py`：统一 blueprint 构建、TaskBuilder 调用、QC 定点 repair 和 fail-closed。
 - `evalclaw/types.py`：全项目共享的数据模型和配置 schema。
+- `evalclaw/diagnostics.py`：线程安全地保存运行检查点、脱敏模型调用与失败诊断。
 
 不要新增旧模块的兼容 shim，也不要重新引入按 static/agent 选择构题路线的入口。
 
@@ -28,10 +29,10 @@
 
 ## Construction 子系统
 
-- `suite.py`：每个 Blueprint 形成一次 Builder 调用；严格校验其题量和混合题型分配，并处理 Blueprint 并发、结构 repair、截断恢复和进度日志。QC repair 时只返回有问题的题并按题目 ID 合并。
+- `suite.py`：每个 Blueprint 形成一次 Builder 调用；严格校验其题量和混合题型分配，并处理 Blueprint 并发、结构 repair、截断恢复和进度日志。QC repair 时建立只含问题题目的候选文件，读取编辑结果并按题目 ID 合并。
 - `parsing.py`：把 TaskBuilder 返回的 JSON 解析为框架拥有 ID 的 `TaskDefinition`。
 - `resources.py`：仅在 dimension 明确 `needs_research=true` 时选择外部来源，并做资源归一化与去重。
-- `research.py`：运行有界 TaskBuilder 工具循环；初次构题可执行 Python，非 generated 构题还可读取和下载来源，QC repair 不启用工具。
+- `research.py`：运行有界 TaskBuilder 工具循环；TaskBuilder 可执行 Python，非 generated 构题还可读取和下载来源；QC repair 用 Python 工具编辑候选文件。
 - `validation.py`：在全局 QC 前校验题型字段、challenge effort 自检和可选执行环境契约。
 - `packaging.py`：提供 `pack_task_item`——把单个 `TaskDefinition` 就地转换为 run-ready 的 `BenchmarkItem`（含结构校验元数据、内容摘要、rubric 归一化，及带 `environment` 任务所需的 `agent_env`、`task_agent`、`agent_task_package`）。由 `suite.py` 在每个 Builder job 合并时调用；原 `task_suite_to_dataset` 与 `BenchmarkDataset` 已删除，`TaskSuite` 即 run-ready 容器。
 
@@ -52,6 +53,8 @@
 - `quality/improver.py`：Loop 3 诊断后，仍通过 Planner Blueprint 和通用 TaskBuilder 重新生成目标内容。
 - `execution/plan.py`：只把 QC accepted items 交给 runner。
 - `execution/runner.py`：按 `task_type` 与实际 metadata/字段分派执行和评分。这是运行时分派，不是构题路线分流。
+
+`output_dir/debug/` 按阶段保存运行级检查点、模型调用、Research 轮次、QC、环境 preflight、逐题 runner 结果和可执行环境产物；失败不会删除已经完成的阶段或题目结果。
 
 ## 推荐导入路径
 

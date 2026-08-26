@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import copy
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import Any
 
+from ..diagnostics import error_record, new_debug_dir, safe_name, write_json
 from ..execution.lm_eval import _resolve_lm_eval_executable
 from ..types import BenchmarkConfig, BenchmarkItem
 from .agent_envs import build_agent_environment
@@ -369,6 +371,8 @@ def _preflight_executable_items(
     report: EnvironmentClawReport,
     items: list[BenchmarkItem],
     config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None = None,
 ) -> None:
     for item in items:
         if _agent_env_type(item) not in {"code_sandbox", "docker_workspace"}:
@@ -406,9 +410,20 @@ def _preflight_executable_items(
             )
             report.blocking_errors.append(detail)
         finally:
+            if trace_dir is not None and environment is not None:
+                item_dir = trace_dir / safe_name(item.id)
+                try:
+                    write_json(item_dir / "state.json", environment.state())
+                    export = getattr(environment, "export_artifacts", None)
+                    if callable(export):
+                        write_json(item_dir / "artifacts.json", export(item_dir))
+                except Exception as exc:
+                    write_json(item_dir / "artifact-error.json", error_record(exc))
             cleanup = getattr(environment, "cleanup", None)
             if callable(cleanup):
                 cleanup()
+            if trace_dir is not None:
+                write_json(trace_dir / "report.json", report.as_dict())
 
 
 def run_environment_claw(
@@ -416,8 +431,12 @@ def run_environment_claw(
     config: BenchmarkConfig,
 ) -> tuple[BenchmarkConfig, EnvironmentClawReport]:
     """Probe runtime requirements and make safe config decisions before execution."""
+    trace_dir = new_debug_dir(config.output_dir, "environment")
     if not config.environment_claw:
-        return config, EnvironmentClawReport(enabled=False)
+        report = EnvironmentClawReport(enabled=False)
+        if trace_dir is not None:
+            write_json(trace_dir / "report.json", report.as_dict())
+        return config, report
 
     report = EnvironmentClawReport(enabled=True)
     has_docker_workspace = _has_docker_workspace(items)
@@ -473,8 +492,10 @@ def run_environment_claw(
         _probe_lm_eval(report)
 
     if config.environment_preflight and config.run_targets and has_docker_workspace:
-        _preflight_executable_items(report, items, config)
+        _preflight_executable_items(report, items, config, trace_dir=trace_dir)
 
+    if trace_dir is not None:
+        write_json(trace_dir / "report.json", report.as_dict())
     return config, report
 
 
