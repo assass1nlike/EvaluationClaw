@@ -166,7 +166,7 @@ def test_direct_runner_and_lm_eval_share_the_accepted_item_view(monkeypatch, tmp
 
     monkeypatch.setattr(
         "evalclaw.execution.runner._run_item",
-        lambda item, config, target_id: ItemResult(
+        lambda item, config, target_id, **kwargs: ItemResult(
             item_id=item.id,
             target_id=target_id,
             raw_response="ok",

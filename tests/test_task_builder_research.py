@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -778,7 +779,7 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
     assert "No external sources" in captured["payload"]["resources"]["context"]
 
 
-def test_qc_repair_skips_tools_and_preserves_unreported_task(monkeypatch) -> None:
+def test_qc_repair_edits_file_with_tools_and_preserves_best_copy(monkeypatch, tmp_path) -> None:
     llm_payloads: list[dict] = []
     tool_calls = 0
 
@@ -814,28 +815,30 @@ def test_qc_repair_skips_tools_and_preserves_unreported_task(monkeypatch) -> Non
         task_payload("task_2", 2, "Keep this prompt byte-for-byte."),
     ]
 
-    def fake_tools(*args, **kwargs):
+    best_snapshot: dict = {}
+
+    def fake_tools(payload, **kwargs):
         nonlocal tool_calls
         tool_calls += 1
-        raise AssertionError("QC repair must not use construction tools")
-
-    def fake_call_llm(messages, *args, **kwargs):
-        payload = json.loads(messages[0].content)
         llm_payloads.append(payload)
-        return json.dumps(
-            {
-                "tasks": [
-                    task_payload(
-                        "task_1",
-                        1,
-                        "Original prompt with the scoring defect repaired.",
-                    )
-                ]
-            }
+        assert "previous_tasks" not in payload["revision"]
+        candidate_path = Path(payload["revision"]["path"])
+        candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+        best_snapshot.update(
+            json.loads((candidate_path.parent / "best.json").read_text(encoding="utf-8"))
         )
+        if tool_calls == 1:
+            candidate["tasks"][0]["prompt"] = ""
+        else:
+            assert payload["repair"]["issues"]
+            assert "previous_response" not in payload["repair"]
+            candidate["tasks"][0]["prompt"] = (
+                "Original prompt with the scoring defect repaired."
+            )
+        candidate_path.write_text(json.dumps(candidate), encoding="utf-8")
+        return '{"status":"saved"}', []
 
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", fake_call_llm)
     monkeypatch.setattr(
         "evalclaw.construction.suite._select_blueprint_sources", lambda *args, **kwargs: []
     )
@@ -884,12 +887,15 @@ def test_qc_repair_skips_tools_and_preserves_unreported_task(monkeypatch) -> Non
             use_web_research=True,
             search_backend="keyless",
             task_builder_max_workers=1,
+            output_dir=str(tmp_path),
         ),
         revision_context_by_dimension=revision,
     )
 
-    assert tool_calls == 0
-    assert len(llm_payloads) == 1
-    assert llm_payloads[0]["revision"]["previous_tasks"][0]["id"] == "task_1"
+    assert tool_calls == 2
+    assert len(llm_payloads) == 2
+    assert set(llm_payloads[0]["revision"]) == {"path", "qc_issues", "instruction"}
+    assert [task["id"] for task in best_snapshot["tasks"]] == ["task_1"]
+    assert best_snapshot["tasks"][0]["prompt"] == "Original prompt with a scoring defect."
     assert [task.id for task in suite.tasks] == ["task_1"]
     assert suite.tasks[0].prompt == "Original prompt with the scoring defect repaired."

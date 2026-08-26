@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .construction.suite import build_task_suite
+from .diagnostics import write_json
 from .planning.task_planner import plan_benchmark
 from .quality.qc import run_qc_gate
 from .types import (
@@ -68,14 +69,25 @@ def _revision_contexts(
             previous_tasks.append(
                 source.model_dump(mode="json") if source is not None else item.model_dump(mode="json")
             )
+        resource_ids = {
+            resource_id
+            for task in previous_tasks
+            for resource_id in task.get("resource_ids", [])
+            if isinstance(resource_id, str)
+        }
         contexts[dimension_id] = {
             "reason": "task_qc_repair",
             "qc_issues": issues,
             "previous_tasks": previous_tasks,
+            "previous_resources": [
+                resource.model_dump(mode="json")
+                for resource in suite.resources
+                if resource.id in resource_ids
+            ],
             "instruction": (
-                "Return replacements only for task ids named by the listed QC issues. Fix every "
-                "listed problem and preserve each affected task id. Do not return or modify any "
-                "QC-passed task, including other tasks from the same TaskDesign."
+                "Use run_python to read and edit the task-builder JSON at revision.path in place. "
+                "Fix every listed problem, preserve the order and read-only ids of the tasks in "
+                "that file, and do not add any other task from the TaskDesign."
             ),
         }
     return contexts
@@ -146,15 +158,26 @@ def build_benchmark_suite_with_qc_loop(
     config: BenchmarkConfig,
     *,
     log: Callable[[str], None] = print,
+    trace_dir: str | Path | None = None,
 ) -> tuple[EvalSpec, TaskSuite, QcReport]:
     """Plan TaskDesigns and build each through one independent Builder call."""
     plan = plan_benchmark(goal, config, log=log)
     spec = plan.to_eval_spec()
+    trace_root = Path(trace_dir) if trace_dir is not None else None
+    if trace_root is not None:
+        write_json(
+            trace_root / "plan.json",
+            {
+                "plan": plan.model_dump(mode="json"),
+                "spec": spec.model_dump(mode="json"),
+            },
+        )
     suite, qc_report = build_suite_from_spec_with_qc_loop(
         spec,
         plan.builder_jobs,
         config,
         log=log,
+        trace_dir=trace_root,
     )
     suite.plan = plan
     return spec, suite, qc_report
@@ -166,6 +189,7 @@ def build_suite_from_spec_with_qc_loop(
     config: BenchmarkConfig,
     *,
     log: Callable[[str], None] = print,
+    trace_dir: str | Path | None = None,
 ) -> tuple[TaskSuite, QcReport]:
     """Build and QC an already planned specification through the general route."""
     qc_debug_root = None
@@ -200,8 +224,13 @@ def build_suite_from_spec_with_qc_loop(
             + ", ".join(missing_dimension_ids)
         )
 
+    trace_root = Path(trace_dir) if trace_dir is not None else None
     suite = build_task_suite(spec, builder_jobs, config, log=log)
+    if trace_root is not None:
+        write_json(trace_root / "initial-suite.json", suite.model_dump(mode="json"))
     qc_report = run_traced_qc(suite, "00-initial")
+    if trace_root is not None:
+        write_json(trace_root / "initial-qc.json", qc_report.model_dump(mode="json"))
     log(f"  QC: reviewing {len(suite.tasks)} constructed task(s). {qc_report.summary}")
 
     max_repairs = max(0, int(config.max_qc_iterations))
@@ -304,6 +333,14 @@ def build_suite_from_spec_with_qc_loop(
             "Benchmark did not produce a runner-ready suite after unified task QC: "
             f"{len(qc_report.rejected_item_ids)} rejected item(s), "
             f"quality_score={qc_report.quality_score:.3f}."
+        )
+    if trace_root is not None:
+        write_json(
+            trace_root / "final.json",
+            {
+                "suite": suite.model_dump(mode="json"),
+                "qc_report": qc_report.model_dump(mode="json"),
+            },
         )
     return suite, qc_report
 

@@ -287,18 +287,10 @@ def test_task_builder_requires_role_key_by_default() -> None:
 
 
 def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> None:
-    regular_calls = 0
-
     def fail_tools(*args, **kwargs):
         raise RuntimeError("quota exhausted")
 
-    def regular_call(*args, **kwargs):
-        nonlocal regular_calls
-        regular_calls += 1
-        return "{}"
-
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fail_tools)
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", regular_call)
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -329,7 +321,6 @@ def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> Non
                 use_hf_discovery=False,
             ),
         )
-    assert regular_calls == 0
 
 
 def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
@@ -4189,7 +4180,7 @@ def test_human_review_feedback_can_add_dimension_and_refill(monkeypatch) -> None
     monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
     monkeypatch.setattr("evalclaw.planning.loop.plan_from_spec", fake_plan_from_spec)
     monkeypatch.setattr("evalclaw.planning.loop.build_task_suite", fake_build_task_suite)
-    monkeypatch.setattr("evalclaw.planning.loop.run_qc_gate", lambda suite, config: qc)
+    monkeypatch.setattr("evalclaw.planning.loop.run_qc_gate", lambda suite, config, **kwargs: qc)
 
     _, revised_suite, revised_qc = apply_human_review_feedback(
         suite,
@@ -4235,7 +4226,7 @@ def test_human_review_ignores_destructive_delete_of_qc_passed_items(monkeypatch)
         return {"done": False, "delete_item_ids": ["base_item"], "notes": "Prefer another item."}
 
     monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
-    monkeypatch.setattr("evalclaw.planning.loop.run_qc_gate", lambda suite, config: qc)
+    monkeypatch.setattr("evalclaw.planning.loop.run_qc_gate", lambda suite, config, **kwargs: qc)
 
     _, revised_suite, revised_qc = apply_human_review_feedback(
         suite,
@@ -4319,7 +4310,7 @@ def test_human_review_rewrites_single_item_from_update_items(monkeypatch) -> Non
 
     monkeypatch.setattr("evalclaw.planning.loop._planner_review", fake_planner_review)
     monkeypatch.setattr("evalclaw.planning.loop.build_task_suite", fake_rewrite_build)
-    monkeypatch.setattr("evalclaw.planning.loop.run_qc_gate", lambda suite, config: qc)
+    monkeypatch.setattr("evalclaw.planning.loop.run_qc_gate", lambda suite, config, **kwargs: qc)
 
     _, revised_suite, revised_qc = apply_human_review_feedback(
         suite,

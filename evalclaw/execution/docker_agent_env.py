@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import shlex
+import shutil
 import subprocess
 import tempfile
 import uuid
@@ -76,6 +77,7 @@ class DockerWorkspaceAgentEnvironment:
     invalid_actions: int = 0
     done: bool = False
     last_test: dict[str, Any] | None = None
+    evaluator_runs: list[dict[str, Any]] = field(default_factory=list)
     test_runs: int = 0
     last_command: dict[str, Any] | None = None
     final_answer: str = ""
@@ -511,6 +513,16 @@ class DockerWorkspaceAgentEnvironment:
             score_text=score_proc.stdout if score_proc.returncode == 0 else "",
             allow_stdout_score=bool(self.evaluation.get("allow_stdout_score", False)),
         )
+        self.evaluator_runs.append(
+            {
+                "returncode": proc.returncode,
+                "stdout": proc.stdout,
+                "stderr": proc.stderr,
+                "result_json": result_proc.stdout if result_proc.returncode == 0 else "",
+                "score_text": score_proc.stdout if score_proc.returncode == 0 else "",
+                "evaluator": evaluator.as_dict(),
+            }
+        )
         self.last_test = {
             "passed": evaluator.passed,
             "score": evaluator.score,
@@ -746,6 +758,42 @@ class DockerWorkspaceAgentEnvironment:
             "final_answer": self.final_answer,
             "done": self.done,
             "score": self.score(),
+        }
+
+    def export_artifacts(self, destination: str | Path) -> dict[str, str]:
+        """Export the final visible workspace and complete evaluator output."""
+        root = Path(destination)
+        root.mkdir(parents=True, exist_ok=True)
+        state_path = root / "environment-state.json"
+        evaluator_path = root / "evaluator-runs.json"
+        state_path.write_text(
+            json.dumps(self.state(), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        evaluator_path.write_text(
+            json.dumps(self.evaluator_runs, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        workspace = root / "workspace"
+        if self._container_name:
+            workspace.mkdir(parents=True, exist_ok=True)
+            self._require_ok(
+                self._run_docker(
+                    ["cp", f"{self._container_name}:{self.workdir}/.", str(workspace)],
+                    timeout=self.timeout + 10,
+                ),
+                "export workspace",
+            )
+            for relative in sorted(self._hidden_paths | self._runtime_paths):
+                protected = workspace / Path(relative)
+                if protected.is_dir():
+                    shutil.rmtree(protected)
+                elif protected.exists():
+                    protected.unlink()
+        return {
+            "workspace": str(workspace),
+            "environment_state": str(state_path),
+            "evaluator_runs": str(evaluator_path),
         }
 
     def cleanup(self) -> None:

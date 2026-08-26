@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import json
 import re
+from pathlib import Path
 from typing import Any
 
+from ..diagnostics import error_record, write_json
 from ..execution.agent_envs import build_agent_environment
 from ..models.llm import (
     TargetToolModelResponse,
@@ -168,10 +170,36 @@ def _native_tool_result_messages(adapter: str, results: list[ToolResult]) -> lis
     return [evalclaw_tool_result_to_openai(result) for result in results]
 
 
+def _save_environment_artifacts(env: Any, artifact_dir: Path | None) -> None:
+    if artifact_dir is None:
+        return
+    try:
+        write_json(artifact_dir / "environment-state.json", env.state())
+        export = getattr(env, "export_artifacts", None)
+        if callable(export):
+            write_json(artifact_dir / "artifacts.json", export(artifact_dir))
+    except Exception as exc:
+        write_json(artifact_dir / "artifact-error.json", error_record(exc))
+
+
+def _save_interaction_progress(
+    artifact_dir: Path | None,
+    trace: list[dict[str, Any]],
+    env: Any,
+) -> None:
+    if artifact_dir is not None:
+        write_json(
+            artifact_dir / "interaction.json",
+            {"trace": trace, "current_state": env.state()},
+        )
+
+
 def _run_agent_interaction_native_tools(
     item: BenchmarkItem,
     target: TargetModelConfig,
     config: BenchmarkConfig,
+    *,
+    artifact_dir: Path | None = None,
 ) -> tuple[str, float, str]:
     env = build_agent_environment(item, config)
     try:
@@ -196,6 +224,8 @@ def _run_agent_interaction_native_tools(
                 tool_specs,
                 system_prompt=native_system_prompt,
                 backend=config.llm_backend,
+                trace_dir=artifact_dir / "llm" if artifact_dir is not None else None,
+                trace_name=f"agent-step-{len(trace) + 1:03d}",
             )
             native_messages.append(response.assistant_message)
             if not response.tool_calls:
@@ -224,6 +254,7 @@ def _run_agent_interaction_native_tools(
                         "done": done,
                     }
                 )
+                _save_interaction_progress(artifact_dir, trace, env)
                 break
 
             results: list[ToolResult] = []
@@ -243,6 +274,7 @@ def _run_agent_interaction_native_tools(
                         "done": done,
                     }
                 )
+                _save_interaction_progress(artifact_dir, trace, env)
                 if done or env.steps >= env.max_steps:
                     break
             if done or env.steps >= env.max_steps:
@@ -261,6 +293,7 @@ def _run_agent_interaction_native_tools(
         }
         return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
     finally:
+        _save_environment_artifacts(env, artifact_dir)
         cleanup = getattr(env, "cleanup", None)
         if callable(cleanup):
             cleanup()
@@ -270,6 +303,8 @@ def _run_agent_interaction_json_actions(
     item: BenchmarkItem,
     target: TargetModelConfig,
     config: BenchmarkConfig,
+    *,
+    artifact_dir: Path | None = None,
 ) -> tuple[str, float, str]:
     env = build_agent_environment(item, config)
     try:
@@ -292,6 +327,8 @@ def _run_agent_interaction_json_actions(
                 system_prompt=system_prompt,
                 history=history,
                 backend=config.llm_backend,
+                trace_dir=artifact_dir / "llm" if artifact_dir is not None else None,
+                trace_name=f"agent-step-{step_index + 1:03d}",
             )
             history.extend([Message(role="user", content=user_prompt), Message(role="assistant", content=response)])
             action, parse_error = parse_agent_action(response)
@@ -326,6 +363,7 @@ def _run_agent_interaction_json_actions(
                     "done": done,
                 }
             )
+            _save_interaction_progress(artifact_dir, trace, env)
             if done:
                 break
             user_prompt = f"Observation:\n{observation}\n\nContinue with one JSON action."
@@ -340,6 +378,7 @@ def _run_agent_interaction_json_actions(
         }
         return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
     finally:
+        _save_environment_artifacts(env, artifact_dir)
         cleanup = getattr(env, "cleanup", None)
         if callable(cleanup):
             cleanup()
@@ -349,8 +388,21 @@ def run_agent_interaction(
     item: BenchmarkItem,
     target: TargetModelConfig,
     config: BenchmarkConfig,
+    *,
+    artifact_dir: str | Path | None = None,
 ) -> tuple[str, float, str]:
+    artifact_path = Path(artifact_dir) if artifact_dir is not None else None
     adapter = tool_adapter_for_target(target)
     if adapter in {"openai", "anthropic"}:
-        return _run_agent_interaction_native_tools(item, target, config)
-    return _run_agent_interaction_json_actions(item, target, config)
+        return _run_agent_interaction_native_tools(
+            item,
+            target,
+            config,
+            artifact_dir=artifact_path,
+        )
+    return _run_agent_interaction_json_actions(
+        item,
+        target,
+        config,
+        artifact_dir=artifact_path,
+    )
