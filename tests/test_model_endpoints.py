@@ -240,6 +240,91 @@ def test_orchestrator_tool_adapter_failure_does_not_switch_to_direct_http(monkey
     assert direct_calls == 0
 
 
+def test_orchestrator_uses_openai_litellm_route_for_custom_base_url(monkeypatch) -> None:
+    import litellm as _litellm
+
+    captured: dict = {}
+
+    def complete(**kwargs):
+        captured.update(kwargs)
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    finish_reason="tool_calls",
+                    message=SimpleNamespace(
+                        content="",
+                        tool_calls=[
+                            {
+                                "id": "call_1",
+                                "type": "function",
+                                "function": {
+                                    "name": "run_python",
+                                    "arguments": '{"code":"print(4)"}',
+                                },
+                            }
+                        ],
+                    ),
+                )
+            ]
+        )
+
+    monkeypatch.setattr(_litellm, "completion", complete)
+
+    response = llm.call_orchestrator_with_tools(
+        [{"role": "user", "content": "Compute a value."}],
+        model="deepseek-v4-flash",
+        provider="openai_compatible",
+        api_key="test-key",
+        base_url="https://api.deepseek.com",
+        tools=[
+            ToolSpec(
+                name="run_python",
+                parameters=object_schema(
+                    {"code": {"type": "string"}},
+                    required=["code"],
+                ),
+            )
+        ],
+    )
+
+    assert captured["model"] == "openai/deepseek-v4-flash"
+    assert captured["base_url"] == "https://api.deepseek.com"
+    assert captured["tools"][0]["function"]["name"] == "run_python"
+    assert response.tool_calls[0].name == "run_python"
+
+
+def test_orchestrator_deepseek_json_recovery_disables_thinking(monkeypatch) -> None:
+    import litellm as _litellm
+
+    captured: dict = {}
+
+    def complete(**kwargs):
+        captured.update(kwargs)
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    finish_reason="stop",
+                    message=SimpleNamespace(content='{"tasks": []}', tool_calls=[]),
+                )
+            ]
+        )
+
+    monkeypatch.setattr(_litellm, "completion", complete)
+
+    response = llm.call_orchestrator_with_tools(
+        [{"role": "user", "content": "Return the final task JSON."}],
+        model="deepseek-v4-flash",
+        api_key="test-key",
+        base_url="https://api.deepseek.com",
+        tools=[],
+        expect_json=True,
+    )
+
+    assert response.content == '{"tasks": []}'
+    assert captured["response_format"] == {"type": "json_object"}
+    assert captured["extra_body"] == {"thinking": {"type": "disabled"}}
+
+
 def test_call_llm_propagates_litellm_adapter_failure(monkeypatch) -> None:
     import litellm as _litellm
 
@@ -474,12 +559,13 @@ def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
     monkeypatch.setattr(llm, "_call_litellm", forbidden_litellm)
 
     result = llm.call_llm(
-        [Message(role="user", content="Return JSON.")],
+        [Message(role="user", content="Return the run summary.")],
         model="gpt-5.6-luna",
         api_key="test-key",
         base_url="https://model.example/v1",
         provider="openai_compatible",
         backend="auto",
+        expect_json=True,
     )
 
     assert result == '{"ok":true}'
@@ -487,6 +573,38 @@ def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
     assert captured["url"] == "https://model.example/v1/chat/completions"
     assert captured["body"]["stream"] is True
     assert captured["body"]["response_format"] == {"type": "json_object"}
+
+
+def test_deepseek_streaming_preserves_thinking_until_json_recovery(monkeypatch) -> None:
+    bodies: list[dict] = []
+
+    def fake_stream(url, headers, body):
+        bodies.append(body)
+        return '{"tasks": []}', "stop"
+
+    monkeypatch.setenv("EVALCLAW_LLM_STREAMING", "1")
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", fake_stream)
+
+    llm.call_llm(
+        [Message(role="user", content="Build the tasks.")],
+        model="deepseek-v4-flash",
+        api_key="test-key",
+        base_url="https://api.deepseek.com",
+        provider="openai_compatible",
+    )
+    llm.call_llm(
+        [Message(role="user", content="Return the final task JSON.")],
+        model="deepseek-v4-flash",
+        api_key="test-key",
+        base_url="https://api.deepseek.com",
+        provider="openai_compatible",
+        reduce_reasoning_effort=True,
+        expect_json=True,
+    )
+
+    assert "thinking" not in bodies[0]
+    assert bodies[1]["thinking"] == {"type": "disabled"}
+    assert bodies[1]["response_format"] == {"type": "json_object"}
 
 
 def test_openai_compatible_streaming_retries_upstream_error(monkeypatch) -> None:

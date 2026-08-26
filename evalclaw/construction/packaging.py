@@ -102,19 +102,8 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
     if not isinstance(levels, dict):
         levels = {}
     levels = {str(key): str(value) for key, value in levels.items()}
-    partial_text = str(partial_criteria or "").strip().lower()
-    has_partial = bool(partial_text) and partial_text not in {
-        "not applicable",
-        "n/a",
-        "na",
-        "none",
-        "no partial credit",
-        "not used",
-    }
-    if has_partial and "0.5" not in levels and "0.50" not in levels and "partial" not in {
-        value.lower() for value in levels.values()
-    }:
-        levels = {"0": "fail", "0.5": "partial", "1": "pass", **levels}
+    if task.scoring.allows_partial_credit and not levels:
+        levels = {"0": "fail", "0.5": "partial", "1": "pass"}
     scoring.update(
         {
             "method": scoring.get("method") or "deterministic",
@@ -535,6 +524,7 @@ def pack_task_item(
         dimension_id=task.dimension_id,
         task_type=task.task_type,
         prompt=task.prompt,
+        assets=task.assets,
         choices=task.choices,
         correct_choice_ids=task.correct_choice_ids,
         expected_text=task.expected_text,

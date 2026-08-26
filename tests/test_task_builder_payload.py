@@ -12,6 +12,7 @@ from evalclaw.construction.suite import (
 )
 from evalclaw.types import (
     AgentEnvironmentType,
+    ChoiceOption,
     EvalDimension,
     EvalSpec,
     ScaleBudget,
@@ -93,6 +94,35 @@ def test_multi_turn_duplicate_key_uses_the_executed_dialogue() -> None:
 
     assert _task_duplicate_key(first) != _task_duplicate_key(second)
     assert _task_duplicate_key(first) == _task_duplicate_key(first.model_copy(update={"id": "copy"}))
+
+
+def test_choice_duplicate_key_includes_choices() -> None:
+    first = TaskDefinition(
+        id="choice_1",
+        dimension_id="vision",
+        task_type=TaskType.choice,
+        title="Identify an animal",
+        prompt="What object is shown in the blurred image?",
+        choices=[
+            {"id": "A", "text": "Lion"},
+            {"id": "B", "text": "Tiger"},
+        ],
+        correct_choice_ids=["A"],
+    )
+    second = first.model_copy(
+        update={
+            "id": "choice_2",
+            "choices": [
+                ChoiceOption(id="A", text="Bus"),
+                ChoiceOption(id="B", text="Truck"),
+            ],
+        }
+    )
+
+    assert _task_duplicate_key(first) != _task_duplicate_key(second)
+    assert _task_duplicate_key(first) == _task_duplicate_key(
+        first.model_copy(update={"id": "copy"})
+    )
 
 
 def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() -> None:
@@ -329,6 +359,7 @@ def test_task_builder_contract_matches_fill_blank_and_generation_runners() -> No
         )["task_builder_contract"]["task_schema"]
 
     assert "expected_text" in schemas["short"]["optional"]
+    assert "assets" in schemas["short"]["optional"]
     assert {"rubric", "judge_tools", "output_contract"}.issubset(
         schemas["code"]["optional"]
     )

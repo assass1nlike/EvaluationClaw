@@ -10,7 +10,7 @@ from typing import Any, Callable
 
 from ..construction.suite import build_task_suite
 from ..core.scaling import target_count_for_dimension
-from ..models.llm import call_llm, extract_json
+from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..planning.task_planner import plan_from_spec
 from ..prompts.planning_loop import PLANNER_REVIEW_SYSTEM_PROMPT
@@ -141,6 +141,7 @@ def _item_excerpt(item: BenchmarkItem, *, truncate: bool = True) -> dict[str, ob
         "task_type": item.task_type.value,
         "challenge_effort": item.challenge_effort.value,
         "prompt": item.prompt[:700] if truncate else item.prompt,
+        "assets": [asset.model_dump(mode="json") for asset in item.assets],
         "choices": [choice.model_dump(mode="json") for choice in item.choices],
         "correct_choice_ids": item.correct_choice_ids,
         "expected_text": item.expected_text,
@@ -246,7 +247,8 @@ def _planner_review(
             system=system,
             **settings.call_kwargs(),
             backend=config.llm_backend,
-            max_tokens=8192,
+            max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+            expect_json=True,
         )
         data = extract_json(raw)
         return data if isinstance(data, dict) else {"done": True, "notes": "Planner review returned non-object JSON."}
@@ -596,6 +598,7 @@ def format_human_review_overview(
                 + (f" - {item.source.uri}" if item.source.uri else ""),
                 f"- Source notes: {item.source.notes or '-'}",
                 f"- Tags: {', '.join(item.tags) or '-'}",
+                f"- Assets: {', '.join(asset.path for asset in item.assets) or '-'}",
             ]
         )
         if source_definition is not None:

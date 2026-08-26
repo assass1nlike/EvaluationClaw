@@ -6,8 +6,8 @@ import pytest
 
 from evalclaw.construction.research import (
     _append_tool_results,
-    _execute_research_tool,
-    run_task_builder_research,
+    _execute_task_builder_tool,
+    run_task_builder_tools,
 )
 from evalclaw.construction.resources import _select_blueprint_sources
 from evalclaw.construction.suite import build_task_suite
@@ -292,7 +292,7 @@ def test_source_search_surfaces_api_error_without_fallback(monkeypatch) -> None:
     assert queries == ["task design query"]
 
 
-def test_task_builder_research_executes_search_and_returns_final_json(monkeypatch) -> None:
+def test_task_builder_tools_execute_search_and_return_final_json(monkeypatch, tmp_path) -> None:
     captured: list[dict] = []
     responses = iter(
         [
@@ -326,7 +326,7 @@ def test_task_builder_research_executes_search_and_returns_final_json(monkeypatc
         ),
     )
 
-    raw, notes = run_task_builder_research(
+    raw, notes = run_task_builder_tools(
         {"blueprint": {"id": "service_blueprint"}},
         system_prompt="Build a task.",
         config=BenchmarkConfig(
@@ -334,8 +334,10 @@ def test_task_builder_research_executes_search_and_returns_final_json(monkeypatc
             task_builder_api_key="test-key",
             use_web_research=True,
             search_backend="keyless",
-            task_builder_research_max_calls=2,
+            task_builder_tool_max_calls=2,
         ),
+        include_source_tools=True,
+        debug_dir=tmp_path / "tool-trace",
     )
 
     assert raw == '{"tasks": []}'
@@ -344,10 +346,68 @@ def test_task_builder_research_executes_search_and_returns_final_json(monkeypatc
     tool_messages = captured[1]["messages"]
     assert any(message.get("role") == "tool" for message in tool_messages)
     assert "Evidence for reproducible service failure benchmark" in json.dumps(tool_messages)
+    traces = sorted((tmp_path / "tool-trace").glob("tool-round-*.json"))
+    assert len(traces) == 2
+    first_trace = json.loads(traces[0].read_text(encoding="utf-8"))
+    assert first_trace["parsed_tool_calls"][0]["name"] == "search_web"
+
+
+def test_task_builder_downloads_into_its_own_asset_directory(monkeypatch, tmp_path) -> None:
+    responses = iter(
+        [
+            _openai_tool_response(
+                ToolCall(
+                    id="download_1",
+                    name="download_files",
+                    arguments={"urls": ["https://example.com/image.png"]},
+                )
+            ),
+            TargetToolModelResponse(
+                adapter="openai",
+                content='{"tasks": []}',
+                tool_calls=[],
+                assistant_message={"role": "assistant", "content": '{"tasks": []}'},
+                raw_response={},
+            ),
+        ]
+    )
+    destinations = []
+
+    monkeypatch.setattr(
+        "evalclaw.construction.research.call_orchestrator_with_tools",
+        lambda *args, **kwargs: next(responses),
+    )
+
+    def fake_download(url, destination_dir, *, max_bytes, timeout=30.0):
+        destinations.append(destination_dir)
+        return {
+            "source_url": url,
+            "resolved_url": url,
+            "path": str(destination_dir / "image.png"),
+            "filename": "image.png",
+            "media_type": "image/png",
+            "size_bytes": 4,
+        }
+
+    monkeypatch.setattr("evalclaw.construction.research.download_url_file", fake_download)
+
+    raw, _ = run_task_builder_tools(
+        {"task_plan": {"builder_job_id": "vision/job"}},
+        system_prompt="Build a task.",
+        config=BenchmarkConfig(
+            task_builder_model="gpt-5",
+            task_builder_api_key="test-key",
+            output_dir=str(tmp_path),
+        ),
+        include_source_tools=True,
+    )
+
+    assert raw == '{"tasks": []}'
+    assert destinations == [tmp_path.resolve() / "assets" / "task-builder" / "vision_job"]
 
 
 def test_task_builder_can_read_retained_deep_research_source() -> None:
-    result = _execute_research_tool(
+    result = _execute_task_builder_tool(
         ToolCall(
             id="read_1",
             name="read_research_source",
@@ -371,7 +431,128 @@ def test_task_builder_can_read_retained_deep_research_source() -> None:
     assert "Full retained evidence for task construction." in result.content
 
 
-def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) -> None:
+def test_task_builder_can_download_multiple_file_types(monkeypatch, tmp_path) -> None:
+    calls: list[tuple[str, object, int]] = []
+
+    def fake_download(url, destination_dir, *, max_bytes, timeout=30.0):
+        calls.append((url, destination_dir, max_bytes))
+        if url.endswith("missing.csv"):
+            raise RuntimeError("not found")
+        return {
+            "source_url": url,
+            "resolved_url": url,
+            "path": str(destination_dir / url.rsplit("/", 1)[-1]),
+            "filename": url.rsplit("/", 1)[-1],
+            "media_type": "application/octet-stream",
+            "size_bytes": 4,
+        }
+
+    monkeypatch.setattr("evalclaw.construction.research.download_url_file", fake_download)
+
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="download_1",
+            name="download_files",
+            arguments={
+                "urls": [
+                    "https://example.com/image.png",
+                    "https://example.com/data.zip",
+                    "https://example.com/missing.csv",
+                ]
+            },
+        ),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        work_dir=tmp_path,
+    )
+
+    content = json.loads(result.content)
+    assert result.error is None
+    assert [file["filename"] for file in content["files"]] == ["image.png", "data.zip"]
+    assert content["errors"][0]["url"] == "https://example.com/missing.csv"
+    assert [call[0] for call in calls] == [
+        "https://example.com/image.png",
+        "https://example.com/data.zip",
+        "https://example.com/missing.csv",
+    ]
+    assert calls[1][2] == calls[0][2] - 4
+
+
+def test_task_builder_can_run_python_and_create_assets(tmp_path) -> None:
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="python_1",
+            name="run_python",
+            arguments={
+                "code": (
+                    "from pathlib import Path\n"
+                    "Path('values.csv').write_text('x,y\\n1,2\\n', encoding='utf-8')\n"
+                    "print(sum(range(5)))\n"
+                )
+            },
+        ),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        work_dir=tmp_path,
+    )
+
+    content = json.loads(result.content)
+    asset_path = tmp_path.resolve() / "values.csv"
+    assert result.error is None
+    assert content["exit_code"] == 0
+    assert content["stdout"].strip() == "10"
+    assert content["files"] == [str(asset_path)]
+    assert content["working_directory"] == str(tmp_path)
+    assert asset_path.read_text(encoding="utf-8") == "x,y\n1,2\n"
+
+
+def test_task_builder_tools_recover_missing_final_content(monkeypatch) -> None:
+    captured: list[dict] = []
+    responses = iter(
+        [
+            TargetToolModelResponse(
+                adapter="openai",
+                content="",
+                tool_calls=[],
+                assistant_message={"role": "assistant", "content": ""},
+                raw_response={},
+            ),
+            TargetToolModelResponse(
+                adapter="openai",
+                content='{"tasks": []}',
+                tool_calls=[],
+                assistant_message={"role": "assistant", "content": '{"tasks": []}'},
+                raw_response={},
+            ),
+        ]
+    )
+
+    def fake_call(messages, **kwargs):
+        captured.append({"messages": json.loads(json.dumps(messages)), "kwargs": kwargs})
+        return next(responses)
+
+    monkeypatch.setattr("evalclaw.construction.research.call_orchestrator_with_tools", fake_call)
+
+    raw, _ = run_task_builder_tools(
+        {"blueprint": {"id": "service_blueprint"}},
+        system_prompt="Build a task.",
+        config=BenchmarkConfig(
+            task_builder_model="deepseek-v4-flash",
+            task_builder_api_key="test-key",
+            task_builder_base_url="https://api.deepseek.com",
+            use_web_research=True,
+            search_backend="keyless",
+        ),
+        include_source_tools=True,
+    )
+
+    assert raw == '{"tasks": []}'
+    assert len(captured) == 2
+    assert captured[1]["kwargs"]["tools"] == []
+    assert captured[1]["kwargs"].get("expect_json", False) is False
+
+
+def test_task_builder_tools_use_anthropic_tool_result_blocks(monkeypatch) -> None:
     captured: list[list[dict]] = []
     responses = iter(
         [
@@ -407,7 +588,7 @@ def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) ->
         lambda url, **kwargs: "Public source text.",
     )
 
-    raw, _ = run_task_builder_research(
+    raw, _ = run_task_builder_tools(
         {"blueprint": {"id": "gui_blueprint"}},
         system_prompt="Build a task.",
         config=BenchmarkConfig(
@@ -415,8 +596,9 @@ def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) ->
             task_builder_api_key="test-key",
             use_web_research=True,
             search_backend="keyless",
-            task_builder_research_max_calls=2,
+            task_builder_tool_max_calls=2,
         ),
+        include_source_tools=True,
     )
 
     assert raw == '{"tasks": []}'
@@ -426,12 +608,13 @@ def test_task_builder_research_uses_anthropic_tool_result_blocks(monkeypatch) ->
     assert captured[1][2]["content"][0]["tool_use_id"] == "fetch_1"
 
 
-def test_reused_task_builder_enables_research_loop(monkeypatch) -> None:
+def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypatch) -> None:
     captured: dict = {}
 
-    def fake_research(payload, *, system_prompt, config):
+    def fake_tools(payload, *, system_prompt, config, include_source_tools):
         captured["payload"] = payload
         captured["system_prompt"] = system_prompt
+        captured["include_source_tools"] = include_source_tools
         return (
             json.dumps(
                 {
@@ -470,10 +653,10 @@ def test_reused_task_builder_enables_research_loop(monkeypatch) -> None:
                     ]
                 }
             ),
-            ["task-builder research used 1 tool call(s), total=1"],
+            ["task-builder used 1 tool call(s), total=1"],
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_research", fake_research)
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
     monkeypatch.setattr("evalclaw.construction.suite._select_blueprint_sources", lambda *args, **kwargs: [])
     dimension = EvalDimension(
         id="agent_research",
@@ -507,58 +690,47 @@ def test_reused_task_builder_enables_research_loop(monkeypatch) -> None:
         [blueprint],
         BenchmarkConfig(
             **dummy_config_kwargs(),
-            use_web_research=True,
-            search_backend="keyless",
-            research_brief=ResearchBrief(
-                source_materials=[
-                    ResearchSourceMaterial(
-                        title="Retained source",
-                        url="https://example.com/source",
-                        content="Retained evidence.",
-                    )
-                ]
-            ),
+            use_web_research=False,
         ),
     )
 
     assert suite.tasks[0].challenge_effort == ChallengeEffort.E2
+    assert captured["include_source_tools"] is True
     assert captured["payload"]["task_plan"]["builder_job_id"] == "research_blueprint"
-    assert captured["payload"]["resources"]["deep_research"]["source_material_index"][0][
-        "url"
-    ] == "https://example.com/source"
+    assert captured["payload"]["resources"]["deep_research"] == {}
 
 
-def test_generated_task_builder_does_not_receive_or_use_research(monkeypatch) -> None:
+def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None:
     captured: dict = {}
 
-    def fake_call_llm(messages, **kwargs):
-        captured["payload"] = json.loads(messages[0].content)
-        return json.dumps(
-            {
-                "resources": [],
-                "tasks": [
-                    {
-                        "task_type": "fill_blank",
-                        "title": "Generated task",
-                        "prompt": "Provide the exact generated answer requested by this task.",
-                        "expected_text": "answer",
-                        "metadata": {
-                            "challenge_effort_self_assessment": {
-                                "requested_effort": "E3",
-                                "meets_requested_effort": True,
-                                "rationale": "The task is constructed directly from the TaskDesign.",
-                            }
-                        },
-                    }
-                ],
-            }
+    def fake_tools(payload, *, system_prompt, config, include_source_tools):
+        captured["payload"] = payload
+        captured["include_source_tools"] = include_source_tools
+        return (
+            json.dumps(
+                {
+                    "resources": [],
+                    "tasks": [
+                        {
+                            "task_type": "fill_blank",
+                            "title": "Generated task",
+                            "prompt": "Provide the exact generated answer requested by this task.",
+                            "expected_text": "answer",
+                            "metadata": {
+                                "challenge_effort_self_assessment": {
+                                    "requested_effort": "E3",
+                                    "meets_requested_effort": True,
+                                    "rationale": "The task is constructed directly from the TaskDesign.",
+                                }
+                            },
+                        }
+                    ],
+                }
+            ),
+            [],
         )
 
-    def fail_research(*args, **kwargs):
-        raise AssertionError("generated construction must not enable research tools")
-
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", fake_call_llm)
-    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_research", fail_research)
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
     dimension = EvalDimension(
         id="generated",
         name="Generated",
@@ -600,14 +772,15 @@ def test_generated_task_builder_does_not_receive_or_use_research(monkeypatch) ->
     )
 
     assert suite.resources == []
+    assert captured["include_source_tools"] is False
     assert captured["payload"]["resources"]["available"] == []
     assert captured["payload"]["resources"]["deep_research"] == {}
     assert "No external sources" in captured["payload"]["resources"]["context"]
 
 
-def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> None:
+def test_qc_repair_skips_tools_and_preserves_unreported_task(monkeypatch) -> None:
     llm_payloads: list[dict] = []
-    research_calls = 0
+    tool_calls = 0
 
     def task_payload(task_id: str, task_index: int, prompt: str) -> dict:
         return {
@@ -641,10 +814,10 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
         task_payload("task_2", 2, "Keep this prompt byte-for-byte."),
     ]
 
-    def fake_research(*args, **kwargs):
-        nonlocal research_calls
-        research_calls += 1
-        raise AssertionError("QC repair must not repeat web research")
+    def fake_tools(*args, **kwargs):
+        nonlocal tool_calls
+        tool_calls += 1
+        raise AssertionError("QC repair must not use construction tools")
 
     def fake_call_llm(messages, *args, **kwargs):
         payload = json.loads(messages[0].content)
@@ -661,7 +834,7 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_research", fake_research)
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
     monkeypatch.setattr("evalclaw.construction.suite.call_llm", fake_call_llm)
     monkeypatch.setattr(
         "evalclaw.construction.suite._select_blueprint_sources", lambda *args, **kwargs: []
@@ -715,7 +888,7 @@ def test_qc_repair_skips_research_and_preserves_unreported_task(monkeypatch) -> 
         revision_context_by_dimension=revision,
     )
 
-    assert research_calls == 0
+    assert tool_calls == 0
     assert len(llm_payloads) == 1
     assert llm_payloads[0]["revision"]["previous_tasks"][0]["id"] == "task_1"
     assert [task.id for task in suite.tasks] == ["task_1"]

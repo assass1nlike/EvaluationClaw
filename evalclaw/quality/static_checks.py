@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 from ..protocols.agent_task_package import agent_task_package_issues
-from ..protocols.multimodal import MULTIMODAL_METADATA_KEY, MULTIMODAL_SCHEMA_VERSION
 from ..protocols.science import science_metadata_issues
 from ..protocols.task_agent import TASK_AGENT_METADATA_KEY
 from ..types import BenchmarkItem, QcCategory, QcIssue, QcSeverity, TaskType
@@ -211,143 +211,32 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                         "Add scoring.method plus scoring.instructions, levels, or pass_fail standards.",
                 )
             )
-    multimodal = item.metadata.get(MULTIMODAL_METADATA_KEY)
-    if isinstance(multimodal, dict):
-        schema_version = str(multimodal.get("schema_version") or "")
-        if schema_version != MULTIMODAL_SCHEMA_VERSION:
+    for asset in item.assets:
+        path = asset.path.strip()
+        if not path:
+            issues.append(
+                _issue(item.id, QcSeverity.error, QcCategory.schema, "Asset path is empty.")
+            )
+            continue
+        if path not in item.prompt:
             issues.append(
                 _issue(
                     item.id,
-                    QcSeverity.warning,
-                    QcCategory.schema,
-                    "metadata.multimodal schema_version is missing or not evalclaw.multimodal.v1.",
-                    "Set metadata.multimodal.schema_version to evalclaw.multimodal.v1.",
+                    QcSeverity.error,
+                    QcCategory.clarity,
+                    f"Prompt does not reference asset path {path!r}.",
+                    "Refer to each task asset by its exact path in the prompt.",
                 )
             )
-        modalities = multimodal.get("modalities")
-        if not isinstance(modalities, list) or not modalities:
-            issues.append(
-                _issue(
-                    item.id,
-                    QcSeverity.warning,
-                    QcCategory.schema,
-                    "metadata.multimodal.modalities must be a non-empty list.",
-                    "List the modalities used by this item, such as image, audio, or video.",
-                )
-            )
-        else:
-            unsupported_modalities = sorted(
-                {
-                    str(modality).strip().lower()
-                    for modality in modalities
-                    if str(modality).strip().lower() not in {"text", "image"}
-                }
-            )
-            if unsupported_modalities:
-                issues.append(
-                    _issue(
-                        item.id,
-                        QcSeverity.error,
-                        QcCategory.schema,
-                        "Native multimodal execution currently supports image assets, not: "
-                        + ", ".join(unsupported_modalities),
-                        "Use image/text input or add a runner adapter that sends the requested modality natively.",
-                    )
-                )
-        assets = multimodal.get("assets")
-        if not isinstance(assets, list) or not assets:
+        if not Path(path).is_file():
             issues.append(
                 _issue(
                     item.id,
                     QcSeverity.error,
                     QcCategory.schema,
-                    "metadata.multimodal.assets must be a non-empty list.",
-                    "Add at least one media asset with an id and source information.",
+                    f"Asset path does not exist or is not a file: {path!r}.",
                 )
             )
-            asset_ids: set[str] = set()
-        else:
-            asset_ids = set()
-            for index, asset in enumerate(assets, 1):
-                if not isinstance(asset, dict):
-                    issues.append(
-                        _issue(
-                            item.id,
-                            QcSeverity.error,
-                            QcCategory.schema,
-                            f"Multimodal asset #{index} must be an object.",
-                        )
-                    )
-                    continue
-                asset_id = str(asset.get("id") or "").strip()
-                if not asset_id:
-                    issues.append(
-                        _issue(
-                            item.id,
-                            QcSeverity.error,
-                            QcCategory.schema,
-                            f"Multimodal asset #{index} lacks a stable id.",
-                        )
-                    )
-                elif asset_id in asset_ids:
-                    issues.append(
-                        _issue(
-                            item.id,
-                            QcSeverity.error,
-                            QcCategory.schema,
-                            f"Multimodal asset id {asset_id!r} is duplicated.",
-                        )
-                    )
-                else:
-                    asset_ids.add(asset_id)
-                if not str(asset.get("kind") or "").strip():
-                    issues.append(
-                        _issue(
-                            item.id,
-                            QcSeverity.error,
-                            QcCategory.schema,
-                            f"Multimodal asset {asset_id or index!r} lacks a kind.",
-                        )
-                    )
-                if not any(
-                    str(asset.get(key) or "").strip()
-                    for key in ("uri", "path", "data_uri")
-                ):
-                    issues.append(
-                        _issue(
-                            item.id,
-                            QcSeverity.error,
-                            QcCategory.schema,
-                            f"Multimodal asset {asset_id or index!r} has no resolvable source.",
-                            "Set uri, path, or data_uri so the runner can load the asset.",
-                        )
-                    )
-        content = multimodal.get("content")
-        if content is not None and not isinstance(content, list):
-            issues.append(
-                _issue(
-                    item.id,
-                    QcSeverity.error,
-                    QcCategory.schema,
-                    "metadata.multimodal.content must be a list when provided.",
-                    "Use ordered multimodal content blocks with text and asset references.",
-                )
-            )
-        elif isinstance(content, list):
-            for part in content:
-                if not isinstance(part, dict) or str(part.get("type") or "").lower() != "asset":
-                    continue
-                asset_id = str(part.get("asset_id") or part.get("assetId") or "").strip()
-                if not asset_id or asset_id not in asset_ids:
-                    issues.append(
-                        _issue(
-                            item.id,
-                            QcSeverity.error,
-                            QcCategory.schema,
-                            f"Multimodal content references unknown asset {asset_id or '<missing>'!r}.",
-                            "Reference one of metadata.multimodal.assets by its stable id.",
-                        )
-                    )
     if item.task_type != TaskType.choice and _rubric_has_explicit_self_correction(item.rubric):
         issues.append(
             _issue(
@@ -398,7 +287,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
             hidden_in_setup = [
                 path for path in hidden if path in setup_text or path.rsplit("/", 1)[-1] in setup_text
             ]
-            if "/tmp/hidden_files" in setup_text or hidden_in_setup:
+            if hidden_in_setup:
                 issues.append(
                     _issue(
                         item.id,

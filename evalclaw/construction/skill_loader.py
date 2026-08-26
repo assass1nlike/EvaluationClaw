@@ -5,18 +5,14 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from ..types import TaskBlueprint, TaskDesign, TaskType
+from ..types import AgentEnvironmentType, TaskBlueprint, TaskDesign, TaskType, environment_category
 
 _SKILL_DIR = Path(__file__).parent / "skills" / "build-environment-tasks"
-_CATEGORY_ROUTES = {
-    "workspace": ("workspace", "references/workspace.md"),
-    "code_sandbox": ("code_sandbox", "references/code-sandbox.md"),
-    "code sandbox": ("code_sandbox", "references/code-sandbox.md"),
-    "container": ("docker_workspace", "references/docker-workspace.md"),
-    "docker_workspace": ("docker_workspace", "references/docker-workspace.md"),
-    "browser": ("gui_desktop", "references/gui-desktop.md"),
-    "desktop": ("gui_desktop", "references/gui-desktop.md"),
-    "gui_desktop": ("gui_desktop", "references/gui-desktop.md"),
+_ENVIRONMENT_REFERENCES = {
+    AgentEnvironmentType.workspace: "references/workspace.md",
+    AgentEnvironmentType.code_sandbox: "references/code-sandbox.md",
+    AgentEnvironmentType.docker_workspace: "references/docker-workspace.md",
+    AgentEnvironmentType.gui_desktop: "references/gui-desktop.md",
 }
 _REFERENCE_ORDER = [
     "references/workspace.md",
@@ -38,12 +34,10 @@ def _read_skill_file(relative_path: str) -> str:
 
 
 def _design_route(design: TaskDesign) -> dict[str, object] | None:
-    category = str(design.environment_requirements.get("category") or "").strip().lower()
-    routed = _CATEGORY_ROUTES.get(category)
-    if routed is None:
+    runtime_type = environment_category(design)
+    if runtime_type is None:
         return None
-    runtime_type, environment_reference = routed
-    references = [environment_reference]
+    references = [_ENVIRONMENT_REFERENCES[runtime_type]]
     interaction_mode = str(design.interaction_requirements.get("mode") or "").strip().lower()
     if (
         design.task_type == TaskType.multi_turn
@@ -51,14 +45,14 @@ def _design_route(design: TaskDesign) -> dict[str, object] | None:
     ):
         references.append("references/task-agent.md")
     if (
-        runtime_type in {"docker_workspace", "gui_desktop"}
+        runtime_type in {AgentEnvironmentType.docker_workspace, AgentEnvironmentType.gui_desktop}
         or bool(design.environment_requirements.get("requires_vm"))
         or bool(design.environment_requirements.get("vm"))
     ):
         references.append("references/agent-task-package.md")
     return {
         "task_design_id": design.id,
-        "runtime_environment_type": runtime_type,
+        "runtime_environment_type": runtime_type.value,
         "references": references,
     }
 

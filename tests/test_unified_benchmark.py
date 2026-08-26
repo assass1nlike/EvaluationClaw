@@ -19,7 +19,7 @@ from evalclaw.types import (
     TaskTypeAllocation,
 )
 from tests.blueprint_factory import make_blueprint, make_task_design
-from tests.config_helpers import dummy_config_kwargs
+from tests.config_helpers import dummy_config_kwargs, patch_task_builder_model
 
 
 def _mixed_spec() -> EvalSpec:
@@ -259,7 +259,7 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together(monke
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", fake_call_llm)
+    patch_task_builder_model(monkeypatch, fake_call_llm)
 
     suite = build_task_suite(
         spec,

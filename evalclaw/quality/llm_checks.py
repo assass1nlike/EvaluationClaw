@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 
 from ..core.scaling import is_large_scale_budget
-from ..models.llm import call_llm, extract_json
+from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..prompts.qc import QC_SYSTEM_PROMPT
 from ..protocols.agent_task_package import (
@@ -382,6 +382,7 @@ def _llm_qc(
             "task_type": item.task_type.value,
             "challenge_effort": item.challenge_effort.value,
             **_prompt_for_qc(item.prompt, limit=prompt_limit),
+            "assets": [asset.model_dump(mode="json") for asset in item.assets],
             "choices": [choice.model_dump(mode="json") for choice in item.choices],
             "correct_choice_ids": item.correct_choice_ids,
             "expected_text": item.expected_text,
@@ -420,7 +421,7 @@ def _llm_qc(
                 "model": settings.model,
                 "provider": settings.provider,
                 "base_url": settings.base_url,
-                "max_tokens": 4096,
+                "max_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
             }
         )
     item_by_id = {item.id: item for item in suite.tasks}
@@ -436,7 +437,8 @@ def _llm_qc(
                 system=QC_SYSTEM_PROMPT,
                 **settings.call_kwargs(),
                 backend=config.llm_backend,
-                max_tokens=4096,
+                max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+                expect_json=True,
             )
             data = extract_json(raw)
             if not isinstance(data, dict):
