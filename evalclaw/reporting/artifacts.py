@@ -41,6 +41,7 @@ def _write_lm_eval_task(
                 "id": item.id,
                 "dimension_id": item.dimension_id,
                 "question": item.prompt,
+                "assets": [asset.model_dump(mode="json") for asset in item.assets],
                 "choices": [choice.text for choice in item.choices],
                 "answer": answer,
                 "correct_choice_ids": item.correct_choice_ids,
@@ -94,11 +95,12 @@ def write_lm_eval_artifacts(suite: TaskSuite, out_dir: Path) -> dict[str, Path]:
         if item.task_type == TaskType.choice
         and item.choices
         and len(item.correct_choice_ids) == 1
+        and not item.assets
     ]
     exact_match = [
         item
         for item in suite.tasks
-        if item.task_type == TaskType.fill_blank and item.expected_text
+        if item.task_type == TaskType.fill_blank and item.expected_text and not item.assets
     ]
     supported_ids = {item.id for item in [*multiple_choice, *exact_match]}
     unsupported_ids = [item.id for item in suite.tasks if item.id not in supported_ids]
@@ -134,7 +136,7 @@ def write_lm_eval_artifacts(suite: TaskSuite, out_dir: Path) -> dict[str, Path]:
                 "exported_item_count": len(supported_ids),
                 "unsupported_item_ids": unsupported_ids,
                 "notes": (
-                "Only accepted choice and exact fill-blank items "
+                "Only accepted text-only choice and exact fill-blank items "
                     "are exported. Rubric-judged and executable tasks remain direct-runner only."
                 ),
             },

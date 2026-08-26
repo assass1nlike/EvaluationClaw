@@ -14,7 +14,9 @@ backwards compatibility.
 """
 from __future__ import annotations
 
+import hashlib
 import html as _html
+import mimetypes
 import os
 import re
 import threading
@@ -22,7 +24,9 @@ import time
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from urllib.parse import parse_qs, quote_plus, urlsplit
+from pathlib import Path
+from typing import Any
+from urllib.parse import parse_qs, quote_plus, unquote, urlsplit
 
 import httpx
 
@@ -72,6 +76,70 @@ class SearchBackendError(SearchError):
 # ---------------------------------------------------------------------------
 # Shared primitives
 # ---------------------------------------------------------------------------
+def download_url_file(
+    url: str,
+    destination_dir: Path,
+    *,
+    max_bytes: int,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Download one HTTP(S) response to a framework-managed directory."""
+    parsed = urlsplit(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("url must be an absolute HTTP(S) URL")
+    if max_bytes <= 0:
+        raise ValueError("download byte limit has been exhausted")
+
+    with httpx.stream(
+        "GET",
+        url,
+        follow_redirects=True,
+        timeout=timeout,
+        headers={"User-Agent": _USER_AGENT},
+    ) as response:
+        response.raise_for_status()
+        declared_size = response.headers.get("content-length")
+        if declared_size and declared_size.isdigit() and int(declared_size) > max_bytes:
+            raise ValueError(f"download exceeds the {max_bytes}-byte limit")
+
+        resolved_url = str(response.url)
+        media_type = response.headers.get("content-type", "").split(";", 1)[0].strip()
+        original_name = Path(unquote(urlsplit(resolved_url).path)).name or "download"
+        safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_", original_name).strip("._")
+        safe_name = safe_name[:120] or "download"
+        suffix = Path(safe_name).suffix[:16]
+        if not suffix and media_type:
+            suffix = mimetypes.guess_extension(media_type) or ""
+        stem = Path(safe_name).stem[:80] or "download"
+        digest = hashlib.sha256(url.encode("utf-8")).hexdigest()[:12]
+        filename = f"{stem}-{digest}{suffix}"
+
+        destination_dir.mkdir(parents=True, exist_ok=True)
+        target = destination_dir / filename
+        partial = destination_dir / f".{filename}.part"
+        size = 0
+        try:
+            with partial.open("wb") as file:
+                for chunk in response.iter_bytes():
+                    size += len(chunk)
+                    if size > max_bytes:
+                        raise ValueError(f"download exceeds the {max_bytes}-byte limit")
+                    file.write(chunk)
+            partial.replace(target)
+        except Exception:
+            partial.unlink(missing_ok=True)
+            raise
+
+    return {
+        "source_url": url,
+        "resolved_url": resolved_url,
+        "path": str(target.resolve()),
+        "filename": filename,
+        "media_type": media_type or "application/octet-stream",
+        "size_bytes": size,
+    }
+
+
 def fetch_url_text(url: str, max_chars: int = 4000, timeout: float = 10.0) -> str | None:
     """Fetch a URL and return its plain-text content, stripped of HTML.
 

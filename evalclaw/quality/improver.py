@@ -11,7 +11,7 @@ from typing import Callable
 
 from ..construction.suite import build_task_suite
 from ..execution.runner import run_eval
-from ..models.llm import call_llm, extract_json
+from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..planning.task_planner import plan_blueprints_for_spec
 from ..quality.qc import run_qc_gate
@@ -194,6 +194,7 @@ def _diagnosis_payload(
                 "task_type": item.task_type.value,
                 "challenge_effort": item.challenge_effort.value,
                 "prompt_excerpt": _shorten(item.prompt, 900),
+                "assets": [asset.model_dump(mode="json") for asset in item.assets],
                 "choices": [choice.model_dump(mode="json") for choice in item.choices],
                 "correct_choice_ids": item.correct_choice_ids,
                 "expected_text": item.expected_text,
@@ -235,7 +236,8 @@ def _call_loop3_llm_json(payload: dict, config: BenchmarkConfig) -> dict:
                 system=_SYSTEM,
                 **settings.call_kwargs(),
                 backend=config.llm_backend,
-                max_tokens=2048,
+                max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+                expect_json=True,
             )
             data = extract_json(raw)
             result_queue.put_nowait((data, None))

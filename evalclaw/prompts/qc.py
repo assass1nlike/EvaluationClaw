@@ -21,8 +21,8 @@ coverage. Also perform meta-evaluation:
   than its challenge_effort; builder-level self-assessment handles that before
   this QC gate.
 - metadata.challenge_effort_fidelity.status=uncertain means the builder had to
-  regenerate after output truncation with reduced effort. Preserve this marker
-  and do not reject an otherwise sound item solely for effort-label uncertainty;
+  regenerate after output truncation with a more compact construction scope.
+  Preserve this marker and do not reject an otherwise sound item solely for effort-label uncertainty;
   continue to report any concrete execution, scoring, or content defect.
 - If an existing benchmark/source is needed, did the dataset use appropriate,
   hard, authoritative sources?
@@ -121,7 +121,7 @@ For task_type=agent with metadata.agent_env.type=docker_workspace:
   consistent with the container workdir, and leave the evaluator runtime
   available. A network=none task cannot fetch pip/npm/apt dependencies during
   setup; those dependencies must already exist in the image or image_build.
-- Reject setup_commands that reference hidden_files or /tmp/hidden_files. Any
+- Reject setup_commands that reference hidden_files. Any
   server/application asset needed before target execution belongs in
   runtime_files.
 - Hidden evaluators may start or inspect services when needed, but must not
@@ -201,13 +201,10 @@ For task_type=multi_turn or task_type=agent:
   intentionally unavailable to the target agent; do not reject an item merely
   because hidden_references are private.
 
-For items using metadata.multimodal:
-- metadata.multimodal.schema_version should be evalclaw.multimodal.v1.
-- metadata.multimodal.modalities and assets should be present and non-empty.
-- The current target adapter supports native image/text content only; audio or
-  video metadata must not be accepted as a native multimodal evaluation.
-- image items should provide a usable URL, data URI, or local file path that the
-  runner can resolve into provider-native image content.
+For items with assets:
+- Every asset should contain one path to a real local file.
+- The prompt should refer to each asset by that exact path.
+- The current native target adapter supports image files only.
 
 For items using metadata.science:
 - metadata.science.schema_version should be evalclaw.science.v1.
@@ -233,11 +230,13 @@ Return pure JSON only, with no markdown. Format:
   "summary": "..."
 }
 
-severity must be one of warning/error. Use warning for a real but non-blocking
-problem; omit observations that do not identify a problem.
-category must be one of schema/duplicate/scoring/clarity/coverage.
+severity must be one of warning/error.
+Use **warning** for minor issues that do not affect the correctness or validity
+of the question but leave room for further refinement or improvement;
+use **error** for missing critical components, incorrect content, or other
+issues that make the question unexecutable, unanswerable or unreliable.
+Category must be one of schema/duplicate/scoring/clarity/coverage.
 An error must identify the affected existing item_id. Dataset-level issues such
 as dimension design, overall coverage, scoring strategy, or source bias must be
-warnings. Mark an item error only when it is unexecutable or its answer is
-clearly unreliable.
+warnings.
 """

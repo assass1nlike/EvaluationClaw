@@ -408,7 +408,7 @@ HTML_TEMPLATE = """<!doctype html>
     const pkg = payload.package;
     const diag = payload.diagnostics;
     const records = diag.result_records || [];
-    const itemById = new Map((pkg.suite.items || []).map(item => [item.id, item]));
+    const itemById = new Map((pkg.suite.tasks || []).map(item => [item.id, item]));
     const resultRecordsByItem = new Map();
     records.forEach(record => {
       if (!resultRecordsByItem.has(record.item_id)) resultRecordsByItem.set(record.item_id, []);
@@ -669,13 +669,13 @@ HTML_TEMPLATE = """<!doctype html>
     }
     function itemByIdMap() {
       const map = new Map();
-      (pkg.suite.items || []).forEach(item => map.set(item.id, item));
+      (pkg.suite.tasks || []).forEach(item => map.set(item.id, item));
       return map;
     }
     const datasetItemById = itemByIdMap();
     function groupedPerformanceRows(groupKey, labelFn) {
       const groups = new Map();
-      (pkg.suite.items || []).forEach(item => {
+      (pkg.suite.tasks || []).forEach(item => {
         const key = groupKey(item) || "-";
         if (!groups.has(key)) groups.set(key, {key, plannedTotal: 0, pass: 0, scoreSum: 0, scoreCount: 0});
         const group = groups.get(key);
@@ -754,7 +754,7 @@ HTML_TEMPLATE = """<!doctype html>
       const kind = itemOrRecord.source && itemOrRecord.source.kind ? String(itemOrRecord.source.kind) : "";
       return kind && kind !== "self_generated" ? "sourced" : "generated";
     }
-    (pkg.suite.items || []).forEach(item => addDisplayReplacement(item.id, itemTaskTitle(item)));
+    (pkg.suite.tasks || []).forEach(item => addDisplayReplacement(item.id, itemTaskTitle(item)));
     displayReplacements.sort((a, b) => b[0].length - a[0].length);
     function itemDisplayTitle(itemId) {
       const item = itemById.get(itemId);
@@ -905,7 +905,7 @@ HTML_TEMPLATE = """<!doctype html>
       const trajectoryRequirements = isPlainObject(pack.trajectory_requirements) ? pack.trajectory_requirements : {};
       const resourceProvenance = isPlainObject(pack.resource_provenance) ? pack.resource_provenance : {};
       const capabilityTarget = isPlainObject(pack.capability_target) ? pack.capability_target : {};
-      const multimodal = isPlainObject(metadata.multimodal) ? metadata.multimodal : {};
+      const assets = asArray(item.assets);
       const envSession = isPlainObject(env.session) ? env.session : {};
       const initialSession = isPlainObject(initial.session) ? initial.session : {};
       const visibleFiles = combinedFileMap([
@@ -945,6 +945,7 @@ HTML_TEMPLATE = """<!doctype html>
         valueText(expectedArtifacts),
         evaluation.pass_criteria,
         valueText(capabilityTarget),
+        valueText(assets),
         valueText(visibleInputs.assets),
         valueText(envRequirements),
         valueText(resourceProvenance),
@@ -967,7 +968,7 @@ HTML_TEMPLATE = """<!doctype html>
         trajectoryRequirements,
         resourceProvenance,
         capabilityTarget,
-        multimodal,
+        assets,
         visibleFiles,
         hiddenFiles,
         referenceFiles,
@@ -979,7 +980,7 @@ HTML_TEMPLATE = """<!doctype html>
         search,
       };
     }
-    const taskRows = (pkg.suite.items || []).map(buildTaskRow);
+    const taskRows = (pkg.suite.tasks || []).map(buildTaskRow);
     function objectWithValues(entries) {
       const result = {};
       (entries || []).forEach(([key, value]) => {
@@ -1008,7 +1009,7 @@ HTML_TEMPLATE = """<!doctype html>
         .join("\\n");
     }
     function qualityFlagsForTask(row) {
-      const {item, env, pack, hiddenFiles, hiddenRefs, multimodal} = row;
+      const {item, env, pack, hiddenFiles, hiddenRefs, assets} = row;
       const flags = [itemSourceLabel(item)];
       if (hasRenderableValue(pack)) flags.push("executable task package");
       if (env.requires_vm || hasRenderableValue(env.vm) || hasRenderableValue((pack.environment_requirements || {}).vm)) {
@@ -1018,7 +1019,7 @@ HTML_TEMPLATE = """<!doctype html>
       if (Object.keys(hiddenFiles || {}).length || hasRenderableValue(hiddenRefs.reference_artifacts)) {
         flags.push("requires hidden evaluator");
       }
-      if (hasRenderableValue(multimodal.assets) || hasRenderableValue(multimodal.content)) flags.push("multimodal");
+      if (hasRenderableValue(assets)) flags.push("file assets");
       return [...new Set(flags)];
     }
     function sourceSummary(row) {
@@ -1065,7 +1066,7 @@ HTML_TEMPLATE = """<!doctype html>
         trajectoryRequirements,
         resourceProvenance,
         capabilityTarget,
-        multimodal,
+        assets,
         visibleFiles,
         hiddenFiles,
         referenceFiles,
@@ -1117,8 +1118,7 @@ HTML_TEMPLATE = """<!doctype html>
       ]);
       const modelVisibleResources = objectWithValues([
         ["files", visibleFiles],
-        ["assets", visibleInputs.assets || visibleInputs.resources || multimodal.assets],
-        ["multimodal_content", multimodal.content],
+        ["assets", firstRenderable(assets, visibleInputs.assets, visibleInputs.resources)],
         ["session_resources", visibleInputs.session],
       ]);
       const repositoryContext = objectWithValues([
@@ -1444,8 +1444,8 @@ HTML_TEMPLATE = """<!doctype html>
       const section = qs("qc");
       section.innerHTML = "<h2>Task Composition and QC</h2>";
       const qc = pkg.qc_report || {};
-      const totalItems = diag.generated_items ?? (pkg.suite.items || []).length;
-      const usedItems = diag.used_items ?? (pkg.suite.items || []).length;
+      const totalItems = diag.generated_items ?? (pkg.suite.tasks || []).length;
+      const usedItems = diag.used_items ?? (pkg.suite.tasks || []).length;
       const averageQcIssues = (qc.issues || []).length / Math.max(1, totalItems);
       const averageQcIssueTone = averageQcIssues === 0 ? "good" : averageQcIssues <= 0.25 ? "warn" : "bad";
       const grid = node("div", {class: "grid cols-3"});

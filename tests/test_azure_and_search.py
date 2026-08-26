@@ -102,16 +102,16 @@ def test_is_reasoning_model() -> None:
     assert not llm._is_reasoning_model("claude-opus-4-6")
 
 
-def test_effective_max_tokens_floors_reasoning_models() -> None:
-    assert llm._effective_max_tokens("azure/gpt-5.5", 4096) == llm._REASONING_MAX_TOKENS_FLOOR
-    assert llm._effective_max_tokens("azure/gpt-5.5", 32000) == 32000
-    assert llm._effective_max_tokens("azure/gpt-4o", 4096) == 4096
+def test_effective_max_tokens_applies_uniform_floor() -> None:
+    assert llm._effective_max_tokens("azure/gpt-5.5", 4096) == llm.DEFAULT_MAX_OUTPUT_TOKENS
+    assert llm._effective_max_tokens("azure/gpt-4o", 4096) == llm.DEFAULT_MAX_OUTPUT_TOKENS
+    assert llm._effective_max_tokens("azure/gpt-5.5", 40000) == 40000
 
 
-def test_effective_max_tokens_respects_explicit_low_effort(monkeypatch) -> None:
+def test_effective_max_tokens_keeps_uniform_floor_at_low_effort(monkeypatch) -> None:
     monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
 
-    assert llm._effective_max_tokens("gpt-5.6-luna", 1024) == 1024
+    assert llm._effective_max_tokens("gpt-5.6-luna", 1024) == llm.DEFAULT_MAX_OUTPUT_TOKENS
 
 
 class _FakeChoice:
@@ -143,7 +143,7 @@ def test_call_litellm_retries_on_truncation(monkeypatch) -> None:
         max_tokens=4096,
     )
     assert out == "full text"
-    assert budgets == [llm._REASONING_MAX_TOKENS_FLOOR, llm._REASONING_MAX_TOKENS_FLOOR * 2]
+    assert budgets == [llm.DEFAULT_MAX_OUTPUT_TOKENS, llm.DEFAULT_MAX_OUTPUT_TOKENS * 2]
 
 
 def test_call_litellm_raises_when_still_truncated(monkeypatch) -> None:
@@ -195,13 +195,36 @@ def test_call_litellm_deepseek_json_matches_direct_structured_mode(monkeypatch) 
 
     result = llm._call_litellm(
         model="deepseek-v4-pro",
-        messages=[{"role": "user", "content": "Return pure JSON only."}],
+        messages=[{"role": "user", "content": "Build one task and return the object."}],
         max_tokens=16384,
+        expect_json=True,
     )
 
     assert result == '{"plan": {}}'
     assert requests[0]["extra_body"] == {"thinking": {"type": "disabled"}}
     assert requests[0]["response_format"] == {"type": "json_object"}
+
+
+def test_call_litellm_without_expect_json_keeps_provider_defaults(monkeypatch) -> None:
+    import litellm as _litellm
+
+    requests: list[dict] = []
+
+    def fake_completion(**kwargs):
+        requests.append(kwargs)
+        return _FakeLitellmResponse("stop", "prose answer mentioning json")
+
+    monkeypatch.setattr(_litellm, "completion", fake_completion)
+
+    result = llm._call_litellm(
+        model="gpt-5.6-luna",
+        messages=[{"role": "user", "content": "Explain the json format in prose."}],
+        max_tokens=16384,
+        base_url="https://openai-compatible.example/v1",
+    )
+
+    assert result == "prose answer mentioning json"
+    assert "response_format" not in requests[0]
 
 
 def test_call_litellm_custom_openai_endpoint_uses_json_mode(monkeypatch) -> None:
@@ -217,9 +240,10 @@ def test_call_litellm_custom_openai_endpoint_uses_json_mode(monkeypatch) -> None
 
     result = llm._call_litellm(
         model="gpt-5.6-luna",
-        messages=[{"role": "user", "content": "Return one JSON object."}],
+        messages=[{"role": "user", "content": "Return the planned tasks."}],
         max_tokens=16384,
         base_url="https://openai-compatible.example/v1",
+        expect_json=True,
     )
 
     assert result == '{"tasks": []}'
@@ -496,6 +520,69 @@ def test_reset_network_state_reenables_source_for_next_run(monkeypatch) -> None:
 def test_fetch_url_text_skips_non_http_urls() -> None:
     assert backends.fetch_url_text("hf://datasets/foo/bar") is None
     assert backends.fetch_url_text("ftp://example.com/x") is None
+
+
+def test_download_url_file_streams_binary_content(monkeypatch, tmp_path) -> None:
+    class FakeStreamResponse:
+        url = backends.httpx.URL("https://cdn.example/data/sample.bin")
+        headers = {"content-type": "application/octet-stream", "content-length": "6"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def raise_for_status(self):
+            return None
+
+        def iter_bytes(self):
+            yield b"\x00\x01\x02"
+            yield b"abc"
+
+    monkeypatch.setattr(backends.httpx, "stream", lambda *args, **kwargs: FakeStreamResponse())
+
+    result = backends.download_url_file(
+        "https://cdn.example/data/sample.bin",
+        tmp_path,
+        max_bytes=10,
+    )
+
+    assert result["size_bytes"] == 6
+    assert result["media_type"] == "application/octet-stream"
+    assert result["resolved_url"] == "https://cdn.example/data/sample.bin"
+    assert (tmp_path / result["filename"]).read_bytes() == b"\x00\x01\x02abc"
+
+
+def test_download_url_file_removes_partial_file_when_limit_is_exceeded(
+    monkeypatch, tmp_path
+) -> None:
+    class FakeStreamResponse:
+        url = backends.httpx.URL("https://cdn.example/data/archive.zip")
+        headers = {"content-type": "application/zip"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def raise_for_status(self):
+            return None
+
+        def iter_bytes(self):
+            yield b"too large"
+
+    monkeypatch.setattr(backends.httpx, "stream", lambda *args, **kwargs: FakeStreamResponse())
+
+    with pytest.raises(ValueError, match="exceeds"):
+        backends.download_url_file(
+            "https://cdn.example/data/archive.zip",
+            tmp_path,
+            max_bytes=4,
+        )
+
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_fetch_url_text_caches_success(monkeypatch) -> None:

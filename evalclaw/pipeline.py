@@ -10,7 +10,7 @@ from .benchmark import build_benchmark_suite_with_qc_loop
 from .execution.environment_claw import format_environment_claw_report, run_environment_claw
 from .execution.lm_eval import run_lm_eval
 from .execution.plan import build_execution_plan
-from .execution.runner import run_eval, validate_multimodal_target_support
+from .execution.runner import run_eval, validate_asset_target_support
 from .planning.loop import apply_human_review_feedback, format_human_review_overview
 from .planning.planner import translate_goal_to_english
 from .quality.improver import run_loop3_improvement
@@ -112,14 +112,15 @@ def run_pipeline(
 ) -> BenchmarkPackage:
     """Run preparation -> unified construction/QC -> execution -> reporting."""
     reset_network_state()
+    debug_dirs: dict[str, str] = {}
+    if config.output_dir and not config.planner_debug_dir:
+        debug_dirs["planner_debug_dir"] = str(Path(config.output_dir) / "debug" / "planner")
     if config.output_dir and not config.task_builder_debug_dir:
-        config = config.model_copy(
-            update={
-                "task_builder_debug_dir": str(
-                    Path(config.output_dir) / "debug" / "task-builder"
-                )
-            }
+        debug_dirs["task_builder_debug_dir"] = str(
+            Path(config.output_dir) / "debug" / "task-builder"
         )
+    if debug_dirs:
+        config = config.model_copy(update=debug_dirs)
     original_goal = goal
     goal = translate_goal_to_english(goal, config)
     if goal != original_goal:
@@ -192,7 +193,7 @@ def run_pipeline(
         log(line)
     if direct_config.run_targets and environment_claw_report.blocking_errors:
         raise RuntimeError("\n\n".join(environment_claw_report.blocking_errors))
-    validate_multimodal_target_support(accepted_for_run, config)
+    validate_asset_target_support(accepted_for_run, config)
     log("\n[Runner] Executing accepted items against target models...")
     if not run_direct and config.runner == "lm-eval":
         log("  Direct runner skipped because --runner=lm-eval.")

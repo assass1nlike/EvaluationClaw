@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from evalclaw.benchmark import (
@@ -23,6 +25,7 @@ from evalclaw.types import (
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint, make_plan
+from tests.config_helpers import dummy_config_kwargs, patch_task_builder_model
 
 
 def _task(
@@ -235,6 +238,218 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
         "The reference answer is not supported by the evidence."
     )
     assert "Do not return or modify any QC-passed task" in revision["instruction"]
+
+
+def test_qc_round_keeps_valid_task_design_repairs_when_another_output_is_invalid(
+    monkeypatch,
+) -> None:
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate grounded knowledge.",
+        approach="Use short-answer tasks.",
+        task_types=[TaskType.fill_blank],
+        target_item_count=2,
+    )
+    spec = EvalSpec(
+        objective="Evaluate grounded knowledge.",
+        dimensions=[dimension],
+        task_types=[TaskType.fill_blank],
+        scale=2,
+    )
+    plan = make_plan(
+        spec,
+        [
+            make_blueprint(
+                "knowledge_a",
+                dimension.id,
+                "Knowledge A",
+                task_type=TaskType.fill_blank,
+            ),
+            make_blueprint(
+                "knowledge_b",
+                dimension.id,
+                "Knowledge B",
+                task_type=TaskType.fill_blank,
+            ),
+        ],
+    )
+    job_ids = [job.id for job in plan.builder_jobs]
+    monkeypatch.setattr(
+        "evalclaw.benchmark.plan_benchmark",
+        lambda *args, **kwargs: plan,
+    )
+
+    def fake_call_llm(messages, *args, **kwargs):
+        payload = json.loads(messages[0].content)
+        job_id = payload["task_plan"]["builder_job_id"]
+        repairing = "revision" in payload
+        if repairing and job_id == job_ids[1]:
+            return json.dumps([{"unexpected": "top-level list"}])
+        answer = "fixed" if repairing else "original"
+        return json.dumps(
+            {
+                "tasks": [
+                    {
+                        "task_type": "fill_blank",
+                        "title": f"Task for {job_id}",
+                        "prompt": f"Provide the answer for {job_id}.",
+                        "expected_text": answer,
+                        "rubric": "The supplied answer is exact.",
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": "E3",
+                                "meets_requested_effort": True,
+                                "rationale": "The task requires the requested reasoning effort.",
+                            }
+                        },
+                    }
+                ]
+            }
+        )
+
+    patch_task_builder_model(monkeypatch, fake_call_llm)
+
+    def fake_qc(candidate, config):
+        issues = [
+            QcIssue(
+                item_id=item.id,
+                severity=QcSeverity.error,
+                category=QcCategory.scoring,
+                message="The answer still needs repair.",
+            )
+            for item in candidate.tasks
+            if item.expected_text == "original"
+        ]
+        rejected = [issue.item_id for issue in issues if issue.item_id]
+        return QcReport(
+            issues=issues,
+            passed_item_ids=[item.id for item in candidate.tasks if item.id not in rejected],
+            rejected_item_ids=rejected,
+            summary=f"{len(issues)} rejected task(s).",
+        )
+
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", fake_qc)
+    logs: list[str] = []
+
+    _, result, qc_report = build_benchmark_suite_with_qc_loop(
+        spec.objective,
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            max_qc_iterations=1,
+            task_builder_repair_attempts=0,
+            task_builder_max_workers=2,
+            use_hf_discovery=False,
+            allow_incomplete_benchmark=True,
+        ),
+        log=logs.append,
+    )
+
+    tasks_by_job = {item.builder_job_id: item for item in result.tasks}
+    assert tasks_by_job[job_ids[0]].expected_text == "fixed"
+    assert tasks_by_job[job_ids[1]].expected_text == "original"
+    assert qc_report.rejected_item_ids == [tasks_by_job[job_ids[1]].id]
+    assert any("keeping its previous tasks" in message for message in logs)
+
+
+def test_qc_round_keeps_valid_repairs_within_partially_invalid_task_design(
+    monkeypatch,
+) -> None:
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate grounded knowledge.",
+        approach="Use short-answer tasks.",
+        task_types=[TaskType.fill_blank],
+        target_item_count=2,
+    )
+    spec = EvalSpec(
+        objective="Evaluate grounded knowledge.",
+        dimensions=[dimension],
+        task_types=[TaskType.fill_blank],
+        scale=2,
+    )
+    plan = make_plan(
+        spec,
+        [
+            make_blueprint(
+                "knowledge_pair",
+                dimension.id,
+                "Knowledge pair",
+                task_type=TaskType.fill_blank,
+                count=2,
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "evalclaw.benchmark.plan_benchmark",
+        lambda *args, **kwargs: plan,
+    )
+
+    def task_payload(index: int, answer: str) -> dict[str, object]:
+        return {
+            "task_type": "fill_blank",
+            "title": f"Knowledge task {index}",
+            "prompt": f"Provide answer {index}.",
+            "expected_text": answer,
+            "rubric": "The supplied answer is exact.",
+            "metadata": {
+                "challenge_effort_self_assessment": {
+                    "requested_effort": "E3",
+                    "meets_requested_effort": True,
+                    "rationale": "The task requires the requested reasoning effort.",
+                }
+            },
+        }
+
+    def fake_call_llm(messages, *args, **kwargs):
+        payload = json.loads(messages[0].content)
+        if "revision" not in payload:
+            tasks = [task_payload(1, "original-1"), task_payload(2, "original-2")]
+        else:
+            tasks = [task_payload(1, "fixed"), task_payload(2, "")]
+        return json.dumps({"tasks": tasks})
+
+    patch_task_builder_model(monkeypatch, fake_call_llm)
+
+    def fake_qc(candidate, config):
+        issues = [
+            QcIssue(
+                item_id=item.id,
+                severity=QcSeverity.error,
+                category=QcCategory.scoring,
+                message="The answer still needs repair.",
+            )
+            for item in candidate.tasks
+            if item.expected_text != "fixed"
+        ]
+        rejected = [issue.item_id for issue in issues if issue.item_id]
+        return QcReport(
+            issues=issues,
+            passed_item_ids=[item.id for item in candidate.tasks if item.id not in rejected],
+            rejected_item_ids=rejected,
+            summary=f"{len(issues)} rejected task(s).",
+        )
+
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", fake_qc)
+    logs: list[str] = []
+
+    _, result, qc_report = build_benchmark_suite_with_qc_loop(
+        spec.objective,
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            max_qc_iterations=1,
+            task_builder_repair_attempts=0,
+            task_builder_max_workers=1,
+            use_hf_discovery=False,
+            allow_incomplete_benchmark=True,
+        ),
+        log=logs.append,
+    )
+
+    assert [item.expected_text for item in result.tasks] == ["fixed", "original-2"]
+    assert qc_report.rejected_item_ids == [result.tasks[1].id]
+    assert any("keeping 1 structurally valid replacement" in message for message in logs)
 
 
 def test_real_partial_credit_evaluator_error_is_not_demoted() -> None:

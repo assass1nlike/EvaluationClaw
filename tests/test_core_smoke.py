@@ -55,7 +55,6 @@ from evalclaw.planning.loop import (
 from evalclaw.planning.planner import translate_goal_to_english
 from evalclaw.planning.task_planner import _instruction_resource, plan_benchmark
 from evalclaw.protocols.agent_task_package import compact_agent_task_package
-from evalclaw.protocols.multimodal import MULTIMODAL_SCHEMA_VERSION
 from evalclaw.protocols.tool import ToolCall, ToolSpec, object_schema, validate_tool_call
 from evalclaw.quality.qc import run_qc_gate
 from evalclaw.reporting.artifacts import _portable_path, write_lm_eval_artifacts
@@ -90,7 +89,7 @@ from evalclaw.types import (
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
-from tests.config_helpers import dummy_config_kwargs
+from tests.config_helpers import dummy_config_kwargs, patch_task_builder_model
 
 
 def test_sandbox_runs_in_isolated_container(monkeypatch) -> None:
@@ -288,10 +287,18 @@ def test_task_builder_requires_role_key_by_default() -> None:
 
 
 def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> None:
-    def fail_call_llm(*args, **kwargs):
+    regular_calls = 0
+
+    def fail_tools(*args, **kwargs):
         raise RuntimeError("quota exhausted")
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", fail_call_llm)
+    def regular_call(*args, **kwargs):
+        nonlocal regular_calls
+        regular_calls += 1
+        return "{}"
+
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fail_tools)
+    monkeypatch.setattr("evalclaw.construction.suite.call_llm", regular_call)
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -322,6 +329,7 @@ def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> Non
                 use_hf_discovery=False,
             ),
         )
+    assert regular_calls == 0
 
 
 def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
@@ -361,7 +369,7 @@ def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
                 ]
             }
         )
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", one_task_call_llm)
+    patch_task_builder_model(monkeypatch, one_task_call_llm)
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -456,7 +464,7 @@ def test_task_builder_repairs_missing_external_source_binding(
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", sourced_task_call_llm)
+    patch_task_builder_model(monkeypatch, sourced_task_call_llm)
     monkeypatch.setattr(
         "evalclaw.construction.suite._select_blueprint_sources",
         lambda *args, **kwargs: [],
@@ -528,7 +536,7 @@ def test_task_builder_repairs_external_resources_from_generated_strategy(monkeyp
             task["resource_ids"] = ["unrequested"]
         return json.dumps({"resources": resources, "tasks": [task]})
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", generated_task_call_llm)
+    patch_task_builder_model(monkeypatch, generated_task_call_llm)
     dimension = EvalDimension(
         id="generated",
         name="Generated",
@@ -603,7 +611,7 @@ def test_task_builder_preserves_resource_bindings_when_shared_urls_are_deduplica
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", sourced_task_call_llm)
+    patch_task_builder_model(monkeypatch, sourced_task_call_llm)
     monkeypatch.setattr(
         "evalclaw.construction.suite._select_blueprint_sources",
         lambda *args, **kwargs: [],
@@ -681,7 +689,7 @@ def test_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", overfilled_call_llm)
+    patch_task_builder_model(monkeypatch, overfilled_call_llm)
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -747,7 +755,7 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", call_llm_with_challenge_effort)
+    patch_task_builder_model(monkeypatch, call_llm_with_challenge_effort)
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -783,7 +791,7 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
     assert suite.tasks[0].challenge_effort == ChallengeEffort.E3
 
 
-def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> None:
+def test_task_builder_recovers_truncation_with_tools_and_reasoning_preserved(monkeypatch) -> None:
     calls: list[dict] = []
 
     def truncation_then_complete(messages, *args, **kwargs):
@@ -821,7 +829,7 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", truncation_then_complete)
+    patch_task_builder_model(monkeypatch, truncation_then_complete)
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -855,15 +863,16 @@ def test_task_builder_recovers_truncation_with_uncertain_effort(monkeypatch) -> 
     assert len(calls) == 2
     assert "truncation_recovery" not in calls[0]["payload"]
     assert calls[1]["payload"]["truncation_recovery"]["reduce_construction_effort"] is True
-    assert calls[1]["kwargs"]["backend"] == "litellm"
-    assert calls[1]["kwargs"]["reduce_reasoning_effort"] is True
+    assert calls[1]["kwargs"]["backend"] == calls[0]["kwargs"]["backend"]
+    assert calls[1]["kwargs"].get("reduce_reasoning_effort", False) is False
+    assert "max_tokens" not in calls[1]["kwargs"]
     fidelity = suite.tasks[0].metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY]
     assert fidelity["status"] == "uncertain"
     assert fidelity["requested_effort"] == "E3"
     assert suite.tasks[0].metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY] == fidelity
 
 
-def test_task_builder_stops_after_reduced_effort_retry_truncates(monkeypatch) -> None:
+def test_task_builder_stops_after_compact_construction_retry_truncates(monkeypatch) -> None:
     calls = 0
 
     def always_truncated(*args, **kwargs):
@@ -871,7 +880,7 @@ def test_task_builder_stops_after_reduced_effort_retry_truncates(monkeypatch) ->
         calls += 1
         raise LLMOutputTruncatedError("still truncated")
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", always_truncated)
+    patch_task_builder_model(monkeypatch, always_truncated)
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -909,14 +918,119 @@ def test_task_builder_stops_after_reduced_effort_retry_truncates(monkeypatch) ->
     assert calls == 2
 
 
+def test_task_builder_recovers_missing_final_content_before_structure_repair(monkeypatch) -> None:
+    calls: list[dict] = []
+
+    def empty_then_complete(messages, *args, **kwargs):
+        calls.append({"content": messages[0].content, "kwargs": kwargs})
+        if len(calls) == 1:
+            return ""
+        return json.dumps(
+            {
+                "tasks": [
+                    {
+                        "task_type": "fill_blank",
+                        "title": "Recovered task",
+                        "prompt": "Provide the exact generated answer for this task.",
+                        "expected_text": "answer",
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": "E3",
+                                "meets_requested_effort": True,
+                                "rationale": "The task has a deterministic answer.",
+                            }
+                        },
+                    }
+                ]
+            }
+        )
+
+    patch_task_builder_model(monkeypatch, empty_then_complete)
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate generated knowledge.",
+        approach="Use one exact-answer task.",
+        task_types=[TaskType.fill_blank],
+    )
+    blueprint = make_blueprint(
+        "knowledge_blueprint",
+        dimension.id,
+        "Generated knowledge task",
+        task_type=TaskType.fill_blank,
+        source_plan={"strategy": "generated"},
+    )
+
+    suite = build_task_suite(
+        EvalSpec(
+            objective="Evaluate generated knowledge.",
+            dimensions=[dimension],
+            task_types=[TaskType.fill_blank],
+        ),
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            task_builder_max_workers=1,
+            task_builder_repair_attempts=0,
+        ),
+    )
+
+    assert len(calls) == 2
+    assert calls[1]["content"] == calls[0]["content"]
+    assert calls[1]["kwargs"]["reduce_reasoning_effort"] is True
+    assert calls[1]["kwargs"].get("expect_json", False) is False
+    assert suite.tasks[0].expected_text == "answer"
+
+
+def test_task_builder_missing_final_content_does_not_use_structure_repairs(monkeypatch) -> None:
+    calls = 0
+
+    def always_empty(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return ""
+
+    patch_task_builder_model(monkeypatch, always_empty)
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate generated knowledge.",
+        approach="Use one exact-answer task.",
+        task_types=[TaskType.fill_blank],
+    )
+    blueprint = make_blueprint(
+        "knowledge_blueprint",
+        dimension.id,
+        "Generated knowledge task",
+        task_type=TaskType.fill_blank,
+        source_plan={"strategy": "generated"},
+    )
+
+    with pytest.raises(RuntimeError, match="no final content after one no-thinking recovery attempt"):
+        build_task_suite(
+            EvalSpec(
+                objective="Evaluate generated knowledge.",
+                dimensions=[dimension],
+                task_types=[TaskType.fill_blank],
+            ),
+            [blueprint],
+            BenchmarkConfig(
+                **dummy_config_kwargs(),
+                task_builder_max_workers=1,
+                task_builder_repair_attempts=5,
+            ),
+        )
+
+    assert calls == 2
+
+
 def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) -> None:
     active_calls = 0
     max_active_calls = 0
     lock = threading.Lock()
 
-    def concurrent_call_llm(messages, *args, **kwargs):
+    def concurrent_task_builder_tools(payload, **kwargs):
         nonlocal active_calls, max_active_calls
-        payload = json.loads(messages[0].content)
         blueprint_id = payload["task_plan"]["builder_job_id"]
         dimension_id = payload["task_plan"]["capability"]["id"]
         challenge_effort = payload["task_plan"]["capability"].get("challenge_effort", "E3")
@@ -928,37 +1042,42 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
         finally:
             with lock:
                 active_calls -= 1
-        return json.dumps(
-            {
-                "tasks": [
-                    {
-                        "id": f"{blueprint_id}_task",
-                        "dimension_id": dimension_id,
-                        "challenge_effort": challenge_effort,
-                        "title": f"{blueprint_id} task",
-                        "prompt": f"Complete the task for {blueprint_id}.",
-                        "environment": {
-                            "type": "workspace",
-                            "workspace": {
-                                "start_room": "office",
-                                "rooms": {"office": ["brief"], "mailroom": []},
-                                "goal": {"outgoing_bin": ["brief"]},
+        return (
+            json.dumps(
+                {
+                    "tasks": [
+                        {
+                            "id": f"{blueprint_id}_task",
+                            "dimension_id": dimension_id,
+                            "challenge_effort": challenge_effort,
+                            "title": f"{blueprint_id} task",
+                            "prompt": f"Complete the task for {blueprint_id}.",
+                            "environment": {
+                                "type": "workspace",
+                                "workspace": {
+                                    "start_room": "office",
+                                    "rooms": {"office": ["brief"], "mailroom": []},
+                                    "goal": {"outgoing_bin": ["brief"]},
+                                },
                             },
-                        },
-                        "scoring": {"pass_criteria": "Done."},
-                        "metadata": {
-                            "challenge_effort_self_assessment": {
-                                "requested_effort": challenge_effort,
-                                "meets_requested_effort": True,
-                                "rationale": "The task matches the requested construction effort for this test.",
-                            }
-                        },
-                    }
-                ]
-            }
+                            "scoring": {"pass_criteria": "Done."},
+                            "metadata": {
+                                "challenge_effort_self_assessment": {
+                                    "requested_effort": challenge_effort,
+                                    "meets_requested_effort": True,
+                                    "rationale": "The task matches the requested construction effort for this test.",
+                                }
+                            },
+                        }
+                    ]
+                }
+            ),
+            [],
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", concurrent_call_llm)
+    monkeypatch.setattr(
+        "evalclaw.construction.suite.run_task_builder_tools", concurrent_task_builder_tools
+    )
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -1070,7 +1189,7 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", repairable_call_llm)
+    patch_task_builder_model(monkeypatch, repairable_call_llm)
     dimension = EvalDimension(
         id="desktop_agent",
         name="Desktop agent",
@@ -1149,7 +1268,7 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", incomplete_gui_response)
+    patch_task_builder_model(monkeypatch, incomplete_gui_response)
     dimension = EvalDimension(
         id="desktop_agent",
         name="Desktop agent",
@@ -1236,7 +1355,7 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
             }
         )
 
-    monkeypatch.setattr("evalclaw.construction.suite.call_llm", repairable_call_llm)
+    patch_task_builder_model(monkeypatch, repairable_call_llm)
     dimension = EvalDimension(
         id="tool_use",
         name="Tool use",
@@ -1274,6 +1393,69 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
     assert payloads[1]["repair"]["issues"] == ["ValueError: expected a JSON object, got list"]
     assert payloads[1]["repair"]["previous_response"] == [{"unexpected": "top-level list"}]
     assert suite.tasks[0].id == "tool_use_blueprint_task_1"
+
+
+def test_task_builder_reports_per_task_normalization_errors_to_repair(monkeypatch) -> None:
+    payloads: list[dict] = []
+
+    def task_payload(index: int) -> dict[str, object]:
+        return {
+            "task_type": "generation",
+            "title": f"Proof task {index}",
+            "prompt": f"Prove statement {index}.",
+            "rubric": "Award credit for a complete proof.",
+            "metadata": {
+                "challenge_effort_self_assessment": {
+                    "requested_effort": "E3",
+                    "meets_requested_effort": True,
+                    "rationale": "The proof requires the requested reasoning effort.",
+                }
+            },
+        }
+
+    def repairable_call_llm(messages, *args, **kwargs):
+        payload = json.loads(messages[0].content)
+        payloads.append(payload)
+        tasks = [task_payload(1), task_payload(2)]
+        if "repair" not in payload:
+            tasks[1]["judge_tools"] = [{"name": "python_tests", "config": {}}]
+        return json.dumps({"tasks": tasks})
+
+    patch_task_builder_model(monkeypatch, repairable_call_llm)
+    dimension = EvalDimension(
+        id="proof",
+        name="Proof",
+        description="Evaluate mathematical proof construction.",
+        approach="Use two proof tasks.",
+        task_types=[TaskType.generation],
+    )
+    blueprint = make_blueprint(
+        "proof_blueprint",
+        dimension.id,
+        "Proof tasks",
+        task_type=TaskType.generation,
+        count=2,
+    )
+
+    suite = build_task_suite(
+        EvalSpec(
+            objective="Evaluate mathematical proofs.",
+            dimensions=[dimension],
+            task_types=[TaskType.generation],
+        ),
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            task_builder_max_workers=1,
+            task_builder_repair_attempts=1,
+        ),
+    )
+
+    assert len(suite.tasks) == 2
+    issues = payloads[1]["repair"]["issues"]
+    assert any("task #2 could not be normalized" in issue for issue in issues)
+    assert any("judge_tools.0.tool" in issue for issue in issues)
+    assert any("produced 1 usable task(s)" in issue for issue in issues)
 
 
 def test_agent_task_content_summary_is_persisted_for_reports() -> None:
@@ -2331,7 +2513,6 @@ def test_planner_instruction_resource_contains_design_constraints() -> None:
     assert '"target_models"' not in instruction
     assert '"reference_model"' not in instruction
     assert '"available_metrics"' not in instruction
-    assert '"multimodal_policy"' not in instruction
     assert '"science_policy"' not in instruction
 
 
@@ -2342,7 +2523,6 @@ def test_planner_instruction_resource_omits_irrelevant_domain_policies() -> None
     )
 
     assert '"target_models"' not in instruction
-    assert '"multimodal_policy"' not in instruction
     assert '"science_policy"' not in instruction
     assert '"reference_model"' not in instruction
 
@@ -2471,52 +2651,6 @@ def test_qc_warns_on_invalid_science_metadata() -> None:
     report = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), BenchmarkConfig())
 
     assert any("metadata.science.schema_version" in issue.message for issue in report.issues)
-
-
-def test_runner_passes_multimodal_user_content_to_target(monkeypatch) -> None:
-    captured = {}
-
-    def fake_call_target_model(prompt, target, **kwargs):
-        captured.update(kwargs)
-        return "A"
-
-    monkeypatch.setattr("evalclaw.execution.runner.call_target_model", fake_call_target_model)
-    monkeypatch.setattr("evalclaw.execution.runner._target_has_credentials", lambda *args, **kwargs: (True, "OPENAI_API_KEY"))
-
-    item = BenchmarkItem(
-        id="vision_mc",
-        dimension_id="visual_reasoning",
-        task_type=TaskType.choice,
-        prompt="What is shown in the image?",
-        choices=[{"id": "A", "text": "A blue square"}, {"id": "B", "text": "A red circle"}],
-        correct_choice_ids=["A"],
-        metadata={
-            "multimodal": {
-                "schema_version": MULTIMODAL_SCHEMA_VERSION,
-                "modalities": ["image"],
-                "assets": [
-                    {
-                        "id": "image_1",
-                        "kind": "image",
-                        "uri": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iYmx1ZSIvPjwvc3ZnPg==",
-                        "mime_type": "image/svg+xml",
-                    }
-                ],
-                "content": [
-                    {"type": "text", "text": "Inspect the image and choose the correct answer."},
-                    {"type": "asset", "asset_id": "image_1", "detail": "high"},
-                ],
-            }
-        },
-    )
-    config = BenchmarkConfig(targets=[TargetModelConfig(provider="openai", model="gpt-5")])
-
-    result = run_item(item, config)
-
-    assert result.score == 1.0
-    assert isinstance(captured["user_content"], list)
-    assert captured["user_content"][0]["type"] == "text"
-    assert captured["user_content"][1]["type"] == "image_url"
 
 
 def test_report_shows_source_coverage() -> None:
@@ -3482,6 +3616,8 @@ def test_report_viewer_html_includes_general_diagnostics() -> None:
     assert "QC and Judge Audit" not in html
     assert "Item Explorer" in html
     assert "proof_item_1" in html
+    assert "pkg.suite.items" not in html
+    assert "pkg.suite.tasks" in html
     assert "source-backed" in html
     assert "reasoning" in html
     assert payload["diagnostics"]["judge"]["double_pass_enabled"] is False

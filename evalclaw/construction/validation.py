@@ -5,7 +5,7 @@ import base64
 import re
 import shutil
 import subprocess
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 from ..protocols.agent_task_package import AGENT_TASK_PACKAGE_METADATA_KEY
 from ..types import (
@@ -313,6 +313,60 @@ def _vm_interactive_provisioning_issues(env: object) -> list[str]:
     return issues
 
 
+def _powershell_command_tokens(command: str) -> tuple[set[str], set[str]]:
+    """Return lowercase invoked command names and their argument tokens.
+
+    Parsing the script means a name that only appears in a comment or in an
+    unrelated string is not mistaken for an actual invocation.
+    """
+    executable = shutil.which("pwsh") or shutil.which("powershell")
+    if executable:
+        encoded = base64.b64encode(command.encode("utf-8")).decode("ascii")
+        parser_script = (
+            f"$source=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{encoded}'));"
+            "$tokens=$null;$errors=$null;"
+            "$ast=[System.Management.Automation.Language.Parser]::ParseInput("
+            "$source,[ref]$tokens,[ref]$errors);"
+            "$nodes=$ast.FindAll({param($node)"
+            "$node -is [System.Management.Automation.Language.CommandAst]},$true);"
+            "foreach($node in $nodes){"
+            "$name=$node.GetCommandName();"
+            "if($name){Write-Output (\"CMD`t\"+$name.ToLowerInvariant())}"
+            "foreach($element in $node.CommandElements){"
+            "Write-Output (\"ARG`t\"+$element.Extent.Text.Trim(\"'\",'\"').ToLowerInvariant())}}"
+        )
+        try:
+            result = subprocess.run(
+                [executable, "-NoProfile", "-NonInteractive", "-Command", "-"],
+                input=parser_script,
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError):
+            result = None
+        if result is not None and result.returncode == 0:
+            names: set[str] = set()
+            arguments: set[str] = set()
+            for line in result.stdout.splitlines():
+                kind, _, value = line.strip().partition("\t")
+                if value:
+                    (names if kind == "CMD" else arguments).add(value.removesuffix(".exe"))
+            return names, arguments
+    text = re.sub(r"<#.*?#>", " ", command, flags=re.DOTALL)
+    text = re.sub(r"#[^\n]*", " ", text)
+    names = {
+        match.group(1).lower().removesuffix(".exe")
+        for match in re.finditer(r"(?:^|[;|&(){}\n])\s*([A-Za-z][A-Za-z0-9_.-]*)", text)
+    }
+    arguments = {
+        next(group for group in match.groups() if group is not None).lower()
+        for match in re.finditer(r"'([^']*)'|\"([^\"]*)\"|([A-Za-z][A-Za-z0-9_.-]*)", text)
+    }
+    return names, arguments
+
+
 def _vm_windows_session_identity_issues(env: object) -> list[str]:
     if _declared_vm_guest_os(env) != "windows":
         return []
@@ -365,9 +419,9 @@ def _vm_windows_session_identity_issues(env: object) -> list[str]:
         )
         if _has_text(command)
     )
-    lower = commands.lower()
-    creates_local_user = "new-localuser" in lower or bool(
-        re.search(r"(?i)\bnet(?:\.exe)?\s+user\b", commands)
+    command_names, command_arguments = _powershell_command_tokens(commands)
+    creates_local_user = "new-localuser" in command_names or (
+        "net" in command_names and "user" in command_arguments
     )
     issues: list[str] = []
     names = ", ".join(sorted(asserted_users))
@@ -377,7 +431,7 @@ def _vm_windows_session_identity_issues(env: object) -> list[str]:
             f"{names}, but provisioning does not create a local user. Create the account "
             "explicitly; Scheduled Task principals and ACL entries do not create users."
         )
-    has_logon_configuration = "autoadminlogon" in lower and "defaultusername" in lower
+    has_logon_configuration = {"autoadminlogon", "defaultusername"} <= command_arguments
     if not provisioning.get("restart_after_provisioning") or not has_logon_configuration:
         issues.append(
             "Windows capability-resolved VM baseline asserts a named signed-in user, but "
@@ -681,6 +735,24 @@ def task_structure_issues(
         issues.append("Task prompt appears truncated or ends with an incomplete instruction.")
     if dimension is not None and task.dimension_id != dimension.id:
         issues.append(f"Task dimension_id must be {dimension.id}.")
+    if task_design is not None:
+        modalities = task_design.input_requirements.get("modalities")
+        asset_requirements = task_design.input_requirements.get("asset_requirements")
+        requires_assets = bool(asset_requirements) or (
+            isinstance(modalities, list)
+            and any(str(modality).strip().lower() != "text" for modality in modalities)
+        )
+        if requires_assets and not task.assets:
+            issues.append("TaskDesign requires file inputs, so the task must provide assets.")
+    for index, asset in enumerate(task.assets, 1):
+        path = asset.path.strip()
+        if not path:
+            issues.append(f"Asset #{index} path is empty.")
+            continue
+        if path not in task.prompt:
+            issues.append(f"Task prompt must reference asset path {path!r} exactly.")
+        if not Path(path).is_file():
+            issues.append(f"Asset path does not exist or is not a file: {path!r}.")
     expected_effort = (
         task_design.challenge_effort
         if task_design is not None
@@ -696,7 +768,7 @@ def task_structure_issues(
         effort_fidelity_uncertain = (
             isinstance(fidelity, dict)
             and fidelity.get("status") == "uncertain"
-            and fidelity.get("recovery_strategy") == "reduced_effort_litellm_retry"
+            and fidelity.get("recovery_strategy") == "compact_construction_retry"
         )
         assessment = task.metadata.get("challenge_effort_self_assessment")
         if not isinstance(assessment, dict):
@@ -854,10 +926,6 @@ def task_structure_issues(
             + ", ".join(sorted(collisions))
         )
     setup_text = "\n".join(env.setup_commands)
-    if "/tmp/hidden_files" in setup_text:
-        issues.append(
-            "setup_commands cannot use /tmp/hidden_files; put setup-only assets in runtime_files."
-        )
     referenced_hidden = [
         path
         for path in hidden_paths

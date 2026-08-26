@@ -76,6 +76,8 @@ The framework has exactly these three effort levels.
 
 Use `environment_requirements` only for `agent` tasks, choosing the environment category that provides the required tools or state. `multi_turn` tasks express their dialogue behavior through `interaction_requirements` and do not use an execution environment. Leave `environment_requirements` empty for `choice`, `fill_blank`, `generation`, and `multi_turn`; if executable interaction is essential, design an `agent` task instead.
 
+Although `reference/universal_format.json` lists the complete field set, for these non-agent task types return exactly `{}` for `environment_requirements`; do not expand its inner fields with null, empty-string, or empty-list values.
+
 Choose the environment category according to its actual runtime capabilities:
 
 - `workspace` is only the built-in room, inventory, item inspection, and outgoing-bin runtime. It cannot edit files, run commands or validators, browse, or add custom tools.

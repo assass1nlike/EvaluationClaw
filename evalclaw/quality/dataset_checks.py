@@ -13,12 +13,20 @@ from ..types import (
     QcIssue,
     QcSeverity,
     TaskSuite,
+    TaskType,
 )
 from .common import _is_source_backed, _issue
 
 
 def _prompt_fingerprint(prompt: str) -> str:
     return re.sub(r"\s+", " ", prompt.strip().lower())
+
+
+def _duplicate_content(item: BenchmarkItem) -> str:
+    parts = [item.prompt, *(asset.path for asset in item.assets)]
+    if item.task_type == TaskType.choice:
+        parts.extend(choice.text for choice in item.choices)
+    return "\n".join(parts)
 
 
 def _token_jaccard(left: str, right: str) -> float:
@@ -45,7 +53,7 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
                 )
             )
         seen_ids.add(item.id)
-        fingerprint = _prompt_fingerprint(item.prompt)
+        fingerprint = _prompt_fingerprint(_duplicate_content(item))
         first_id = seen_exact.get(fingerprint)
         if first_id:
             issues.append(
@@ -53,7 +61,7 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
                     item.id,
                     QcSeverity.error,
                     QcCategory.duplicate,
-                    f"Prompt is identical to {first_id}.",
+                    f"Task content is identical to {first_id}.",
                     "Deduplicate repeated items before running a large evaluation.",
                 )
             )
@@ -63,10 +71,12 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
     checked_items = items[:near_duplicate_limit] if near_duplicate_limit is not None else items
     for idx, item in enumerate(checked_items):
         for other in checked_items[idx + 1 :]:
-            if _prompt_fingerprint(item.prompt) == _prompt_fingerprint(other.prompt):
+            item_content = _duplicate_content(item)
+            other_content = _duplicate_content(other)
+            if _prompt_fingerprint(item_content) == _prompt_fingerprint(other_content):
                 continue
-            ratio = difflib.SequenceMatcher(None, item.prompt.lower(), other.prompt.lower()).ratio()
-            overlap = _token_jaccard(item.prompt, other.prompt)
+            ratio = difflib.SequenceMatcher(None, item_content.lower(), other_content.lower()).ratio()
+            overlap = _token_jaccard(item_content, other_content)
             if ratio >= 0.92 and overlap >= 0.78:
                 issues.append(
                     _issue(

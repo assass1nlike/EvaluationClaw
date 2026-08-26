@@ -32,10 +32,6 @@ def _json_loads(value: str) -> object | None:
         return None
 
 
-def _text_blob(*parts: object) -> str:
-    return " ".join(str(part or "") for part in parts).lower()
-
-
 def _display_label(value: object, *, strip_hash: bool = False) -> str:
     text = str(value or "").strip()
     if strip_hash:
@@ -45,43 +41,6 @@ def _display_label(value: object, *, strip_hash: bool = False) -> str:
     if not text:
         return "-"
     return " ".join(word if word.isupper() else word[:1].upper() + word[1:] for word in text.split())
-
-
-def _eval_families(pkg: BenchmarkPackage) -> list[str]:
-    suite = pkg.suite
-    item_types = {item.task_type for item in suite.tasks}
-    metadata_types = {
-        str(item.metadata.get("agent_env", {}).get("type", ""))
-        for item in suite.tasks
-        if isinstance(item.metadata.get("agent_env"), dict)
-    }
-    blob = _text_blob(
-        pkg.goal,
-        suite.spec.id,
-        suite.spec.objective,
-        " ".join(suite.spec.subjects),
-        " ".join(suite.spec.constraints),
-        " ".join(
-            _text_blob(dimension.id, dimension.name, dimension.description, dimension.approach)
-            for dimension in suite.spec.dimensions
-        ),
-        " ".join(_text_blob(item.id, item.dimension_id, item.prompt, item.rubric, " ".join(item.tags)) for item in suite.tasks),
-    )
-    families: list[str] = []
-    if TaskType.agent in item_types or TaskType.multi_turn in item_types:
-        families.append("agent")
-    if (
-        any(tool.tool == "python_tests" for item in suite.tasks for tool in item.judge_tools)
-        or "code_sandbox" in metadata_types
-    ):
-        families.append("code")
-    if any(keyword in blob for keyword in ("math", "reasoning", "proof", "theorem", "logic", "knowledge", "science", "graduate")):
-        families.append("reasoning")
-    if any(keyword in blob for keyword in ("instruction", "format", "constraint", "schema", "follow")):
-        families.append("instruction")
-    if not families:
-        families.append("general")
-    return families
 
 
 def _result_severity(score: float, has_error: bool) -> str:
@@ -282,7 +241,6 @@ def _viewer_payload(
                 "results_embedded": len(embedded_results),
                 "results_total": len(accepted_results),
             },
-            "families": _eval_families(pkg),
             "generated_items": len(suite.tasks),
             "used_items": len(used_items),
             "rejected_items": len(suite.tasks) - len(used_items),

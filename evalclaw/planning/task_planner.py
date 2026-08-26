@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import json
-import os
 import re
+import uuid
 from collections.abc import Callable
+from datetime import datetime, timezone
+from pathlib import Path
 
-from ..models.llm import call_llm, extract_json
+from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..prompts.planner import BENCHMARK_PLANNER_SYSTEM_PROMPT
 from ..research.deep_research import compact_brief_context, compact_brief_field_guide
@@ -20,6 +22,7 @@ from ..types import (
     Message,
     TaskBlueprint,
     TaskType,
+    environment_category,
 )
 from .planner import _safe_scale_budget, _scale_budget_guidance
 from .skill_loader import benchmark_planner_system_prompt
@@ -215,13 +218,6 @@ def _audit_plan(
 
     all_design_ids: set[str] = set()
     allowed_task_types = set(TaskType)
-    allowed_environments = {environment.value for environment in AgentEnvironmentType}
-    aliases = {
-        "code sandbox": "code_sandbox",
-        "container": "docker_workspace",
-        "browser": "gui_desktop",
-        "desktop": "gui_desktop",
-    }
     for dimension in plan.dimensions:
         prefix = dimension.id or "unnamed_dimension"
         if not all(
@@ -245,17 +241,21 @@ def _audit_plan(
                 issues.append(
                     f"{design_prefix}: content_design must include a concrete purpose or description."
                 )
-            category = str(design.environment_requirements.get("category") or "").strip().lower()
-            normalized_category = aliases.get(category, category)
-            if design.environment_requirements and not category:
+            declared_category = str(
+                design.environment_requirements.get("category") or ""
+            ).strip()
+            resolved_category = environment_category(design)
+            if design.environment_requirements and not declared_category:
                 issues.append(
                     f"{design_prefix}: non-empty environment_requirements must define category."
                 )
-            if category and normalized_category not in allowed_environments:
+            if declared_category and resolved_category is None:
                 issues.append(
-                    f"{design_prefix}: environment category {category!r} is not available at runtime."
+                    f"{design_prefix}: environment category {declared_category!r} is not one of "
+                    + ", ".join(environment.value for environment in AgentEnvironmentType)
+                    + "."
                 )
-            if design.task_type == TaskType.agent and not category:
+            if design.task_type == TaskType.agent and not declared_category:
                 issues.append(f"{design_prefix}: agent tasks require environment_requirements.")
             if design.task_type == TaskType.multi_turn:
                 followup_mode = str(
@@ -266,9 +266,9 @@ def _audit_plan(
                         f"{design_prefix}: multi_turn TaskDesigns must set "
                         "interaction_requirements.followup_mode to 'adaptive' or 'scripted'."
                     )
-            if category and design.task_type != TaskType.agent:
+            if declared_category and design.task_type != TaskType.agent:
                 issues.append(
-                    f"{design_prefix}: environment category {normalized_category!r} is only valid "
+                    f"{design_prefix}: environment category {declared_category!r} is only valid "
                     "for agent tasks. Remove the environment or change the task type when executable "
                     "interaction is essential."
                 )
@@ -412,6 +412,54 @@ def _run_planner(
         raise RuntimeError("Planner model is not configured.")
     system = benchmark_planner_system_prompt(BENCHMARK_PLANNER_SYSTEM_PROMPT)
     base_resources = _planner_resources(instruction, config)
+    debug_root = Path(config.planner_debug_dir).expanduser() if config.planner_debug_dir else None
+    debug_invocation_id = (
+        datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+        + "-"
+        + uuid.uuid4().hex[:8]
+    )
+
+    def persist_planner_debug(
+        *,
+        attempt: int,
+        status: str,
+        raw_response: str | None = None,
+        validation_issues: list[str] | None = None,
+        error: Exception | None = None,
+        parsed_keys: list[str] | None = None,
+    ) -> None:
+        if debug_root is None:
+            return
+        phase = "initial" if attempt == 1 else "repair"
+        stem = f"attempt-{attempt:02d}-{phase}"
+        debug_dir = debug_root / debug_invocation_id
+        try:
+            debug_dir.mkdir(parents=True, exist_ok=True)
+            response_path = debug_dir / f"{stem}.response.txt"
+            if raw_response is not None:
+                response_path.write_text(raw_response, encoding="utf-8")
+            diagnostics = {
+                "invocation_id": debug_invocation_id,
+                "model": settings.model,
+                "backend": config.llm_backend,
+                "attempt": attempt,
+                "phase": phase,
+                "status": status,
+                "response_file": response_path.name if response_path.exists() else None,
+                "response_bytes": response_path.stat().st_size if response_path.exists() else 0,
+                "parsed_top_level_keys": parsed_keys or [],
+                "validation_issues": validation_issues or [],
+                "error_type": type(error).__name__ if error is not None else None,
+                "error": str(error) if error is not None else None,
+            }
+            (debug_dir / f"{stem}.diagnostics.json").write_text(
+                json.dumps(diagnostics, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            if log:
+                log(f"  Planner: could not save debug artifacts ({exc}).")
+
     errors: list[str] = []
     previous_response: object | None = None
     max_attempts = max(1, config.max_planner_iterations)
@@ -437,30 +485,49 @@ def _run_planner(
             )
         if log:
             log(f"  Planner: designing dimensions and TaskDesigns ({attempt}/{max_attempts}).")
+        raw: str | None = None
+        parsed_response: object | None = None
         try:
             raw = call_llm(
                 [Message(role="user", content=user_content)],
                 system=system,
                 **settings.call_kwargs(),
                 backend=config.llm_backend,
-                max_tokens=(
-                    4096
-                    if os.environ.get("EVALCLAW_REASONING_EFFORT") == "low"
-                    else 16384
-                ),
+                max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+                expect_json=True,
             )
-            previous_response = extract_json(raw)
+            parsed_response = extract_json(raw)
+            previous_response = parsed_response
             plan, errors = _parse_plan_response(
-                previous_response,
+                parsed_response,
                 config,
                 expected_task_count=expected_task_count,
                 framework_dimension_ids=framework_dimension_ids,
             )
         except Exception as exc:
             errors = [f"{type(exc).__name__}: {exc}"]
+            persist_planner_debug(
+                attempt=attempt,
+                status="response_invalid" if raw is not None else "call_failed",
+                raw_response=raw,
+                validation_issues=errors,
+                error=exc,
+                parsed_keys=(
+                    list(parsed_response)
+                    if isinstance(parsed_response, dict)
+                    else None
+                ),
+            )
             if log:
                 log(f"  Planner: attempt {attempt} failed: {errors[0][:500]}")
             continue
+        persist_planner_debug(
+            attempt=attempt,
+            status="deterministic_audit_failed" if errors else "accepted",
+            raw_response=raw,
+            validation_issues=errors,
+            parsed_keys=list(parsed_response) if isinstance(parsed_response, dict) else None,
+        )
         if errors and log:
             log(
                 f"  Planner: attempt {attempt} failed deterministic audit with "

@@ -39,6 +39,7 @@ pure JSON only, with no markdown. The top-level object must contain:
       "content_summary": "...",
       "description": "...",
       "prompt": "...",
+      "assets": [{"path": "..."}],
       "resource_ids": [],
       "choices": [{"text": "..."}],
       "correct_choice_indices": [],
@@ -54,6 +55,7 @@ pure JSON only, with no markdown. The top-level object must contain:
         "pass_criteria": "...",
         "partial_criteria": "...",
         "fail_criteria": "...",
+        "allows_partial_credit": false,
         "score_levels": {},
       },
       "challenge_effort": "E3",
@@ -74,6 +76,12 @@ ids. Do not emit task ``id`` or ``dimension_id`` fields, resource object ids, or
 choice option ids. For choice answers, use zero-based ``correct_choice_indices``;
 the framework assigns canonical option ids and maps the answer key.
 
+Use each task's top-level assets list for files that are part of the task input.
+Every asset object must contain exactly one field, path, whose value names a real
+local file available to the runner. Refer to an asset in prompt only by that exact
+path. Return an empty assets list when the task has no file input. Do not put task
+input files in metadata.
+
 For initial construction, the tasks array length and per-type counts must
 exactly match the TaskDesign. For QC repair, they must instead exactly match
 task_builder_contract.task_schema.required_task_type_counts.
@@ -84,6 +92,11 @@ the fields required by the task's type and TaskDesign. Choice and fill-blank
 tasks use their deterministic keys; generation, multi-turn, and agent tasks use
 their rubric and any requested Judge tools or runtime evaluator. Do not repeat
 the same scoring rule in several fields.
+Set scoring.allows_partial_credit to true only when the task is actually scored
+on a middle band between full failure and full success, and describe that band
+in partial_criteria. When it is true and score_levels is empty, the framework
+supplies fail/partial/pass levels; supply score_levels directly when the task
+needs a different scale.
 Every adapted, reused, or imported_dataset task must list the exact resource ids
 it uses in the task's top-level resource_ids. Use ids from resources.available,
 or resource_1, resource_2, and so on for resources added in this response while
