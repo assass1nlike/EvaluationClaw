@@ -34,12 +34,19 @@ from ..types import (
     ResearchSourceRecommendation,
     ResearchTaskPattern,
 )
-from .backends import fetch_url_text, web_search
+from .backends import (
+    SearchBackendError,
+    SearchConfigurationError,
+    SearchTimeoutError,
+    fetch_url_text,
+    web_search,
+)
 
 MAX_QUERIES_PER_ROUND = 4
 MAX_FETCHES_PER_ROUND = 3
 FETCH_MAX_CHARS = 50_000
 MAX_EVIDENCE = 60
+SEARCH_MAX_ATTEMPTS = 3
 
 
 def _call_orchestrator_json(
@@ -104,25 +111,54 @@ def _gather_round(
     searches: list[dict] = []
     settings = role_model_settings(config, "research")
     for query in queries[:MAX_QUERIES_PER_ROUND]:
-        try:
-            result = web_search(
-                query,
-                api_key=settings.api_key,
-                model=settings.model,
-                backend=config.search_backend,
-                raise_on_error=True,
-            )
-        except Exception as exc:
-            searches.append({"query": query, **error_record(exc)})
-            if trace_dir is not None:
-                write_json(trace_dir / "searches.json", searches)
-            raise
+        attempts: list[dict] = []
+        result = None
+        for attempt in range(1, SEARCH_MAX_ATTEMPTS + 1):
+            try:
+                result = web_search(
+                    query,
+                    api_key=settings.api_key,
+                    model=settings.model,
+                    backend=config.search_backend,
+                    raise_on_error=True,
+                )
+                attempts.append({"attempt": attempt, "status": "completed"})
+                break
+            except SearchConfigurationError as exc:
+                attempts.append(
+                    {"attempt": attempt, "status": "failed", **error_record(exc)}
+                )
+                searches.append({"query": query, "attempts": attempts})
+                if trace_dir is not None:
+                    write_json(trace_dir / "searches.json", searches)
+                raise
+            except (SearchTimeoutError, SearchBackendError) as exc:
+                attempts.append(
+                    {"attempt": attempt, "status": "failed", **error_record(exc)}
+                )
+                if attempt == SEARCH_MAX_ATTEMPTS:
+                    searches.append({"query": query, "attempts": attempts})
+                    if trace_dir is not None:
+                        write_json(trace_dir / "searches.json", searches)
+                    raise
+            except Exception as exc:
+                attempts.append(
+                    {"attempt": attempt, "status": "failed", **error_record(exc)}
+                )
+                searches.append({"query": query, "attempts": attempts})
+                if trace_dir is not None:
+                    write_json(trace_dir / "searches.json", searches)
+                raise
         if not result:
-            searches.append({"query": query, "result": None})
+            searches.append(
+                {"query": query, "status": "no_results", "attempts": attempts}
+            )
             continue
         searches.append(
             {
                 "query": query,
+                "status": "completed",
+                "attempts": attempts,
                 "content": result.content,
                 "citations": result.citations,
             }

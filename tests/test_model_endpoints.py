@@ -17,20 +17,58 @@ def _clear_anthropic_client_cache():
     llm._anthropic_clients.clear()
 
 
-def test_post_with_retry_bounds_transport_failures(monkeypatch) -> None:
+class _FakeHTTPStream:
+    def __init__(self, lines=(), *, status_code=200, headers=None) -> None:
+        self.lines = lines
+        self.response = llm.httpx.Response(
+            status_code,
+            headers=headers,
+            request=llm.httpx.Request("POST", "https://model.example/v1"),
+        )
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def raise_for_status(self):
+        self.response.raise_for_status()
+
+    def iter_lines(self):
+        return iter(self.lines)
+
+
+def _chat_stream(text: str, finish_reason: str = "stop"):
+    return iter(
+        [
+            {
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {"role": "assistant", "content": text},
+                        "finish_reason": finish_reason,
+                    }
+                ]
+            }
+        ]
+    )
+
+
+def test_streaming_post_bounds_transport_failures(monkeypatch) -> None:
     calls = 0
     waits: list[float] = []
 
-    def fail_post(*args, **kwargs):
+    def fail_stream(*args, **kwargs):
         nonlocal calls
         calls += 1
         raise llm.httpx.ConnectError("offline")
 
-    monkeypatch.setattr(llm.httpx, "post", fail_post)
+    monkeypatch.setattr(llm.httpx, "stream", fail_stream)
     monkeypatch.setattr(llm.time, "sleep", waits.append)
 
     with pytest.raises(llm.httpx.ConnectError):
-        llm._post_with_retry(
+        llm._post_streaming_openai_compatible(
             "https://model.example/v1/chat/completions",
             {},
             {},
@@ -41,49 +79,58 @@ def test_post_with_retry_bounds_transport_failures(monkeypatch) -> None:
     assert waits == [5.0, 10.0]
 
 
-def test_post_with_retry_honors_retry_after(monkeypatch) -> None:
+def test_streaming_post_honors_retry_after(monkeypatch) -> None:
     responses = iter(
         [
-            llm.httpx.Response(
-                429,
-                headers={"retry-after": "2"},
-                request=llm.httpx.Request("POST", "https://model.example/v1"),
-            ),
-            llm.httpx.Response(
-                200,
-                json={"ok": True},
-                request=llm.httpx.Request("POST", "https://model.example/v1"),
+            _FakeHTTPStream(status_code=429, headers={"retry-after": "2"}),
+            _FakeHTTPStream(
+                [
+                    "data: "
+                    + json.dumps(
+                        {
+                            "choices": [
+                                {"delta": {"content": "ok"}, "finish_reason": "stop"}
+                            ]
+                        }
+                    ),
+                    "data: [DONE]",
+                ]
             ),
         ]
     )
     waits: list[float] = []
-    monkeypatch.setattr(llm.httpx, "post", lambda *args, **kwargs: next(responses))
+    monkeypatch.setattr(llm.httpx, "stream", lambda *args, **kwargs: next(responses))
     monkeypatch.setattr(llm.time, "sleep", waits.append)
 
-    result = llm._post_with_retry("https://model.example/v1", {}, {})
+    result = llm._post_streaming_openai_compatible("https://model.example/v1", {}, {})
 
-    assert result == {"ok": True}
+    assert result["choices"][0]["message"]["content"] == "ok"
     assert waits == [2.0]
 
 
-def test_post_with_retry_gives_one_generation_the_full_deadline(monkeypatch) -> None:
+def test_streaming_post_gives_one_generation_the_full_deadline(monkeypatch) -> None:
     captured: dict = {}
 
-    def fake_post(*args, **kwargs):
+    def fake_stream(*args, **kwargs):
         captured["timeout"] = kwargs["timeout"]
-        return llm.httpx.Response(
-            200,
-            json={"ok": True},
-            request=llm.httpx.Request("POST", "https://model.example/v1"),
+        return _FakeHTTPStream(
+            [
+                "data: "
+                + json.dumps(
+                    {"choices": [{"delta": {"content": "ok"}, "finish_reason": "stop"}]}
+                ),
+                "data: [DONE]",
+            ]
         )
 
-    monkeypatch.setattr(llm.httpx, "post", fake_post)
+    monkeypatch.setattr(llm.httpx, "stream", fake_stream)
 
-    assert llm._post_with_retry("https://model.example/v1", {}, {}) == {"ok": True}
+    result = llm._post_streaming_openai_compatible("https://model.example/v1", {}, {})
+    assert result["choices"][0]["message"]["content"] == "ok"
     assert captured["timeout"] == pytest.approx(300.0, abs=0.01)
 
 
-def test_post_with_retry_enforces_total_deadline(monkeypatch) -> None:
+def test_streaming_post_enforces_total_deadline(monkeypatch) -> None:
     now = 0.0
     calls = 0
     request_timeouts: list[float] = []
@@ -95,7 +142,7 @@ def test_post_with_retry_enforces_total_deadline(monkeypatch) -> None:
         nonlocal now
         now += seconds
 
-    def fail_post(*args, **kwargs):
+    def fail_stream(*args, **kwargs):
         nonlocal calls
         calls += 1
         request_timeouts.append(kwargs["timeout"])
@@ -103,10 +150,10 @@ def test_post_with_retry_enforces_total_deadline(monkeypatch) -> None:
 
     monkeypatch.setattr(llm.time, "monotonic", monotonic)
     monkeypatch.setattr(llm.time, "sleep", sleep)
-    monkeypatch.setattr(llm.httpx, "post", fail_post)
+    monkeypatch.setattr(llm.httpx, "stream", fail_stream)
 
     with pytest.raises(TimeoutError, match="overall deadline"):
-        llm._post_with_retry(
+        llm._post_streaming_openai_compatible(
             "https://model.example/v1",
             {},
             {},
@@ -119,19 +166,11 @@ def test_post_with_retry_enforces_total_deadline(monkeypatch) -> None:
     assert request_timeouts == [6.0, 1.0]
 
 
-def test_call_llm_does_not_switch_to_direct_http_after_truncation(monkeypatch) -> None:
-    direct_calls = 0
-
+def test_call_llm_litellm_backend_propagates_truncation(monkeypatch) -> None:
     def truncated(**kwargs):
         raise llm.LLMOutputTruncatedError("output truncated")
 
-    def direct(*args, **kwargs):
-        nonlocal direct_calls
-        direct_calls += 1
-        return {}
-
     monkeypatch.setattr(llm, "_call_litellm", truncated)
-    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
     with pytest.raises(llm.LLMOutputTruncatedError):
         llm.call_llm(
@@ -139,25 +178,15 @@ def test_call_llm_does_not_switch_to_direct_http_after_truncation(monkeypatch) -
             model="deepseek-v4-pro",
             api_key="test-key",
             base_url="https://api.deepseek.com",
-            backend="auto",
+            backend="litellm",
         )
 
-    assert direct_calls == 0
 
-
-def test_call_llm_does_not_switch_to_direct_http_after_network_error(monkeypatch) -> None:
-    direct_calls = 0
-
+def test_call_llm_litellm_backend_propagates_network_error(monkeypatch) -> None:
     def disconnected(**kwargs):
         raise llm.httpx.ConnectError("disconnected")
 
-    def direct(*args, **kwargs):
-        nonlocal direct_calls
-        direct_calls += 1
-        return {}
-
     monkeypatch.setattr(llm, "_call_litellm", disconnected)
-    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
     with pytest.raises(llm.httpx.ConnectError):
         llm.call_llm(
@@ -165,37 +194,20 @@ def test_call_llm_does_not_switch_to_direct_http_after_network_error(monkeypatch
             model="deepseek-v4-pro",
             api_key="test-key",
             base_url="https://api.deepseek.com",
-            backend="auto",
+            backend="litellm",
         )
 
-    assert direct_calls == 0
 
-
-def test_orchestrator_tool_truncation_does_not_switch_to_direct_http(monkeypatch) -> None:
+def test_orchestrator_tool_truncation_is_propagated(monkeypatch) -> None:
     import litellm as _litellm
 
     completion_calls = 0
-    direct_calls = 0
-
     def truncated(**kwargs):
         nonlocal completion_calls
         completion_calls += 1
-        return SimpleNamespace(
-            choices=[
-                SimpleNamespace(
-                    finish_reason="length",
-                    message=SimpleNamespace(content="partial"),
-                )
-            ]
-        )
-
-    def direct(*args, **kwargs):
-        nonlocal direct_calls
-        direct_calls += 1
-        return {}
+        return _chat_stream("partial", "length")
 
     monkeypatch.setattr(_litellm, "completion", truncated)
-    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
     with pytest.raises(llm.LLMOutputTruncatedError):
         llm.call_orchestrator_with_tools(
@@ -208,27 +220,18 @@ def test_orchestrator_tool_truncation_does_not_switch_to_direct_http(monkeypatch
         )
 
     assert completion_calls == 2
-    assert direct_calls == 0
 
 
-def test_orchestrator_tool_adapter_failure_does_not_switch_to_direct_http(monkeypatch) -> None:
+def test_orchestrator_tool_empty_stream_is_rejected(monkeypatch) -> None:
     import litellm as _litellm
-
-    direct_calls = 0
-
-    def direct(*args, **kwargs):
-        nonlocal direct_calls
-        direct_calls += 1
-        return {}
 
     monkeypatch.setattr(
         _litellm,
         "completion",
-        lambda **kwargs: SimpleNamespace(choices=[]),
+        lambda **kwargs: iter([]),
     )
-    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
-    with pytest.raises(llm.LLMProtocolAdapterError, match="no choices"):
+    with pytest.raises(llm.LLMProtocolAdapterError, match="empty response stream"):
         llm.call_orchestrator_with_tools(
             [{"role": "user", "content": "build one task"}],
             model="deepseek-v4-pro",
@@ -237,9 +240,6 @@ def test_orchestrator_tool_adapter_failure_does_not_switch_to_direct_http(monkey
             tools=[],
         )
 
-    assert direct_calls == 0
-
-
 def test_orchestrator_uses_openai_litellm_route_for_custom_base_url(monkeypatch) -> None:
     import litellm as _litellm
 
@@ -247,24 +247,45 @@ def test_orchestrator_uses_openai_litellm_route_for_custom_base_url(monkeypatch)
 
     def complete(**kwargs):
         captured.update(kwargs)
-        return SimpleNamespace(
-            choices=[
-                SimpleNamespace(
-                    finish_reason="tool_calls",
-                    message=SimpleNamespace(
-                        content="",
-                        tool_calls=[
-                            {
-                                "id": "call_1",
-                                "type": "function",
-                                "function": {
-                                    "name": "run_python",
-                                    "arguments": '{"code":"print(4)"}',
-                                },
-                            }
-                        ],
-                    ),
-                )
+        return iter(
+            [
+                {
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {
+                                "role": "assistant",
+                                "tool_calls": [
+                                    {
+                                        "index": 0,
+                                        "id": "call_1",
+                                        "type": "function",
+                                        "function": {
+                                            "name": "run_python",
+                                            "arguments": '{"code":',
+                                        },
+                                    }
+                                ],
+                            },
+                        }
+                    ]
+                },
+                {
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {
+                                "tool_calls": [
+                                    {
+                                        "index": 0,
+                                        "function": {"arguments": '"print(4)"}'},
+                                    }
+                                ]
+                            },
+                            "finish_reason": "tool_calls",
+                        }
+                    ]
+                },
             ]
         )
 
@@ -289,6 +310,7 @@ def test_orchestrator_uses_openai_litellm_route_for_custom_base_url(monkeypatch)
 
     assert captured["model"] == "openai/deepseek-v4-flash"
     assert captured["base_url"] == "https://api.deepseek.com"
+    assert captured["stream"] is True
     assert captured["tools"][0]["function"]["name"] == "run_python"
     assert response.tool_calls[0].name == "run_python"
 
@@ -300,14 +322,7 @@ def test_orchestrator_deepseek_json_recovery_disables_thinking(monkeypatch) -> N
 
     def complete(**kwargs):
         captured.update(kwargs)
-        return SimpleNamespace(
-            choices=[
-                SimpleNamespace(
-                    finish_reason="stop",
-                    message=SimpleNamespace(content='{"tasks": []}', tool_calls=[]),
-                )
-            ]
-        )
+        return _chat_stream('{"tasks": []}')
 
     monkeypatch.setattr(_litellm, "completion", complete)
 
@@ -323,6 +338,7 @@ def test_orchestrator_deepseek_json_recovery_disables_thinking(monkeypatch) -> N
     assert response.content == '{"tasks": []}'
     assert captured["response_format"] == {"type": "json_object"}
     assert captured["extra_body"] == {"thinking": {"type": "disabled"}}
+    assert captured["stream"] is True
 
 
 def test_call_llm_propagates_litellm_adapter_failure(monkeypatch) -> None:
@@ -335,15 +351,7 @@ def test_call_llm_propagates_litellm_adapter_failure(monkeypatch) -> None:
             model="deepseek-v4-pro",
         )
 
-    direct_calls = 0
-
-    def direct(*args, **kwargs):
-        nonlocal direct_calls
-        direct_calls += 1
-        return {}
-
     monkeypatch.setattr(llm, "_call_litellm", unsupported)
-    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
     with pytest.raises(_litellm.UnsupportedParamsError, match="unsupported parameter"):
         llm.call_llm(
@@ -351,11 +359,8 @@ def test_call_llm_propagates_litellm_adapter_failure(monkeypatch) -> None:
             model="deepseek-v4-pro",
             api_key="test-key",
             base_url="https://api.deepseek.com",
-            backend="auto",
+            backend="litellm",
         )
-
-    assert direct_calls == 0
-
 
 def test_call_llm_propagates_unadaptable_litellm_response(monkeypatch) -> None:
     import litellm as _litellm
@@ -363,16 +368,8 @@ def test_call_llm_propagates_unadaptable_litellm_response(monkeypatch) -> None:
     monkeypatch.setattr(
         _litellm,
         "completion",
-        lambda **kwargs: SimpleNamespace(choices=[]),
+        lambda **kwargs: iter([{"choices": []}]),
     )
-    direct_calls = 0
-
-    def direct(*args, **kwargs):
-        nonlocal direct_calls
-        direct_calls += 1
-        return {}
-
-    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
     with pytest.raises(llm.LLMProtocolAdapterError, match="unsupported response shape"):
         llm.call_llm(
@@ -380,10 +377,8 @@ def test_call_llm_propagates_unadaptable_litellm_response(monkeypatch) -> None:
             model="deepseek-v4-pro",
             api_key="test-key",
             base_url="https://api.deepseek.com",
-            backend="auto",
+            backend="litellm",
         )
-
-    assert direct_calls == 0
 
 
 def test_legacy_llm_backend_is_rejected() -> None:
@@ -547,15 +542,10 @@ def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
         captured["timeout"] = timeout
         return FakeStream()
 
-    def forbidden_post(*args, **kwargs):
-        raise AssertionError("non-streaming POST should not be used")
-
     def forbidden_litellm(*args, **kwargs):
-        raise AssertionError("LiteLLM should be skipped when streaming is enabled")
+        raise AssertionError("LiteLLM should be skipped for the direct provider route")
 
-    monkeypatch.setenv("EVALCLAW_LLM_STREAMING", "1")
     monkeypatch.setattr(llm.httpx, "stream", fake_stream)
-    monkeypatch.setattr(llm, "_post_with_retry", forbidden_post)
     monkeypatch.setattr(llm, "_call_litellm", forbidden_litellm)
 
     result = llm.call_llm(
@@ -575,14 +565,101 @@ def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
     assert captured["body"]["response_format"] == {"type": "json_object"}
 
 
+def test_target_multimodal_call_uses_streaming_route(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_stream(url, headers, body, **kwargs):
+        captured.update({"url": url, "body": body})
+        return {
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": "identified"},
+                    "finish_reason": "stop",
+                }
+            ]
+        }
+
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", fake_stream)
+    target = TargetModelConfig(
+        provider="openai_compatible",
+        model="vision-model",
+        api_key="test-key",
+        base_url="https://model.example/v1",
+    )
+    user_content = [
+        {"type": "text", "text": "Identify the image."},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,AA=="}},
+    ]
+
+    result = llm.call_target_model("", target, user_content=user_content)
+
+    assert result == "identified"
+    assert captured["url"] == "https://model.example/v1/chat/completions"
+    assert captured["body"]["messages"][-1]["content"] == user_content
+
+
+def test_target_tool_call_uses_streaming_route(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_stream(url, headers, body, **kwargs):
+        captured.update({"url": url, "body": body})
+        return {
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": None,
+                        "tool_calls": [
+                            {
+                                "id": "call_1",
+                                "type": "function",
+                                "function": {"name": "lookup", "arguments": '{"query":"x"}'},
+                            }
+                        ],
+                    },
+                    "finish_reason": "tool_calls",
+                }
+            ]
+        }
+
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", fake_stream)
+    target = TargetModelConfig(
+        provider="openai_compatible",
+        model="tool-model",
+        api_key="test-key",
+        base_url="https://model.example/v1",
+    )
+    tool = ToolSpec(
+        name="lookup",
+        parameters=object_schema({"query": {"type": "string"}}, required=["query"]),
+    )
+
+    result = llm.call_target_model_with_tools(
+        [{"role": "user", "content": "Look up x."}], target, [tool]
+    )
+
+    assert result.tool_calls[0].arguments == {"query": "x"}
+    assert captured["url"] == "https://model.example/v1/chat/completions"
+    assert captured["body"]["tools"][0]["function"]["name"] == "lookup"
+
+
 def test_deepseek_streaming_preserves_thinking_until_json_recovery(monkeypatch) -> None:
     bodies: list[dict] = []
 
     def fake_stream(url, headers, body, **kwargs):
         bodies.append(body)
-        return '{"tasks": []}', "stop"
+        return {
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": '{"tasks": []}'},
+                    "finish_reason": "stop",
+                }
+            ]
+        }
 
-    monkeypatch.setenv("EVALCLAW_LLM_STREAMING", "1")
     monkeypatch.setattr(llm, "_post_streaming_openai_compatible", fake_stream)
 
     llm.call_llm(
@@ -660,7 +737,7 @@ def test_openai_compatible_streaming_retries_upstream_error(monkeypatch) -> None
         {},
     )
 
-    assert result == ("ok", None)
+    assert result["choices"][0]["message"]["content"] == "ok"
     assert attempts == 2
     assert waits == [5.0]
 
@@ -669,9 +746,24 @@ class _FakeAnthropicMessages:
     def __init__(self) -> None:
         self.calls: list[dict] = []
 
-    def create(self, **kwargs):
+    def stream(self, **kwargs):
         self.calls.append(kwargs)
-        return SimpleNamespace(content=[SimpleNamespace(type="text", text="anthropic response")])
+        response = SimpleNamespace(
+            content=[SimpleNamespace(type="text", text="anthropic response")],
+            stop_reason="end_turn",
+        )
+
+        class Stream:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def get_final_message(self):
+                return response
+
+        return Stream()
 
 
 class _FakeAnthropicClient:
@@ -750,14 +842,7 @@ def test_explicit_litellm_backend_does_not_use_native_anthropic_client(monkeypat
     monkeypatch.setattr(
         _litellm,
         "completion",
-        lambda **kwargs: SimpleNamespace(
-            choices=[
-                SimpleNamespace(
-                    finish_reason="stop",
-                    message=SimpleNamespace(content="litellm response"),
-                )
-            ]
-        ),
+        lambda **kwargs: _chat_stream("litellm response"),
     )
 
     result = llm.call_llm(
@@ -920,31 +1005,20 @@ def test_multiple_targets_call_their_own_protocol_endpoint_and_key(monkeypatch) 
     assert anthropic_clients == [("claude-key", "https://claude.example/v1")]
 
 
-def test_target_adapter_failure_does_not_switch_to_direct_http(monkeypatch) -> None:
+def test_target_adapter_failure_is_propagated(monkeypatch) -> None:
     target = TargetModelConfig(
         provider="openai_compatible",
         model="relay-model",
         api_key="relay-key",
         base_url="https://relay.example/v1",
     )
-    direct_calls = 0
-
     def fail_litellm(**kwargs):
         raise llm.LLMProtocolAdapterError("unsupported response")
 
-    def direct(*args, **kwargs):
-        nonlocal direct_calls
-        direct_calls += 1
-        return {}
-
     monkeypatch.setattr(llm, "_call_litellm", fail_litellm)
-    monkeypatch.setattr(llm, "_post_with_retry", direct)
 
     with pytest.raises(llm.LLMProtocolAdapterError, match="unsupported response"):
         llm.call_target_model("hello", target)
-
-    assert direct_calls == 0
-
 
 def test_target_config_requires_unique_ids() -> None:
     configs = [

@@ -474,6 +474,7 @@ class KeylessBackend(SearchBackend):
         citations: list[dict] = []
         seen: set[str] = set()
         failures: list[SearchError] = []
+        source_status: dict[str, str] = {}
 
         sources = (
             ("arxiv", self._arxiv),
@@ -490,7 +491,9 @@ class KeylessBackend(SearchBackend):
                 entries = requests[name].result()
             except SearchError as exc:
                 failures.append(exc)
+                source_status[name] = f"error: {exc}"
                 continue
+            source_status[name] = "ok" if entries else "no_results"
             for entry in entries:
                 url = entry.get("url", "")
                 if not url or url in seen:
@@ -511,7 +514,12 @@ class KeylessBackend(SearchBackend):
                     if all(isinstance(error, SearchTimeoutError) for error in failures)
                     else SearchBackendError
                 )
-                raise error_type("All keyless search sources failed for this query.") from failures[0]
+                details = "; ".join(
+                    f"{name}={status}" for name, status in source_status.items()
+                )
+                raise error_type(
+                    f"Keyless search request failed for query {query!r}: {details}."
+                ) from failures[0]
             return None
 
         content = "\n".join(snippets) if snippets else "No content returned"

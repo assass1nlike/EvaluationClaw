@@ -6,17 +6,23 @@ import re
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import CancelledError
 from pathlib import Path
+from threading import Event
 from typing import Any
 from urllib.parse import urlsplit
 
+from ..diagnostics import write_json
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
+    LLMOutputTruncatedError,
     TargetToolModelResponse,
+    call_llm,
     call_orchestrator_with_tools,
 )
 from ..models.roles import role_model_settings
+from ..prompts.task_builder import TASK_BUILDER_TRUNCATION_SUMMARY_PROMPT
 from ..protocols.tool import ToolCall, ToolResult, ToolSpec
 from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_anthropic,
@@ -24,20 +30,28 @@ from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_openai_response_input,
 )
 from ..research.backends import download_url_file, fetch_url_text, web_search
-from ..types import BenchmarkConfig
+from ..types import BenchmarkConfig, Message
 
 _MAX_DOWNLOAD_URLS = 32
 _MAX_DOWNLOAD_BYTES = 256 * 1024 * 1024
 _PYTHON_TIMEOUT_SECONDS = 60
+
+
+class TaskBuilderTruncationSummaryError(RuntimeError):
+    """TaskBuilder's interrupted work could not be compressed for retry."""
 
 # This prompt must explain when to use construction and source tools, where files
 # belong, and that the Builder must return its complete response after tool use.
 TASK_BUILDER_TOOL_PROMPT = """\
 You may use the supplied tools when they materially improve task construction.
 Use run_python for computation, validation, or creating and processing task files.
-Save required task files in its fixed working directory, put the returned absolute
-paths in the corresponding task's top-level assets list, and refer to those paths
-verbatim in prompt. When source tools are available, use read_research_source to
+Save required task files in its fixed working directory. Tool results identify files
+with host paths that are available only during construction. Put those host paths in
+the corresponding task's top-level assets list. For environment-backed tasks, the
+framework copies each asset into the runtime workdir under its filename, so prompt or
+choices must refer only to that filename; never copy a host path into target-visible
+text or environment fields. For tasks without an environment, refer to the asset path
+verbatim in prompt or choices. When source tools are available, use read_research_source to
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
@@ -396,6 +410,51 @@ def _append_tool_results(
     messages.extend(evalclaw_tool_result_to_openai(result) for result in results)
 
 
+def summarize_task_builder_truncation(
+    error: LLMOutputTruncatedError,
+    *,
+    config: BenchmarkConfig,
+    debug_dir: Path | None = None,
+) -> str:
+    """Compress one interrupted TaskBuilder response for in-place continuation."""
+    summary_input = {
+        "interrupted_assistant_output": error.partial_output,
+    }
+    settings = role_model_settings(config, "task_builder")
+    try:
+        summary = call_llm(
+            [
+                Message(
+                    role="user",
+                    content=json.dumps(summary_input, ensure_ascii=False),
+                )
+            ],
+            system=TASK_BUILDER_TRUNCATION_SUMMARY_PROMPT,
+            **settings.call_kwargs(),
+            backend=config.llm_backend,
+            max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+            reduce_reasoning_effort=True,
+            retry_on_truncation=False,
+            trace_dir=debug_dir / "llm" if debug_dir is not None else None,
+            trace_name="task-builder-truncation-summary",
+        ).strip()
+    except Exception as exc:
+        raise TaskBuilderTruncationSummaryError(
+            f"Could not summarize truncated TaskBuilder work: {type(exc).__name__}: {exc}"
+        ) from exc
+    if not summary:
+        raise TaskBuilderTruncationSummaryError(
+            "TaskBuilder returned no truncation summary after exhausting its output budget."
+        )
+    if debug_dir is not None:
+        index = len(list(debug_dir.glob("truncation-summary-*.json"))) + 1
+        write_json(
+            debug_dir / f"truncation-summary-{index:02d}.json",
+            {"summary": summary},
+        )
+    return summary
+
+
 def run_task_builder_tools(
     payload: dict[str, Any],
     *,
@@ -403,8 +462,15 @@ def run_task_builder_tools(
     config: BenchmarkConfig,
     include_source_tools: bool,
     debug_dir: Path | None = None,
+    stop_event: Event | None = None,
 ) -> tuple[str, list[str]]:
     """Run a bounded TaskBuilder tool loop and return final builder JSON text."""
+
+    def raise_if_stopped() -> None:
+        if stop_event is not None and stop_event.is_set():
+            raise CancelledError("TaskBuilder batch stopped after another job failed.")
+
+    raise_if_stopped()
     max_calls = _bounded_int(
         config.task_builder_tool_max_calls,
         default=6,
@@ -429,6 +495,11 @@ def run_task_builder_tools(
     ]
     notes: list[str] = []
     calls_used = 0
+    truncation_retries = max(
+        0,
+        int(getattr(config, "task_builder_truncation_retries", 3) or 0),
+    )
+    truncations_used = 0
     trace_index = len(list(debug_dir.glob("tool-round-*.json"))) if debug_dir else 0
     task_plan = payload.get("task_plan") if isinstance(payload.get("task_plan"), dict) else {}
     builder_job_id = str(task_plan.get("builder_job_id") or "task-builder")
@@ -441,11 +512,12 @@ def run_task_builder_tools(
         else "Return the complete final task-builder JSON now."
     )
 
-    def call_model(
+    def call_model_once(
         current_messages: list[dict[str, Any]],
         current_tools: list[ToolSpec],
     ) -> TargetToolModelResponse:
         nonlocal trace_index
+        raise_if_stopped()
         response = call_orchestrator_with_tools(
             current_messages,
             system_prompt=system_prompt,
@@ -480,7 +552,43 @@ def run_task_builder_tools(
                 )
             except OSError as exc:
                 notes.append(f"could not save task-builder tool trace ({exc})")
+        raise_if_stopped()
         return response
+
+    def call_model(
+        current_messages: list[dict[str, Any]],
+        current_tools: list[ToolSpec],
+    ) -> TargetToolModelResponse:
+        nonlocal truncations_used
+        while True:
+            try:
+                return call_model_once(current_messages, current_tools)
+            except LLMOutputTruncatedError as exc:
+                raise_if_stopped()
+                if truncations_used >= truncation_retries:
+                    raise
+                summary = summarize_task_builder_truncation(
+                    exc,
+                    config=config,
+                    debug_dir=debug_dir,
+                )
+                truncations_used += 1
+                current_messages.append({"role": "assistant", "content": summary})
+                current_messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            "Continue the original TaskBuilder request from the preserved "
+                            "conversation. Keep every original requirement unchanged."
+                            if current_tools
+                            else final_instruction
+                        ),
+                    }
+                )
+                notes.append(
+                    "task-builder output truncated; replaced the interrupted response "
+                    f"with summary {truncations_used}/{truncation_retries}"
+                )
 
     def recover_missing_final_content(response: TargetToolModelResponse) -> TargetToolModelResponse:
         if response.content.strip():
@@ -502,9 +610,11 @@ def run_task_builder_tools(
         return recovery
 
     while True:
+        raise_if_stopped()
         response = call_model(messages, tools)
         if not response.tool_calls:
             response = recover_missing_final_content(response)
+            raise_if_stopped()
             return response.content, notes
         remaining = max_calls - calls_used
         if remaining <= 0:
@@ -519,15 +629,17 @@ def run_task_builder_tools(
             response = recover_missing_final_content(response)
             return response.content, notes + [f"tool budget exhausted at {calls_used} call(s)"]
         selected_calls = response.tool_calls[:remaining]
-        results = [
-            _execute_task_builder_tool(
-                call,
-                config,
-                max_chars=max_chars,
-                work_dir=work_dir,
+        results: list[ToolResult] = []
+        for call in selected_calls:
+            raise_if_stopped()
+            results.append(
+                _execute_task_builder_tool(
+                    call,
+                    config,
+                    max_chars=max_chars,
+                    work_dir=work_dir,
+                )
             )
-            for call in selected_calls
-        ]
         for skipped_call in response.tool_calls[remaining:]:
             results.append(
                 ToolResult(
@@ -549,6 +661,7 @@ def run_task_builder_tools(
             )
             response = call_model(messages, [])
             response = recover_missing_final_content(response)
+            raise_if_stopped()
             return response.content, notes + [f"tool budget exhausted at {calls_used} call(s)"]
 
 
@@ -556,6 +669,8 @@ __all__ = [
     "TASK_BUILDER_PYTHON_TOOL",
     "TASK_BUILDER_SOURCE_TOOLS",
     "TASK_BUILDER_TOOL_PROMPT",
+    "TaskBuilderTruncationSummaryError",
     "run_task_builder_tools",
+    "summarize_task_builder_truncation",
     "task_builder_work_dir",
 ]

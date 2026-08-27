@@ -1,6 +1,7 @@
 用户提出测评需求
     → 框架进行可选的深度研究，收集背景资料
     → Planner 设计完整的测评方案，定义维度与任务设计
+    → 可选人工审核 Planner 方案并按反馈重新规划
     → 每个任务设计派生一个构题任务
     → TaskBuilder 构造具体题目
     → 系统将题目转换为 run-ready 格式
@@ -35,6 +36,8 @@ Planner 收到用户目标、题量指导、支持的题型与执行环境，以
 
 可用执行环境是 `workspace`、`code_sandbox`、`docker_workspace`、`gui_desktop`，各自能力边界见 Planner Skill 的「Choose the environment category」一节（[B.3](#appendix-b-planner)）和各题型字段契约（[D.3](#appendix-d-task-types)）。Planner 的完整输入与输出契约见[附录 C](#appendix-c)，Dimension/TaskDesign 的共同完整字段见 `universal_format.json`（[B.3](#appendix-b-planner)），各字段的精确语义（含 `task_count`、`scoring_contract`）见[I.3](#appendix-i-tospec)。
 
+启用 `human_review` 时，框架先展示完整 `BenchmarkPlan`。用户批准后进入构题；用户提交意见时，Planner 根据意见和上一版完整计划重新规划，最多审核三轮。
+
   ## 四、按 TaskDesign 构造具体任务
 
 每个 Planner 产出的 TaskDesign 派生一个独立的 Builder job，框架为每个 job 组装一次完整的 TaskBuilder 模型调用，让模型一次构造出该 TaskDesign 要求的全部具体题目。
@@ -49,7 +52,7 @@ Planner 收到用户目标、题量指导、支持的题型与执行环境，以
 
 TaskBuilder 可调用 `run_python` 做计算、验证、生成题目文件或编辑 QC 候选；非 generated 的 TaskDesign 还可调用 `read_research_source`、`search_web`、`fetch_url` 和 `download_files` 读取来源。框架把工具结果追加进消息历史继续对话，直到 TaskBuilder 不再调用工具（工具 schema、预算与收尾见[D.2](#appendix-d-tools)）。`search_web` 是否可用仍由网页搜索配置决定。初次构题时，TaskBuilder 在末条回复中返回完整构题 JSON；QC 修复时，它编辑框架提供的候选 JSON 文件并返回简短确认。每道题是一个完整的 `TaskDefinition`，评分指标属单题契约，各题型的完整字段与分支见[D.3](#appendix-d-task-types)。
 
-TaskBuilder 返回后，框架立即做纯代码结构检查，按题型分支校验各种字段契约（完整清单见[I.7](#appendix-i-structure)，与全局 QC 的静态检查[I.4](#appendix-i-static)是两层）。初次构题发现错误时，把结构错误和上次返回内容交回 TaskBuilder，要求重新返回完整 JSON；QC 候选发现错误时，只发送错误并让 TaskBuilder 继续编辑同一个候选文件（repair 输入见[D.4](#appendix-d-repair)）。
+TaskBuilder 返回后，框架立即做纯代码结构检查，按题型分支校验各种字段契约（完整清单见[I.7](#appendix-i-structure)，与全局 QC 的静态检查[I.4](#appendix-i-static)是两层）。`code_sandbox` 和 `docker_workspace` 题通过字段检查后，还会在隔离容器中执行 setup 和 evaluator preflight。初次构题发现错误时，把结构或环境错误和上次返回内容交回 TaskBuilder，要求重新返回完整 JSON；QC 候选发现错误时，只发送错误并让 TaskBuilder 继续编辑同一个候选文件（repair 输入见[D.4](#appendix-d-repair)）。
 
   ### 3. 构题整合出 run-ready TaskSuite
 
@@ -79,7 +82,7 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 
   ## 六、可选人工审核
 
-构题 + QC 循环之后，如果启用 `human_review`，用户可以在此处审核。审核摘要先按维度展示题量与题型，再列出 `TaskSuite.tasks` 中全部题目的 id、完整 prompt、答案字段、rubric、判分配置和交互/环境配置。批准则进入 runner，否则提交修改意见然后进行修改。
+构题 + QC 循环之后，如果启用 `human_review`，用户还可以审核具体题目。审核摘要先按维度展示题量与题型，再列出 `TaskSuite.tasks` 中全部题目的 id、完整 prompt、答案字段、rubric、判分配置和交互/环境配置。批准则进入 runner，否则提交修改意见然后进行修改。
 
 人工反馈先进入一次 Planner-role dataset review 调用，框架把 review action 解析为保留/改写/补题计划，随后定向构建并重跑 QC。两次调用的消息组成见[附录 F](#appendix-f)，review system prompt 见[B.6](#appendix-b-review)。
 
@@ -93,10 +96,10 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 
   ## 七、后续执行与评分
 
-构题与 QC 完成后，框架产出 `TaskSuite`（run-ready 的任务容器）和 `QcReport`（通过/拒绝结果及原因）。执行阶段随后才会真正创建隔离环境、调用目标模型并评分。
+构题与 QC 完成后，框架产出 `TaskSuite`（run-ready 的任务容器）和 `QcReport`（通过/拒绝结果及原因）。构题检查已经在临时隔离环境中验证可执行题的 setup 和 evaluator；执行阶段再创建正式作答环境、调用目标模型并评分。
 
 1. **构造执行计划**：根据 QC 构造只含 passed items 的 ExecutionPlan。
-2. **环境准备**：探测 Docker、VM、GUI bridge 和题目文件与目标模型的兼容性。有环境的题在 benchmark 完成时已经包含环境规格、文件、工具和 evaluator，但真正创建容器、物化 VM 或连接桌面是在这一步（见[附录 J](#appendix-j)）。
+2. **环境准备**：探测 Docker、VM、GUI bridge 和题目文件与目标模型的兼容性。有环境的题在 benchmark 完成时已经包含环境规格、文件、工具和 evaluator；容器题已通过临时环境预检，正式作答容器、VM 或桌面会话在执行时创建（见[附录 J](#appendix-j)）。
 3. **调用目标模型**：无环境的题直接以 prompt 调用；`multi_turn` 按 scripted 或 adaptive 脚本走完整对话；`agent` 题在隔离环境中以工具调用交互。
 4. **评分**：choice/fill_blank 用确定性键精确匹配；generation/multi_turn 用 rubric 由 Judge 评分（可附 `python_tests` 工具证据），默认双遍审计；agent 题由环境 evaluator 依据最终状态/产物/轨迹给出确定性分数。
 5. **汇总与报告**：按 target、dimension、task_type 汇总平均分，可选 Loop 3 改进，生成最终报告与各导出产物。
@@ -119,9 +122,10 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 | R4 | 研究循环结束 | Research | synthesis prompt | `{"goal","evidence","known_sources"}` | 无 | ResearchBrief 主体 |
 | P1 | 初次规划 | Planner | base + Planner Skill + format reference | `<PLANNER_RESOURCES>` | 无 | 完整 plan JSON |
 | P2 | 计划解析/审计失败 | Planner | 与 P1 相同 | P1 输入 + repair file | 无 | 完整替换 plan |
+| P3 | 人工要求修改计划 | Planner | 与 P1 相同 | 用户 goal、人工意见与上一版完整 plan | 无 | 完整替换 plan |
 | B1 | 每个 TaskDesign | TaskBuilder | base + 可选环境 Skill + 构题工具 prompt | TaskBuilder payload JSON | `run_python`；非 generated 另有 4 个来源工具 | resources/tasks |
 | B2 | 使用构题工具 | TaskBuilder | 与 B1 相同 | user + assistant tool call + tool result | 与 B1 相同 | 最终完整 JSON |
-| B3 | Builder 输出截断 | TaskBuilder | 与 B1 相同 | payload + truncation recovery | 与 B1 相同 | 紧凑替换 JSON |
+| B3 | Builder 输出截断 | TaskBuilder | 截断摘要 prompt 后与 B1 相同 | 当前截断响应；重试保留原对话并以摘要替换该响应 | 摘要时无工具，重试时与 B1 相同 | 在原对话中继续并返回完整 JSON |
 | B4 | Builder 结构不合法 | TaskBuilder | 与 B1 相同 | payload + repair | 与 B1 相同 | 初次构题返回完整 JSON；QC repair 编辑候选文件 |
 | Q1 | 配置 QC 模型 | QC | `QC_SYSTEM_PROMPT` | 抽样数据集 JSON | 无 | issues/summary |
 | B5 | QC 拒绝具体题 | TaskBuilder | base + 可选环境 Skill + 构题工具 prompt | 候选 JSON 路径与失败题 issues | 与 B1 相同 | 原地修改候选文件，框架读取并恢复 ID |
@@ -135,7 +139,7 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 Deep Research 由四类独立 LLM 调用串成，不是一次长对话；搜索与抓取发生在调用之间（非 LLM）：
 
 1. **R1 初始查询**：Research 角色 LLM 收到 `{"goal", "max_queries"}`，生成首批搜索查询。
-2. **搜索与抓取（非 LLM）**：`web_search`、`fetch_url_text` 与 HuggingFace discovery 按查询取回原始材料。
+2. **搜索与抓取（非 LLM）**：`web_search`、`fetch_url_text` 与 HuggingFace discovery 按查询取回原始材料。搜索正常返回零结果时记录后继续；请求异常或超时时对同一查询最多尝试 3 次，仍然失败则带各搜索来源的状态报错。
 3. **R2 材料压缩**：Research 角色 LLM 把本轮材料压缩成带设计影响和来源 URL 的 evidence。
 4. **R3 缺口反思**：Research 角色 LLM 判断是否还有关键缺口；有则生成下一轮查询，否则结束循环。
 5. **R4 最终综合**：Research 角色 LLM 把累计 evidence 综合成 ResearchBrief 的设计字段。
@@ -735,10 +739,14 @@ the framework assigns canonical option ids and maps the answer key.
 <!-- -->
 Use each task&#39;s top-level assets list for files that are part of the task input.
 Every asset object must contain exactly one field, path, whose value names a real
-local file available to the runner. Refer to an asset in prompt only by that exact
-path. Asset paths and filenames are visible to the evaluated model, so name files
-without revealing answers or other unintended information. Return an empty assets
-list when the task has no file input. Do not put task input files in metadata.
+host file available to the runner. For a task without an environment, refer to that
+exact path in prompt or choices. For code_sandbox and docker_workspace tasks, the framework
+copies each asset into environment.workdir under its filename; refer only to that
+filename in prompt or choices and do not put the host path in any target-visible or environment
+field. Asset filenames are visible to the evaluated model, so name files without
+revealing answers or other unintended information. Asset filenames within one
+environment-backed task must be unique. Return an empty assets list when the task has
+no file input. Do not put task input files in metadata.
 <!-- -->
 For initial construction, the tasks array length and per-type counts must
 exactly match the TaskDesign. For QC repair, they must instead exactly match
@@ -778,6 +786,24 @@ at revision.path in place. The tasks already in that file are the only tasks to
 repair. Keep their order and treat their existing ids as read-only so the
 framework can match them to revision.qc_issues. Fix every listed issue, save the
 file, and return only a compact JSON confirmation after editing.</code></pre></details>
+<details><summary>TaskBuilder 截断摘要 prompt：<code>evalclaw/prompts/task_builder.py</code></summary><pre><code class="language-text">TASK_BUILDER_TRUNCATION_SUMMARY_PROMPT:
+<!-- -->
+You are compressing an interrupted output generated by the TaskBuilder. The goal
+of the TaskBuilder is to transform benchmark task designs into concrete benchmark
+tasks, which may use construction tools when necessary, and ultimately produce a
+structured JSON response.
+<!-- -->
+The supplied interrupted_assistant_output is partial output from this process.
+Compress it into a replacement assistant message for continuation in the original
+TaskBuilder conversation. Preserve all useful information, including:
+<!-- -->
+  - task designs, decisions, and plans;
+  - important intermediate results of reasoning and calculations relevant to task constructions;
+  - work completed, including artifacts created or modified (identify them by path and provide a brief description; do not reproduce the contents)
+  - unresolved problems, next actions and to-dos.
+<!-- -->
+Use only information present in interrupted_assistant_output. Do not infer or invent missing details.
+Do not continue constructing the task or output the final task JSON. Return only the summary text.</code></pre></details>
 <details><summary>构题工具 schema 与消息循环：<code>evalclaw/construction/research.py</code></summary><pre><code class="language-python">&quot;&quot;&quot;Bounded tools for TaskBuilder construction.&quot;&quot;&quot;
 from __future__ import annotations
 <!-- -->
@@ -808,9 +834,13 @@ _PYTHON_TIMEOUT_SECONDS = 60
 TASK_BUILDER_TOOL_PROMPT = &quot;&quot;&quot;\
 You may use the supplied tools when they materially improve task construction.
 Use run_python for computation, validation, or creating and processing task files.
-Save required task files in its fixed working directory, put the returned absolute
-paths in the corresponding task&#39;s top-level assets list, and refer to those paths
-verbatim in prompt. When source tools are available, use read_research_source to
+Save required task files in its fixed working directory. Tool results identify files
+with host paths that are available only during construction. Put those host paths in
+the corresponding task&#39;s top-level assets list. For environment-backed tasks, the
+framework copies each asset into the runtime workdir under its filename, so prompt or
+choices must refer only to that filename; never copy a host path into target-visible
+text or environment fields. For tasks without an environment, refer to the asset path
+verbatim in prompt or choices. When source tools are available, use read_research_source to
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
@@ -1307,6 +1337,7 @@ For every environment-backed task:
 - Prefer deterministic state, artifact, test, or trajectory checks over vague judge-only scoring when the environment permits them.
 - Ensure the evaluator consumes the target&#39;s actual final answer, artifacts, state, or trajectory. It must not create, repair, or substitute for the work being scored.
 - Keep task-specific files and state in structured fields rather than embedding them in long prompts.
+- Treat top-level asset paths as framework-private host locations. For code-sandbox and container tasks, refer to each asset only by its filename in target-visible fields; the framework copies it into the runtime workdir.
 - Make every generated setup and evaluation command internally exact: create required parent objects before using them, keep paths/identifiers/values byte-consistent across setup, baseline, prompt, and evaluation, and ensure commands work from the declared clean base rather than an assumed intermediate state.
 - Ensure every evaluation condition is attainable from the target-visible instructions and executable fixture. Do not require an undisclosed arbitrary value, invocation mode, artifact, or event that neither the environment nor the compliant workflow can produce.
 - When an evaluator creates fresh probes with unique identifiers, bind every relevant assertion to those exact identifiers; do not scan for any matching pre-existing artifact or event.
@@ -1364,6 +1395,7 @@ Use runtime environment type `code_sandbox`.
 <!-- -->
 - Put starter code and target-visible fixtures in `visible_files` when the task needs them; an empty mapping is valid for a create-from-scratch task.
 - Put setup-only fixtures in `runtime_files` and hidden tests in `hidden_files`.
+- Files created or downloaded through construction tools may remain in top-level `assets`; the framework copies them into the sandbox workdir under their filenames. Never put their host paths in the prompt or environment.
 - Provide the exact deterministic `test_command` the runner must invoke.
 - Keep hidden tests out of the prompt, visible files, setup commands, and task-visible tool output.
 - Make the requested code change and the evaluator agree on paths, APIs, dependencies, and expected behavior.
@@ -1374,6 +1406,7 @@ Use runtime environment type `docker_workspace`.
 <!-- -->
 - Choose a suitable common image, use `image: &quot;auto&quot;`, or define `image_build` only when a common image is insufficient.
 - Put target-visible files in `visible_files`, setup-only server/application material in `runtime_files`, and evaluator-only tests in `hidden_files`.
+- Files created or downloaded through construction tools may remain in top-level `assets`; the framework copies them into the container workdir under their filenames. Never put their host paths in the prompt or environment.
 - Use `setup_commands` for bounded initialization and provide the exact `test_command` for deterministic scoring; use `evaluation` to configure how that command&#39;s structured result is interpreted.
 - Specify timeout and resource limits appropriate to the workload.
 - If browser interaction is required, configure the canonical browser runtime with a start URL and allowed origins.
@@ -1503,10 +1536,6 @@ coverage. Also perform meta-evaluation:
   challenge-effort claim. Do not create QC issues merely because an item looks easier
   than its challenge_effort; builder-level self-assessment handles that before
   this QC gate.
-- metadata.challenge_effort_fidelity.status=uncertain means the builder had to
-  regenerate after output truncation with a more compact construction scope.
-  Preserve this marker and do not reject an otherwise sound item solely for effort-label uncertainty;
-  continue to report any concrete execution, scoring, or content defect.
 - If an existing benchmark/source is needed, did the dataset use appropriate,
   hard, authoritative sources?
 <!-- -->
@@ -1687,8 +1716,11 @@ For task_type=multi_turn or task_type=agent:
 For items with assets:
 - Every asset should contain one path to a real local file.
 - Absolute local paths are valid; do not flag a path merely because it is absolute.
-- The prompt should refer to each asset by that exact path.
-- The current native target adapter supports image files only.
+- For code_sandbox and docker_workspace items, the framework copies each asset into
+  environment.workdir under its filename; the prompt or choices should use that filename and
+  must not expose the host path.
+- For other items, the prompt or choices should refer to each asset by its exact path. Their
+  current native target adapter supports image files only.
 <!-- -->
 For items using metadata.science:
 - metadata.science.schema_version should be evalclaw.science.v1.
@@ -2543,7 +2575,7 @@ def compact_agent_task_package(package: dict[str, Any]) -&gt; dict[str, Any]:
 <a id="appendix-g"></a>
 ## 附录 G：BenchmarkConfig 完整字段表
 
-定义位置：`evalclaw/types.py` 的 `BenchmarkConfig`。当前模型使用 `extra="forbid"`，因此表外字段会被 Pydantic 拒绝。下表覆盖当前全部 69 个字段。
+定义位置：`evalclaw/types.py` 的 `BenchmarkConfig`。当前模型使用 `extra="forbid"`，因此表外字段会被 Pydantic 拒绝。下表覆盖当前全部 71 个字段。
 
 “LLM 可见性”含义：
 
@@ -2603,12 +2635,13 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `research_brief` | `Optional[ResearchBrief]` | `None` | 预置或本次生成的研究结果与保留正文 | 直接但压缩：Planner/Builder 只收 compact brief；Builder 可按 URL 读保留正文 |
 | `use_hf_discovery` | `bool` | `True` | Deep Research/来源阶段是否发现 HuggingFace 数据集候选 | 派生 |
 
-### G.3 构题、QC 与模型调用控制（7 个字段）
+### G.3 构题、QC 与模型调用控制（8 个字段）
 
 | 字段 | 类型 | 默认值 | 作用 | LLM 可见性 |
 |---|---|---|---|---|
 | `task_builder_max_workers` | `int` | `4` | 可并发执行的 TaskDesign Builder job 数 | 否 |
 | `task_builder_repair_attempts` | `int` | `2` | 每个 Builder job 在全局 QC 前的结构修复次数 | 直接：修复 payload 的 `max_repair_attempts` |
+| `task_builder_truncation_retries` | `int` | `3` | 每个 Builder job 的输出截断恢复次数 | 否 |
 | `task_builder_tool_max_calls` | `int` | `6` | 单次 Builder 构题工具调用预算，运行时限制为 1-12 | 否 |
 | `task_builder_tool_max_chars` | `int` | `50_000` | 每次构题工具结果的最大字符数，运行时限制为 1,000-100,000 | 派生：限制工具结果正文 |
 | `judge_double_pass` | `bool` | `True` | 执行阶段 Judge 是否进行双遍审计 | 派生：决定 Judge 调用次数和第二遍输入 |
@@ -2626,7 +2659,7 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `runner` | `str` | `"direct"` | `direct/lm-eval/auto` 执行与导出路径 | 否 |
 | `environment_claw` | `bool` | `True` | 是否运行环境能力探测与准备 | 否 |
 | `environment_claw_auto_configure` | `bool` | `True` | 是否根据探测结果自动补全可恢复的环境配置 | 否 |
-| `human_review` | `bool` | `False` | 是否在执行前进入人工审核循环 | 否；人工反馈文本本身会发送给 Planner |
+| `human_review` | `bool` | `False` | 是否审核 Planner 计划，并在构题与 QC 后审核具体题目 | 否；人工反馈文本本身会发送给 Planner |
 | `improve_iterations` | `int` | `0` | 目标模型执行后 Loop 3 改进轮数 | 否 |
 | `loop3_diagnosis` | `str` | `"llm"` | `llm/local` Loop 3 诊断方式 | 否 |
 | `loop3_diagnosis_timeout_s` | `int` | `90` | Loop 3 LLM 诊断等待超时 | 否 |
@@ -2642,7 +2675,7 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `docker_pull_timeout_s` | `int` | `300` | Docker 拉取镜像超时 | 否 |
 | `docker_executable` | `str` | `"docker"` | Docker CLI 可执行文件名或路径 | 否 |
 | `container_sandbox_image` | `str` | `"python:3.11-slim"` | 通用容器沙箱默认镜像 | 否 |
-| `environment_preflight` | `bool` | `True` | 运行 targets 前是否做环境预检 | 否 |
+| `environment_preflight` | `bool` | `True` | 是否在 TaskBuilder 构题检查中运行 setup/evaluator 环境预检 | 否 |
 | `gui_bridge_url` | `Optional[str]` | `None` | GUI/desktop bridge 地址 | 否；只注入运行时环境配置 |
 | `gui_bridge_api_key` | `Optional[str]` | `None` | GUI bridge 凭据 | 否；秘密字段 |
 | `gui_bridge_timeout_s` | `int` | `30` | GUI bridge 调用超时 | 否 |
@@ -3016,11 +3049,11 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
 
 工具：
 
-- `run_python(code)`：以当前 Builder job 的 `output_dir/assets/task-builder/<Builder job>/` 为工作目录，在独立 Python 进程中执行代码，用于计算、验证以及生成或处理题目文件；限制 60 秒，返回退出码、标准输出、错误输出及本次生成或改动的文件绝对路径。
+- `run_python(code)`：以当前 Builder job 的 `output_dir/assets/task-builder/<Builder job>/` 为工作目录，在独立 Python 进程中执行代码，用于计算、验证以及生成或处理题目文件；限制 60 秒，返回退出码、标准输出、错误输出及本次生成或改动的宿主机绝对路径。该路径只用于构题和 `assets.path`，不进入环境题的 target-visible 内容。
 - `read_research_source(url, max_chars?)`：按 URL 读取本次 Deep Research 已归档正文。
 - `search_web(query, max_results?)`：发起新查询。
 - `fetch_url(url, max_chars?)`：抓取公开 HTTP(S) 正文。
-- `download_files(urls)`：把最多 32 个公开 HTTP(S) 文件下载到 `output_dir/assets/task-builder/<Builder job>/`，返回最终 URL、本地绝对路径、媒体类型和字节数。文件格式不受限制；单次调用总量上限为 256 MiB，单个 URL 失败会在同一次结果中明确列出。
+- `download_files(urls)`：把最多 32 个公开 HTTP(S) 文件下载到 `output_dir/assets/task-builder/<Builder job>/`，返回最终 URL、宿主机绝对路径、媒体类型和字节数。文件格式不受限制；单次调用总量上限为 256 MiB，单个 URL 失败会在同一次结果中明确列出。
 
 assistant tool call 与 tool results 继续追加进同一 `messages`。Anthropic、OpenAI Chat Completions、
 OpenAI Responses 分别使用各自原生 tool-result 格式。达到预算后追加：
@@ -3046,7 +3079,7 @@ The bounded tool budget is exhausted. Return the complete final task-builder JSO
 | `challenge_effort` | 与所属 TaskDesign 一致 |
 | `metadata` | 含构题自检及题型所需的其他元数据 |
 
-`id`、`dimension_id` 和 `metadata.task_design_id` 由框架在解析后写入；TaskBuilder 不返回这些字段。公共可选字段为 `content_summary`、`assets`、`resource_ids`、`tags`，其他字段按当前题型动态加入。`assets` 是由 `{"path":"..."}` 组成的列表；路径必须指向真实本地文件，且 prompt 必须原样引用使用到的路径。完整路径会进入目标模型输入，因此文件名不得泄露答案或其他非预期信息。没有文件输入时返回空列表。
+`id`、`dimension_id` 和 `metadata.task_design_id` 由框架在解析后写入；TaskBuilder 不返回这些字段。公共可选字段为 `content_summary`、`assets`、`resource_ids`、`tags`，其他字段按当前题型动态加入。`assets` 是由 `{"path":"..."}` 组成的列表，路径必须指向真实宿主机文件。无环境题的 prompt 或 choices 原样引用该路径；`code_sandbox` 和 `docker_workspace` 题在 prompt 或 choices 中只引用文件名，框架在运行时把宿主机文件复制到 `environment.workdir/<文件名>`。同一环境题的 asset 文件名必须唯一，且文件名不得泄露答案或其他非预期信息。没有文件输入时返回空列表。
 正常构题还要求：
 
 ~~~json
@@ -3160,22 +3193,9 @@ evaluator/checks 或任务特定 rubric。environment 只允许用于 agent。�
 }
 ~~~
 
-截断恢复增加：
+输出达到上限后，框架从截断响应中取得已有正文、reasoning 和未完成的工具调用，交给同一个 TaskBuilder 模型压缩。摘要调用不开放工具并关闭额外 thinking，只压缩当前被截断的 assistant 输出。框架用摘要替换该输出，在其后追加继续指令，并以相同 backend、thinking 和工具能力延续原对话；初始 payload、此前的摘要、工具调用和工具结果均保持原顺序。最多恢复 3 次，耗尽时报截断错误；结构修复次数只用于 JSON、字段契约或环境预检失败。每份摘要和对应模型调用均写入该 Builder job 的调试目录。
 
-~~~json
-{
-  "truncation_recovery": {
-    "reason": "task_builder_output_truncated",
-    "requested_effort_by_task_design": {"design_id": "E3"},
-    "reduce_construction_effort": true,
-    "instruction": "从头生成更紧凑、完整、可执行、可确定评分的任务"
-  }
-}
-~~~
-
-之后保留 thinking 和构题工具，以更紧凑的构题要求重新调用，并标记 challenge-effort fidelity uncertain。
-
-若模型正常结束但没有返回最终正文，框架仅关闭 thinking，以原 payload 重试一次；仍无正文则报模型输出失败。该恢复不属于结构修复，也不消耗结构修复次数。工具调用会保留已有工具结果后执行同样的最终正文恢复。
+若模型正常结束但没有返回最终正文，框架仅关闭 thinking，在当前消息历史后要求返回最终正文；仍无正文则报模型输出失败。该恢复不属于结构修复，也不消耗结构修复次数。
 
 QC 定向重构时，框架把当前最佳版本中仅需修复的题目及其资源写入 `best.json`，复制为同目录的 `candidate.json`，并发送：
 
@@ -3344,7 +3364,7 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 - **generation / multi_turn**：有 rubric（error）。
 - **judge_tools**：只允许 `python_tests`（error）；仅 generation/multi-turn/agent 可用（error）；`test_code` 必须消费 `{model_output}`（error）。
 - **agent**：无 rubric 时必须有可执行环境 evaluator（error）；`metadata.agent_env` 必须存在（error）；环境文件路径无跨生命周期重叠（error）；`setup_commands` 不引用 hidden_files（error）；workspace/code_sandbox/gui_desktop 各有必填契约。
-- **题目文件**：`assets` 中每项只有 `path`；路径非空、指向真实文件，并被 prompt 原样引用。TaskDesign 声明非文本输入或文件要求时，`assets` 不得为空。路径会进入目标模型输入，文件名不得泄露答案或其他非预期信息。
+- **题目文件**：`assets` 中每项只有宿主机 `path`，路径非空且指向真实文件。无环境题的 prompt 或 choices 原样引用该路径；容器环境题在 prompt 或 choices 中引用映射后的文件名，文件名在单题内唯一。TaskDesign 声明非文本输入或文件要求时，必须提供可供目标读取的文件，且文件名不得泄露答案或其他非预期信息。
 - **science / task_agent / agent_task_package**：schema_version、system_prompt、scoring guidance 等 metadata 契约。
 - **rubric 自纠正**：对非 choice 题检测 rubric 中自纠正/矛盾参考答案（error）。
 
@@ -3369,14 +3389,14 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 
 ### I.7 构题阶段单题结构检查（`task_structure_issues`）
 
-TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结构检查」（`evalclaw/construction/validation.py::task_structure_issues`），产出 `task_structure_issues: list[str]` 并写入 `metadata.task_structure_validation`（`schema_version` / `status: passed|failed` / `issues`）。它刻意窄于内容 QC：**不评判质量**，只校验「这道题按其题型与可选执行能力是否具备可执行所需的字段」。出现任何 issue 时，把结构错误与上次返回一并交回 TaskBuilder 修复。
+TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结构检查」（`evalclaw/construction/validation.py::task_structure_issues`），产出 `task_structure_issues: list[str]` 并写入 `metadata.task_structure_validation`（`schema_version` / `status: passed|failed` / `issues`）。它刻意窄于内容 QC：**不评判质量**，只校验「这道题按其题型与可选执行能力是否具备可执行所需的字段」。`code_sandbox` 和 `docker_workspace` 候选通过字段检查后，还会创建隔离容器并调用 evaluator；setup 或 evaluator 无法执行时，具体错误进入同一次 TaskBuilder 结构修复。出现任何 issue 时，把错误与上次返回一并交回 TaskBuilder 修复。
 
 基础字段：
 - `id`、`title`、`prompt` 非空；`prompt` 不以截断/不完整指令结尾。
 - 提供 `dimension` 时 `dimension_id` 必须匹配；提供 `task_design`/`dimension` 的期望 `challenge_effort` 时，任务必须一致。
-- TaskDesign 声明非文本输入或文件要求时，任务必须提供 `assets`；每个路径必须非空、指向真实文件，并在 prompt 中被原样引用。
+- TaskDesign 声明非文本输入或文件要求时，任务必须提供可供目标读取的文件。`assets.path` 必须指向真实宿主机文件；无环境题的 prompt 或 choices 原样引用该路径，容器环境题在 prompt 或 choices 中引用映射后的唯一文件名。已知 Builder 宿主机目录不得出现在环境题的 target-visible 内容或环境契约中。
 - 元数据里任何名字含 `evaluator`/`evaluation`/`validation` 的字段不得声明 runner 可执行求值器——普通 metadata 不可执行，完整求值器必须放进被选中 runtime 的规范环境求值字段。
-- 对 LLM 构题（`require_challenge_effort_self_assessment`）：必须有 `metadata.challenge_effort_self_assessment`，`requested_effort` 匹配期望档、`meets_requested_effort=true`（除非 `challenge_effort_fidelity.uncertain` + `compact_construction_retry`）、`rationale` 解释自评。
+- 对 LLM 构题（`require_challenge_effort_self_assessment`）：必须有 `metadata.challenge_effort_self_assessment`，`requested_effort` 匹配期望档、`meets_requested_effort=true`、`rationale` 解释自评。
 
 按题型的字段契约：
 - `choice`：至少两个非空且互异的 choice；至少一个 `correct_choice_id` 且引用已有的 choice id。
@@ -3461,9 +3481,9 @@ run-ready 的单题格式，定义在 `evalclaw/types.py`：
 - **自动补全**：`environment_claw_auto_configure=true` 时，对可安全恢复的配置（如缺失的 bridge URL、VM provider URL）自动补全并回写 `item.metadata.agent_env`。
 - **阻塞错误**：`blocking_errors` 非空且 `run_targets=true` 时流程直接报错停止；`run_environment_claw` 同时返回更新后的 config（用于把探测到的 bridge/VM 地址注入目标执行）。
 
-随后检查题目文件与 target 协议的兼容性：普通目标模型调用当前只支持图像文件，target 不支持图像输入时直接抛错。当存在 `code_sandbox`/`docker_workspace` 题且 `environment_preflight=true` 时，还会对这些可执行题做 setup/evaluator preflight（`_preflight_executable_items`），发现的问题计入 `blocking_errors`。
+随后检查题目文件与 target 协议的兼容性：普通目标模型调用当前只支持图像文件，target 不支持图像输入时直接抛错。Docker、镜像、VM provider 与 GUI bridge 等运行基础设施仍在此处探测；`code_sandbox`/`docker_workspace` 题的 setup/evaluator preflight 已在 TaskBuilder 构题检查中完成。
 
-每次环境准备都会先在 `output_dir/debug/environment/` 保存报告；可执行题的 preflight 在销毁容器前另存环境状态、完整 evaluator 输出和不含 runner-private 文件的工作区。即使 `blocking_errors` 使 pipeline 停止，这些产物仍然保留。
+执行前环境探测会在 `output_dir/debug/environment/` 保存报告；构题阶段的可执行题 preflight 会在对应 TaskBuilder 调试目录中保存结果、环境状态、完整 evaluator 输出和不含 runner-private 文件的工作区。
 
 ### J.3 目标模型调用
 
@@ -3471,7 +3491,7 @@ run-ready 的单题格式，定义在 `evalclaw/types.py`：
 
 - **choice / fill_blank / generation**：调用 `call_target_model`；带图像 assets 的题把 prompt 与文件编码为 provider 原生内容块。目标调用使用 provider 原生协议或 LiteLLM，见[附录 K](#appendix-k)。
 - **multi_turn**：`_run_multi_turn` 用 `task_agent_initial_user_message` 发首轮，随后按 scripted `user_turns` 或 adaptive 模拟器（`task_agent_next_turn`，受 `task_agent_max_turns` 限制）推进多轮，完整 transcript 交给 Judge。
-- **agent**：`run_agent_interaction`（`evalclaw/runners/agent.py`）在隔离环境中以工具调用交互。对 `tool_adapter_for_target` 支持原生工具调用的 target 用 provider-native tools（`call_target_model_with_tools`），其余 target 用 JSON action 文本协议（`parse_agent_action`）。每轮执行环境 step，记录 trace，直到 `final`/`done` 或步数耗尽。
+- **agent**：`run_agent_interaction`（`evalclaw/runners/agent.py`）在隔离环境中以工具调用交互。创建容器时，框架先把每个 `assets.path` 指向的宿主机文件复制为 `environment.workdir/<文件名>`。对 `tool_adapter_for_target` 支持原生工具调用的 target 用 provider-native tools（`call_target_model_with_tools`），其余 target 用 JSON action 文本协议（`parse_agent_action`）。每轮执行环境 step，记录 trace，直到 `final`/`done` 或步数耗尽。
 
 ### J.4 评分
 
@@ -3539,11 +3559,11 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 - `auto`（默认）：允许显式配置的 Responses、Anthropic native、target native tools 和 streaming adapter。
 - `litellm`：强制可承担的调用走 LiteLLM。LiteLLM 失败时不会切换协议或回退到手写 HTTP 实现。
 
-`call_llm` 的分支顺序：`openai_responses` provider → Anthropic native（provider/base_url 显式且非 litellm）→ OpenAI-compatible streaming（`EVALCLAW_LLM_STREAMING` 开启且有 base_url）→ LiteLLM。DeepSeek V4 系列在需要 JSON 时禁用 thinking 并请求 `json_object`；所有模型调用的初始输出预算至少为 32768 tokens，reasoning 模型在支持时另传 `reasoning_effort`。
+`call_llm` 的分支顺序：`openai_responses` provider → Anthropic native（provider/base_url 显式且非 litellm）→ OpenAI-compatible（有 base_url 且非 litellm）→ LiteLLM。所有分支都以 provider 对应的流式协议接收响应，适配层组装完整正文、reasoning 和工具调用后再返回业务层。DeepSeek V4 系列在需要 JSON 时禁用 thinking 并请求 `json_object`；所有模型调用的初始输出预算至少为 32768 tokens，reasoning 模型在支持时另传 `reasoning_effort`。
 
 ### K.4 重试与截断
 
-- **网络重试**：`_post_with_retry` 对传输错误、429、5xx 做最多 3 次指数退避重试，受 `total_timeout_s` 总体时限约束；流式与 Responses 路径同理。
+- **网络重试**：OpenAI-compatible 和 Responses 的直接流式请求对传输错误、429、5xx 做最多 3 次退避重试，并受总体时限约束；SDK 路径使用对应客户端的网络重试。
 - **截断**：`finish_reason=length`（或 Responses `incomplete/max_output_tokens`）时，`retry_on_truncation=true` 则加倍 budget 重试一次（上限 65536），仍截断则抛 `LLMOutputTruncatedError`——框架不会静默 json-repair 截断输出。TaskBuilder 的截断恢复路径见 D.4。
 - **JSON 解析**：`extract_json`（`evalclaw/models/json_utils.py`）负责从模型文本提取 JSON；各调用点对非 JSON/结构不符做明确失败或重试。
 - **调用记录**：启用输出目录时，每次框架发起的 provider 尝试都保存脱敏请求、原始响应、usage、结束原因和错误；截断异常保留当次原始响应。阶段目录负责把这些调用记录与对应的 Planner、TaskBuilder、QC、Research、Judge、Task Agent 或 target item 关联。

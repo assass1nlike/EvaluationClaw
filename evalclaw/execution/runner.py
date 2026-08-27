@@ -18,8 +18,6 @@ from ..models.llm import (
 from ..models.roles import resolve_task_model
 from ..protocols.assets import (
     build_asset_user_content,
-    image_input_unsupported_reason,
-    is_image_asset,
 )
 from ..protocols.task_agent import (
     get_task_agent_spec,
@@ -197,39 +195,6 @@ def _target_user_content(item: BenchmarkItem, target: object) -> str | list[dict
     if not item.assets:
         return None
     return build_asset_user_content(item, _target_prompt(item), getattr(target, "provider", "openai"))
-
-
-def _asset_items(items: list[BenchmarkItem]) -> list[BenchmarkItem]:
-    return [item for item in items if item.assets]
-
-
-def validate_asset_target_support(items: list[BenchmarkItem], config: BenchmarkConfig) -> None:
-    """Raise before sending task assets to incompatible target models."""
-    asset_items = _asset_items(items)
-    if not asset_items or not config.run_targets:
-        return
-    unsupported_paths = [
-        asset.path
-        for item in asset_items
-        for asset in item.assets
-        if not is_image_asset(asset)
-    ]
-    if unsupported_paths:
-        raise ValueError(
-            "Native target calls support image assets only: "
-            + ", ".join(unsupported_paths[:5])
-        )
-    item_ids = ", ".join(item.id for item in asset_items[:5])
-    if len(asset_items) > 5:
-        item_ids += f", ... (+{len(asset_items) - 5} more)"
-
-    errors: list[str] = []
-    for target in config.targets:
-        reason = image_input_unsupported_reason(target)
-        if reason:
-            errors.append(f"{reason} Asset item(s): {item_ids}.")
-    if errors:
-        raise ValueError("\n".join(errors))
 
 
 def _score_from_judge_data(data: dict) -> tuple[float, str]:
@@ -718,7 +683,6 @@ def run_eval(
     debug_dir = new_debug_dir(config.output_dir, "runner")
     execution_plan = build_execution_plan(suite, qc_report)
     accepted = execution_plan.suite.tasks
-    validate_asset_target_support(accepted, config)
     if debug_dir is not None:
         write_json(
             debug_dir / "input.json",
@@ -772,5 +736,4 @@ def run_eval(
 def run_item(item: BenchmarkItem, config: BenchmarkConfig) -> ItemResult:
     if not config.targets:
         raise ValueError("BenchmarkConfig.targets is empty")
-    validate_asset_target_support([item], config)
     return _run_item(item, config, config.targets[0].id)

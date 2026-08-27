@@ -10,10 +10,7 @@ import pytest
 
 from evalclaw.construction import build_task_suite
 from evalclaw.construction.packaging import pack_task_item
-from evalclaw.construction.validation import (
-    CHALLENGE_EFFORT_FIDELITY_METADATA_KEY,
-    task_structure_issues,
-)
+from evalclaw.construction.validation import task_structure_issues
 from evalclaw.core.scaling import scale_budget_target_items
 from evalclaw.core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY
 from evalclaw.execution.agent_envs import build_agent_environment
@@ -782,15 +779,17 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
     assert suite.tasks[0].challenge_effort == ChallengeEffort.E3
 
 
-def test_task_builder_recovers_truncation_with_tools_and_reasoning_preserved(monkeypatch) -> None:
-    calls: list[dict] = []
+def test_task_builder_recovers_truncation_in_preserved_conversation(monkeypatch) -> None:
+    calls: list[list[dict]] = []
 
     def truncation_then_complete(messages, *args, **kwargs):
-        payload = json.loads(messages[0].content)
-        calls.append({"payload": payload, "kwargs": kwargs})
-        if len(calls) == 1:
-            raise LLMOutputTruncatedError("output truncated at 32768 completion tokens")
-        return json.dumps(
+        calls.append(json.loads(json.dumps(messages)))
+        if len(calls) <= 2:
+            raise LLMOutputTruncatedError(
+                "output truncated at 32768 completion tokens",
+                partial_output=f"interrupted reasoning {len(calls)}",
+            )
+        content = json.dumps(
             {
                 "tasks": [
                     {
@@ -809,18 +808,32 @@ def test_task_builder_recovers_truncation_with_tools_and_reasoning_preserved(mon
                         },
                         "scoring": {"pass_criteria": "The brief is in the outgoing bin."},
                         "metadata": {
-                            "challenge_effort_self_assessment": {
-                                "requested_effort": "E3",
-                                "meets_requested_effort": False,
-                                "rationale": "The recovery prioritized completeness over maximum construction effort.",
-                            }
+                                "challenge_effort_self_assessment": {
+                                    "requested_effort": "E3",
+                                    "meets_requested_effort": True,
+                                    "rationale": "The complete task retains the requested construction effort.",
+                                }
                         },
                     }
                 ]
             }
         )
+        return TargetToolModelResponse(
+            adapter="openai",
+            content=content,
+            tool_calls=[],
+            assistant_message={"role": "assistant", "content": content},
+            raw_response={},
+        )
 
-    patch_task_builder_model(monkeypatch, truncation_then_complete)
+    monkeypatch.setattr(
+        "evalclaw.construction.research.call_orchestrator_with_tools",
+        truncation_then_complete,
+    )
+    monkeypatch.setattr(
+        "evalclaw.construction.research.summarize_task_builder_truncation",
+        lambda error, **kwargs: f"summary: {error.partial_output}",
+    )
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -851,19 +864,20 @@ def test_task_builder_recovers_truncation_with_tools_and_reasoning_preserved(mon
 
     suite = build_task_suite(spec, [blueprint], config)
 
-    assert len(calls) == 2
-    assert "truncation_recovery" not in calls[0]["payload"]
-    assert calls[1]["payload"]["truncation_recovery"]["reduce_construction_effort"] is True
-    assert calls[1]["kwargs"]["backend"] == calls[0]["kwargs"]["backend"]
-    assert calls[1]["kwargs"].get("reduce_reasoning_effort", False) is False
-    assert "max_tokens" not in calls[1]["kwargs"]
-    fidelity = suite.tasks[0].metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY]
-    assert fidelity["status"] == "uncertain"
-    assert fidelity["requested_effort"] == "E3"
-    assert suite.tasks[0].metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY] == fidelity
+    assert len(suite.tasks) == 1
+    assert len(calls) == 3
+    assert [message["role"] for message in calls[2]] == [
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+    ]
+    assert calls[2][1]["content"] == "summary: interrupted reasoning 1"
+    assert calls[2][3]["content"] == "summary: interrupted reasoning 2"
 
 
-def test_task_builder_stops_after_compact_construction_retry_truncates(monkeypatch) -> None:
+def test_task_builder_reports_truncation_after_separate_retry_limit(monkeypatch) -> None:
     calls = 0
 
     def always_truncated(*args, **kwargs):
@@ -871,7 +885,14 @@ def test_task_builder_stops_after_compact_construction_retry_truncates(monkeypat
         calls += 1
         raise LLMOutputTruncatedError("still truncated")
 
-    patch_task_builder_model(monkeypatch, always_truncated)
+    monkeypatch.setattr(
+        "evalclaw.construction.research.call_orchestrator_with_tools",
+        always_truncated,
+    )
+    monkeypatch.setattr(
+        "evalclaw.construction.research.summarize_task_builder_truncation",
+        lambda error, **kwargs: "interrupted work",
+    )
     dimension = EvalDimension(
         id="agent_capability",
         name="Agent capability",
@@ -894,7 +915,7 @@ def test_task_builder_stops_after_compact_construction_retry_truncates(monkeypat
         environment_type=AgentEnvironmentType.workspace,
     )
 
-    with pytest.raises(RuntimeError, match="LLMOutputTruncatedError"):
+    with pytest.raises(RuntimeError, match="output truncated after 3 retry attempt") as raised:
         build_task_suite(
             spec,
             [blueprint],
@@ -906,7 +927,8 @@ def test_task_builder_stops_after_compact_construction_retry_truncates(monkeypat
             ),
         )
 
-    assert calls == 2
+    assert "structural validation failed" not in str(raised.value)
+    assert calls == 4
 
 
 def test_task_builder_recovers_missing_final_content_before_structure_repair(monkeypatch) -> None:
@@ -1117,6 +1139,73 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
     ]
 
 
+def test_parallel_task_builder_failure_does_not_wait_for_running_job(monkeypatch) -> None:
+    slow_started = threading.Event()
+    release_slow_job = threading.Event()
+    slow_finished = threading.Event()
+
+    def task_builder_tools(payload, **kwargs):
+        blueprint_id = payload["task_plan"]["builder_job_id"]
+        if blueprint_id == "slow_blueprint":
+            slow_started.set()
+            try:
+                release_slow_job.wait(timeout=5)
+            finally:
+                slow_finished.set()
+            return '{"tasks": []}', []
+        assert slow_started.wait(timeout=1)
+        raise RuntimeError("builder failed")
+
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", task_builder_tools)
+    dimension = EvalDimension(
+        id="agent_capability",
+        name="Agent capability",
+        description="Evaluate realistic agent task execution.",
+        approach="Use executable tasks.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent],
+    )
+    blueprints = [
+        make_blueprint(
+            "slow_blueprint",
+            dimension.id,
+            "Slow task",
+            task_type=TaskType.agent,
+            content="Slow task.",
+            environment_type=AgentEnvironmentType.workspace,
+        ),
+        make_blueprint(
+            "failing_blueprint",
+            dimension.id,
+            "Failing task",
+            task_type=TaskType.agent,
+            content="Failing task.",
+            environment_type=AgentEnvironmentType.workspace,
+        ),
+    ]
+
+    started_at = time.monotonic()
+    try:
+        with pytest.raises(RuntimeError, match="builder failed"):
+            build_task_suite(
+                spec,
+                blueprints,
+                BenchmarkConfig(
+                    **dummy_config_kwargs(),
+                    task_builder_max_workers=2,
+                    task_builder_repair_attempts=0,
+                ),
+            )
+        assert time.monotonic() - started_at < 1
+        assert not slow_finished.is_set()
+    finally:
+        release_slow_job.set()
+        assert slow_finished.wait(timeout=1)
+
+
 def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path) -> None:
     payloads: list[dict] = []
 
@@ -1280,7 +1369,7 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
         environment_type=AgentEnvironmentType.gui_desktop,
     )
 
-    with pytest.raises(RuntimeError, match="environment.evaluation"):
+    with pytest.raises(RuntimeError, match="environment.evaluation") as raised:
         build_task_suite(
             spec,
             [blueprint],
@@ -1293,6 +1382,8 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
             ),
         )
 
+    assert "structural validation failed after 1 repair attempt" in str(raised.value)
+    assert "output truncated" not in str(raised.value)
     responses = sorted(tmp_path.glob("builder-debug/**/*.response.txt"))
     diagnostics = sorted(tmp_path.glob("builder-debug/**/*.diagnostics.json"))
     assert len(responses) == 2

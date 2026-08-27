@@ -1,6 +1,7 @@
 """Single-route benchmark planning, task construction, and QC repair."""
 from __future__ import annotations
 
+import json
 import uuid
 from collections import Counter
 from collections.abc import Callable
@@ -13,6 +14,7 @@ from .planning.task_planner import plan_benchmark
 from .quality.qc import run_qc_gate
 from .types import (
     BenchmarkConfig,
+    BenchmarkPlan,
     EvalSpec,
     QcReport,
     QcSeverity,
@@ -20,6 +22,35 @@ from .types import (
     TaskResource,
     TaskSuite,
 )
+
+
+def _review_plan(
+    goal: str,
+    plan: BenchmarkPlan,
+    config: BenchmarkConfig,
+    *,
+    ask_user: Callable[[str], str],
+    log: Callable[[str], None],
+) -> BenchmarkPlan:
+    for round_index in range(1, 4):
+        feedback = ask_user(
+            f"\n[Planner Review] Round {round_index}/3\n"
+            + json.dumps(plan.model_dump(mode="json"), ensure_ascii=False, indent=2)
+            + "\n\nSubmit an empty response to continue to task construction.\n"
+            "Otherwise, enter requested plan changes:"
+        ).strip()
+        if not feedback:
+            log("\n[Planner Review] Approved by user.")
+            break
+        log("\n[Planner Review] Revising the benchmark plan...")
+        plan = plan_benchmark(
+            goal,
+            config,
+            feedback=feedback,
+            previous_plan=plan,
+            log=log,
+        )
+    return plan
 
 
 def _affected_builder_job_ids(
@@ -158,10 +189,13 @@ def build_benchmark_suite_with_qc_loop(
     config: BenchmarkConfig,
     *,
     log: Callable[[str], None] = print,
+    ask_user: Callable[[str], str] | None = None,
     trace_dir: str | Path | None = None,
 ) -> tuple[EvalSpec, TaskSuite, QcReport]:
     """Plan TaskDesigns and build each through one independent Builder call."""
     plan = plan_benchmark(goal, config, log=log)
+    if ask_user is not None:
+        plan = _review_plan(goal, plan, config, ask_user=ask_user, log=log)
     spec = plan.to_eval_spec()
     trace_root = Path(trace_dir) if trace_dir is not None else None
     if trace_root is not None:

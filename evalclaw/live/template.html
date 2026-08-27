@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EvaluationClaw Live</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg:        #0d1117;
+  --raised:    #161b25;
+  --card:      #1a2030;
+  --border:    #263248;
+  --border-hi: #2f4060;
+  --accent:    #4d9cf6;
+  --accent-lo: rgba(77,156,246,.14);
+  --accent-hi: #6eb4ff;
+  --good:      #3fb950;
+  --warn:      #d29922;
+  --bad:       #f85149;
+  --text:      #e6edf3;
+  --muted:     #8b949e;
+  --faint:     #3d4f68;
+  --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --sans: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100%;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hi); }
+
+/* ── TOPBAR ─────────────────────────────────────────────────── */
+#topbar {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(13,17,23,.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  height: 52px;
+  display: flex; align-items: center; gap: 16px;
+}
+#topbar .logo {
+  font-size: 13px; font-weight: 600;
+  letter-spacing: .03em; color: var(--text);
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+}
+.logo-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .5; transform: scale(.7); }
+}
+#topbar .run-goal {
+  flex: 1; min-width: 0;
+  font-size: 12px; color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#topbar .status-badge {
+  font-size: 11px; font-weight: 500; letter-spacing: .05em;
+  padding: 2px 8px; border-radius: 12px;
+  text-transform: uppercase;
+}
+.status-badge.running  { background: var(--accent-lo); color: var(--accent-hi); border: 1px solid rgba(77,156,246,.3); }
+.status-badge.done     { background: rgba(63,185,80,.12); color: var(--good); border: 1px solid rgba(63,185,80,.25); }
+.status-badge.failed   { background: rgba(248,81,73,.12); color: var(--bad); border: 1px solid rgba(248,81,73,.25); }
+#elapsed {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--muted); font-variant-numeric: tabular-nums;
+}
+
+/* ── LAYOUT ─────────────────────────────────────────────────── */
+#app {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - 52px);
+}
+@media (max-width: 700px) {
+  #app { grid-template-columns: 1fr; }
+  #sidebar { display: none; }
+}
+
+/* ── SIDEBAR ────────────────────────────────────────────────── */
+#sidebar {
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  position: sticky; top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.sidebar-section { padding: 0 16px 12px; }
+.sidebar-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .08em;
+  color: var(--faint); text-transform: uppercase;
+  margin-bottom: 8px; display: block;
+}
+.stage-list { list-style: none; }
+.stage-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 6px 0; cursor: default;
+}
+.stage-track {
+  flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center;
+  padding-top: 3px;
+  gap: 3px;
+}
+.stage-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  border: 1.5px solid var(--faint);
+  background: transparent;
+  transition: background .2s, border-color .2s;
+  flex-shrink: 0;
+}
+.stage-connector {
+  width: 1.5px; height: 16px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.stage-item[data-status=done] .stage-dot    { background: var(--good); border-color: var(--good); }
+.stage-item[data-status=active] .stage-dot  { background: var(--accent); border-color: var(--accent); animation: ring-pulse 1.5s ease-out infinite; }
+.stage-item[data-status=failed] .stage-dot  { background: var(--bad); border-color: var(--bad); }
+@keyframes ring-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(77,156,246,.6); }
+  70%  { box-shadow: 0 0 0 5px rgba(77,156,246,0); }
+  100% { box-shadow: 0 0 0 0 rgba(77,156,246,0); }
+}
+.stage-info { min-width: 0; }
+.stage-name {
+  font-size: 12px; font-weight: 500;
+  color: var(--muted);
+  transition: color .2s;
+}
+.stage-item[data-status=done]   .stage-name { color: var(--text); }
+.stage-item[data-status=active] .stage-name { color: var(--accent-hi); }
+.stage-item[data-status=failed] .stage-name { color: var(--bad); }
+.stage-time {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--faint); font-variant-numeric: tabular-nums;
+}
+
+/* list page sidebar */
+#run-list-wrap { padding: 16px; }
+
+/* ── MAIN ────────────────────────────────────────────────────── */
+#main { padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+/* ── LOG PANEL ───────────────────────────────────────────────── */
+#log-panel {
+  background: var(--raised); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
+}
+.panel-header {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-toggle {
+  background: none; border: none; cursor: pointer;
+  color: var(--faint); font-size: 11px; font-family: var(--mono);
+  padding: 0; transition: color .15s;
+}
+.panel-toggle:hover { color: var(--text); }
+#log-body {
+  font-family: var(--mono); font-size: 11.5px;
+  line-height: 1.55; color: var(--muted);
+  padding: 10px 14px;
+  max-height: 160px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+#log-body .log-line + .log-line { margin-top: 1px; }
+.log-line.info  { color: var(--muted); }
+.log-line.warn  { color: var(--warn); }
+.log-line.error { color: var(--bad); }
+.log-line.stage { color: var(--accent); font-weight: 500; }
+
+/* ── LLM CARDS ───────────────────────────────────────────────── */
+#cards { display: flex; flex-direction: column; gap: 10px; }
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
+  transition: border-color .2s;
+}
+.card[data-state=active]    { border-color: rgba(77,156,246,.4); }
+.card[data-state=truncated] { border-color: var(--warn); }
+.card[data-state=failed]    { border-color: rgba(248,81,73,.4); }
+.card-head {
+  padding: 8px 12px;
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s;
+}
+.card[data-state=active] .card-head { border-bottom-color: rgba(77,156,246,.2); }
+.card-role {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
+}
+.role-planner     { color: #c792ea; }
+.role-construction{ color: #ffcb6b; }
+.role-qc          { color: #89ddff; }
+.role-research    { color: #80cbc4; }
+.role-runner      { color: #c3e88d; }
+.role-loop3       { color: #f78c6c; }
+.role-unknown     { color: var(--muted); }
+.card-trace {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.card-spacer { flex: 1; }
+.card-timer {
+  font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums;
+  color: var(--faint); white-space: nowrap;
+}
+.card-state-badge {
+  font-size: 10px; font-weight: 500; letter-spacing: .04em;
+  padding: 1px 6px; border-radius: 10px;
+  text-transform: uppercase; white-space: nowrap;
+}
+.badge-active    { background: var(--accent-lo); color: var(--accent-hi); }
+.badge-done      { background: rgba(63,185,80,.12); color: var(--good); }
+.badge-truncated { background: rgba(210,153,34,.12); color: var(--warn); }
+.badge-failed    { background: rgba(248,81,73,.12); color: var(--bad); }
+.badge-waiting   { background: rgba(139,148,158,.1); color: var(--faint); }
+
+.card-body {
+  padding: 10px 12px;
+  font-family: var(--mono); font-size: 12px; line-height: 1.6;
+  color: #cdd9e5;
+  max-height: 420px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  word-break: break-word; white-space: pre-wrap;
+}
+.card[data-state=done] .card-body { max-height: 220px; }
+.card-body .cursor {
+  display: inline-block;
+  width: 7px; height: 1em;
+  background: var(--accent); opacity: .8;
+  animation: blink .9s step-end infinite;
+  vertical-align: text-bottom;
+}
+@keyframes blink { 0%,100%{opacity:.8} 50%{opacity:0} }
+.card-body .json-key    { color: #89ddff; }
+.card-body .json-str    { color: #c3e88d; }
+.card-body .json-num    { color: #f78c6c; }
+.card-body .json-bool   { color: #c792ea; }
+.card-body .json-null   { color: var(--muted); }
+
+/* ── RUN LIST (list page) ────────────────────────────────────── */
+#run-cards { display: flex; flex-direction: column; gap: 8px; padding: 20px; }
+.run-row {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 6px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+  text-decoration: none; color: var(--text);
+  transition: border-color .15s, background .15s;
+}
+.run-row:hover { border-color: var(--border-hi); background: #1f2840; }
+.run-row-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.run-row.running .run-row-dot { background: var(--accent); animation: ring-pulse 1.5s ease-out infinite; }
+.run-row.done    .run-row-dot { background: var(--good); }
+.run-row.failed  .run-row-dot { background: var(--bad); }
+.run-row-goal { font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.run-row-meta { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.no-runs {
+  padding: 40px 20px; text-align: center; color: var(--faint);
+  font-size: 13px; line-height: 1.8;
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────────────── */
+.empty-main {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; color: var(--faint); padding: 60px 20px; text-align: center;
+}
+.empty-icon { font-size: 36px; opacity: .5; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="logo">
+    <span class="logo-dot" id="logo-dot"></span>
+    EvalClaw Live
+  </div>
+  <div id="run-goal" class="run-goal"></div>
+  <span id="status-badge" class="status-badge running" style="display:none"></span>
+  <span id="elapsed" style="display:none">0s</span>
+</div>
+
+<div id="app">
+  <aside id="sidebar">
+    <!-- populated by JS -->
+  </aside>
+  <main id="main">
+    <!-- populated by JS -->
+  </main>
+</div>
+
+<script>
+// ── Config injected by server ──────────────────────────────────────────────
+const PAGE_MODE = "__PAGE_MODE__";
+const INIT_RUN_ID = "__RUN_ID__";
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+const $ = (sel, ctx = document) => ctx.querySelector(sel);
+const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+function esc(s) {
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function fmtElapsed(s) {
+  if (s < 60) return s.toFixed(1) + "s";
+  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return `${m}m ${sec < 10 ? "0" : ""}${sec}s`;
+}
+
+function highlightJson(text) {
+  // Light syntax highlight for JSON substrings; falls back to plain.
+  if (!text.includes('"') && !text.includes('{')) return esc(text);
+  try {
+    const parsed = JSON.parse(text);
+    return esc(JSON.stringify(parsed, null, 2))
+      .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+      .replace(/: "([^"]*)"/g, ': <span class="json-str">"$1"</span>')
+      .replace(/: (-?\d+\.?\d*)/g, ': <span class="json-num">$1</span>')
+      .replace(/: (true|false)/g, ': <span class="json-bool">$1</span>')
+      .replace(/: null/g, ': <span class="json-null">null</span>');
+  } catch {
+    return esc(text);
+  }
+}
+
+// ── Stage config ───────────────────────────────────────────────────────────
+const STAGES = [
+  { id: "translation",  label: "Translation" },
+  { id: "research",     label: "Deep Research" },
+  { id: "planner",      label: "Planner" },
+  { id: "construction", label: "Construction" },
+  { id: "qc",           label: "QC" },
+  { id: "runner",       label: "Runner" },
+  { id: "loop3",        label: "Loop 3" },
+  { id: "report",       label: "Report" },
+];
+
+const ROLE_CLASS = {
+  planner: "role-planner",
+  construction: "role-construction",
+  qc: "role-qc",
+  research: "role-research",
+  runner: "role-runner",
+  loop3: "role-loop3",
+};
+
+// ── Run view state ─────────────────────────────────────────────────────────
+let runState = {
+  goal: "",
+  started: null,
+  ended: false,
+  failed: false,
+  stages: {},      // stage_id → {status, start, end}
+  calls: {},       // call_id → {stage, trace_name, tokens, state, start, end, expanded}
+  callOrder: [],   // insertion order
+  logs: [],
+};
+
+let elapsedTimer = null;
+
+// ── Sidebar rendering ──────────────────────────────────────────────────────
+function renderSidebar() {
+  const sidebar = $("#sidebar");
+  if (PAGE_MODE === "list") {
+    sidebar.innerHTML = `<div class="sidebar-section">
+      <span class="sidebar-label">Runs</span>
+      <div id="run-count" style="font-size:12px;color:var(--muted)">—</div>
+    </div>`;
+    return;
+  }
+  let html = `<div class="sidebar-section">
+    <span class="sidebar-label">Pipeline Stages</span>
+    <ul class="stage-list" id="stage-list">`;
+  for (let i = 0; i < STAGES.length; i++) {
+    const s = STAGES[i];
+    const info = runState.stages[s.id] || {};
+    const status = info.status || "idle";
+    const t = info.elapsed != null ? fmtElapsed(info.elapsed) : "";
+    html += `<li class="stage-item" data-stage="${s.id}" data-status="${status}">
+      <div class="stage-track">
+        <div class="stage-dot"></div>
+        ${i < STAGES.length - 1 ? '<div class="stage-connector"></div>' : ""}
+      </div>
+      <div class="stage-info">
+        <div class="stage-name">${s.label}</div>
+        ${t ? `<div class="stage-time">${t}</div>` : ""}
+      </div>
+    </li>`;
+  }
+  html += `</ul></div>`;
+  sidebar.innerHTML = html;
+}
+
+// ── Cards rendering ────────────────────────────────────────────────────────
+function roleLabel(stage) {
+  return (stage || "unknown").charAt(0).toUpperCase() + (stage || "unknown").slice(1);
+}
+
+function renderCard(call_id) {
+  const call = runState.calls[call_id];
+  if (!call) return;
+  let el = $(`[data-callid="${CSS.escape(call_id)}"]`);
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "card";
+    el.dataset.callid = call_id;
+    el.dataset.state = call.state;
+    el.innerHTML = `<div class="card-head" onclick="toggleCard(this.parentElement)">
+      <span class="card-role ${ROLE_CLASS[call.stage] || "role-unknown"}">${esc(roleLabel(call.stage))}</span>
+      <span class="card-trace">${esc(call.trace_name)}</span>
+      <span class="card-spacer"></span>
+      <span class="card-timer" data-timer></span>
+      <span class="card-state-badge badge-waiting"></span>
+    </div>
+    <div class="card-body" style="display:none"><span class="cursor"></span></div>`;
+    $("#cards").insertBefore(el, $("#cards").firstChild);
+  }
+  // update state
+  el.dataset.state = call.state;
+  const badge = $(".card-state-badge", el);
+  const body  = $(".card-body", el);
+  const timer = $("[data-timer]", el);
+
+  badge.className = `card-state-badge badge-${call.state}`;
+  badge.textContent = call.state;
+
+  if (call.state === "active" || call.expanded) {
+    body.style.display = "block";
+  } else if (call.state === "done") {
+    body.style.display = "none";
+  }
+
+  // render token content
+  const tokenText = call.tokens;
+  let bodyHtml = "";
+  if (call.state === "active") {
+    // Try JSON highlight on the accumulated buffer; show plain while streaming
+    bodyHtml = esc(tokenText) + '<span class="cursor"></span>';
+  } else {
+    bodyHtml = highlightJson(tokenText);
+  }
+  body.innerHTML = bodyHtml;
+
+  // scroll body to bottom when active
+  if (call.state === "active") {
+    body.scrollTop = body.scrollHeight;
+  }
+
+  // elapsed time
+  if (call.start != null) {
+    const end = call.end ?? (Date.now() / 1000);
+    timer.textContent = fmtElapsed(end - call.start);
+  }
+}
+
+function toggleCard(el) {
+  const call_id = el.dataset.callid;
+  if (!call_id) return;
+  const call = runState.calls[call_id];
+  if (!call) return;
+  call.expanded = !call.expanded;
+  const body = $(".card-body", el);
+  body.style.display = call.expanded ? "block" : "none";
+}
+
+// ── Log panel ──────────────────────────────────────────────────────────────
+function appendLog(message, level) {
+  const logBody = $("#log-body");
+  if (!logBody) return;
+  const line = document.createElement("div");
+  line.className = `log-line ${level || "info"}`;
+  line.textContent = message;
+  logBody.appendChild(line);
+  logBody.scrollTop = logBody.scrollHeight;
+}
+
+// ── Main area rendering ────────────────────────────────────────────────────
+function initRunView() {
+  const main = $("#main");
+  main.innerHTML = `
+    <div id="log-panel">
+      <div class="panel-header">
+        Pipeline Log
+        <button class="panel-toggle" onclick="toggleLog()" id="log-toggle">▲ hide</button>
+      </div>
+      <div id="log-body"></div>
+    </div>
+    <div id="cards"></div>`;
+}
+
+function toggleLog() {
+  const body = $("#log-body");
+  const btn  = $("#log-toggle");
+  if (body.style.display === "none") {
+    body.style.display = "";
+    btn.textContent = "▲ hide";
+  } else {
+    body.style.display = "none";
+    btn.textContent = "▼ show";
+  }
+}
+
+// ── Topbar updates ─────────────────────────────────────────────────────────
+function updateTopbar() {
+  const goal  = $("#run-goal");
+  const badge = $("#status-badge");
+  const elapsed = $("#elapsed");
+  goal.textContent = runState.goal;
+  const state = runState.failed ? "failed" : runState.ended ? "done" : "running";
+  badge.style.display = "";
+  badge.className = `status-badge ${state}`;
+  badge.textContent = state;
+  elapsed.style.display = "";
+}
+
+function startElapsedTimer() {
+  if (elapsedTimer) return;
+  const el = $("#elapsed");
+  if (!el) return;
+  const start = Date.now();
+  elapsedTimer = setInterval(() => {
+    el.textContent = fmtElapsed((Date.now() - start) / 1000);
+  }, 500);
+}
+
+function stopElapsedTimer() {
+  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+}
+
+// ── Event processing ───────────────────────────────────────────────────────
+function processEvent(ev) {
+  if (!ev || !ev.type) return;
+  switch (ev.type) {
+    case "run_start":
+      runState.goal = ev.goal || "";
+      runState.started = ev.t;
+      updateTopbar();
+      startElapsedTimer();
+      break;
+
+    case "stage":
+      const sid = ev.stage;
+      if (!runState.stages[sid]) runState.stages[sid] = {};
+      const s = runState.stages[sid];
+      s.status = ev.status || "active";
+      if (ev.status === "active" && !s.start) s.start = ev.t;
+      if (ev.status === "done" || ev.status === "failed") {
+        s.end = ev.t;
+        if (s.start) s.elapsed = s.end - s.start;
+      }
+      // mark any previously active stage done if new one starts
+      if (ev.status === "active") {
+        for (const [k, v] of Object.entries(runState.stages)) {
+          if (k !== sid && v.status === "active") v.status = "done";
+        }
+        appendLog(`▶ ${sid}`, "stage");
+      }
+      renderSidebar();
+      break;
+
+    case "log":
+      runState.logs.push(ev.message);
+      appendLog(ev.message, ev.level);
+      // infer stage from log
+      const text = (ev.message || "").toLowerCase();
+      for (const { id } of STAGES) {
+        if (text.includes(id) && !runState.stages[id]) {
+          runState.stages[id] = { status: "active", start: ev.t };
+          renderSidebar();
+        }
+      }
+      break;
+
+    case "llm_start":
+      if (!runState.calls[ev.call_id]) {
+        runState.calls[ev.call_id] = {
+          stage: ev.stage || "unknown",
+          trace_name: ev.trace_name || ev.call_id,
+          tokens: "",
+          state: "active",
+          start: ev.t,
+          end: null,
+          expanded: false,
+        };
+        runState.callOrder.push(ev.call_id);
+        // ensure stage is active
+        if (ev.stage && !runState.stages[ev.stage]) {
+          runState.stages[ev.stage] = { status: "active", start: ev.t };
+          renderSidebar();
+        }
+      }
+      renderCard(ev.call_id);
+      break;
+
+    case "token":
+      if (runState.calls[ev.call_id]) {
+        runState.calls[ev.call_id].tokens += ev.text;
+        renderCard(ev.call_id);
+      }
+      break;
+
+    case "llm_end":
+      if (runState.calls[ev.call_id]) {
+        const c = runState.calls[ev.call_id];
+        c.state = ev.state || "done";
+        c.end = ev.t;
+        renderCard(ev.call_id);
+      }
+      break;
+
+    case "run_end":
+      runState.ended = true;
+      runState.failed = ev.failed || false;
+      stopElapsedTimer();
+      updateTopbar();
+      $("#logo-dot").style.animation = "none";
+      for (const [, v] of Object.entries(runState.stages)) {
+        if (v.status === "active") { v.status = "done"; v.end = ev.t; }
+      }
+      renderSidebar();
+      break;
+  }
+}
+
+// ── SSE connection ─────────────────────────────────────────────────────────
+let sseSource = null;
+let reconnectDelay = 2000;
+
+function connectSSE(run_id) {
+  if (sseSource) { sseSource.close(); sseSource = null; }
+  sseSource = new EventSource(`/events/${encodeURIComponent(run_id)}`);
+  sseSource.onmessage = (e) => {
+    try {
+      processEvent(JSON.parse(e.data));
+    } catch {}
+  };
+  sseSource.addEventListener("end", () => {
+    sseSource.close();
+    sseSource = null;
+  });
+  sseSource.onerror = () => {
+    sseSource.close();
+    sseSource = null;
+    setTimeout(() => connectSSE(run_id), reconnectDelay);
+    reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
+  };
+  sseSource.onopen = () => { reconnectDelay = 2000; };
+}
+
+// ── Snapshot load (replay past events) ────────────────────────────────────
+async function loadSnapshot(run_id) {
+  try {
+    const r = await fetch(`/api/snapshot/${encodeURIComponent(run_id)}`);
+    if (!r.ok) return;
+    const snap = await r.json();
+    runState.goal = snap.goal || "";
+    for (const ev of (snap.events || [])) processEvent(ev);
+    if (snap.ended) { runState.ended = true; runState.failed = false; updateTopbar(); }
+  } catch {}
+}
+
+// ── List page ──────────────────────────────────────────────────────────────
+let listPollTimer = null;
+
+async function loadList() {
+  try {
+    const r = await fetch("/api/runs");
+    const runs = await r.json();
+    const cnt = $("#run-count");
+    if (cnt) cnt.textContent = `${runs.length} run${runs.length !== 1 ? "s" : ""}`;
+    const wrap = $("#run-cards") || (() => {
+      const el = document.createElement("div");
+      el.id = "run-cards";
+      $("#main").innerHTML = "";
+      $("#main").appendChild(el);
+      return el;
+    })();
+    if (!runs.length) {
+      wrap.innerHTML = `<div class="no-runs">No runs yet.<br>Start a pipeline with <code>evalclaw generate --live</code>.</div>`;
+      return;
+    }
+    wrap.innerHTML = runs.map(r => {
+      const cls = r.ended ? "done" : "running";
+      return `<a class="run-row ${cls}" href="/run/${encodeURIComponent(r.run_id)}">
+        <div class="run-row-dot"></div>
+        <div class="run-row-goal">${esc(r.goal || r.run_id)}</div>
+        <div class="run-row-meta">${esc(r.run_id.slice(0, 16))}</div>
+      </a>`;
+    }).join("");
+  } catch {}
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+(async function init() {
+  if (PAGE_MODE === "list") {
+    $("#sidebar").innerHTML = `<div class="sidebar-section">
+      <span class="sidebar-label">Runs</span>
+      <div id="run-count" style="font-size:12px;color:var(--muted)">—</div>
+    </div>`;
+    const main = $("#main");
+    main.innerHTML = `<div id="run-cards"></div>`;
+    await loadList();
+    listPollTimer = setInterval(loadList, 5000);
+    return;
+  }
+
+  // run view
+  $("#logo-dot").style.display = "";
+  initRunView();
+  renderSidebar();
+  updateTopbar();
+  await loadSnapshot(INIT_RUN_ID);
+  connectSSE(INIT_RUN_ID);
+
+  // update card timers every second
+  setInterval(() => {
+    for (const cid of runState.callOrder) {
+      const call = runState.calls[cid];
+      if (call && call.state === "active") renderCard(cid);
+    }
+  }, 1000);
+})();
+</script>
+</body>
+</html>

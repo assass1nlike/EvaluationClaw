@@ -6,46 +6,26 @@ import mimetypes
 from pathlib import Path
 from typing import Any
 
-from ..types import BenchmarkItem, TargetModelConfig, TaskAsset
+from ..types import BenchmarkItem, TaskAsset
 
 
-def is_image_asset(asset: TaskAsset) -> bool:
-    mime_type = mimetypes.guess_type(asset.path)[0] or ""
-    return mime_type.startswith("image/")
+def environment_asset_guest_path(asset: TaskAsset) -> str:
+    """Return the target-visible workspace path for one host-side task asset."""
+    return Path(asset.path).name
 
 
-def target_supports_image_input(target: TargetModelConfig) -> bool:
-    provider = target.provider.lower()
-    model = target.model.lower()
-    if provider in {"mock", "test"}:
-        return True
-    if provider == "deepseek" or model.startswith("deepseek-"):
-        return False
-    if provider in {"anthropic", "claude"} or model.startswith("claude-"):
-        return True
-    if provider in {"gemini", "google"} or model.startswith("gemini"):
-        return True
-    if provider == "openai":
-        return model.startswith(
-            ("gpt-4o", "gpt-4.1", "gpt-5", "o3", "o4", "chatgpt-")
-        )
-    if provider == "azure":
-        deployment = model.split("/", 1)[-1]
-        return deployment.startswith(
-            ("gpt-4o", "gpt-4.1", "gpt-4-turbo", "gpt-5", "o3", "o4", "chatgpt-")
-        )
-    if provider == "mistral" or model.startswith(("pixtral-", "mistral-medium")):
-        return True
-    return provider == "openai_compatible"
-
-
-def image_input_unsupported_reason(target: TargetModelConfig) -> str | None:
-    if target_supports_image_input(target):
-        return None
-    return (
-        f"Target model '{target.id}' ({target.provider}/{target.model}) is not known to support "
-        "image input. Choose a vision-capable target model or remove the task assets."
-    )
+def environment_asset_sources(assets: list[TaskAsset]) -> dict[str, Path]:
+    sources: dict[str, Path] = {}
+    for asset in assets:
+        guest_path = environment_asset_guest_path(asset)
+        if not guest_path:
+            raise ValueError(f"Asset path has no filename: {asset.path!r}.")
+        if guest_path in sources:
+            raise ValueError(
+                f"Environment asset filenames must be unique: {guest_path!r}."
+            )
+        sources[guest_path] = Path(asset.path)
+    return sources
 
 
 def _image_data_uri(asset: TaskAsset) -> str:
@@ -89,7 +69,6 @@ def build_asset_user_content(
 
 __all__ = [
     "build_asset_user_content",
-    "image_input_unsupported_reason",
-    "is_image_asset",
-    "target_supports_image_input",
+    "environment_asset_guest_path",
+    "environment_asset_sources",
 ]

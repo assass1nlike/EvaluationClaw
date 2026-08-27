@@ -7,13 +7,16 @@ import shutil
 import uuid
 from collections import Counter, defaultdict
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import CancelledError, ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from threading import Lock
+from threading import Event, Lock
 
 from ..core.task_summary import compact_task_content_summary
+from ..diagnostics import error_record, write_json
+from ..execution.agent_envs import build_agent_environment
+from ..execution.docker import require_docker_available
 from ..models.llm import (
     LLMFinalContentMissingError,
     LLMOutputTruncatedError,
@@ -23,6 +26,7 @@ from ..models.roles import role_model_settings
 from ..prompts.task_builder import TASK_BUILDER_PROMPT
 from ..research.deep_research import compact_brief_context
 from ..types import (
+    AgentEnvironmentType,
     BenchmarkConfig,
     BenchmarkItem,
     ChallengeEffort,
@@ -36,7 +40,12 @@ from ..types import (
 )
 from .packaging import pack_task_item
 from .parsing import _task_from_raw
-from .research import TASK_BUILDER_TOOL_PROMPT, run_task_builder_tools, task_builder_work_dir
+from .research import (
+    TASK_BUILDER_TOOL_PROMPT,
+    TaskBuilderTruncationSummaryError,
+    run_task_builder_tools,
+    task_builder_work_dir,
+)
 from .resources import (
     _dedupe_resources,
     _resource_from_raw,
@@ -45,10 +54,7 @@ from .resources import (
     _source_context,
 )
 from .skill_loader import environment_skill_payload, environment_skill_system_prompt
-from .validation import (
-    CHALLENGE_EFFORT_FIDELITY_METADATA_KEY,
-    task_structure_issues,
-)
+from .validation import task_structure_issues
 
 
 def _ensure_unique_task_ids(tasks: list[TaskDefinition]) -> None:
@@ -127,6 +133,74 @@ class _ParsedBuilderResponse:
     valid_tasks: list[TaskDefinition]
     notes: list[str]
     validation_issues: list[str]
+
+
+def _preflight_builder_environments(
+    tasks: list[TaskDefinition],
+    *,
+    dimension: EvalDimension,
+    blueprint: TaskBlueprint,
+    resources: list[TaskResource],
+    config: BenchmarkConfig,
+    trace_dir: Path | None = None,
+) -> tuple[list[str], set[str]]:
+    if not config.environment_preflight:
+        return [], set()
+    resource_by_id = {resource.id: resource for resource in resources}
+    issues: list[str] = []
+    failed_ids: set[str] = set()
+    for index, task in enumerate(tasks, 1):
+        if task.environment is None or task.environment.type not in {
+            AgentEnvironmentType.code_sandbox,
+            AgentEnvironmentType.docker_workspace,
+        }:
+            continue
+        task_design_id = str(task.metadata.get("task_design_id") or "")
+        task_design = next(
+            (design for design in blueprint.task_designs if design.id == task_design_id),
+            None,
+        )
+        item = pack_task_item(
+            task,
+            dimension,
+            resource_by_id=resource_by_id,
+            blueprint=blueprint,
+            task_design=task_design,
+        )
+        environment = None
+        item_trace_dir = trace_dir / _debug_slug(task.id) if trace_dir is not None else None
+        try:
+            environment = build_agent_environment(item, config)
+            preflight = getattr(environment, "preflight", None)
+            if not callable(preflight):
+                raise RuntimeError("environment does not implement evaluator preflight")
+            outcome = preflight()
+            if item_trace_dir is not None:
+                write_json(item_trace_dir / "result.json", outcome.as_dict())
+        except Exception as exc:
+            failed_ids.add(task.id)
+            issues.append(
+                f"task #{index} ({task.id}): environment preflight failed: "
+                f"{type(exc).__name__}: {exc}"
+            )
+            if item_trace_dir is not None:
+                write_json(item_trace_dir / "failure.json", error_record(exc))
+        finally:
+            if item_trace_dir is not None and environment is not None:
+                try:
+                    write_json(item_trace_dir / "state.json", environment.state())
+                    export = getattr(environment, "export_artifacts", None)
+                    if callable(export):
+                        write_json(
+                            item_trace_dir / "artifacts.json",
+                            export(item_trace_dir / "workspace"),
+                        )
+                except Exception as exc:
+                    write_json(item_trace_dir / "artifact-error.json", error_record(exc))
+            cleanup = getattr(environment, "cleanup", None)
+            if callable(cleanup):
+                cleanup()
+    return issues, failed_ids
 
 
 def _capability_payload(dimension: EvalDimension) -> dict[str, object]:
@@ -465,6 +539,13 @@ def build_task_suite(
     if not spec.dimensions:
         raise ValueError("EvalSpec.dimensions must not be empty before task construction.")
 
+    if config.environment_preflight and any(
+        blueprint.environment_type
+        in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
+        for blueprint in blueprints
+    ):
+        require_docker_available(executable=config.docker_executable)
+
     blueprint_by_dimension = defaultdict(list)
     for blueprint in blueprints:
         blueprint_by_dimension[blueprint.dimension_id].append(blueprint)
@@ -490,6 +571,7 @@ def build_task_suite(
         return task
 
     builder_settings = role_model_settings(config, "task_builder")
+    stop_event = Event()
 
     def strict_error(blueprint: TaskBlueprint, message: str) -> RuntimeError:
         return RuntimeError(
@@ -573,7 +655,7 @@ def build_task_suite(
                     "dimension_id": dimension.id,
                     "builder_job_id": blueprint.id,
                     "model": builder_settings.model,
-                    "backend": "litellm" if force_litellm else config.llm_backend,
+                    "backend": config.llm_backend,
                     "attempt": attempt + 1,
                     "phase": phase,
                     "status": status,
@@ -611,14 +693,14 @@ def build_task_suite(
             _resource_from_source(source, f"{blueprint.id}_resource_{idx}")
             for idx, source in enumerate(source_candidates, 1)
         ]
+        builder_work_dir = task_builder_work_dir(config, blueprint.id)
         if job_revision:
-            work_dir = task_builder_work_dir(config, blueprint.id)
-            if work_dir is None:
+            if builder_work_dir is None:
                 raise strict_error(
                     blueprint,
                     "benchmark output_dir is required for file-based QC repair.",
                 )
-            revision_dir = work_dir / "qc-repair" / debug_invocation_id
+            revision_dir = builder_work_dir / "qc-repair" / debug_invocation_id
             revision_dir.mkdir(parents=True, exist_ok=True)
             best_path = revision_dir / "best.json"
             candidate_path = revision_dir / "candidate.json"
@@ -674,8 +756,6 @@ def build_task_suite(
                     planned_task_designs.append(design_by_id[task_design_id])
                 elif len(blueprint.task_designs) == 1:
                     planned_task_designs.append(blueprint.task_designs[0])
-        effort_fidelity_uncertain = False
-
         def tag_task(task: TaskDefinition, task_design_id: str | None = None) -> TaskDefinition:
             if not task_design_id:
                 matching_designs = [
@@ -692,26 +772,6 @@ def build_task_suite(
             }
             if task_design_id:
                 task.metadata["task_design_id"] = task_design_id
-            if effort_fidelity_uncertain:
-                design = next(
-                    (
-                        candidate
-                        for candidate in blueprint.task_designs
-                        if candidate.id == task.metadata.get("task_design_id")
-                    ),
-                    None,
-                )
-                task.metadata[CHALLENGE_EFFORT_FIDELITY_METADATA_KEY] = {
-                    "status": "uncertain",
-                    "requested_effort": (
-                        design.challenge_effort.value if design else task.challenge_effort.value
-                    ),
-                    "recovery_strategy": "compact_construction_retry",
-                    "reason": (
-                        "The original task-builder completion exhausted its output budget; "
-                        "the task was regenerated with a more compact construction scope."
-                    ),
-                }
             return task
 
         if not builder_settings.configured:
@@ -743,8 +803,6 @@ def build_task_suite(
 
         def call_task_builder(
             call_payload: dict[str, object],
-            *,
-            force_litellm: bool = False,
         ) -> str:
             system_prompt = TASK_BUILDER_PROMPT
             if blueprint.requires_environment:
@@ -760,6 +818,7 @@ def build_task_suite(
                 system_prompt=system_prompt,
                 config=config,
                 include_source_tools=blueprint.source_strategy != "generated",
+                stop_event=stop_event,
                 **debug_kwargs,
             )
             result_notes.extend(tool_notes)
@@ -935,6 +994,7 @@ def build_task_suite(
                         blueprint=validation_blueprint,
                         task_design=task_design,
                         require_challenge_effort_self_assessment=True,
+                        builder_work_dir=builder_work_dir,
                     )
                 )
                 if not task_design_id:
@@ -1003,57 +1063,17 @@ def build_task_suite(
                 validation_issues=validation_issues,
             )
 
-        active_payload = payload
-        force_litellm = False
-
-        def request_builder_response(call_payload: dict[str, object]) -> str:
-            nonlocal active_payload, effort_fidelity_uncertain, force_litellm
-            try:
-                return call_task_builder(
-                    call_payload,
-                    force_litellm=force_litellm,
-                )
-            except LLMOutputTruncatedError:
-                if force_litellm:
-                    raise
-                effort_fidelity_uncertain = True
-                force_litellm = True
-                recovery = {
-                    "reason": "task_builder_output_truncated",
-                    "requested_effort_by_task_design": {
-                        design.id: design.challenge_effort.value
-                        for design in blueprint.task_designs
-                    },
-                    "reduce_construction_effort": True,
-                    "instruction": (
-                        "Regenerate this task from the beginning using less construction effort. "
-                        "Prioritize a complete, compact, executable task and deterministic evaluator. "
-                        "Remove nonessential scenario breadth, research, fixtures, files, and duplicated "
-                        "explanation before removing anything required for execution or scoring. Keep "
-                        "task.challenge_effort as the originally requested label for traceability, but "
-                        "self-assess honestly whether the regenerated task meets it."
-                    ),
-                }
-                active_payload = {**active_payload, "truncation_recovery": recovery}
-                recovery_payload = {**call_payload, "truncation_recovery": recovery}
-                emit(
-                    f"  Task builder: output truncated for {label}; retrying once with "
-                    "compact construction guidance."
-                )
-                result_notes.append(
-                    f"{blueprint.id}: regenerated after output truncation with compact construction guidance; "
-                    "challenge-effort fidelity marked uncertain."
-                )
-                return call_task_builder(
-                    recovery_payload,
-                    force_litellm=True,
-                )
+        truncation_retries = max(
+            0,
+            int(getattr(config, "task_builder_truncation_retries", 3) or 0),
+        )
 
         parsed: object | None = None
         raw = ""
         repair_attempts = max(0, int(getattr(config, "task_builder_repair_attempts", 2) or 0))
         last_validation_issues: list[str] = []
         last_failure_is_output = False
+        last_truncation_error: LLMOutputTruncatedError | None = None
         best_partial_result: _ParsedBuilderResponse | None = None
         repair_fields = (
             "missing or inconsistent type-specific fields, rubric, Judge tools, challenge_effort, and "
@@ -1064,7 +1084,7 @@ def build_task_suite(
             "metadata.challenge_effort_self_assessment fields"
         )
         for attempt in range(repair_attempts + 1):
-            call_payload = active_payload
+            call_payload = payload
             if attempt > 0:
                 previous_response = None
                 if not job_revision:
@@ -1089,7 +1109,7 @@ def build_task_suite(
                     )
                 )
                 call_payload = {
-                    **active_payload,
+                    **payload,
                     "repair": {
                         "reason": "task_structure_validation_failed",
                         "attempt": attempt,
@@ -1105,7 +1125,7 @@ def build_task_suite(
             parsed_keys: list[str] = []
             response_received = False
             try:
-                raw = request_builder_response(call_payload)
+                raw = call_task_builder(call_payload)
                 response_received = True
                 persist_builder_debug(
                     attempt=attempt,
@@ -1119,6 +1139,7 @@ def build_task_suite(
                 attempt_result = parse_builder_response(parsed)
             except LLMOutputTruncatedError as exc:
                 last_failure_is_output = True
+                last_truncation_error = exc
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
                 persist_builder_debug(
                     attempt=attempt,
@@ -1127,7 +1148,8 @@ def build_task_suite(
                     error=exc,
                 )
                 emit(
-                    f"  Task builder: reduced-effort LiteLLM retry also truncated for {label}."
+                    f"  Task builder: output still truncated after {truncation_retries} "
+                    f"retry attempt(s) for {label}."
                 )
                 break
             except LLMFinalContentMissingError as exc:
@@ -1139,6 +1161,17 @@ def build_task_suite(
                     error=exc,
                 )
                 raise strict_error(blueprint, str(exc)) from exc
+            except TaskBuilderTruncationSummaryError as exc:
+                last_validation_issues = [f"{type(exc).__name__}: {exc}"]
+                persist_builder_debug(
+                    attempt=attempt,
+                    status="truncation_summary_failed",
+                    validation_issues=last_validation_issues,
+                    error=exc,
+                )
+                raise strict_error(blueprint, str(exc)) from exc
+            except CancelledError:
+                raise
             except Exception as exc:
                 last_failure_is_output = response_received
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
@@ -1160,6 +1193,28 @@ def build_task_suite(
                     )
                     continue
                 break
+            if attempt_result.valid_tasks:
+                environment_issues, failed_task_ids = _preflight_builder_environments(
+                    attempt_result.valid_tasks,
+                    dimension=dimension,
+                    blueprint=blueprint,
+                    resources=attempt_result.resources,
+                    config=config,
+                    trace_dir=(
+                        debug_job_dir
+                        / "environment-preflight"
+                        / f"attempt-{attempt + 1:02d}"
+                        if debug_job_dir is not None
+                        else None
+                    ),
+                )
+                if environment_issues:
+                    attempt_result.validation_issues.extend(environment_issues)
+                    attempt_result.valid_tasks = [
+                        task
+                        for task in attempt_result.valid_tasks
+                        if task.id not in failed_task_ids
+                    ]
             if not attempt_result.validation_issues:
                 persist_builder_debug(
                     attempt=attempt,
@@ -1196,10 +1251,17 @@ def build_task_suite(
                     f"({len(last_validation_issues)} issue(s))."
                 )
 
-        failure_message = (
-            "structural validation failed after "
-            f"{repair_attempts} repair attempt(s): {'; '.join(last_validation_issues[:6])}"
-        )
+        if last_truncation_error is not None:
+            failure_message = (
+                "output truncated after "
+                f"{truncation_retries} retry attempt(s): "
+                f"{type(last_truncation_error).__name__}: {last_truncation_error}"
+            )
+        else:
+            failure_message = (
+                "structural validation failed after "
+                f"{repair_attempts} repair attempt(s): {'; '.join(last_validation_issues[:6])}"
+            )
         if job_revision is not None and best_partial_result is not None:
             retained_resource_ids = {
                 resource_id
@@ -1242,21 +1304,26 @@ def build_task_suite(
             completed_jobs += 1
             emit(f"  Task builder: completed {completed_jobs}/{len(jobs)} - {job_label(job)}.")
     else:
-        with ThreadPoolExecutor(max_workers=min(max_workers, len(jobs))) as executor:
+        executor = ThreadPoolExecutor(max_workers=min(max_workers, len(jobs)))
+        futures = {}
+        try:
             futures = {executor.submit(build_blueprint_job, job): job for job in jobs}
-            try:
-                for future in as_completed(futures):
-                    result = future.result()
-                    build_results_by_order[result.order] = result
-                    completed_jobs += 1
-                    emit(
-                        f"  Task builder: completed {completed_jobs}/{len(jobs)} - "
-                        f"{job_label(futures[future])}."
-                    )
-            except Exception:
-                for future in futures:
-                    future.cancel()
-                raise
+            for future in as_completed(futures):
+                result = future.result()
+                build_results_by_order[result.order] = result
+                completed_jobs += 1
+                emit(
+                    f"  Task builder: completed {completed_jobs}/{len(jobs)} - "
+                    f"{job_label(futures[future])}."
+                )
+        except Exception:
+            stop_event.set()
+            for future in futures:
+                future.cancel()
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        else:
+            executor.shutdown()
 
     resources: list[TaskResource] = []
     tasks: list[TaskDefinition] = []
