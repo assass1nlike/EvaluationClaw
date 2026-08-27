@@ -13,6 +13,7 @@ from evalclaw.research.backends import (
     GeminiBackend,
     KeylessBackend,
     NoneBackend,
+    SearchBackendError,
     SearchResult,
     get_backend,
     resolve_backend_name,
@@ -124,6 +125,18 @@ class _FakeLitellmResponse:
     def __init__(self, finish_reason: str, text: str) -> None:
         self.choices = [_FakeChoice(finish_reason, text)]
 
+    def __iter__(self):
+        choice = self.choices[0]
+        yield {
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {"role": "assistant", "content": choice.message.content},
+                    "finish_reason": choice.finish_reason,
+                }
+            ]
+        }
+
 
 def test_call_litellm_retries_on_truncation(monkeypatch) -> None:
     import litellm as _litellm
@@ -180,6 +193,7 @@ def test_call_litellm_reduced_effort_disables_deepseek_thinking(monkeypatch) -> 
 
     assert result == "complete task"
     assert requests[0]["extra_body"] == {"thinking": {"type": "disabled"}}
+    assert requests[0]["stream"] is True
 
 
 def test_call_litellm_deepseek_json_matches_direct_structured_mode(monkeypatch) -> None:
@@ -203,6 +217,7 @@ def test_call_litellm_deepseek_json_matches_direct_structured_mode(monkeypatch) 
     assert result == '{"plan": {}}'
     assert requests[0]["extra_body"] == {"thinking": {"type": "disabled"}}
     assert requests[0]["response_format"] == {"type": "json_object"}
+    assert requests[0]["stream"] is True
 
 
 def test_call_litellm_without_expect_json_keeps_provider_defaults(monkeypatch) -> None:
@@ -225,6 +240,7 @@ def test_call_litellm_without_expect_json_keeps_provider_defaults(monkeypatch) -
 
     assert result == "prose answer mentioning json"
     assert "response_format" not in requests[0]
+    assert requests[0]["stream"] is True
 
 
 def test_call_litellm_custom_openai_endpoint_uses_json_mode(monkeypatch) -> None:
@@ -248,6 +264,7 @@ def test_call_litellm_custom_openai_endpoint_uses_json_mode(monkeypatch) -> None
 
     assert result == '{"tasks": []}'
     assert requests[0]["response_format"] == {"type": "json_object"}
+    assert requests[0]["stream"] is True
 
 
 # ---------------------------------------------------------------------------
@@ -404,6 +421,30 @@ def test_keyless_backend_returns_none_when_all_fail(monkeypatch) -> None:
         backends.httpx, "get", _fake_get_factory(fail={"arxiv", "wiki", "ddg"})
     )
     assert KeylessBackend().search("tax law") is None
+
+
+def test_keyless_strict_search_distinguishes_empty_sources_from_request_errors(monkeypatch) -> None:
+    backend = KeylessBackend(min_source_interval_s=0)
+
+    monkeypatch.setattr(backend, "_arxiv", lambda query: [])
+    monkeypatch.setattr(backend, "_wikipedia", lambda query: [])
+    monkeypatch.setattr(
+        backend,
+        "_duckduckgo",
+        lambda query: (_ for _ in ()).throw(RuntimeError("TLS connection closed")),
+    )
+
+    with pytest.raises(SearchBackendError, match=r"arxiv=no_results; wikipedia=no_results"):
+        backend.search_or_raise("coding benchmark")
+
+
+def test_keyless_strict_search_returns_none_when_all_sources_are_empty(monkeypatch) -> None:
+    backend = KeylessBackend(min_source_interval_s=0)
+    monkeypatch.setattr(backend, "_arxiv", lambda query: [])
+    monkeypatch.setattr(backend, "_wikipedia", lambda query: [])
+    monkeypatch.setattr(backend, "_duckduckgo", lambda query: [])
+
+    assert backend.search_or_raise("no matching topic") is None
 
 
 def test_keyless_backend_caches_repeated_queries(monkeypatch) -> None:

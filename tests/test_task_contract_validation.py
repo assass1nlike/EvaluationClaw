@@ -8,6 +8,8 @@ from evalclaw.construction.packaging import (
     _agent_task_package_for_task,
     _task_agent_metadata_for_task,
 )
+from evalclaw.construction.parsing import _task_from_raw
+from evalclaw.construction.suite import _preflight_builder_environments
 from evalclaw.construction.validation import task_structure_issues
 from evalclaw.protocols.task_agent import compact_task_agent_for_qc
 from evalclaw.quality.dataset_checks import _coverage_issues, _duplicate_issues
@@ -95,6 +97,170 @@ def test_empty_code_sandbox_is_valid_when_the_agent_creates_files() -> None:
     )
 
     assert task_structure_issues(task) == []
+
+
+def test_container_asset_uses_host_path_internally_and_guest_filename_in_prompt(
+    tmp_path,
+) -> None:
+    work_dir = tmp_path / "builder"
+    work_dir.mkdir()
+    asset_path = work_dir / "TASK.md"
+    asset_path.write_text("Implement the requested change.\n", encoding="utf-8")
+    environment = AgentEnvironmentSpec(
+        type=AgentEnvironmentType.code_sandbox,
+        test_command="python3 verify.py",
+    )
+    leaked = TaskDefinition(
+        id="task_1",
+        dimension_id="dimension_1",
+        task_type=TaskType.agent,
+        title="Container asset",
+        prompt=f"Read {asset_path} and implement the requested change.",
+        assets=[{"path": str(asset_path)}],
+        environment=environment,
+    )
+    valid = leaked.model_copy(
+        update={"prompt": "Read TASK.md and implement the requested change."}
+    )
+
+    leaked_issues = task_structure_issues(leaked, builder_work_dir=work_dir)
+
+    assert any("Builder-host paths" in issue for issue in leaked_issues)
+    assert task_structure_issues(valid, builder_work_dir=work_dir) == []
+
+
+def test_task_builder_environment_rejects_invalid_field_types() -> None:
+    raw = {
+        "task_type": "agent",
+        "prompt": "Implement the service described by the supplied files.",
+        "environment": {
+            "type": "docker_workspace",
+            "visible_files": [{"path": "spec.md", "content": "Specification"}],
+            "hidden_files": [{"path": "evaluate.py", "content": "assert True"}],
+            "network": {"enabled": False},
+            "setup_commands": "pip install flask",
+        },
+    }
+
+    with pytest.raises(ValueError) as raised:
+        _task_from_raw(raw, "task_1", default_dimension_id="dimension_1")
+
+    message = str(raised.value)
+    for field in ("visible_files", "hidden_files", "network", "setup_commands"):
+        assert field in message
+
+
+@pytest.mark.parametrize(
+    ("environment", "message"),
+    [
+        (None, "environment must be a JSON object"),
+        ({"runtime": "docker_workspace"}, "environment.type is required"),
+        ({"type": "docker_workspace", "resources": {}}, "resources"),
+    ],
+)
+def test_task_builder_environment_rejects_invalid_shape(
+    environment: object,
+    message: str,
+) -> None:
+    raw = {
+        "task_type": "agent",
+        "prompt": "Implement the requested service.",
+        "environment": environment,
+    }
+
+    with pytest.raises(ValueError, match=message):
+        _task_from_raw(raw, "task_1", default_dimension_id="dimension_1")
+
+
+def test_container_asset_filenames_must_be_unique(tmp_path) -> None:
+    first = tmp_path / "first" / "input.bin"
+    second = tmp_path / "second" / "input.bin"
+    first.parent.mkdir()
+    second.parent.mkdir()
+    first.write_bytes(b"first")
+    second.write_bytes(b"second")
+    task = TaskDefinition(
+        id="task_1",
+        dimension_id="dimension_1",
+        task_type=TaskType.agent,
+        title="Container assets",
+        prompt="Compare the two input.bin files.",
+        assets=[{"path": str(first)}, {"path": str(second)}],
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.docker_workspace,
+            test_command="python3 verify.py",
+        ),
+    )
+
+    assert any("filenames must be unique" in issue for issue in task_structure_issues(task))
+
+
+def test_builder_environment_preflight_reports_item_failure_and_cleans_up(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    dimension = EvalDimension(
+        id="dimension_1",
+        name="Code execution",
+        description="Evaluate code execution.",
+        approach="Use an executable task.",
+    )
+    blueprint = make_blueprint(
+        "code_task",
+        dimension.id,
+        "Code task",
+        task_type=TaskType.agent,
+        environment_type=AgentEnvironmentType.code_sandbox,
+    )
+    task = _task(
+        TaskType.agent,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.code_sandbox,
+            test_command="python3 missing_evaluator.py",
+        ),
+    )
+    task.metadata["task_design_id"] = blueprint.task_designs[0].id
+    cleaned = False
+
+    class BrokenEnvironment:
+        def preflight(self):
+            raise RuntimeError("missing_evaluator.py does not exist")
+
+        def state(self):
+            return {"status": "failed"}
+
+        def export_artifacts(self, path):
+            return {"workspace": str(path)}
+
+        def cleanup(self):
+            nonlocal cleaned
+            cleaned = True
+
+    monkeypatch.setattr(
+        "evalclaw.construction.suite.build_agent_environment",
+        lambda item, config: BrokenEnvironment(),
+    )
+
+    issues, failed_ids = _preflight_builder_environments(
+        [task],
+        dimension=dimension,
+        blueprint=blueprint,
+        resources=[],
+        config=BenchmarkConfig(),
+        trace_dir=tmp_path,
+    )
+
+    assert failed_ids == {task.id}
+    assert "missing_evaluator.py does not exist" in issues[0]
+    assert cleaned is True
+    assert (
+        json.loads(next(tmp_path.rglob("failure.json")).read_text(encoding="utf-8"))["error_type"]
+        == "RuntimeError"
+    )
+    assert json.loads(next(tmp_path.rglob("state.json")).read_text(encoding="utf-8")) == {
+        "status": "failed"
+    }
+    assert next(tmp_path.rglob("artifacts.json")).is_file()
 
 
 def test_docker_browser_validation_does_not_guess_capabilities_from_image_name() -> None:
@@ -1124,8 +1290,38 @@ def test_asset_qc_requires_existing_prompt_referenced_paths(tmp_path) -> None:
 
     messages = [issue.message for issue in _static_item_issues(item)]
 
-    assert any("does not reference asset path" in message for message in messages)
+    assert any("do not reference asset path" in message for message in messages)
     assert any("does not exist" in message for message in messages)
+
+
+def test_choice_asset_path_may_be_referenced_by_choice(tmp_path) -> None:
+    image_path = tmp_path / "candidate.png"
+    image_path.write_bytes(b"\x89PNG\r\n\x1a\n")
+    task = TaskDefinition(
+        id="image_choice_1",
+        dimension_id="vision",
+        task_type=TaskType.choice,
+        title="Image choice",
+        prompt="Select the matching candidate image.",
+        assets=[{"path": str(image_path)}],
+        choices=[
+            ChoiceOption(id="A", text=str(image_path)),
+            ChoiceOption(id="B", text="None of the above"),
+        ],
+        correct_choice_ids=["A"],
+    )
+    item = BenchmarkItem(
+        id=task.id,
+        dimension_id=task.dimension_id,
+        task_type=task.task_type,
+        prompt=task.prompt,
+        assets=task.assets,
+        choices=task.choices,
+        correct_choice_ids=task.correct_choice_ids,
+    )
+
+    assert task_structure_issues(task) == []
+    assert not any("reference asset path" in issue.message for issue in _static_item_issues(item))
 
 
 def test_task_design_file_inputs_require_assets(tmp_path) -> None:

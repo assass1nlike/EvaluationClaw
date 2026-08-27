@@ -229,13 +229,17 @@ def test_count_llm_calls_wraps_and_restores(monkeypatch) -> None:
     import evalclaw.models.llm as llm_module
 
     monkeypatch.setattr(llm_module, "_call_litellm", lambda **kwargs: "ok")
-    monkeypatch.setattr(llm_module, "_post_with_retry", lambda *args, **kwargs: {"ok": True})
+    monkeypatch.setattr(
+        llm_module,
+        "_post_streaming_openai_compatible",
+        lambda *args, **kwargs: {"ok": True},
+    )
     patched_litellm = llm_module._call_litellm
 
     with _lib.count_llm_calls() as counter:
         llm_module._call_litellm(model="m", messages=[], max_tokens=1)
         llm_module._call_litellm(model="m", messages=[], max_tokens=1)
-        llm_module._post_with_retry("u", {}, {})
+        llm_module._post_streaming_openai_compatible("u", {}, {})
     assert counter == {"litellm": 2, "http": 1}
     assert llm_module._call_litellm is patched_litellm  # restored
 

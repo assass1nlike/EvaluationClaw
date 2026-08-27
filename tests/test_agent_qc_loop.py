@@ -5,6 +5,7 @@ import pytest
 from evalclaw.benchmark import (
     _affected_builder_job_ids,
     _merge_repaired_suite,
+    _review_plan,
     build_benchmark_suite_with_qc_loop,
     build_suite_from_spec_with_qc_loop,
 )
@@ -26,6 +27,50 @@ from evalclaw.types import (
 )
 from tests.blueprint_factory import make_blueprint, make_plan
 from tests.config_helpers import dummy_config_kwargs, patch_task_builder_model
+
+
+def test_planner_human_review_revises_before_approval(monkeypatch) -> None:
+    dimension = EvalDimension(
+        id="vision",
+        name="Vision",
+        description="Evaluate visual reasoning.",
+        approach="Use image-grounded tasks.",
+    )
+    spec = EvalSpec(objective="Evaluate visual reasoning.", dimensions=[dimension])
+    initial = make_plan(
+        spec,
+        [
+            make_blueprint(
+                "vision_tasks",
+                dimension.id,
+                "Vision tasks",
+                task_type=TaskType.choice,
+            )
+        ],
+    )
+    revised = initial.model_copy(update={"planner_notes": "Require real image inputs."})
+    planner_calls: list[dict] = []
+
+    def fake_plan(goal, config, **kwargs):
+        planner_calls.append({"goal": goal, **kwargs})
+        return revised
+
+    monkeypatch.setattr("evalclaw.benchmark.plan_benchmark", fake_plan)
+    prompts: list[str] = []
+    answers = iter(["Require real image inputs.", ""])
+
+    result = _review_plan(
+        spec.objective,
+        initial,
+        BenchmarkConfig(),
+        ask_user=lambda prompt: prompts.append(prompt) or next(answers),
+        log=lambda _: None,
+    )
+
+    assert result is revised
+    assert '"task_designs"' in prompts[0]
+    assert planner_calls[0]["feedback"] == "Require real image inputs."
+    assert planner_calls[0]["previous_plan"] is initial
 
 
 def _task(

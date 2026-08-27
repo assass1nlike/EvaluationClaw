@@ -10,6 +10,7 @@ from ..protocols.agent_task_package import (
     AGENT_TASK_PACKAGE_METADATA_KEY,
     AGENT_TASK_PACKAGE_SCHEMA_VERSION,
 )
+from ..protocols.assets import environment_asset_guest_path
 from ..protocols.task_agent import public_task_agent_initial_content
 from ..types import (
     AgentEnvironmentType,
@@ -331,7 +332,8 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
         "visible_inputs": {
             "instructions": task.prompt,
             "file_names": sorted(str(path) for path in visible_files),
-            "assets": session.get("assets", []) if isinstance(session.get("assets"), list) else [],
+            "assets": [environment_asset_guest_path(asset) for asset in task.assets]
+            + (session.get("assets", []) if isinstance(session.get("assets"), list) else []),
         },
         "hidden_references": {
             "staging_phase": "post_agent_or_runner_private",

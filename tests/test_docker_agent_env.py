@@ -257,6 +257,42 @@ def test_build_agent_environment_supports_docker_workspace(monkeypatch) -> None:
         env.cleanup()
 
 
+def test_build_agent_environment_copies_task_assets_to_guest_workdir(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    calls: list[list[str]] = []
+    _mock_docker(monkeypatch, calls)
+    asset_path = tmp_path / "input.bin"
+    asset_path.write_bytes(b"\x00\x01\x02")
+    item = BenchmarkItem(
+        id="docker_asset_agent",
+        dimension_id="agent",
+        task_type=TaskType.agent,
+        prompt="Inspect input.bin and produce the requested result.",
+        assets=[{"path": str(asset_path)}],
+        metadata={
+            "agent_env": {
+                "type": "docker_workspace",
+                "image": "python:3.11-slim",
+                "test_command": "python3 verify.py",
+                "pull_image": False,
+            }
+        },
+    )
+
+    env = build_agent_environment(item)
+
+    try:
+        assert any(
+            command[1:3] == ["cp", str(asset_path)]
+            and command[3].endswith(":/workspace/input.bin")
+            for command in calls
+        )
+    finally:
+        env.cleanup()
+
+
 def test_docker_workspace_auto_selects_runtime_image(monkeypatch) -> None:
     calls: list[list[str]] = []
     _mock_docker(monkeypatch, calls)

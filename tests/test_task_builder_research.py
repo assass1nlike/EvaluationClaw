@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import CancelledError
 from pathlib import Path
+from threading import Event
 
 import pytest
 
@@ -9,10 +11,12 @@ from evalclaw.construction.research import (
     _append_tool_results,
     _execute_task_builder_tool,
     run_task_builder_tools,
+    summarize_task_builder_truncation,
+    task_builder_work_dir,
 )
 from evalclaw.construction.resources import _select_blueprint_sources
 from evalclaw.construction.suite import build_task_suite
-from evalclaw.models.llm import TargetToolModelResponse
+from evalclaw.models.llm import LLMOutputTruncatedError, TargetToolModelResponse
 from evalclaw.protocols.tool import ToolCall, ToolResult
 from evalclaw.research.backends import SearchBackendError, SearchResult, SearchTimeoutError
 from evalclaw.types import (
@@ -122,6 +126,150 @@ def test_generated_blueprint_never_collects_sources(monkeypatch) -> None:
 
     assert sources == []
     assert calls == 0
+
+
+def test_task_builder_truncation_summary_describes_only_interrupted_output(
+    monkeypatch, tmp_path
+) -> None:
+    captured = {}
+
+    def fake_call(messages, **kwargs):
+        captured["input"] = json.loads(messages[0].content)
+        captured["kwargs"] = kwargs
+        return "One replacement summary."
+
+    monkeypatch.setattr("evalclaw.construction.research.call_llm", fake_call)
+    error = LLMOutputTruncatedError(
+        "truncated",
+        raw_response={
+            "choices": [
+                {
+                    "message": {
+                        "reasoning_content": "New reasoning and completed file work.",
+                        "content": "",
+                    }
+                }
+            ]
+        },
+    )
+    summary = summarize_task_builder_truncation(
+        error,
+        config=BenchmarkConfig(task_builder_model="deepseek-v4-flash", task_builder_api_key="key"),
+        debug_dir=tmp_path,
+    )
+
+    assert summary == "One replacement summary."
+    assert captured["input"] == {
+        "interrupted_assistant_output": "New reasoning and completed file work.",
+    }
+    assert captured["kwargs"]["reduce_reasoning_effort"] is True
+    assert captured["kwargs"]["retry_on_truncation"] is False
+    saved = json.loads((tmp_path / "truncation-summary-01.json").read_text(encoding="utf-8"))
+    assert saved == {"summary": summary}
+
+
+def test_task_builder_truncation_recovery_preserves_tool_history(monkeypatch) -> None:
+    calls: list[list[dict]] = []
+
+    def fake_model(messages, **kwargs):
+        calls.append(json.loads(json.dumps(messages)))
+        if len(calls) == 1:
+            raise LLMOutputTruncatedError("truncated", partial_output="first reasoning")
+        if len(calls) == 2:
+            return _openai_tool_response(
+                ToolCall(id="call_1", name="run_python", arguments={"code": "print(1)"})
+            )
+        if len(calls) == 3:
+            raise LLMOutputTruncatedError("truncated", partial_output="second reasoning")
+        return TargetToolModelResponse(
+            adapter="openai",
+            content='{"tasks": []}',
+            tool_calls=[],
+            assistant_message={"role": "assistant", "content": '{"tasks": []}'},
+            raw_response={},
+        )
+
+    monkeypatch.setattr(
+        "evalclaw.construction.research.call_orchestrator_with_tools",
+        fake_model,
+    )
+    monkeypatch.setattr(
+        "evalclaw.construction.research.summarize_task_builder_truncation",
+        lambda error, **kwargs: f"summary: {error.partial_output}",
+    )
+    monkeypatch.setattr(
+        "evalclaw.construction.research._execute_task_builder_tool",
+        lambda call, *args, **kwargs: ToolResult(
+            tool_call_id=call.id,
+            name=call.name,
+            content="created fixture.json",
+        ),
+    )
+
+    response, _ = run_task_builder_tools(
+        {"goal": "Build one task."},
+        system_prompt="Build the task.",
+        config=BenchmarkConfig(
+            **dummy_config_kwargs(),
+            task_builder_truncation_retries=3,
+        ),
+        include_source_tools=False,
+    )
+
+    assert response == '{"tasks": []}'
+    assert [message.get("role") for message in calls[3]] == [
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "tool",
+        "assistant",
+        "user",
+    ]
+    assert calls[3][1]["content"] == "summary: first reasoning"
+    assert calls[3][3]["tool_calls"][0]["id"] == "call_1"
+    assert calls[3][4] == {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "created fixture.json",
+    }
+    assert calls[3][5]["content"] == "summary: second reasoning"
+
+
+def test_stopped_task_builder_does_not_execute_requested_tool(monkeypatch) -> None:
+    stop_event = Event()
+    tool_executed = False
+
+    def fake_model(*args, **kwargs):
+        stop_event.set()
+        return _openai_tool_response(
+            ToolCall(id="call_1", name="run_python", arguments={"code": "print(1)"})
+        )
+
+    def fake_tool(*args, **kwargs):
+        nonlocal tool_executed
+        tool_executed = True
+        raise AssertionError("cancelled TaskBuilder executed a tool")
+
+    monkeypatch.setattr(
+        "evalclaw.construction.research.call_orchestrator_with_tools",
+        fake_model,
+    )
+    monkeypatch.setattr(
+        "evalclaw.construction.research._execute_task_builder_tool",
+        fake_tool,
+    )
+
+    with pytest.raises(CancelledError, match="another job failed"):
+        run_task_builder_tools(
+            {"goal": "Build one task."},
+            system_prompt="Build the task.",
+            config=BenchmarkConfig(**dummy_config_kwargs()),
+            include_source_tools=False,
+            stop_event=stop_event,
+        )
+
+    assert not tool_executed
 
 
 def test_planner_suggested_urls_are_available_without_an_extra_search() -> None:
@@ -612,7 +760,7 @@ def test_task_builder_tools_use_anthropic_tool_result_blocks(monkeypatch) -> Non
 def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypatch) -> None:
     captured: dict = {}
 
-    def fake_tools(payload, *, system_prompt, config, include_source_tools):
+    def fake_tools(payload, *, system_prompt, config, include_source_tools, stop_event):
         captured["payload"] = payload
         captured["system_prompt"] = system_prompt
         captured["include_source_tools"] = include_source_tools
@@ -704,7 +852,7 @@ def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypat
 def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None:
     captured: dict = {}
 
-    def fake_tools(payload, *, system_prompt, config, include_source_tools):
+    def fake_tools(payload, *, system_prompt, config, include_source_tools, stop_event):
         captured["payload"] = payload
         captured["include_source_tools"] = include_source_tools
         return (
@@ -777,6 +925,193 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
     assert captured["payload"]["resources"]["available"] == []
     assert captured["payload"]["resources"]["deep_research"] == {}
     assert "No external sources" in captured["payload"]["resources"]["context"]
+
+
+def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -> None:
+    payloads: list[dict] = []
+
+    def fake_tools(payload, **kwargs):
+        payloads.append(payload)
+        environment = {
+            "type": "code_sandbox",
+            "hidden_files": {"tests.py": "raise SystemExit(0)\n"},
+            "test_command": "python3 tests.py",
+        }
+
+        def task(title: str, *, include_environment: bool = True) -> dict:
+            result = {
+                "task_type": "agent",
+                "title": title,
+                "prompt": f"Create {title.lower().replace(' ', '_')}.py and run the evaluator.",
+                "scoring": {
+                    "method": "executable_test",
+                    "pass_criteria": "The evaluator exits successfully.",
+                },
+                "metadata": {
+                    "challenge_effort_self_assessment": {
+                        "requested_effort": "E3",
+                        "meets_requested_effort": True,
+                        "rationale": "The task requires implementation and execution verification.",
+                    }
+                },
+            }
+            if include_environment:
+                result["environment"] = environment
+            return result
+
+        return (
+            json.dumps(
+                {
+                    "resources": [],
+                    "tasks": [
+                        task(
+                            "First executable task",
+                            include_environment=len(payloads) > 1,
+                        ),
+                        task("Second executable task"),
+                    ],
+                }
+            ),
+            [],
+        )
+
+    preflight_calls = 0
+    preflight_task_counts: list[int] = []
+
+    def fake_preflight(tasks, **kwargs):
+        nonlocal preflight_calls
+        preflight_calls += 1
+        preflight_task_counts.append(len(tasks))
+        if preflight_calls == 1:
+            return [f"task #1 ({tasks[0].id}): environment preflight failed: missing evaluator"], {
+                tasks[0].id
+            }
+        return [], set()
+
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
+    monkeypatch.setattr("evalclaw.construction.suite.require_docker_available", lambda **kwargs: None)
+    monkeypatch.setattr("evalclaw.construction.suite._preflight_builder_environments", fake_preflight)
+    dimension = EvalDimension(
+        id="execution",
+        name="Execution",
+        description="Evaluate code execution.",
+        approach="Use an executable task.",
+        task_types=[TaskType.agent],
+    )
+    blueprint = make_blueprint(
+        "execution_task",
+        dimension.id,
+        "Execution task",
+        task_type=TaskType.agent,
+        count=2,
+        environment_type=AgentEnvironmentType.code_sandbox,
+    )
+
+    suite = build_task_suite(
+        EvalSpec(
+            objective="Evaluate code execution.",
+            dimensions=[dimension],
+            task_types=[TaskType.agent],
+        ),
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            task_builder_max_workers=1,
+            task_builder_repair_attempts=1,
+        ),
+    )
+
+    assert len(suite.tasks) == 2
+    assert len(payloads) == 2
+    assert preflight_task_counts == [1, 2]
+    assert any(
+        "environment preflight failed" in issue
+        for issue in payloads[1]["repair"]["issues"]
+    )
+
+
+def test_builder_host_path_in_container_prompt_enters_repair(monkeypatch, tmp_path) -> None:
+    payloads: list[dict] = []
+    config = BenchmarkConfig(
+        **dummy_config_kwargs(),
+        output_dir=str(tmp_path),
+        environment_preflight=False,
+        task_builder_max_workers=1,
+        task_builder_repair_attempts=1,
+    )
+    asset_path = (
+        task_builder_work_dir(config, "execution_task") / "TASK.md"
+    )
+    asset_path.parent.mkdir(parents=True)
+    asset_path.write_text("Implement the requested program.\n", encoding="utf-8")
+
+    def fake_tools(payload, **kwargs):
+        payloads.append(payload)
+        prompt_path = str(asset_path) if len(payloads) == 1 else asset_path.name
+        return (
+            json.dumps(
+                {
+                    "resources": [],
+                    "tasks": [
+                        {
+                            "task_type": "agent",
+                            "title": "Executable task",
+                            "prompt": f"Read {prompt_path} and implement the requested program.",
+                            "assets": [{"path": str(asset_path)}],
+                            "environment": {
+                                "type": "code_sandbox",
+                                "test_command": "python3 verify.py",
+                            },
+                            "scoring": {
+                                "method": "executable_test",
+                                "pass_criteria": "The evaluator exits successfully.",
+                            },
+                            "metadata": {
+                                "challenge_effort_self_assessment": {
+                                    "requested_effort": "E3",
+                                    "meets_requested_effort": True,
+                                    "rationale": "The task requires implementation and execution verification.",
+                                }
+                            },
+                        }
+                    ],
+                }
+            ),
+            [],
+        )
+
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
+    dimension = EvalDimension(
+        id="execution",
+        name="Execution",
+        description="Evaluate code execution.",
+        approach="Use an executable task.",
+        task_types=[TaskType.agent],
+    )
+    blueprint = make_blueprint(
+        "execution_task",
+        dimension.id,
+        "Execution task",
+        task_type=TaskType.agent,
+        environment_type=AgentEnvironmentType.code_sandbox,
+    )
+
+    suite = build_task_suite(
+        EvalSpec(
+            objective="Evaluate code execution.",
+            dimensions=[dimension],
+            task_types=[TaskType.agent],
+        ),
+        [blueprint],
+        config,
+    )
+
+    assert len(suite.tasks) == 1
+    assert len(payloads) == 2
+    assert any(
+        "Builder-host paths" in issue
+        for issue in payloads[1]["repair"]["issues"]
+    )
 
 
 def test_qc_repair_edits_file_with_tools_and_preserves_best_copy(monkeypatch, tmp_path) -> None:

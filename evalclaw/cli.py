@@ -311,6 +311,11 @@ def generate(
         "--task-builder-repair-attempts",
         help="Maximum per-TaskDesign Builder structural repair attempts before QC.",
     ),
+    task_builder_truncation_retries: int = typer.Option(
+        3,
+        "--task-builder-truncation-retries",
+        help="Maximum retries after a TaskBuilder output is truncated.",
+    ),
     task_builder_tool_max_calls: int = typer.Option(
         6,
         "--task-builder-tool-max-calls",
@@ -337,7 +342,7 @@ def generate(
     human_review: bool = typer.Option(
         False,
         "--human-review",
-        help="Pause before running targets so a human can approve or request dimension/item revisions.",
+        help="Review the Planner output before construction and the completed tasks before target execution.",
     ),
     improve_iterations: int = typer.Option(0, "--improve-iterations", help="Loop 3 self-improvement iterations after the first run."),
     loop3_diagnosis: str = typer.Option("llm", "--loop3-diagnosis", help="Loop 3 diagnosis mode: llm or local."),
@@ -468,6 +473,9 @@ def generate(
     if task_builder_repair_attempts < 0:
         console.print("[red]--task-builder-repair-attempts cannot be negative.[/red]")
         raise typer.Exit(1)
+    if task_builder_truncation_retries < 0:
+        console.print("[red]--task-builder-truncation-retries cannot be negative.[/red]")
+        raise typer.Exit(1)
     if max_research_iterations < 1:
         console.print("[red]--max-research-iterations must be at least 1.[/red]")
         raise typer.Exit(1)
@@ -551,6 +559,7 @@ def generate(
         use_hf_discovery=not no_hf_discovery,
         task_builder_max_workers=task_builder_max_workers,
         task_builder_repair_attempts=task_builder_repair_attempts,
+        task_builder_truncation_retries=task_builder_truncation_retries,
         task_builder_tool_max_calls=task_builder_tool_max_calls,
         task_builder_tool_max_chars=task_builder_tool_max_chars,
         judge_double_pass=not single_pass_judge,
@@ -611,3 +620,30 @@ def generate(
 def main() -> None:
     _configure_utf8_streams()
     app()
+
+
+@app.command("serve")
+def serve(
+    port: int = typer.Option(8800, "--port", "-p", help="Port to listen on (auto-increments on conflict)."),
+    open_browser: bool = typer.Option(True, "--open/--no-open", help="Open the run list in the browser on start."),
+) -> None:
+    """Start the live pipeline visualisation server.
+
+    Keep this running while you run ``evalclaw generate --live`` in another
+    terminal. Each generate run appears in the browser as it starts.
+    """
+    try:
+        from .live.server import start_server
+    except ImportError as exc:
+        console.print(f"[red]Live server unavailable: {exc}[/red]")
+        raise typer.Exit(1)
+    try:
+        actual_port = start_server(port, open_browser=open_browser)
+        url = f"http://localhost:{actual_port}"
+        console.print(f"[bold]EvalClaw Live[/bold] listening on {url}")
+        console.print("Run [bold]evalclaw generate --live[/bold] in another terminal to start a pipeline.")
+        console.print("Press Ctrl+C to stop.")
+        import threading
+        threading.Event().wait()
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Server stopped.[/yellow]")
