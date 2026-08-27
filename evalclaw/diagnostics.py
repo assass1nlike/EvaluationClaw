@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import threading
 import uuid
@@ -15,6 +16,18 @@ _SECRET_TEXT_PATTERNS = (
     re.compile(r"\bsk-[A-Za-z0-9_-]+"),
     re.compile(r"(?i)\bBearer\s+[^\s,;]+"),
 )
+
+
+def _io_path(path: Path) -> Path:
+    path = path.expanduser()
+    if os.name != "nt":
+        return path
+    value = str(path.resolve())
+    if value.startswith("\\\\?\\"):
+        return Path(value)
+    if value.startswith("\\\\"):
+        return Path("\\\\?\\UNC\\" + value[2:])
+    return Path("\\\\?\\" + value)
 
 
 def invocation_id() -> str:
@@ -34,7 +47,7 @@ def new_debug_dir(output_dir: str, section: str) -> Path | None:
     if not str(output_dir).strip():
         return None
     path = Path(output_dir).expanduser().resolve() / "debug" / section / invocation_id()
-    path.mkdir(parents=True, exist_ok=True)
+    _io_path(path).mkdir(parents=True, exist_ok=True)
     return path
 
 
@@ -59,18 +72,20 @@ def redact_secrets(value: Any) -> Any:
 
 def write_json(path: Path, value: Any, *, redact: bool = False) -> None:
     payload = redact_secrets(value) if redact else value
-    path.parent.mkdir(parents=True, exist_ok=True)
+    io_path = _io_path(path)
+    io_path.parent.mkdir(parents=True, exist_ok=True)
     with _WRITE_LOCK:
-        path.write_text(
+        io_path.write_text(
             json.dumps(payload, ensure_ascii=False, indent=2, default=str),
             encoding="utf-8",
         )
 
 
 def write_text(path: Path, value: str, *, append: bool = False) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    io_path = _io_path(path)
+    io_path.parent.mkdir(parents=True, exist_ok=True)
     with _WRITE_LOCK:
-        with path.open("a" if append else "w", encoding="utf-8") as handle:
+        with io_path.open("a" if append else "w", encoding="utf-8") as handle:
             handle.write(value)
 
 

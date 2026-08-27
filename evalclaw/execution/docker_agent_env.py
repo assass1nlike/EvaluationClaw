@@ -56,6 +56,7 @@ class DockerWorkspaceAgentEnvironment:
     visible_files: dict[str, str]
     hidden_files: dict[str, str]
     runtime_files: dict[str, str] = field(default_factory=dict)
+    input_assets: dict[str, Path] = field(default_factory=dict)
     setup_commands: list[str] = field(default_factory=list)
     test_command: str = "pytest -q"
     max_steps: int = 8
@@ -91,7 +92,12 @@ class DockerWorkspaceAgentEnvironment:
     _docker: str = "docker"
 
     @classmethod
-    def from_config(cls, config: dict[str, Any]) -> "DockerWorkspaceAgentEnvironment":
+    def from_config(
+        cls,
+        config: dict[str, Any],
+        *,
+        input_assets: dict[str, Path] | None = None,
+    ) -> "DockerWorkspaceAgentEnvironment":
         environment_kind = str(config.get("type") or "docker_workspace")
         task_text = "\n".join(
             str(config.get(key) or "")
@@ -139,6 +145,7 @@ class DockerWorkspaceAgentEnvironment:
             visible_files={str(path): str(content) for path, content in visible.items()},
             runtime_files={str(path): str(content) for path, content in runtime.items()},
             hidden_files={str(path): str(content) for path, content in hidden.items()},
+            input_assets=dict(input_assets or {}),
             setup_commands=setup_commands,
             test_command=str(config.get("test_command") or "pytest -q"),
             max_steps=max(1, int(config.get("max_steps") or 8)),
@@ -279,6 +286,21 @@ class DockerWorkspaceAgentEnvironment:
                 continue
             self._write_local_file(clean, content, area="hidden")
             self._hidden_paths.add(clean)
+        input_assets: dict[str, Path] = {}
+        for path, source in self.input_assets.items():
+            clean = self._clean_path(path)
+            if clean is None:
+                raise ValueError(f"Invalid environment asset guest path: {path!r}.")
+            if clean in self._visible_paths | self._runtime_paths | self._hidden_paths:
+                raise ValueError(
+                    f"Environment asset would overwrite a declared environment file: {clean!r}."
+                )
+            if not source.is_file():
+                raise ValueError(
+                    f"Environment asset source does not exist or is not a file: {source}."
+                )
+            input_assets[clean] = source
+        self.input_assets = input_assets
 
         try:
             if self.pull_image:
@@ -314,6 +336,9 @@ class DockerWorkspaceAgentEnvironment:
             visible_root = self.root / "__visible__"
             for path in sorted(self._visible_paths):
                 self._copy_workspace_file(visible_root / path, path)
+            for path, source in sorted(self.input_assets.items()):
+                self._copy_workspace_file(source, path)
+                self._visible_paths.add(path)
             runtime_root = self.root / "__runtime__"
             for path in sorted(self._runtime_paths):
                 self._copy_workspace_file(runtime_root / path, path)

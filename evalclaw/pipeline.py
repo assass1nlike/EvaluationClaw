@@ -4,15 +4,16 @@ from __future__ import annotations
 import json
 import re
 import traceback
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Optional
 
 from .benchmark import build_benchmark_suite_with_qc_loop
-from .diagnostics import error_record, new_debug_dir, write_json, write_text
+from .diagnostics import error_record, invocation_id, new_debug_dir, write_json, write_text
 from .execution.environment_claw import format_environment_claw_report, run_environment_claw
 from .execution.lm_eval import run_lm_eval
 from .execution.plan import build_execution_plan
-from .execution.runner import run_eval, validate_asset_target_support
+from .execution.runner import run_eval
 from .planning.loop import apply_human_review_feedback, format_human_review_overview
 from .planning.planner import translate_goal_to_english
 from .quality.improver import run_loop3_improvement
@@ -26,6 +27,79 @@ from .types import BenchmarkConfig, BenchmarkPackage
 _SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]+")
 def _redact_secrets(text: str) -> str:
     return _SECRET_PATTERN.sub("[REDACTED]", text)
+
+
+def _live_run_id(debug_run_dir: Path | None) -> str | None:
+    """Return a run_id if the live server is running and a debug dir is available."""
+    if debug_run_dir is None:
+        return None
+    try:
+        from .live.server import is_running
+        if not is_running():
+            return None
+    except Exception:
+        return None
+    return invocation_id()
+
+
+def _live_register(
+    run_id: str | None,
+    goal: str,
+    debug_run_dir: Path | None,
+    *,
+    log: Callable[[str], None],
+) -> None:
+    if run_id is None or debug_run_dir is None:
+        return
+    try:
+        from .live.registry import register_run
+        from .live.server import server_url
+        register_run(
+            run_id,
+            goal=goal,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            debug_dir=debug_run_dir,
+        )
+        url = server_url(run_id)
+        if url:
+            log(f"\n[Live] Run visualisation: {url}")
+    except Exception:
+        pass
+
+
+def _live_log(run_id: str | None, message: str) -> None:
+    if run_id is None:
+        return
+    try:
+        from .live.streamers import notify_log
+        notify_log(run_id, message)
+    except Exception:
+        pass
+
+
+def _live_stage(run_id: str | None, stage: str, *, status: str = "active") -> None:
+    if run_id is None:
+        return
+    try:
+        from .live.streamers import notify_stage
+        notify_stage(run_id, stage, status=status)
+    except Exception:
+        pass
+
+
+def _live_end(run_id: str | None, *, failed: bool = False) -> None:
+    if run_id is None:
+        return
+    try:
+        import time
+
+        from .live.registry import get_run
+        bus = get_run(run_id)
+        if bus is not None:
+            bus.publish({"type": "run_end", "failed": failed, "t": time.time()})
+            bus.end()
+    except Exception:
+        pass
 
 
 def _average_qc_issues(qc_report: object, item_count: int) -> float:
@@ -124,6 +198,16 @@ def _run_pipeline(
         )
     if debug_dirs:
         config = config.model_copy(update=debug_dirs)
+
+    live_run_id = _live_run_id(debug_run_dir)
+    _live_register(live_run_id, goal, debug_run_dir, log=log)
+
+    import time as _time
+
+    def _live_emit(msg: str) -> None:
+        _live_log(live_run_id, msg)
+        log(msg)
+
     original_goal = goal
     if debug_run_dir is not None:
         write_json(
@@ -137,15 +221,16 @@ def _run_pipeline(
             {"original_goal": original_goal, "normalized_goal": goal},
         )
     if goal != original_goal:
-        log("\n[Input] Normalized the evaluation goal to English before planning.")
-        log(f"  English goal: {goal}")
+        _live_emit("\n[Input] Normalized the evaluation goal to English before planning.")
+        _live_emit(f"  English goal: {goal}")
 
     if config.use_deep_research and config.research_brief is None:
-        log("\n[Benchmark Design Research] Running bounded research loop before planning...")
+        _live_emit("\n[Benchmark Design Research] Running bounded research loop before planning...")
+        _live_stage(live_run_id, "research")
         brief = run_deep_research(
             goal,
             config,
-            log=log,
+            log=_live_emit,
             trace_dir=debug_run_dir / "research" if debug_run_dir is not None else None,
         )
         if brief is None:
@@ -158,17 +243,20 @@ def _run_pipeline(
             write_json(output_root / "research_brief.json", brief.model_dump(mode="json"))
             write_text(output_root / "research_brief.md", render_brief_markdown(brief))
         config = config.model_copy(update={"research_brief": brief})
-        log(
+        _live_emit(
             f"  Design brief: {len(brief.dimensions)} candidate dimensions, "
             f"{len(brief.task_patterns)} task patterns, "
             f"{len(brief.source_recommendations)} source recommendations"
         )
+        _live_stage(live_run_id, "research", status="done")
 
     log("\n[Planner/Builder/QC] Building benchmark through the single task-construction pipeline...")
+    _live_stage(live_run_id, "planner")
     spec, suite, qc_report = build_benchmark_suite_with_qc_loop(
         goal,
         config,
-        log=log,
+        log=_live_emit,
+        ask_user=ask_user if config.human_review else None,
         trace_dir=debug_run_dir / "construction" if debug_run_dir is not None else None,
     )
     benchmark_plan = suite.plan
@@ -187,16 +275,19 @@ def _run_pipeline(
     log(f"  Sources used: {len(suite.resources)}")
     log(f"  {qc_report.summary}")
     log(f"  Average QC issues: {_average_qc_issues(qc_report, len(suite.tasks)):.2f}")
+    _live_stage(live_run_id, "planner", status="done")
+    _live_stage(live_run_id, "construction", status="done")
+    _live_stage(live_run_id, "qc", status="done")
 
     if config.human_review and ask_user is not None:
         for round_index in range(1, 4):
             overview = format_human_review_overview(suite, qc_report, config)
             feedback = ask_user(
                 f"\n[Human Review] Round {round_index}/3\n{overview}\n"
-                "\nPress Enter, 'ok', or 'approve' to continue to runner.\n"
+                "\nSubmit an empty response to continue to runner.\n"
                 "Otherwise, enter requested changes:"
             ).strip()
-            if not feedback or feedback.lower() in {"ok", "okay", "approve", "approved", "y", "yes"}:
+            if not feedback:
                 log("\n[Human Review] Approved by user.")
                 break
             log("\n[Human Review] Applying user feedback...")
@@ -231,14 +322,17 @@ def _run_pipeline(
     direct_config = config if run_direct else config.model_copy(update={"run_targets": False})
     execution_plan = build_execution_plan(suite, qc_report)
     accepted_for_run = execution_plan.suite.tasks
-    direct_config, environment_claw_report = run_environment_claw(accepted_for_run, direct_config)
+    environment_config = direct_config.model_copy(update={"environment_preflight": False})
+    direct_config, environment_claw_report = run_environment_claw(
+        accepted_for_run,
+        environment_config,
+    )
     if debug_run_dir is not None:
         write_json(debug_run_dir / "environment.json", environment_claw_report.as_dict())
     for line in format_environment_claw_report(environment_claw_report):
         log(line)
     if direct_config.run_targets and environment_claw_report.blocking_errors:
         raise RuntimeError("\n\n".join(environment_claw_report.blocking_errors))
-    validate_asset_target_support(accepted_for_run, config)
     log("\n[Runner] Executing accepted items against target models...")
     if not run_direct and config.runner == "lm-eval":
         log("  Direct runner skipped because --runner=lm-eval.")

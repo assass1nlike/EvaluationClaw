@@ -179,6 +179,83 @@ def test_gather_round_caps_fetch_attempts_when_fetches_fail(monkeypatch) -> None
     assert len(citations) == 10
 
 
+def test_gather_round_retries_failed_search_and_records_attempts(monkeypatch, tmp_path) -> None:
+    calls = 0
+
+    def fake_web_search(query, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise deep_research.SearchBackendError("temporary search failure")
+        return SearchResult(
+            content="search result",
+            citations=[{"url": "https://example.test/source", "title": "Source"}],
+        )
+
+    monkeypatch.setattr(deep_research, "web_search", fake_web_search)
+    monkeypatch.setattr(deep_research, "fetch_url_text", lambda url, **kwargs: None)
+
+    material, citations = deep_research._gather_round(
+        ["q1"],
+        _research_config(),
+        set(),
+        trace_dir=tmp_path,
+    )
+
+    assert calls == 3
+    assert len(material) == 1
+    assert len(citations) == 1
+    search_trace = json.loads((tmp_path / "searches.json").read_text(encoding="utf-8"))
+    assert [attempt["status"] for attempt in search_trace[0]["attempts"]] == [
+        "failed",
+        "failed",
+        "completed",
+    ]
+
+
+def test_gather_round_does_not_retry_a_valid_empty_result(monkeypatch, tmp_path) -> None:
+    calls = 0
+
+    def fake_web_search(query, **kwargs):
+        nonlocal calls
+        calls += 1
+        return None
+
+    monkeypatch.setattr(deep_research, "web_search", fake_web_search)
+
+    material, citations = deep_research._gather_round(
+        ["q1"],
+        _research_config(),
+        set(),
+        trace_dir=tmp_path,
+    )
+
+    assert calls == 1
+    assert material == []
+    assert citations == []
+    search_trace = json.loads((tmp_path / "searches.json").read_text(encoding="utf-8"))
+    assert search_trace[0]["status"] == "no_results"
+
+
+def test_gather_round_records_all_failed_search_attempts(monkeypatch, tmp_path) -> None:
+    calls = 0
+
+    def fake_web_search(query, **kwargs):
+        nonlocal calls
+        calls += 1
+        raise deep_research.SearchBackendError("search unavailable")
+
+    monkeypatch.setattr(deep_research, "web_search", fake_web_search)
+
+    with pytest.raises(deep_research.SearchBackendError):
+        deep_research._gather_round(["q1"], _research_config(), set(), trace_dir=tmp_path)
+
+    assert calls == deep_research.SEARCH_MAX_ATTEMPTS
+    search_trace = json.loads((tmp_path / "searches.json").read_text(encoding="utf-8"))
+    assert len(search_trace[0]["attempts"]) == deep_research.SEARCH_MAX_ATTEMPTS
+    assert all(attempt["status"] == "failed" for attempt in search_trace[0]["attempts"])
+
+
 def test_hf_discovery_stops_after_service_failure(monkeypatch) -> None:
     calls = 0
 

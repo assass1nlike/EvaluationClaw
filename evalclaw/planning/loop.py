@@ -707,7 +707,7 @@ def format_human_review_overview(
     lines.extend(
         [
             "",
-            "Reply with an empty line, 'approve', or 'ok' to run targets.",
+            "Submit an empty response to run targets.",
             "For dimension-level changes, describe the requested dimension update. For a "
             "single-item change, cite the exact item id shown above and state what to change, "
             "for example: 'Update item_17: add an ambiguous edge case but keep its rubric.'",

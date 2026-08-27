@@ -5,6 +5,7 @@ import copy
 from dataclasses import dataclass, field
 from typing import Any
 
+from ..protocols.assets import environment_asset_sources
 from ..protocols.tool import ToolSpec, format_tool_specs_for_prompt, object_schema
 from ..types import BenchmarkConfig, BenchmarkItem
 from .desktop_agent_env import DesktopBridgeAgentEnvironment
@@ -282,7 +283,10 @@ def build_agent_environment(
     if env_type == "workspace":
         return WorkspaceAgentEnvironment.from_config(env_config)
     if env_type in {"code_sandbox", "docker_workspace"}:
-        return DockerWorkspaceAgentEnvironment.from_config(env_config)
+        return DockerWorkspaceAgentEnvironment.from_config(
+            env_config,
+            input_assets=environment_asset_sources(item.assets),
+        )
     if env_type == "gui_desktop":
         return DesktopBridgeAgentEnvironment.from_config(env_config)
     raise ValueError(f"Unsupported agent environment type: {env_type}")

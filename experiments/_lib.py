@@ -391,7 +391,7 @@ class StageTimer:
 
 @contextlib.contextmanager
 def count_llm_calls():
-    """Count LiteLLM/httpx-level LLM calls made through evalclaw.models.llm.
+    """Count LiteLLM/streaming HTTP calls made through evalclaw.models.llm.
 
     Wraps evalclaw.models.llm internals for the duration of the context. Calls routed
     through the native Anthropic SDK path are not counted (noted in reports).
@@ -400,7 +400,7 @@ def count_llm_calls():
 
     counter = {"litellm": 0, "http": 0}
     original_litellm = llm_module._call_litellm
-    original_post = llm_module._post_with_retry
+    original_post = llm_module._post_streaming_openai_compatible
 
     def counted_litellm(*args, **kwargs):
         counter["litellm"] += 1
@@ -411,12 +411,12 @@ def count_llm_calls():
         return original_post(*args, **kwargs)
 
     llm_module._call_litellm = counted_litellm
-    llm_module._post_with_retry = counted_post
+    llm_module._post_streaming_openai_compatible = counted_post
     try:
         yield counter
     finally:
         llm_module._call_litellm = original_litellm
-        llm_module._post_with_retry = original_post
+        llm_module._post_streaming_openai_compatible = original_post
 
 
 # ---------------------------------------------------------------------------

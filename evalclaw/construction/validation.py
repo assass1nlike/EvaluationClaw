@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import base64
+import json
 import re
 import shutil
 import subprocess
 from pathlib import Path, PurePosixPath
 
 from ..protocols.agent_task_package import AGENT_TASK_PACKAGE_METADATA_KEY
+from ..protocols.assets import environment_asset_guest_path
 from ..types import (
     AgentEnvironmentType,
     EvalDimension,
@@ -18,7 +20,6 @@ from ..types import (
 )
 
 TASK_STRUCTURE_VALIDATION_VERSION = "evalclaw.task_structure.v1"
-CHALLENGE_EFFORT_FIDELITY_METADATA_KEY = "challenge_effort_fidelity"
 _COMPLETE_PROMPT_ENDINGS = (".", "!", "?", ")", "]", "}", '"', "'")
 _DANGLING_PROMPT_ENDINGS = (
     " and",
@@ -85,6 +86,65 @@ def _has_environment_evaluator(task: TaskDefinition) -> bool:
             evaluation.get("fail_criteria"),
         )
     return False
+
+
+def _environment_has_visible_file_input(task: TaskDefinition) -> bool:
+    env = task.environment
+    if env is None:
+        return False
+    if env.visible_files or (
+        task.assets
+        and env.type
+        in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
+    ):
+        return True
+    for key in ("files", "input_files", "asset_files", "assets"):
+        value = env.session.get(key)
+        if isinstance(value, (dict, list)) and bool(value):
+            return True
+    return False
+
+
+def _builder_host_path_issues(task: TaskDefinition, work_dir: Path) -> list[str]:
+    resolved = work_dir.expanduser().resolve()
+    spellings = tuple(
+        dict.fromkeys(
+            spelling.casefold()
+            for spelling in (
+                str(resolved),
+                str(resolved).replace("\\", "\\\\"),
+                resolved.as_posix(),
+            )
+            if spelling
+        )
+    )
+    target_visible: dict[str, object] = {
+        "prompt": task.prompt,
+        "description": task.description,
+        "system_prompt": task.system_prompt,
+        "interaction": task.interaction,
+        "metadata": task.metadata,
+    }
+    if task.environment is not None and task.environment.type in {
+        AgentEnvironmentType.code_sandbox,
+        AgentEnvironmentType.docker_workspace,
+    }:
+        target_visible.update(
+            {
+                "environment": task.environment.model_dump(mode="json"),
+                "output_contract": task.output_contract,
+                "scoring": task.scoring.model_dump(mode="json"),
+                "rubric": task.rubric or "",
+            }
+        )
+    serialized = json.dumps(target_visible, ensure_ascii=False, default=str).casefold()
+    if not any(spelling in serialized for spelling in spellings):
+        return []
+    return [
+        "Builder-host paths must not appear in environment-backed task fields. "
+        "Keep generated or downloaded host files in "
+        "top-level assets and reference only their guest filenames in the task."
+    ]
 
 
 def _prompt_looks_truncated(prompt: str) -> bool:
@@ -717,6 +777,7 @@ def task_structure_issues(
     blueprint: TaskBlueprint | None = None,
     task_design: TaskDesign | None = None,
     require_challenge_effort_self_assessment: bool = False,
+    builder_work_dir: Path | None = None,
 ) -> list[str]:
     """Return blocking structural issues that should be fixed before global QC.
 
@@ -742,17 +803,60 @@ def task_structure_issues(
             isinstance(modalities, list)
             and any(str(modality).strip().lower() != "text" for modality in modalities)
         )
-        if requires_assets and not task.assets:
-            issues.append("TaskDesign requires file inputs, so the task must provide assets.")
+        if requires_assets:
+            if task.environment is not None:
+                if not _environment_has_visible_file_input(task):
+                    issues.append(
+                        "TaskDesign requires file inputs, so the environment must provide "
+                        "target-visible guest files."
+                    )
+            elif not task.assets:
+                issues.append("TaskDesign requires file inputs, so the task must provide assets.")
     for index, asset in enumerate(task.assets, 1):
         path = asset.path.strip()
         if not path:
             issues.append(f"Asset #{index} path is empty.")
             continue
-        if path not in task.prompt:
-            issues.append(f"Task prompt must reference asset path {path!r} exactly.")
+        prompt_path = (
+            environment_asset_guest_path(asset)
+            if task.environment is not None
+            and task.environment.type
+            in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
+            else path
+        )
+        if prompt_path not in task.prompt and not any(
+            prompt_path in choice.text for choice in task.choices
+        ):
+            issues.append(
+                f"Task prompt or choices must reference asset path {prompt_path!r} exactly."
+            )
         if not Path(path).is_file():
             issues.append(f"Asset path does not exist or is not a file: {path!r}.")
+    if (
+        task.environment is not None
+        and task.assets
+        and task.environment.type
+        not in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
+    ):
+        issues.append(
+            "This environment does not map top-level assets; put input files in its "
+            "target-visible environment fields."
+        )
+    if task.environment is not None and task.environment.type in {
+        AgentEnvironmentType.code_sandbox,
+        AgentEnvironmentType.docker_workspace,
+    }:
+        guest_names = [environment_asset_guest_path(asset) for asset in task.assets]
+        duplicate_guest_names = sorted(
+            name for name in set(guest_names) if guest_names.count(name) > 1
+        )
+        if duplicate_guest_names:
+            issues.append(
+                "Environment asset filenames must be unique: "
+                + ", ".join(duplicate_guest_names)
+            )
+    if builder_work_dir is not None and task.environment is not None:
+        issues.extend(_builder_host_path_issues(task, builder_work_dir))
     expected_effort = (
         task_design.challenge_effort
         if task_design is not None
@@ -764,12 +868,6 @@ def task_structure_issues(
             f"got {task.challenge_effort.value}."
         )
     if require_challenge_effort_self_assessment:
-        fidelity = task.metadata.get(CHALLENGE_EFFORT_FIDELITY_METADATA_KEY)
-        effort_fidelity_uncertain = (
-            isinstance(fidelity, dict)
-            and fidelity.get("status") == "uncertain"
-            and fidelity.get("recovery_strategy") == "compact_construction_retry"
-        )
         assessment = task.metadata.get("challenge_effort_self_assessment")
         if not isinstance(assessment, dict):
             issues.append(
@@ -782,10 +880,7 @@ def task_structure_issues(
                     "Task metadata.challenge_effort_self_assessment.requested_effort must match "
                     f"{expected_effort.value}."
                 )
-            if (
-                assessment.get("meets_requested_effort") is not True
-                and not effort_fidelity_uncertain
-            ):
+            if assessment.get("meets_requested_effort") is not True:
                 issues.append(
                     "Task metadata.challenge_effort_self_assessment.meets_requested_effort must be true; "
                     "revise the task until the builder judges it satisfies the requested challenge effort."

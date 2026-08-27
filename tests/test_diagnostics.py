@@ -1,11 +1,15 @@
 import json
-from types import SimpleNamespace
 
 import pytest
 
+from evalclaw.diagnostics import _io_path, write_json
 from evalclaw.execution.environment_claw import run_environment_claw
 from evalclaw.execution.runner import run_eval
-from evalclaw.models.llm import LLMOutputTruncatedError, _call_litellm
+from evalclaw.models.llm import (
+    LLMOutputTruncatedError,
+    _call_litellm,
+    truncated_response_output,
+)
 from evalclaw.pipeline import run_pipeline
 from evalclaw.quality.qc import run_qc_gate
 from evalclaw.research.backends import SearchResult
@@ -48,6 +52,18 @@ def _suite(*item_ids: str) -> TaskSuite:
     )
 
 
+def test_diagnostic_json_supports_long_paths(tmp_path) -> None:
+    directory = tmp_path
+    while len(str(directory / "trace.json")) <= 280:
+        directory /= "nested-diagnostic-segment"
+    path = directory / "trace.json"
+
+    write_json(path, {"status": "completed"})
+
+    saved = json.loads(_io_path(path).read_text(encoding="utf-8"))
+    assert saved == {"status": "completed"}
+
+
 def test_pipeline_failure_keeps_redacted_config(monkeypatch, tmp_path) -> None:
     def fail(*args, **kwargs):
         raise RuntimeError("construction failed with Bearer runtime-token")
@@ -66,16 +82,19 @@ def test_pipeline_failure_keeps_redacted_config(monkeypatch, tmp_path) -> None:
 
 
 def test_truncated_litellm_response_is_persisted(monkeypatch, tmp_path) -> None:
-    response = SimpleNamespace(
-        choices=[
-            SimpleNamespace(
-                finish_reason="length",
-                message=SimpleNamespace(content="partial response"),
-            )
-        ],
-        usage={"completion_tokens": 10},
-    )
-    monkeypatch.setattr("litellm.completion", lambda **kwargs: response)
+    chunks = [
+        {
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {"role": "assistant", "content": "partial response"},
+                    "finish_reason": "length",
+                }
+            ],
+            "usage": {"completion_tokens": 10},
+        }
+    ]
+    monkeypatch.setattr("litellm.completion", lambda **kwargs: iter(chunks))
 
     with pytest.raises(LLMOutputTruncatedError) as raised:
         _call_litellm(
@@ -86,10 +105,49 @@ def test_truncated_litellm_response_is_persisted(monkeypatch, tmp_path) -> None:
             trace_dir=tmp_path,
         )
 
-    assert raised.value.raw_response["choices"][0]["message"]["content"] == "partial response"
+    assert raised.value.raw_response == chunks
+    assert raised.value.partial_output == "partial response"
     trace = json.loads(next(tmp_path.glob("*.json")).read_text(encoding="utf-8"))
     assert trace["status"] == "truncated"
     assert trace["response"]["usage"]["completion_tokens"] == 10
+
+
+def test_truncated_stream_preserves_incremental_tool_call() -> None:
+    chunks = [
+        {
+            "choices": [
+                {
+                    "delta": {
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "call_1",
+                                "type": "function",
+                                "function": {"name": "run_python", "arguments": '{"code":'},
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "choices": [
+                {
+                    "delta": {
+                        "tool_calls": [
+                            {"index": 0, "function": {"arguments": '"print(4)"}'}}
+                        ]
+                    },
+                    "finish_reason": "length",
+                }
+            ]
+        },
+    ]
+
+    partial = truncated_response_output(chunks)
+
+    assert "run_python" in partial
+    assert "print(4)" in partial
 
 
 def test_deep_research_persists_round_and_brief(monkeypatch, tmp_path) -> None:

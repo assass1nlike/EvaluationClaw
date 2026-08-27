@@ -182,7 +182,7 @@
     <h3>5.2 Builder 实际收到的内容</h3>
     <p>基础 system prompt 要求 Builder 实现一个 Planner 已设计好的 Blueprint，并返回纯 JSON。user payload 包含整套测评目标、当前维度、当前 Blueprint、其完整 TaskDesign、所需任务总数、各题型数量、各 TaskDesign 数量、来源上下文以及任务字段契约。</p>
     <p>没有环境要求时，请求中不出现环境构题协议。存在环境要求时，框架根据每个 TaskDesign 的环境类别，确定性地加载环境构题 Skill，并只附加当前 Blueprint 用到的参考说明。例如普通 workspace 不会收到 Docker、GUI 或 VM 说明；混合 Blueprint 中的路由表会标明环境说明适用于哪些 TaskDesign。</p>
-    <p>当当前维度的构题投入为 E3、这是首次构建、Web 研究可用且没有进入降投入恢复时，Builder 可以在受限次数和字符预算内搜索或抓取公开材料。结构修复、QC 修复和截断后的降投入恢复都不开放这项搜索。</p>
+    <p>当当前维度的构题投入为 E3、这是首次构建且 Web 研究可用时，Builder 可以在受限次数和字符预算内搜索或抓取公开材料。</p>
 
     <h3>5.3 三种 Builder 模式</h3>
     <ul>
@@ -205,8 +205,7 @@
     <p>无法解析或结构检查失败时，框架把当前发现的全部问题和上一份完整返回交回 Builder，要求重新返回完整对象。修复提示要求只改动被问题指出的字段，并尽量保留正确的题面、文件、环境行为和评分。严格模式在重试耗尽后失败；auto 模式改用本地构题补足整个 Blueprint。</p>
 
     <h3>6.2 输出截断恢复</h3>
-    <p>如果响应因输出预算耗尽而截断，框架不解析残缺 JSON，也不从中间续写。它从头发起一次新的 LiteLLM 调用，要求减少构题与推理投入，优先保证完整任务和确定性评分。第二次仍截断时，该 Blueprint 构建失败。</p>
-    <p>降投入恢复得到的任务继续保留 Planner 要求的 E1–E3 标签，但会附加“投入等级未必忠实”的标记。这个标记不会代替后续结构检查和 QC。</p>
+    <p>如果响应因输出预算耗尽而截断，框架不解析残缺 JSON。它让同一个 TaskBuilder 模型压缩当前被截断的输出，用摘要替换该 assistant 消息后在原对话中继续；此前的初始请求、摘要、工具调用和工具结果原样保留。达到截断重试上限后，该 Blueprint 构建失败。</p>
 
     <div class="constraint">
       <p><strong>当前环境一致性约束：</strong>环境 Skill 的路由可以按 TaskDesign 选择参考说明，但结构验证仍通过 Blueprint 的单一环境类型检查任务。因此，一个 Blueprint 当前应只包含同一种环境语义；把静态 TaskDesign 与环境 TaskDesign 混在同一 Blueprint，或在同一 Blueprint 混合多种环境类型，会与后续结构验证不一致。</p>

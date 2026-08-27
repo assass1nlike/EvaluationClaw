@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 from ..protocols.agent_task_package import agent_task_package_issues
+from ..protocols.assets import environment_asset_guest_path
 from ..protocols.science import science_metadata_issues
 from ..protocols.task_agent import TASK_AGENT_METADATA_KEY
 from ..types import BenchmarkItem, QcCategory, QcIssue, QcSeverity, TaskType
@@ -218,14 +219,25 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                 _issue(item.id, QcSeverity.error, QcCategory.schema, "Asset path is empty.")
             )
             continue
-        if path not in item.prompt:
+        agent_env = item.metadata.get("agent_env")
+        environment_type = (
+            str(agent_env.get("type") or "") if isinstance(agent_env, dict) else ""
+        )
+        prompt_path = (
+            environment_asset_guest_path(asset)
+            if environment_type in {"code_sandbox", "docker_workspace"}
+            else path
+        )
+        if prompt_path not in item.prompt and not any(
+            prompt_path in choice.text for choice in item.choices
+        ):
             issues.append(
                 _issue(
                     item.id,
                     QcSeverity.error,
                     QcCategory.clarity,
-                    f"Prompt does not reference asset path {path!r}.",
-                    "Refer to each task asset by its exact path in the prompt.",
+                    f"Prompt or choices do not reference asset path {prompt_path!r}.",
+                    "Refer to each task asset by its required target-visible path in the prompt or choices.",
                 )
             )
         if not Path(path).is_file():

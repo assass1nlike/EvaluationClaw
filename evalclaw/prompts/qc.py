@@ -20,10 +20,6 @@ coverage. Also perform meta-evaluation:
   challenge-effort claim. Do not create QC issues merely because an item looks easier
   than its challenge_effort; builder-level self-assessment handles that before
   this QC gate.
-- metadata.challenge_effort_fidelity.status=uncertain means the builder had to
-  regenerate after output truncation with a more compact construction scope.
-  Preserve this marker and do not reject an otherwise sound item solely for effort-label uncertainty;
-  continue to report any concrete execution, scoring, or content defect.
 - If an existing benchmark/source is needed, did the dataset use appropriate,
   hard, authoritative sources?
 
@@ -204,8 +200,11 @@ For task_type=multi_turn or task_type=agent:
 For items with assets:
 - Every asset should contain one path to a real local file.
 - Absolute local paths are valid; do not flag a path merely because it is absolute.
-- The prompt should refer to each asset by that exact path.
-- The current native target adapter supports image files only.
+- For code_sandbox and docker_workspace items, the asset path is a framework-private
+  host source. The framework copies it into environment.workdir under its filename,
+  and the prompt or choices should refer to that filename rather than the host path.
+- For other items, the prompt or choices should refer to each asset by its exact path. Their
+  current native target adapter supports image files only.
 
 For items using metadata.science:
 - metadata.science.schema_version should be evalclaw.science.v1.

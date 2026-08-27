@@ -32,9 +32,20 @@ from .providers import infer_provider
 class LLMOutputTruncatedError(RuntimeError):
     """The provider ended a completion because its output budget was exhausted."""
 
-    def __init__(self, message: str, *, raw_response: Any = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        raw_response: Any = None,
+        partial_output: str | None = None,
+    ) -> None:
         super().__init__(message)
         self.raw_response = raw_response
+        self.partial_output = (
+            partial_output
+            if partial_output is not None
+            else truncated_response_output(raw_response)
+        )
 
 
 class LLMFinalContentMissingError(RuntimeError):
@@ -53,111 +64,6 @@ def _require_supported_backend(backend: str) -> None:
         raise ValueError(f"Unsupported LLM backend {backend!r}; expected 'auto' or 'litellm'.")
 
 
-def _post_with_retry(
-    url: str,
-    headers: dict,
-    body: dict,
-    max_retries: int = 3,
-    *,
-    request_timeout_s: float = 300.0,
-    total_timeout_s: float = 300.0,
-    trace_dir: str | Path | None = None,
-    trace_name: str = "http",
-) -> dict:
-    """POST with bounded retries for transient transport, 429, and 5xx errors."""
-    delay = 5.0
-    started = time.monotonic()
-    endpoint = httpx.URL(url).host or "model endpoint"
-    for attempt in range(max_retries):
-        trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
-        request = {"url": url, "body": body}
-        remaining = total_timeout_s - (time.monotonic() - started)
-        if remaining <= 0:
-            raise TimeoutError(
-                f"Model request to {endpoint} exceeded {total_timeout_s:.0f}s overall deadline."
-            )
-        try:
-            resp = httpx.post(
-                url,
-                headers=headers,
-                json=body,
-                timeout=min(request_timeout_s, remaining),
-            )
-        except httpx.TransportError as exc:
-            _write_llm_trace(trace_path, request=request, status="failed", error=exc)
-            if attempt == max_retries - 1:
-                raise
-            wait_s = min(delay, max(0.0, total_timeout_s - (time.monotonic() - started)))
-            if wait_s <= 0:
-                raise TimeoutError(
-                    f"Model request to {endpoint} exceeded {total_timeout_s:.0f}s overall deadline."
-                ) from exc
-            print(
-                f"  [llm network] {endpoint} attempt {attempt + 1}/{max_retries} "
-                f"failed ({type(exc).__name__}); retrying in {wait_s:.0f}s."
-            )
-            time.sleep(wait_s)
-            delay = min(delay * 2, 30.0)
-            continue
-        if resp.status_code == 429 or resp.status_code >= 500:
-            _write_llm_trace(
-                trace_path,
-                request=request,
-                status="failed",
-                response={"status_code": resp.status_code, "body": resp.text},
-            )
-            if attempt == max_retries - 1:
-                resp.raise_for_status()
-            retry_after = resp.headers.get("retry-after")
-            try:
-                requested_wait = float(retry_after) if retry_after else delay
-            except ValueError:
-                requested_wait = delay
-            wait_s = min(
-                max(0.0, requested_wait),
-                30.0,
-                max(0.0, total_timeout_s - (time.monotonic() - started)),
-            )
-            if wait_s <= 0:
-                resp.raise_for_status()
-            print(
-                f"  [llm network] {endpoint} returned HTTP {resp.status_code} "
-                f"on attempt {attempt + 1}/{max_retries}; retrying in {wait_s:.0f}s."
-            )
-            time.sleep(wait_s)
-            delay = min(delay * 2, 30.0)
-            continue
-        if resp.is_error:
-            error = httpx.HTTPStatusError(
-                f"HTTP {resp.status_code}",
-                request=resp.request,
-                response=resp,
-            )
-            _write_llm_trace(
-                trace_path,
-                request=request,
-                status="failed",
-                response={"status_code": resp.status_code, "body": resp.text},
-                error=error,
-            )
-        resp.raise_for_status()
-        data = resp.json()
-        finish_reason = str((data.get("choices") or [{}])[0].get("finish_reason") or "") or None
-        _write_llm_trace(
-            trace_path,
-            request=request,
-            status="completed",
-            response=data,
-            finish_reason=finish_reason,
-        )
-        return data
-    raise RuntimeError("Max retries exceeded")
-
-
-def _env_enabled(name: str) -> bool:
-    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
-
-
 def _is_transient_streaming_error(exc: Exception) -> bool:
     if isinstance(exc, httpx.TransportError):
         return True
@@ -166,6 +72,81 @@ def _is_transient_streaming_error(exc: Exception) -> bool:
         return status == 429 or status >= 500
     message = str(exc).lower()
     return "upstream_error" in message or "temporarily unavailable" in message
+
+
+def _assemble_openai_chat_stream(events: list[Any]) -> dict[str, Any]:
+    """Assemble OpenAI-compatible chat deltas into one canonical response."""
+    response: dict[str, Any] = {}
+    content_parts: list[str] = []
+    reasoning_parts: list[str] = []
+    tool_calls: dict[int, dict[str, Any]] = {}
+    function_name_parts: list[str] = []
+    function_argument_parts: list[str] = []
+    role = "assistant"
+    finish_reason: str | None = None
+
+    for raw_event in events:
+        event = _jsonable(raw_event)
+        if not isinstance(event, dict):
+            continue
+        for key in ("id", "object", "created", "model", "system_fingerprint", "service_tier"):
+            if event.get(key) is not None:
+                response[key] = event[key]
+        if event.get("usage") is not None:
+            response["usage"] = event["usage"]
+        choices = event.get("choices") or []
+        if not choices or not isinstance(choices[0], dict):
+            continue
+        choice = choices[0]
+        finish_reason = choice.get("finish_reason") or finish_reason
+        delta = choice.get("delta") or choice.get("message") or {}
+        if not isinstance(delta, dict):
+            continue
+        if delta.get("role"):
+            role = str(delta["role"])
+        if isinstance(delta.get("content"), str):
+            content_parts.append(delta["content"])
+        if isinstance(delta.get("reasoning_content"), str):
+            reasoning_parts.append(delta["reasoning_content"])
+        function_call = delta.get("function_call")
+        if isinstance(function_call, dict):
+            if isinstance(function_call.get("name"), str):
+                function_name_parts.append(function_call["name"])
+            if isinstance(function_call.get("arguments"), str):
+                function_argument_parts.append(function_call["arguments"])
+        for fallback_index, raw_call in enumerate(delta.get("tool_calls") or []):
+            if not isinstance(raw_call, dict):
+                continue
+            index = int(raw_call.get("index", fallback_index))
+            assembled = tool_calls.setdefault(
+                index,
+                {"id": "", "type": "function", "function": {"name": "", "arguments": ""}},
+            )
+            if raw_call.get("id"):
+                assembled["id"] = str(raw_call["id"])
+            if raw_call.get("type"):
+                assembled["type"] = str(raw_call["type"])
+            function = raw_call.get("function") or {}
+            if isinstance(function, dict):
+                if isinstance(function.get("name"), str):
+                    assembled["function"]["name"] += function["name"]
+                if isinstance(function.get("arguments"), str):
+                    assembled["function"]["arguments"] += function["arguments"]
+
+    message: dict[str, Any] = {"role": role, "content": "".join(content_parts) or None}
+    if reasoning_parts:
+        message["reasoning_content"] = "".join(reasoning_parts)
+    if function_name_parts or function_argument_parts:
+        message["function_call"] = {
+            "name": "".join(function_name_parts),
+            "arguments": "".join(function_argument_parts),
+        }
+    if tool_calls:
+        message["tool_calls"] = [tool_calls[index] for index in sorted(tool_calls)]
+    response["choices"] = [
+        {"index": 0, "message": message, "finish_reason": finish_reason}
+    ]
+    return response
 
 
 def _post_streaming_openai_compatible(
@@ -177,15 +158,11 @@ def _post_streaming_openai_compatible(
     request_timeout_s: float = 300.0,
     total_timeout_s: float = 300.0,
     raw_events: list[dict[str, Any]] | None = None,
+    on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "stream-http",
-) -> tuple[str, str | None]:
-    """Read an OpenAI-compatible streaming chat response and return full text.
-
-    This intentionally covers only the standard SSE shape used by
-    /chat/completions. Tool streaming remains on the existing non-streaming
-    path.
-    """
+) -> dict[str, Any]:
+    """Read and assemble an OpenAI-compatible streaming chat response."""
     stream_body = {**body, "stream": True}
     delay = 5.0
     started = time.monotonic()
@@ -199,10 +176,7 @@ def _post_streaming_openai_compatible(
                 f"Streaming model request to {endpoint} exceeded "
                 f"{total_timeout_s:.0f}s overall deadline."
             )
-        content_parts: list[str] = []
-        reasoning_parts: list[str] = []
         attempt_events: list[dict[str, Any]] = []
-        finish_reason: str | None = None
         try:
             with httpx.stream(
                 "POST",
@@ -222,20 +196,15 @@ def _post_streaming_openai_compatible(
                         break
                     chunk = json.loads(payload)
                     attempt_events.append(chunk)
+                    if on_token is not None:
+                        choices = chunk.get("choices") or []
+                        if choices:
+                            delta = choices[0].get("delta") or {}
+                            text = delta.get("content")
+                            if isinstance(text, str) and text:
+                                on_token(text)
                     if isinstance(chunk.get("error"), dict):
                         raise RuntimeError(str(chunk["error"]))
-                    choices = chunk.get("choices") or []
-                    if not choices:
-                        continue
-                    choice = choices[0]
-                    finish_reason = choice.get("finish_reason") or finish_reason
-                    delta = choice.get("delta") or choice.get("message") or {}
-                    content = delta.get("content")
-                    if isinstance(content, str):
-                        content_parts.append(content)
-                    reasoning = delta.get("reasoning_content")
-                    if isinstance(reasoning, str):
-                        reasoning_parts.append(reasoning)
         except (httpx.TransportError, httpx.HTTPStatusError, RuntimeError) as exc:
             if raw_events is not None:
                 raw_events.extend(attempt_events)
@@ -244,13 +213,19 @@ def _post_streaming_openai_compatible(
                 request=request,
                 status="failed",
                 response=attempt_events,
-                finish_reason=finish_reason,
                 error=exc,
             )
             if attempt == max_retries - 1 or not _is_transient_streaming_error(exc):
                 raise
+            retry_after = None
+            if isinstance(exc, httpx.HTTPStatusError):
+                retry_after = exc.response.headers.get("retry-after")
+            try:
+                requested_wait = float(retry_after) if retry_after else delay
+            except ValueError:
+                requested_wait = delay
             wait_s = min(
-                delay,
+                max(0.0, requested_wait),
                 30.0,
                 max(0.0, total_timeout_s - (time.monotonic() - started)),
             )
@@ -267,7 +242,10 @@ def _post_streaming_openai_compatible(
             time.sleep(wait_s)
             delay = min(delay * 2, 30.0)
             continue
-        content = "".join(content_parts)
+        assembled = _assemble_openai_chat_stream(attempt_events)
+        finish_reason = str(
+            (assembled.get("choices") or [{}])[0].get("finish_reason") or ""
+        ) or None
         if raw_events is not None:
             raw_events.extend(attempt_events)
         _write_llm_trace(
@@ -277,9 +255,7 @@ def _post_streaming_openai_compatible(
             response=attempt_events,
             finish_reason=finish_reason,
         )
-        if content:
-            return content, finish_reason
-        return "".join(reasoning_parts), finish_reason
+        return assembled
     raise RuntimeError("Max streaming retries exceeded")
 
 DEFAULT_ORCHESTRATOR_MODEL = "claude-opus-4-6"
@@ -388,6 +364,7 @@ def _post_streaming_responses(
     max_retries: int = 3,
     request_timeout_s: float = 300.0,
     total_timeout_s: float = 900.0,
+    on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "responses-http",
 ) -> dict[str, Any]:
@@ -423,6 +400,10 @@ def _post_streaming_responses(
                     event = json.loads(payload)
                     events.append(event)
                     event_type = str(event.get("type") or "")
+                    if on_token is not None and event_type == "response.output_text.delta":
+                        text = event.get("delta")
+                        if isinstance(text, str) and text:
+                            on_token(text)
                     if event_type in {"response.completed", "response.incomplete"}:
                         completed = event.get("response")
                         if isinstance(completed, dict):
@@ -584,6 +565,52 @@ def _jsonable(value: Any) -> Any:
     return repr(value)
 
 
+def truncated_response_output(raw_response: Any) -> str:
+    """Extract the assistant work retained in a truncated provider response."""
+    data = _jsonable(raw_response)
+    parts: list[str] = []
+
+    def add(value: Any) -> None:
+        if isinstance(value, str) and value.strip():
+            parts.append(value)
+        elif isinstance(value, list):
+            for item in value:
+                add(item)
+        elif isinstance(value, dict):
+            for key in ("reasoning_content", "thinking", "summary", "text", "content"):
+                add(value.get(key))
+            for key in ("input", "arguments"):
+                nested = value.get(key)
+                if nested:
+                    parts.append(
+                        nested
+                        if isinstance(nested, str)
+                        else json.dumps(nested, ensure_ascii=False)
+                    )
+
+    if isinstance(data, dict):
+        choices = data.get("choices")
+        if isinstance(choices, list) and choices and isinstance(choices[0], dict):
+            message = choices[0].get("message")
+            if isinstance(message, dict):
+                add(message.get("reasoning_content"))
+                add(message.get("content"))
+                tool_calls = message.get("tool_calls")
+                if tool_calls:
+                    parts.append(json.dumps(tool_calls, ensure_ascii=False))
+        add(data.get("content"))
+        output = data.get("output")
+        add(output)
+    elif isinstance(data, list):
+        assembled = _assemble_openai_chat_stream(data)
+        message = assembled["choices"][0]["message"]
+        add(message.get("reasoning_content"))
+        add(message.get("content"))
+        if message.get("tool_calls"):
+            parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
+    return "\n".join(parts)
+
+
 def _llm_trace_path(
     trace_dir: str | Path | None,
     trace_name: str,
@@ -679,6 +706,38 @@ def _litellm_model_name(model: str, base_url: Optional[str]) -> str:
     return model
 
 
+def _stream_litellm_response(
+    litellm: Any,
+    kwargs: dict[str, Any],
+    *,
+    on_token: Optional[Any] = None,
+) -> tuple[dict[str, Any], list[Any]]:
+    kwargs["stream"] = True
+    chunks: list[Any] = []
+    for chunk in litellm.completion(**kwargs):
+        chunks.append(chunk)
+        if on_token is not None:
+            choices = getattr(chunk, "choices", None)
+            if choices:
+                delta = getattr(choices[0], "delta", None)
+                if delta is not None:
+                    text = getattr(delta, "content", None)
+                    if isinstance(text, str) and text:
+                        on_token(text)
+    if not chunks:
+        raise LLMProtocolAdapterError("LiteLLM returned an empty response stream.")
+    return _assemble_openai_chat_stream(chunks), chunks
+
+
+def _stream_anthropic_message(client: Any, *, on_token: Optional[Any] = None, **kwargs: Any) -> Any:
+    with client.messages.stream(**kwargs) as stream:
+        if on_token is not None:
+            for text in stream.text_stream:
+                if text:
+                    on_token(text)
+        return stream.get_final_message()
+
+
 def _call_litellm(
     *,
     model: str,
@@ -689,6 +748,7 @@ def _call_litellm(
     reduce_reasoning_effort: bool = False,
     retry_on_truncation: bool = True,
     expect_json: bool = False,
+    on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "llm",
 ) -> str:
@@ -736,7 +796,7 @@ def _call_litellm(
         kwargs["max_tokens"] = budget
         trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
         try:
-            response = litellm.completion(**kwargs)
+            response, chunks = _stream_litellm_response(litellm, kwargs, on_token=on_token)
         except BaseException as exc:
             _write_llm_trace(
                 trace_path,
@@ -745,9 +805,8 @@ def _call_litellm(
                 error=exc,
             )
             raise
-        finish_reason = getattr(
-            (getattr(response, "choices", None) or [None])[0], "finish_reason", None
-        )
+        first = (response.get("choices") or [None])[0]
+        finish_reason = first.get("finish_reason") if isinstance(first, dict) else None
         if finish_reason == "length":
             _write_llm_trace(
                 trace_path,
@@ -762,7 +821,7 @@ def _call_litellm(
             raise LLMOutputTruncatedError(
                 f"LLM output truncated at {budget} completion tokens "
                 f"(finish_reason=length) for model {model}",
-                raw_response=_jsonable(response),
+                raw_response=_jsonable(chunks),
             )
         try:
             content = _extract_litellm_content(response)
@@ -816,12 +875,14 @@ def _call_anthropic_text(
     max_tokens: int,
     api_key: Optional[str],
     base_url: Optional[str],
+    on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "llm",
 ) -> str:
     client = _get_anthropic_client(api_key, base_url)
     request = {
         "provider": "anthropic",
+        "stream": True,
         "model": _anthropic_model_name(model),
         "max_tokens": max_tokens,
         "system": system,
@@ -830,7 +891,9 @@ def _call_anthropic_text(
     }
     trace_path = _llm_trace_path(trace_dir, trace_name, 1)
     try:
-        response = client.messages.create(
+        response = _stream_anthropic_message(
+            client,
+            on_token=on_token,
             model=_anthropic_model_name(model),
             max_tokens=max_tokens,
             system=system or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
@@ -871,6 +934,7 @@ def call_llm(
     reduce_reasoning_effort: bool = False,
     retry_on_truncation: bool = True,
     expect_json: bool = False,
+    on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "llm",
 ) -> str:
@@ -883,6 +947,12 @@ def call_llm(
     output mode are asked for one.
     """
     _require_supported_backend(backend)
+    if on_token is None:
+        try:
+            from ..live.streamers import get_streamer as _gs
+            on_token = _gs(trace_dir, trace_name=trace_name)
+        except Exception:
+            pass
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
     resolved_provider, _ = infer_provider(model_name, base_url, provider)
     messages_dict = _message_dicts(messages, system)
@@ -917,16 +987,11 @@ def call_llm(
             max_tokens=_effective_max_tokens(model_name, max_tokens),
             api_key=api_key,
             base_url=base_url,
+            on_token=on_token,
             trace_dir=trace_dir,
             trace_name=trace_name,
         )
-    stream_openai_compatible = (
-        _env_enabled("EVALCLAW_LLM_STREAMING")
-        and bool(base_url)
-        and resolved_provider == "openai_compatible"
-        and backend != "litellm"
-    )
-    if stream_openai_compatible:
+    if base_url and resolved_provider == "openai_compatible" and backend != "litellm":
         key = (
             api_key
             or (os.environ.get("DEEPSEEK_API_KEY") if model_name.startswith("deepseek-") else None)
@@ -959,17 +1024,21 @@ def call_llm(
             }
             try:
                 raw_response: list[dict[str, Any]] = []
-                content, finish_reason = _post_streaming_openai_compatible(
+                response = _post_streaming_openai_compatible(
                     url,
                     headers=headers,
                     body=body,
                     raw_events=raw_response,
+                    on_token=on_token,
                     trace_dir=Path(trace_dir) / "http" if trace_dir is not None else None,
                     trace_name=trace_name,
                 )
             except BaseException as exc:
                 _write_llm_trace(trace_path, request=request, status="failed", error=exc)
                 raise
+            finish_reason = str(
+                (response.get("choices") or [{}])[0].get("finish_reason") or ""
+            ) or None
             if finish_reason == "length":
                 _write_llm_trace(
                     trace_path,
@@ -986,11 +1055,25 @@ def call_llm(
                     f"(finish_reason=length) for model {model_name}",
                     raw_response=raw_response,
                 )
+            try:
+                content = _extract_litellm_content(response)
+            except ValueError as exc:
+                _write_llm_trace(
+                    trace_path,
+                    request=request,
+                    status="invalid_response",
+                    response=response,
+                    finish_reason=finish_reason,
+                    error=exc,
+                )
+                raise LLMProtocolAdapterError(
+                    f"OpenAI-compatible stream returned no final content for model {model_name}."
+                ) from exc
             _write_llm_trace(
                 trace_path,
                 request=request,
                 status="completed",
-                response=raw_response,
+                response=response,
                 finish_reason=finish_reason,
             )
             return content
@@ -1005,6 +1088,7 @@ def call_llm(
         reduce_reasoning_effort=reduce_reasoning_effort,
         retry_on_truncation=retry_on_truncation,
         expect_json=expect_json,
+        on_token=on_token,
         trace_dir=trace_dir,
         trace_name=trace_name,
     )
@@ -1023,6 +1107,7 @@ def call_orchestrator_with_tools(
     max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
     retry_on_truncation: bool = True,
     expect_json: bool = False,
+    on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "llm-tools",
 ) -> TargetToolModelResponse:
@@ -1071,6 +1156,7 @@ def call_orchestrator_with_tools(
         client = _get_anthropic_client(api_key, base_url)
         request = {
             "provider": "anthropic",
+            "stream": True,
             "model": _anthropic_model_name(model_name),
             "max_tokens": _effective_max_tokens(model_name, max_tokens),
             "system": system_prompt,
@@ -1080,7 +1166,9 @@ def call_orchestrator_with_tools(
         }
         trace_path = _llm_trace_path(trace_dir, trace_name, 1)
         try:
-            response = client.messages.create(
+            response = _stream_anthropic_message(
+                client,
+                on_token=on_token,
                 model=request["model"],
                 max_tokens=request["max_tokens"],
                 system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
@@ -1141,7 +1229,7 @@ def call_orchestrator_with_tools(
             kwargs["reasoning_effort"] = reasoning_effort
         trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
         try:
-            response = litellm.completion(**kwargs)
+            response, chunks = _stream_litellm_response(litellm, kwargs, on_token=on_token)
         except BaseException as exc:
             _write_llm_trace(
                 trace_path,
@@ -1181,7 +1269,7 @@ def call_orchestrator_with_tools(
             raise LLMOutputTruncatedError(
                 f"Orchestrator tool response truncated at {budget} completion tokens "
                 f"(finish_reason=length) for model {model_name}.",
-                raw_response=_jsonable(response),
+                raw_response=_jsonable(chunks),
             )
         message = getattr(first, "message", None)
         if message is None and isinstance(first, dict):
@@ -1255,6 +1343,7 @@ def call_target_model_with_tools(
         client = _get_anthropic_client(target.api_key, target.base_url)
         request = {
             "provider": "anthropic",
+            "stream": True,
             "model": _anthropic_model_name(target.model),
             "max_tokens": _effective_max_tokens(target.model, max_tokens),
             "system": system_prompt,
@@ -1264,7 +1353,8 @@ def call_target_model_with_tools(
         }
         trace_path = _llm_trace_path(trace_dir, trace_name, 1)
         try:
-            response = client.messages.create(
+            response = _stream_anthropic_message(
+                client,
                 model=request["model"],
                 max_tokens=request["max_tokens"],
                 system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
@@ -1326,7 +1416,7 @@ def call_target_model_with_tools(
     request = {"provider": "openai_compatible", "base_url": base_url, "body": body}
     trace_path = _llm_trace_path(trace_dir, trace_name, 1)
     try:
-        data = _post_with_retry(
+        data = _post_streaming_openai_compatible(
             f"{base_url.rstrip('/')}/chat/completions",
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             body=body,
@@ -1380,6 +1470,7 @@ def call_target_model(
             client = _get_anthropic_client(target.api_key, target.base_url)
             request = {
                 "provider": "anthropic",
+                "stream": True,
                 "model": _anthropic_model_name(target.model),
                 "max_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
                 "system": system_prompt,
@@ -1389,7 +1480,8 @@ def call_target_model(
             }
             trace_path = _llm_trace_path(trace_dir, trace_name, 1)
             try:
-                response = client.messages.create(
+                response = _stream_anthropic_message(
+                    client,
                     model=request["model"],
                     max_tokens=request["max_tokens"],
                     system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
@@ -1447,7 +1539,7 @@ def call_target_model(
         request = {"provider": "openai_compatible", "base_url": base_url, "body": body}
         trace_path = _llm_trace_path(trace_dir, trace_name, 1)
         try:
-            data = _post_with_retry(
+            data = _post_streaming_openai_compatible(
                 f"{base_url.rstrip('/')}/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 body=body,

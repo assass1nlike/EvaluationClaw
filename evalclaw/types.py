@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, model_validator
 
 
 def utc_now() -> str:
@@ -443,37 +443,39 @@ class BenchmarkPlan(BaseModel):
 
 
 class AgentEnvironmentSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     type: AgentEnvironmentType = AgentEnvironmentType.workspace
     tools: list[dict[str, Any]] = Field(default_factory=list)
-    visible_files: dict[str, str] = Field(default_factory=dict)
-    runtime_files: dict[str, str] = Field(default_factory=dict)
-    hidden_files: dict[str, str] = Field(default_factory=dict)
-    image: str = ""
-    auto_select_image: bool = True
+    visible_files: dict[StrictStr, StrictStr] = Field(default_factory=dict)
+    runtime_files: dict[StrictStr, StrictStr] = Field(default_factory=dict)
+    hidden_files: dict[StrictStr, StrictStr] = Field(default_factory=dict)
+    image: StrictStr = ""
+    auto_select_image: StrictBool = True
     image_selection: dict[str, Any] = Field(default_factory=dict)
     image_build: dict[str, Any] = Field(default_factory=dict)
-    pull_image: bool = True
-    pull_timeout: int = 300
-    setup_commands: list[str] = Field(default_factory=list)
-    test_command: str = ""
-    max_steps: int = 8
-    timeout: int = 20
-    network: str = "none"
+    pull_image: StrictBool = True
+    pull_timeout: StrictInt = 300
+    setup_commands: list[StrictStr] = Field(default_factory=list)
+    test_command: StrictStr = ""
+    max_steps: StrictInt = 8
+    timeout: StrictInt = 20
+    network: StrictStr = "none"
     resource_limits: dict[str, Any] = Field(default_factory=dict)
-    workdir: str = "/workspace"
+    workdir: StrictStr = "/workspace"
     workspace: dict[str, Any] = Field(default_factory=dict)
     browser: dict[str, Any] = Field(default_factory=dict)
-    bridge_url: str = ""
-    bridge_api_key: Optional[str] = None
-    requires_vm: bool = False
-    vm_provider_url: str = ""
-    vm_provider_api_key: Optional[str] = None
+    bridge_url: StrictStr = ""
+    bridge_api_key: Optional[StrictStr] = None
+    requires_vm: StrictBool = False
+    vm_provider_url: StrictStr = ""
+    vm_provider_api_key: Optional[StrictStr] = None
     vm: dict[str, Any] = Field(default_factory=dict)
     vm_materialization: dict[str, Any] = Field(default_factory=dict)
     vm_provisioning: dict[str, Any] = Field(default_factory=dict)
     session: dict[str, Any] = Field(default_factory=dict)
     evaluation: dict[str, Any] = Field(default_factory=dict)
-    notes: str = ""
+    notes: StrictStr = ""
 
 
 class TaskScoringSpec(BaseModel):
@@ -826,6 +828,7 @@ class BenchmarkConfig(BaseModel):
     use_hf_discovery: bool = True
     task_builder_max_workers: int = 4
     task_builder_repair_attempts: int = 2
+    task_builder_truncation_retries: int = 3
     task_builder_tool_max_calls: int = 6
     task_builder_tool_max_chars: int = 50_000
     judge_double_pass: bool = True
