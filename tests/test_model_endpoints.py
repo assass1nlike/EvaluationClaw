@@ -108,6 +108,48 @@ def test_streaming_post_honors_retry_after(monkeypatch) -> None:
     assert waits == [2.0]
 
 
+def test_streaming_post_forwards_reasoning_and_content(monkeypatch) -> None:
+    lines = [
+        "data: "
+        + json.dumps(
+            {
+                "choices": [
+                    {
+                        "delta": {"reasoning_content": "inspect first"},
+                        "finish_reason": None,
+                    }
+                ]
+            }
+        ),
+        "data: "
+        + json.dumps(
+            {
+                "choices": [
+                    {"delta": {"content": "final answer"}, "finish_reason": "stop"}
+                ]
+            }
+        ),
+        "data: [DONE]",
+    ]
+    monkeypatch.setattr(
+        llm.httpx,
+        "stream",
+        lambda *args, **kwargs: _FakeHTTPStream(lines),
+    )
+    streamed: list[str] = []
+
+    result = llm._post_streaming_openai_compatible(
+        "https://model.example/v1",
+        {},
+        {},
+        on_token=streamed.append,
+    )
+
+    assert streamed == ["inspect first", "final answer"]
+    assert result["choices"][0]["message"]["reasoning_content"] == "inspect first"
+    assert result["choices"][0]["message"]["content"] == "final answer"
+
+
 def test_streaming_post_gives_one_generation_the_full_deadline(monkeypatch) -> None:
     captured: dict = {}
 
@@ -240,6 +282,60 @@ def test_orchestrator_tool_empty_stream_is_rejected(monkeypatch) -> None:
             tools=[],
         )
 
+
+def test_orchestrator_tools_auto_connect_live_streamer(monkeypatch, tmp_path) -> None:
+    import litellm as _litellm
+
+    streamed: list[str] = []
+    requested: list[tuple[object, str]] = []
+
+    def get_streamer(trace_dir, *, trace_name):
+        requested.append((trace_dir, trace_name))
+        return streamed.append
+
+    monkeypatch.setattr("evalclaw.live.streamers.get_streamer", get_streamer)
+    monkeypatch.setattr(
+        _litellm,
+        "completion",
+        lambda **kwargs: iter(
+            [
+                {
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {"reasoning_content": "planning"},
+                            "finish_reason": None,
+                        }
+                    ]
+                },
+                {
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {"content": "task builder output"},
+                            "finish_reason": "stop",
+                        }
+                    ]
+                },
+            ]
+        ),
+    )
+
+    response = llm.call_orchestrator_with_tools(
+        [{"role": "user", "content": "build one task"}],
+        model="deepseek-v4-pro",
+        api_key="test-key",
+        base_url="https://api.deepseek.com",
+        tools=[],
+        trace_dir=tmp_path,
+        trace_name="task-builder-001",
+    )
+
+    assert response.content == "task builder output"
+    assert requested == [(tmp_path, "task-builder-001")]
+    assert streamed == ["planning", "task builder output"]
+
+
 def test_orchestrator_uses_openai_litellm_route_for_custom_base_url(monkeypatch) -> None:
     import litellm as _litellm
 
@@ -312,6 +408,7 @@ def test_orchestrator_uses_openai_litellm_route_for_custom_base_url(monkeypatch)
     assert captured["base_url"] == "https://api.deepseek.com"
     assert captured["stream"] is True
     assert captured["tools"][0]["function"]["name"] == "run_python"
+    assert "tool_choice" not in captured
     assert response.tool_calls[0].name == "run_python"
 
 

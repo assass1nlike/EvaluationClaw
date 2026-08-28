@@ -87,6 +87,16 @@ field. Asset filenames are visible to the evaluated model, so name files without
 revealing answers or other unintended information. Asset filenames within one
 environment-backed task must be unique. Return an empty assets list when the task has
 no file input. Do not put task input files in metadata.
+For environment-backed tasks, put files that belong to the environment's declared
+initial visible state in environment.visible_files. Use assets for task-input files
+created or downloaded during construction that the framework must copy into the workdir.
+For code_sandbox and docker_workspace tasks, environment.workdir must be an absolute
+POSIX path inside the runtime; use /workspace unless the task requires another directory,
+and never use `.` or another relative path.
+For a custom Docker environment, use image_build to describe a reproducible image.
+When image construction tools are available, create or edit the Dockerfile and its
+context with those tools, verify the result, and preserve the returned relative
+image_build.context_dir and image tag in the final environment.image_build.
 
 For initial construction, the tasks array length and per-type counts must
 exactly match the TaskDesign. For QC repair, they must instead exactly match

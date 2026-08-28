@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -13,6 +14,11 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from ..diagnostics import write_json
+from ..execution.docker_images import (
+    build_docker_image_from_context,
+    run_docker_image_check,
+    safe_context_path,
+)
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
@@ -35,10 +41,21 @@ from ..types import BenchmarkConfig, Message
 _MAX_DOWNLOAD_URLS = 32
 _MAX_DOWNLOAD_BYTES = 256 * 1024 * 1024
 _PYTHON_TIMEOUT_SECONDS = 60
+TASK_BUILDER_MAX_OUTPUT_TOKENS = 65_536
+_MAX_IMAGE_BUILDS = 3
+_MAX_IMAGE_CHECKS = 6
+_MAX_IMAGE_CONTEXT_FILES = 128
+_MAX_IMAGE_CONTEXT_BYTES = 256 * 1024 * 1024
+_MAX_IMAGE_CHECK_COMMAND_CHARS = 4000
 
 
 class TaskBuilderTruncationSummaryError(RuntimeError):
     """TaskBuilder's interrupted work could not be compressed for retry."""
+
+
+class TaskBuilderCallError(RuntimeError):
+    """A TaskBuilder model call failed after its dedicated retry budget."""
+
 
 # This prompt must explain when to use construction and source tools, where files
 # belong, and that the Builder must return its complete response after tool use.
@@ -46,15 +63,27 @@ TASK_BUILDER_TOOL_PROMPT = """\
 You may use the supplied tools when they materially improve task construction.
 Use run_python for computation, validation, or creating and processing task files.
 Save required task files in its fixed working directory. Tool results identify files
-with host paths that are available only during construction. Put those host paths in
-the corresponding task's top-level assets list. For environment-backed tasks, the
-framework copies each asset into the runtime workdir under its filename, so prompt or
-choices must refer only to that filename; never copy a host path into target-visible
-text or environment fields. For tasks without an environment, refer to the asset path
-verbatim in prompt or choices. When source tools are available, use read_research_source to
+with host paths that are available only during construction. For task-input files that
+must be copied into a runtime workdir, put those host paths in the corresponding task's
+top-level assets list. If a file belongs to the environment's declared initial visible
+state, provide it through environment.visible_files instead. For environment-backed
+tasks, the framework copies each asset into the runtime workdir under its filename, so
+prompt or choices must refer only to that filename; never copy a host path into
+target-visible text or environment fields. For tasks without an environment, refer to
+the asset path verbatim in prompt or choices. When source tools are available, use read_research_source to
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
+For environment-backed tasks, files that belong to the environment's declared initial
+visible state go in environment.visible_files; use assets for task-input files created
+or downloaded by construction tools that must be copied into the workdir.
+When image construction tools are available, use run_python to create or edit a
+Dockerfile and its context files in the Builder job directory, then use build_image to
+build and inspect that image. Use run_image_check for short dependency or startup
+checks after a successful build. The build tool returns a relative image_build.context_dir;
+preserve that value in the final task's environment.image_build together with
+image_build.enabled=true and the image tag. Do not put host paths in target-visible
+fields, and do not claim an image is ready without a successful build or check.
 During QC repair, use run_python to edit the JSON file at revision.path in place,
 then return a compact JSON confirmation. Otherwise, return the complete task-builder
 JSON object after tool use. The tool budget is bounded; stop once the task is
@@ -82,6 +111,97 @@ TASK_BUILDER_PYTHON_TOOL = ToolSpec(
         "additionalProperties": False,
     },
 )
+
+
+TASK_BUILDER_IMAGE_TOOLS = [
+    ToolSpec(
+        name="build_image",
+        description=(
+            "Build a disposable Docker image from a Dockerfile and files in the current Builder job "
+            "directory. The build context is persisted for the final task; use the returned relative "
+            "image_build.context_dir in the task environment."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "dockerfile_path": {
+                    "type": "string",
+                    "description": "Relative path, or a path returned by run_python, to the Dockerfile.",
+                },
+                "context_files": {
+                    "type": "array",
+                    "maxItems": _MAX_IMAGE_CONTEXT_FILES,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "source_path": {
+                                "type": "string",
+                                "description": "File in the current Builder job directory.",
+                            },
+                            "target_path": {
+                                "type": "string",
+                                "description": "Safe relative path for that file in the Docker build context.",
+                            },
+                        },
+                        "required": ["source_path", "target_path"],
+                        "additionalProperties": False,
+                    },
+                },
+                "tag": {
+                    "type": "string",
+                    "description": "Optional local image tag. Omit it to use a content-derived tag.",
+                },
+                "build_args": {
+                    "type": "object",
+                    "additionalProperties": {"type": "string"},
+                    "description": "Optional Docker build arguments.",
+                },
+                "network": {
+                    "type": "string",
+                    "enum": ["default", "none"],
+                    "description": "Network policy for Docker build steps; default is default.",
+                },
+                "timeout_s": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1200,
+                    "description": "Maximum Docker build duration in seconds.",
+                },
+            },
+            "required": ["dockerfile_path"],
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
+        name="run_image_check",
+        description=(
+            "Run one bounded shell check in the most recently built disposable image, or in the "
+            "specified image. The container has no host mounts and uses no network by default."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Short command used to verify the image.",
+                },
+                "image": {
+                    "type": "string",
+                    "description": "Optional image tag; defaults to the most recently built image.",
+                },
+                "timeout_s": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 120,
+                    "description": "Maximum check duration in seconds.",
+                },
+            },
+            "required": ["command"],
+            "additionalProperties": False,
+        },
+    ),
+]
 
 
 TASK_BUILDER_SOURCE_TOOLS = [
@@ -194,14 +314,82 @@ def task_builder_work_dir(config: BenchmarkConfig, builder_job_id: str) -> Path 
     )
 
 
+def _builder_file(work_dir: Path, raw_path: object) -> Path:
+    root = work_dir.expanduser().resolve()
+    candidate = Path(str(raw_path or "").strip()).expanduser()
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    resolved = candidate.resolve()
+    if not resolved.is_relative_to(root) or not resolved.is_file():
+        raise ValueError(f"Builder file must be an existing file inside the job directory: {raw_path!r}")
+    return resolved
+
+
+def _prepare_image_context(
+    work_dir: Path,
+    *,
+    build_number: int,
+    dockerfile_path: object,
+    context_files: object,
+) -> tuple[Path, list[dict[str, str]]]:
+    dockerfile = _builder_file(work_dir, dockerfile_path)
+    if context_files is None:
+        entries = []
+    elif isinstance(context_files, list):
+        entries = context_files
+    else:
+        raise ValueError("context_files must be a list when provided")
+    if len(entries) > _MAX_IMAGE_CONTEXT_FILES:
+        raise ValueError(f"context_files must contain at most {_MAX_IMAGE_CONTEXT_FILES} entries")
+    validated: list[tuple[Path, str]] = []
+    total_bytes = dockerfile.stat().st_size
+    seen_targets = {"Dockerfile"}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise ValueError("Each context_files entry must be an object.")
+        source = _builder_file(work_dir, entry.get("source_path"))
+        target = safe_context_path(str(entry.get("target_path") or ""))
+        if target in seen_targets:
+            raise ValueError(f"Duplicate or reserved Docker context path: {target}")
+        total_bytes += source.stat().st_size
+        if total_bytes > _MAX_IMAGE_CONTEXT_BYTES:
+            raise ValueError(
+                f"Docker build context exceeds {_MAX_IMAGE_CONTEXT_BYTES} bytes."
+            )
+        seen_targets.add(target)
+        validated.append((source, target))
+    context_root = work_dir / ".image-build"
+    context_root.mkdir(parents=True, exist_ok=True)
+    next_number = build_number
+    while (context_root / f"build-{next_number:02d}").exists():
+        next_number += 1
+    context_dir = context_root / f"build-{next_number:02d}"
+    context_dir.mkdir(parents=True, exist_ok=False)
+    shutil.copy2(dockerfile, context_dir / "Dockerfile")
+    manifest_entries: list[dict[str, str]] = []
+    for source, target in validated:
+        target_path = context_dir / target
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target_path)
+        manifest_entries.append(
+            {
+                "source_path": str(source.relative_to(work_dir.resolve())).replace("\\", "/"),
+                "target_path": target,
+            }
+        )
+    return context_dir, manifest_entries
+
+
 def _execute_task_builder_tool(
     call: ToolCall,
     config: BenchmarkConfig,
     *,
     max_chars: int,
     work_dir: Path | None = None,
+    tool_state: dict[str, Any] | None = None,
 ) -> ToolResult:
     args = call.arguments if isinstance(call.arguments, dict) else {}
+    state = tool_state if tool_state is not None else {}
     try:
         if call.name == "run_python":
             code = str(args.get("code") or "")
@@ -251,6 +439,134 @@ def _execute_task_builder_tool(
                 name=call.name,
                 content=_tool_content(value, max_chars=max_chars),
                 error="python_execution_failed" if completed.returncode else None,
+            )
+
+        if call.name == "build_image":
+            if work_dir is None:
+                raise ValueError("benchmark output_dir is required for image construction")
+            builds_used = int(state.get("image_builds_used") or 0)
+            if builds_used >= _MAX_IMAGE_BUILDS:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content=f"Image build budget exhausted after {_MAX_IMAGE_BUILDS} build(s).",
+                    error="image_build_budget_exhausted",
+                )
+            work_dir.mkdir(parents=True, exist_ok=True)
+            state["last_image"] = ""
+            context_dir, manifest_entries = _prepare_image_context(
+                work_dir,
+                build_number=builds_used + 1,
+                dockerfile_path=args.get("dockerfile_path"),
+                context_files=args.get("context_files"),
+            )
+            builds_used += 1
+            state["image_builds_used"] = builds_used
+            build_args = args.get("build_args")
+            if build_args is not None and not isinstance(build_args, dict):
+                raise ValueError("build_args must be an object when provided")
+            result = build_docker_image_from_context(
+                context_dir,
+                tag=str(args.get("tag") or "").strip(),
+                build_args={str(key): str(value) for key, value in (build_args or {}).items()},
+                network=str(args.get("network") or "default").strip().lower(),
+                docker_executable=config.docker_executable,
+                timeout_s=_bounded_int(
+                    args.get("timeout_s"),
+                    default=600,
+                    minimum=1,
+                    maximum=1200,
+                ),
+            )
+            state["last_image"] = result.image
+            state["image_contexts"] = {
+                **(state.get("image_contexts") if isinstance(state.get("image_contexts"), dict) else {}),
+                result.image: {
+                    "context_dir": str(context_dir.relative_to(work_dir.resolve())).replace("\\", "/"),
+                    "dockerfile_name": "Dockerfile",
+                    "context_files": manifest_entries,
+                },
+            }
+            manifest_dir = work_dir / ".image-build" / "manifests"
+            manifest_dir.mkdir(parents=True, exist_ok=True)
+            write_json(
+                manifest_dir / f"{context_dir.name}.json",
+                {
+                    "image": result.image,
+                    "context_dir": state["image_contexts"][result.image]["context_dir"],
+                    "dockerfile_name": "Dockerfile",
+                    "context_files": manifest_entries,
+                    "dockerfile": result.dockerfile,
+                },
+            )
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(
+                    {
+                        "image": result.image,
+                        "built": result.built,
+                        "image_build": {
+                            "enabled": True,
+                            "context_dir": state["image_contexts"][result.image]["context_dir"],
+                            "dockerfile_name": "Dockerfile",
+                            "tag": result.image,
+                        },
+                        "context_files": manifest_entries,
+                        "detail": result.detail,
+                    },
+                    max_chars=max_chars,
+                ),
+            )
+
+        if call.name == "run_image_check":
+            checks_used = int(state.get("image_checks_used") or 0)
+            if checks_used >= _MAX_IMAGE_CHECKS:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content=f"Image check budget exhausted after {_MAX_IMAGE_CHECKS} check(s).",
+                    error="image_check_budget_exhausted",
+                )
+            image = str(args.get("image") or state.get("last_image") or "").strip()
+            command = str(args.get("command") or "").strip()
+            if len(command) > _MAX_IMAGE_CHECK_COMMAND_CHARS:
+                raise ValueError(
+                    f"Image check command exceeds {_MAX_IMAGE_CHECK_COMMAND_CHARS} characters."
+                )
+            result = run_docker_image_check(
+                image,
+                command,
+                network="none",
+                docker_executable=config.docker_executable,
+                timeout_s=_bounded_int(
+                    args.get("timeout_s"),
+                    default=60,
+                    minimum=1,
+                    maximum=120,
+                ),
+            )
+            checks_used += 1
+            state["image_checks_used"] = checks_used
+            value = {
+                "image": result.image,
+                "command": result.command,
+                "exit_code": result.exit_code,
+                "stdout": result.stdout[:max_chars],
+                "stderr": result.stderr[:max_chars],
+                "timed_out": result.timed_out,
+            }
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(value, max_chars=max_chars),
+                error=(
+                    "image_check_timeout"
+                    if result.timed_out
+                    else "image_check_failed"
+                    if result.exit_code != 0
+                    else None
+                ),
             )
 
         if call.name == "read_research_source":
@@ -461,6 +777,7 @@ def run_task_builder_tools(
     system_prompt: str,
     config: BenchmarkConfig,
     include_source_tools: bool,
+    include_image_tools: bool = False,
     debug_dir: Path | None = None,
     stop_event: Event | None = None,
 ) -> tuple[str, list[str]]:
@@ -484,6 +801,8 @@ def run_task_builder_tools(
         maximum=100_000,
     )
     tools = [TASK_BUILDER_PYTHON_TOOL]
+    if include_image_tools:
+        tools.extend(TASK_BUILDER_IMAGE_TOOLS)
     if include_source_tools:
         tools.extend(TASK_BUILDER_SOURCE_TOOLS)
     settings = role_model_settings(config, "task_builder")
@@ -500,7 +819,12 @@ def run_task_builder_tools(
         int(getattr(config, "task_builder_truncation_retries", 3) or 0),
     )
     truncations_used = 0
+    call_retries = max(
+        0,
+        int(getattr(config, "task_builder_call_retries", 2) or 0),
+    )
     trace_index = len(list(debug_dir.glob("tool-round-*.json"))) if debug_dir else 0
+    tool_state: dict[str, Any] = {}
     task_plan = payload.get("task_plan") if isinstance(payload.get("task_plan"), dict) else {}
     builder_job_id = str(task_plan.get("builder_job_id") or "task-builder")
     work_dir = task_builder_work_dir(config, builder_job_id)
@@ -524,7 +848,7 @@ def run_task_builder_tools(
             **settings.call_kwargs(),
             backend=config.llm_backend,
             tools=current_tools,
-            max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+            max_tokens=TASK_BUILDER_MAX_OUTPUT_TOKENS,
             retry_on_truncation=False,
             trace_dir=debug_dir / "llm" if debug_dir is not None else None,
             trace_name=f"task-builder-{trace_index + 1:03d}",
@@ -560,6 +884,7 @@ def run_task_builder_tools(
         current_tools: list[ToolSpec],
     ) -> TargetToolModelResponse:
         nonlocal truncations_used
+        call_failures = 0
         while True:
             try:
                 return call_model_once(current_messages, current_tools)
@@ -588,6 +913,19 @@ def run_task_builder_tools(
                 notes.append(
                     "task-builder output truncated; replaced the interrupted response "
                     f"with summary {truncations_used}/{truncation_retries}"
+                )
+            except (CancelledError, TaskBuilderTruncationSummaryError):
+                raise
+            except Exception as exc:
+                if call_failures >= call_retries:
+                    raise TaskBuilderCallError(
+                        "TaskBuilder model call failed after "
+                        f"{call_retries} retry attempt(s): {type(exc).__name__}: {exc}"
+                    ) from exc
+                call_failures += 1
+                notes.append(
+                    "task-builder model call failed; retrying "
+                    f"({call_failures}/{call_retries}): {type(exc).__name__}: {exc}"
                 )
 
     def recover_missing_final_content(response: TargetToolModelResponse) -> TargetToolModelResponse:
@@ -638,6 +976,7 @@ def run_task_builder_tools(
                     config,
                     max_chars=max_chars,
                     work_dir=work_dir,
+                    tool_state=tool_state,
                 )
             )
         for skipped_call in response.tool_calls[remaining:]:
@@ -667,8 +1006,11 @@ def run_task_builder_tools(
 
 __all__ = [
     "TASK_BUILDER_PYTHON_TOOL",
+    "TASK_BUILDER_IMAGE_TOOLS",
     "TASK_BUILDER_SOURCE_TOOLS",
     "TASK_BUILDER_TOOL_PROMPT",
+    "TASK_BUILDER_MAX_OUTPUT_TOKENS",
+    "TaskBuilderCallError",
     "TaskBuilderTruncationSummaryError",
     "run_task_builder_tools",
     "summarize_task_builder_truncation",

@@ -622,10 +622,13 @@ def test_pipeline_attaches_and_persists_brief(monkeypatch, tmp_path) -> None:
     )
     suite = TaskSuite(spec=spec, objective=spec.objective, tasks=[item])
     qc_report = QcReport(passed_item_ids=[item.id], quality_score=1.0)
-    monkeypatch.setattr(
-        "evalclaw.pipeline.build_benchmark_suite_with_qc_loop",
-        lambda goal, config, **kwargs: (spec, suite, qc_report),
-    )
+    construction_config: dict = {}
+
+    def build_benchmark(goal, config, **kwargs):
+        construction_config["value"] = config
+        return spec, suite, qc_report
+
+    monkeypatch.setattr("evalclaw.pipeline.build_benchmark_suite_with_qc_loop", build_benchmark)
     config = BenchmarkConfig(
         use_deep_research=True,
         use_web_research=False,
@@ -649,6 +652,10 @@ def test_pipeline_attaches_and_persists_brief(monkeypatch, tmp_path) -> None:
     assert (tmp_path / "research_brief.json").exists()
     assert (tmp_path / "research_brief.md").exists()
     assert "## Benchmark Design Research" in pkg.report.markdown
+    run_dir = next((tmp_path / "debug" / "runs").iterdir())
+    used_config = construction_config["value"]
+    assert used_config.planner_debug_dir == str(run_dir / "planner")
+    assert used_config.task_builder_debug_dir == str(run_dir / "task-builder")
 
 
 @pytest.mark.parametrize(

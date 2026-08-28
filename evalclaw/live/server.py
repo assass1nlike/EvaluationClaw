@@ -5,9 +5,8 @@ Two modes of operation:
 1. **Standalone** (``evalclaw serve``): starts a persistent server that
    aggregates events from all ``generate`` processes via HTTP POST.
 
-2. **Embedded** (``evalclaw generate --live``): the generate process itself
-   starts a lightweight server that only serves its own run, then stops when
-   the run completes.
+2. **Generate clients** (``evalclaw generate --live``): each generate process
+   publishes its run events to the standalone server over HTTP.
 
 In both modes the browser points at::
 
@@ -24,15 +23,15 @@ import queue
 import threading
 import time
 import webbrowser
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .bus import _SENTINEL, event_json, global_bus
 
 _DEFAULT_PORT = 8800
-_server: HTTPServer | None = None
+_server: ThreadingHTTPServer | None = None
 _server_port: int | None = None
 _server_lock = threading.Lock()
 _start_lock = threading.Lock()
@@ -93,7 +92,13 @@ class _Handler(BaseHTTPRequestHandler):
 
         elif path.startswith("/events/"):
             run_id = path[8:]
-            self._serve_sse(run_id)
+            after_values = parse_qs(parsed.query).get("after", ["0"])
+            try:
+                after = max(0, int(after_values[0]))
+            except ValueError:
+                self._send_json({"error": "after must be an integer"}, 400)
+                return
+            self._serve_sse(run_id, after=after)
 
         elif path == "/api/runs":
             self._send_json(global_bus().list_runs())
@@ -122,9 +127,18 @@ class _Handler(BaseHTTPRequestHandler):
                 self._send_json({"error": "bad json"}, 400)
                 return
             run_id = data.get("run_id") or ""
-            event = data.get("event") or {}
-            if not run_id or not event:
-                self._send_json({"error": "missing run_id or event"}, 400)
+            if not run_id:
+                self._send_json({"error": "missing run_id"}, 400)
+                return
+            events = data.get("events")
+            if events is None:
+                event = data.get("event")
+                events = [event] if event else []
+            if not isinstance(events, list) or any(not isinstance(event, dict) for event in events):
+                self._send_json({"error": "events must be a list of objects"}, 400)
+                return
+            if not events and not data.get("end"):
+                self._send_json({"error": "missing event(s)"}, 400)
                 return
             bus = global_bus().get(run_id)
             if bus is None:
@@ -137,12 +151,15 @@ class _Handler(BaseHTTPRequestHandler):
                 )
                 bus = global_bus().get(run_id)
             if bus is not None:
-                bus.publish(event)
+                for event in events:
+                    bus.publish(event)
+                if data.get("end"):
+                    bus.end()
             self._send_json({"ok": True})
         else:
             self._send_json({"error": "not found"}, 404)
 
-    def _serve_sse(self, run_id: str) -> None:
+    def _serve_sse(self, run_id: str, *, after: int = 0) -> None:
         bus = global_bus().get(run_id)
         if bus is None:
             self._send_html("<h1>Run not found</h1>", 404)
@@ -153,7 +170,7 @@ class _Handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("X-Accel-Buffering", "no")
         self.end_headers()
-        q = bus.subscribe()
+        q = bus.subscribe(after=after)
         try:
             while True:
                 try:
@@ -172,11 +189,14 @@ class _Handler(BaseHTTPRequestHandler):
                 self.wfile.flush()
         except (BrokenPipeError, ConnectionResetError, OSError):
             pass
+        finally:
+            bus.unsubscribe(q)
 
 
-def _try_bind(port: int) -> HTTPServer | None:
+def _try_bind(port: int) -> ThreadingHTTPServer | None:
     try:
-        server = HTTPServer(("127.0.0.1", port), _Handler)
+        server = ThreadingHTTPServer(("127.0.0.1", port), _Handler)
+        server.daemon_threads = True
         return server
     except OSError:
         return None
@@ -228,18 +248,53 @@ def is_running() -> bool:
         return _server is not None
 
 
-def push_event(run_id: str, event: dict[str, Any], *, port: int = _DEFAULT_PORT) -> bool:
-    """POST a single event to a remote live server (used by generate process)."""
+def push_events(
+    run_id: str,
+    events: list[dict[str, Any]],
+    *,
+    url: str | None = None,
+    port: int = _DEFAULT_PORT,
+    goal: str = "",
+    created_at: str = "",
+    end: bool = False,
+    timeout: float = 2,
+) -> bool:
+    """POST a small event batch to a live server in another process."""
     import urllib.error
     import urllib.request
 
-    payload = json.dumps({"run_id": run_id, "event": event}, ensure_ascii=False).encode()
-    url = f"http://127.0.0.1:{port}/api/push"
+    endpoint = (url or f"http://127.0.0.1:{port}").rstrip("/")
+    if not endpoint.endswith("/api/push"):
+        endpoint += "/api/push"
+    payload = json.dumps(
+        {
+            "run_id": run_id,
+            "events": events,
+            "goal": goal,
+            "created_at": created_at,
+            "end": end,
+        },
+        ensure_ascii=False,
+    ).encode()
     req = urllib.request.Request(
-        url, data=payload, headers={"Content-Type": "application/json"}, method="POST"
+        endpoint,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=2):
+        with urllib.request.urlopen(req, timeout=timeout):
             return True
     except (urllib.error.URLError, OSError):
         return False
+
+
+def push_event(
+    run_id: str,
+    event: dict[str, Any],
+    *,
+    url: str | None = None,
+    port: int = _DEFAULT_PORT,
+) -> bool:
+    """POST one event to a live server (compatibility wrapper)."""
+    return push_events(run_id, [event], url=url, port=port)

@@ -52,6 +52,16 @@ class DockerImageBuildResult:
 
 
 @dataclass(frozen=True)
+class DockerImageCheckResult:
+    image: str
+    command: str
+    exit_code: int
+    stdout: str = ""
+    stderr: str = ""
+    timed_out: bool = False
+
+
+@dataclass(frozen=True)
 class _ImageRule:
     image: str
     reason: str
@@ -275,7 +285,7 @@ def _docker_tag_slug(value: str) -> str:
     return slug[:40] or "task"
 
 
-def _safe_context_path(raw_path: str) -> str:
+def safe_context_path(raw_path: str) -> str:
     path = raw_path.strip().replace("\\", "/")
     if not path or "\x00" in path:
         raise ValueError("Docker build context path is empty or invalid.")
@@ -354,7 +364,7 @@ def _write_context_files(context_dir: Path, files: Any) -> None:
     for raw_path, content in files.items():
         if not isinstance(raw_path, str):
             continue
-        clean = _safe_context_path(raw_path)
+        clean = safe_context_path(raw_path)
         target = context_dir / clean
         target.parent.mkdir(parents=True, exist_ok=True)
         if isinstance(content, bytes):
@@ -388,9 +398,14 @@ def _build_tag(env_config: dict[str, Any], dockerfile: str, *, task_text: str = 
     explicit_tag = str(build_config.get("tag") or build_config.get("image") or "").strip()
     if explicit_tag:
         return explicit_tag
+    context_dir = str(build_config.get("context_dir") or "").strip()
+    context_digest = ""
+    if context_dir and Path(context_dir).is_dir():
+        context_digest = _context_digest(Path(context_dir).resolve())
     digest_payload = {
         "dockerfile": dockerfile,
         "context_files": build_config.get("context_files") or build_config.get("build_context_files") or {},
+        "context_digest": context_digest,
         "task_text": task_text[:2000],
     }
     digest = hashlib.sha256(json.dumps(digest_payload, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()[:12]
@@ -410,7 +425,19 @@ def build_docker_image_if_requested(
         return env_config, None
     env = dict(env_config)
     build_config = env.get("image_build") if isinstance(env.get("image_build"), dict) else {}
-    dockerfile = _render_dockerfile(env, task_text=task_text)
+    configured_context = str(build_config.get("context_dir") or "").strip()
+    context_dir: Path | None = None
+    if configured_context:
+        context_dir = Path(configured_context).expanduser().resolve()
+        dockerfile_name = str(build_config.get("dockerfile_name") or "Dockerfile")
+        dockerfile_path = context_dir / safe_context_path(dockerfile_name)
+        if not dockerfile_path.is_file():
+            raise ValueError(
+                f"Dockerfile does not exist in configured Docker build context: {dockerfile_path}"
+            )
+        dockerfile = dockerfile_path.read_text(encoding="utf-8")
+    else:
+        dockerfile = _render_dockerfile(env, task_text=task_text)
     tag = _build_tag(env, dockerfile, task_text=task_text)
     resolved = resolve_docker_executable(docker_executable)
     if not resolved:
@@ -434,15 +461,16 @@ def build_docker_image_if_requested(
             }
             return env, DockerImageBuildResult(image=tag, built=False, dockerfile=dockerfile, detail="Image already exists locally.")
 
-    context_root = _build_context_root()
-    context_dir = context_root / _docker_tag_slug(tag.replace(":", "-"))
-    context_dir.mkdir(parents=True, exist_ok=True)
-    dockerfile_path = context_dir / "Dockerfile"
-    dockerfile_path.write_text(dockerfile, encoding="utf-8")
-    _write_context_files(
-        context_dir,
-        build_config.get("context_files") or build_config.get("build_context_files"),
-    )
+    if context_dir is None:
+        context_root = _build_context_root()
+        context_dir = context_root / _docker_tag_slug(tag.replace(":", "-"))
+        context_dir.mkdir(parents=True, exist_ok=True)
+        dockerfile_path = context_dir / "Dockerfile"
+        dockerfile_path.write_text(dockerfile, encoding="utf-8")
+        _write_context_files(
+            context_dir,
+            build_config.get("context_files") or build_config.get("build_context_files"),
+        )
     command = [resolved, "build"]
     for key, value in _docker_build_args(build_config).items():
         command.extend(["--build-arg", f"{key}={value}"])
@@ -480,6 +508,141 @@ def build_docker_image_if_requested(
         context_dir=str(context_dir),
         detail=output[-1000:],
         commands=[" ".join(command)],
+    )
+
+
+def _context_digest(context_dir: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(path for path in context_dir.rglob("*") if path.is_file()):
+        digest.update(str(path.relative_to(context_dir)).replace("\\", "/").encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()[:12]
+
+
+def build_docker_image_from_context(
+    context_dir: Path,
+    *,
+    dockerfile_name: str = "Dockerfile",
+    tag: str = "",
+    build_args: dict[str, Any] | None = None,
+    network: str = "default",
+    docker_executable: str = "docker",
+    timeout_s: int = 600,
+) -> DockerImageBuildResult:
+    """Build an image from a framework-managed, already materialized context."""
+    context_root = context_dir.expanduser().resolve()
+    if not context_root.is_dir():
+        raise ValueError(f"Docker build context does not exist: {context_root}")
+    clean_dockerfile = safe_context_path(dockerfile_name)
+    dockerfile_path = context_root / clean_dockerfile
+    if not dockerfile_path.is_file():
+        raise ValueError(f"Dockerfile does not exist in the build context: {clean_dockerfile}")
+    if network not in {"default", "none"}:
+        raise ValueError("Docker image build network must be 'default' or 'none'.")
+    resolved = resolve_docker_executable(docker_executable)
+    if not resolved:
+        raise RuntimeError("Docker executable is not available for image construction.")
+    image_tag = str(tag or f"evalclaw-builder:{_context_digest(context_root)}").strip()
+    if not image_tag:
+        raise ValueError("Docker image tag must not be empty.")
+    build_config = {"build_args": build_args or {}}
+    command = [resolved, "build", "--network", network, "-f", str(dockerfile_path)]
+    for key, value in _docker_build_args(build_config).items():
+        command.extend(["--build-arg", f"{key}={value}"])
+    command.extend(["-t", image_tag, str(context_root)])
+    try:
+        proc = subprocess.run(
+            command,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            check=False,
+            timeout=max(1, int(timeout_s)),
+            env=docker_subprocess_env(docker_executable),
+        )
+    except subprocess.TimeoutExpired as exc:
+        detail = (str(exc.stderr or exc.stdout or "Docker image build timed out.")).strip()
+        raise RuntimeError(f"Docker image build timed out for {image_tag}: {detail[-4000:]}") from exc
+    output = "\n".join(part for part in (proc.stdout, proc.stderr) if part).strip()
+    if proc.returncode != 0:
+        raise RuntimeError(f"Docker image build failed for {image_tag}: {output[-8000:]}")
+    return DockerImageBuildResult(
+        image=image_tag,
+        built=True,
+        dockerfile=dockerfile_path.read_text(encoding="utf-8"),
+        context_dir=str(context_root),
+        detail=output[-1000:],
+        commands=[" ".join(command)],
+    )
+
+
+def run_docker_image_check(
+    image: str,
+    command: str,
+    *,
+    network: str = "none",
+    workdir: str = "/workspace",
+    docker_executable: str = "docker",
+    timeout_s: int = 60,
+) -> DockerImageCheckResult:
+    """Run one bounded, disposable check inside an image without host mounts."""
+    image_name = str(image or "").strip()
+    check_command = str(command or "").strip()
+    if not image_name:
+        raise ValueError("Docker image check requires an image.")
+    if not check_command:
+        raise ValueError("Docker image check requires a command.")
+    if network not in {"default", "none"}:
+        raise ValueError("Docker image check network must be 'default' or 'none'.")
+    resolved = resolve_docker_executable(docker_executable)
+    if not resolved:
+        raise RuntimeError("Docker executable is not available for image checks.")
+    command_args = [
+        resolved,
+        "run",
+        "--rm",
+        "--network",
+        network,
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--workdir",
+        workdir,
+        image_name,
+        "sh",
+        "-lc",
+        check_command,
+    ]
+    try:
+        proc = subprocess.run(
+            command_args,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            check=False,
+            timeout=max(1, int(timeout_s)),
+            env=docker_subprocess_env(docker_executable),
+        )
+    except subprocess.TimeoutExpired as exc:
+        return DockerImageCheckResult(
+            image=image_name,
+            command=check_command,
+            exit_code=-1,
+            stdout=str(exc.stdout or ""),
+            stderr=str(exc.stderr or "") or "Docker image check timed out.",
+            timed_out=True,
+        )
+    return DockerImageCheckResult(
+        image=image_name,
+        command=check_command,
+        exit_code=proc.returncode,
+        stdout=proc.stdout or "",
+        stderr=proc.stderr or "",
     )
 
 

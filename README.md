@@ -136,6 +136,11 @@ provided, EvalClaw plans, builds, QC-checks, and exports the benchmark without
 running a target. Use `--no-run` when targets are configured but should be
 recorded without being called in the current run.
 
+Interrupted runs can be continued with `--resume-run <run-id-or-directory>`.
+The run directory keeps completed research, planning, construction, QC, and
+execution checkpoints; provide the current role credentials again when
+resuming. Omit `--goal` to use the goal recorded in the run.
+
 Automatic source search and TaskBuilder web research are disabled by default;
 enable them with `--web-research`. Explicit `--deep-research` is independent
 and still runs its Benchmark Design Research search stage.

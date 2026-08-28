@@ -191,10 +191,14 @@ def build_benchmark_suite_with_qc_loop(
     log: Callable[[str], None] = print,
     ask_user: Callable[[str], str] | None = None,
     trace_dir: str | Path | None = None,
+    resume_plan: BenchmarkPlan | None = None,
+    resume_suite: TaskSuite | None = None,
+    resume_qc_report: QcReport | None = None,
+    resume_repair_round: int = 0,
 ) -> tuple[EvalSpec, TaskSuite, QcReport]:
     """Plan TaskDesigns and build each through one independent Builder call."""
-    plan = plan_benchmark(goal, config, log=log)
-    if ask_user is not None:
+    plan = resume_plan or plan_benchmark(goal, config, log=log)
+    if ask_user is not None and resume_plan is None:
         plan = _review_plan(goal, plan, config, ask_user=ask_user, log=log)
     spec = plan.to_eval_spec()
     trace_root = Path(trace_dir) if trace_dir is not None else None
@@ -212,6 +216,9 @@ def build_benchmark_suite_with_qc_loop(
         config,
         log=log,
         trace_dir=trace_root,
+        resume_suite=resume_suite,
+        resume_qc_report=resume_qc_report,
+        resume_repair_round=resume_repair_round,
     )
     suite.plan = plan
     return spec, suite, qc_report
@@ -224,6 +231,9 @@ def build_suite_from_spec_with_qc_loop(
     *,
     log: Callable[[str], None] = print,
     trace_dir: str | Path | None = None,
+    resume_suite: TaskSuite | None = None,
+    resume_qc_report: QcReport | None = None,
+    resume_repair_round: int = 0,
 ) -> tuple[TaskSuite, QcReport]:
     """Build and QC an already planned specification through the general route."""
     qc_debug_root = None
@@ -246,6 +256,18 @@ def build_suite_from_spec_with_qc_loop(
         log(f"  QC: saved complete trace: {trace_dir}.")
         return report
 
+    def save_qc_checkpoint(round_index: int, candidate: TaskSuite, report: QcReport) -> None:
+        if trace_root is None:
+            return
+        write_json(
+            trace_root / "qc-checkpoints" / f"round-{round_index:02d}.json",
+            {
+                "round": round_index,
+                "suite": candidate.model_dump(mode="json"),
+                "qc_report": report.model_dump(mode="json"),
+            },
+        )
+
     planned_dimension_ids = {job.dimension_id for job in builder_jobs}
     missing_dimension_ids = [
         dimension.id
@@ -259,16 +281,26 @@ def build_suite_from_spec_with_qc_loop(
         )
 
     trace_root = Path(trace_dir) if trace_dir is not None else None
-    suite = build_task_suite(spec, builder_jobs, config, log=log)
-    if trace_root is not None:
+    checkpoint_root = trace_root / "builder-checkpoints" if trace_root is not None else None
+    suite = resume_suite or build_task_suite(
+        spec,
+        builder_jobs,
+        config,
+        log=log,
+        checkpoint_dir=checkpoint_root,
+        checkpoint_namespace="initial",
+    )
+    if trace_root is not None and resume_suite is None:
         write_json(trace_root / "initial-suite.json", suite.model_dump(mode="json"))
-    qc_report = run_traced_qc(suite, "00-initial")
-    if trace_root is not None:
-        write_json(trace_root / "initial-qc.json", qc_report.model_dump(mode="json"))
+    qc_report = resume_qc_report
+    if qc_report is None:
+        qc_report = run_traced_qc(suite, "00-initial")
+        if trace_root is not None:
+            write_json(trace_root / "initial-qc.json", qc_report.model_dump(mode="json"))
     log(f"  QC: reviewing {len(suite.tasks)} constructed task(s). {qc_report.summary}")
 
     max_repairs = max(0, int(config.max_qc_iterations))
-    for repair_round in range(1, max_repairs + 1):
+    for repair_round in range(max(1, resume_repair_round + 1), max_repairs + 1):
         affected_ids = _affected_builder_job_ids(suite, qc_report)
         if not affected_ids:
             break
@@ -287,6 +319,8 @@ def build_suite_from_spec_with_qc_loop(
                 affected_ids,
             ),
             log=log,
+            checkpoint_dir=checkpoint_root,
+            checkpoint_namespace=f"qc-{repair_round:02d}",
         )
         candidate_suite = _merge_repaired_suite(suite, repaired)
         candidate_qc = run_traced_qc(candidate_suite, f"{repair_round:02d}-repair-candidate")
@@ -304,6 +338,7 @@ def build_suite_from_spec_with_qc_loop(
                 f"  QC repair round {repair_round}: discarded non-improving replacement(s); "
                 "no repaired item strictly reduced its blocking error count."
             )
+            save_qc_checkpoint(repair_round, suite, qc_report)
             continue
 
         selected_suite = candidate_suite
@@ -349,6 +384,7 @@ def build_suite_from_spec_with_qc_loop(
                 f"  QC repair round {repair_round}: discarded non-improving replacement(s); "
                 "no repaired item remained improved after partial merge."
             )
+            save_qc_checkpoint(repair_round, suite, qc_report)
             continue
 
         rolled_back = repaired_ids - improved_ids
@@ -358,6 +394,7 @@ def build_suite_from_spec_with_qc_loop(
         )
         suite = selected_suite
         qc_report = selected_qc
+        save_qc_checkpoint(repair_round, suite, qc_report)
 
     if (not qc_report.is_acceptable or qc_report.rejected_item_ids) and not config.allow_incomplete_benchmark:
         blocking = [issue for issue in qc_report.issues if issue.severity == QcSeverity.error]

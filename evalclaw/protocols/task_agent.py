@@ -181,9 +181,10 @@ Fields:
   bioconductor_packages/bioc_packages, julia_packages, conda_packages with
   conda_channels, cargo_packages, go_packages, gem_packages,
   composer_packages, apk_packages/dnf_packages/yum_packages/pacman_packages,
-  install_steps, commands, dockerfile, context_files, tag, rebuild, and
-  build_timeout. EvaluationClaw will build a local task image before starting
-  the container, then run the workspace in that image.
+  install_steps, commands, dockerfile, context_dir, context_files, tag, rebuild,
+  and build_timeout. A relative context_dir may point to the current Builder
+  job's persisted build context; EvaluationClaw resolves it privately before
+  building a local task image, then runs the workspace in that image.
   Use environment_type="gui_desktop" when the task requires screenshot-driven
   browser or desktop software operation. Provide max_steps, timeout, session,
   evaluation, and usually requires_vm=true plus vm in agent_env. Put task files

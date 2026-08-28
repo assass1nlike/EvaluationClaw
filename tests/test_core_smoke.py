@@ -10,6 +10,7 @@ import pytest
 
 from evalclaw.construction import build_task_suite
 from evalclaw.construction.packaging import pack_task_item
+from evalclaw.construction.research import TaskBuilderCallError
 from evalclaw.construction.validation import task_structure_issues
 from evalclaw.core.scaling import scale_budget_target_items
 from evalclaw.core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY
@@ -318,6 +319,50 @@ def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> Non
                 use_hf_discovery=False,
             ),
         )
+
+
+def test_task_builder_call_failure_does_not_use_structure_repairs(monkeypatch) -> None:
+    calls = 0
+
+    def fail_tools(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        raise TaskBuilderCallError("model call failed after 2 retry attempts")
+
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fail_tools)
+    dimension = EvalDimension(
+        id="agent_capability",
+        name="Agent capability",
+        description="Evaluate realistic agent task execution.",
+        approach="Use executable tasks.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate agents.",
+        dimensions=[dimension],
+        task_types=[TaskType.agent],
+    )
+    blueprint = make_blueprint(
+        "agent_blueprint",
+        dimension.id,
+        "Agent task",
+        task_type=TaskType.agent,
+        content="One executable agent task.",
+        environment_type=AgentEnvironmentType.workspace,
+    )
+
+    with pytest.raises(RuntimeError, match="model call failed after 2 retry attempts"):
+        build_task_suite(
+            spec,
+            [blueprint],
+            BenchmarkConfig(
+                **dummy_config_kwargs(),
+                use_web_research=False,
+                use_hf_discovery=False,
+                task_builder_repair_attempts=5,
+            ),
+        )
+
+    assert calls == 1
 
 
 def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
@@ -1139,9 +1184,8 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
     ]
 
 
-def test_parallel_task_builder_failure_does_not_wait_for_running_job(monkeypatch) -> None:
+def test_parallel_task_builder_failure_stops_running_jobs_before_returning(monkeypatch) -> None:
     slow_started = threading.Event()
-    release_slow_job = threading.Event()
     slow_finished = threading.Event()
 
     def task_builder_tools(payload, **kwargs):
@@ -1149,7 +1193,7 @@ def test_parallel_task_builder_failure_does_not_wait_for_running_job(monkeypatch
         if blueprint_id == "slow_blueprint":
             slow_started.set()
             try:
-                release_slow_job.wait(timeout=5)
+                assert kwargs["stop_event"].wait(timeout=1)
             finally:
                 slow_finished.set()
             return '{"tasks": []}', []
@@ -1187,23 +1231,17 @@ def test_parallel_task_builder_failure_does_not_wait_for_running_job(monkeypatch
         ),
     ]
 
-    started_at = time.monotonic()
-    try:
-        with pytest.raises(RuntimeError, match="builder failed"):
-            build_task_suite(
-                spec,
-                blueprints,
-                BenchmarkConfig(
-                    **dummy_config_kwargs(),
-                    task_builder_max_workers=2,
-                    task_builder_repair_attempts=0,
-                ),
-            )
-        assert time.monotonic() - started_at < 1
-        assert not slow_finished.is_set()
-    finally:
-        release_slow_job.set()
-        assert slow_finished.wait(timeout=1)
+    with pytest.raises(RuntimeError, match="builder failed"):
+        build_task_suite(
+            spec,
+            blueprints,
+            BenchmarkConfig(
+                **dummy_config_kwargs(),
+                task_builder_max_workers=2,
+                task_builder_repair_attempts=0,
+            ),
+        )
+    assert slow_finished.is_set()
 
 
 def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path) -> None:
