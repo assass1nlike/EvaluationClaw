@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import copy
+import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from ..protocols.assets import environment_asset_sources
@@ -29,6 +31,37 @@ DEFAULT_WORKSPACE_ENV: dict[str, Any] = {
     "goal": {"outgoing_bin": ["blue_notebook", "charged_tablet"]},
     "max_steps": 8,
 }
+
+
+def _resolve_builder_image_context(
+    item: BenchmarkItem,
+    env_config: dict[str, Any],
+    config: BenchmarkConfig | None,
+) -> dict[str, Any]:
+    image_build = env_config.get("image_build")
+    if not isinstance(image_build, dict):
+        return env_config
+    context_dir = str(image_build.get("context_dir") or "").strip()
+    if not context_dir or Path(context_dir).is_absolute() or config is None:
+        return env_config
+    builder_job_id = str(item.metadata.get("builder_job_id") or "").strip()
+    if not builder_job_id or not str(config.output_dir).strip():
+        raise ValueError(
+            "A relative image_build.context_dir requires the task's builder_job_id and output_dir."
+        )
+    safe_job_id = re.sub(r"[^A-Za-z0-9._-]+", "_", builder_job_id).strip("._")
+    root = (
+        Path(config.output_dir).expanduser().resolve()
+        / "assets"
+        / "task-builder"
+        / (safe_job_id or "task-builder")
+    )
+    resolved = (root / context_dir).resolve()
+    if not resolved.is_relative_to(root):
+        raise ValueError("image_build.context_dir must stay inside the Builder job directory.")
+    updated = dict(env_config)
+    updated["image_build"] = {**image_build, "context_dir": str(resolved)}
+    return updated
 
 
 @dataclass
@@ -245,6 +278,7 @@ def build_agent_environment(
         env_config = copy.deepcopy(env_config)
     env_type = str(env_config.get("type") or "workspace")
     if env_type in {"code_sandbox", "docker_workspace"}:
+        env_config = _resolve_builder_image_context(item, env_config, config)
         task_text = "\n".join(
             value
             for value in (

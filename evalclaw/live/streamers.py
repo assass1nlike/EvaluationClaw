@@ -15,6 +15,29 @@ def _publish(run_id: str, event: dict[str, Any]) -> None:
         bus.publish(event)
 
 
+def _stream_group(
+    trace_dir: str | Path | None,
+    stage: str,
+    trace_name: str,
+) -> tuple[str, str] | None:
+    """Return a stable logical-call group and its display label.
+
+    A TaskBuilder can make several model calls while handling tools or repairs.
+    Those calls share the builder-job directory, so they should appear as one
+    live card. Other stages do not use logical grouping.
+    """
+    if trace_dir is not None:
+        parts = list(Path(trace_dir).resolve().parts)
+        for index, part in enumerate(parts[:-1]):
+            if part.lower() == "task-builder":
+                builder_id = parts[index + 1]
+                return (
+                    f"{stage}:task-builder:{builder_id}",
+                    f"TaskBuilder {builder_id}",
+                )
+    return None
+
+
 def get_streamer(
     trace_dir: str | Path | None,
     *,
@@ -22,8 +45,8 @@ def get_streamer(
 ) -> Callable[[str], None] | None:
     """Return an on_token callback wired to the live bus for this trace, or None.
 
-    Called by llm.py just before a streaming LLM call.  Returns None when
-    the live server is not running or no run is registered for this trace_dir.
+    Called by llm.py just before a streaming LLM call.  Returns None when no
+    run is registered for this trace_dir.
     """
     run_id = run_id_for_trace(trace_dir)
     if run_id is None:
@@ -34,11 +57,15 @@ def get_streamer(
 
     stage = stage_for_trace(trace_dir)
     call_id = f"{stage}:{trace_name}:{int(time.monotonic() * 1000)}"
+    stream_group = _stream_group(trace_dir, stage, trace_name)
+    group_id, group_label = stream_group or (call_id, trace_name)
 
     # Signal call start
     bus.publish({
         "type": "llm_start",
         "call_id": call_id,
+        "group_id": group_id,
+        "group_label": group_label,
         "stage": stage,
         "trace_name": trace_name,
         "t": time.time(),

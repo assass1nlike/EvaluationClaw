@@ -1,6 +1,7 @@
 """Single-route, TaskDesign-driven task-suite construction."""
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import shutil
@@ -14,7 +15,7 @@ from pathlib import Path
 from threading import Event, Lock
 
 from ..core.task_summary import compact_task_content_summary
-from ..diagnostics import error_record, write_json
+from ..diagnostics import _io_path, error_record, write_json
 from ..execution.agent_envs import build_agent_environment
 from ..execution.docker import require_docker_available
 from ..models.llm import (
@@ -42,6 +43,7 @@ from .packaging import pack_task_item
 from .parsing import _task_from_raw
 from .research import (
     TASK_BUILDER_TOOL_PROMPT,
+    TaskBuilderCallError,
     TaskBuilderTruncationSummaryError,
     run_task_builder_tools,
     task_builder_work_dir,
@@ -109,6 +111,26 @@ def _debug_job_slug(dimension_id: str, blueprint_id: str) -> str:
     raw = f"{dimension_id}__{blueprint_id}"
     digest = uuid.uuid5(uuid.NAMESPACE_OID, raw).hex[:8]
     return f"{_debug_slug(raw)[:24]}-{digest}"
+
+
+def _builder_checkpoint_digest(
+    spec: EvalSpec,
+    job: _BlueprintBuildJob,
+    revision_context: dict[str, object] | None,
+    namespace: str,
+) -> str:
+    revision = dict(revision_context or {})
+    revision.pop("path", None)
+    payload = {
+        "namespace": namespace,
+        "order": job.order,
+        "dimension": job.dimension.model_dump(mode="json"),
+        "blueprint": job.blueprint.model_dump(mode="json"),
+        "spec": spec.model_dump(mode="json"),
+        "revision": revision,
+    }
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -516,6 +538,8 @@ def build_task_suite(
     *,
     revision_context_by_dimension: dict[str, dict[str, object]] | None = None,
     log: Callable[[str], None] | None = None,
+    checkpoint_dir: str | Path | None = None,
+    checkpoint_namespace: str = "initial",
 ) -> TaskSuite:
     progress_lock = Lock()
 
@@ -530,6 +554,7 @@ def build_task_suite(
         if config.task_builder_debug_dir
         else None
     )
+    checkpoint_root = Path(checkpoint_dir).expanduser() if checkpoint_dir is not None else None
     debug_invocation_id = (
         datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
         + "-"
@@ -603,6 +628,71 @@ def build_task_suite(
             )
             order += 1
 
+    def checkpoint_path(job: _BlueprintBuildJob) -> Path | None:
+        if checkpoint_root is None:
+            return None
+        return checkpoint_root / (
+            f"{_debug_slug(checkpoint_namespace)}-{job.order:04d}-"
+            f"{_debug_job_slug(job.dimension.id, job.blueprint.id)}.json"
+        )
+
+    def save_checkpoint(
+        job: _BlueprintBuildJob,
+        result: _BlueprintBuildResult,
+        revision_context: dict[str, object] | None,
+    ) -> None:
+        path = checkpoint_path(job)
+        if path is None:
+            return
+        write_json(
+            path,
+            {
+                "schema_version": 1,
+                "namespace": checkpoint_namespace,
+                "order": job.order,
+                "builder_job_id": job.blueprint.id,
+                "dimension_id": job.dimension.id,
+                "context_digest": _builder_checkpoint_digest(
+                    spec, job, revision_context, checkpoint_namespace
+                ),
+                "resources": [resource.model_dump(mode="json") for resource in result.resources],
+                "tasks": [task.model_dump(mode="json") for task in result.tasks],
+                "notes": list(result.notes),
+            },
+        )
+
+    def load_checkpoint(
+        job: _BlueprintBuildJob,
+        revision_context: dict[str, object] | None,
+    ) -> _BlueprintBuildResult | None:
+        path = checkpoint_path(job)
+        if path is None:
+            return None
+        try:
+            io_path = _io_path(path)
+            if not io_path.is_file():
+                return None
+            payload = json.loads(io_path.read_text(encoding="utf-8"))
+            if not isinstance(payload, dict):
+                return None
+            if (
+                payload.get("schema_version") != 1
+                or payload.get("namespace") != checkpoint_namespace
+                or payload.get("order") != job.order
+                or payload.get("builder_job_id") != job.blueprint.id
+                or payload.get("dimension_id") != job.dimension.id
+                or payload.get("context_digest")
+                != _builder_checkpoint_digest(spec, job, revision_context, checkpoint_namespace)
+            ):
+                return None
+            resources = [TaskResource.model_validate(value) for value in payload.get("resources", [])]
+            tasks = [TaskDefinition.model_validate(value) for value in payload.get("tasks", [])]
+            notes = [str(value) for value in payload.get("notes", [])]
+        except (OSError, TypeError, ValueError, UnicodeError, json.JSONDecodeError):
+            return None
+        emit(f"  Task builder: resumed completed job {job.blueprint.id} from {path}.")
+        return _BlueprintBuildResult(job.order, resources, tasks, notes)
+
     if jobs:
         emit(
             f"  Task builder: {len(jobs)} TaskDesign job(s) covering "
@@ -610,7 +700,22 @@ def build_task_suite(
             f"{len({job.dimension.id for job in jobs})} dimension(s)."
         )
 
-    job_progress_index = {job.order: index for index, job in enumerate(jobs, 1)}
+    all_jobs = list(jobs)
+    for job in all_jobs:
+        revision = _revision_context_for_job(
+            (revision_context_by_dimension or {}).get(job.dimension.id),
+            builder_job_id=job.blueprint.id,
+        )
+        checkpoint = load_checkpoint(job, revision)
+        if checkpoint is not None:
+            build_results_by_order[job.order] = checkpoint
+    jobs = [job for job in all_jobs if job.order not in build_results_by_order]
+    if len(jobs) != len(all_jobs):
+        emit(
+            f"  Task builder: resumed {len(all_jobs) - len(jobs)} completed job(s); "
+            f"{len(jobs)} job(s) remain."
+        )
+    job_progress_index = {job.order: index for index, job in enumerate(all_jobs, 1)}
 
     def job_label(job: _BlueprintBuildJob) -> str:
         allocation = ", ".join(
@@ -674,13 +779,18 @@ def build_task_suite(
                 emit(f"  Task builder: could not save debug artifacts ({exc}).")
 
         emit(
-            f"  Task builder: starting {job_progress_index[job.order]}/{len(jobs)} - "
+            f"  Task builder: starting {job_progress_index[job.order]}/{len(all_jobs)} - "
             f"{label}."
         )
         job_revision = _revision_context_for_job(
             (revision_context_by_dimension or {}).get(dimension.id),
             builder_job_id=blueprint.id,
         )
+
+        def finish_result(result: _BlueprintBuildResult) -> _BlueprintBuildResult:
+            save_checkpoint(job, result, job_revision)
+            return result
+
         if job_revision and not job_revision.get("qc_issues"):
             return _BlueprintBuildResult(
                 order=job.order,
@@ -813,13 +923,21 @@ def build_task_suite(
                 if debug_job_dir is not None
                 else {}
             )
+            tool_kwargs = {
+                "include_source_tools": blueprint.source_strategy != "generated",
+                "stop_event": stop_event,
+                **debug_kwargs,
+            }
+            if blueprint.environment_type in {
+                AgentEnvironmentType.code_sandbox,
+                AgentEnvironmentType.docker_workspace,
+            }:
+                tool_kwargs["include_image_tools"] = True
             raw_response, tool_notes = run_task_builder_tools(
                 call_payload,
                 system_prompt=system_prompt,
                 config=config,
-                include_source_tools=blueprint.source_strategy != "generated",
-                stop_event=stop_event,
-                **debug_kwargs,
+                **tool_kwargs,
             )
             result_notes.extend(tool_notes)
             if job_revision:
@@ -1152,6 +1270,15 @@ def build_task_suite(
                     f"retry attempt(s) for {label}."
                 )
                 break
+            except TaskBuilderCallError as exc:
+                last_validation_issues = [f"{type(exc).__name__}: {exc}"]
+                persist_builder_debug(
+                    attempt=attempt,
+                    status="call_failed",
+                    validation_issues=last_validation_issues,
+                    error=exc,
+                )
+                raise strict_error(blueprint, str(exc)) from exc
             except LLMFinalContentMissingError as exc:
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
                 persist_builder_debug(
@@ -1221,12 +1348,12 @@ def build_task_suite(
                     status="accepted",
                     parsed_keys=parsed_keys,
                 )
-                return _BlueprintBuildResult(
+                return finish_result(_BlueprintBuildResult(
                     order=job.order,
                     resources=attempt_result.resources,
                     tasks=attempt_result.tasks,
                     notes=result_notes + attempt_result.notes,
-                )
+                ))
             if job_revision and attempt_result.valid_tasks and (
                 best_partial_result is None
                 or len(attempt_result.valid_tasks) > len(best_partial_result.valid_tasks)
@@ -1272,7 +1399,7 @@ def build_task_suite(
                 f"  Task builder: keeping {len(best_partial_result.valid_tasks)} structurally valid "
                 f"replacement(s) from {label}; its other previous tasks remain unchanged."
             )
-            return _BlueprintBuildResult(
+            return finish_result(_BlueprintBuildResult(
                 order=job.order,
                 resources=[
                     resource
@@ -1281,7 +1408,7 @@ def build_task_suite(
                 ],
                 tasks=best_partial_result.valid_tasks,
                 notes=result_notes + best_partial_result.notes,
-            )
+            ))
         if job_revision is not None and last_failure_is_output:
             emit(
                 f"  Task builder: no valid replacement produced for {label}; "
@@ -1302,7 +1429,7 @@ def build_task_suite(
         for job in jobs:
             build_results_by_order[job.order] = build_blueprint_job(job)
             completed_jobs += 1
-            emit(f"  Task builder: completed {completed_jobs}/{len(jobs)} - {job_label(job)}.")
+            emit(f"  Task builder: completed {completed_jobs}/{len(all_jobs)} - {job_label(job)}.")
     else:
         executor = ThreadPoolExecutor(max_workers=min(max_workers, len(jobs)))
         futures = {}
@@ -1313,14 +1440,14 @@ def build_task_suite(
                 build_results_by_order[result.order] = result
                 completed_jobs += 1
                 emit(
-                    f"  Task builder: completed {completed_jobs}/{len(jobs)} - "
+                    f"  Task builder: completed {completed_jobs}/{len(all_jobs)} - "
                     f"{job_label(futures[future])}."
                 )
-        except Exception:
+        except BaseException:
             stop_event.set()
             for future in futures:
                 future.cancel()
-            executor.shutdown(wait=False, cancel_futures=True)
+            executor.shutdown(wait=True, cancel_futures=True)
             raise
         else:
             executor.shutdown()

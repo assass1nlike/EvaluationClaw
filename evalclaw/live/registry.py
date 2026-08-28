@@ -19,9 +19,15 @@ def register_run(
     goal: str = "",
     created_at: str = "",
     debug_dir: str | Path | None = None,
+    remote_url: str | None = None,
 ) -> RunBus:
     """Create a RunBus and record the debug_dir → run_id mapping."""
-    bus = global_bus().create(run_id, goal=goal, created_at=created_at)
+    bus = global_bus().create(
+        run_id,
+        goal=goal,
+        created_at=created_at,
+        remote_url=remote_url,
+    )
     if debug_dir is not None:
         root = str(Path(debug_dir).resolve())
         with _lock:

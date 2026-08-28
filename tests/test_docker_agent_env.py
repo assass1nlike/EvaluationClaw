@@ -374,3 +374,48 @@ def test_docker_workspace_builds_requested_custom_image(monkeypatch) -> None:
         assert not any(command[1] == "pull" and "evalclaw-test:custom" in command for command in calls)
     finally:
         env.cleanup()
+
+
+def test_docker_workspace_builds_from_persisted_context_dir(monkeypatch, tmp_path) -> None:
+    calls: list[list[str]] = []
+    build_calls: list[list[str]] = []
+    _mock_docker(monkeypatch, calls)
+    context_dir = tmp_path / "image-context"
+    context_dir.mkdir()
+    (context_dir / "Dockerfile").write_text(
+        "FROM python:3.11-slim\nRUN python -c \"print('ready')\"\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("evalclaw.execution.docker_images.resolve_docker_executable", lambda executable: "docker")
+    monkeypatch.setattr("evalclaw.execution.docker_images.docker_subprocess_env", lambda executable: {})
+
+    def fake_build_run(command, **kwargs):
+        if command[1] == "image" and command[2] == "inspect":
+            return subprocess.CompletedProcess(command, 1, stdout="", stderr="not found")
+        if command[1] == "build":
+            build_calls.append(command)
+            assert command[-1] == str(context_dir.resolve())
+            assert "-f" not in command
+            return subprocess.CompletedProcess(command, 0, stdout="built\n", stderr="")
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr("evalclaw.execution.docker_images.subprocess.run", fake_build_run)
+    env = DockerWorkspaceAgentEnvironment.from_config(
+        {
+            "type": "docker_workspace",
+            "image": "build://auto",
+            "image_build": {
+                "enabled": True,
+                "context_dir": str(context_dir),
+                "tag": "evalclaw-test:persisted-context",
+            },
+            "test_command": "true",
+            "pull_image": False,
+        }
+    )
+
+    try:
+        assert env.image == "evalclaw-test:persisted-context"
+        assert build_calls
+    finally:
+        env.cleanup()

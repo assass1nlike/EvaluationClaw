@@ -123,7 +123,7 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 | P1 | 初次规划 | Planner | base + Planner Skill + format reference | `<PLANNER_RESOURCES>` | 无 | 完整 plan JSON |
 | P2 | 计划解析/审计失败 | Planner | 与 P1 相同 | P1 输入 + repair file | 无 | 完整替换 plan |
 | P3 | 人工要求修改计划 | Planner | 与 P1 相同 | 用户 goal、人工意见与上一版完整 plan | 无 | 完整替换 plan |
-| B1 | 每个 TaskDesign | TaskBuilder | base + 可选环境 Skill + 构题工具 prompt | TaskBuilder payload JSON | `run_python`；非 generated 另有 4 个来源工具 | resources/tasks |
+| B1 | 每个 TaskDesign | TaskBuilder | base + 可选环境 Skill + 构题工具 prompt | TaskBuilder payload JSON | `run_python`；环境题另有镜像构建/检查工具；非 generated 另有 4 个来源工具 | resources/tasks |
 | B2 | 使用构题工具 | TaskBuilder | 与 B1 相同 | user + assistant tool call + tool result | 与 B1 相同 | 最终完整 JSON |
 | B3 | Builder 输出截断 | TaskBuilder | 截断摘要 prompt 后与 B1 相同 | 当前截断响应；重试保留原对话并以摘要替换该响应 | 摘要时无工具，重试时与 B1 相同 | 在原对话中继续并返回完整 JSON |
 | B4 | Builder 结构不合法 | TaskBuilder | 与 B1 相同 | payload + repair | 与 B1 相同 | 初次构题返回完整 JSON；QC repair 编辑候选文件 |
@@ -748,6 +748,10 @@ revealing answers or other unintended information. Asset filenames within one
 environment-backed task must be unique. Return an empty assets list when the task has
 no file input. Do not put task input files in metadata.
 <!-- -->
+For code_sandbox and docker_workspace tasks, environment.workdir must be an absolute
+POSIX path inside the runtime; use /workspace unless the task requires another directory,
+and never use `.` or another relative path.
+<!-- -->
 For initial construction, the tasks array length and per-type counts must
 exactly match the TaskDesign. For QC repair, they must instead exactly match
 task_builder_contract.task_schema.required_task_type_counts.
@@ -844,6 +848,14 @@ verbatim in prompt or choices. When source tools are available, use read_researc
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
+For environment-backed tasks, files that belong to the environment&#39;s declared initial
+visible state go in environment.visible_files; use assets for task-input files created
+or downloaded by construction tools that must be copied into the workdir.
+When image construction tools are available, use run_python to create or edit a
+Dockerfile and its context files in the Builder job directory, then use build_image to
+build and inspect that image. Use run_image_check for short dependency or startup
+checks after a successful build. Preserve the returned relative image_build.context_dir
+and image tag in the final task environment.
 During QC repair, use run_python to edit the JSON file at revision.path in place,
 then return a compact JSON confirmation. Otherwise, return the complete task-builder
 JSON object after tool use. The tool budget is bounded; stop once the task is
@@ -1242,7 +1254,7 @@ def run_task_builder_tools(
             **settings.call_kwargs(),
             backend=config.llm_backend,
             tools=tools,
-            max_tokens=16384,
+            max_tokens=65536,
             retry_on_truncation=False,
         )
         if not response.tool_calls:
@@ -1262,7 +1274,7 @@ def run_task_builder_tools(
                 **settings.call_kwargs(),
                 backend=config.llm_backend,
                 tools=[],
-                max_tokens=16384,
+                max_tokens=65536,
                 retry_on_truncation=False,
             )
             return response.content, notes + [f&quot;tool budget exhausted at {calls_used} call(s)&quot;]
@@ -1301,7 +1313,7 @@ def run_task_builder_tools(
                 **settings.call_kwargs(),
                 backend=config.llm_backend,
                 tools=[],
-                max_tokens=16384,
+                max_tokens=65536,
                 retry_on_truncation=False,
             )
             return response.content, notes + [f&quot;tool budget exhausted at {calls_used} call(s)&quot;]
@@ -1407,6 +1419,7 @@ Use runtime environment type `docker_workspace`.
 - Choose a suitable common image, use `image: &quot;auto&quot;`, or define `image_build` only when a common image is insufficient.
 - Put target-visible files in `visible_files`, setup-only server/application material in `runtime_files`, and evaluator-only tests in `hidden_files`.
 - Files created or downloaded through construction tools may remain in top-level `assets`; the framework copies them into the container workdir under their filenames. Never put their host paths in the prompt or environment.
+- Set `environment.workdir` to an absolute POSIX path inside the container, using `/workspace` unless the task requires another directory; `.` and other relative paths are invalid.
 - Use `setup_commands` for bounded initialization and provide the exact `test_command` for deterministic scoring; use `evaluation` to configure how that command&#39;s structured result is interpreted.
 - Specify timeout and resource limits appropriate to the workload.
 - If browser interaction is required, configure the canonical browser runtime with a start URL and allowed origins.
@@ -2575,7 +2588,7 @@ def compact_agent_task_package(package: dict[str, Any]) -&gt; dict[str, Any]:
 <a id="appendix-g"></a>
 ## 附录 G：BenchmarkConfig 完整字段表
 
-定义位置：`evalclaw/types.py` 的 `BenchmarkConfig`。当前模型使用 `extra="forbid"`，因此表外字段会被 Pydantic 拒绝。下表覆盖当前全部 71 个字段。
+定义位置：`evalclaw/types.py` 的 `BenchmarkConfig`。当前模型使用 `extra="forbid"`，因此表外字段会被 Pydantic 拒绝。下表覆盖当前全部 73 个字段。
 
 “LLM 可见性”含义：
 
@@ -2635,12 +2648,13 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `research_brief` | `Optional[ResearchBrief]` | `None` | 预置或本次生成的研究结果与保留正文 | 直接但压缩：Planner/Builder 只收 compact brief；Builder 可按 URL 读保留正文 |
 | `use_hf_discovery` | `bool` | `True` | Deep Research/来源阶段是否发现 HuggingFace 数据集候选 | 派生 |
 
-### G.3 构题、QC 与模型调用控制（8 个字段）
+### G.3 构题、QC 与模型调用控制（9 个字段）
 
 | 字段 | 类型 | 默认值 | 作用 | LLM 可见性 |
 |---|---|---|---|---|
 | `task_builder_max_workers` | `int` | `4` | 可并发执行的 TaskDesign Builder job 数 | 否 |
 | `task_builder_repair_attempts` | `int` | `2` | 每个 Builder job 在全局 QC 前的结构修复次数 | 直接：修复 payload 的 `max_repair_attempts` |
+| `task_builder_call_retries` | `int` | `2` | 每个 TaskBuilder 模型调用失败后的重试次数 | 否 |
 | `task_builder_truncation_retries` | `int` | `3` | 每个 Builder job 的输出截断恢复次数 | 否 |
 | `task_builder_tool_max_calls` | `int` | `6` | 单次 Builder 构题工具调用预算，运行时限制为 1-12 | 否 |
 | `task_builder_tool_max_chars` | `int` | `50_000` | 每次构题工具结果的最大字符数，运行时限制为 1,000-100,000 | 派生：限制工具结果正文 |
@@ -2648,13 +2662,14 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `llm_backend` | `Literal["auto", "litellm"]` | `"auto"` | 标准模型调用使用 LiteLLM；`auto` 允许显式配置的 Responses、Anthropic native、target native tools 和 streaming adapter，`litellm` 则强制可由 LiteLLM 承担的调用使用 LiteLLM。LiteLLM 失败时不会切换协议或回退到手写 HTTP 实现 | 调用参数 |
 | `allow_incomplete_benchmark` | `bool` | `False` | QC 仍有阻塞问题时是否允许保留不完整草稿 | 否 |
 
-### G.4 流程、输出、人工审核与 Loop 3（14 个字段）
+### G.4 流程、输出、人工审核与 Loop 3（15 个字段）
 
 | 字段 | 类型 | 默认值 | 作用 | LLM 可见性 |
 |---|---|---|---|---|
 | `output_dir` | `str` | `"./benchmark-output"` | JSON、报告、viewer、调试目录等输出根目录 | 否 |
-| `planner_debug_dir` | `Optional[str]` | `None` | Planner 原始响应和校验诊断目录；流水线默认使用 `output_dir/debug/planner` | 否 |
-| `task_builder_debug_dir` | `Optional[str]` | `None` | TaskBuilder 请求、响应和修复调试记录目录 | 否 |
+| `live_url` | `Optional[str]` | `None` | 跨进程 live 服务的基础 URL；设置后由生成进程批量推送运行事件 | 否 |
+| `planner_debug_dir` | `Optional[str]` | `None` | Planner 原始响应和校验诊断目录；流水线默认使用 `output_dir/debug/runs/<run-id>/planner` | 否 |
+| `task_builder_debug_dir` | `Optional[str]` | `None` | TaskBuilder 请求、响应和修复调试记录目录；流水线默认使用 `output_dir/debug/runs/<run-id>/task-builder` | 否 |
 | `run_targets` | `bool` | `True` | benchmark/QC 完成后是否实际调用 targets | 否 |
 | `runner` | `str` | `"direct"` | `direct/lm-eval/auto` 执行与导出路径 | 否 |
 | `environment_claw` | `bool` | `True` | 是否运行环境能力探测与准备 | 否 |
@@ -2684,7 +2699,7 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `vm_provider_timeout_s` | `int` | `600` | VM provider 创建/操作超时 | 否 |
 | `vm_provider_destroy_on_cleanup` | `bool` | `True` | 清理阶段是否销毁临时 VM | 否 |
 
-`TargetModelConfig` 和 `ResearchBrief` 是嵌套模型，不在 69 个顶层字段计数中；后者的完整结构见
+`TargetModelConfig` 和 `ResearchBrief` 是嵌套模型，不在 73 个顶层字段计数中；后者的完整结构见
 [附录 H](#appendix-h)。新增或删除 `BenchmarkConfig` 字段时，应同时更新本附录的
 分组计数和字段行。
 
@@ -3045,11 +3060,13 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
 <a id="appendix-d-tools"></a>
 ### D.2 构题工具消息
 
-所有 TaskDesign 在初次构题和 QC repair 时都可使用 `run_python`；adapted、reused 和 imported_dataset 还可使用四个来源工具。关闭网页搜索只会禁用 `search_web`，不会阻止读取既有正文、抓取 URL 正文或下载明确给出的文件。工具 schema 由模型调用接口直接提供，不在 D.1 的 user JSON 中重复声明。
+所有 TaskDesign 在初次构题和 QC repair 时都可使用 `run_python`；`code_sandbox` 和 `docker_workspace` 还可使用受控的镜像构建与检查工具；adapted、reused 和 imported_dataset 还可使用四个来源工具。关闭网页搜索只会禁用 `search_web`，不会阻止读取既有正文、抓取 URL 正文或下载明确给出的文件。工具 schema 由模型调用接口直接提供，不在 D.1 的 user JSON 中重复声明。
 
 工具：
 
 - `run_python(code)`：以当前 Builder job 的 `output_dir/assets/task-builder/<Builder job>/` 为工作目录，在独立 Python 进程中执行代码，用于计算、验证以及生成或处理题目文件；限制 60 秒，返回退出码、标准输出、错误输出及本次生成或改动的宿主机绝对路径。该路径只用于构题和 `assets.path`，不进入环境题的 target-visible 内容。
+- `build_image(dockerfile_path, context_files?, tag?, build_args?, network?, timeout_s?)`：从当前 Builder job 工作目录内的 Dockerfile 和显式列出的文件构建一个临时镜像；构建上下文只接受该目录内的文件，最多 3 次构建，构建目录会保留在 Builder job 输出中。成功时返回镜像标签和相对 `image_build.context_dir`，最终环境应保存该配置。
+- `run_image_check(command, image?, timeout_s?)`：在最近构建的镜像（或显式镜像）中启动无宿主机挂载、无网络的临时容器执行短检查，返回退出码、标准输出和错误输出；最多 6 次检查。
 - `read_research_source(url, max_chars?)`：按 URL 读取本次 Deep Research 已归档正文。
 - `search_web(query, max_results?)`：发起新查询。
 - `fetch_url(url, max_chars?)`：抓取公开 HTTP(S) 正文。
@@ -3519,7 +3536,7 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 - `manifest.json`：artifact 索引。
 - `lm-eval/`：`runner=lm-eval` 或 `auto` 时的 JSONL/YAML/metadata 导出；`run_lm_eval` 对每个 target 运行 lm-eval-harness（若可解析出可执行文件），结果写入 `lm-eval-results/<target>/`。
 
-`debug/` 保存可恢复和排障所需的中间状态：`runs/` 含脱敏配置、原始/标准化 goal、pipeline 日志、Plan/Suite/QC 阶段检查点及最终状态或异常；`planner/`、`task-builder/`、`qc/`、`human-review/`、`loop3/` 保存各阶段请求、响应和校验结果；`runner/` 在每个 target × item 完成后立即保存结果。Agent 题还会逐步保存交互轨迹，并在清理环境前导出最终工作区、完整 evaluator 输出或桌面桥状态。
+`debug/` 保存可恢复和排障所需的中间状态：`runs/` 含脱敏配置、原始/标准化 goal、pipeline 日志、Plan/Suite/QC 阶段检查点及最终状态或异常；`planner/`、`task-builder/`、`qc/`、`human-review/`、`loop3/` 保存各阶段请求、响应和校验结果；`runner/` 在每个 target × item 完成后立即保存结果。Agent 题还会逐步保存交互轨迹，并在清理环境前导出最终工作区、完整 evaluator 输出或桌面桥状态。对已有 run 目录使用 `evalclaw generate --resume-run <run-id-or-directory>` 可从最近的完整阶段继续；恢复时重新提供当前运行所需的角色凭据，goal 可省略以使用该 run 记录的 goal。
 
 公开 package、报告与 viewer 会掩码 `sk-` 密钥串；调试配置、provider 请求和异常记录还会按敏感字段名及 Authorization/Bearer 形式递归脱敏。HTTP 请求头不写入调试文件。
 
@@ -3559,11 +3576,12 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 - `auto`（默认）：允许显式配置的 Responses、Anthropic native、target native tools 和 streaming adapter。
 - `litellm`：强制可承担的调用走 LiteLLM。LiteLLM 失败时不会切换协议或回退到手写 HTTP 实现。
 
-`call_llm` 的分支顺序：`openai_responses` provider → Anthropic native（provider/base_url 显式且非 litellm）→ OpenAI-compatible（有 base_url 且非 litellm）→ LiteLLM。所有分支都以 provider 对应的流式协议接收响应，适配层组装完整正文、reasoning 和工具调用后再返回业务层。DeepSeek V4 系列在需要 JSON 时禁用 thinking 并请求 `json_object`；所有模型调用的初始输出预算至少为 32768 tokens，reasoning 模型在支持时另传 `reasoning_effort`。
+`call_llm` 的分支顺序：`openai_responses` provider → Anthropic native（provider/base_url 显式且非 litellm）→ OpenAI-compatible（有 base_url 且非 litellm）→ LiteLLM。所有分支都以 provider 对应的流式协议接收响应，适配层组装完整正文、reasoning 和工具调用后再返回业务层。DeepSeek V4 系列在需要 JSON 时禁用 thinking 并请求 `json_object`；普通模型调用的初始输出预算至少为 32768 tokens，TaskBuilder 主调用使用 65536 tokens，reasoning 模型在支持时另传 `reasoning_effort`。
 
 ### K.4 重试与截断
 
 - **网络重试**：OpenAI-compatible 和 Responses 的直接流式请求对传输错误、429、5xx 做最多 3 次退避重试，并受总体时限约束；SDK 路径使用对应客户端的网络重试。
+- **TaskBuilder 调用失败**：TaskBuilder 工具循环对模型调用层错误使用 `task_builder_call_retries` 独立重试；达到上限后失败，不消耗结构修复次数。工具返回的业务错误仍交给 TaskBuilder 继续处理。
 - **截断**：`finish_reason=length`（或 Responses `incomplete/max_output_tokens`）时，`retry_on_truncation=true` 则加倍 budget 重试一次（上限 65536），仍截断则抛 `LLMOutputTruncatedError`——框架不会静默 json-repair 截断输出。TaskBuilder 的截断恢复路径见 D.4。
 - **JSON 解析**：`extract_json`（`evalclaw/models/json_utils.py`）负责从模型文本提取 JSON；各调用点对非 JSON/结构不符做明确失败或重试。
 - **调用记录**：启用输出目录时，每次框架发起的 provider 尝试都保存脱敏请求、原始响应、usage、结束原因和错误；截断异常保留当次原始响应。阶段目录负责把这些调用记录与对应的 Planner、TaskBuilder、QC、Research、Judge、Task Agent 或 target item 关联。
