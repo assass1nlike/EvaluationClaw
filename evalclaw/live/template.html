@@ -223,6 +223,18 @@ a:hover { color: var(--accent-hi); }
   color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .card-spacer { flex: 1; }
+.card-follow {
+  width: 20px; height: 20px;
+  padding: 0; border: 1px solid transparent; border-radius: 4px;
+  background: transparent; color: var(--faint); cursor: pointer;
+  font-size: 15px; line-height: 18px; text-align: center;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.card-follow:hover,
+.card-follow[data-following="true"] {
+  color: var(--accent-hi); border-color: rgba(77,156,246,.35);
+  background: var(--accent-lo);
+}
 .card-timer {
   font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums;
   color: var(--faint); white-space: nowrap;
@@ -254,6 +266,11 @@ a:hover { color: var(--accent-hi); }
   animation: blink .9s step-end infinite;
   vertical-align: text-bottom;
 }
+.card-body .stream-char {
+  opacity: 0;
+  animation: stream-char-in .22s ease-out forwards;
+}
+@keyframes stream-char-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes blink { 0%,100%{opacity:.8} 50%{opacity:0} }
 .card-body .json-key    { color: #89ddff; }
 .card-body .json-str    { color: #c3e88d; }
@@ -375,12 +392,110 @@ let runState = {
   ended: false,
   failed: false,
   stages: {},      // stage_id → {status, start, end}
-  calls: {},       // call_id → {stage, trace_name, tokens, state, start, end, expanded}
-  callOrder: [],   // insertion order
+  calls: {},       // call_id → {group_id, state, start, end}
+  groups: {},      // logical display card → {stage, label, tokens, state, start, end, expanded}
+  groupOrder: [],  // insertion order
   logs: [],
 };
 
 let elapsedTimer = null;
+let lastEventSeq = 0;
+let cardRenderFrame = null;
+const pendingCardRenders = new Set();
+const STREAM_INTERVAL_MS = 28;
+const STREAM_DEFAULT_RATE = 72;
+const STREAM_MIN_RATE = 30;
+const STREAM_MAX_RATE = 280;
+
+function updateFollowButton(el, following) {
+  const button = $(".card-follow", el);
+  if (!button) return;
+  button.dataset.following = following ? "true" : "false";
+  button.title = following ? "Following latest output" : "Follow latest output";
+  button.setAttribute("aria-label", button.title);
+}
+
+function scrollCardToBottom(group, body) {
+  if (!group.followBottom) return;
+  group.autoScrolling = true;
+  body.scrollTop = body.scrollHeight;
+  group.autoScrolling = false;
+}
+
+function appendStreamText(group, body, count, animate = true) {
+  let stream = $(".stream-content", body);
+  let cursor = $(".cursor", body);
+  if (!stream || !cursor) {
+    body.innerHTML = '<span class="stream-content"></span><span class="cursor"></span>';
+    stream = $(".stream-content", body);
+    cursor = $(".cursor", body);
+    group.renderedTokenLength = 0;
+  }
+  if (group.renderedTokenLength > group.tokens.length) {
+    stream.textContent = "";
+    group.renderedTokenLength = 0;
+  }
+  const pendingText = group.tokens.slice(group.renderedTokenLength);
+  const newText = Array.from(pendingText).slice(0, count).join("");
+  const end = group.renderedTokenLength + newText.length;
+  if (animate) {
+    const fragment = document.createDocumentFragment();
+    for (const charText of Array.from(newText)) {
+      const char = document.createElement("span");
+      char.className = "stream-char";
+      char.textContent = charText;
+      fragment.appendChild(char);
+    }
+    stream.appendChild(fragment);
+  } else {
+    stream.appendChild(document.createTextNode(newText));
+  }
+  group.renderedTokenLength = end;
+  scrollCardToBottom(group, body);
+}
+
+function noteIncomingText(group, call, text, eventTime) {
+  if (!text) return;
+  const now = Number(eventTime) || performance.now() / 1000;
+  const previous = Number(call.lastTokenTime) || Number(call.start) || now;
+  const elapsed = Math.max(0.001, now - previous);
+  const incomingRate = text.length / elapsed;
+  const targetRate = Math.min(
+    STREAM_MAX_RATE,
+    Math.max(STREAM_MIN_RATE, incomingRate * 0.9),
+  );
+  group.displayRate = group.displayRate == null
+    ? targetRate
+    : group.displayRate * 0.35 + targetRate * 0.65;
+  call.lastTokenTime = now;
+}
+
+function scheduleOutputPump(groupId) {
+  const group = runState.groups[groupId];
+  if (!group || group.state !== "active" || group.pumpTimer != null) return;
+  if (group.renderedTokenLength >= group.tokens.length) return;
+  group.pumpTimer = setTimeout(() => {
+    group.pumpTimer = null;
+    const body = $(`[data-groupid="${CSS.escape(groupId)}"] .card-body`);
+    if (!body || group.state !== "active") return;
+    const count = Math.max(
+      1,
+      Math.round((group.displayRate || STREAM_DEFAULT_RATE) * STREAM_INTERVAL_MS / 1000),
+    );
+    appendStreamText(group, body, count);
+    scheduleOutputPump(groupId);
+  }, STREAM_INTERVAL_MS);
+}
+
+function scheduleCardRender(groupId) {
+  pendingCardRenders.add(groupId);
+  if (cardRenderFrame !== null) return;
+  cardRenderFrame = requestAnimationFrame(() => {
+    for (const id of pendingCardRenders) renderCard(id);
+    pendingCardRenders.clear();
+    cardRenderFrame = null;
+  });
+}
 
 // ── Sidebar rendering ──────────────────────────────────────────────────────
 function renderSidebar() {
@@ -420,19 +535,20 @@ function roleLabel(stage) {
   return (stage || "unknown").charAt(0).toUpperCase() + (stage || "unknown").slice(1);
 }
 
-function renderCard(call_id) {
-  const call = runState.calls[call_id];
-  if (!call) return;
-  let el = $(`[data-callid="${CSS.escape(call_id)}"]`);
+function renderCard(group_id, animateTokens = true) {
+  const group = runState.groups[group_id];
+  if (!group) return;
+  let el = $(`[data-groupid="${CSS.escape(group_id)}"]`);
   if (!el) {
     el = document.createElement("div");
     el.className = "card";
-    el.dataset.callid = call_id;
-    el.dataset.state = call.state;
+    el.dataset.groupid = group_id;
+    el.dataset.state = group.state;
     el.innerHTML = `<div class="card-head" onclick="toggleCard(this.parentElement)">
-      <span class="card-role ${ROLE_CLASS[call.stage] || "role-unknown"}">${esc(roleLabel(call.stage))}</span>
-      <span class="card-trace">${esc(call.trace_name)}</span>
+      <span class="card-role ${ROLE_CLASS[group.stage] || "role-unknown"}">${esc(roleLabel(group.stage))}</span>
+      <span class="card-trace">${esc(group.label)}</span>
       <span class="card-spacer"></span>
+      <button class="card-follow" type="button" data-following="true" title="Following latest output" aria-label="Following latest output" onclick="followCard(event, this.closest('.card'))">&#8595;</button>
       <span class="card-timer" data-timer></span>
       <span class="card-state-badge badge-waiting"></span>
     </div>
@@ -440,51 +556,79 @@ function renderCard(call_id) {
     $("#cards").insertBefore(el, $("#cards").firstChild);
   }
   // update state
-  el.dataset.state = call.state;
+  el.dataset.state = group.state;
   const badge = $(".card-state-badge", el);
   const body  = $(".card-body", el);
   const timer = $("[data-timer]", el);
+  if (!body.dataset.followListener) {
+    body.addEventListener("scroll", () => {
+      if (group.autoScrolling) return;
+      const distance = body.scrollHeight - body.scrollTop - body.clientHeight;
+      if (distance > 8) group.followBottom = false;
+      else group.followBottom = true;
+      updateFollowButton(el, group.followBottom);
+    });
+    body.dataset.followListener = "true";
+  }
+  updateFollowButton(el, group.followBottom);
 
-  badge.className = `card-state-badge badge-${call.state}`;
-  badge.textContent = call.state;
+  badge.className = `card-state-badge badge-${group.state}`;
+  badge.textContent = group.state;
 
-  if (call.state === "active" || call.expanded) {
+  if (group.state === "active" || group.expanded) {
     body.style.display = "block";
-  } else if (call.state === "done") {
+  } else if (group.state === "done" || group.state === "failed") {
     body.style.display = "none";
   }
 
-  // render token content
-  const tokenText = call.tokens;
-  let bodyHtml = "";
-  if (call.state === "active") {
-    // Try JSON highlight on the accumulated buffer; show plain while streaming
-    bodyHtml = esc(tokenText) + '<span class="cursor"></span>';
+  // Append streamed characters without rebuilding the body or changing its scroll position.
+  if (group.state === "active") {
+    if (!animateTokens) {
+      if (group.pumpTimer != null) {
+        clearTimeout(group.pumpTimer);
+        group.pumpTimer = null;
+      }
+      appendStreamText(group, body, group.tokens.length - group.renderedTokenLength, false);
+    } else {
+      appendStreamText(group, body, 0, true);
+      scheduleOutputPump(group_id);
+    }
   } else {
-    bodyHtml = highlightJson(tokenText);
-  }
-  body.innerHTML = bodyHtml;
-
-  // scroll body to bottom when active
-  if (call.state === "active") {
-    body.scrollTop = body.scrollHeight;
+    if (group.pumpTimer != null) {
+      clearTimeout(group.pumpTimer);
+      group.pumpTimer = null;
+    }
+    body.innerHTML = highlightJson(group.tokens);
+    group.renderedTokenLength = group.tokens.length;
+    scrollCardToBottom(group, body);
   }
 
   // elapsed time
-  if (call.start != null) {
-    const end = call.end ?? (Date.now() / 1000);
-    timer.textContent = fmtElapsed(end - call.start);
+  if (group.start != null) {
+    const end = group.end ?? (Date.now() / 1000);
+    timer.textContent = fmtElapsed(end - group.start);
   }
 }
 
+function followCard(event, el) {
+  event.stopPropagation();
+  const group_id = el && el.dataset.groupid;
+  const group = group_id && runState.groups[group_id];
+  const body = el && $(".card-body", el);
+  if (!group || !body) return;
+  group.followBottom = true;
+  scrollCardToBottom(group, body);
+  updateFollowButton(el, true);
+}
+
 function toggleCard(el) {
-  const call_id = el.dataset.callid;
-  if (!call_id) return;
-  const call = runState.calls[call_id];
-  if (!call) return;
-  call.expanded = !call.expanded;
+  const group_id = el.dataset.groupid;
+  if (!group_id) return;
+  const group = runState.groups[group_id];
+  if (!group) return;
+  group.expanded = !group.expanded;
   const body = $(".card-body", el);
-  body.style.display = call.expanded ? "block" : "none";
+  body.style.display = group.expanded ? "block" : "none";
 }
 
 // ── Log panel ──────────────────────────────────────────────────────────────
@@ -554,6 +698,10 @@ function stopElapsedTimer() {
 // ── Event processing ───────────────────────────────────────────────────────
 function processEvent(ev) {
   if (!ev || !ev.type) return;
+  if (Number.isInteger(ev.seq)) {
+    if (ev.seq <= lastEventSeq) return;
+    lastEventSeq = ev.seq;
+  }
   switch (ev.type) {
     case "run_start":
       runState.goal = ev.goal || "";
@@ -596,30 +744,55 @@ function processEvent(ev) {
       break;
 
     case "llm_start":
-      if (!runState.calls[ev.call_id]) {
-        runState.calls[ev.call_id] = {
+      const groupId = ev.group_id || ev.call_id;
+      if (!runState.groups[groupId]) {
+        runState.groups[groupId] = {
           stage: ev.stage || "unknown",
-          trace_name: ev.trace_name || ev.call_id,
+          label: ev.group_label || ev.trace_name || ev.call_id,
           tokens: "",
+          renderedTokenLength: 0,
           state: "active",
           start: ev.t,
           end: null,
           expanded: false,
+          followBottom: true,
+          pumpTimer: null,
+          autoScrolling: false,
+          displayRate: STREAM_DEFAULT_RATE,
         };
-        runState.callOrder.push(ev.call_id);
+        runState.groupOrder.push(groupId);
+      } else {
+        const group = runState.groups[groupId];
+        group.state = "active";
+        group.end = null;
+        if (group.followBottom == null) group.followBottom = true;
+      }
+      if (!runState.calls[ev.call_id]) {
+        runState.calls[ev.call_id] = {
+          group_id: groupId,
+          state: "active",
+          start: ev.t,
+          end: null,
+        };
         // ensure stage is active
         if (ev.stage && !runState.stages[ev.stage]) {
           runState.stages[ev.stage] = { status: "active", start: ev.t };
           renderSidebar();
         }
       }
-      renderCard(ev.call_id);
+      renderCard(groupId);
       break;
 
     case "token":
       if (runState.calls[ev.call_id]) {
-        runState.calls[ev.call_id].tokens += ev.text;
-        renderCard(ev.call_id);
+        const call = runState.calls[ev.call_id];
+        const tokenGroup = runState.groups[runState.calls[ev.call_id].group_id];
+        if (!tokenGroup) break;
+        const text = String(ev.text || "");
+        tokenGroup.tokens += text;
+        noteIncomingText(tokenGroup, call, text, ev.t);
+        if (replayingSnapshot) renderCard(call.group_id, false);
+        else scheduleCardRender(call.group_id);
       }
       break;
 
@@ -628,7 +801,14 @@ function processEvent(ev) {
         const c = runState.calls[ev.call_id];
         c.state = ev.state || "done";
         c.end = ev.t;
-        renderCard(ev.call_id);
+        const callGroup = runState.groups[c.group_id];
+        if (callGroup) {
+          callGroup.end = Math.max(callGroup.end || 0, ev.t || 0);
+          if (!Object.values(runState.calls).some(
+            call => call.group_id === c.group_id && call.state === "active"
+          )) callGroup.state = ev.state || "done";
+          renderCard(c.group_id);
+        }
       }
       break;
 
@@ -641,6 +821,13 @@ function processEvent(ev) {
       for (const [, v] of Object.entries(runState.stages)) {
         if (v.status === "active") { v.status = "done"; v.end = ev.t; }
       }
+      for (const [, group] of Object.entries(runState.groups)) {
+        if (group.state === "active") {
+          group.state = runState.failed ? "failed" : "done";
+          group.end = ev.t;
+        }
+      }
+      for (const groupId of runState.groupOrder) renderCard(groupId, false);
       renderSidebar();
       break;
   }
@@ -649,10 +836,13 @@ function processEvent(ev) {
 // ── SSE connection ─────────────────────────────────────────────────────────
 let sseSource = null;
 let reconnectDelay = 2000;
+let replayingSnapshot = false;
 
 function connectSSE(run_id) {
   if (sseSource) { sseSource.close(); sseSource = null; }
-  sseSource = new EventSource(`/events/${encodeURIComponent(run_id)}`);
+  sseSource = new EventSource(
+    `/events/${encodeURIComponent(run_id)}?after=${encodeURIComponent(lastEventSeq)}`
+  );
   sseSource.onmessage = (e) => {
     try {
       processEvent(JSON.parse(e.data));
@@ -678,8 +868,14 @@ async function loadSnapshot(run_id) {
     if (!r.ok) return;
     const snap = await r.json();
     runState.goal = snap.goal || "";
-    for (const ev of (snap.events || [])) processEvent(ev);
-    if (snap.ended) { runState.ended = true; runState.failed = false; updateTopbar(); }
+    replayingSnapshot = true;
+    try {
+      for (const ev of (snap.events || [])) processEvent(ev);
+    } finally {
+      replayingSnapshot = false;
+    }
+    lastEventSeq = Math.max(lastEventSeq, Number(snap.last_seq) || 0);
+    if (snap.ended) { runState.ended = true; updateTopbar(); }
   } catch {}
 }
 
@@ -738,9 +934,9 @@ async function loadList() {
 
   // update card timers every second
   setInterval(() => {
-    for (const cid of runState.callOrder) {
-      const call = runState.calls[cid];
-      if (call && call.state === "active") renderCard(cid);
+    for (const groupId of runState.groupOrder) {
+      const group = runState.groups[groupId];
+      if (group && group.state === "active") renderCard(groupId);
     }
   }, 1000);
 })();

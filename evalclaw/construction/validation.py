@@ -1010,6 +1010,14 @@ def task_structure_issues(
             "environment.tools does not define executable custom behavior; use only tools exposed by "
             "the selected runtime and its structured configuration."
         )
+    image_build = env.image_build if isinstance(env.image_build, dict) else {}
+    context_dir = str(image_build.get("context_dir") or "").strip()
+    if context_dir:
+        context_parts = PurePosixPath(context_dir.replace("\\", "/")).parts
+        if Path(context_dir).is_absolute() or ".." in context_parts:
+            issues.append(
+                "image_build.context_dir must be a relative path inside the Builder job directory."
+            )
 
     visible_paths = set(env.visible_files)
     runtime_paths = set(env.runtime_files)

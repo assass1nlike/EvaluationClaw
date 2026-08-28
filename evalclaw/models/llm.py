@@ -200,9 +200,10 @@ def _post_streaming_openai_compatible(
                         choices = chunk.get("choices") or []
                         if choices:
                             delta = choices[0].get("delta") or {}
-                            text = delta.get("content")
-                            if isinstance(text, str) and text:
-                                on_token(text)
+                            for field in ("reasoning_content", "content"):
+                                text = delta.get(field)
+                                if isinstance(text, str) and text:
+                                    on_token(text)
                     if isinstance(chunk.get("error"), dict):
                         raise RuntimeError(str(chunk["error"]))
         except (httpx.TransportError, httpx.HTTPStatusError, RuntimeError) as exc:
@@ -469,6 +470,7 @@ def _call_openai_responses(
     reduce_reasoning_effort: bool,
     retry_on_truncation: bool,
     tools: list[ToolSpec] | None = None,
+    on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "llm",
 ) -> dict[str, Any]:
@@ -506,6 +508,7 @@ def _call_openai_responses(
                     "Content-Type": "application/json",
                 },
                 body=body,
+                on_token=on_token,
                 trace_dir=Path(trace_dir) / "http" if trace_dir is not None else None,
                 trace_name=trace_name,
             )
@@ -718,12 +721,24 @@ def _stream_litellm_response(
         chunks.append(chunk)
         if on_token is not None:
             choices = getattr(chunk, "choices", None)
+            if choices is None and isinstance(chunk, dict):
+                choices = chunk.get("choices")
             if choices:
-                delta = getattr(choices[0], "delta", None)
+                first = choices[0]
+                delta = (
+                    first.get("delta")
+                    if isinstance(first, dict)
+                    else getattr(first, "delta", None)
+                )
                 if delta is not None:
-                    text = getattr(delta, "content", None)
-                    if isinstance(text, str) and text:
-                        on_token(text)
+                    for field in ("reasoning_content", "content"):
+                        text = (
+                            delta.get(field)
+                            if isinstance(delta, dict)
+                            else getattr(delta, field, None)
+                        )
+                        if isinstance(text, str) and text:
+                            on_token(text)
     if not chunks:
         raise LLMProtocolAdapterError("LiteLLM returned an empty response stream.")
     return _assemble_openai_chat_stream(chunks), chunks
@@ -921,6 +936,21 @@ def _call_anthropic_text(
     raise ValueError("No text content in LLM response")
 
 
+def _resolve_token_callback(
+    on_token: Optional[Any],
+    trace_dir: str | Path | None,
+    trace_name: str,
+) -> Optional[Any]:
+    if on_token is not None:
+        return on_token
+    try:
+        from ..live.streamers import get_streamer
+
+        return get_streamer(trace_dir, trace_name=trace_name)
+    except Exception:
+        return None
+
+
 def call_llm(
     messages: list[Message],
     *,
@@ -947,12 +977,7 @@ def call_llm(
     output mode are asked for one.
     """
     _require_supported_backend(backend)
-    if on_token is None:
-        try:
-            from ..live.streamers import get_streamer as _gs
-            on_token = _gs(trace_dir, trace_name=trace_name)
-        except Exception:
-            pass
+    on_token = _resolve_token_callback(on_token, trace_dir, trace_name)
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
     resolved_provider, _ = infer_provider(model_name, base_url, provider)
     messages_dict = _message_dicts(messages, system)
@@ -966,6 +991,7 @@ def call_llm(
             base_url=base_url,
             reduce_reasoning_effort=reduce_reasoning_effort,
             retry_on_truncation=retry_on_truncation,
+            on_token=on_token,
             trace_dir=trace_dir,
             trace_name=trace_name,
         )
@@ -1119,6 +1145,7 @@ def call_orchestrator_with_tools(
     ``expect_json`` when the caller parses a tool-free response as JSON.
     """
     _require_supported_backend(backend)
+    on_token = _resolve_token_callback(on_token, trace_dir, trace_name)
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
     resolved_provider, _ = infer_provider(model_name, base_url, provider)
     tool_specs = tools or []
@@ -1134,6 +1161,7 @@ def call_orchestrator_with_tools(
             reduce_reasoning_effort=False,
             retry_on_truncation=retry_on_truncation,
             tools=tool_specs,
+            on_token=on_token,
             trace_dir=trace_dir,
             trace_name=trace_name,
         )
@@ -1216,7 +1244,6 @@ def call_orchestrator_with_tools(
         }
         if tool_specs:
             kwargs["tools"] = openai_tools(tool_specs)
-            kwargs["tool_choice"] = "auto"
         elif model_name.startswith("deepseek-v4") and expect_json:
             kwargs["response_format"] = {"type": "json_object"}
             kwargs["extra_body"] = {"thinking": {"type": "disabled"}}

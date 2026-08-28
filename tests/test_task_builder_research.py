@@ -8,6 +8,7 @@ from threading import Event
 import pytest
 
 from evalclaw.construction.research import (
+    TaskBuilderCallError,
     _append_tool_results,
     _execute_task_builder_tool,
     run_task_builder_tools,
@@ -16,6 +17,7 @@ from evalclaw.construction.research import (
 )
 from evalclaw.construction.resources import _select_blueprint_sources
 from evalclaw.construction.suite import build_task_suite
+from evalclaw.execution.docker_images import DockerImageBuildResult, DockerImageCheckResult
 from evalclaw.models.llm import LLMOutputTruncatedError, TargetToolModelResponse
 from evalclaw.protocols.tool import ToolCall, ToolResult
 from evalclaw.research.backends import SearchBackendError, SearchResult, SearchTimeoutError
@@ -234,6 +236,71 @@ def test_task_builder_truncation_recovery_preserves_tool_history(monkeypatch) ->
         "content": "created fixture.json",
     }
     assert calls[3][5]["content"] == "summary: second reasoning"
+
+
+def test_task_builder_call_failure_has_separate_retries(monkeypatch) -> None:
+    calls: list[list[dict]] = []
+
+    def fail_once_then_complete(messages, **kwargs):
+        calls.append(json.loads(json.dumps(messages)))
+        if len(calls) == 1:
+            raise RuntimeError("model service temporarily unavailable")
+        return TargetToolModelResponse(
+            adapter="openai",
+            content='{"tasks": []}',
+            tool_calls=[],
+            assistant_message={"role": "assistant", "content": '{"tasks": []}'},
+            raw_response={},
+        )
+
+    monkeypatch.setattr(
+        "evalclaw.construction.research.call_orchestrator_with_tools",
+        fail_once_then_complete,
+    )
+
+    raw, notes = run_task_builder_tools(
+        {"goal": "Build one task."},
+        system_prompt="Build the task.",
+        config=BenchmarkConfig(
+            **dummy_config_kwargs(),
+            task_builder_call_retries=1,
+            task_builder_repair_attempts=0,
+        ),
+        include_source_tools=False,
+    )
+
+    assert raw == '{"tasks": []}'
+    assert len(calls) == 2
+    assert calls[0] == calls[1]
+    assert any("model call failed; retrying (1/1)" in note for note in notes)
+
+
+def test_task_builder_call_failure_does_not_consume_structure_repairs(monkeypatch) -> None:
+    calls = 0
+
+    def always_fail(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        raise RuntimeError("model service unavailable")
+
+    monkeypatch.setattr(
+        "evalclaw.construction.research.call_orchestrator_with_tools",
+        always_fail,
+    )
+
+    with pytest.raises(TaskBuilderCallError, match="after 1 retry attempt"):
+        run_task_builder_tools(
+            {"goal": "Build one task."},
+            system_prompt="Build the task.",
+            config=BenchmarkConfig(
+                **dummy_config_kwargs(),
+                task_builder_call_retries=1,
+                task_builder_repair_attempts=5,
+            ),
+            include_source_tools=False,
+        )
+
+    assert calls == 2
 
 
 def test_stopped_task_builder_does_not_execute_requested_tool(monkeypatch) -> None:
@@ -655,6 +722,106 @@ def test_task_builder_can_run_python_and_create_assets(tmp_path) -> None:
     assert asset_path.read_text(encoding="utf-8") == "x,y\n1,2\n"
 
 
+def test_task_builder_build_image_persists_context_and_returns_relative_reference(monkeypatch, tmp_path) -> None:
+    dockerfile = tmp_path / "custom.Dockerfile"
+    dockerfile.write_text("FROM python:3.11-slim\nCOPY requirements.txt /tmp/requirements.txt\n", encoding="utf-8")
+    requirements = tmp_path / "requirements.txt"
+    requirements.write_text("pytest==8.4.1\n", encoding="utf-8")
+    captured: dict[str, object] = {}
+
+    def fake_build(context_dir, **kwargs):
+        captured["context_dir"] = context_dir
+        captured["kwargs"] = kwargs
+        return DockerImageBuildResult(
+            image="evalclaw-builder:test",
+            built=True,
+            dockerfile=(context_dir / "Dockerfile").read_text(encoding="utf-8"),
+            context_dir=str(context_dir),
+            detail="built",
+        )
+
+    monkeypatch.setattr(
+        "evalclaw.construction.research.build_docker_image_from_context",
+        fake_build,
+    )
+    state: dict[str, object] = {}
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="build_1",
+            name="build_image",
+            arguments={
+                "dockerfile_path": str(dockerfile),
+                "context_files": [
+                    {
+                        "source_path": str(requirements),
+                        "target_path": "requirements.txt",
+                    }
+                ],
+                "tag": "evalclaw-builder:test",
+            },
+        ),
+        BenchmarkConfig(output_dir=str(tmp_path)),
+        max_chars=50_000,
+        work_dir=tmp_path,
+        tool_state=state,
+    )
+
+    payload = json.loads(result.content)
+    context_dir = captured["context_dir"]
+    assert result.error is None
+    assert payload["image"] == "evalclaw-builder:test"
+    assert payload["image_build"]["context_dir"] == ".image-build/build-01"
+    assert (context_dir / "Dockerfile").read_text(encoding="utf-8").startswith("FROM python")
+    assert (context_dir / "requirements.txt").read_text(encoding="utf-8") == "pytest==8.4.1\n"
+    assert (tmp_path / ".image-build" / "manifests" / "build-01.json").is_file()
+    assert state["last_image"] == "evalclaw-builder:test"
+
+    second = _execute_task_builder_tool(
+        ToolCall(
+            id="build_2",
+            name="build_image",
+            arguments={"dockerfile_path": str(dockerfile)},
+        ),
+        BenchmarkConfig(output_dir=str(tmp_path)),
+        max_chars=50_000,
+        work_dir=tmp_path,
+        tool_state=state,
+    )
+    assert second.error is None
+    assert (tmp_path / ".image-build" / "build-02" / "Dockerfile").is_file()
+    assert (tmp_path / ".image-build" / "manifests" / "build-02.json").is_file()
+
+
+def test_task_builder_run_image_check_reports_result(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(
+        "evalclaw.construction.research.run_docker_image_check",
+        lambda image, command, **kwargs: DockerImageCheckResult(
+            image=image,
+            command=command,
+            exit_code=1,
+            stdout="",
+            stderr="pytest is missing",
+        ),
+    )
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="check_1",
+            name="run_image_check",
+            arguments={"command": "python -c 'import pytest'"},
+        ),
+        BenchmarkConfig(output_dir=str(tmp_path)),
+        max_chars=50_000,
+        work_dir=tmp_path,
+        tool_state={"last_image": "evalclaw-builder:test"},
+    )
+
+    payload = json.loads(result.content)
+    assert result.error == "image_check_failed"
+    assert payload["image"] == "evalclaw-builder:test"
+    assert payload["exit_code"] == 1
+    assert payload["stderr"] == "pytest is missing"
+
+
 def test_task_builder_tools_recover_missing_final_content(monkeypatch) -> None:
     captured: list[dict] = []
     responses = iter(
@@ -697,6 +864,7 @@ def test_task_builder_tools_recover_missing_final_content(monkeypatch) -> None:
 
     assert raw == '{"tasks": []}'
     assert len(captured) == 2
+    assert all(item["kwargs"]["max_tokens"] == 65_536 for item in captured)
     assert captured[1]["kwargs"]["tools"] == []
     assert captured[1]["kwargs"].get("expect_json", False) is False
 

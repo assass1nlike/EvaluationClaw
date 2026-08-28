@@ -817,6 +817,7 @@ class BenchmarkConfig(BaseModel):
     )
     large_scale_llm_qc_sample_size: int = 120
     output_dir: str = "./benchmark-output"
+    live_url: Optional[str] = None
     planner_debug_dir: Optional[str] = None
     task_builder_debug_dir: Optional[str] = None
     run_targets: bool = True
@@ -828,6 +829,7 @@ class BenchmarkConfig(BaseModel):
     use_hf_discovery: bool = True
     task_builder_max_workers: int = 4
     task_builder_repair_attempts: int = 2
+    task_builder_call_retries: int = 2
     task_builder_truncation_retries: int = 3
     task_builder_tool_max_calls: int = 6
     task_builder_tool_max_chars: int = 50_000

@@ -8,7 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Callable
 
-from ..diagnostics import new_debug_dir, safe_name, write_json
+from ..diagnostics import _io_path, new_debug_dir, safe_name, write_json
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     call_llm,
@@ -678,9 +678,10 @@ def run_eval(
     config: BenchmarkConfig,
     *,
     on_progress: Callable[[int, int, str, str], None] | None = None,
+    trace_dir: Path | None = None,
 ) -> EvalRun:
     """Run accepted items against all configured target models."""
-    debug_dir = new_debug_dir(config.output_dir, "runner")
+    debug_dir = Path(trace_dir) if trace_dir is not None else new_debug_dir(config.output_dir, "runner")
     execution_plan = build_execution_plan(suite, qc_report)
     accepted = execution_plan.suite.tasks
     if debug_dir is not None:
@@ -709,6 +710,23 @@ def run_eval(
                 )
                 if item_dir is not None:
                     write_json(item_dir / "item.json", item.model_dump(mode="json"))
+                cached_result = None
+                if item_dir is not None and _io_path(item_dir / "result.json").is_file():
+                    try:
+                        result_path = _io_path(item_dir / "result.json")
+                        cached_result = ItemResult.model_validate(
+                            json.loads(result_path.read_text(encoding="utf-8"))
+                        )
+                    except (OSError, TypeError, ValueError, UnicodeError, json.JSONDecodeError):
+                        cached_result = None
+                if (
+                    cached_result is not None
+                    and cached_result.target_id == target.id
+                    and cached_result.item_id == item.id
+                    and not cached_result.error
+                ):
+                    results.append(cached_result)
+                    continue
                 result = _run_item(item, config, target.id, trace_dir=item_dir)
                 results.append(result)
                 if item_dir is not None:

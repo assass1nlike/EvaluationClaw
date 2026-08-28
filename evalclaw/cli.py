@@ -278,6 +278,26 @@ def generate(
         help="Relative eval budget: low, mid, high, large, or xlarge.",
     ),
     output_dir: str = typer.Option("./benchmark-output", "-o", "--output-dir", help="Output directory."),
+    resume_run: Optional[str] = typer.Option(
+        None,
+        "--resume-run",
+        help="Resume a previous run directory or run id under output_dir/debug/runs.",
+    ),
+    live: bool = typer.Option(
+        False,
+        "--live",
+        help="Publish live events to the persistent server at --live-port.",
+    ),
+    live_url: Optional[str] = typer.Option(
+        None,
+        "--live-url",
+        help="Live server base URL for cross-process event publishing; implies --live.",
+    ),
+    live_port: int = typer.Option(
+        8800,
+        "--live-port",
+        help="Persistent live server port used by --live when --live-url is omitted.",
+    ),
     no_interactive: bool = typer.Option(False, "--no-interactive", help="Skip confirmation prompts."),
     no_run: bool = typer.Option(False, "--no-run", help="Build and QC the benchmark without running targets."),
     web_research: bool = typer.Option(
@@ -310,6 +330,11 @@ def generate(
         2,
         "--task-builder-repair-attempts",
         help="Maximum per-TaskDesign Builder structural repair attempts before QC.",
+    ),
+    task_builder_call_retries: int = typer.Option(
+        2,
+        "--task-builder-call-retries",
+        help="Maximum retries for a failed TaskBuilder model call.",
     ),
     task_builder_truncation_retries: int = typer.Option(
         3,
@@ -406,9 +431,9 @@ def generate(
     json_output: bool = typer.Option(False, "--json", help="Print full package JSON to stdout."),
 ) -> None:
     """Generate an EvaluationClaw benchmark package."""
-    if not goal:
+    if not goal and not resume_run:
         goal = typer.prompt("Evaluation goal").strip()
-    if not goal:
+    if not goal and not resume_run:
         console.print("[red]Goal cannot be empty.[/red]")
         raise typer.Exit(1)
     if loop3_diagnosis not in {"llm", "local"}:
@@ -473,11 +498,17 @@ def generate(
     if task_builder_repair_attempts < 0:
         console.print("[red]--task-builder-repair-attempts cannot be negative.[/red]")
         raise typer.Exit(1)
+    if task_builder_call_retries < 0:
+        console.print("[red]--task-builder-call-retries cannot be negative.[/red]")
+        raise typer.Exit(1)
     if task_builder_truncation_retries < 0:
         console.print("[red]--task-builder-truncation-retries cannot be negative.[/red]")
         raise typer.Exit(1)
     if max_research_iterations < 1:
         console.print("[red]--max-research-iterations must be at least 1.[/red]")
+        raise typer.Exit(1)
+    if live_port < 1 or live_port > 65535:
+        console.print("[red]--live-port must be between 1 and 65535.[/red]")
         raise typer.Exit(1)
 
     role_options = {
@@ -538,6 +569,9 @@ def generate(
     except ValueError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(1) from exc
+    resolved_live_url = live_url.rstrip("/") if live_url else None
+    if live and resolved_live_url is None:
+        resolved_live_url = f"http://127.0.0.1:{live_port}"
     config = BenchmarkConfig(
         **role_config,
         task_models=task_models,
@@ -551,6 +585,7 @@ def generate(
         challenge_effort_distribution=parsed_effort_distribution,
         large_scale_llm_qc_sample_size=large_scale_qc_sample,
         output_dir=output_dir,
+        live_url=resolved_live_url,
         run_targets=bool(targets) and not no_run,
         use_web_research=web_research,
         search_backend=search_backend.lower(),
@@ -559,6 +594,7 @@ def generate(
         use_hf_discovery=not no_hf_discovery,
         task_builder_max_workers=task_builder_max_workers,
         task_builder_repair_attempts=task_builder_repair_attempts,
+        task_builder_call_retries=task_builder_call_retries,
         task_builder_truncation_retries=task_builder_truncation_retries,
         task_builder_tool_max_calls=task_builder_tool_max_calls,
         task_builder_tool_max_chars=task_builder_tool_max_chars,
@@ -603,6 +639,7 @@ def generate(
             progress=_progress,
             ask_user=_ask_user if not no_interactive else None,
             interactive=not no_interactive,
+            resume_run=resume_run,
         )
     except KeyboardInterrupt:
         console.print("\n[yellow]Interrupted.[/yellow]")
