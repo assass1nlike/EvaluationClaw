@@ -10,7 +10,7 @@ from evalclaw.models.llm import (
     _call_litellm,
     truncated_response_output,
 )
-from evalclaw.pipeline import run_pipeline
+from evalclaw.pipeline import _redact_secrets, run_pipeline
 from evalclaw.quality.qc import run_qc_gate
 from evalclaw.research.backends import SearchResult
 from evalclaw.research.deep_research import run_deep_research
@@ -62,6 +62,13 @@ def test_diagnostic_json_supports_long_paths(tmp_path) -> None:
 
     saved = json.loads(_io_path(path).read_text(encoding="utf-8"))
     assert saved == {"status": "completed"}
+
+
+def test_public_artifact_redaction_does_not_corrupt_task_builder_paths() -> None:
+    path = "D:/benchmark/assets/task-builder/task.png"
+
+    assert _redact_secrets(path) == path
+    assert _redact_secrets("key=sk-example_key-123") == "key=[REDACTED]"
 
 
 def test_pipeline_failure_keeps_redacted_config(monkeypatch, tmp_path) -> None:

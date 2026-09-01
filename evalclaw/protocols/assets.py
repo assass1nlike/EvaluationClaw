@@ -28,12 +28,17 @@ def environment_asset_sources(assets: list[TaskAsset]) -> dict[str, Path]:
     return sources
 
 
+def is_image_asset_path(path: str | Path) -> bool:
+    mime_type = mimetypes.guess_type(Path(path).name)[0] or ""
+    return mime_type.startswith("image/")
+
+
 def _image_data_uri(asset: TaskAsset) -> str:
     path = Path(asset.path)
     if not path.is_file():
         raise ValueError(f"Asset path does not exist or is not a file: {asset.path!r}.")
     mime_type = mimetypes.guess_type(path.name)[0] or ""
-    if not mime_type.startswith("image/"):
+    if not is_image_asset_path(path):
         raise ValueError(f"Native target calls support image assets only: {asset.path!r}.")
     data = base64.b64encode(path.read_bytes()).decode("ascii")
     return f"data:{mime_type};base64,{data}"
@@ -71,4 +76,5 @@ __all__ = [
     "build_asset_user_content",
     "environment_asset_guest_path",
     "environment_asset_sources",
+    "is_image_asset_path",
 ]

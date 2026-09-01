@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 from ..protocols.agent_task_package import agent_task_package_issues
-from ..protocols.assets import environment_asset_guest_path
+from ..protocols.assets import environment_asset_guest_path, is_image_asset_path
 from ..protocols.science import science_metadata_issues
 from ..protocols.task_agent import TASK_AGENT_METADATA_KEY
 from ..types import BenchmarkItem, QcCategory, QcIssue, QcSeverity, TaskType
@@ -219,6 +219,16 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                 _issue(item.id, QcSeverity.error, QcCategory.schema, "Asset path is empty.")
             )
             continue
+        if item.task_type != TaskType.agent and not is_image_asset_path(path):
+            issues.append(
+                _issue(
+                    item.id,
+                    QcSeverity.error,
+                    QcCategory.schema,
+                    "Non-agent tasks may use only image assets; use an agent task when a "
+                    "non-image file is required.",
+                )
+            )
         agent_env = item.metadata.get("agent_env")
         environment_type = (
             str(agent_env.get("type") or "") if isinstance(agent_env, dict) else ""

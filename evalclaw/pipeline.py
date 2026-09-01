@@ -32,6 +32,7 @@ from .planning.planner import translate_goal_to_english
 from .quality.improver import run_loop3_improvement
 from .reporting.artifacts import write_artifact_manifest, write_lm_eval_artifacts
 from .reporting.reporter import artifact_index_markdown, build_report
+from .reporting.task_viewer import build_task_viewer_html
 from .reporting.viewer import build_report_viewer_html
 from .research.backends import reset_network_state
 from .research.deep_research import render_brief_markdown, run_deep_research
@@ -47,7 +48,7 @@ from .types import (
     TaskSuite,
 )
 
-_SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]+")
+_SECRET_PATTERN = re.compile(r"\bsk-[A-Za-z0-9_-]+")
 
 
 def _read_json(path: Path) -> object | None:
@@ -271,6 +272,7 @@ def _persist_package(
     json_path = out_dir / f"evalclaw_{stem}.json"
     md_path = out_dir / f"evalclaw_{stem}.md"
     html_path = out_dir / f"evalclaw_{stem}.html"
+    task_viewer_path = out_dir / f"tasks_{stem}.html"
     execution_plan = build_execution_plan(pkg.suite, pkg.qc_report)
     artifacts = write_lm_eval_artifacts(execution_plan.suite, out_dir)
     research_brief_paths: dict[str, Path] = {}
@@ -293,6 +295,7 @@ def _persist_package(
         package_path=json_path,
         report_path=md_path,
         frontend_report_path=html_path,
+        task_viewer_path=task_viewer_path,
         manifest_path=manifest_path,
         lm_eval_paths=artifacts,
     )
@@ -310,11 +313,16 @@ def _persist_package(
         ),
         encoding="utf-8",
     )
+    task_viewer_path.write_text(
+        _redact_secrets(build_task_viewer_html(pkg)),
+        encoding="utf-8",
+    )
     manifest_path = write_artifact_manifest(
         out_dir,
         package_path=json_path,
         report_path=md_path,
         frontend_report_path=html_path,
+        task_viewer_path=task_viewer_path,
         lm_eval_paths=artifacts,
         research_brief_paths=research_brief_paths or None,
     )
@@ -324,6 +332,7 @@ def _persist_package(
     log(f"Saved package: {json_path}")
     log(f"Saved report: {md_path}")
     log(f"Saved browser report: {html_path}")
+    log(f"Saved task browser: {task_viewer_path}")
     for name, path in artifacts.items():
         log(f"Saved lm-eval {name}: {path}")
     log(f"Saved manifest: {manifest_path}")

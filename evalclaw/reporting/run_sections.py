@@ -486,6 +486,7 @@ def artifact_index_markdown(
     package_path: Path,
     report_path: Path,
     frontend_report_path: Path | None = None,
+    task_viewer_path: Path | None = None,
     manifest_path: Path,
     lm_eval_paths: dict[str, Path],
 ) -> str:
@@ -497,6 +498,8 @@ def artifact_index_markdown(
     ]
     if frontend_report_path is not None:
         rows.append(["frontend_report_html", str(frontend_report_path)])
+    if task_viewer_path is not None:
+        rows.append(["task_viewer_html", str(task_viewer_path)])
     rows.extend([[f"lm_eval_{key}", str(value)] for key, value in lm_eval_paths.items()])
     return "\n".join(
         [
@@ -504,7 +507,7 @@ def artifact_index_markdown(
             "",
             _markdown_table(["Artifact", "Path"], rows),
             "",
-            "The canonical JSON contains full raw responses and traces. The Markdown report may clip very long values for readability. The HTML report provides a browser-oriented diagnostic view.",
+            "The canonical JSON contains full raw responses and traces. The Markdown report may clip very long values for readability. The HTML report provides a diagnostic view; the task viewer provides a focused page for reading generated tasks.",
             "",
         ]
     )

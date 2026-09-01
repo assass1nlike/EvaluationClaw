@@ -748,6 +748,15 @@ revealing answers or other unintended information. Asset filenames within one
 environment-backed task must be unique. Return an empty assets list when the task has
 no file input. Do not put task input files in metadata.
 <!-- -->
+Environment visible_files, runtime_files, and hidden_files are JSON objects mapping
+guest-relative paths to the files&#39; literal contents; their values are never host paths
+or filenames. Put initial files visible to the evaluated model in visible_files,
+protected setup or runtime support files in runtime_files, and evaluator-only files in
+hidden_files. Use these mappings for starter repositories and other files whose guest
+path or directory structure must be preserved. Use assets instead when an existing host
+file should be copied into the workdir under its filename. Represent each file by the
+one mechanism that matches its runtime role.
+<!-- -->
 For code_sandbox and docker_workspace tasks, environment.workdir must be an absolute
 POSIX path inside the runtime; use /workspace unless the task requires another directory,
 and never use `.` or another relative path.
@@ -839,18 +848,19 @@ TASK_BUILDER_TOOL_PROMPT = &quot;&quot;&quot;\
 You may use the supplied tools when they materially improve task construction.
 Use run_python for computation, validation, or creating and processing task files.
 Save required task files in its fixed working directory. Tool results identify files
-with host paths that are available only during construction. Put those host paths in
-the corresponding task&#39;s top-level assets list. For environment-backed tasks, the
+with host paths that are available only during construction. For task-input files that
+must be copied into a runtime workdir, put those host paths in the corresponding task&#39;s
+top-level assets list. If a file belongs to the environment&#39;s declared initial visible
+state, read the created file and put its literal contents in environment.visible_files
+under the desired guest-relative path instead. Environment file-map values are file
+contents, never the returned host path or a filename. For environment-backed tasks, the
 framework copies each asset into the runtime workdir under its filename, so prompt or
-choices must refer only to that filename; never copy a host path into target-visible
-text or environment fields. For tasks without an environment, refer to the asset path
-verbatim in prompt or choices. When source tools are available, use read_research_source to
+choices must refer only to that filename; never copy a host path into target-visible text
+or environment fields. For tasks without an environment, refer to the asset path verbatim
+in prompt or choices. When source tools are available, use read_research_source to
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
-For environment-backed tasks, files that belong to the environment&#39;s declared initial
-visible state go in environment.visible_files; use assets for task-input files created
-or downloaded by construction tools that must be copied into the workdir.
 When image construction tools are available, use run_python to create or edit a
 Dockerfile and its context files in the Builder job directory, then use build_image to
 build and inspect that image. Use run_image_check for short dependency or startup
@@ -3533,6 +3543,7 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 - `evalclaw_<timestamp>.json`：canonical 包（`BenchmarkPackage` 全量 JSON，含 spec/plan/suite/qc_report/run/improvements/report，`research_brief` 存在时一并写入 `research_brief.json`）。
 - `evalclaw_<timestamp>.md`：人类可读 Markdown 报告（含来源覆盖、按 target/dimension/type 的分数、recommendations，末尾追加 artifact index）。
 - `evalclaw_<timestamp>.html`：浏览器 viewer（`build_report_viewer_html`，受 `viewer_item_limit` / `viewer_result_limit` 限制）。
+- `tasks_<timestamp>.html`：专用于浏览生成题目的独立 HTML 页面，按题目展示正文、素材、选项、参考答案、评分与执行环境。
 - `manifest.json`：artifact 索引。
 - `lm-eval/`：`runner=lm-eval` 或 `auto` 时的 JSONL/YAML/metadata 导出；`run_lm_eval` 对每个 target 运行 lm-eval-harness（若可解析出可执行文件），结果写入 `lm-eval-results/<target>/`。
 

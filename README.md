@@ -216,6 +216,7 @@ Each run writes:
 
 - `evalclaw_<timestamp>.json` - canonical EvaluationClaw package.
 - `evalclaw_<timestamp>.md` - human-readable report.
+- `tasks_<timestamp>.html` - standalone page for browsing the generated tasks.
 - `research_brief.json` / `research_brief.md` - the deep-research brief (when `--deep-research`).
 - `manifest.json` - machine-readable artifact index.
 - `lm-eval/<task>.jsonl` - lm-eval dataset export.
