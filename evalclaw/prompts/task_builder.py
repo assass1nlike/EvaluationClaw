@@ -87,9 +87,18 @@ field. Asset filenames are visible to the evaluated model, so name files without
 revealing answers or other unintended information. Asset filenames within one
 environment-backed task must be unique. Return an empty assets list when the task has
 no file input. Do not put task input files in metadata.
-For environment-backed tasks, put files that belong to the environment's declared
-initial visible state in environment.visible_files. Use assets for task-input files
-created or downloaded during construction that the framework must copy into the workdir.
+For non-agent tasks (choice, fill_blank, generation, and multi_turn), convey task
+information in text and use top-level assets only for images. Do not use a non-image
+asset for these task types. If a non-image file is essential to the task, make it an
+agent task and provide the appropriate executable environment.
+Environment visible_files, runtime_files, and hidden_files are JSON objects mapping
+guest-relative paths to the files' literal contents; their values are never host paths
+or filenames. Put initial files visible to the evaluated model in visible_files,
+protected setup or runtime support files in runtime_files, and evaluator-only files in
+hidden_files. Use these mappings for starter repositories and other files whose guest
+path or directory structure must be preserved. Use assets instead when an existing host
+file should be copied into the workdir under its filename. Represent each file by the
+one mechanism that matches its runtime role.
 For code_sandbox and docker_workspace tasks, environment.workdir must be an absolute
 POSIX path inside the runtime; use /workspace unless the task requires another directory,
 and never use `.` or another relative path.

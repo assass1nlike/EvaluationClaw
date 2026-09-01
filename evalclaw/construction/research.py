@@ -66,17 +66,16 @@ Save required task files in its fixed working directory. Tool results identify f
 with host paths that are available only during construction. For task-input files that
 must be copied into a runtime workdir, put those host paths in the corresponding task's
 top-level assets list. If a file belongs to the environment's declared initial visible
-state, provide it through environment.visible_files instead. For environment-backed
-tasks, the framework copies each asset into the runtime workdir under its filename, so
-prompt or choices must refer only to that filename; never copy a host path into
-target-visible text or environment fields. For tasks without an environment, refer to
-the asset path verbatim in prompt or choices. When source tools are available, use read_research_source to
+state, read the created file and put its literal contents in environment.visible_files
+under the desired guest-relative path instead. Environment file-map values are file
+contents, never the returned host path or a filename. For environment-backed tasks, the
+framework copies each asset into the runtime workdir under its filename, so prompt or
+choices must refer only to that filename; never copy a host path into target-visible text
+or environment fields. For tasks without an environment, refer to the asset path verbatim
+in prompt or choices. When source tools are available, use read_research_source to
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
-For environment-backed tasks, files that belong to the environment's declared initial
-visible state go in environment.visible_files; use assets for task-input files created
-or downloaded by construction tools that must be copied into the workdir.
 When image construction tools are available, use run_python to create or edit a
 Dockerfile and its context files in the Builder job directory, then use build_image to
 build and inspect that image. Use run_image_check for short dependency or startup

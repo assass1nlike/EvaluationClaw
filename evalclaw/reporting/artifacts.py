@@ -155,6 +155,7 @@ def write_artifact_manifest(
     package_path: Path,
     report_path: Path,
     frontend_report_path: Path | None = None,
+    task_viewer_path: Path | None = None,
     lm_eval_paths: dict[str, Path],
     research_brief_paths: dict[str, Path] | None = None,
 ) -> Path:
@@ -167,11 +168,14 @@ def write_artifact_manifest(
             "package is the canonical EvaluationClaw JSON payload.",
             "report is a human-readable Markdown summary.",
             "frontend_report is a self-contained browser report when present.",
+            "task_viewer is a self-contained page for browsing generated task content.",
             "lm_eval artifacts are interoperability exports and may require custom judging for generation tasks.",
         ],
     }
     if frontend_report_path is not None:
         payload["frontend_report"] = str(frontend_report_path)
+    if task_viewer_path is not None:
+        payload["task_viewer"] = str(task_viewer_path)
     if research_brief_paths:
         payload["research_brief"] = {key: str(value) for key, value in research_brief_paths.items()}
         payload["notes"].append(

@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path, PurePosixPath
 
 from ..protocols.agent_task_package import AGENT_TASK_PACKAGE_METADATA_KEY
-from ..protocols.assets import environment_asset_guest_path
+from ..protocols.assets import environment_asset_guest_path, is_image_asset_path
 from ..types import (
     AgentEnvironmentType,
     EvalDimension,
@@ -142,8 +142,11 @@ def _builder_host_path_issues(task: TaskDefinition, work_dir: Path) -> list[str]
         return []
     return [
         "Builder-host paths must not appear in environment-backed task fields. "
-        "Keep generated or downloaded host files in "
-        "top-level assets and reference only their guest filenames in the task."
+        "Environment visible_files, runtime_files, and hidden_files map guest-relative "
+        "paths to literal file contents, not host paths or filenames. Read a construction "
+        "file and place its contents in the appropriate map, or keep its host path only in "
+        "top-level assets when it should be copied as task input; in either case, expose "
+        "only the guest path in prompt or choices."
     ]
 
 
@@ -812,6 +815,18 @@ def task_structure_issues(
                     )
             elif not task.assets:
                 issues.append("TaskDesign requires file inputs, so the task must provide assets.")
+    if task.task_type != TaskType.agent:
+        non_image_assets = [
+            asset.path
+            for asset in task.assets
+            if asset.path.strip() and not is_image_asset_path(asset.path)
+        ]
+        if non_image_assets:
+            issues.append(
+                "Non-agent tasks may use only image assets; convey other task information "
+                "in text or use task_type='agent' for a required non-image file: "
+                + ", ".join(non_image_assets)
+            )
     for index, asset in enumerate(task.assets, 1):
         path = asset.path.strip()
         if not path:
