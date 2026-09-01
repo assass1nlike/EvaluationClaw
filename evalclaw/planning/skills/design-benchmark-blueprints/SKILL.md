@@ -76,6 +76,8 @@ The framework has exactly these three effort levels.
 
 Use `environment_requirements` only for `agent` tasks, choosing the environment category that provides the required tools or state. `multi_turn` tasks express their dialogue behavior through `interaction_requirements` and do not use an execution environment. Leave `environment_requirements` empty for `choice`, `fill_blank`, `generation`, and `multi_turn`; if executable interaction is essential, design an `agent` task instead.
 
+For non-agent task types, convey task information in text and use file assets only for images. Do not plan a non-image asset for `choice`, `fill_blank`, `generation`, or `multi_turn`. If a non-image file is essential to the task, choose `agent` and declare an environment that can expose and process it.
+
 Although `reference/universal_format.json` lists the complete field set, for these non-agent task types return exactly `{}` for `environment_requirements`; do not expand its inner fields with null, empty-string, or empty-list values.
 
 Choose the environment category according to its actual runtime capabilities:

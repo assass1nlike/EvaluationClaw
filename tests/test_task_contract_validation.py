@@ -1324,6 +1324,33 @@ def test_choice_asset_path_may_be_referenced_by_choice(tmp_path) -> None:
     assert not any("reference asset path" in issue.message for issue in _static_item_issues(item))
 
 
+def test_non_agent_tasks_reject_non_image_assets(tmp_path) -> None:
+    text_path = tmp_path / "input.txt"
+    text_path.write_text("task input", encoding="utf-8")
+    task = TaskDefinition(
+        id="text_asset_task",
+        dimension_id="text",
+        task_type=TaskType.generation,
+        title="Text asset task",
+        prompt=f"Use {text_path} to answer the question.",
+        assets=[{"path": str(text_path)}],
+        rubric="Score correctness.",
+    )
+    item = BenchmarkItem(
+        id=task.id,
+        dimension_id=task.dimension_id,
+        task_type=task.task_type,
+        prompt=task.prompt,
+        assets=task.assets,
+        rubric=task.rubric,
+    )
+
+    assert any("only image assets" in issue for issue in task_structure_issues(task))
+    assert any(
+        "only image assets" in issue.message for issue in _static_item_issues(item)
+    )
+
+
 def test_task_design_file_inputs_require_assets(tmp_path) -> None:
     design = TaskDesign(
         id="vision_design",
