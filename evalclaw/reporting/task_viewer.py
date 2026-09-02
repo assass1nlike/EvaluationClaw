@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from ..types import BenchmarkPackage
+from ._katex_assets import inject_katex
 from .task_viewer_template import HTML_TEMPLATE
 
 
@@ -95,7 +96,7 @@ def build_task_viewer_html(pkg: BenchmarkPackage) -> str:
     """Build the standalone task-browsing HTML document."""
     payload = json.dumps(_task_payload(pkg), ensure_ascii=False)
     payload = payload.replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
-    return HTML_TEMPLATE.replace("__PAYLOAD__", payload)
+    return inject_katex(HTML_TEMPLATE.replace("__PAYLOAD__", payload))
 
 
 def write_task_viewer(pkg: BenchmarkPackage, html_path: Path) -> Path:

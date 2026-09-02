@@ -99,7 +99,7 @@
       <li><a href="#human">可选地执行人工复核</a></li>
       <li><a href="#prepare-run">建立执行视图并准备环境</a></li>
       <li><a href="#run">按题型执行目标和评分</a></li>
-      <li><a href="#improve">可选地进行结果驱动改进</a></li>
+      <li><a href="#analysis">可选地进行模型表现分析与验证</a></li>
       <li><a href="#output">生成报告和保存产物</a></li>
     </ol>
   </nav>
@@ -328,24 +328,23 @@
     <p>lm-eval 只有在存在目标和输出目录时运行，并且只导出不会改变评分语义的选择题、判断题和带参考答案的简答题。开放生成、代码和 agent 任务仍只由 direct runner 执行。某个目标的 lm-eval 失败会记录在运行产物中，不阻止继续处理其他目标。</p>
   </section>
 
-  <section id="improve">
-    <h2>12. 可选地执行结果驱动改进</h2>
+  <section id="analysis">
+    <h2>12. 模型表现分析与验证</h2>
     <div class="io">
-      <p><strong>进入：</strong>当前数据集、QC、逐题结果和目标汇总。</p>
-      <p><strong>离开：</strong>每轮改进行动，以及存在有效行动时的新数据集、新 QC 和新运行。</p>
+      <p><strong>进入：</strong>正式 benchmark、QC 结果、逐题作答和目标汇总。</p>
+      <p><strong>离开：</strong>模型弱点分析、强化建议，以及可选的独立验证轮次。</p>
     </div>
-    <p>本步骤按配置的迭代次数运行。LLM 诊断模式把 QC 问题、低分或异常结果、相关题目摘要和目标汇总交给 Loop 3 模型；本地模式直接由 error 和低分维度产生行动。模型调用失败或超时也回退到本地诊断。</p>
-    <p>有效行动只有两类：替换一个存在问题的 item，或为弱维度增加一个更细的边界 item。每个行动先把对应维度缩成一道指定题型的新规格，再通过相同 Planner Skill 生成 Blueprint、调用 Builder，并拒绝与已有题面近似重复的候选。替换任务删除旧 item；扩展任务保留旧 item。</p>
-    <p>改进后的数据集重新运行完整 QC，然后重新执行目标。该轮数据集、QC 和运行结果进入改进记录；主流程把它们作为下一轮和最终报告使用。没有行动时只记录诊断说明，不改变数据集。</p>
+    <p>配置 Analyser 后，本步骤分析正式运行结果，给出有证据支持的模型弱点和强化建议。QC 不默认进入上下文；需要区分模型问题、题目问题或基础设施问题时，Analyser 可以通过只读工具读取当前 run 中保存的 QC 和其他产物。</p>
+    <p>当证据不足时，Analyser 可以在配置的轮数预算内返回验证用 TaskDesign。验证题经过标准构题、QC、环境准备和执行流程，结果在下一轮分析中作为新证据；验证题只保存在 Analysis 记录中，不替换正式 benchmark。预算耗尽后返回最终结论。</p>
   </section>
 
   <section id="output">
     <h2>13. 生成报告并保存全部产物</h2>
     <div class="io">
-      <p><strong>进入：</strong>最终计划、数据集、QC、运行结果、改进记录和可选研究摘要。</p>
+      <p><strong>进入：</strong>最终计划、数据集、QC、运行结果、Analysis 记录和可选研究摘要。</p>
       <p><strong>离开：</strong>内存中的完整运行包，以及配置输出目录时的文件产物。</p>
     </div>
-    <p>框架先从最终运行生成 Markdown 报告，内容包括目标、派生规格、维度、TaskSuite、来源、QC、评分语义、运行审计、逐题结果、目标汇总、失败模式和建议。随后把规范化需求、完整 BenchmarkPlan、派生 EvalSpec、最终数据集、最终 QC、最终运行、全部改进轮次、报告和研究摘要组合成 <code>BenchmarkPackage</code>。</p>
+    <p>框架先从正式运行生成 Markdown 报告，内容包括目标、派生规格、维度、TaskSuite、来源、QC、评分语义、运行审计、逐题结果、目标汇总、模型表现分析和强化建议。随后把规范化需求、完整 BenchmarkPlan、派生 EvalSpec、最终 TaskSuite、最终 QC、正式运行、Analysis 记录、报告和研究摘要组合成 <code>BenchmarkPackage</code>。</p>
     <p>配置输出目录时，框架再次根据最终 QC 建立只含通过题目的导出视图，并保存：</p>
     <ul>
       <li>完整运行包 JSON；</li>
@@ -359,7 +358,7 @@
   </section>
 
   <footer>
-    <p><strong>完整顺序：</strong>需求与配置 → 可选翻译 → 可选 Deep Research → 单个 Planner 阶段产出 Dimension、TaskDesign 和 Blueprint → 每个 Blueprint 一次 Builder 调用 → 结构修复 → 构题整合出 run-ready TaskSuite → QC 与定点任务修复 → 可选人工复核 → 仅通过题目的执行准备 → task_type 硬分派与可选环境执行 → 可选 Loop 3 → 报告和产物。</p>
+    <p><strong>完整顺序：</strong>需求与配置 → 可选翻译 → 可选 Deep Research → 单个 Planner 阶段产出 Dimension、TaskDesign 和 Blueprint → 每个 Blueprint 一次 Builder 调用 → 结构修复 → 构题整合出 run-ready TaskSuite → QC 与定点任务修复 → 可选人工复核 → 仅通过题目的执行准备 → task_type 硬分派与可选环境执行 → 可选 Analysis 与验证实验 → 报告和产物。</p>
   </footer>
 </main>
 </body>

@@ -68,7 +68,7 @@ _STAGE_SEGMENTS = {
     "qc": "qc",
     "research": "research",
     "runner": "runner",
-    "loop3": "loop3",
+    "analysis": "analysis",
     "judge": "runner",
     "human-review": "review",
     "environment": "construction",

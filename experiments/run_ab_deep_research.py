@@ -55,7 +55,7 @@ def _build_bench_config(
     run_targets = any(bool(t.api_key) for t in targets)
 
     role_fields: dict[str, object] = {}
-    for role in ("planner", "task_builder", "qc", "research", "loop3"):
+    for role in ("planner", "task_builder", "qc", "research"):
         role_fields[f"{role}_model"] = role_model
         role_fields[f"{role}_api_key"] = role_key
         role_fields[f"{role}_base_url"] = role_base
@@ -71,7 +71,6 @@ def _build_bench_config(
         use_web_research=not offline,
         use_hf_discovery=not offline,
         run_targets=run_targets,
-        improve_iterations=0,
         human_review=False,
         output_dir=str(variant_dir),
     )

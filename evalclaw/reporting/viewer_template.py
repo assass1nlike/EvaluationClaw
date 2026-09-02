@@ -34,8 +34,9 @@ HTML_TEMPLATE = """<!doctype html>
       top: 0;
       z-index: 20;
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(8px);
+      background: linear-gradient(118deg, #17202a, #155eef 62%, #2f9e86);
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.12);
     }
     .topbar {
       display: grid;
@@ -44,14 +45,21 @@ HTML_TEMPLATE = """<!doctype html>
       align-items: center;
       max-width: 1480px;
       margin: 0 auto;
-      padding: 14px 24px;
+      padding: 17px 24px;
     }
     h1, h2, h3, p { margin: 0; }
     h1 { font-size: 20px; line-height: 1.2; font-weight: 700; }
     h2 { font-size: 16px; margin-bottom: 12px; }
     h3 { font-size: 14px; margin-bottom: 8px; }
     section > h3 { margin-top: 18px; }
-    .objective { color: var(--muted); margin-top: 5px; max-width: 980px; }
+    .objective { color: rgba(235, 241, 246, 0.86); margin-top: 5px; max-width: 980px; }
+    .header-meta { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 7px; }
+    .header-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 9px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.26);
+      color: #f4f8fb; font-size: 12px; font-weight: 650;
+    }
     .app {
       display: grid;
       grid-template-columns: 280px minmax(0, 1fr);
@@ -110,6 +118,17 @@ HTML_TEMPLATE = """<!doctype html>
     }
     .stat .label { color: var(--muted); font-size: 12px; }
     .stat .value { margin-top: 6px; font-size: 20px; font-weight: 700; overflow-wrap: anywhere; }
+    .meter { margin-top: 8px; }
+    .meter-track {
+      height: 7px; border-radius: 999px; background: #e9eef6; overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%; border-radius: inherit;
+      background: linear-gradient(90deg, var(--good), #35a877);
+      transition: width 0.3s ease;
+    }
+    .meter-fill.warn { background: linear-gradient(90deg, var(--warn), #e59a3c); }
+    .meter-fill.bad { background: linear-gradient(90deg, var(--bad), #e05a4f); }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip {
       display: inline-flex;
@@ -206,14 +225,48 @@ HTML_TEMPLATE = """<!doctype html>
       text-align: left;
       vertical-align: top;
     }
-    th { color: var(--muted); font-size: 12px; font-weight: 650; }
-    td { overflow-wrap: anywhere; }
+    th { color: var(--muted); font-size: 12px; font-weight: 650; white-space: nowrap; }
+    td { overflow-wrap: break-word; }
+    td.nowrap { white-space: nowrap; }
+    table.kv-table th:first-child,
+    table.kv-table td:first-child {
+      width: 220px;
+      min-width: 150px;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    table.kv-table td:last-child { min-width: 0; }
     .filters {
       display: grid;
-      grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(120px, 1fr));
+      grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(120px, 1fr));
       gap: 8px;
       margin-bottom: 12px;
     }
+    .quick-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .qf {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .qf:hover { background: var(--soft); }
+    .qf.active {
+      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .qf[data-sev="error"].active { background: var(--bad); border-color: var(--bad); }
+    .qf[data-sev="weak"].active { background: var(--warn); border-color: var(--warn); }
     input, select {
       width: 100%;
       border: 1px solid var(--line);
@@ -243,6 +296,16 @@ HTML_TEMPLATE = """<!doctype html>
     }
     details.item[open] summary { border-bottom-color: var(--line); }
     summary::-webkit-details-marker { display: none; }
+    .item-left { display: grid; gap: 3px; min-width: 0; }
+    .item-title { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+    .item-title strong { overflow-wrap: anywhere; }
+    .item-num {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
     .item-body { padding: 12px; display: grid; gap: 12px; }
     .task-section {
       display: grid;
@@ -381,6 +444,7 @@ HTML_TEMPLATE = """<!doctype html>
       <div>
         <h1>EvaluationClaw Diagnostic Report: __SPEC_ID__</h1>
         <p class="objective">__OBJECTIVE__</p>
+        <div class="header-meta" id="header-meta"></div>
       </div>
     </div>
   </header>
@@ -398,6 +462,7 @@ HTML_TEMPLATE = """<!doctype html>
       <section id="overview"></section>
       <section id="capability"></section>
       <section id="diagnostics"></section>
+      <section id="analysis"></section>
       <section id="explorer"></section>
       <section id="qc"></section>
     </main>
@@ -572,6 +637,17 @@ HTML_TEMPLATE = """<!doctype html>
       box.append(node("div", {class: `value ${tone ? "tone-" + tone : ""}`}, value));
       return box;
     }
+    function meter(value) {
+      const clamp = Math.max(0, Math.min(1, Number(value || 0)));
+      const wrap = node("div", {class: "meter"});
+      const track = node("div", {class: "meter-track"});
+      const fill = node("div", {class: "meter-fill"});
+      fill.style.width = `${clamp * 100}%`;
+      fill.className = `meter-fill ${scoreTone(clamp)}`;
+      track.append(fill);
+      wrap.append(track);
+      return wrap;
+    }
     function pre(text) { return node("pre", {}, text || "-"); }
     function table(headers, rows) {
       if (!rows || rows.length === 0) return node("p", {class: "empty"}, "No rows.");
@@ -610,18 +686,19 @@ HTML_TEMPLATE = """<!doctype html>
 
       if (distributionRows && distributionRows.length) {
         const distribution = node("div", {class: "composition-distribution"});
-        const maxCount = Math.max(...distributionRows.map(row => Number(row[1] || 0)), 1);
+        const total = distributionRows.reduce((sum, row) => sum + Number(row[1] || 0), 0) || 1;
         distributionRows.forEach(([label, value]) => {
           const count = Number(value || 0);
-          const width = Math.max(4, Math.round((count / maxCount) * 100));
+          const pctValue = (count / total) * 100;
+          const width = Math.max(2, Math.round(pctValue));
           const row = node("div", {class: "composition-row"});
           row.append(node("div", {class: "name"}, label));
           const bar = node("div", {class: "bar"});
           const fill = node("div", {class: "fill"});
-          fill.style.width = `${width}%`;
+          fill.style.width = `${Math.min(100, width)}%`;
           bar.append(fill);
           row.append(bar);
-          row.append(node("div", {class: "count"}, value));
+          row.append(node("div", {class: "count"}, `${value} · ${pctValue.toFixed(0)}%`));
           distribution.append(row);
         });
         wrap.append(distribution);
@@ -736,7 +813,25 @@ HTML_TEMPLATE = """<!doctype html>
       return taskLabel(item.task_type || "task");
     }
     function itemTaskTitle(itemOrId) {
-      return `${itemBaseLabel(itemOrId)} - ${itemContentSummary(itemOrId)}`;
+      const summary = itemContentSummary(itemOrId);
+      if (summary && summary !== itemBaseLabel(itemOrId)) return summary;
+      return itemBaseLabel(itemOrId);
+    }
+    const dimensionOrdinalById = new Map(
+      ((pkg.suite.spec && pkg.suite.spec.dimensions) || []).map((dimension, index) => [dimension.id, index + 1]),
+    );
+    const dimensionTaskCounts = new Map();
+    const itemNumberById = new Map();
+    (pkg.suite.tasks || []).forEach(item => {
+      const dimensionOrdinal = dimensionOrdinalById.get(item.dimension_id);
+      if (dimensionOrdinal === undefined) return;
+      const taskOrdinal = (dimensionTaskCounts.get(item.dimension_id) || 0) + 1;
+      dimensionTaskCounts.set(item.dimension_id, taskOrdinal);
+      itemNumberById.set(item.id, `${dimensionOrdinal}.${taskOrdinal}`);
+    });
+    function itemNumber(item) {
+      const itemId = typeof item === "object" && item ? item.id : item;
+      return itemNumberById.get(itemId) || "";
     }
     function targetsForItem(itemId) {
       const targets = [...new Set((resultRecordsByItem.get(itemId) || []).map(record => humanLabel(record.target_id)))];
@@ -841,7 +936,9 @@ HTML_TEMPLATE = """<!doctype html>
     }
     function renderRows(rows) {
       const filtered = (rows || []).filter(row => hasRenderableValue(row[1]));
-      return table(["Field", "Value"], filtered.map(([label, value]) => [label, renderValue(value)]));
+      const tbl = table(["Field", "Value"], filtered.map(([label, value]) => [label, renderValue(value)]));
+      tbl.classList.add("kv-table");
+      return tbl;
     }
     function renderTaskSection(title, note, children) {
       const section = node("div", {class: "task-section"});
@@ -1264,10 +1361,24 @@ HTML_TEMPLATE = """<!doctype html>
       const summaries = pkg.run.summaries || [];
       const avg = summaries.length ? summaries.reduce((sum, row) => sum + Number(row.average_score || 0), 0) / summaries.length : 0;
       const dimensions = ((pkg.suite.spec || {}).dimensions || []).length;
+      const usedItems = diag.used_items ?? (pkg.run.results || []).length;
+      const headerMeta = qs("header-meta");
+      headerMeta.innerHTML = "";
+      headerMeta.append(chip(`Dimensions: ${dimensions}`));
+      headerMeta.append(chip(`Items: ${usedItems}`));
+      if (summaries.length) {
+        headerMeta.append(chip(`Targets: ${summaries.map(row => humanLabel(row.target_id)).join(", ")}`));
+        headerMeta.append(chip(`Mean: ${pct(avg)}`));
+      } else {
+        headerMeta.append(chip("No target run"));
+      }
+
       const grid = node("div", {class: "grid cols-3"});
       grid.append(stat("Dimensions", dimensions));
-      grid.append(stat("Used items", diag.used_items ?? (pkg.run.results || []).length));
-      grid.append(stat("Mean target accuracy", summaries.length ? pct(avg) : "not run", summaries.length ? scoreTone(avg) : ""));
+      grid.append(stat("Used items", usedItems));
+      const avgStat = stat("Mean target accuracy", summaries.length ? pct(avg) : "not run", summaries.length ? scoreTone(avg) : "");
+      if (summaries.length) avgStat.append(meter(avg));
+      grid.append(avgStat);
       section.append(grid);
       const targetRows = summaries.map(row => [humanLabel(row.target_id), pct(row.average_score), row.total_items, row.errors]);
       section.append(node("h3", {}, "Targets"));
@@ -1297,6 +1408,37 @@ HTML_TEMPLATE = """<!doctype html>
         section.append(table(["Recommendation"], recommendations.map(recommendation => [recommendation])));
       }
     }
+    function renderAnalysis() {
+      const section = qs("analysis");
+      section.innerHTML = "<h2>Model Performance Analysis</h2>";
+      const analysis = pkg.analysis;
+      if (!analysis) {
+        section.append(node("p", {class: "empty"}, "No analysis configured."));
+        return;
+      }
+      section.append(renderTaskSection("Conclusion", "Analyser's evidence-based conclusion.", [
+        markdownNode(analysis.conclusion || "-")
+      ]));
+      if ((analysis.recommendations || []).length) {
+        section.append(node("h3", {}, "Strengthening Recommendations"));
+        section.append(table(
+          ["Recommendation"],
+          analysis.recommendations.map(recommendation => [markdownNode(recommendation)])
+        ));
+      }
+      const iterations = analysis.iterations || [];
+      if (iterations.length) {
+        section.append(node("h3", {}, "Verification Iterations"));
+        section.append(table(
+          ["Iteration", "Analysis", "Task Designs"],
+          iterations.map(iteration => [
+            iteration.iteration,
+            markdownNode(iteration.analysis || "-"),
+            (iteration.task_designs || []).length,
+          ])
+        ));
+      }
+    }
     function fillSelect(id, values, labelFn = humanLabel) {
       const sel = qs(id);
       values.forEach(value => sel.append(node("option", {value}, labelFn(value))));
@@ -1322,6 +1464,7 @@ HTML_TEMPLATE = """<!doctype html>
     function explorerSeverity(entry) {
       return entry.record ? entry.record.severity : entry.row.status.label;
     }
+    let explorerSeverityFilter = "";
     function renderExplorer() {
       const section = qs("explorer");
       section.innerHTML = `<h2>Item Explorer</h2>
@@ -1330,9 +1473,23 @@ HTML_TEMPLATE = """<!doctype html>
           <select id="filter-target"><option value="">All targets</option></select>
           <select id="filter-dimension"><option value="">All dimensions</option></select>
           <select id="filter-task"><option value="">All task types</option></select>
-          <select id="filter-severity"><option value="">All outcomes</option></select>
+        </div>
+        <div class="quick-filters">
+          <button class="qf" data-sev="">All</button>
+          <button class="qf" data-sev="error">Errors</button>
+          <button class="qf" data-sev="weak">Weak</button>
+          <button class="qf" data-sev="review">Review</button>
+          <button class="qf" data-sev="strong">Strong</button>
         </div>
         <div id="item-list"></div>`;
+      const qfButtons = [...document.querySelectorAll(".qf")];
+      qfButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          explorerSeverityFilter = btn.dataset.sev || "";
+          qfButtons.forEach(b => b.classList.toggle("active", b === btn));
+          applyFilters();
+        });
+      });
       fillSelect(
         "filter-target",
         [...new Set(explorerRows.map(explorerTarget).filter(Boolean))].sort(),
@@ -1348,12 +1505,7 @@ HTML_TEMPLATE = """<!doctype html>
         [...new Set(explorerRows.map(entry => entry.row.item.task_type).filter(Boolean))].sort(),
         taskLabel,
       );
-      fillSelect(
-        "filter-severity",
-        [...new Set(explorerRows.map(explorerSeverity).filter(Boolean))].sort(),
-        humanLabel,
-      );
-      ["filter-search", "filter-target", "filter-dimension", "filter-task", "filter-severity"].forEach(id => qs(id).addEventListener("input", applyFilters));
+      ["filter-search", "filter-target", "filter-dimension", "filter-task"].forEach(id => qs(id).addEventListener("input", applyFilters));
       applyFilters();
     }
     function renderRecord(entry) {
@@ -1367,8 +1519,12 @@ HTML_TEMPLATE = """<!doctype html>
       item.setAttribute("data-severity", explorerSeverity(entry));
       item.setAttribute("data-search", explorerSearchText(entry));
       const summary = node("summary");
-      const left = node("div");
-      left.append(node("strong", {}, record ? itemRunTitle(record) : itemDesignTitle(itemData)));
+      const left = node("div", {class: "item-left"});
+      const titleLine = node("div", {class: "item-title"});
+      const num = node("span", {class: "item-num"}, itemNumber(itemData));
+      titleLine.append(num);
+      titleLine.append(node("strong", {}, record ? itemRunTitle(record) : itemDesignTitle(itemData)));
+      left.append(titleLine);
       left.append(node("div", {class: "small"}, `${taskLabel(itemData.task_type)} | ${humanLabel(itemData.challenge_effort)} | ${itemSourceLabel(record || itemData)}`));
       const right = record
         ? node("div", {class: `tone-${scoreTone(record.score)}`}, `${record.score_label} ${record.severity}`)
@@ -1426,7 +1582,7 @@ HTML_TEMPLATE = """<!doctype html>
       const target = qs("filter-target").value;
       const dimension = qs("filter-dimension").value;
       const task = qs("filter-task").value;
-      const severity = qs("filter-severity").value;
+      const severity = explorerSeverityFilter;
       const filtered = explorerRows.filter(entry =>
         (!search || explorerSearchText(entry).includes(search)) &&
         (!target || explorerTarget(entry) === target) &&
@@ -1438,7 +1594,12 @@ HTML_TEMPLATE = """<!doctype html>
         list.append(node("p", {class: "empty"}, "No matching items."));
         return;
       }
-      filtered.forEach(entry => list.append(renderRecord(entry)));
+      const autoOpen = severity === "weak" || severity === "error" || severity === "review";
+      filtered.forEach(entry => {
+        const el = renderRecord(entry);
+        el.open = autoOpen;
+        list.append(el);
+      });
     }
     function renderQc() {
       const section = qs("qc");
@@ -1530,6 +1691,7 @@ HTML_TEMPLATE = """<!doctype html>
     renderOverview();
     renderCapability();
     renderDiagnostics();
+    renderAnalysis();
     renderExplorer();
     renderQc();
   </script>

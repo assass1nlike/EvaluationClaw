@@ -6,7 +6,7 @@ from typing import Literal
 
 from ..types import BenchmarkConfig, TargetModelConfig
 
-ModelRole = Literal["planner", "task_builder", "qc", "research", "loop3"]
+ModelRole = Literal["planner", "task_builder", "qc", "research", "analyser"]
 
 
 @dataclass(frozen=True)

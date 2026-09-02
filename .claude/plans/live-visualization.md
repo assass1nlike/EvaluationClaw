@@ -26,7 +26,7 @@ pipeline 跑起来
    http://localhost:8800/events/{id} → SSE 事件流
 ```
 
-关健设计决定：**live 上下文不逐处透传参数**。`llm.py` 里所有调用点已经携带 `trace_dir`（唯一 run 调试目录）和 `trace_name`。live 层维护一个 `run_dir → run_id` 的注册表，`llm.py` 从调用点已有的 `trace_dir` 自动解析出 `run_id` 和 **stage**（由 `trace_dir` 相对 run_dir 的路径段推导：planner / construction / qc / research / runner / loop3 / judge 等）。这样改造只在 `llm.py` 内部和 pipeline 注册处，几十个调用点零改动。
+关健设计决定：**live 上下文不逐处透传参数**。`llm.py` 里所有调用点已经携带 `trace_dir`（唯一 run 调试目录）和 `trace_name`。live 层维护一个 `run_dir → run_id` 的注册表，`llm.py` 从调用点已有的 `trace_dir` 自动解析出 `run_id` 和 **stage**（由 `trace_dir` 相对 run_dir 的路径段推导：planner / construction / qc / research / runner / analysis / judge 等）。这样改造只在 `llm.py` 内部和 pipeline 注册处，几十个调用点零改动。
 
 安全性：只绑定 127.0.0.1；事件文本复用现有 `redact_secrets`。不引入任何外部前端依赖。
 
@@ -65,7 +65,7 @@ pipeline 跑起来
 
 布局：
 - 顶栏：run 标题 + goal + 状态（running / completed / failed）+ 已等待时长（计时 animation）。
-- 主区左侧：**阶段时间线**（translation → deep_research → planner → construction → qc → runner → loop3 → report），当前阶段高亮，各阶段完成/进行中/失败状态。
+- 主区左侧：**阶段时间线**（translation → deep_research → planner → construction → qc → runner → analysis → report），当前阶段高亮，各阶段完成/进行中/失败状态。
 - 主区右侧：**LLM 调用卡片**，每张卡片 = 一次模型调用（按 role/model/stage 分组，如 `Planner · attempt 01`、`Task Builder · dimension_1 task_design_2 1/4`、`Judge · first pass`、`Deep Research · reflect round 1`）。卡片内：
   - 头部：role(模型名)、发起时间、已等待时长、状态徽章（调用中/截断重试中/完成/失败）。
   - 主体：等宽字体、语法高亮（JSON 高亮，非 JSON 用纯文本），**逐 token 增长**（来自 SSE `token` 事件），自动滚到最新；已完成显示完整内容 + 完成耗时。

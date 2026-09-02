@@ -63,7 +63,9 @@ TASK_BUILDER_TOOL_PROMPT = """\
 You may use the supplied tools when they materially improve task construction.
 Use run_python for computation, validation, or creating and processing task files.
 Save required task files in its fixed working directory. Tool results identify files
-with host paths that are available only during construction. For task-input files that
+with host paths that are available only during construction. Asset paths in the final
+response may use those host paths or paths relative to the fixed Builder job directory;
+the framework resolves relative asset paths before validation and execution. For task-input files that
 must be copied into a runtime workdir, put those host paths in the corresponding task's
 top-level assets list. If a file belongs to the environment's declared initial visible
 state, read the created file and put its literal contents in environment.visible_files

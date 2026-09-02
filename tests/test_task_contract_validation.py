@@ -9,8 +9,14 @@ from evalclaw.construction.packaging import (
     _task_agent_metadata_for_task,
 )
 from evalclaw.construction.parsing import _task_from_raw
-from evalclaw.construction.suite import _preflight_builder_environments
-from evalclaw.construction.validation import task_structure_issues
+from evalclaw.construction.suite import (
+    _normalize_builder_asset_paths,
+    _preflight_builder_environments,
+)
+from evalclaw.construction.validation import (
+    resolve_builder_asset_path,
+    task_structure_issues,
+)
 from evalclaw.protocols.task_agent import compact_task_agent_for_qc
 from evalclaw.quality.dataset_checks import _coverage_issues, _duplicate_issues
 from evalclaw.quality.llm_checks import _compact_metadata_for_qc, _llm_qc
@@ -1157,10 +1163,13 @@ def test_task_agent_packaging_keeps_runner_private_vm_state_out_of_target_contex
         "evaluation": {"checks": [{"command": "PRIVATE-EVALUATOR-COMMAND"}]},
     }
 
-    initial = _task_agent_metadata_for_task(task, agent_env)["initial_content"]
+    packaged = _task_agent_metadata_for_task(task, agent_env)
+    initial = packaged["initial_content"]
     serialized = json.dumps(initial)
 
-    assert initial["scenario"] == task.description
+    assert "scenario" not in initial
+    assert task.description not in serialized
+    assert packaged["scoring"]["instructions"] == ""
     assert initial["files"] == agent_env["visible_files"]
     assert initial["session"] == {
         "application": "Windows Desktop",
@@ -1292,6 +1301,37 @@ def test_asset_qc_requires_existing_prompt_referenced_paths(tmp_path) -> None:
 
     assert any("do not reference asset path" in message for message in messages)
     assert any("does not exist" in message for message in messages)
+
+
+def test_builder_relative_asset_path_resolves_against_job_directory(tmp_path) -> None:
+    work_dir = tmp_path / "builder"
+    asset_path = work_dir / "bio_assets" / "culture.png"
+    asset_path.parent.mkdir(parents=True)
+    asset_path.write_bytes(b"\x89PNG\r\n\x1a\n")
+    task = TaskDefinition(
+        id="image_1",
+        dimension_id="vision",
+        task_type=TaskType.generation,
+        title="Image task",
+        prompt="Inspect bio_assets/culture.png and describe the anomaly.",
+        assets=[{"path": "bio_assets/culture.png"}],
+        rubric="Score against visible evidence.",
+    )
+
+    assert task_structure_issues(task, builder_work_dir=work_dir) == []
+    _normalize_builder_asset_paths(task, work_dir)
+
+    assert task.assets[0].path == str(asset_path.resolve())
+    assert task.assets[0].path in task.prompt
+    assert task_structure_issues(task) == []
+
+
+def test_builder_relative_asset_path_cannot_escape_job_directory(tmp_path) -> None:
+    work_dir = tmp_path / "builder"
+    work_dir.mkdir()
+
+    with pytest.raises(ValueError, match="inside the Builder job directory"):
+        resolve_builder_asset_path("../outside.png", work_dir)
 
 
 def test_choice_asset_path_may_be_referenced_by_choice(tmp_path) -> None:

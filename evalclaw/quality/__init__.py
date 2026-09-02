@@ -1,2 +1,1 @@
-"""Quality-control and improvement loops."""
-
+"""Quality checks and model-performance analysis."""

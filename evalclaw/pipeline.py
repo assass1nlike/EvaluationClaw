@@ -27,9 +27,10 @@ from .execution.environment_claw import (
 from .execution.lm_eval import run_lm_eval
 from .execution.plan import build_execution_plan
 from .execution.runner import run_eval
+from .models.roles import role_model_settings
 from .planning.loop import apply_human_review_feedback, format_human_review_overview
 from .planning.planner import translate_goal_to_english
-from .quality.improver import run_loop3_improvement
+from .quality.analysis import run_analysis
 from .reporting.artifacts import write_artifact_manifest, write_lm_eval_artifacts
 from .reporting.reporter import artifact_index_markdown, build_report
 from .reporting.task_viewer import build_task_viewer_html
@@ -42,9 +43,9 @@ from .types import (
     BenchmarkPlan,
     EvalRun,
     EvalSpec,
-    ImprovementIteration,
     QcReport,
     ResearchBrief,
+    TaskDefinition,
     TaskSuite,
 )
 
@@ -134,12 +135,42 @@ def _load_construction_resume(
         try:
             suite = TaskSuite.model_validate(final_payload["suite"])
             qc_report = QcReport.model_validate(final_payload["qc_report"])
+            if plan is not None:
+                plan = plan.model_copy(
+                    update={
+                        "subjects": suite.spec.subjects,
+                        "scale_budget": suite.spec.scale_budget,
+                    }
+                )
             suite.plan = plan
             return plan, suite, qc_report, 0
         except (KeyError, TypeError, ValueError):
             pass
 
     suite = _load_model(construction_dir / "initial-suite.json", TaskSuite)
+    if isinstance(suite, TaskSuite):
+        source_definitions: dict[str, TaskDefinition] = {}
+        builder_checkpoint_dir = construction_dir / "builder-checkpoints"
+        if builder_checkpoint_dir.is_dir():
+            for path in builder_checkpoint_dir.glob("initial-*.json"):
+                payload = _read_json(path)
+                if not isinstance(payload, dict):
+                    continue
+                for value in payload.get("tasks", []):
+                    try:
+                        task = TaskDefinition.model_validate(value)
+                    except (TypeError, ValueError):
+                        continue
+                    source_definitions[task.id] = task
+        for task in suite.tasks:
+            task.source_definition = source_definitions.get(task.id)
+        if plan is not None:
+            plan = plan.model_copy(
+                update={
+                    "subjects": suite.spec.subjects,
+                    "scale_budget": suite.spec.scale_budget,
+                }
+            )
     qc_report = _load_model(construction_dir / "initial-qc.json", QcReport)
     last_round = 0
     checkpoint_dir = construction_dir / "qc-checkpoints"
@@ -515,6 +546,7 @@ def _run_pipeline(
                 "qc_report": qc_report.model_dump(mode="json"),
             },
         )
+        write_json(debug_run_dir / "qc_report.json", qc_report.model_dump(mode="json"))
     log(f"  Final dimensions: {len(spec.dimensions)}")
     log(f"  Final items: {len(suite.tasks)}")
     log(f"  Sources used: {len(suite.resources)}")
@@ -674,58 +706,36 @@ def _run_pipeline(
     log(f"  Results: {len(run.results)} item responses")
 
     mark_stage("runner", "done")
-    improvements = []
-    mark_stage("improvement")
-    for iteration in range(1, max(0, config.improve_iterations) + 1):
-        checkpoint = (
-            debug_run_dir / "improvements" / f"iteration-{iteration:02d}.json"
-            if debug_run_dir is not None
-            else None
+    analysis = None
+    mark_stage("analysis")
+    analyser_configured = role_model_settings(config, "analyser").configured
+    if config.analysis_iterations > 0 and not analyser_configured:
+        raise RuntimeError(
+            "analysis_iterations requires a configured Analyser model."
         )
-        cached_improvement = None
-        if resuming and checkpoint is not None:
-            payload = _read_json(checkpoint)
-            if isinstance(payload, dict):
-                saved_run = payload.get("run")
-                if isinstance(saved_run, dict):
-                    payload["run"] = {
-                        **saved_run,
-                        "suite": payload.get("suite"),
-                        "qc_report": payload.get("qc_report"),
-                    }
-                try:
-                    cached_improvement = ImprovementIteration.model_validate(payload)
-                except (TypeError, ValueError):
-                    cached_improvement = None
-        if cached_improvement is not None:
-            improvements.append(cached_improvement)
-            if cached_improvement.suite and cached_improvement.qc_report and cached_improvement.run:
-                suite, qc_report, run = (
-                    cached_improvement.suite,
-                    cached_improvement.qc_report,
-                    cached_improvement.run,
-                )
-            continue
-        log(f"\n[Loop 3] Running self-improvement iteration {iteration}...")
-        improved = run_loop3_improvement(suite, qc_report, run, config, iteration=iteration, log=log)
-        improvements.append(improved)
-        log(f"  Actions: {len(improved.actions)}")
-        if improved.qc_report:
-            improved_item_count = len(improved.suite.tasks) if improved.suite else len(suite.tasks)
-            log(f"  Improved average QC issues: {_average_qc_issues(improved.qc_report, improved_item_count):.2f}")
-        if improved.run:
-            log(f"  Improved results: {len(improved.run.results)} item responses")
-        if improved.suite and improved.qc_report and improved.run:
-            suite = improved.suite
-            qc_report = improved.qc_report
-            run = improved.run
-        if checkpoint is not None:
-            write_json(checkpoint, improved.model_dump(mode="json"))
-    mark_stage("improvement", "done")
+    if analyser_configured and run.results:
+        log("\n[Analysis] Analysing target-model performance...")
+        _live_stage(live_run_id, "analysis")
+        analysis = run_analysis(
+            suite,
+            run,
+            config,
+            artifact_dir=debug_run_dir,
+            log=log,
+        )
+        log(f"  Verification iterations: {len(analysis.iterations)}")
+        _live_stage(live_run_id, "analysis", status="done")
+    elif analyser_configured:
+        log("\n[Analysis] Skipped because the main benchmark produced no target-model results.")
+    mark_stage("analysis", "done")
 
     mark_stage("reporting")
     log("\n[Reporter] Building Markdown report...")
-    report = build_report(run, research_brief=config.research_brief)
+    report = build_report(
+        run,
+        research_brief=config.research_brief,
+        analysis=analysis,
+    )
 
     pkg = BenchmarkPackage(
         goal=goal,
@@ -734,7 +744,7 @@ def _run_pipeline(
         suite=suite,
         qc_report=qc_report,
         run=run,
-        improvements=improvements,
+        analysis=analysis,
         report=report,
         research_brief=config.research_brief,
     )

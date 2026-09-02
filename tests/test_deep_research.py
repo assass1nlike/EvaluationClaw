@@ -737,7 +737,7 @@ def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
             "--qc-model", "qc-model", "--qc-api-key", "qc-key",
             "--task-model", "task-model",
             "--research-model", "research-model", "--research-api-key", "research-key",
-            "--loop3-model", "loop3-model", "--loop3-api-key", "loop3-key",
+            "--analyser-model", "analyser-model", "--analyser-api-key", "analyser-key",
         ],
     )
     assert result.exit_code == 0
@@ -746,7 +746,7 @@ def test_cli_deep_research_flags_wire_into_config(monkeypatch) -> None:
     assert captured["config"].qc_model == "qc-model"
     assert captured["config"].task_models[0].model == "task-model"
     assert captured["config"].research_model == "research-model"
-    assert captured["config"].loop3_model == "loop3-model"
+    assert captured["config"].analyser_model == "analyser-model"
 
     result = runner.invoke(
         app,

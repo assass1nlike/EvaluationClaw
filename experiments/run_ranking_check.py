@@ -45,7 +45,7 @@ def _targets_and_config(exp: dict, *, smoke: bool, output_dir: Path) -> tuple[Be
     strong = target_from_model(exp["strong_target"], fallback_key=role_key)
     weak = target_from_model(exp["weak_target"], fallback_key=role_key)
     role_fields: dict[str, object] = {}
-    for role in ("planner", "task_builder", "qc", "research", "loop3"):
+    for role in ("planner", "task_builder", "qc", "research"):
         role_fields[f"{role}_model"] = role_model
         role_fields[f"{role}_api_key"] = role_key
         role_fields[f"{role}_base_url"] = role_base
@@ -59,7 +59,6 @@ def _targets_and_config(exp: dict, *, smoke: bool, output_dir: Path) -> tuple[Be
         use_web_research=not offline,
         use_hf_discovery=not offline,
         run_targets=any(bool(t.api_key) for t in (strong, weak)),
-        improve_iterations=0,
         human_review=False,
         output_dir=str(output_dir),
     )

@@ -56,7 +56,7 @@ from .resources import (
     _source_context,
 )
 from .skill_loader import environment_skill_payload, environment_skill_system_prompt
-from .validation import task_structure_issues
+from .validation import resolve_builder_asset_path, task_structure_issues
 
 
 def _ensure_unique_task_ids(tasks: list[TaskDefinition]) -> None:
@@ -100,6 +100,35 @@ def _task_duplicate_key(task: TaskDefinition) -> str:
     return " ".join(
         json.dumps(content, ensure_ascii=False, sort_keys=True).lower().split()
     )
+
+
+def _normalize_builder_asset_paths(
+    task: TaskDefinition,
+    builder_work_dir: Path | None,
+) -> TaskDefinition:
+    if builder_work_dir is None:
+        return task
+    replacements: list[tuple[str, str]] = []
+    for asset in task.assets:
+        raw_path = asset.path.strip()
+        if not raw_path or Path(raw_path).is_absolute():
+            continue
+        try:
+            resolved_path = resolve_builder_asset_path(raw_path, builder_work_dir)
+        except ValueError:
+            continue
+        asset.path = str(resolved_path)
+        replacements.append((raw_path, asset.path))
+    if task.environment is None:
+        for raw_path, resolved_path in sorted(
+            replacements,
+            key=lambda item: len(item[0]),
+            reverse=True,
+        ):
+            task.prompt = task.prompt.replace(raw_path, resolved_path)
+            for choice in task.choices:
+                choice.text = choice.text.replace(raw_path, resolved_path)
+    return task
 
 
 def _debug_slug(value: str) -> str:
@@ -1052,6 +1081,7 @@ def build_task_suite(
                         f"task #{idx} could not be normalized ({type(exc).__name__}: {exc})."
                     )
                     continue
+                task = _normalize_builder_asset_paths(task, builder_work_dir)
                 task_issues: list[str] = []
                 if not task.prompt.strip():
                     task_issues.append("Task prompt is required.")
