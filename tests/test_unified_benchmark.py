@@ -6,14 +6,12 @@ import pytest
 
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.planning.task_planner import plan_benchmark
-from evalclaw.quality.improver import _replace_or_expand_items
 from evalclaw.types import (
     AgentEnvironmentType,
     BenchmarkConfig,
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
-    ImprovementAction,
     TaskSuite,
     TaskType,
     TaskTypeAllocation,
@@ -274,89 +272,3 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together(monke
     assert "agent_env" not in suite.tasks[0].metadata
     assert suite.tasks[1].metadata["agent_env"]["type"] == "workspace"
     assert len(suite.tasks) == 2
-
-
-def test_loop3_rebuilds_through_the_same_task_builder(monkeypatch) -> None:
-    dimension = EvalDimension(
-        id="analysis",
-        name="Analysis",
-        description="Evaluate analysis.",
-        approach="Use open-generation tasks.",
-        task_types=[TaskType.generation],
-        target_item_count=1,
-    )
-    spec = EvalSpec(
-        objective="Evaluate analysis.",
-        task_types=[TaskType.generation],
-        dimensions=[dimension],
-        scale=1,
-    )
-    blueprint = make_blueprint(
-        "analysis_blueprint",
-        dimension.id,
-        "Analysis",
-        task_type=TaskType.generation,
-        content="One analysis task.",
-    )
-    original = BenchmarkItem(
-        id="analysis_original",
-        dimension_id=dimension.id,
-        task_type=TaskType.generation,
-        prompt="Analyze the original case and justify the conclusion.",
-        rubric="Score correctness and justification.",
-        metadata={
-            "builder_job_id": blueprint.id,
-            "task_design_id": blueprint.task_design_ids[0],
-        },
-    )
-    suite = TaskSuite(
-        spec=spec,
-        objective=spec.objective,
-        dimensions=[dimension],
-        blueprints=[blueprint],
-        tasks=[original],
-    )
-    calls = 0
-
-    def fake_build(scoped_spec, blueprints, config, **kwargs):
-        nonlocal calls
-        calls += 1
-        assert "Loop 3 guidance" in " ".join(blueprints[0].construction_requirements)
-        task = BenchmarkItem(
-            id="temporary",
-            dimension_id=dimension.id,
-            task_type=TaskType.generation,
-            prompt="Analyze a distinct boundary case and justify the conclusion.",
-            rubric="Score correctness and justification.",
-            metadata={"builder_job_id": blueprints[0].id},
-        )
-        return TaskSuite(
-            spec=scoped_spec,
-            objective=scoped_spec.objective,
-            dimensions=scoped_spec.dimensions,
-            blueprints=blueprints,
-            tasks=[task],
-        )
-
-    monkeypatch.setattr("evalclaw.quality.improver.build_task_suite", fake_build)
-    monkeypatch.setattr(
-        "evalclaw.quality.improver.plan_blueprints_for_spec",
-        lambda spec, config, **kwargs: [blueprint],
-    )
-
-    improved = _replace_or_expand_items(
-        suite,
-        [
-            ImprovementAction(
-                action_type="expand_weak_dimension",
-                dimension_id=dimension.id,
-                reason="The target missed a boundary condition.",
-                guidance="Add a distinct boundary case.",
-            )
-        ],
-        BenchmarkConfig(),
-    )
-
-    assert calls == 1
-    assert len(improved.tasks) == 2
-    assert improved.tasks[-1].metadata["loop3_guidance"] == "Add a distinct boundary case."

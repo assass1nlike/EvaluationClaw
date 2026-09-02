@@ -105,6 +105,20 @@ def _environment_has_visible_file_input(task: TaskDefinition) -> bool:
     return False
 
 
+def resolve_builder_asset_path(path: str | Path, builder_work_dir: Path | None = None) -> Path:
+    """Resolve an asset path against the current Builder job when it is relative."""
+    candidate = Path(str(path).strip()).expanduser()
+    if builder_work_dir is None or candidate.is_absolute():
+        return candidate.resolve()
+    root = builder_work_dir.expanduser().resolve()
+    resolved = (root / candidate).resolve()
+    if not resolved.is_relative_to(root):
+        raise ValueError(
+            f"relative asset path must remain inside the Builder job directory: {path!r}"
+        )
+    return resolved
+
+
 def _builder_host_path_issues(task: TaskDefinition, work_dir: Path) -> list[str]:
     resolved = work_dir.expanduser().resolve()
     spellings = tuple(
@@ -120,7 +134,6 @@ def _builder_host_path_issues(task: TaskDefinition, work_dir: Path) -> list[str]
     )
     target_visible: dict[str, object] = {
         "prompt": task.prompt,
-        "description": task.description,
         "system_prompt": task.system_prompt,
         "interaction": task.interaction,
         "metadata": task.metadata,
@@ -845,7 +858,12 @@ def task_structure_issues(
             issues.append(
                 f"Task prompt or choices must reference asset path {prompt_path!r} exactly."
             )
-        if not Path(path).is_file():
+        try:
+            resolved_path = resolve_builder_asset_path(path, builder_work_dir)
+        except ValueError as exc:
+            issues.append(f"Invalid asset path {path!r}: {exc}")
+            continue
+        if not resolved_path.is_file():
             issues.append(f"Asset path does not exist or is not a file: {path!r}.")
     if (
         task.environment is not None
@@ -1062,7 +1080,7 @@ def task_structure_issues(
     elif env.type == AgentEnvironmentType.docker_workspace:
         if not _has_text(env.test_command):
             issues.append("docker_workspace tasks must include a deterministic test_command.")
-        task_text = f"{task.prompt} {task.description} {' '.join(task.tags)}".lower()
+        task_text = f"{task.prompt} {' '.join(task.tags)}".lower()
         browser_enabled = bool(env.browser.get("enabled"))
         planned_designs = (
             [task_design]

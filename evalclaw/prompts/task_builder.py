@@ -72,6 +72,12 @@ object must contain:
   ]
 }
 
+The task-level description is metadata for reporting and provenance only. Do not
+put information required by the evaluated model in description. Put all
+target-visible instructions in prompt, and put public initial scenario/state
+for agent tasks in metadata.task_agent.initial_content or the environment's
+target-visible fields.
+
 The framework owns all task, dimension, TaskDesign, resource, and choice-option
 ids. Do not emit task ``id`` or ``dimension_id`` fields, resource object ids, or
 choice option ids. For choice answers, use zero-based ``correct_choice_indices``;
@@ -79,8 +85,10 @@ the framework assigns canonical option ids and maps the answer key.
 
 Use each task's top-level assets list for files that are part of the task input.
 Every asset object must contain exactly one field, path, whose value names a real
-host file available to the runner. For a task without an environment, refer to that
-exact path in prompt or choices. For code_sandbox and docker_workspace tasks, the framework
+host file available to the runner. The path may be absolute or relative to the current
+Builder job directory; the framework resolves relative asset paths before validation and
+execution. For a task without an environment, refer to that exact path in prompt or choices.
+For code_sandbox and docker_workspace tasks, the framework
 copies each asset into environment.workdir under its filename; refer only to that
 filename in prompt or choices and do not put the host path in any target-visible or environment
 field. Asset filenames are visible to the evaluated model, so name files without

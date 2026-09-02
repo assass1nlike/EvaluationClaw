@@ -25,7 +25,8 @@ scoring, or source choices. It is not intended to produce a general field survey
   QC-passed tasks from the same Blueprint.
 - Direct model execution with rule scoring, code execution sandboxing, multi-turn tasks,
   simulated agent interaction tasks, and double-pass LLM judge audit.
-- Loop 3 self-improvement that diagnoses QC/run results and regenerates targeted items.
+- Optional post-run Analysis that diagnoses model weaknesses, recommends strengthening
+  directions, and runs focused verification tasks when the main results are inconclusive.
 - LiteLLM-backed standard model calls, including **Azure OpenAI** deployments via
   `azure/<deployment-name>` model names, plus explicit native protocol adapters where required.
 - lm-eval-harness interoperability via generated JSONL/YAML artifacts and optional runner.
@@ -114,21 +115,21 @@ DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   --llm-backend litellm
 ```
 
-For faster smoke runs that still exercise Loop 3, use local diagnosis:
+Analyse a completed target run and allow one round of focused verification tasks:
 
 ```bash
 DEEPSEEK_API_KEY="..." python evalclaw_cli.py generate \
   -g "Evaluate agent planning, noisy tool correction, code reasoning, and calibration" \
   --planner-model deepseek-v4-pro \
   --task-builder-model deepseek-v4-pro \
+  --analyser-model deepseek-v4-pro \
   -m deepseek-v4-flash \
   --no-interactive \
   --runner direct \
   --llm-backend litellm \
   --single-pass-judge \
-  --improve-iterations 1 \
-  --loop3-diagnosis local \
-  --loop3-max-actions 3
+  --analysis-iterations 1 \
+  --analysis-max-tasks 3
 ```
 
 `--model`, `--compare`, and `--target-config` are optional. When none is
@@ -148,9 +149,9 @@ and still runs its Benchmark Design Research search stage.
 ### Custom endpoints and multiple targets
 
 Each model role has its own connection options. Planner and TaskBuilder roles
-are required for the main pipeline; QC, Research, and Loop 3 are optional.
+are required for the main pipeline; QC, Research, and the Analyser are optional.
 Use `--planner-*`, `--task-builder-*`, `--qc-*`, `--research-*`, and
-`--loop3-*` to configure them independently. Task-specific judges and dialogue
+`--analyser-*` to configure them independently. Task-specific judges and dialogue
 simulators are selected with repeated `--task-model` or `--task-config` options.
 For example:
 
@@ -161,7 +162,8 @@ evalclaw generate \
   --qc-model gpt-5-mini \
   --task-model gpt-5 \
   --research-model gemini-2.5-pro \
-  --loop3-model claude-sonnet-4-6
+  --analyser-model claude-sonnet-4-6 \
+  --analysis-iterations 1
 ```
 
 When a role uses a different provider or endpoint, configure that role's
@@ -218,6 +220,8 @@ Each run writes:
 - `evalclaw_<timestamp>.md` - human-readable report.
 - `tasks_<timestamp>.html` - standalone page for browsing the generated tasks.
 - `research_brief.json` / `research_brief.md` - the deep-research brief (when `--deep-research`).
+- `debug/runs/<run-id>/analysis/` - analysis conclusions and any independently
+  constructed verification suites and runs (when an Analyser is configured).
 - `manifest.json` - machine-readable artifact index.
 - `lm-eval/<task>.jsonl` - lm-eval dataset export.
 - `lm-eval/<task>.yaml` - lm-eval task export.

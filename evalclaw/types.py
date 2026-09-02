@@ -719,21 +719,41 @@ class EvalRun(BaseModel):
     created_at: str = Field(default_factory=utc_now)
 
 
-class ImprovementAction(BaseModel):
-    action_type: str
-    dimension_id: Optional[str] = None
-    item_id: Optional[str] = None
-    reason: str
-    guidance: str
+class AnalysisProbeDesign(BaseModel):
+    dimension_id: str
+    task_design: TaskDesign
 
 
-class ImprovementIteration(BaseModel):
+class AnalysisIteration(BaseModel):
     iteration: int
-    actions: list[ImprovementAction] = Field(default_factory=list)
+    analysis: str = ""
+    task_designs: list[AnalysisProbeDesign] = Field(default_factory=list)
     suite: Optional[TaskSuite] = None
     qc_report: Optional[QcReport] = None
     run: Optional[EvalRun] = None
-    notes: str = ""
+
+    @model_validator(mode="before")
+    @classmethod
+    def hydrate_run_context(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+        run = value.get("run")
+        if isinstance(run, dict):
+            value = {
+                **value,
+                "run": {
+                    **run,
+                    "suite": value.get("suite"),
+                    "qc_report": value.get("qc_report"),
+                },
+            }
+        return value
+
+
+class AnalysisReport(BaseModel):
+    conclusion: str = ""
+    recommendations: list[str] = Field(default_factory=list)
+    iterations: list[AnalysisIteration] = Field(default_factory=list)
 
 
 class EvalReport(BaseModel):
@@ -750,7 +770,7 @@ class BenchmarkPackage(BaseModel):
     suite: TaskSuite
     qc_report: QcReport
     run: EvalRun
-    improvements: list[ImprovementIteration] = Field(default_factory=list)
+    analysis: Optional[AnalysisReport] = None
     report: EvalReport
     research_brief: Optional[ResearchBrief] = None
     created_at: str = Field(default_factory=utc_now)
@@ -796,10 +816,10 @@ class BenchmarkConfig(BaseModel):
     research_provider: Optional[str] = None
     research_api_key: Optional[str] = None
     research_base_url: Optional[str] = None
-    loop3_model: Optional[str] = None
-    loop3_provider: Optional[str] = None
-    loop3_api_key: Optional[str] = None
-    loop3_base_url: Optional[str] = None
+    analyser_model: Optional[str] = None
+    analyser_provider: Optional[str] = None
+    analyser_api_key: Optional[str] = None
+    analyser_base_url: Optional[str] = None
     targets: list[TargetModelConfig] = Field(default_factory=list)
     scale_budget: ScaleBudget = ScaleBudget.mid
     max_planner_iterations: int = 5
@@ -839,10 +859,9 @@ class BenchmarkConfig(BaseModel):
     environment_claw: bool = True
     environment_claw_auto_configure: bool = True
     human_review: bool = False
-    improve_iterations: int = 0
-    loop3_diagnosis: str = "llm"  # llm | local
-    loop3_diagnosis_timeout_s: int = 90
-    loop3_max_actions: int = 4
+    analysis_iterations: int = 0
+    analysis_timeout_s: int = 90
+    analysis_max_tasks: int = 4
     docker_auto_select_image: bool = True
     docker_pull_timeout_s: int = 300
     docker_executable: str = "docker"

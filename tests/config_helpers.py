@@ -52,7 +52,7 @@ def patch_task_builder_model(monkeypatch, responder) -> None:
 
 
 def dummy_config_kwargs() -> dict:
-    """Return per-role dummy keys so every orchestration role reports configured.
+    """Return dummy keys for roles required by construction tests.
 
     Tests that previously used ``orchestrator_api_key="dummy"`` to make every
     role configured through the catch-all fallback now spread the same key to
@@ -65,7 +65,6 @@ def dummy_config_kwargs() -> dict:
         "task_builder_api_key": "dummy",
         "qc_api_key": "dummy",
         "research_api_key": "dummy",
-        "loop3_api_key": "dummy",
         "task_models": [
             TargetModelConfig(provider="openai_compatible", model="dummy-task", api_key="dummy")
         ],

@@ -121,6 +121,10 @@ def test_vm_public_manifests_do_not_expose_runner_private_evaluation() -> None:
             },
             "agent_task_package": {
                 "schema_version": "evalclaw.agent_task_package.v1",
+                "capability_target": {
+                    "name": "Project repair",
+                    "description": "PRIVATE-TASK-DESCRIPTION",
+                },
                 "visible_inputs": {"instructions": "Repair the project."},
                 "hidden_references": {
                     "file_names": ["private/oracle.json"],
@@ -149,6 +153,7 @@ def test_vm_public_manifests_do_not_expose_runner_private_evaluation() -> None:
     assert item.prompt in public_files
     assert "Windows Desktop" in public_files
     assert "PRIVATE-" not in public_files
+    assert "PRIVATE-TASK-DESCRIPTION" in private_files
     assert "private/oracle.json" not in public_files
     assert "private/reference-output.json" not in public_files
     assert private_command in private_files

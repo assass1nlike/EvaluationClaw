@@ -52,7 +52,6 @@ def _environment_for_runner(task: TaskDefinition) -> dict[str, Any]:
             value
             for value in (
                 task.prompt,
-                task.description,
                 task.scoring.instructions,
                 " ".join(task.tags),
             )
@@ -81,8 +80,6 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
     initial_content: dict[str, Any] = {}
     if isinstance(existing.get("initial_content"), dict):
         initial_content.update(public_task_agent_initial_content(existing["initial_content"]))
-    if task.description and "scenario" not in initial_content:
-        initial_content["scenario"] = task.description
     public_environment = public_task_agent_initial_content(
         {
             key: agent_env[key]
@@ -108,7 +105,7 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
     scoring.update(
         {
             "method": scoring.get("method") or "deterministic",
-            "instructions": scoring.get("instructions") or task.description,
+            "instructions": scoring.get("instructions") or "",
             "pass_fail": {
                 "pass": pass_criteria,
                 "partial": partial_criteria,

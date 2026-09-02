@@ -5,7 +5,7 @@
 ## 顶层入口
 
 - `evalclaw/cli.py`：命令行入口，解析参数并调用 pipeline。
-- `evalclaw/pipeline.py`：端到端编排，串联预处理、统一构题、QC、环境准备、runner、Loop 3 和 reporting。
+- `evalclaw/pipeline.py`：端到端编排，串联预处理、统一构题、QC、环境准备、runner、Analysis 和 reporting。
 - `evalclaw/benchmark.py`：统一 blueprint 构建、TaskBuilder 调用、QC 定点 repair 和 fail-closed。
 - `evalclaw/types.py`：全项目共享的数据模型和配置 schema。
 - `evalclaw/diagnostics.py`：线程安全地保存运行检查点、脱敏模型调用与失败诊断。
@@ -15,17 +15,17 @@
 ## 核心子包
 
 - `evalclaw/core/`：跨子系统共享的小型工具，包括规模预算和任务内容摘要。
-- `evalclaw/models/`：模型调用、JSON 提取、provider/protocol 选择、重试和截断恢复；`roles.py` 解析 Planner、TaskBuilder、QC、Research 和 Loop 3 的独立模型连接。Planner、TaskBuilder 未配置时主流程 fail-closed，Research、QC 和 Loop 3 可按各自配置使用对应的无 LLM 路径。
+- `evalclaw/models/`：模型调用、JSON 提取、provider/protocol 选择、重试和截断恢复；`roles.py` 解析 Planner、TaskBuilder、QC、Research 和 Analyser 的独立模型连接。Planner、TaskBuilder 未配置时主流程 fail-closed，Research、QC 和 Analysis 未配置时跳过相应的可选阶段。
 - `evalclaw/planning/`：自然语言需求到维度纲要，再由 Planner Skill 生成并审计完整 `BenchmarkPlan` 和自适应 `TaskBlueprint`。
 - `evalclaw/construction/`：唯一的构题实现，负责 Blueprint 资源选择、每 Blueprint 一次 Builder 调用、TaskBuilder 响应解析、多题结构校验和 dataset 包装。
 - `evalclaw/sources/`：外部数据源发现，包括 HuggingFace 数据集发现。
-- `evalclaw/quality/`：逐题/数据集/LLM QC 和 Loop 3 改进。
+- `evalclaw/quality/`：逐题/数据集/LLM QC，以及运行结果的模型表现分析与验证实验。
 - `evalclaw/execution/`：执行计划、隔离容器、Docker、VM、桌面桥和 EnvironmentClaw preflight。
 - `evalclaw/runners/`：按 `task_type` 和实际字段执行、评分的 runner 实现。
 - `evalclaw/protocols/`：任务代理、工具调用、多模态、science metadata 和可执行任务包协议。
 - `evalclaw/research/`：deep research 和搜索 backend。
 - `evalclaw/reporting/`：Markdown/HTML 报告、artifact manifest 和前端模板。
-- `evalclaw/prompts/`：planner、通用 task builder、QC、research 和改进 prompt。
+- `evalclaw/prompts/`：planner、通用 task builder、QC 和 research prompt。
 
 ## Construction 子系统
 
@@ -50,7 +50,8 @@
 - `quality/static_checks.py`：这里的 static 表示不调用 LLM 的程序化检查，不代表一条静态题构建路线。
 - `quality/dataset_checks.py`：重复与覆盖检查。
 - `quality/llm_checks.py`：LLM QC 抽样、上下文压缩和 issue 稳定化。
-- `quality/improver.py`：Loop 3 诊断后，仍通过 Planner Blueprint 和通用 TaskBuilder 重新生成目标内容。
+- `quality/analysis.py`：让 Analyser 基于正式运行结果形成结论与强化建议；证据不足时生成验证用 TaskDesign，并通过通用 TaskBuilder、QC、环境准备和 runner 获取新证据。
+- `quality/analysis_tools.py`：供 Analyser 按需读取当前 run 调试产物的只读工具。
 - `execution/plan.py`：只把 QC accepted items 交给 runner。
 - `execution/runner.py`：按 `task_type` 与实际 metadata/字段分派执行和评分。这是运行时分派，不是构题路线分流。
 
