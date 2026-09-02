@@ -229,6 +229,9 @@ def public_agent_task_package(package: dict[str, Any]) -> dict[str, Any]:
     """Return a target-visible package summary with hidden references redacted."""
     public = copy.deepcopy(package)
     public.pop("evaluation", None)
+    capability = public.get("capability_target")
+    if isinstance(capability, dict):
+        capability.pop("description", None)
     hidden = public.get("hidden_references")
     if isinstance(hidden, dict):
         redacted = {

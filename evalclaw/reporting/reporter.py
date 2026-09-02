@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 
 from ..types import (
+    AnalysisReport,
     EvalReport,
     EvalRun,
     ItemResult,
@@ -36,7 +37,12 @@ def _source_kind_label(source: object) -> str:
     return getattr(kind, "value", str(kind or ""))
 
 
-def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -> EvalReport:
+def build_report(
+    run: EvalRun,
+    *,
+    research_brief: ResearchBrief | None = None,
+    analysis: AnalysisReport | None = None,
+) -> EvalReport:
     """Build a Markdown report from an eval run."""
     suite = run.suite
     qc: QcReport = run.qc_report
@@ -231,6 +237,23 @@ def build_report(run: EvalRun, *, research_brief: ResearchBrief | None = None) -
     lines.append("")
 
     lines.extend(_detailed_item_lines(run))
+
+    if analysis is not None:
+        lines.extend(
+            [
+                "## Model Performance Analysis",
+                "",
+                analysis.conclusion,
+                "",
+                f"- Verification iterations: {len(analysis.iterations)}",
+                f"- Verification tasks: {sum(len(item.suite.tasks) for item in analysis.iterations if item.suite is not None)}",
+                "",
+            ]
+        )
+        if analysis.recommendations:
+            lines.extend(["### Strengthening Recommendations", ""])
+            lines.extend(f"- {recommendation}" for recommendation in analysis.recommendations)
+            lines.append("")
 
     recommendations = _recommendations(run)
     lines.extend(["## Recommendations", ""])

@@ -130,7 +130,7 @@ def _coverage_issues(suite: TaskSuite) -> list[QcIssue]:
                     QcSeverity.warning,
                     QcCategory.coverage,
                     f"{budget_label}-budget dimension {dimension.id} has only {len(dim_items)} item(s).",
-                    "Add more targeted items or Loop 3 expansion before treating this as a deep evaluation.",
+                    "Add more targeted items before treating this as a deep evaluation.",
                 )
             )
         source_backed_target = int(dimension.target_source_backed_count or 0)

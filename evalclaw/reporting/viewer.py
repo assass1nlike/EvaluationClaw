@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ..types import BenchmarkItem, BenchmarkPackage, SourceKind, TaskType
+from ._katex_assets import inject_katex
 from .reporter import _is_source_backed, _source_kind_label
 from .viewer_template import HTML_TEMPLATE
 
@@ -221,15 +222,21 @@ def _viewer_payload(
     embedded_run = pkg.run.model_copy(
         update={"suite": embedded_suite, "results": embedded_results}
     )
-    embedded_improvements = [
-        iteration.model_copy(update={"suite": None, "qc_report": None, "run": None})
-        for iteration in pkg.improvements
-    ]
+    embedded_analysis = None
+    if pkg.analysis is not None:
+        embedded_analysis = pkg.analysis.model_copy(
+            update={
+                "iterations": [
+                    iteration.model_copy(update={"suite": None, "qc_report": None, "run": None})
+                    for iteration in pkg.analysis.iterations
+                ]
+            }
+        )
     embedded_pkg = pkg.model_copy(
         update={
             "suite": embedded_suite,
             "run": embedded_run,
-            "improvements": embedded_improvements,
+            "analysis": embedded_analysis,
         }
     )
     payload = {
@@ -305,7 +312,7 @@ def build_report_viewer_html(
         .replace("\u2028", "\\u2028")
         .replace("\u2029", "\\u2029")
     )
-    return (
+    return inject_katex(
         HTML_TEMPLATE.replace("__TITLE__", escape(title))
         .replace("__SPEC_ID__", escape(display_id))
         .replace("__OBJECTIVE__", escape(pkg.spec.objective))

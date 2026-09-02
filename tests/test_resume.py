@@ -5,17 +5,20 @@ import json
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.diagnostics import write_json
 from evalclaw.execution.runner import run_eval
-from evalclaw.pipeline import run_pipeline
+from evalclaw.pipeline import _load_construction_resume, run_pipeline
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkItem,
+    BenchmarkPlan,
     EvalDimension,
     EvalReport,
     EvalRun,
     EvalSpec,
     ItemResult,
     QcReport,
+    ScaleBudget,
     TargetModelConfig,
+    TaskDefinition,
     TaskSuite,
     TaskType,
 )
@@ -131,6 +134,67 @@ def test_runner_reuses_successful_items_but_retries_failed_items(monkeypatch, tm
     assert calls == []
 
 
+def test_construction_resume_restores_builder_source_definitions(tmp_path) -> None:
+    dimension = EvalDimension(
+        id="dimension",
+        name="Dimension",
+        description="Measure the capability.",
+        approach="Use one task.",
+    )
+    spec = EvalSpec(
+        objective="Evaluate the capability.",
+        subjects=["target"],
+        dimensions=[dimension],
+        scale_budget=ScaleBudget.high,
+    )
+    plan = BenchmarkPlan(
+        objective=spec.objective,
+        subjects=spec.subjects,
+        scale_budget=spec.scale_budget,
+    )
+    source = TaskDefinition(
+        id="item",
+        dimension_id=dimension.id,
+        task_type=TaskType.generation,
+        title="Builder task",
+        prompt="Original Builder task.",
+        rubric="Score correctness.",
+    )
+    suite = TaskSuite(
+        objective=spec.objective,
+        spec=spec,
+        tasks=[
+            BenchmarkItem(
+                id=source.id,
+                dimension_id=source.dimension_id,
+                task_type=source.task_type,
+                prompt="Packaged task.",
+                rubric=source.rubric,
+                source_definition=source,
+            )
+        ],
+    )
+    construction_dir = tmp_path / "construction"
+    write_json(
+        construction_dir / "plan.json",
+        {"plan": plan.model_dump(mode="json"), "spec": spec.model_dump(mode="json")},
+    )
+    write_json(construction_dir / "initial-suite.json", suite.model_dump(mode="json"))
+    write_json(construction_dir / "initial-qc.json", QcReport().model_dump(mode="json"))
+    write_json(
+        construction_dir / "builder-checkpoints" / "initial-0000-builder.json",
+        {"tasks": [source.model_dump(mode="json")]},
+    )
+
+    resumed_plan, resumed_suite, _, _ = _load_construction_resume(construction_dir)
+
+    assert resumed_plan is not None
+    assert resumed_plan.subjects == ["target"]
+    assert resumed_plan.scale_budget == ScaleBudget.high
+    assert resumed_suite is not None
+    assert resumed_suite.tasks[0].source_definition == source
+
+
 def test_pipeline_reuses_completed_run_checkpoint(monkeypatch, tmp_path) -> None:
     dimension = EvalDimension(
         id="dimension",
@@ -185,7 +249,9 @@ def test_pipeline_reuses_completed_run_checkpoint(monkeypatch, tmp_path) -> None
     )
     monkeypatch.setattr(
         "evalclaw.pipeline.build_report",
-        lambda run, research_brief=None: EvalReport(title="Report", markdown="", summaries=[]),
+        lambda run, research_brief=None, analysis=None: EvalReport(
+            title="Report", markdown="", summaries=[]
+        ),
     )
     monkeypatch.setattr("evalclaw.pipeline._persist_package", lambda *args, **kwargs: None)
 

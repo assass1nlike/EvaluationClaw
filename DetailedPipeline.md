@@ -102,7 +102,8 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 2. **环境准备**：探测 Docker、VM、GUI bridge 和题目文件与目标模型的兼容性。有环境的题在 benchmark 完成时已经包含环境规格、文件、工具和 evaluator；容器题已通过临时环境预检，正式作答容器、VM 或桌面会话在执行时创建（见[附录 J](#appendix-j)）。
 3. **调用目标模型**：无环境的题直接以 prompt 调用；`multi_turn` 按 scripted 或 adaptive 脚本走完整对话；`agent` 题在隔离环境中以工具调用交互。
 4. **评分**：choice/fill_blank 用确定性键精确匹配；generation/multi_turn 用 rubric 由 Judge 评分（可附 `python_tests` 工具证据），默认双遍审计；agent 题由环境 evaluator 依据最终状态/产物/轨迹给出确定性分数。
-5. **汇总与报告**：按 target、dimension、task_type 汇总平均分，可选 Loop 3 改进，生成最终报告与各导出产物。
+5. **模型表现分析**：配置 Analyser 时，分析正式运行结果并给出弱点结论与强化建议；证据不足时，在预算内构建并运行验证题。
+6. **汇总与报告**：按 target、dimension、task_type 汇总平均分，将 Analysis 结论写入报告，生成各导出产物。
 
 ---
 
@@ -131,6 +132,8 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 | B5 | QC 拒绝具体题 | TaskBuilder | base + 可选环境 Skill + 构题工具 prompt | 候选 JSON 路径与失败题 issues | 与 B1 相同 | 原地修改候选文件，框架读取并恢复 ID |
 | H1 | 人工反馈 | Planner | review prompt + 可选反馈说明 | 数据集摘要/QC/item excerpts | 无 | review actions |
 | H2 | 改写/补题 | TaskBuilder | 普通 Builder system | 定向 revision（update_items）或按缺失量裁剪 spec 生成的 payload | 视情况 | 框架恢复 ID 的改写题 / 框架生成 ID 的补齐题 |
+| A1 | 正式 benchmark 运行结束 | Analyser | Analysis system prompt | 正式题目、逐题结果、目标汇总和已完成验证轮次 | `read_run_artifact`（按需） | `analysis`、`recommendations`、可选验证 TaskDesigns |
+| A2 | 验证轮次完成 | Analyser | 与 A1 相同 | 正式结果与新增验证结果 | `read_run_artifact`（按需） | 最终结论或下一轮验证 TaskDesigns |
 
 <a id="appendix-a-execution"></a>
 
@@ -732,6 +735,12 @@ object must contain:
   ]
 }
 <!-- -->
+The task-level ``description`` is metadata for reporting and provenance only.
+Do not put information required by the evaluated model there. Put target-visible
+instructions in ``prompt``; for agent tasks, put public initial scenario/state
+in ``metadata.task_agent.initial_content`` or the environment's target-visible
+fields.
+<!-- -->
 The framework owns all task, dimension, TaskDesign, resource, and choice-option
 ids. Do not emit task ``id`` or ``dimension_id`` fields, resource object ids, or
 choice option ids. For choice answers, use zero-based ``correct_choice_indices``;
@@ -739,8 +748,10 @@ the framework assigns canonical option ids and maps the answer key.
 <!-- -->
 Use each task&#39;s top-level assets list for files that are part of the task input.
 Every asset object must contain exactly one field, path, whose value names a real
-host file available to the runner. For a task without an environment, refer to that
-exact path in prompt or choices. For code_sandbox and docker_workspace tasks, the framework
+host file available to the runner. The path may be absolute or relative to the current
+Builder job directory; the framework resolves relative asset paths before validation and
+execution. For a task without an environment, refer to that exact path in prompt or choices.
+For code_sandbox and docker_workspace tasks, the framework
 copies each asset into environment.workdir under its filename; refer only to that
 filename in prompt or choices and do not put the host path in any target-visible or environment
 field. Asset filenames are visible to the evaluated model, so name files without
@@ -848,7 +859,9 @@ TASK_BUILDER_TOOL_PROMPT = &quot;&quot;&quot;\
 You may use the supplied tools when they materially improve task construction.
 Use run_python for computation, validation, or creating and processing task files.
 Save required task files in its fixed working directory. Tool results identify files
-with host paths that are available only during construction. For task-input files that
+with host paths that are available only during construction. Asset paths in the final
+response may use those host paths or paths relative to the fixed Builder job directory;
+the framework resolves relative asset paths before validation and execution. For task-input files that
 must be copied into a runtime workdir, put those host paths in the corresponding task&#39;s
 top-level assets list. If a file belongs to the environment&#39;s declared initial visible
 state, read the created file and put its literal contents in environment.visible_files
@@ -2598,7 +2611,7 @@ def compact_agent_task_package(package: dict[str, Any]) -&gt; dict[str, Any]:
 <a id="appendix-g"></a>
 ## 附录 G：BenchmarkConfig 完整字段表
 
-定义位置：`evalclaw/types.py` 的 `BenchmarkConfig`。当前模型使用 `extra="forbid"`，因此表外字段会被 Pydantic 拒绝。下表覆盖当前全部 73 个字段。
+定义位置：`evalclaw/types.py` 的 `BenchmarkConfig`。当前模型使用 `extra="forbid"`，因此表外字段会被 Pydantic 拒绝。下表覆盖当前全部 72 个字段。
 
 “LLM 可见性”含义：
 
@@ -2607,7 +2620,7 @@ def compact_agent_task_package(package: dict[str, Any]) -&gt; dict[str, Any]:
 - **调用参数**：只用于选择模型或连接接口，不属于模型可见消息。
 - **否**：仅由 Python 流程、执行器、持久化或 UI 使用。
 
-API key、bridge key、provider key 和 base URL 都不会作为标准 prompt 文本发送。每个角色必须显式配置：planner/task_builder 未配置时流程 fail-closed；qc/research/loop3 未配置时优雅降级或跳过对应功能；`task_models` 为空时，需要模型评分或对话模拟的任务在运行时无法选用模型、对应评分/模拟路径降级为确定性评分或跳过。`task_models` 中每项的任务级凭据（`api_key`/`api_key_env`/`base_url`）仅在该模型被实际调用时使用，不会进入 prompt 文本。模型调用分层与后端契约见[附录 K](#appendix-k)。
+API key、bridge key、provider key 和 base URL 都不会作为标准 prompt 文本发送。每个角色必须显式配置：planner/task_builder 未配置时流程 fail-closed；qc/research 未配置时按相应功能的规则跳过模型调用；未配置 analyser 时跳过 Analysis，但设置正数 `analysis_iterations` 时会 fail-closed。`task_models` 为空时，需要模型评分或对话模拟的任务在运行时无法选用模型、对应评分/模拟路径降级为确定性评分或跳过。`task_models` 中每项的任务级凭据（`api_key`/`api_key_env`/`base_url`）仅在该模型被实际调用时使用，不会进入 prompt 文本。模型调用分层与后端契约见[附录 K](#appendix-k)。
 
 ### G.1 模型角色与目标模型（22 个字段）
 
@@ -2630,10 +2643,10 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `research_provider` | `Optional[str]` | `None` | Research provider | 调用参数 |
 | `research_api_key` | `Optional[str]` | `None` | Research 凭据 | 调用参数 |
 | `research_base_url` | `Optional[str]` | `None` | Research API 地址 | 调用参数 |
-| `loop3_model` | `Optional[str]` | `None` | 执行后 Loop 3 诊断模型 | 调用参数 |
-| `loop3_provider` | `Optional[str]` | `None` | Loop 3 provider | 调用参数 |
-| `loop3_api_key` | `Optional[str]` | `None` | Loop 3 凭据 | 调用参数 |
-| `loop3_base_url` | `Optional[str]` | `None` | Loop 3 API 地址 | 调用参数 |
+| `analyser_model` | `Optional[str]` | `None` | 正式运行后的模型表现分析与验证实验设计模型 | 调用参数 |
+| `analyser_provider` | `Optional[str]` | `None` | Analyser provider | 调用参数 |
+| `analyser_api_key` | `Optional[str]` | `None` | Analyser 凭据 | 调用参数 |
+| `analyser_base_url` | `Optional[str]` | `None` | Analyser API 地址 | 调用参数 |
 | `targets` | `list[TargetModelConfig]` | `[]` | 待评测目标模型列表；每项含 id/provider/model/凭据等 | 否；仅执行阶段调用，Planner 不接收它 |
 
 `task_models` 每项是 `TargetModelConfig`，凭据字段 `api_key` 与 `base_url` 均可在配置该项时提供（CLI `--task-model` 传 JSON，或 `--task-config` 传完整配置）；`api_key` 也支持 `api_key_env` 指向环境变量，未显式配置时回退对应 provider 的环境变量。TaskBuilder 从 `available_models.models` 选模型时只收到每项的 `id`/`model`/`provider` 摘要，凭据不发往 Build/QC 的模型调用。
@@ -2642,7 +2655,7 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 
 | 字段 | 类型 | 默认值 | 作用 | LLM 可见性 |
 |---|---|---|---|---|
-| `scale_budget` | `ScaleBudget` | `mid` | low/mid/high/large/xlarge 规模指导，影响 Planner 与后续采样/改进 | 直接：Planner、人工 review、Loop 3 guidance |
+| `scale_budget` | `ScaleBudget` | `mid` | low/mid/high/large/xlarge 规模指导，影响 Planner 与后续抽样 | 直接：Planner、人工 review |
 | `max_planner_iterations` | `int` | `5` | Planner 调用、JSON 解析和计划审计的最大尝试次数。如果 planner 的输出超过 `max_planner_iterations` 轮仍不合法则 fail-closed。 | 否 |
 | `max_qc_iterations` | `int` | `3` | 全局 QC 定向修复最大轮数 | 否 |
 | `max_research_sources` | `int` | `3` | 每个相关范围保留/选择的研究来源上限 | 派生：影响提供给 Planner/Builder 的来源 |
@@ -2672,7 +2685,7 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `llm_backend` | `Literal["auto", "litellm"]` | `"auto"` | 标准模型调用使用 LiteLLM；`auto` 允许显式配置的 Responses、Anthropic native、target native tools 和 streaming adapter，`litellm` 则强制可由 LiteLLM 承担的调用使用 LiteLLM。LiteLLM 失败时不会切换协议或回退到手写 HTTP 实现 | 调用参数 |
 | `allow_incomplete_benchmark` | `bool` | `False` | QC 仍有阻塞问题时是否允许保留不完整草稿 | 否 |
 
-### G.4 流程、输出、人工审核与 Loop 3（15 个字段）
+### G.4 流程、输出、人工审核与 Analysis（14 个字段）
 
 | 字段 | 类型 | 默认值 | 作用 | LLM 可见性 |
 |---|---|---|---|---|
@@ -2685,10 +2698,9 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `environment_claw` | `bool` | `True` | 是否运行环境能力探测与准备 | 否 |
 | `environment_claw_auto_configure` | `bool` | `True` | 是否根据探测结果自动补全可恢复的环境配置 | 否 |
 | `human_review` | `bool` | `False` | 是否审核 Planner 计划，并在构题与 QC 后审核具体题目 | 否；人工反馈文本本身会发送给 Planner |
-| `improve_iterations` | `int` | `0` | 目标模型执行后 Loop 3 改进轮数 | 否 |
-| `loop3_diagnosis` | `str` | `"llm"` | `llm/local` Loop 3 诊断方式 | 否 |
-| `loop3_diagnosis_timeout_s` | `int` | `90` | Loop 3 LLM 诊断等待超时 | 否 |
-| `loop3_max_actions` | `int` | `4` | 每轮改进 action 上限；会按 scale budget 调整 | 派生：限制采用的模型输出 actions |
+| `analysis_iterations` | `int` | `0` | Analyser 可请求的验证实验轮数；配置 Analyser 后即使为 0 也会分析一次正式结果 | 直接：每次 Analyser 调用收到剩余轮数 |
+| `analysis_timeout_s` | `int` | `90` | 每次 Analyser 调用的等待超时 | 否 |
+| `analysis_max_tasks` | `int` | `4` | 每轮验证实验允许请求的最大题数 | 直接：Analyser 收到上限，框架同时校验 |
 | `viewer_item_limit` | `int` | `1000` | viewer payload 最多嵌入的 benchmark items | 否 |
 | `viewer_result_limit` | `int` | `2000` | viewer payload 最多嵌入的执行结果 | 否 |
 
@@ -3106,7 +3118,7 @@ The bounded tool budget is exhausted. Return the complete final task-builder JSO
 | `challenge_effort` | 与所属 TaskDesign 一致 |
 | `metadata` | 含构题自检及题型所需的其他元数据 |
 
-`id`、`dimension_id` 和 `metadata.task_design_id` 由框架在解析后写入；TaskBuilder 不返回这些字段。公共可选字段为 `content_summary`、`assets`、`resource_ids`、`tags`，其他字段按当前题型动态加入。`assets` 是由 `{"path":"..."}` 组成的列表，路径必须指向真实宿主机文件。无环境题的 prompt 或 choices 原样引用该路径；`code_sandbox` 和 `docker_workspace` 题在 prompt 或 choices 中只引用文件名，框架在运行时把宿主机文件复制到 `environment.workdir/<文件名>`。同一环境题的 asset 文件名必须唯一，且文件名不得泄露答案或其他非预期信息。没有文件输入时返回空列表。
+`id`、`dimension_id` 和 `metadata.task_design_id` 由框架在解析后写入；TaskBuilder 不返回这些字段。公共可选字段为 `content_summary`、`assets`、`resource_ids`、`tags`，其他字段按当前题型动态加入。`assets` 是由 `{"path":"..."}` 组成的列表，路径可以是宿主机绝对路径，也可以是相对于当前 Builder 工作目录的路径；框架在校验前将相对路径解析为真实宿主机文件。无环境题的 prompt 或 choices 原样引用该路径；`code_sandbox` 和 `docker_workspace` 题在 prompt 或 choices 中只引用文件名，框架在运行时把宿主机文件复制到 `environment.workdir/<文件名>`。同一环境题的 asset 文件名必须唯一，且文件名不得泄露答案或其他非预期信息。没有文件输入时返回空列表。
 正常构题还要求：
 
 ~~~json
@@ -3391,7 +3403,7 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 - **generation / multi_turn**：有 rubric（error）。
 - **judge_tools**：只允许 `python_tests`（error）；仅 generation/multi-turn/agent 可用（error）；`test_code` 必须消费 `{model_output}`（error）。
 - **agent**：无 rubric 时必须有可执行环境 evaluator（error）；`metadata.agent_env` 必须存在（error）；环境文件路径无跨生命周期重叠（error）；`setup_commands` 不引用 hidden_files（error）；workspace/code_sandbox/gui_desktop 各有必填契约。
-- **题目文件**：`assets` 中每项只有宿主机 `path`，路径非空且指向真实文件。无环境题的 prompt 或 choices 原样引用该路径；容器环境题在 prompt 或 choices 中引用映射后的文件名，文件名在单题内唯一。TaskDesign 声明非文本输入或文件要求时，必须提供可供目标读取的文件，且文件名不得泄露答案或其他非预期信息。
+- **题目文件**：`assets` 中每项只有宿主机 `path`，可以是绝对路径或相对于 Builder 工作目录的路径；框架在校验前解析相对路径并确认文件存在。无环境题的 prompt 或 choices 原样引用该路径；容器环境题在 prompt 或 choices 中引用映射后的文件名，文件名在单题内唯一。TaskDesign 声明非文本输入或文件要求时，必须提供可供目标读取的文件，且文件名不得泄露答案或其他非预期信息。
 - **science / task_agent / agent_task_package**：schema_version、system_prompt、scoring guidance 等 metadata 契约。
 - **rubric 自纠正**：对非 choice 题检测 rubric 中自纠正/矛盾参考答案（error）。
 
@@ -3421,7 +3433,7 @@ TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结�
 基础字段：
 - `id`、`title`、`prompt` 非空；`prompt` 不以截断/不完整指令结尾。
 - 提供 `dimension` 时 `dimension_id` 必须匹配；提供 `task_design`/`dimension` 的期望 `challenge_effort` 时，任务必须一致。
-- TaskDesign 声明非文本输入或文件要求时，任务必须提供可供目标读取的文件。`assets.path` 必须指向真实宿主机文件；无环境题的 prompt 或 choices 原样引用该路径，容器环境题在 prompt 或 choices 中引用映射后的唯一文件名。已知 Builder 宿主机目录不得出现在环境题的 target-visible 内容或环境契约中。
+- TaskDesign 声明非文本输入或文件要求时，任务必须提供可供目标读取的文件。`assets.path` 可以是宿主机绝对路径或相对于 Builder 工作目录的路径，框架会在校验前解析相对路径；无环境题的 prompt 或 choices 原样引用该路径，容器环境题在 prompt 或 choices 中引用映射后的唯一文件名。已知 Builder 宿主机目录不得出现在环境题的 target-visible 内容或环境契约中。
 - 元数据里任何名字含 `evaluator`/`evaluation`/`validation` 的字段不得声明 runner 可执行求值器——普通 metadata 不可执行，完整求值器必须放进被选中 runtime 的规范环境求值字段。
 - 对 LLM 构题（`require_challenge_effort_self_assessment`）：必须有 `metadata.challenge_effort_self_assessment`，`requested_effort` 匹配期望档、`meets_requested_effort=true`、`rationale` 解释自评。
 
@@ -3540,24 +3552,24 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 
 报告层（`evalclaw/reporting/`）产出：
 
-- `evalclaw_<timestamp>.json`：canonical 包（`BenchmarkPackage` 全量 JSON，含 spec/plan/suite/qc_report/run/improvements/report，`research_brief` 存在时一并写入 `research_brief.json`）。
+- `evalclaw_<timestamp>.json`：canonical 包（`BenchmarkPackage` 全量 JSON，含 spec/plan/suite/qc_report/run/analysis/report，`research_brief` 存在时一并写入 `research_brief.json`）。
 - `evalclaw_<timestamp>.md`：人类可读 Markdown 报告（含来源覆盖、按 target/dimension/type 的分数、recommendations，末尾追加 artifact index）。
 - `evalclaw_<timestamp>.html`：浏览器 viewer（`build_report_viewer_html`，受 `viewer_item_limit` / `viewer_result_limit` 限制）。
 - `tasks_<timestamp>.html`：专用于浏览生成题目的独立 HTML 页面，按题目展示正文、素材、选项、参考答案、评分与执行环境。
 - `manifest.json`：artifact 索引。
 - `lm-eval/`：`runner=lm-eval` 或 `auto` 时的 JSONL/YAML/metadata 导出；`run_lm_eval` 对每个 target 运行 lm-eval-harness（若可解析出可执行文件），结果写入 `lm-eval-results/<target>/`。
 
-`debug/` 保存可恢复和排障所需的中间状态：`runs/` 含脱敏配置、原始/标准化 goal、pipeline 日志、Plan/Suite/QC 阶段检查点及最终状态或异常；`planner/`、`task-builder/`、`qc/`、`human-review/`、`loop3/` 保存各阶段请求、响应和校验结果；`runner/` 在每个 target × item 完成后立即保存结果。Agent 题还会逐步保存交互轨迹，并在清理环境前导出最终工作区、完整 evaluator 输出或桌面桥状态。对已有 run 目录使用 `evalclaw generate --resume-run <run-id-or-directory>` 可从最近的完整阶段继续；恢复时重新提供当前运行所需的角色凭据，goal 可省略以使用该 run 记录的 goal。
+`debug/` 保存可恢复和排障所需的中间状态：`runs/` 含脱敏配置、原始/标准化 goal、pipeline 日志、Plan/Suite/QC 阶段检查点及最终状态或异常；`planner/`、`task-builder/`、`qc/`、`human-review/`、`analysis/` 保存各阶段请求、响应和校验结果；`runner/` 在每个 target × item 完成后立即保存结果。Agent 题还会逐步保存交互轨迹，并在清理环境前导出最终工作区、完整 evaluator 输出或桌面桥状态。对已有 run 目录使用 `evalclaw generate --resume-run <run-id-or-directory>` 可从最近的完整阶段继续；恢复时重新提供当前运行所需的角色凭据，goal 可省略以使用该 run 记录的 goal。
 
 公开 package、报告与 viewer 会掩码 `sk-` 密钥串；调试配置、provider 请求和异常记录还会按敏感字段名及 Authorization/Bearer 形式递归脱敏。HTTP 请求头不写入调试文件。
 
-### J.6 Loop 3 自我改进
+### J.6 Analysis
 
-`--improve-iterations N` 在首次 run 后进入 Loop 3（`evalclaw/quality/improver.py`），每轮：
+配置 Analyser 后，正式 benchmark 运行结束即进入 Analysis。第一次调用接收正式题目、逐题作答、评分理由和汇总结果，据此形成模型弱点分析与强化建议。QC 不默认进入上下文；Analyser 知道当前 run 中可读取的产物，需要区分模型问题、题目问题或基础设施问题时，可以通过只读工具查看 `qc_report.json` 等文件。
 
-1. **诊断**：`loop3_diagnosis=llm` 且配置了 Loop 3 角色时，用 `_SYSTEM` prompt 对 spec/QC issues/低分结果做诊断（超时 `loop3_diagnosis_timeout_s`）；`local` 或无角色时用本地规则（QC error 题 → regenerate_item，得分 <0.4 的维度 → expand_weak_dimension）。action 上限由 `loop3_max_actions` 与 scale budget 联合决定。
-2. **执行**：对每个 action 用裁剪 spec（单维度、单题）走一次 `plan_blueprints_for_spec` + `build_task_suite` 生成改进题，丢弃与现有题 prompt 相似度 ≥0.92 的重复题，新题 id 为 `{dimension_id}_loop3_{8位hex}` 并记录 `loop3_reason` / `loop3_guidance`。
-3. **验证**：重跑 QC 与 run（`run_eval`），结果存入 `ImprovementIteration`（含 actions、suite、qc_report、run）。每轮至多 `loop3_max_actions` 个 action、每维度受 `_loop3_per_dimension_limit` 限制。
+证据足够时，Analyser 返回最终 `analysis`、`recommendations` 和空的 `task_designs`。证据不足时，它可以在 `analysis_iterations` 轮预算内返回验证假设所需的 TaskDesign；只能引用正式计划中的维度，不能自行分配 TaskDesign 或任务 ID，每轮总题数不能超过 `analysis_max_tasks`。验证题经过标准 TaskBuilder、结构检查、QC、环境准备和 runner，所得具体作答与结果进入下一次 Analyser 调用。预算耗尽后必须形成最终结论。
+
+每轮验证实验分别保存 TaskDesign、TaskSuite、QcReport 和 EvalRun。它们只作为分析证据，不会替换或扩展正式 benchmark 的 suite、QC 或 run。最终 `AnalysisReport` 保存结论、强化建议和全部验证轮次。
 
 
 <a id="appendix-k"></a>
@@ -3569,8 +3581,8 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 
 | 函数 | 用途 | 说明 |
 |---|---|---|
-| `call_llm` | 编排角色调用（Planner/QC/Research/Loop3/翻译） | 返回文本；支持 Anthropic native、OpenAI-compatible 流式、LiteLLM、Responses API |
-| `call_orchestrator_with_tools` | 带原生工具声明的 TaskBuilder 构题调用 | 保留 provider 原生 assistant message 与 tool result 结构 |
+| `call_llm` | 编排角色调用（Planner/QC/Research/翻译） | 返回文本；支持 Anthropic native、OpenAI-compatible 流式、LiteLLM、Responses API |
+| `call_orchestrator_with_tools` | 带原生工具声明的 TaskBuilder 和 Analyser 调用 | 保留 provider 原生 assistant message 与 tool result 结构 |
 | `call_target_model` | 被评测目标模型 | 按 target provider 路由 |
 | `call_target_model_with_tools` | 目标模型原生工具调用（agent 任务） | 当前支持 Anthropic 与 OpenAI-compatible 直连 |
 
@@ -3599,5 +3611,5 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 
 ### K.5 角色与任务模型解析
 
-- `role_model_settings(config, role)` 按 `planner`/`task_builder`/`qc`/`research`/`loop3` 返回 `{model, provider, api_key, base_url}`；`configured` 当且仅当 `api_key` 非空。Planner/TaskBuilder 未配置则主流程 fail-closed；QC/Research/Loop3 未配置则对应功能降级或跳过。
+- `role_model_settings(config, role)` 按 `planner`/`task_builder`/`qc`/`research`/`analyser` 返回 `{model, provider, api_key, base_url}`；`configured` 当且仅当 `api_key` 非空。Planner/TaskBuilder 未配置则主流程 fail-closed；QC/Research 未配置时按相应功能规则跳过模型调用；Analyser 未配置时跳过 Analysis，除非设置了正数验证轮数。
 - `resolve_task_model(config, item)` 从 `config.task_models` 按 `metadata.task_model_id` 选中任务模型，未指定时取列表首项；`task_models` 为空返回 `None`。

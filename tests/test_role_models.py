@@ -6,9 +6,10 @@ import pytest
 
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.execution import runner as execution_runner
+from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.models.roles import resolve_task_model, role_model_settings
 from evalclaw.planning import planner
-from evalclaw.quality import improver, llm_checks
+from evalclaw.quality import analysis, llm_checks
 from evalclaw.research import deep_research
 from evalclaw.types import (
     BenchmarkConfig,
@@ -71,7 +72,7 @@ def _suite() -> TaskSuite:
     )
 
 
-@pytest.mark.parametrize("role", ["planner", "task_builder", "qc", "research", "loop3"])
+@pytest.mark.parametrize("role", ["planner", "task_builder", "qc", "research", "analyser"])
 def test_role_settings_use_role_fields(role: str) -> None:
     settings = role_model_settings(_config_for(role), role)  # type: ignore[arg-type]
 
@@ -238,14 +239,24 @@ def test_low_effort_research_keeps_uniform_output_budget(monkeypatch) -> None:
     assert captured["max_tokens"] == 32768
 
 
-def test_loop3_uses_loop3_role(monkeypatch) -> None:
+def test_analysis_uses_analyser_role(monkeypatch) -> None:
     captured: dict = {}
 
     def fake_call_llm(*args, **kwargs):
         captured.update(kwargs)
-        return json.dumps({"actions": []})
+        return TargetToolModelResponse(
+            adapter="litellm",
+            content=json.dumps(
+                {"analysis": "Supported conclusion.", "recommendations": [], "task_designs": []}
+            ),
+            tool_calls=[],
+            assistant_message={"role": "assistant", "content": ""},
+            raw_response={},
+        )
 
-    monkeypatch.setattr(improver, "call_llm", fake_call_llm)
+    monkeypatch.setattr(analysis, "call_orchestrator_with_tools", fake_call_llm)
 
-    assert improver._call_loop3_llm_json({}, _config_for("loop3")) == {"actions": []}
-    _assert_role_call(captured, "loop3")
+    assert analysis._run_analyser_tool_loop(
+        {}, _config_for("analyser"), trace_dir=None, artifact_dir=None
+    )["analysis"] == "Supported conclusion."
+    _assert_role_call(captured, "analyser")

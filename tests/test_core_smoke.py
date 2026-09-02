@@ -3819,8 +3819,8 @@ def test_report_viewer_html_includes_agent_trace() -> None:
 
     assert "Agent Interaction Diagnostics" not in html
     assert "Code Execution Diagnostics" not in html
-    assert "Task Designs" not in html
-    assert "Model Performance" not in html
+    assert "Task Designs" in html
+    assert "Model Performance Analysis" in html
     assert "Task Content" not in html
     assert "<h2>Artifacts</h2>" not in html
     assert 'href="#artifacts"' not in html

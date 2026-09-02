@@ -228,10 +228,10 @@ def generate(
     research_provider: Optional[str] = typer.Option(None, "--research-provider", help="Protocol/provider for --research-model."),
     research_api_key: Optional[str] = typer.Option(None, "--research-api-key", help="API key for the research role."),
     research_base_url: Optional[str] = typer.Option(None, "--research-base-url", help="Base URL for the research role."),
-    loop3_model: Optional[str] = typer.Option(None, "--loop3-model", help="Optional Loop 3 diagnosis model override."),
-    loop3_provider: Optional[str] = typer.Option(None, "--loop3-provider", help="Protocol/provider for --loop3-model."),
-    loop3_api_key: Optional[str] = typer.Option(None, "--loop3-api-key", help="API key for the Loop 3 diagnosis role."),
-    loop3_base_url: Optional[str] = typer.Option(None, "--loop3-base-url", help="Base URL for the Loop 3 diagnosis role."),
+    analyser_model: Optional[str] = typer.Option(None, "--analyser-model", help="Optional model-performance Analyser model."),
+    analyser_provider: Optional[str] = typer.Option(None, "--analyser-provider", help="Protocol/provider for --analyser-model."),
+    analyser_api_key: Optional[str] = typer.Option(None, "--analyser-api-key", help="API key for the Analyser role."),
+    analyser_base_url: Optional[str] = typer.Option(None, "--analyser-base-url", help="Base URL for the Analyser role."),
     target_api_key: Optional[str] = typer.Option(
         None,
         "--target-api-key",
@@ -369,10 +369,9 @@ def generate(
         "--human-review",
         help="Review the Planner output before construction and the completed tasks before target execution.",
     ),
-    improve_iterations: int = typer.Option(0, "--improve-iterations", help="Loop 3 self-improvement iterations after the first run."),
-    loop3_diagnosis: str = typer.Option("llm", "--loop3-diagnosis", help="Loop 3 diagnosis mode: llm or local."),
-    loop3_timeout: int = typer.Option(90, "--loop3-timeout", help="Loop 3 LLM diagnosis timeout in seconds."),
-    loop3_max_actions: int = typer.Option(4, "--loop3-max-actions", help="Maximum Loop 3 actions per iteration."),
+    analysis_iterations: int = typer.Option(0, "--analysis-iterations", help="Maximum hypothesis-driven probe iterations after the main run."),
+    analysis_timeout: int = typer.Option(90, "--analysis-timeout", help="Analyser call timeout in seconds."),
+    analysis_max_tasks: int = typer.Option(4, "--analysis-max-tasks", help="Maximum probe tasks requested in one analysis iteration."),
     docker_executable: str = typer.Option(
         "docker",
         "--docker-executable",
@@ -436,14 +435,14 @@ def generate(
     if not goal and not resume_run:
         console.print("[red]Goal cannot be empty.[/red]")
         raise typer.Exit(1)
-    if loop3_diagnosis not in {"llm", "local"}:
-        console.print("[red]--loop3-diagnosis must be 'llm' or 'local'.[/red]")
+    if analysis_iterations < 0:
+        console.print("[red]--analysis-iterations cannot be negative.[/red]")
         raise typer.Exit(1)
-    if loop3_timeout < 1:
-        console.print("[red]--loop3-timeout must be at least 1 second.[/red]")
+    if analysis_timeout < 1:
+        console.print("[red]--analysis-timeout must be at least 1 second.[/red]")
         raise typer.Exit(1)
-    if loop3_max_actions < 0:
-        console.print("[red]--loop3-max-actions cannot be negative.[/red]")
+    if analysis_max_tasks < 0:
+        console.print("[red]--analysis-max-tasks cannot be negative.[/red]")
         raise typer.Exit(1)
     if max_hf_records < 0:
         console.print("[red]--max-hf-records cannot be negative.[/red]")
@@ -521,7 +520,12 @@ def generate(
         ),
         "qc": (qc_model, qc_provider, qc_api_key, qc_base_url),
         "research": (research_model, research_provider, research_api_key, research_base_url),
-        "loop3": (loop3_model, loop3_provider, loop3_api_key, loop3_base_url),
+        "analyser": (
+            analyser_model,
+            analyser_provider,
+            analyser_api_key,
+            analyser_base_url,
+        ),
     }
     role_config: dict[str, Optional[str]] = {}
     for role, (role_model, role_provider, role_key, role_base) in role_options.items():
@@ -604,10 +608,9 @@ def generate(
         environment_claw=not no_environment_claw,
         environment_claw_auto_configure=not no_environment_claw_auto_configure,
         human_review=human_review,
-        improve_iterations=improve_iterations,
-        loop3_diagnosis=loop3_diagnosis,
-        loop3_diagnosis_timeout_s=loop3_timeout,
-        loop3_max_actions=loop3_max_actions,
+        analysis_iterations=analysis_iterations,
+        analysis_timeout_s=analysis_timeout,
+        analysis_max_tasks=analysis_max_tasks,
         docker_executable=docker_executable,
         container_sandbox_image=container_sandbox_image,
         environment_preflight=not no_environment_preflight,
