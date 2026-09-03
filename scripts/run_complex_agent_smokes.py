@@ -34,50 +34,6 @@ OUTPUT_DIR = Path(r"D:\localwork\vm_backends\complex_agent_smokes")
 RESULT_PATH = OUTPUT_DIR / "complex_agent_smoke_results.json"
 
 
-def make_workspace_item() -> tuple[BenchmarkItem, list[dict[str, Any]], BenchmarkConfig]:
-    item = BenchmarkItem(
-        id="workspace_multi_room_delivery",
-        dimension_id="stateful_tool_use",
-        task_type=TaskType.agent,
-        prompt=(
-            "Inspect the workspace, identify the current laptop, collect the blue notebook and "
-            "the charged tablet, and place only those required items in the outgoing bin."
-        ),
-        rubric="Full credit requires putting exactly blue_notebook and charged_tablet in the outgoing bin.",
-        metadata={
-            "agent_env": {
-                "type": "workspace",
-                "start_room": "office",
-                "rooms": {
-                    "office": ["blue_notebook", "red_notebook"],
-                    "lab": ["charged_tablet", "dead_tablet"],
-                    "mailroom": [],
-                },
-                "item_descriptions": {
-                    "blue_notebook": "The notebook labeled current project plan.",
-                    "red_notebook": "An obsolete draft that should not be sent.",
-                    "charged_tablet": "Battery reads 100%.",
-                    "dead_tablet": "Battery is empty.",
-                },
-                "goal": {"outgoing_bin": ["blue_notebook", "charged_tablet"]},
-                "max_steps": 9,
-            }
-        },
-        tags=["agent", "workspace", "stateful"],
-    )
-    actions = [
-        {"action": "inspect", "args": {"item": "blue_notebook"}},
-        {"action": "take", "args": {"item": "blue_notebook"}},
-        {"action": "move", "args": {"room": "lab"}},
-        {"action": "inspect", "args": {"item": "charged_tablet"}},
-        {"action": "take", "args": {"item": "charged_tablet"}},
-        {"action": "move", "args": {"room": "mailroom"}},
-        {"action": "place", "args": {"item": "blue_notebook"}},
-        {"action": "place", "args": {"item": "charged_tablet"}},
-    ]
-    return item, actions, BenchmarkConfig(environment_claw=False)
-
-
 def make_code_repair_item() -> tuple[BenchmarkItem, list[dict[str, Any]], BenchmarkConfig]:
     bad_solution = """\
 def summarize_orders(orders):
@@ -140,7 +96,7 @@ assert summarize_orders([{"amount": "3.00", "status": "cancelled"}]) == {
         rubric="Full credit requires passing hidden tests after iterative repair.",
         metadata={
             "agent_env": {
-                "type": "code_sandbox",
+                "type": "docker_workspace",
                 "visible_files": {"solution.py": bad_solution},
                 "hidden_files": {"tests.py": tests},
                 "test_command": "python3 tests.py",
@@ -148,7 +104,7 @@ assert summarize_orders([{"amount": "3.00", "status": "cancelled"}]) == {
                 "timeout": 10,
             }
         },
-        tags=["agent", "code_sandbox", "hidden_tests"],
+        tags=["agent", "docker_workspace", "hidden_tests"],
     )
     actions = [
         {"action": "read_file", "args": {"path": "solution.py"}},
@@ -229,7 +185,7 @@ def make_vm_item() -> tuple[BenchmarkItem, list[dict[str, Any]], BenchmarkConfig
         rubric="Full credit requires both VM files to exist and contain the expected text.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm_provider_url": "local://qemu",
                 "vm": {
@@ -254,7 +210,7 @@ def make_vm_item() -> tuple[BenchmarkItem, list[dict[str, Any]], BenchmarkConfig
                 "timeout": 20,
             }
         },
-        tags=["agent", "vm", "gui_desktop"],
+        tags=["agent", "vm", "gui"],
     )
     actions = [
         {
@@ -315,20 +271,19 @@ def run_scripted_item(
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     tasks: list[tuple[str, tuple[BenchmarkItem, list[dict[str, Any]], BenchmarkConfig]]] = [
-        ("workspace", make_workspace_item()),
-        ("code_sandbox", make_code_repair_item()),
+        ("docker_code_repair", make_code_repair_item()),
     ]
 
     docker = docker_status(timeout_s=10)
     if docker.available:
-        tasks.append(("docker_workspace", make_docker_item()))
+        tasks.append(("docker_shell", make_docker_item()))
     else:
         print(f"Skipping docker task because Docker is unavailable: {docker.error}", flush=True)
 
     try:
         download_base_image()
         create_seed_iso()
-        tasks.append(("vm_gui_desktop", make_vm_item()))
+        tasks.append(("vm_gui", make_vm_item()))
     except Exception as exc:
         print(f"Skipping VM task because VM setup failed: {exc}", flush=True)
 

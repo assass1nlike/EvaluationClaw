@@ -87,8 +87,11 @@ Use each task's top-level assets list for files that are part of the task input.
 Every asset object must contain exactly one field, path, whose value names a real
 host file available to the runner. The path may be absolute or relative to the current
 Builder job directory; the framework resolves relative asset paths before validation and
-execution. For a task without an environment, refer to that exact path in prompt or choices.
-For code_sandbox and docker_workspace tasks, the framework
+execution. For non-agent tasks, use only stable labels such as ``Image 1`` and ``Image 2``
+in prompt or choices to refer to image assets; the framework attaches them in assets-list
+order as multimodal inputs. Never expose host paths. For agent tasks,
+refer to each asset by the path visible in the agent environment.
+For docker_workspace tasks, the framework
 copies each asset into environment.workdir under its filename; refer only to that
 filename in prompt or choices and do not put the host path in any target-visible or environment
 field. Asset filenames are visible to the evaluated model, so name files without
@@ -107,13 +110,18 @@ hidden_files. Use these mappings for starter repositories and other files whose 
 path or directory structure must be preserved. Use assets instead when an existing host
 file should be copied into the workdir under its filename. Represent each file by the
 one mechanism that matches its runtime role.
-For code_sandbox and docker_workspace tasks, environment.workdir must be an absolute
+For docker_workspace tasks, environment.workdir must be an absolute
 POSIX path inside the runtime; use /workspace unless the task requires another directory,
 and never use `.` or another relative path.
 For a custom Docker environment, use image_build to describe a reproducible image.
-When image construction tools are available, create or edit the Dockerfile and its
+When container image construction tools are available, create or edit the Dockerfile and its
 context with those tools, verify the result, and preserve the returned relative
 image_build.context_dir and image tag in the final environment.image_build.
+For a VM-backed GUI environment that needs software or state unavailable in its
+base image, use build_vm_image when it is supplied. The provider runs the
+declarative plan inside an isolated temporary guest, verifies its checks, and
+returns a concrete image id in `image_id`. Preserve that id in environment.vm.image together
+with the guest OS and capability requirements.
 
 For initial construction, the tasks array length and per-type counts must
 exactly match the TaskDesign. For QC repair, they must instead exactly match

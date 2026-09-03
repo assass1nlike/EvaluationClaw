@@ -184,6 +184,47 @@ def _item_blocking_error_counts(report: QcReport) -> Counter[str]:
     )
 
 
+def _filter_incomplete_suite(
+    suite: TaskSuite,
+    qc_report: QcReport,
+    *,
+    strict: bool,
+) -> tuple[TaskSuite, QcReport]:
+    """Keep only items that meet the configured QC threshold."""
+    excluded_ids = set(qc_report.rejected_item_ids)
+    excluded_ids.update(
+        issue.item_id
+        for issue in qc_report.issues
+        if issue.item_id and issue.severity == QcSeverity.error
+    )
+    if strict:
+        excluded_ids.update(
+            issue.item_id
+            for issue in qc_report.issues
+            if issue.item_id and issue.severity == QcSeverity.warning
+        )
+
+    tasks = [item for item in suite.tasks if item.id not in excluded_ids]
+    task_ids = {item.id for item in tasks}
+    issues = [
+        issue
+        for issue in qc_report.issues
+        if issue.item_id is None or issue.item_id in task_ids
+    ]
+    penalty = sum(0.2 if issue.severity == QcSeverity.error else 0.05 for issue in issues)
+    quality_score = max(0.0, min(1.0, 1.0 - penalty / max(1, len(tasks))))
+    filtered_report = QcReport(
+        issues=issues,
+        passed_item_ids=[item.id for item in tasks],
+        quality_score=quality_score,
+        summary=(
+            f"QC completed: {len(tasks)}/{len(suite.tasks)} items retained, "
+            f"{len(excluded_ids)} filtered, {len(issues)} issues."
+        ),
+    )
+    return suite.model_copy(update={"tasks": tasks}), filtered_report
+
+
 def build_benchmark_suite_with_qc_loop(
     goal: str,
     config: BenchmarkConfig,
@@ -404,6 +445,12 @@ def build_suite_from_spec_with_qc_loop(
             "Benchmark did not produce a runner-ready suite after unified task QC: "
             f"{len(qc_report.rejected_item_ids)} rejected item(s), "
             f"quality_score={qc_report.quality_score:.3f}."
+        )
+    if config.allow_incomplete_benchmark:
+        suite, qc_report = _filter_incomplete_suite(
+            suite,
+            qc_report,
+            strict=config.strict_qc_filter,
         )
     if trace_root is not None:
         write_json(

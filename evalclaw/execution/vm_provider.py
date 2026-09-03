@@ -33,6 +33,7 @@ QEMU_ACCEL_ENV_VAR = "EVALCLAW_QEMU_ACCEL"
 VM_PROVIDER_PROTOCOL_V2 = "evalclaw.vm_provider.v2"
 VM_PROVIDER_CAPABILITIES_PATH = "/capabilities"
 VM_PROVIDER_CONFIG_DRIVE_UPLOAD_PATH = "/artifacts/config-drives"
+VM_PROVIDER_IMAGE_BUILD_PATH = "/images/builds"
 
 LOCAL_VM_PROVIDER_PREFIX = "local://"
 _LOCAL_QEMU_PROCESSES: dict[str, subprocess.Popen] = {}
@@ -66,7 +67,7 @@ class LocalVmBackendStatus:
 
 def vm_provider_setup_message() -> str:
     return (
-        "A GUI desktop task requires an isolated VM, but no reachable VM provider or usable local VM backend is configured.\n\n"
+        "A VM-backed GUI task requires an isolated VM, but no reachable VM provider or usable local VM backend is configured.\n\n"
         "Configure one of:\n"
         f"1. Set {VM_PROVIDER_URL_ENV_VAR}=http://127.0.0.1:<port>\n"
         "2. Pass --vm-provider-url http://127.0.0.1:<port>\n"
@@ -76,6 +77,7 @@ def vm_provider_setup_message() -> str:
         "- GET /health\n"
         "- GET /capabilities (v2; image inventory and supported features)\n"
         "- POST /artifacts/config-drives (v2; multipart ISO upload with SHA-256)\n"
+        "- POST /images/builds (v2; declarative image build plan; requires image_build capability)\n"
         "- POST /vms\n"
         "- GET /operations/{operation_id} (v2 async create status)\n"
         "- DELETE /vms/{vm_id}\n\n"
@@ -1250,6 +1252,119 @@ def _poll_vm_operation(
             return latest
         time.sleep(1)
     raise RuntimeError(f"Timed out after {timeout}s waiting for VM provider operation.")
+
+
+def _poll_image_build_operation(
+    client: httpx.Client,
+    provider_url: str,
+    response: httpx.Response,
+    data: dict[str, Any],
+    *,
+    timeout: int,
+) -> dict[str, Any]:
+    """Poll a provider image-build operation until it returns its image record."""
+    if response.status_code != 202:
+        return data
+    operation_url = str(
+        data.get("status_url")
+        or data.get("operation_url")
+        or response.headers.get("Location")
+        or ""
+    ).strip()
+    operation_id = str(data.get("operation_id") or data.get("id") or "").strip()
+    if not operation_url and operation_id:
+        operation_url = f"/operations/{operation_id}"
+    if not operation_url:
+        raise RuntimeError("Async VM image build response must include status_url or operation_id.")
+    operation_url = _same_provider_url(provider_url, operation_url)
+    deadline = time.monotonic() + max(1, timeout)
+    latest = data
+    while time.monotonic() < deadline:
+        poll = client.get(operation_url)
+        poll.raise_for_status()
+        latest = poll.json() if poll.content else {}
+        if not isinstance(latest, dict):
+            raise RuntimeError("VM image build operation status must return a JSON object.")
+        status = _normalized_capability(latest.get("status") or latest.get("state"))
+        if status in {"failed", "error", "cancelled", "canceled"}:
+            detail = latest.get("error") or latest.get("detail") or status
+            raise RuntimeError(f"VM image build failed: {detail}")
+        image = latest.get("image")
+        image_id = (
+            image.get("id") if isinstance(image, dict) else image
+        )
+        if status in {"ready", "succeeded", "completed"} and str(image_id or "").strip():
+            return latest
+        time.sleep(1)
+    raise RuntimeError(f"Timed out after {timeout}s waiting for VM image build operation.")
+
+
+def build_vm_image(
+    provider_url: str | None,
+    *,
+    api_key: str | None = None,
+    build_plan: dict[str, Any],
+    timeout: int = 600,
+) -> dict[str, Any]:
+    """Build and publish a reusable VM image through a capable remote provider.
+
+    The plan is declarative: the provider executes it inside an isolated temporary
+    guest and must return an image identifier only after its checks pass.
+    """
+    url = _resolve_provider_url(provider_url)
+    if not url or _is_local_provider(url):
+        raise RuntimeError(
+            "VM image construction requires a remote provider advertising the image_build capability."
+        )
+    if not isinstance(build_plan, dict) or not build_plan:
+        raise ValueError("build_plan must be a non-empty JSON object.")
+    request_id = f"vm-image-{uuid.uuid4().hex}"
+    with _provider_client(url, api_key=api_key, timeout=timeout) as client:
+        capabilities, discovered = _fetch_provider_capabilities(client)
+        if not discovered:
+            raise RuntimeError(
+                "VM provider does not expose /capabilities; image construction cannot be verified."
+            )
+        features = _capability_names(capabilities.get("features"))
+        if not _provider_protocol_is_v2(capabilities, discovered):
+            raise RuntimeError("VM image construction requires VM provider protocol v2.")
+        if "image_build" not in features:
+            raise RuntimeError(
+                "VM provider does not advertise the image_build capability."
+            )
+        payload = {
+            "protocol_version": VM_PROVIDER_PROTOCOL_V2,
+            "request_id": request_id,
+            "build": copy.deepcopy(build_plan),
+        }
+        response = client.post(
+            VM_PROVIDER_IMAGE_BUILD_PATH,
+            json=payload,
+            headers={"Idempotency-Key": request_id},
+        )
+        response.raise_for_status()
+        data = response.json() if response.content else {}
+        if not isinstance(data, dict):
+            raise RuntimeError("VM image build response must return a JSON object.")
+        initial = data
+        data = _poll_image_build_operation(
+            client,
+            url,
+            response,
+            data,
+            timeout=timeout,
+        )
+        result = {**initial, **data}
+        image = result.get("image")
+        if isinstance(image, str):
+            image = {"id": image}
+        if not isinstance(image, dict) or not str(image.get("id") or "").strip():
+            raise RuntimeError("VM image build did not return a concrete image id.")
+        result["image"] = image
+        result["image_id"] = str(image["id"]).strip()
+        result.setdefault("provider_url", url)
+        result.setdefault("request_id", request_id)
+        return _public_vm_session_data(result)
 
 
 def _public_vm_session_data(data: dict[str, Any]) -> dict[str, Any]:

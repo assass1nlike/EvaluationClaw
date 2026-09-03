@@ -256,7 +256,7 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
         return issue
     env_type = str(env.get("type") or "")
     message = issue.message.lower()
-    if env_type == "gui_desktop":
+    if env_type == "gui":
         vm = env.get("vm")
         has_provider_request = (
             bool(env.get("requires_vm"))
@@ -285,7 +285,7 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
                     ),
                 }
             )
-    if env_type not in {"code_sandbox", "docker_workspace"}:
+    if env_type != "docker_workspace":
         return issue
     if isinstance(env.get("hidden_files"), dict) and env.get("test_command"):
         false_positive_phrases = (

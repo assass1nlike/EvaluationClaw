@@ -243,6 +243,29 @@ def test_call_litellm_without_expect_json_keeps_provider_defaults(monkeypatch) -
     assert requests[0]["stream"] is True
 
 
+def test_call_litellm_forwards_explicit_reasoning_effort(monkeypatch) -> None:
+    import litellm as _litellm
+
+    requests: list[dict] = []
+    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
+
+    def fake_completion(**kwargs):
+        requests.append(kwargs)
+        return _FakeLitellmResponse("stop", "complete")
+
+    monkeypatch.setattr(_litellm, "completion", fake_completion)
+
+    result = llm._call_litellm(
+        model="gpt-5.6-sol",
+        messages=[{"role": "user", "content": "Build the task."}],
+        max_tokens=32768,
+        reasoning_effort="high",
+    )
+
+    assert result == "complete"
+    assert requests[0]["reasoning_effort"] == "high"
+
+
 def test_call_litellm_custom_openai_endpoint_uses_json_mode(monkeypatch) -> None:
     import litellm as _litellm
 

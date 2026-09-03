@@ -122,25 +122,33 @@ evalclaw.tool_protocol.v1
 
 ## 当前内置环境
 
-`workspace`
-
-内置工具：
-
-- `look`
-- `move`
-- `inspect`
-- `take`
-- `place`
-- `final`
-
-`code_sandbox`
+`docker_workspace`
 
 内置工具：
 
 - `list_files`
 - `read_file`
 - `write_file`
+- `run_command`
 - `run_tests`
+- `final`
+
+具体工具会按任务的文件保护和浏览器配置收窄。
+
+`gui`
+
+内置工具：
+
+- `screenshot`
+- `cursor_position`
+- `key` / `key_down` / `key_up` / `type` / `hold_key`
+- `mouse_move` / `click` / `drag` / `mouse_down` / `mouse_up` / `scroll`
+- `wait`
+- `list_files`
+- `read_file`
+- `write_file`
+- `run_command`
+- `evaluate`
 - `final`
 
 这些工具现在都由结构化 `ToolSpec` 定义，prompt 中展示给模型的 action schema 也是从 `ToolSpec` 自动生成。

@@ -14,6 +14,7 @@ from .diagnostics import (
     error_record,
     invocation_id,
     new_debug_dir,
+    safe_name,
     write_json,
     write_text,
 )
@@ -29,7 +30,7 @@ from .execution.plan import build_execution_plan
 from .execution.runner import run_eval
 from .models.roles import role_model_settings
 from .planning.loop import apply_human_review_feedback, format_human_review_overview
-from .planning.planner import translate_goal_to_english
+from .planning.planner import translate_goal_to_english, translate_report_markdown
 from .quality.analysis import run_analysis
 from .reporting.artifacts import write_artifact_manifest, write_lm_eval_artifacts
 from .reporting.reporter import artifact_index_markdown, build_report
@@ -304,6 +305,26 @@ def _persist_package(
     md_path = out_dir / f"evalclaw_{stem}.md"
     html_path = out_dir / f"evalclaw_{stem}.html"
     task_viewer_path = out_dir / f"tasks_{stem}.html"
+    translated_report_path = None
+    translated_markdown = None
+    report_language = str(config.report_language or "").strip()
+    if report_language:
+        translated_report_path = out_dir / f"evalclaw_{stem}_{safe_name(report_language)}.md"
+        trace_dir = None
+        if config.planner_debug_dir:
+            trace_dir = Path(config.planner_debug_dir).parent / "report-translation" / invocation_id()
+            trace_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            trace_dir = new_debug_dir(config.output_dir, "report-translation")
+        try:
+            translated_markdown = translate_report_markdown(
+                pkg.report.markdown,
+                report_language,
+                config,
+                trace_dir=str(trace_dir) if trace_dir is not None else None,
+            )
+        except Exception as exc:
+            log(f"  Report translation failed; keeping the original report: {exc}")
     execution_plan = build_execution_plan(pkg.suite, pkg.qc_report)
     artifacts = write_lm_eval_artifacts(execution_plan.suite, out_dir)
     research_brief_paths: dict[str, Path] = {}
@@ -327,6 +348,7 @@ def _persist_package(
         report_path=md_path,
         frontend_report_path=html_path,
         task_viewer_path=task_viewer_path,
+        translated_report_path=translated_report_path if translated_markdown else None,
         manifest_path=manifest_path,
         lm_eval_paths=artifacts,
     )
@@ -348,12 +370,18 @@ def _persist_package(
         _redact_secrets(build_task_viewer_html(pkg)),
         encoding="utf-8",
     )
+    if translated_markdown is not None and translated_report_path is not None:
+        translated_report_path.write_text(
+            _redact_secrets(translated_markdown.rstrip() + "\n\n" + artifact_section),
+            encoding="utf-8",
+        )
     manifest_path = write_artifact_manifest(
         out_dir,
         package_path=json_path,
         report_path=md_path,
         frontend_report_path=html_path,
         task_viewer_path=task_viewer_path,
+        translated_report_path=translated_report_path if translated_markdown else None,
         lm_eval_paths=artifacts,
         research_brief_paths=research_brief_paths or None,
     )
@@ -362,6 +390,8 @@ def _persist_package(
         log(f"Saved research brief markdown: {research_brief_paths['markdown']}")
     log(f"Saved package: {json_path}")
     log(f"Saved report: {md_path}")
+    if translated_markdown is not None and translated_report_path is not None:
+        log(f"Saved translated report: {translated_report_path}")
     log(f"Saved browser report: {html_path}")
     log(f"Saved task browser: {task_viewer_path}")
     for name, path in artifacts.items():
@@ -616,8 +646,8 @@ def _run_pipeline(
 
     if (not qc_report.is_acceptable or qc_report.rejected_item_ids) and not config.allow_incomplete_benchmark:
         raise RuntimeError(
-            "Benchmark is not runner-ready after QC. Set allow_incomplete_benchmark=true only "
-            "when intentionally producing a non-executable draft."
+            "Benchmark is not runner-ready after QC. Set allow_incomplete_benchmark=true "
+            "to continue with QC-filtered items."
         )
 
     run_direct = config.runner in {"direct", "auto"}

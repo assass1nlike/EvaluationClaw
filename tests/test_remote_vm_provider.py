@@ -10,6 +10,7 @@ from evalclaw.execution.environment_claw import run_environment_claw
 from evalclaw.execution.vm_materializer import VmTaskMaterializationResult
 from evalclaw.execution.vm_provider import (
     VmProviderStatus,
+    build_vm_image,
     create_vm_session,
     resolve_vm_image_spec,
 )
@@ -144,6 +145,97 @@ def test_remote_provider_uploads_config_drive_resolves_image_and_polls(monkeypat
     assert session.data["config_drive"]["sha256"] == digest
     assert "bridge_api_key" not in session.data
     assert ("POST", "/artifacts/config-drives", b"portable config drive") in requests
+
+
+def test_remote_provider_builds_vm_image_and_polls(monkeypatch) -> None:
+    requests: list[tuple[str, str, object]] = []
+
+    class Client:
+        def __init__(self, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def get(self, path):
+            requests.append(("GET", str(path), None))
+            if path == "/capabilities":
+                capabilities = _capabilities()
+                capabilities["features"].append("image_build")
+                return _Response(200, capabilities)
+            if str(path).endswith("/operations/build-1"):
+                return _Response(
+                    200,
+                    {
+                        "status": "completed",
+                        "image": {
+                            "id": "blender-windows-evalclaw-v1",
+                            "digest": "sha256:built",
+                        },
+                    },
+                )
+            raise AssertionError(path)
+
+        def post(self, path, **kwargs):
+            assert path == "/images/builds"
+            requests.append(("POST", path, kwargs["json"]))
+            assert kwargs["json"]["protocol_version"] == "evalclaw.vm_provider.v2"
+            assert kwargs["json"]["build"]["files"]["C:/tools/check.ps1"] == "Write-Output ready"
+            assert kwargs["headers"]["Idempotency-Key"].startswith("vm-image-")
+            return _Response(
+                202,
+                {"operation_id": "build-1", "status": "building"},
+                headers={"Location": "/operations/build-1"},
+            )
+
+    monkeypatch.setattr("evalclaw.execution.vm_provider.httpx.Client", Client)
+    monkeypatch.setattr("evalclaw.execution.vm_provider.time.sleep", lambda _: None)
+
+    result = build_vm_image(
+        "https://provider.test",
+        api_key="provider-secret",
+        build_plan={
+            "base_image": {"guest_os": "windows", "required_capabilities": ["desktop_bridge"]},
+            "provisioning": {"choco_packages": ["blender"]},
+            "files": {"C:/tools/check.ps1": "Write-Output ready"},
+            "checks": [{"command": "blender --version"}],
+        },
+        timeout=20,
+    )
+
+    assert result["image"]["id"] == "blender-windows-evalclaw-v1"
+    assert result["image_id"] == "blender-windows-evalclaw-v1"
+    assert result["provider_url"] == "https://provider.test"
+    assert any(method == "GET" and path.endswith("/operations/build-1") for method, path, _ in requests)
+
+
+def test_remote_provider_rejects_vm_image_build_without_capability(monkeypatch) -> None:
+    class Client:
+        def __init__(self, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def get(self, path):
+            return _Response(200, _capabilities())
+
+    monkeypatch.setattr("evalclaw.execution.vm_provider.httpx.Client", Client)
+    with pytest.raises(RuntimeError, match="image_build capability"):
+        build_vm_image(
+            "https://provider.test",
+            build_plan={
+                "base_image": {"guest_os": "linux"},
+                "provisioning": {},
+                "checks": [{"command": "true"}],
+            },
+        )
 
 
 def test_remote_provider_without_capabilities_keeps_legacy_sync_contract(monkeypatch) -> None:
@@ -416,7 +508,7 @@ def test_environment_claw_resolves_remote_image_before_target_execution(monkeypa
         prompt="Repair the Windows workstation.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"guest_os": "windows"},
                 "session": {

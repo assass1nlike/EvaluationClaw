@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path, PurePosixPath
 
 from ..protocols.agent_task_package import AGENT_TASK_PACKAGE_METADATA_KEY
-from ..protocols.assets import environment_asset_guest_path, is_image_asset_path
+from ..protocols.assets import asset_label, environment_asset_guest_path, is_image_asset_path
 from ..types import (
     AgentEnvironmentType,
     EvalDimension,
@@ -68,12 +68,9 @@ def _has_environment_evaluator(task: TaskDefinition) -> bool:
     env = task.environment
     if env is None:
         return False
-    if env.type in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}:
+    if env.type == AgentEnvironmentType.docker_workspace:
         return _has_text(env.test_command)
-    if env.type == AgentEnvironmentType.workspace:
-        goal = env.workspace.get("goal") if isinstance(env.workspace, dict) else None
-        return isinstance(goal, dict) and bool(goal.get("outgoing_bin"))
-    if env.type == AgentEnvironmentType.gui_desktop:
+    if env.type == AgentEnvironmentType.gui:
         evaluation = env.evaluation
         return bool(
             isinstance(evaluation.get("checks"), list)
@@ -94,8 +91,7 @@ def _environment_has_visible_file_input(task: TaskDefinition) -> bool:
         return False
     if env.visible_files or (
         task.assets
-        and env.type
-        in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
+        and env.type == AgentEnvironmentType.docker_workspace
     ):
         return True
     for key in ("files", "input_files", "asset_files", "assets"):
@@ -138,10 +134,7 @@ def _builder_host_path_issues(task: TaskDefinition, work_dir: Path) -> list[str]
         "interaction": task.interaction,
         "metadata": task.metadata,
     }
-    if task.environment is not None and task.environment.type in {
-        AgentEnvironmentType.code_sandbox,
-        AgentEnvironmentType.docker_workspace,
-    }:
+    if task.environment is not None and task.environment.type == AgentEnvironmentType.docker_workspace:
         target_visible.update(
             {
                 "environment": task.environment.model_dump(mode="json"),
@@ -572,7 +565,7 @@ def _vm_protected_evaluator_reference_issues(env: object) -> list[str]:
     if not inaccessible:
         return []
     return [
-        "Windows gui_desktop evaluation runs as the signed-in target user and cannot read "
+        "Windows gui evaluation runs as the signed-in target user and cannot read "
         "provisioning paths whose ACL grants only SYSTEM/Administrators: "
         + ", ".join(inaccessible)
         + ". Embed expected values or hashes in the evaluator command instead of reading a "
@@ -722,7 +715,7 @@ def _desktop_check_issues(checks: object, *, field_name: str) -> list[str]:
                 issues.append(
                     f"{field_name}[{index}].command must contain the complete executable guest "
                     "command; opaque runner-private command identifiers are not part of the "
-                    "gui_desktop bridge contract."
+                    "gui bridge contract."
                 )
             elif field_name == "environment.evaluation.checks" and _command_is_probe_only(
                 command,
@@ -739,7 +732,7 @@ def _desktop_check_issues(checks: object, *, field_name: str) -> list[str]:
         elif method not in {"command", "file_exists"}:
             issues.append(
                 f"{field_name}[{index}] uses unsupported method {method or '<empty>'}; "
-                "the gui_desktop bridge supports command and file_exists."
+                "the gui bridge supports command and file_exists."
             )
     return issues
 
@@ -845,18 +838,16 @@ def task_structure_issues(
         if not path:
             issues.append(f"Asset #{index} path is empty.")
             continue
-        prompt_path = (
+        prompt_reference = (
             environment_asset_guest_path(asset)
-            if task.environment is not None
-            and task.environment.type
-            in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
-            else path
+            if task.task_type == TaskType.agent
+            else asset_label(index)
         )
-        if prompt_path not in task.prompt and not any(
-            prompt_path in choice.text for choice in task.choices
+        if prompt_reference not in task.prompt and not any(
+            prompt_reference in choice.text for choice in task.choices
         ):
             issues.append(
-                f"Task prompt or choices must reference asset path {prompt_path!r} exactly."
+                f"Task prompt or choices must reference asset {prompt_reference!r}."
             )
         try:
             resolved_path = resolve_builder_asset_path(path, builder_work_dir)
@@ -868,17 +859,13 @@ def task_structure_issues(
     if (
         task.environment is not None
         and task.assets
-        and task.environment.type
-        not in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
+        and task.environment.type != AgentEnvironmentType.docker_workspace
     ):
         issues.append(
             "This environment does not map top-level assets; put input files in its "
             "target-visible environment fields."
         )
-    if task.environment is not None and task.environment.type in {
-        AgentEnvironmentType.code_sandbox,
-        AgentEnvironmentType.docker_workspace,
-    }:
+    if task.environment is not None and task.environment.type == AgentEnvironmentType.docker_workspace:
         guest_names = [environment_asset_guest_path(asset) for asset in task.assets]
         duplicate_guest_names = sorted(
             name for name in set(guest_names) if guest_names.count(name) > 1
@@ -1073,11 +1060,7 @@ def task_structure_issues(
             + ", ".join(sorted(referenced_hidden))
         )
 
-    if env.type == AgentEnvironmentType.code_sandbox:
-        if not _has_text(env.test_command):
-            issues.append("code_sandbox tasks must include a deterministic test_command.")
-
-    elif env.type == AgentEnvironmentType.docker_workspace:
+    if env.type == AgentEnvironmentType.docker_workspace:
         if not _has_text(env.test_command):
             issues.append("docker_workspace tasks must include a deterministic test_command.")
         task_text = f"{task.prompt} {' '.join(task.tags)}".lower()
@@ -1156,10 +1139,10 @@ def task_structure_issues(
                         f"Browser file artifact {artifact} must be inside environment.workdir={workdir}."
                     )
 
-    elif env.type == AgentEnvironmentType.gui_desktop:
+    elif env.type == AgentEnvironmentType.gui:
         if not env.session:
             issues.append(
-                "gui_desktop tasks must include environment.session with application, launch/start state, "
+                "gui tasks must include environment.session with application, launch/start state, "
                 "input assets, expected artifacts, or task restrictions."
             )
         else:
@@ -1175,17 +1158,17 @@ def task_structure_issues(
             )
             if not has_application:
                 issues.append(
-                    "gui_desktop tasks must set environment.session.application, kind, or applications; "
+                    "gui tasks must set environment.session.application, kind, or applications; "
                     "session.surface is not consumed by the runtime."
                 )
             if not has_start_state:
                 issues.append(
-                    "gui_desktop tasks must set environment.session.launch_state, start_state, "
+                    "gui tasks must set environment.session.launch_state, start_state, "
                     "start_url, or entrypoint."
                 )
         if not _has_environment_evaluator(task):
             issues.append(
-                "gui_desktop tasks must put an executable method or checks in environment.evaluation; "
+                "gui tasks must put an executable method or checks in environment.evaluation; "
                 "session.evaluation_checks is not consumed by the runtime."
             )
         issues.extend(
@@ -1203,7 +1186,7 @@ def task_structure_issues(
         requires_vm = bool(env.requires_vm or env.vm)
         if requires_vm:
             if not env.vm:
-                issues.append("gui_desktop tasks with requires_vm=true must include environment.vm.")
+                issues.append("gui tasks with requires_vm=true must include environment.vm.")
             else:
                 source_fields = (
                     "template",
@@ -1228,7 +1211,7 @@ def task_structure_issues(
                 )
                 if not _has_any_text(*source_values) and not has_runtime_requirements:
                     issues.append(
-                        "VM-backed gui_desktop tasks must provide a runner-resolvable template, "
+                        "VM-backed gui tasks must provide a runner-resolvable template, "
                         "image, or disk identifier, or guest OS plus required_capabilities for "
                         "runtime provider resolution."
                     )
@@ -1251,65 +1234,9 @@ def task_structure_issues(
                 and env.session["baseline_checks"]
             ):
                 issues.append(
-                    "Every VM-backed gui_desktop task must define executable "
+                    "Every VM-backed gui task must define executable "
                     "environment.session.baseline_checks for the bridge to verify before the target starts."
                 )
-
-    elif env.type == AgentEnvironmentType.workspace:
-        if not env.workspace:
-            issues.append(
-                "workspace tasks must include environment.workspace state with rooms as an object "
-                "mapping room names to item-ID arrays and goal.outgoing_bin as an item-ID array; "
-                "environment.tools does not define executable custom behavior."
-            )
-        else:
-            rooms = env.workspace.get("rooms")
-            goal = env.workspace.get("goal")
-            required_items = goal.get("outgoing_bin") if isinstance(goal, dict) else None
-            if not isinstance(rooms, dict) or not rooms:
-                issues.append(
-                    "workspace tasks must define non-empty workspace.rooms as an object mapping "
-                    "room names to arrays of item IDs, for example "
-                    '{"office": ["brief"], "mailroom": []}.'
-                )
-            elif "mailroom" not in rooms:
-                issues.append("workspace tasks must include a mailroom for the built-in place action.")
-            if not isinstance(required_items, list) or not required_items:
-                issues.append(
-                    "workspace tasks must define workspace.goal.outgoing_bin as a non-empty "
-                    "array of required item IDs, for example [\"brief\"]."
-                )
-            elif isinstance(rooms, dict):
-                available_items = {
-                    str(item)
-                    for room_items in rooms.values()
-                    if isinstance(room_items, list)
-                    for item in room_items
-                }
-                missing_items = sorted(
-                    str(item) for item in required_items if str(item) not in available_items
-                )
-                if missing_items:
-                    issues.append(
-                        "workspace goal items must exist in workspace.rooms: "
-                        + ", ".join(missing_items)
-                    )
-        if any(
-            (
-                env.visible_files,
-                env.runtime_files,
-                env.hidden_files,
-                env.setup_commands,
-                env.test_command,
-                env.browser,
-                env.vm,
-                env.requires_vm,
-            )
-        ):
-            issues.append(
-                "workspace is the built-in room/inventory runtime and cannot execute files, shell setup, "
-                "browser state, or VM state; use code_sandbox, docker_workspace, or gui_desktop instead."
-            )
 
     return issues
 

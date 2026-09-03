@@ -1,8 +1,9 @@
 import json
+from pathlib import Path
 
 from evalclaw.pipeline import _persist_package
 from evalclaw.reporting.reporter import build_report
-from evalclaw.reporting.task_viewer import build_task_viewer_html
+from evalclaw.reporting.task_viewer import _task_payload, build_task_viewer_html
 from evalclaw.types import (
     AgentEnvironmentSpec,
     AgentEnvironmentType,
@@ -73,7 +74,7 @@ def _package_with_all_task_types() -> BenchmarkPackage:
             prompt="Inspect the workspace and finish the task.",
             system_prompt="Act as a careful coding agent.",
             environment=AgentEnvironmentSpec(
-                type=AgentEnvironmentType.code_sandbox,
+                type=AgentEnvironmentType.docker_workspace,
                 visible_files={"input.txt": "input"},
                 test_command="python tests.py",
             ),
@@ -134,6 +135,52 @@ def test_task_viewer_renders_all_task_types_and_task_fields() -> None:
     ]:
         assert expected in html
     assert "EvaluationClaw Diagnostic Report" not in html
+
+
+def test_task_viewer_labels_non_agent_image_assets(tmp_path: Path) -> None:
+    image_path = tmp_path / "private" / "scene.png"
+    image_path.parent.mkdir()
+    image_path.write_bytes(b"\x89PNG\r\n\x1a\n")
+    dimension = EvalDimension(
+        id="vision", name="Vision", description="Measure vision.", approach="Use images."
+    )
+    spec = EvalSpec(id="vision_eval", objective="Browse images.", dimensions=[dimension])
+    definition = TaskDefinition(
+        id="vision-1",
+        dimension_id="vision",
+        task_type=TaskType.choice,
+        title="Image choice",
+        prompt=f"Inspect {image_path}.",
+        assets=[{"path": str(image_path)}],
+        choices=[ChoiceOption(id="a", text=str(image_path))],
+        correct_choice_ids=["a"],
+    )
+    item = BenchmarkItem(
+        id=definition.id,
+        dimension_id=definition.dimension_id,
+        task_type=definition.task_type,
+        prompt=definition.prompt,
+        assets=definition.assets,
+        choices=definition.choices,
+        correct_choice_ids=definition.correct_choice_ids,
+        source_definition=definition,
+    )
+    suite = TaskSuite(spec=spec, objective=spec.objective, dimensions=[dimension], tasks=[item])
+    package = BenchmarkPackage(
+        goal=spec.objective,
+        spec=spec,
+        suite=suite,
+        qc_report=QcReport(passed_item_ids=[item.id]),
+        run=EvalRun(suite=suite, qc_report=QcReport(passed_item_ids=[item.id])),
+        report=build_report(EvalRun(suite=suite, qc_report=QcReport(passed_item_ids=[item.id]))),
+    )
+
+    payload = _task_payload(package)
+    html = build_task_viewer_html(package)
+
+    assert payload["tasks"][0]["prompt"] == "Inspect Image 1."
+    assert payload["tasks"][0]["choices"][0]["text"] == "Image 1"
+    assert "Image 1" in html
 
 
 def test_persist_package_writes_task_viewer_artifact(tmp_path) -> None:

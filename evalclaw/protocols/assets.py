@@ -6,7 +6,7 @@ import mimetypes
 from pathlib import Path
 from typing import Any
 
-from ..types import BenchmarkItem, TaskAsset
+from ..types import BenchmarkItem, TaskAsset, TaskType
 
 
 def environment_asset_guest_path(asset: TaskAsset) -> str:
@@ -33,6 +33,49 @@ def is_image_asset_path(path: str | Path) -> bool:
     return mime_type.startswith("image/")
 
 
+def asset_label(index: int) -> str:
+    return f"Image {index}"
+
+
+def replace_non_agent_asset_references(text: str, assets: list[TaskAsset]) -> str:
+    """Replace host-side asset references with stable labels for native tasks."""
+    replacements: list[tuple[str, str]] = []
+    basenames: dict[str, int] = {}
+    for asset in assets:
+        basename = Path(asset.path.strip()).name
+        if basename:
+            basenames[basename] = basenames.get(basename, 0) + 1
+    for index, asset in enumerate(assets, 1):
+        path = asset.path.strip()
+        if not path:
+            continue
+        label = asset_label(index)
+        replacements.append((path, label))
+        basename = Path(path).name
+        if basename and basenames.get(basename) == 1 and basename != path:
+            replacements.append((basename, label))
+    for reference, label in sorted(replacements, key=lambda item: len(item[0]), reverse=True):
+        text = text.replace(reference, label)
+    return text
+
+
+def replace_agent_asset_references(text: str, assets: list[TaskAsset]) -> str:
+    """Replace host-side asset references with their environment-visible paths."""
+    replacements: list[tuple[str, str]] = []
+    for asset in assets:
+        path = asset.path.strip()
+        if not path:
+            continue
+        guest_path = environment_asset_guest_path(asset)
+        replacements.append((path, guest_path))
+        basename = Path(path).name
+        if basename and basename != path:
+            replacements.append((basename, guest_path))
+    for reference, guest_path in sorted(replacements, key=lambda item: len(item[0]), reverse=True):
+        text = text.replace(reference, guest_path)
+    return text
+
+
 def _image_data_uri(asset: TaskAsset) -> str:
     path = Path(asset.path)
     if not path.is_file():
@@ -49,10 +92,21 @@ def build_asset_user_content(
     prompt_text: str,
     provider: str,
 ) -> list[dict[str, Any]]:
-    blocks: list[dict[str, Any]] = [{"type": "text", "text": prompt_text}]
-    for asset in item.assets:
+    is_agent = item.task_type == TaskType.agent
+    visible_prompt = (
+        replace_agent_asset_references(prompt_text, item.assets)
+        if is_agent
+        else replace_non_agent_asset_references(prompt_text, item.assets)
+    )
+    blocks: list[dict[str, Any]] = [{"type": "text", "text": visible_prompt}]
+    for index, asset in enumerate(item.assets, 1):
         data_uri = _image_data_uri(asset)
-        blocks.append({"type": "text", "text": f"Asset path: {asset.path}"})
+        reference = (
+            environment_asset_guest_path(asset)
+            if is_agent
+            else asset_label(index)
+        )
+        blocks.append({"type": "text", "text": reference})
         if provider.lower() in {"anthropic", "claude"}:
             header, data = data_uri.split(",", 1)
             blocks.append(
@@ -73,8 +127,11 @@ def build_asset_user_content(
 
 
 __all__ = [
+    "asset_label",
     "build_asset_user_content",
     "environment_asset_guest_path",
     "environment_asset_sources",
     "is_image_asset_path",
+    "replace_agent_asset_references",
+    "replace_non_agent_asset_references",
 ]

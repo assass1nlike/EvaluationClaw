@@ -412,6 +412,66 @@ def test_orchestrator_uses_openai_litellm_route_for_custom_base_url(monkeypatch)
     assert response.tool_calls[0].name == "run_python"
 
 
+def test_orchestrator_tools_forward_reasoning_effort_to_openai_compatible_endpoint(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_stream(url, headers, body, **kwargs):
+        captured.update({"url": url, "headers": headers, "body": body})
+        return {
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": None,
+                        "tool_calls": [
+                            {
+                                "id": "call_1",
+                                "type": "function",
+                                "function": {
+                                    "name": "run_python",
+                                    "arguments": '{"code":"print(4)"}',
+                                },
+                            }
+                        ],
+                    },
+                    "finish_reason": "tool_calls",
+                }
+            ]
+        }
+
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", fake_stream)
+    monkeypatch.setattr(
+        llm,
+        "_call_litellm",
+        lambda **kwargs: pytest.fail("LiteLLM should be skipped when effort is configured"),
+    )
+
+    response = llm.call_orchestrator_with_tools(
+        [{"role": "user", "content": "Compute a value."}],
+        model="gpt-5.6-sol",
+        provider="openai_compatible",
+        api_key="test-key",
+        base_url="https://model.example/v1",
+        reasoning_effort="xhigh",
+        tools=[
+            ToolSpec(
+                name="run_python",
+                parameters=object_schema(
+                    {"code": {"type": "string"}},
+                    required=["code"],
+                ),
+            )
+        ],
+    )
+
+    assert response.adapter == "openai_compatible"
+    assert response.tool_calls[0].name == "run_python"
+    assert captured["url"] == "https://model.example/v1/chat/completions"
+    assert captured["body"]["reasoning_effort"] == "xhigh"
+    assert captured["body"]["tools"][0]["function"]["name"] == "run_python"
+
+
 def test_orchestrator_deepseek_json_recovery_disables_thinking(monkeypatch) -> None:
     import litellm as _litellm
 
@@ -652,6 +712,7 @@ def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
         base_url="https://model.example/v1",
         provider="openai_compatible",
         backend="auto",
+        reasoning_effort="high",
         expect_json=True,
     )
 
@@ -660,6 +721,7 @@ def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
     assert captured["url"] == "https://model.example/v1/chat/completions"
     assert captured["body"]["stream"] is True
     assert captured["body"]["response_format"] == {"type": "json_object"}
+    assert captured["body"]["reasoning_effort"] == "high"
 
 
 def test_target_multimodal_call_uses_streaming_route(monkeypatch) -> None:

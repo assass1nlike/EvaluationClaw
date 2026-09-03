@@ -1,7 +1,10 @@
 """Bounded tools for TaskBuilder construction."""
 from __future__ import annotations
 
+import base64
+import copy
 import json
+import mimetypes
 import re
 import shutil
 import subprocess
@@ -13,12 +16,15 @@ from threading import Event
 from typing import Any
 from urllib.parse import urlsplit
 
+import httpx
+
 from ..diagnostics import write_json
 from ..execution.docker_images import (
     build_docker_image_from_context,
     run_docker_image_check,
     safe_context_path,
 )
+from ..execution.vm_provider import build_vm_image
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
@@ -47,6 +53,12 @@ _MAX_IMAGE_CHECKS = 6
 _MAX_IMAGE_CONTEXT_FILES = 128
 _MAX_IMAGE_CONTEXT_BYTES = 256 * 1024 * 1024
 _MAX_IMAGE_CHECK_COMMAND_CHARS = 4000
+_IMAGE_GENERATION_TIMEOUT_SECONDS = 600
+_MAX_GENERATED_IMAGE_BYTES = 64 * 1024 * 1024
+_MAX_IMAGE_REFERENCE_FILES = 10
+_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+_VIEWABLE_IMAGE_MEDIA_TYPES = {"image/gif", "image/jpeg", "image/png", "image/webp"}
+_REFERENCE_IMAGE_MEDIA_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 
 class TaskBuilderTruncationSummaryError(RuntimeError):
@@ -73,18 +85,36 @@ under the desired guest-relative path instead. Environment file-map values are f
 contents, never the returned host path or a filename. For environment-backed tasks, the
 framework copies each asset into the runtime workdir under its filename, so prompt or
 choices must refer only to that filename; never copy a host path into target-visible text
-or environment fields. For tasks without an environment, refer to the asset path verbatim
-in prompt or choices. When source tools are available, use read_research_source to
+or environment fields. For non-agent tasks, use only stable labels such as ``Image 1`` and
+``Image 2`` in prompt or choices to refer to image assets; the framework attaches them in
+assets-list order as multimodal inputs. Never expose host paths. For agent
+tasks, refer to each asset by the path visible in the agent environment. When source tools are available, use read_research_source to
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
-When image construction tools are available, use run_python to create or edit a
+Use view_image when visual inspection of an image created or downloaded in the Builder
+job directory is needed; the image will be attached to the next model turn. When
+generate_image is available, use it to create required PNG task inputs in the Builder
+job directory, put returned paths in the corresponding task's assets, and refer to them
+according to the asset rules above. It accepts optional reference_paths containing up to
+10 existing PNG, JPEG, or WebP files from the Builder job directory; use them when
+reference images materially guide the requested generation. If you want images of the same
+object from different angles, use reference images to keep details consistent across images.
+After generating an image, inspect it with view_image to verify that its visible content
+matches the intended task input before
+using it. When container image construction
+tools are available, use run_python to create or edit a
 Dockerfile and its context files in the Builder job directory, then use build_image to
 build and inspect that image. Use run_image_check for short dependency or startup
 checks after a successful build. The build tool returns a relative image_build.context_dir;
 preserve that value in the final task's environment.image_build together with
 image_build.enabled=true and the image tag. Do not put host paths in target-visible
 fields, and do not claim an image is ready without a successful build or check.
+When VM image construction is available, use build_vm_image for GUI tasks that
+need software or state unavailable in the base image. Its plan is executed and
+checked inside an isolated temporary guest by the provider; preserve the
+returned concrete image id in the task's environment.vm.image. Do not claim a
+custom VM image is ready without a successful provider result.
 During QC repair, use run_python to edit the JSON file at revision.path in place,
 then return a compact JSON confirmation. Otherwise, return the complete task-builder
 JSON object after tool use. The tool budget is bounded; stop once the task is
@@ -109,6 +139,74 @@ TASK_BUILDER_PYTHON_TOOL = ToolSpec(
             },
         },
         "required": ["code"],
+        "additionalProperties": False,
+    },
+)
+
+
+TASK_BUILDER_GENERATE_IMAGE_TOOL = ToolSpec(
+    name="generate_image",
+    description=(
+        "Generate one PNG task-input image with the configured image model and save it "
+        "inside the current Builder job directory. You may provide up to 10 existing "
+        "PNG, JPEG, or WebP reference images from that directory. If you want images of "
+        "the same object from different angles, use reference images to keep details "
+        "consistent across images."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "prompt": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Complete image-generation prompt.",
+            },
+            "output_path": {
+                "type": "string",
+                "minLength": 5,
+                "description": (
+                    "Relative output path inside the Builder job directory; must end in .png."
+                ),
+            },
+            "size": {
+                "type": "string",
+                "description": "Requested WIDTHxHEIGHT image size; defaults to 1024x1024.",
+            },
+            "reference_paths": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                    "type": "string",
+                    "minLength": 1,
+                },
+                "description": (
+                    "Optional paths to up to 10 existing PNG, JPEG, or WebP reference images "
+                    "inside the current Builder job directory."
+                ),
+            },
+        },
+        "required": ["prompt", "output_path"],
+        "additionalProperties": False,
+    },
+)
+
+
+TASK_BUILDER_VIEW_IMAGE_TOOL = ToolSpec(
+    name="view_image",
+    description=(
+        "Attach one image from the current Builder job directory to the next model "
+        "turn for visual inspection. Supports PNG, JPEG, GIF, and WebP."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Existing image path inside the Builder job directory.",
+            },
+        },
+        "required": ["path"],
         "additionalProperties": False,
     },
 )
@@ -199,6 +297,72 @@ TASK_BUILDER_IMAGE_TOOLS = [
                 },
             },
             "required": ["command"],
+            "additionalProperties": False,
+        },
+    ),
+]
+
+
+TASK_BUILDER_VM_IMAGE_TOOLS = [
+    ToolSpec(
+        name="build_vm_image",
+        description=(
+            "Build and publish a reusable VM image through the configured remote VM provider. "
+            "The provider executes the declarative plan inside an isolated temporary guest, "
+            "runs the supplied checks, and returns a concrete image id only after success. "
+            "Use this for GUI tasks that need software or state unavailable in the base image. "
+            "Copy the returned image_id into environment.vm.image."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "base_image": {
+                    "type": "object",
+                    "description": (
+                        "Provider-resolvable base image selector and requirements, for example "
+                        "{guest_os, architecture, required_capabilities, image}."
+                    ),
+                    "additionalProperties": True,
+                },
+                "provisioning": {
+                    "type": "object",
+                    "description": (
+                        "Guest setup plan: package lists, install_steps, commands, and OS-specific "
+                        "provisioning fields supported by the VM provider."
+                    ),
+                    "additionalProperties": True,
+                },
+                "files": {
+                    "type": "object",
+                    "description": "Guest-relative paths mapped to literal file contents to install in the image.",
+                    "additionalProperties": {"type": "string"},
+                },
+                "checks": {
+                    "type": "array",
+                    "minItems": 1,
+                    "description": "Commands the provider must execute in the built guest before publishing it.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "command": {"type": "string", "minLength": 1},
+                            "timeout_s": {"type": "integer", "minimum": 1, "maximum": 600},
+                        },
+                        "required": ["command"],
+                        "additionalProperties": False,
+                    },
+                },
+                "publish_name": {
+                    "type": "string",
+                    "description": "Optional provider-side name for the published image.",
+                },
+                "timeout_s": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 3600,
+                    "description": "Maximum provider build and verification duration in seconds.",
+                },
+            },
+            "required": ["base_image", "provisioning", "checks"],
             "additionalProperties": False,
         },
     ),
@@ -326,6 +490,121 @@ def _builder_file(work_dir: Path, raw_path: object) -> Path:
     return resolved
 
 
+def _builder_image_output(work_dir: Path, raw_path: object) -> Path:
+    root = work_dir.expanduser().resolve()
+    candidate = Path(str(raw_path or "").strip())
+    if not str(candidate) or candidate.is_absolute():
+        raise ValueError("output_path must be a relative path inside the Builder job directory")
+    resolved = (root / candidate).resolve()
+    if not resolved.is_relative_to(root) or resolved.suffix.lower() != ".png":
+        raise ValueError("output_path must stay inside the Builder job directory and end in .png")
+    return resolved
+
+
+def _image_generation_configured(config: BenchmarkConfig) -> bool:
+    return all(
+        str(value or "").strip()
+        for value in (
+            config.image_generation_model,
+            config.image_generation_api_key,
+            config.image_generation_base_url,
+        )
+    )
+
+
+def _viewable_image(work_dir: Path, raw_path: object) -> tuple[Path, str]:
+    path = _builder_file(work_dir, raw_path)
+    media_type = mimetypes.guess_type(path.name)[0] or ""
+    if media_type not in _VIEWABLE_IMAGE_MEDIA_TYPES:
+        raise ValueError("view_image supports PNG, JPEG, GIF, and WebP files")
+    return path, media_type
+
+
+def _generate_image_asset(
+    config: BenchmarkConfig,
+    work_dir: Path,
+    *,
+    prompt: str,
+    output_path: object,
+    size: str,
+    reference_paths: object = None,
+) -> dict[str, Any]:
+    target = _builder_image_output(work_dir, output_path)
+    raw_references = [] if reference_paths is None else reference_paths
+    if not isinstance(raw_references, list):
+        raise ValueError("reference_paths must be a list when provided")
+    if len(raw_references) > _MAX_IMAGE_REFERENCE_FILES:
+        raise ValueError(
+            f"reference_paths must contain at most {_MAX_IMAGE_REFERENCE_FILES} images"
+        )
+    references: list[tuple[Path, str]] = []
+    for raw_reference in raw_references:
+        path = _builder_file(work_dir, raw_reference)
+        media_type = mimetypes.guess_type(path.name)[0] or ""
+        if media_type not in _REFERENCE_IMAGE_MEDIA_TYPES:
+            raise ValueError("reference_paths supports PNG, JPEG, and WebP files")
+        references.append((path, media_type))
+    endpoint_name = "images/edits" if references else "images/generations"
+    endpoint = f"{str(config.image_generation_base_url).rstrip('/')}/{endpoint_name}"
+    request_data = {
+        "model": config.image_generation_model,
+        "prompt": prompt,
+        "size": size,
+        "n": "1" if references else 1,
+    }
+    request_kwargs: dict[str, Any] = {
+        "headers": {"Authorization": f"Bearer {config.image_generation_api_key}"},
+        "timeout": _IMAGE_GENERATION_TIMEOUT_SECONDS,
+    }
+    if references:
+        request_kwargs["data"] = request_data
+        request_kwargs["files"] = [
+            ("image", (path.name, path.read_bytes(), media_type))
+            for path, media_type in references
+        ]
+    else:
+        request_kwargs["json"] = request_data
+    response = httpx.post(endpoint, **request_kwargs)
+    if response.status_code >= 400:
+        try:
+            error_body = response.json()
+            message = str(error_body.get("error", {}).get("message") or "").strip()
+        except (ValueError, AttributeError):
+            message = ""
+        detail = f": {message}" if message else ""
+        raise RuntimeError(f"Image API returned HTTP {response.status_code}{detail}")
+    body = response.json()
+    items = body.get("data") if isinstance(body, dict) else None
+    if not isinstance(items, list) or not items or not isinstance(items[0], dict):
+        raise ValueError("Image API response did not contain data[0]")
+    item = items[0]
+    if not item.get("b64_json"):
+        raise ValueError("Image API response did not contain data[0].b64_json")
+    image_bytes = base64.b64decode(str(item["b64_json"]), validate=True)
+    if len(image_bytes) > _MAX_GENERATED_IMAGE_BYTES:
+        raise ValueError(
+            f"Generated image exceeds the {_MAX_GENERATED_IMAGE_BYTES}-byte limit"
+        )
+    if len(image_bytes) < 24 or not image_bytes.startswith(_PNG_SIGNATURE):
+        raise ValueError("Image API response was not a valid PNG payload")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    partial = target.with_name(f".{target.name}.part")
+    try:
+        partial.write_bytes(image_bytes)
+        partial.replace(target)
+    except Exception:
+        partial.unlink(missing_ok=True)
+        raise
+    return {
+        "path": str(target),
+        "filename": target.name,
+        "media_type": "image/png",
+        "size_bytes": len(image_bytes),
+        "width": int.from_bytes(image_bytes[16:20], "big"),
+        "height": int.from_bytes(image_bytes[20:24], "big"),
+    }
+
+
 def _prepare_image_context(
     work_dir: Path,
     *,
@@ -440,6 +719,47 @@ def _execute_task_builder_tool(
                 name=call.name,
                 content=_tool_content(value, max_chars=max_chars),
                 error="python_execution_failed" if completed.returncode else None,
+            )
+
+        if call.name == "generate_image":
+            if work_dir is None:
+                raise ValueError("benchmark output_dir is required for generated task assets")
+            prompt = str(args.get("prompt") or "").strip()
+            if not prompt:
+                raise ValueError("prompt must be non-empty")
+            if not _image_generation_configured(config):
+                raise ValueError("image generation is not configured")
+            generated = _generate_image_asset(
+                config,
+                work_dir,
+                prompt=prompt,
+                output_path=args.get("output_path"),
+                size=str(args.get("size") or "1024x1024").strip(),
+                reference_paths=args.get("reference_paths"),
+            )
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(generated, max_chars=max_chars),
+            )
+
+        if call.name == "view_image":
+            if work_dir is None:
+                raise ValueError("benchmark output_dir is required for viewing task images")
+            path, media_type = _viewable_image(work_dir, args.get("path"))
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(
+                    {
+                        "path": str(path),
+                        "media_type": media_type,
+                        "size_bytes": path.stat().st_size,
+                        "status": "attached to the next model turn",
+                    },
+                    max_chars=max_chars,
+                ),
+                raw={"image_path": str(path), "media_type": media_type},
             )
 
         if call.name == "build_image":
@@ -568,6 +888,37 @@ def _execute_task_builder_tool(
                     if result.exit_code != 0
                     else None
                 ),
+            )
+
+        if call.name == "build_vm_image":
+            base_image = args.get("base_image")
+            provisioning = args.get("provisioning")
+            files = args.get("files", {})
+            checks = args.get("checks")
+            if not isinstance(base_image, dict) or not isinstance(provisioning, dict):
+                raise ValueError("base_image and provisioning must be objects")
+            if not isinstance(files, dict) or not all(isinstance(key, str) and isinstance(value, str) for key, value in files.items()):
+                raise ValueError("files must map guest-relative paths to literal string contents")
+            if not isinstance(checks, list) or not checks:
+                raise ValueError("checks must be a non-empty list")
+            provider_url = str(getattr(config, "vm_provider_url", None) or "").strip() or None
+            result = build_vm_image(
+                provider_url,
+                api_key=config.vm_provider_api_key,
+                build_plan={
+                    "base_image": copy.deepcopy(base_image),
+                    "provisioning": copy.deepcopy(provisioning),
+                    "files": copy.deepcopy(files),
+                    "checks": copy.deepcopy(checks),
+                    **({"publish_name": str(args.get("publish_name") or "").strip()} if str(args.get("publish_name") or "").strip() else {}),
+                },
+                timeout=_bounded_int(args.get("timeout_s"), default=600, minimum=1, maximum=3600),
+            )
+            state["last_vm_image"] = result.get("image")
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(result, max_chars=max_chars),
             )
 
         if call.name == "read_research_source":
@@ -708,12 +1059,42 @@ def _append_tool_results(
     response: TargetToolModelResponse,
     results: list[ToolResult],
 ) -> None:
+    viewed_images: list[dict[str, str]] = []
+    for result in results:
+        raw = result.raw if isinstance(result.raw, dict) else {}
+        image_path = str(raw.get("image_path") or "")
+        media_type = str(raw.get("media_type") or "")
+        if result.name == "view_image" and not result.error and image_path and media_type:
+            data = base64.b64encode(Path(image_path).read_bytes()).decode("ascii")
+            viewed_images.append(
+                {
+                    "path": image_path,
+                    "media_type": media_type,
+                    "data": data,
+                }
+            )
+
     messages.append(response.assistant_message)
     if response.adapter == "anthropic":
+        content = [evalclaw_tool_result_to_anthropic(result) for result in results]
+        for image in viewed_images:
+            content.extend(
+                [
+                    {"type": "text", "text": f"Image from view_image: {image['path']}"},
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": image["media_type"],
+                            "data": image["data"],
+                        },
+                    },
+                ]
+            )
         messages.append(
             {
                 "role": "user",
-                "content": [evalclaw_tool_result_to_anthropic(result) for result in results],
+                "content": content,
             }
         )
         return
@@ -723,8 +1104,40 @@ def _append_tool_results(
         if isinstance(output, list):
             messages.extend(item for item in output if isinstance(item, dict))
         messages.extend(evalclaw_tool_result_to_openai_response_input(result) for result in results)
+        if viewed_images:
+            content: list[dict[str, Any]] = []
+            for image in viewed_images:
+                content.extend(
+                    [
+                        {"type": "input_text", "text": f"Image from view_image: {image['path']}"},
+                        {
+                            "type": "input_image",
+                            "image_url": (
+                                f"data:{image['media_type']};base64,{image['data']}"
+                            ),
+                            "detail": "auto",
+                        },
+                    ]
+                )
+            messages.append({"role": "user", "content": content})
         return
     messages.extend(evalclaw_tool_result_to_openai(result) for result in results)
+    if viewed_images:
+        content = []
+        for image in viewed_images:
+            content.extend(
+                [
+                    {"type": "text", "text": f"Image from view_image: {image['path']}"},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{image['media_type']};base64,{image['data']}",
+                            "detail": "auto",
+                        },
+                    },
+                ]
+            )
+        messages.append({"role": "user", "content": content})
 
 
 def summarize_task_builder_truncation(
@@ -779,6 +1192,7 @@ def run_task_builder_tools(
     config: BenchmarkConfig,
     include_source_tools: bool,
     include_image_tools: bool = False,
+    include_vm_image_tools: bool = False,
     debug_dir: Path | None = None,
     stop_event: Event | None = None,
 ) -> tuple[str, list[str]]:
@@ -791,9 +1205,9 @@ def run_task_builder_tools(
     raise_if_stopped()
     max_calls = _bounded_int(
         config.task_builder_tool_max_calls,
-        default=6,
+        default=50,
         minimum=1,
-        maximum=12,
+        maximum=50,
     )
     max_chars = _bounded_int(
         config.task_builder_tool_max_chars,
@@ -801,9 +1215,13 @@ def run_task_builder_tools(
         minimum=1000,
         maximum=100_000,
     )
-    tools = [TASK_BUILDER_PYTHON_TOOL]
+    tools = [TASK_BUILDER_PYTHON_TOOL, TASK_BUILDER_VIEW_IMAGE_TOOL]
+    if _image_generation_configured(config):
+        tools.append(TASK_BUILDER_GENERATE_IMAGE_TOOL)
     if include_image_tools:
         tools.extend(TASK_BUILDER_IMAGE_TOOLS)
+    if include_vm_image_tools:
+        tools.extend(TASK_BUILDER_VM_IMAGE_TOOLS)
     if include_source_tools:
         tools.extend(TASK_BUILDER_SOURCE_TOOLS)
     settings = role_model_settings(config, "task_builder")
@@ -871,9 +1289,10 @@ def run_task_builder_tools(
                     ],
                     "raw_response": response.raw_response,
                 }
-                (debug_dir / f"tool-round-{trace_index:03d}.json").write_text(
-                    json.dumps(trace, ensure_ascii=False, indent=2),
-                    encoding="utf-8",
+                write_json(
+                    debug_dir / f"tool-round-{trace_index:03d}.json",
+                    trace,
+                    redact=True,
                 )
             except OSError as exc:
                 notes.append(f"could not save task-builder tool trace ({exc})")
@@ -1006,8 +1425,11 @@ def run_task_builder_tools(
 
 
 __all__ = [
+    "TASK_BUILDER_GENERATE_IMAGE_TOOL",
+    "TASK_BUILDER_VIEW_IMAGE_TOOL",
     "TASK_BUILDER_PYTHON_TOOL",
     "TASK_BUILDER_IMAGE_TOOLS",
+    "TASK_BUILDER_VM_IMAGE_TOOLS",
     "TASK_BUILDER_SOURCE_TOOLS",
     "TASK_BUILDER_TOOL_PROMPT",
     "TASK_BUILDER_MAX_OUTPUT_TOKENS",

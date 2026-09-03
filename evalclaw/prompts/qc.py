@@ -81,24 +81,10 @@ inspect what the target leaves behind and must not create or repair the expected
 state itself. Do not accept custom tool names unless the selected runtime
 actually exposes them.
 
-For task_type=agent with metadata.agent_env.type=code_sandbox:
-- visible_files are available to the target through file tools.
-- runtime_files are available to setup/runtime but protected from target file tools.
-- hidden_files are intentionally not readable by the target but are available
-  to the EvaluationClaw execution environment through run_tests.
-- Do not mark the item unexecutable merely because hidden tests are hidden from
-  the target or summarized in metadata, as long as hidden file names/count and a
-  test_command are present.
-- An empty visible_files mapping is valid when the task asks the agent to create
-  new files from scratch. The deterministic test_command is still required.
-- metadata.agent_env fields named visible_files_preview, files_preview, or
-  hidden_files_preview are intentionally compact QC excerpts, not the canonical
-  task files. Do not report truncation/omission issues solely because a preview
-  field is abbreviated; only flag truncation when the actual prompt, visible
-  task package, or executable file content explicitly contains placeholders
-  such as "...", "truncated", "same as above", or missing required code.
-
 For task_type=agent with metadata.agent_env.type=docker_workspace:
+- visible_files are available to the target through file tools; an empty mapping
+  is valid when the task asks the agent to create new files from scratch.
+- runtime_files are available to setup/runtime but protected from target file tools.
 - hidden_files are likewise runner-private evaluator or reference files. Do not
   reject a task merely because an evaluator script is hidden from the target
   agent, as long as test_command/evaluation explains that the runner executes
@@ -132,13 +118,7 @@ For task_type=agent with metadata.agent_env.type=docker_workspace:
   infer that canonical files are truncated merely because the QC copy is an
   excerpt.
 
-For task_type=agent with metadata.agent_env.type=workspace:
-- This is EvaluationClaw's built-in room/inventory runtime, not a generic file
-  workspace. It needs reachable rooms, a mailroom, available goal items, and a
-  non-empty outgoing_bin goal. File editing, shell setup, browser state, and
-  invented custom tools are not implemented by this runtime.
-
-For task_type=agent with metadata.agent_env.type=gui_desktop:
+For task_type=agent with metadata.agent_env.type=gui:
 - Require an identifiable application or desktop surface, a launch/start
   state, bounded steps, and bridge-executable evaluation checks or method.
 - When requires_vm=true, accept either a concrete runner-resolvable
@@ -200,11 +180,11 @@ For task_type=multi_turn or task_type=agent:
 For items with assets:
 - Every asset should contain one path to a real local file.
 - Absolute local paths are valid; do not flag a path merely because it is absolute.
-- For code_sandbox and docker_workspace items, the asset path is a framework-private
-  host source. The framework copies it into environment.workdir under its filename,
-  and the prompt or choices should refer to that filename rather than the host path.
-- For other items, the prompt or choices should refer to each asset by its exact path. Their
-  current native target adapter supports image files only.
+- For agent items, the asset path is a framework-private host source. The prompt or choices
+  should refer to the path visible in the agent environment rather than the host path (for
+  docker_workspace this is the copied filename).
+- For non-agent items, the prompt or choices should refer to each image asset by its ``Image N``
+  label. Their current native target adapter supports image files only.
 
 For items using metadata.science:
 - metadata.science.schema_version should be evalclaw.science.v1.

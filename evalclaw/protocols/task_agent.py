@@ -104,7 +104,7 @@ TASK_AGENT_SCHEMA: dict[str, Any] = {
         },
     },
     "execution": {
-        "environment_type": "workspace | code_sandbox | docker_workspace | gui_desktop",
+        "environment_type": "docker_workspace | gui",
         "environment_ref": "metadata.agent_env",
     },
     "agent_task_package": "Optional summary pointer; full executable task package should live at metadata.agent_task_package.",
@@ -159,15 +159,12 @@ Fields:
 - execution: environment_type and environment_ref="metadata.agent_env". The
   environment itself exists only at metadata.agent_env; never duplicate it in
   task_agent or agent_task_package.
-  For iterative code-repair tasks, prefer environment_type="code_sandbox" with
+  For iterative code-repair tasks, use environment_type="docker_workspace" with
   metadata.agent_env over a free-form environment_controller dialogue. In those
   tasks, the system_prompt should describe the target model as the coding agent
   who must inspect files, run tests, and revise code. Do not describe the helper
   as the environment itself or as an environment controller.
-  Use environment_type="docker_workspace" only when the task needs realistic
-  OS dependencies, non-Python runtimes, package installation, command-line
-  diagnostics, or native builds. Both code_sandbox and docker_workspace run in
-  isolated containers. Provide image, visible_files, runtime_files,
+  Provide image, visible_files, runtime_files,
   hidden_files, setup_commands, test_command, timeout, and resource_limits in
   metadata.agent_env. Setup-only server/application assets belong in
   runtime_files; hidden_files are injected only while the evaluator runs.
@@ -185,7 +182,7 @@ Fields:
   and build_timeout. A relative context_dir may point to the current Builder
   job's persisted build context; EvaluationClaw resolves it privately before
   building a local task image, then runs the workspace in that image.
-  Use environment_type="gui_desktop" when the task requires screenshot-driven
+  Use environment_type="gui" when the task requires screenshot-driven
   browser or desktop software operation. Provide max_steps, timeout, session,
   evaluation, and usually requires_vm=true plus vm in agent_env. Put task files
   that should exist in the guest under agent_env.visible_files or

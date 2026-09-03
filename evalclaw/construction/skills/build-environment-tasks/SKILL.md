@@ -1,6 +1,6 @@
 ---
 name: build-environment-tasks
-description: Construct agent benchmark tasks that require workspace, code-sandbox, container, browser, desktop, VM, or other executable environments. Use only for TaskDesigns with non-empty environment requirements.
+description: Construct agent benchmark tasks that require container, browser, desktop, VM, or other executable environments. Use only for TaskDesigns with non-empty environment requirements.
 ---
 
 # Build Environment-Backed Tasks
@@ -22,7 +22,7 @@ For every environment-backed task:
 - Prefer deterministic state, artifact, test, or trajectory checks over vague judge-only scoring when the environment permits them.
 - Ensure the evaluator consumes the target's actual final answer, artifacts, state, or trajectory. It must not create, repair, or substitute for the work being scored.
 - Keep task-specific files and state in structured fields rather than embedding them in long prompts.
-- Put files that belong to the environment's declared initial visible state in `visible_files`. Treat top-level asset paths as framework-private host locations for task-input files created or downloaded during construction; for code-sandbox and container tasks, refer to each asset only by its filename in target-visible fields because the framework copies it into the runtime workdir.
+- Put files that belong to the environment's declared initial visible state in `visible_files`. Treat top-level asset paths as framework-private host locations for task-input files created or downloaded during construction; for container tasks, refer to each asset only by its filename in target-visible fields because the framework copies it into the runtime workdir.
 - Make every generated setup and evaluation command internally exact: create required parent objects before using them, keep paths/identifiers/values byte-consistent across setup, baseline, prompt, and evaluation, and ensure commands work from the declared clean base rather than an assumed intermediate state.
 - Ensure every evaluation condition is attainable from the target-visible instructions and executable fixture. Do not require an undisclosed arbitrary value, invocation mode, artifact, or event that neither the environment nor the compliant workflow can produce.
 - When an evaluator creates fresh probes with unique identifiers, bind every relevant assertion to those exact identifiers; do not scan for any matching pre-existing artifact or event.
@@ -35,9 +35,7 @@ EvaluationClaw derives canonical `metadata.agent_env`, `metadata.task_agent`, an
 
 Read only the references selected by the runtime:
 
-- `references/workspace.md`
-- `references/code-sandbox.md`
 - `references/docker-workspace.md`
-- `references/gui-desktop.md`
+- `references/gui.md`
 - `references/task-agent.md`
 - `references/agent-task-package.md`

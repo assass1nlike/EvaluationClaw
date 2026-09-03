@@ -94,17 +94,17 @@ def _agent_env_type(item: BenchmarkItem) -> str:
 
 
 def _has_docker_workspace(items: list[BenchmarkItem]) -> bool:
-    return any(_agent_env_type(item) in {"code_sandbox", "docker_workspace"} for item in items)
+    return any(_agent_env_type(item) == "docker_workspace" for item in items)
 
 
-def _has_gui_desktop(items: list[BenchmarkItem]) -> bool:
-    return any(_agent_env_type(item) == "gui_desktop" for item in items)
+def _has_gui(items: list[BenchmarkItem]) -> bool:
+    return any(_agent_env_type(item) == "gui" for item in items)
 
 
 def _first_gui_bridge_url(items: list[BenchmarkItem]) -> str | None:
     for item in items:
         env = item.metadata.get("agent_env")
-        if isinstance(env, dict) and str(env.get("type") or "").lower() == "gui_desktop":
+        if isinstance(env, dict) and str(env.get("type") or "").lower() == "gui":
             value = env.get("bridge_url")
             if isinstance(value, str) and value.strip():
                 return value.strip()
@@ -149,8 +149,8 @@ def _has_vm_required(items: list[BenchmarkItem]) -> bool:
     return any(_item_requires_vm(item) for item in items)
 
 
-def _has_gui_desktop_without_vm(items: list[BenchmarkItem]) -> bool:
-    return any(_agent_env_type(item) == "gui_desktop" and not _item_requires_vm(item) for item in items)
+def _has_gui_without_vm(items: list[BenchmarkItem]) -> bool:
+    return any(_agent_env_type(item) == "gui" and not _item_requires_vm(item) for item in items)
 
 
 def _first_vm_provider_url(items: list[BenchmarkItem]) -> str | None:
@@ -375,7 +375,7 @@ def _preflight_executable_items(
     trace_dir: Path | None = None,
 ) -> None:
     for item in items:
-        if _agent_env_type(item) not in {"code_sandbox", "docker_workspace"}:
+        if _agent_env_type(item) != "docker_workspace":
             continue
         environment = None
         try:
@@ -441,7 +441,7 @@ def run_environment_claw(
     report = EnvironmentClawReport(enabled=True)
     has_docker_workspace = _has_docker_workspace(items)
     has_vm_required = _has_vm_required(items)
-    has_gui_desktop_without_vm = _has_gui_desktop_without_vm(items)
+    has_gui_without_vm = _has_gui_without_vm(items)
 
     if has_docker_workspace:
         _probe_docker(report, config)
@@ -470,7 +470,7 @@ def run_environment_claw(
         else:
             _resolve_vm_task_images(report, items, status)
 
-    if has_gui_desktop_without_vm:
+    if has_gui_without_vm:
         bridge_url = _first_gui_bridge_url(items) or config.gui_bridge_url
         status = probe_desktop_bridge(
             bridge_url,
@@ -479,7 +479,7 @@ def run_environment_claw(
         )
         report.probes.append(
             EnvironmentProbe(
-                name="gui_desktop_bridge",
+                name="gui_bridge",
                 ok=status.available,
                 detail=status.detail or "GUI desktop bridge is reachable.",
                 data={"bridge_url": status.bridge_url, **status.data},

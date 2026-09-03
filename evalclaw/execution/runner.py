@@ -18,6 +18,7 @@ from ..models.llm import (
 from ..models.roles import resolve_task_model
 from ..protocols.assets import (
     build_asset_user_content,
+    replace_non_agent_asset_references,
 )
 from ..protocols.task_agent import (
     get_task_agent_spec,
@@ -461,6 +462,11 @@ def _run_multi_turn(
         if item.assets
         else None
     )
+    visible_initial_prompt = (
+        replace_non_agent_asset_references(initial_prompt, item.assets)
+        if item.assets
+        else initial_prompt
+    )
     first = call_target_model(
         initial_prompt,
         target,
@@ -470,7 +476,7 @@ def _run_multi_turn(
         trace_dir=trace_dir,
         trace_name="target-turn-01",
     )
-    history.extend([Message(role="user", content=initial_prompt), Message(role="assistant", content=first)])
+    history.extend([Message(role="user", content=visible_initial_prompt), Message(role="assistant", content=first)])
     scripted = _multi_turn_followups(item, config, trace_dir=trace_dir)
     task_agent_errors: list[str] = []
     for turn_index, followup in enumerate(scripted, 2):
