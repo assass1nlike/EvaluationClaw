@@ -53,6 +53,8 @@ def new_debug_dir(output_dir: str, section: str) -> Path | None:
 
 def redact_secrets(value: Any) -> Any:
     if isinstance(value, str):
+        if value.startswith("data:image/") and ";base64," in value:
+            return value.split(",", 1)[0] + ",[OMITTED]"
         for pattern in _SECRET_TEXT_PATTERNS:
             value = pattern.sub("[REDACTED]", value)
         return value

@@ -84,7 +84,9 @@ def test_plan_audit_enforces_explicit_total() -> None:
 
 
 def test_plan_audit_keeps_multi_turn_out_of_environment_routes() -> None:
-    wrong_route = _audit_plan(_plan(task_type=TaskType.multi_turn, environment_category="workspace"))
+    wrong_route = _audit_plan(
+        _plan(task_type=TaskType.multi_turn, environment_category="docker_workspace")
+    )
     correct_route = _audit_plan(_plan(task_type=TaskType.multi_turn))
 
     assert any("only valid for agent tasks" in issue for issue in wrong_route)
@@ -102,9 +104,9 @@ def test_plan_audit_requires_multi_turn_followup_mode() -> None:
     assert any("followup_mode" in issue for issue in issues)
 
 
-def test_plan_audit_rejects_workspace_for_static_task() -> None:
+def test_plan_audit_rejects_environment_for_static_task() -> None:
     issues = _audit_plan(
-        _plan(task_type=TaskType.fill_blank, environment_category="workspace")
+        _plan(task_type=TaskType.fill_blank, environment_category="docker_workspace")
     )
 
     assert any("only valid for agent tasks" in issue for issue in issues)

@@ -147,10 +147,8 @@ class BenchmarkSource(BaseModel):
 
 
 class AgentEnvironmentType(str, Enum):
-    workspace = "workspace"
-    code_sandbox = "code_sandbox"
     docker_workspace = "docker_workspace"
-    gui_desktop = "gui_desktop"
+    gui = "gui"
 
 
 def environment_category(design: "TaskDesign") -> Optional[AgentEnvironmentType]:
@@ -445,7 +443,7 @@ class BenchmarkPlan(BaseModel):
 class AgentEnvironmentSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    type: AgentEnvironmentType = AgentEnvironmentType.workspace
+    type: AgentEnvironmentType = AgentEnvironmentType.docker_workspace
     tools: list[dict[str, Any]] = Field(default_factory=list)
     visible_files: dict[StrictStr, StrictStr] = Field(default_factory=dict)
     runtime_files: dict[StrictStr, StrictStr] = Field(default_factory=dict)
@@ -463,7 +461,6 @@ class AgentEnvironmentSpec(BaseModel):
     network: StrictStr = "none"
     resource_limits: dict[str, Any] = Field(default_factory=dict)
     workdir: StrictStr = "/workspace"
-    workspace: dict[str, Any] = Field(default_factory=dict)
     browser: dict[str, Any] = Field(default_factory=dict)
     bridge_url: StrictStr = ""
     bridge_api_key: Optional[StrictStr] = None
@@ -796,14 +793,20 @@ class BenchmarkConfig(BaseModel):
     planner_provider: Optional[str] = None
     planner_api_key: Optional[str] = None
     planner_base_url: Optional[str] = None
+    planner_reasoning_effort: Optional[str] = None
     task_builder_model: Optional[str] = None
     task_builder_provider: Optional[str] = None
     task_builder_api_key: Optional[str] = None
     task_builder_base_url: Optional[str] = None
+    task_builder_reasoning_effort: Optional[str] = None
+    image_generation_model: Optional[str] = None
+    image_generation_api_key: Optional[str] = None
+    image_generation_base_url: Optional[str] = None
     qc_model: Optional[str] = None
     qc_provider: Optional[str] = None
     qc_api_key: Optional[str] = None
     qc_base_url: Optional[str] = None
+    qc_reasoning_effort: Optional[str] = None
     task_models: list[TargetModelConfig] = Field(
         default_factory=list,
         description=(
@@ -816,10 +819,12 @@ class BenchmarkConfig(BaseModel):
     research_provider: Optional[str] = None
     research_api_key: Optional[str] = None
     research_base_url: Optional[str] = None
+    research_reasoning_effort: Optional[str] = None
     analyser_model: Optional[str] = None
     analyser_provider: Optional[str] = None
     analyser_api_key: Optional[str] = None
     analyser_base_url: Optional[str] = None
+    analyser_reasoning_effort: Optional[str] = None
     targets: list[TargetModelConfig] = Field(default_factory=list)
     scale_budget: ScaleBudget = ScaleBudget.mid
     max_planner_iterations: int = 5
@@ -851,7 +856,7 @@ class BenchmarkConfig(BaseModel):
     task_builder_repair_attempts: int = 2
     task_builder_call_retries: int = 2
     task_builder_truncation_retries: int = 3
-    task_builder_tool_max_calls: int = 6
+    task_builder_tool_max_calls: int = 50
     task_builder_tool_max_chars: int = 50_000
     judge_double_pass: bool = True
     llm_backend: Literal["auto", "litellm"] = "auto"
@@ -868,8 +873,10 @@ class BenchmarkConfig(BaseModel):
     container_sandbox_image: str = "python:3.11-slim"
     environment_preflight: bool = True
     allow_incomplete_benchmark: bool = False
+    strict_qc_filter: bool = False
     viewer_item_limit: int = 1000
     viewer_result_limit: int = 2000
+    report_language: Optional[str] = None
     gui_bridge_url: Optional[str] = None
     gui_bridge_api_key: Optional[str] = None
     gui_bridge_timeout_s: int = 30

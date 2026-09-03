@@ -273,7 +273,7 @@ def test_task_builder_requires_role_key_by_default() -> None:
         "Agent task",
         task_type=TaskType.agent,
         content="One executable agent task.",
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
 
     with pytest.raises(RuntimeError, match="missing task-builder API key"):
@@ -306,7 +306,7 @@ def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> Non
         "Agent task",
         task_type=TaskType.agent,
         content="One executable agent task.",
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
 
     with pytest.raises(RuntimeError, match="quota exhausted"):
@@ -347,7 +347,7 @@ def test_task_builder_call_failure_does_not_use_structure_repairs(monkeypatch) -
         "Agent task",
         task_type=TaskType.agent,
         content="One executable agent task.",
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
 
     with pytest.raises(RuntimeError, match="model call failed after 2 retry attempts"):
@@ -382,12 +382,8 @@ def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
                         "title": f"Task {task_index}",
                         "prompt": f"Complete distinct task {task_index}.",
                         "environment": {
-                            "type": "workspace",
-                            "workspace": {
-                                "start_room": "office",
-                                "rooms": {"office": [f"item_{task_index}"], "mailroom": []},
-                                "goal": {"outgoing_bin": [f"item_{task_index}"]},
-                            },
+                            "type": "docker_workspace",
+                            "test_command": "python3 -c \"assert True\"",
                         },
                         "scoring": {"pass_criteria": "Done."},
                         "metadata": {
@@ -422,7 +418,7 @@ def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
         count=2,
         content="Move two distinct workspace items in separate tasks.",
         construction_requirements=["Implement both distinct workspace tasks."],
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
         metadata={"content_focus": "two workspace items"},
     )
 
@@ -740,7 +736,7 @@ def test_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
         "Agent task",
         task_type=TaskType.agent,
         content="One executable agent task.",
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
 
     with pytest.raises(RuntimeError, match="returned 2 task object"):
@@ -767,12 +763,8 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
                         "prompt": "Complete a realistic multi-file repair task.",
                         "challenge_effort": "E3",
                         "environment": {
-                            "type": "workspace",
-                            "workspace": {
-                                "start_room": "office",
-                                "rooms": {"office": ["brief"], "mailroom": []},
-                                "goal": {"outgoing_bin": ["brief"]},
-                            },
+                            "type": "docker_workspace",
+                            "test_command": "python3 -c \"assert True\"",
                         },
                         "scoring": {"pass_criteria": "Hidden tests pass."},
                         "metadata": {
@@ -808,7 +800,7 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
         task_type=TaskType.agent,
         content="One executable agent task.",
         challenge_effort=ChallengeEffort.E3,
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
 
     suite = build_task_suite(
@@ -844,12 +836,8 @@ def test_task_builder_recovers_truncation_in_preserved_conversation(monkeypatch)
                         "title": "Recovered task",
                         "prompt": "Inspect the workspace and place the brief in the outgoing bin.",
                         "environment": {
-                            "type": "workspace",
-                            "workspace": {
-                                "start_room": "office",
-                                "rooms": {"office": ["brief"], "mailroom": []},
-                                "goal": {"outgoing_bin": ["brief"]},
-                            },
+                            "type": "docker_workspace",
+                            "test_command": "python3 -c \"assert True\"",
                         },
                         "scoring": {"pass_criteria": "The brief is in the outgoing bin."},
                         "metadata": {
@@ -898,7 +886,7 @@ def test_task_builder_recovers_truncation_in_preserved_conversation(monkeypatch)
         task_type=TaskType.agent,
         content="One executable agent task.",
         challenge_effort=ChallengeEffort.E3,
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
     config = BenchmarkConfig(
         **dummy_config_kwargs(),
@@ -957,7 +945,7 @@ def test_task_builder_reports_truncation_after_separate_retry_limit(monkeypatch)
         task_type=TaskType.agent,
         content="One executable agent task.",
         challenge_effort=ChallengeEffort.E3,
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
 
     with pytest.raises(RuntimeError, match="output truncated after 3 retry attempt") as raised:
@@ -1111,12 +1099,8 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
                             "title": f"{blueprint_id} task",
                             "prompt": f"Complete the task for {blueprint_id}.",
                             "environment": {
-                                "type": "workspace",
-                                "workspace": {
-                                    "start_room": "office",
-                                    "rooms": {"office": ["brief"], "mailroom": []},
-                                    "goal": {"outgoing_bin": ["brief"]},
-                                },
+                                "type": "docker_workspace",
+                                "test_command": "python3 -c \"assert True\"",
                             },
                             "scoring": {"pass_criteria": "Done."},
                             "metadata": {
@@ -1154,7 +1138,7 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
             "First task",
             task_type=TaskType.agent,
             content="First task.",
-            environment_type=AgentEnvironmentType.workspace,
+            environment_type=AgentEnvironmentType.docker_workspace,
         ),
         make_blueprint(
             "second_blueprint",
@@ -1162,7 +1146,7 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
             "Second task",
             task_type=TaskType.agent,
             content="Second task.",
-            environment_type=AgentEnvironmentType.workspace,
+            environment_type=AgentEnvironmentType.docker_workspace,
         ),
     ]
 
@@ -1219,7 +1203,7 @@ def test_parallel_task_builder_failure_stops_running_jobs_before_returning(monke
             "Slow task",
             task_type=TaskType.agent,
             content="Slow task.",
-            environment_type=AgentEnvironmentType.workspace,
+            environment_type=AgentEnvironmentType.docker_workspace,
         ),
         make_blueprint(
             "failing_blueprint",
@@ -1227,7 +1211,7 @@ def test_parallel_task_builder_failure_stops_running_jobs_before_returning(monke
             "Failing task",
             task_type=TaskType.agent,
             content="Failing task.",
-            environment_type=AgentEnvironmentType.workspace,
+            environment_type=AgentEnvironmentType.docker_workspace,
         ),
     ]
 
@@ -1261,7 +1245,7 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
                             "challenge_effort": challenge_effort,
                             "title": "GUI task",
                             "prompt": "Complete the desktop workflow and save the requested artifact.",
-                            "environment": {"type": "gui_desktop"},
+                            "environment": {"type": "gui"},
                             "scoring": {"pass_criteria": "The artifact is produced."},
                         }
                     ]
@@ -1277,7 +1261,7 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
                         "title": "GUI task",
                         "prompt": "Complete the desktop workflow and save the requested artifact.",
                         "environment": {
-                            "type": "gui_desktop",
+                            "type": "gui",
                             "session": {
                                 "application": "spreadsheet",
                                 "entrypoint": "Desktop/input.xlsx",
@@ -1325,7 +1309,7 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
         "Desktop workflow",
         task_type=TaskType.agent,
         content="One desktop workflow.",
-        environment_type=AgentEnvironmentType.gui_desktop,
+        environment_type=AgentEnvironmentType.gui,
     )
 
     suite = build_task_suite(
@@ -1367,7 +1351,7 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
                         "title": "Unscored GUI task",
                         "prompt": "Inspect the desktop and repair the requested state.",
                         "environment": {
-                            "type": "gui_desktop",
+                            "type": "gui",
                             "session": {
                                 "application": "desktop",
                                 "start_state": "The desktop is visible.",
@@ -1404,7 +1388,7 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
         "Desktop workflow",
         task_type=TaskType.agent,
         content="One desktop workflow.",
-        environment_type=AgentEnvironmentType.gui_desktop,
+        environment_type=AgentEnvironmentType.gui,
     )
 
     with pytest.raises(RuntimeError, match="environment.evaluation") as raised:
@@ -1452,12 +1436,8 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
                         "title": "Repair response shape",
                         "prompt": "Inspect the workspace and produce the requested result.",
                         "environment": {
-                            "type": "workspace",
-                            "workspace": {
-                                "start_room": "office",
-                                "rooms": {"office": ["brief"], "mailroom": []},
-                                "goal": {"outgoing_bin": ["brief"]},
-                            },
+                            "type": "docker_workspace",
+                            "test_command": "python3 -c \"assert True\"",
                         },
                         "scoring": {
                             "method": "deterministic",
@@ -1495,7 +1475,7 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
         task_type=TaskType.agent,
         content="One tool-use workflow.",
         challenge_effort=ChallengeEffort.E2,
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
 
     suite = build_task_suite(
@@ -1600,7 +1580,7 @@ def test_agent_task_content_summary_is_persisted_for_reports() -> None:
         description="Fix a parser bug and pass hidden tests.",
         prompt="Fix parser.py and run tests until they pass.",
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.code_sandbox,
+            type=AgentEnvironmentType.docker_workspace,
             visible_files={"parser.py": "def parse(x):\n    return x\n"},
             hidden_files={"tests.py": "assert True\n"},
             test_command="python3 tests.py",
@@ -1633,7 +1613,7 @@ def test_agent_task_structure_validation_flags_truncated_prompt() -> None:
             "run the bridge evaluation. The design-change propagation requirement must be carried"
         ),
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui_desktop,
+            type=AgentEnvironmentType.gui,
             requires_vm=True,
             vm={"image": "evalclaw-gui"},
             session={"application": "desktop", "expected_artifacts": ["Desktop/out.txt"]},
@@ -1678,15 +1658,15 @@ def test_task_structure_validation_allows_short_final_domain_symbol() -> None:
     assert not any("prompt appears truncated" in issue.lower() for issue in issues)
 
 
-def test_workspace_structure_does_not_treat_custom_tool_descriptors_as_executable() -> None:
+def test_docker_structure_does_not_treat_custom_tool_descriptors_as_executable() -> None:
     task = TaskDefinition(
-        id="custom_tool_workspace",
+        id="custom_tool_docker",
         dimension_id="tool_use",
         task_type=TaskType.agent,
-        title="Unsupported custom tool workspace",
+        title="Unsupported custom Docker tool",
         prompt="Use the supplied website tool to update the application state.",
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.workspace,
+            type=AgentEnvironmentType.docker_workspace,
             tools=[
                 {
                     "name": "update_website",
@@ -1753,7 +1733,7 @@ def test_qc_rejects_complex_gui_item_without_task_package() -> None:
                 "scoring": {"method": "deterministic", "instructions": "Use bridge checks."},
             },
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {"application": "file_manager", "expected_artifacts": ["Desktop/out.txt"]},
@@ -1804,7 +1784,7 @@ def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
         "GUI task",
         task_type=TaskType.agent,
         content="One GUI task.",
-        environment_type=AgentEnvironmentType.gui_desktop,
+        environment_type=AgentEnvironmentType.gui,
     )
     task = TaskDefinition(
         id="gui_blueprint_task_1",
@@ -1814,7 +1794,7 @@ def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
         description="Complete the requested file operation in the desktop environment.",
         prompt="Use the file manager to create Desktop/out.txt.",
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui_desktop,
+            type=AgentEnvironmentType.gui,
             requires_vm=True,
             vm={"image": "evalclaw-gui"},
             session={"application": "file_manager", "expected_artifacts": ["Desktop/out.txt"]},
@@ -1858,7 +1838,7 @@ def test_build_agent_environment_injects_gui_bridge_runtime_config(monkeypatch) 
         prompt="Operate the GUI.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "session": {"application": "browser"},
                 "evaluation": {"method": "bridge_state_check"},
             }
@@ -1901,7 +1881,7 @@ def test_build_agent_environment_injects_vm_provider_runtime_config(monkeypatch)
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {
@@ -1954,7 +1934,7 @@ def test_build_agent_environment_defaults_vm_provider_to_local_auto(monkeypatch)
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {"application": "file_manager"},
@@ -1982,7 +1962,7 @@ def test_environment_claw_blocks_missing_gui_bridge(monkeypatch) -> None:
         prompt="Operate the GUI.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "session": {"application": "browser"},
                 "evaluation": {"method": "bridge_state_check"},
             }
@@ -1991,7 +1971,7 @@ def test_environment_claw_blocks_missing_gui_bridge(monkeypatch) -> None:
 
     _, report = run_environment_claw([item], BenchmarkConfig())
 
-    assert any(probe.name == "gui_desktop_bridge" and not probe.ok for probe in report.probes)
+    assert any(probe.name == "gui_bridge" and not probe.ok for probe in report.probes)
     assert report.blocking_errors
 
 
@@ -2007,7 +1987,7 @@ def test_environment_claw_blocks_missing_vm_provider(monkeypatch) -> None:
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {"application": "browser"},
@@ -2019,7 +1999,7 @@ def test_environment_claw_blocks_missing_vm_provider(monkeypatch) -> None:
     _, report = run_environment_claw([item], BenchmarkConfig())
 
     assert any(probe.name == "vm_provider" and not probe.ok for probe in report.probes)
-    assert not any(probe.name == "gui_desktop_bridge" for probe in report.probes)
+    assert not any(probe.name == "gui_bridge" for probe in report.probes)
     assert report.blocking_errors
 
 
@@ -2038,7 +2018,7 @@ def test_environment_claw_defaults_vm_provider_probe_to_local_auto(monkeypatch) 
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {"application": "browser"},
@@ -2070,7 +2050,7 @@ def test_environment_claw_accepts_available_vm_provider(monkeypatch) -> None:
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {
@@ -2107,7 +2087,7 @@ def test_environment_claw_accepts_available_gui_bridge(monkeypatch) -> None:
         prompt="Operate the GUI.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "session": {"application": "browser"},
                 "evaluation": {"method": "bridge_state_check"},
             }
@@ -2116,7 +2096,7 @@ def test_environment_claw_accepts_available_gui_bridge(monkeypatch) -> None:
 
     _, report = run_environment_claw([item], BenchmarkConfig(gui_bridge_url="http://127.0.0.1:7766"))
 
-    assert any(probe.name == "gui_desktop_bridge" and probe.ok for probe in report.probes)
+    assert any(probe.name == "gui_bridge" and probe.ok for probe in report.probes)
     assert report.blocking_errors == []
 
 
@@ -2176,7 +2156,7 @@ def test_desktop_bridge_creates_and_cleans_vm_session(monkeypatch) -> None:
 
     env = DesktopBridgeAgentEnvironment.from_config(
         {
-            "type": "gui_desktop",
+            "type": "gui",
             "requires_vm": True,
             "vm_provider_url": "http://vm-provider:7788",
             "vm_provider_api_key": "vm-token",
@@ -3123,31 +3103,65 @@ def test_hf_discovery_expands_known_benchmark_queries() -> None:
     assert "mmlu pro" in queries
 
 
-def test_workspace_agent_environment_scores_goal_completion() -> None:
-    item = BenchmarkItem(
-        id="agent_item",
-        dimension_id="agent",
-        task_type=TaskType.agent,
-        prompt="Put the blue notebook in the outgoing bin.",
-        rubric="Use deterministic environment scoring.",
-        metadata={
-            "agent_env": {
-                "type": "workspace",
-                "start_room": "office",
-                "rooms": {"office": ["blue_notebook"], "mailroom": []},
-                "goal": {"outgoing_bin": ["blue_notebook"]},
-                "max_steps": 4,
-            }
-        },
+class _AgentProtocolTestEnvironment:
+    def __init__(self, max_steps: int = 3) -> None:
+        self.max_steps = max_steps
+        self.steps = 0
+        self.invalid_actions = 0
+        self.done = False
+        self.changed = False
+
+    def tool_specs(self) -> list[ToolSpec]:
+        return [
+            ToolSpec(name="inspect", description="Inspect state.", parameters=object_schema()),
+            ToolSpec(
+                name="apply_change",
+                description="Apply the requested change.",
+                parameters=object_schema(
+                    {"content": {"type": "string"}},
+                    required=["content"],
+                ),
+            ),
+            ToolSpec(name="final", description="Finish.", parameters=object_schema()),
+        ]
+
+    def action_schema(self) -> str:
+        return "Use inspect, apply_change, or final."
+
+    def observation(self) -> str:
+        return f"changed={self.changed}"
+
+    def step(self, action: dict) -> object:
+        self.steps += 1
+        name = action.get("action")
+        if name == "apply_change":
+            self.changed = True
+        elif name == "final":
+            self.done = True
+        return types.SimpleNamespace(
+            observation=self.observation(),
+            done=self.done,
+            error=None,
+        )
+
+    def score(self) -> float:
+        return 1.0 if self.changed and self.done else 0.0
+
+    def summary(self) -> str:
+        return f"changed={self.changed}; done={self.done}"
+
+    def state(self) -> dict:
+        return {"environment": "test", "changed": self.changed, "done": self.done}
+
+    def cleanup(self) -> None:
+        return None
+
+
+def _use_agent_protocol_test_environment(monkeypatch, *, max_steps: int = 3) -> None:
+    monkeypatch.setattr(
+        "evalclaw.runners.agent.build_agent_environment",
+        lambda item, config: _AgentProtocolTestEnvironment(max_steps),
     )
-    env = build_agent_environment(item)
-
-    env.step({"action": "take", "args": {"item": "blue_notebook"}})
-    env.step({"action": "move", "args": {"room": "mailroom"}})
-    env.step({"action": "place", "args": {"item": "blue_notebook"}})
-
-    assert env.score() == 1.0
-    assert env.state()["outgoing_bin"] == ["blue_notebook"]
 
 
 def test_tool_protocol_validates_required_and_enum_arguments() -> None:
@@ -3170,11 +3184,12 @@ def test_tool_protocol_validates_required_and_enum_arguments() -> None:
 
 
 def test_agent_runner_uses_action_observation_loop(monkeypatch) -> None:
+    _use_agent_protocol_test_environment(monkeypatch)
     responses = iter(
         [
-            '{"action":"take","args":{"item":"blue_notebook"}}',
-            '{"action":"move","args":{"room":"mailroom"}}',
-            '{"action":"place","args":{"item":"blue_notebook"}}',
+            '{"action":"inspect","args":{}}',
+            '{"action":"apply_change","args":{"content":"fixed"}}',
+            '{"action":"final","args":{}}',
         ]
     )
 
@@ -3190,10 +3205,8 @@ def test_agent_runner_uses_action_observation_loop(monkeypatch) -> None:
         rubric="Use deterministic environment scoring.",
         metadata={
             "agent_env": {
-                "type": "workspace",
-                "start_room": "office",
-                "rooms": {"office": ["blue_notebook"], "mailroom": []},
-                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "type": "docker_workspace",
+                "test_command": "python3 -c \"assert True\"",
                 "max_steps": 5,
             }
         },
@@ -3205,15 +3218,16 @@ def test_agent_runner_uses_action_observation_loop(monkeypatch) -> None:
 
     assert result.score == 1.0
     assert len(trace["trace"]) == 3
-    assert trace["final_state"]["outgoing_bin"] == ["blue_notebook"]
+    assert trace["final_state"]["changed"] is True
     assert trace["tool_protocol_version"] == "evalclaw.tool_protocol.v1"
-    assert trace["tool_specs"][0]["name"] == "look"
-    assert trace["trace"][0]["tool_call"]["name"] == "take"
-    assert trace["trace"][0]["tool_result"]["name"] == "take"
+    assert trace["tool_specs"][0]["name"] == "inspect"
+    assert trace["trace"][0]["tool_call"]["name"] == "inspect"
+    assert trace["trace"][0]["tool_result"]["name"] == "inspect"
 
 
 def test_agent_rejects_invalid_tool_arguments(monkeypatch) -> None:
-    responses = iter(['{"action":"move","args":{}}'])
+    _use_agent_protocol_test_environment(monkeypatch, max_steps=1)
+    responses = iter(['{"action":"apply_change","args":{}}'])
 
     def fake_call_target_model(*args, **kwargs):
         return next(responses)
@@ -3227,10 +3241,8 @@ def test_agent_rejects_invalid_tool_arguments(monkeypatch) -> None:
         rubric="Use deterministic environment scoring.",
         metadata={
             "agent_env": {
-                "type": "workspace",
-                "start_room": "office",
-                "rooms": {"office": [], "lab": []},
-                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "type": "docker_workspace",
+                "test_command": "python3 -c \"assert True\"",
                 "max_steps": 1,
             }
         },
@@ -3241,17 +3253,18 @@ def test_agent_rejects_invalid_tool_arguments(monkeypatch) -> None:
     trace = json.loads(result.raw_response)
 
     assert result.score == 0.0
-    assert "Missing required argument: room" in trace["trace"][0]["error"]
-    assert trace["trace"][0]["tool_result"]["error"] == "Missing required argument: room."
+    assert "Missing required argument: content" in trace["trace"][0]["error"]
+    assert trace["trace"][0]["tool_result"]["error"] == "Missing required argument: content."
 
 
 def test_agent_uses_task_agent_system_prompt(monkeypatch) -> None:
+    _use_agent_protocol_test_environment(monkeypatch)
     captured_systems: list[str | None] = []
     responses = iter(
         [
-            '{"action":"take","args":{"item":"blue_notebook"}}',
-            '{"action":"move","args":{"room":"mailroom"}}',
-            '{"action":"place","args":{"item":"blue_notebook"}}',
+            '{"action":"inspect","args":{}}',
+            '{"action":"apply_change","args":{"content":"fixed"}}',
+            '{"action":"final","args":{}}',
         ]
     )
 
@@ -3274,10 +3287,8 @@ def test_agent_uses_task_agent_system_prompt(monkeypatch) -> None:
                 "scoring": {"method": "deterministic", "pass_fail": {"pass": "done", "fail": "not done"}},
             },
             "agent_env": {
-                "type": "workspace",
-                "start_room": "office",
-                "rooms": {"office": ["blue_notebook"], "mailroom": []},
-                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "type": "docker_workspace",
+                "test_command": "python3 -c \"assert True\"",
                 "max_steps": 5,
             },
         },
@@ -3292,12 +3303,13 @@ def test_agent_uses_task_agent_system_prompt(monkeypatch) -> None:
 
 
 def test_agent_uses_openai_native_tool_result_messages(monkeypatch) -> None:
+    _use_agent_protocol_test_environment(monkeypatch)
     captured_calls: list[dict] = []
     calls = iter(
         [
-            ToolCall(id="call_1", name="take", arguments={"item": "blue_notebook"}),
-            ToolCall(id="call_2", name="move", arguments={"room": "mailroom"}),
-            ToolCall(id="call_3", name="place", arguments={"item": "blue_notebook"}),
+            ToolCall(id="call_1", name="inspect", arguments={}),
+            ToolCall(id="call_2", name="apply_change", arguments={"content": "fixed"}),
+            ToolCall(id="call_3", name="final", arguments={}),
         ]
     )
 
@@ -3339,10 +3351,8 @@ def test_agent_uses_openai_native_tool_result_messages(monkeypatch) -> None:
         rubric="Use deterministic environment scoring.",
         metadata={
             "agent_env": {
-                "type": "workspace",
-                "start_room": "office",
-                "rooms": {"office": ["blue_notebook"], "mailroom": []},
-                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "type": "docker_workspace",
+                "test_command": "python3 -c \"assert True\"",
                 "max_steps": 5,
             }
         },
@@ -3357,19 +3367,20 @@ def test_agent_uses_openai_native_tool_result_messages(monkeypatch) -> None:
     assert result.score == 1.0
     assert trace["tool_message_protocol"] == "provider_native"
     assert trace["tool_adapter"] == "openai"
-    assert captured_calls[0]["tool_names"][:2] == ["look", "move"]
+    assert captured_calls[0]["tool_names"][:2] == ["inspect", "apply_change"]
     assert "Native tool protocol override" in captured_calls[0]["system_prompt"]
     assert all("Continue with one JSON action" not in str(call["messages"]) for call in captured_calls)
     assert any(message["role"] == "tool" for message in captured_calls[1]["messages"])
 
 
 def test_agent_uses_anthropic_tool_result_blocks(monkeypatch) -> None:
+    _use_agent_protocol_test_environment(monkeypatch)
     captured_messages: list[list[dict]] = []
     calls = iter(
         [
-            ToolCall(id="toolu_1", name="take", arguments={"item": "blue_notebook"}),
-            ToolCall(id="toolu_2", name="move", arguments={"room": "mailroom"}),
-            ToolCall(id="toolu_3", name="place", arguments={"item": "blue_notebook"}),
+            ToolCall(id="toolu_1", name="inspect", arguments={}),
+            ToolCall(id="toolu_2", name="apply_change", arguments={"content": "fixed"}),
+            ToolCall(id="toolu_3", name="final", arguments={}),
         ]
     )
 
@@ -3400,10 +3411,8 @@ def test_agent_uses_anthropic_tool_result_blocks(monkeypatch) -> None:
         rubric="Use deterministic environment scoring.",
         metadata={
             "agent_env": {
-                "type": "workspace",
-                "start_room": "office",
-                "rooms": {"office": ["blue_notebook"], "mailroom": []},
-                "goal": {"outgoing_bin": ["blue_notebook"]},
+                "type": "docker_workspace",
+                "test_command": "python3 -c \"assert True\"",
                 "max_steps": 5,
             }
         },
@@ -3518,7 +3527,7 @@ def test_qc_rejects_removed_reference_model_response_tool() -> None:
     assert any("Unsupported judge tool" in issue.message for issue in qc.issues)
 
 
-def test_code_sandbox_agent_can_revise_after_test_failure(monkeypatch) -> None:
+def test_docker_workspace_agent_can_revise_after_test_failure(monkeypatch) -> None:
     responses = iter(
         [
             json.dumps(
@@ -3556,7 +3565,7 @@ def test_code_sandbox_agent_can_revise_after_test_failure(monkeypatch) -> None:
         rubric="Use deterministic hidden-test scoring.",
         metadata={
             "agent_env": {
-                "type": "code_sandbox",
+                "type": "docker_workspace",
                 "visible_files": {"solution.py": "def max_pair_sum(nums):\n    pass\n"},
                 "hidden_files": {
                     "tests.py": (
@@ -3639,12 +3648,28 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
         rubric="Use deterministic hidden-test scoring.",
         metadata={
             "agent_env": {
-                "type": "code_sandbox",
+                "type": "docker_workspace",
                 "visible_files": {"solution.py": "def max_pair_sum(nums):\n    pass\n"},
                 "hidden_files": {"tests.py": "from solution import max_pair_sum\n"},
                 "test_command": "python3 tests.py",
                 "max_steps": 6,
-            }
+            },
+            "agent_task_package": {
+                "schema_version": "evalclaw.agent_task_package.v1",
+                "capability_target": {"name": "Iterative code repair"},
+                "visible_inputs": {
+                    "instructions": "Implement max_pair_sum(nums) and run tests until they pass.",
+                    "file_names": ["solution.py"],
+                },
+                "hidden_references": {"file_names": ["tests.py"]},
+                "output_contract": {"expected_artifacts": ["solution.py"]},
+                "evaluation": {
+                    "method": "deterministic",
+                    "pass_criteria": "python3 tests.py passes.",
+                },
+                "artifact_collection": {"collect_trajectory": True},
+                "trajectory_requirements": {"required_tools": ["read_file", "write_file"]},
+            },
         },
     )
     config = BenchmarkConfig(**dummy_config_kwargs())
@@ -3654,7 +3679,7 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
     agent_env = captured_payload["items"][0]["metadata"]["agent_env"]
     assert qc.rejected_item_ids == []
     assert any("demoted from an LLM QC blocking error" in issue.message for issue in qc.issues)
-    assert agent_env["type"] == "code_sandbox"
+    assert agent_env["type"] == "docker_workspace"
     assert agent_env["visible_files_names"] == ["solution.py"]
     assert agent_env["hidden_files_names"] == ["tests.py"]
     assert "Full file contents are omitted" in agent_env["hidden_files_content_note"]
@@ -3768,7 +3793,7 @@ def test_report_viewer_html_includes_agent_trace() -> None:
         rubric="Use hidden-test scoring.",
         metadata={
             "agent_env": {
-                "type": "code_sandbox",
+                "type": "docker_workspace",
                 "test_command": "python3 tests.py",
                 "max_steps": 4,
             }
@@ -3779,7 +3804,7 @@ def test_report_viewer_html_includes_agent_trace() -> None:
         target_id="mock",
         raw_response=json.dumps(
             {
-                "environment": "code_sandbox",
+                "environment": "docker_workspace",
                 "trace": [
                     {
                         "step": 1,

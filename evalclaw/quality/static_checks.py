@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 from ..protocols.agent_task_package import agent_task_package_issues
-from ..protocols.assets import environment_asset_guest_path, is_image_asset_path
+from ..protocols.assets import asset_label, environment_asset_guest_path, is_image_asset_path
 from ..protocols.science import science_metadata_issues
 from ..protocols.task_agent import TASK_AGENT_METADATA_KEY
 from ..types import BenchmarkItem, QcCategory, QcIssue, QcSeverity, TaskType
@@ -40,13 +40,9 @@ def _item_environment_has_evaluator(item: BenchmarkItem) -> bool:
     if not isinstance(env, dict):
         return False
     env_type = str(env.get("type") or "")
-    if env_type in {"code_sandbox", "docker_workspace"}:
+    if env_type == "docker_workspace":
         return bool(str(env.get("test_command") or "").strip())
-    if env_type == "workspace":
-        workspace = env.get("workspace") if isinstance(env.get("workspace"), dict) else env
-        goal = workspace.get("goal") if isinstance(workspace, dict) else None
-        return isinstance(goal, dict) and bool(goal.get("outgoing_bin"))
-    if env_type == "gui_desktop":
+    if env_type == "gui":
         evaluation = env.get("evaluation")
         if not isinstance(evaluation, dict):
             return False
@@ -212,7 +208,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                         "Add scoring.method plus scoring.instructions, levels, or pass_fail standards.",
                 )
             )
-    for asset in item.assets:
+    for index, asset in enumerate(item.assets, 1):
         path = asset.path.strip()
         if not path:
             issues.append(
@@ -229,14 +225,10 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     "non-image file is required.",
                 )
             )
-        agent_env = item.metadata.get("agent_env")
-        environment_type = (
-            str(agent_env.get("type") or "") if isinstance(agent_env, dict) else ""
-        )
         prompt_path = (
             environment_asset_guest_path(asset)
-            if environment_type in {"code_sandbox", "docker_workspace"}
-            else path
+            if item.task_type == TaskType.agent
+            else asset_label(index)
         )
         if prompt_path not in item.prompt and not any(
             prompt_path in choice.text for choice in item.choices
@@ -246,8 +238,8 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     item.id,
                     QcSeverity.error,
                     QcCategory.clarity,
-                    f"Prompt or choices do not reference asset path {prompt_path!r}.",
-                    "Refer to each task asset by its required target-visible path in the prompt or choices.",
+                    f"Prompt or choices do not reference asset {prompt_path!r}.",
+                    "Refer to each image asset by its Image N label in the prompt or choices; agent tasks use the environment path.",
                 )
             )
         if not Path(path).is_file():
@@ -331,7 +323,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                         "Use the selected runtime's supported structured configuration and tool surface.",
                     )
                 )
-            if env_type in {"code_sandbox", "docker_workspace"} and not str(
+            if env_type == "docker_workspace" and not str(
                 env.get("test_command") or ""
             ).strip():
                 issues.append(
@@ -343,23 +335,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                         "Add the deterministic evaluator command that the runner should invoke.",
                     )
                 )
-            if env_type == "workspace":
-                workspace = env.get("workspace") if isinstance(env.get("workspace"), dict) else env
-                rooms = workspace.get("rooms") if isinstance(workspace, dict) else None
-                goal = workspace.get("goal") if isinstance(workspace, dict) else None
-                if not isinstance(rooms, dict) or not rooms or not (
-                    isinstance(goal, dict) and goal.get("outgoing_bin")
-                ):
-                    issues.append(
-                        _issue(
-                            item.id,
-                            QcSeverity.error,
-                            QcCategory.schema,
-                            "Workspace item needs room state and a non-empty outgoing-bin goal.",
-                            "Define the built-in room/inventory state instead of file or custom-tool behavior.",
-                        )
-                    )
-            if env_type == "gui_desktop":
+            if env_type == "gui":
                 session = env.get("session")
                 vm = env.get("vm")
                 if not isinstance(session, dict) or not session:
@@ -368,7 +344,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                             item.id,
                             QcSeverity.error,
                             QcCategory.schema,
-                            "GUI desktop agent item needs metadata.agent_env.session.",
+                            "GUI agent item needs metadata.agent_env.session.",
                             "Add the application/desktop surface and launch state.",
                         )
                     )
@@ -378,7 +354,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                             item.id,
                             QcSeverity.error,
                             QcCategory.scoring,
-                            "GUI desktop agent item needs executable evaluation checks or a method.",
+                            "GUI agent item needs executable evaluation checks or a method.",
                             "Add bridge artifact/state checks or a concrete evaluator method.",
                         )
                     )
@@ -394,7 +370,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                             item.id,
                             QcSeverity.error,
                             QcCategory.schema,
-                            "GUI desktop item with requires_vm=true lacks a resolvable VM source.",
+                            "GUI item with requires_vm=true lacks a resolvable VM source.",
                             "Set a template, image, or disk identifier; keep descriptive prose in notes.",
                         )
                     )

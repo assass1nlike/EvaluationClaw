@@ -143,20 +143,23 @@ HTML_TEMPLATE = r'''<!doctype html>
       const pre = make("pre", "json", jsonText(value));
       addSection(parent, title, pre);
     }
-    function renderAssets(parent, assets) {
+    function renderAssets(parent, assets, taskType) {
       if (!Array.isArray(assets) || !assets.length) return;
       const grid = make("div", "asset-grid");
-      assets.forEach((asset) => {
+      assets.forEach((asset, index) => {
         const path = String(asset && asset.path || "");
+        const label = taskType === "agent"
+          ? path.split(/[\\/]/).pop()
+          : `Image ${index + 1}`;
         const box = make("div", "asset");
         if (/\.(?:png|jpe?g|gif|webp|bmp|svg)(?:[?#].*)?$/i.test(path)) {
           const image = document.createElement("img");
           image.src = path;
-          image.alt = path;
+          image.alt = label;
           image.addEventListener("error", () => image.remove());
           box.append(image);
         }
-        box.append(make("div", "asset-path", path || "(unnamed asset)"));
+        box.append(make("div", "asset-path", label || "(unnamed asset)"));
         grid.append(box);
       });
       addSection(parent, "Assets", grid);
@@ -212,7 +215,7 @@ HTML_TEMPLATE = r'''<!doctype html>
       const body = make("div", "task-body");
       textSection(body, "Description", item.description);
       textSection(body, "Prompt", item.prompt, "prompt");
-      renderAssets(body, item.assets);
+      renderAssets(body, item.assets, item.task_type);
       renderChoices(body, item);
       textSection(body, "System prompt", item.system_prompt, "prompt");
       objectSection(body, "Interaction", item.interaction);

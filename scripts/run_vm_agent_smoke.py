@@ -236,7 +236,7 @@ def build_item() -> BenchmarkItem:
         ),
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm_provider_url": "local://qemu",
                 "vm": {

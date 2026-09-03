@@ -64,6 +64,15 @@ def test_diagnostic_json_supports_long_paths(tmp_path) -> None:
     assert saved == {"status": "completed"}
 
 
+def test_diagnostic_json_omits_inline_image_bytes(tmp_path) -> None:
+    path = tmp_path / "trace.json"
+
+    write_json(path, {"url": "data:image/png;base64,AAAA"}, redact=True)
+
+    saved = json.loads(path.read_text(encoding="utf-8"))
+    assert saved == {"url": "data:image/png;base64,[OMITTED]"}
+
+
 def test_public_artifact_redaction_does_not_corrupt_task_builder_paths() -> None:
     path = "D:/benchmark/assets/task-builder/task.png"
 
@@ -236,7 +245,7 @@ def test_environment_preflight_report_survives_blocking_failure(monkeypatch, tmp
             raise RuntimeError("evaluator unavailable")
 
         def state(self):
-            return {"environment": "code_sandbox", "status": "failed"}
+            return {"environment": "docker_workspace", "status": "failed"}
 
         def cleanup(self):
             return None
@@ -248,7 +257,7 @@ def test_environment_preflight_report_survives_blocking_failure(monkeypatch, tmp
         lambda *args: FailedEnvironment(),
     )
     item = _suite("item").tasks[0].model_copy(
-        update={"metadata": {"agent_env": {"type": "code_sandbox"}}}
+        update={"metadata": {"agent_env": {"type": "docker_workspace"}}}
     )
     config = BenchmarkConfig(
         output_dir=str(tmp_path),

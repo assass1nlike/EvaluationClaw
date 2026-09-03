@@ -25,6 +25,7 @@ from ..models.llm import (
 )
 from ..models.roles import role_model_settings
 from ..prompts.task_builder import TASK_BUILDER_PROMPT
+from ..protocols.assets import replace_non_agent_asset_references
 from ..research.deep_research import compact_brief_context
 from ..types import (
     AgentEnvironmentType,
@@ -106,9 +107,12 @@ def _normalize_builder_asset_paths(
     task: TaskDefinition,
     builder_work_dir: Path | None,
 ) -> TaskDefinition:
+    if task.task_type != TaskType.agent:
+        task.prompt = replace_non_agent_asset_references(task.prompt, task.assets)
+        for choice in task.choices:
+            choice.text = replace_non_agent_asset_references(choice.text, task.assets)
     if builder_work_dir is None:
         return task
-    replacements: list[tuple[str, str]] = []
     for asset in task.assets:
         raw_path = asset.path.strip()
         if not raw_path or Path(raw_path).is_absolute():
@@ -118,16 +122,6 @@ def _normalize_builder_asset_paths(
         except ValueError:
             continue
         asset.path = str(resolved_path)
-        replacements.append((raw_path, asset.path))
-    if task.environment is None:
-        for raw_path, resolved_path in sorted(
-            replacements,
-            key=lambda item: len(item[0]),
-            reverse=True,
-        ):
-            task.prompt = task.prompt.replace(raw_path, resolved_path)
-            for choice in task.choices:
-                choice.text = choice.text.replace(raw_path, resolved_path)
     return task
 
 
@@ -201,10 +195,7 @@ def _preflight_builder_environments(
     issues: list[str] = []
     failed_ids: set[str] = set()
     for index, task in enumerate(tasks, 1):
-        if task.environment is None or task.environment.type not in {
-            AgentEnvironmentType.code_sandbox,
-            AgentEnvironmentType.docker_workspace,
-        }:
+        if task.environment is None or task.environment.type != AgentEnvironmentType.docker_workspace:
             continue
         task_design_id = str(task.metadata.get("task_design_id") or "")
         task_design = next(
@@ -594,8 +585,7 @@ def build_task_suite(
         raise ValueError("EvalSpec.dimensions must not be empty before task construction.")
 
     if config.environment_preflight and any(
-        blueprint.environment_type
-        in {AgentEnvironmentType.code_sandbox, AgentEnvironmentType.docker_workspace}
+        blueprint.environment_type == AgentEnvironmentType.docker_workspace
         for blueprint in blueprints
     ):
         require_docker_available(executable=config.docker_executable)
@@ -957,11 +947,16 @@ def build_task_suite(
                 "stop_event": stop_event,
                 **debug_kwargs,
             }
-            if blueprint.environment_type in {
-                AgentEnvironmentType.code_sandbox,
-                AgentEnvironmentType.docker_workspace,
-            }:
+            if blueprint.environment_type == AgentEnvironmentType.docker_workspace:
                 tool_kwargs["include_image_tools"] = True
+            if (
+                blueprint.environment_type == AgentEnvironmentType.gui
+                and any(
+                    bool(design.environment_requirements.get("requires_vm") or design.environment_requirements.get("vm"))
+                    for design in blueprint.task_designs
+                )
+            ):
+                tool_kwargs["include_vm_image_tools"] = True
             raw_response, tool_notes = run_task_builder_tools(
                 call_payload,
                 system_prompt=system_prompt,

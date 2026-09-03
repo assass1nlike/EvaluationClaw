@@ -91,6 +91,19 @@ def test_unset_role_fields_remain_none() -> None:
     }
 
 
+def test_role_reasoning_effort_is_forwarded() -> None:
+    settings = role_model_settings(
+        BenchmarkConfig(
+            task_builder_model="gpt-5.6-sol",
+            task_builder_api_key="key",
+            task_builder_reasoning_effort="high",
+        ),
+        "task_builder",
+    )
+
+    assert settings.call_kwargs()["reasoning_effort"] == "high"
+
+
 def test_role_key_is_sufficient() -> None:
     settings = role_model_settings(
         BenchmarkConfig(

@@ -487,6 +487,7 @@ def artifact_index_markdown(
     report_path: Path,
     frontend_report_path: Path | None = None,
     task_viewer_path: Path | None = None,
+    translated_report_path: Path | None = None,
     manifest_path: Path,
     lm_eval_paths: dict[str, Path],
 ) -> str:
@@ -500,6 +501,8 @@ def artifact_index_markdown(
         rows.append(["frontend_report_html", str(frontend_report_path)])
     if task_viewer_path is not None:
         rows.append(["task_viewer_html", str(task_viewer_path)])
+    if translated_report_path is not None:
+        rows.append(["translated_markdown_report", str(translated_report_path)])
     rows.extend([[f"lm_eval_{key}", str(value)] for key, value in lm_eval_paths.items()])
     return "\n".join(
         [

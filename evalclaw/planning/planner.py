@@ -5,7 +5,7 @@ from ..core.scaling import scale_budget_target_items
 from ..diagnostics import new_debug_dir
 from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
-from ..prompts.planner import TRANSLATION_SYSTEM_PROMPT
+from ..prompts.planner import REPORT_TRANSLATION_SYSTEM_PROMPT, TRANSLATION_SYSTEM_PROMPT
 from ..types import (
     BenchmarkConfig,
     Message,
@@ -39,6 +39,49 @@ def translate_goal_to_english(goal: str, config: BenchmarkConfig) -> str:
         return translated
     except Exception as exc:
         raise RuntimeError(f"Could not normalize the evaluation goal to English: {exc}") from exc
+
+
+def translate_report_markdown(
+    markdown: str,
+    language: str,
+    config: BenchmarkConfig,
+    *,
+    trace_dir: str | None = None,
+) -> str:
+    """Translate a completed Markdown report through the Planner model."""
+    settings = role_model_settings(config, "planner")
+    if not settings.configured:
+        raise RuntimeError(
+            "Planner model is not configured; an LLM is required to translate the report."
+        )
+    target_language = str(language).strip()
+    if not target_language:
+        raise ValueError("Report translation language cannot be empty.")
+    if not str(markdown).strip():
+        raise ValueError("Cannot translate an empty report.")
+    raw = call_llm(
+        [
+            Message(
+                role="user",
+                content=(
+                    f"Target language: {target_language}\n\n"
+                    "<report>\n"
+                    f"{markdown}\n"
+                    "</report>"
+                ),
+            )
+        ],
+        system=REPORT_TRANSLATION_SYSTEM_PROMPT,
+        **settings.call_kwargs(),
+        backend=config.llm_backend,
+        max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+        trace_dir=trace_dir,
+        trace_name="report-translation",
+    )
+    translated = str(raw or "").strip()
+    if not translated:
+        raise ValueError("report translation response was empty")
+    return translated
 
 
 def _safe_scale_budget(
@@ -84,4 +127,5 @@ __all__ = [
     "_safe_scale_budget",
     "_scale_budget_guidance",
     "translate_goal_to_english",
+    "translate_report_markdown",
 ]

@@ -377,7 +377,7 @@ def test_vm_provisioning_renders_cross_domain_cloud_init(monkeypatch, tmp_path) 
         prompt="Run a cross-domain VM task.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"image": "ubuntu-base"},
                 "session": {
@@ -434,7 +434,7 @@ def test_vm_provisioning_triggers_from_non_apt_package_fields(monkeypatch, tmp_p
         prompt="Run a VM task that only needs domain language packages.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"image": "ubuntu-base"},
                 "session": {
@@ -489,7 +489,7 @@ def test_vm_materialization_fails_closed_without_initial_state_checks(tmp_path) 
         prompt="Operate an unchecked VM.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"image": "windows-11-cloudbase", "guest_os": "windows"},
             }

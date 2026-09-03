@@ -9,6 +9,7 @@ from evalclaw.benchmark import (
     build_benchmark_suite_with_qc_loop,
     build_suite_from_spec_with_qc_loop,
 )
+from evalclaw.execution.plan import build_execution_plan
 from evalclaw.quality.llm_checks import _stabilize_llm_issue
 from evalclaw.types import (
     AgentEnvironmentType,
@@ -86,12 +87,8 @@ def _task(
     }
     if interactive:
         metadata["agent_env"] = {
-            "type": "workspace",
-            "workspace": {
-                "start_room": "office",
-                "rooms": {"office": ["item"], "mailroom": []},
-                "goal": {"outgoing_bin": ["item"]},
-            },
+            "type": "docker_workspace",
+            "test_command": "python3 -c \"assert True\"",
         }
     return BenchmarkItem(
         id=task_id,
@@ -196,7 +193,7 @@ def test_unified_qc_loop_repairs_only_rejected_blueprint(monkeypatch) -> None:
             "Tool use",
             task_type=TaskType.agent,
             content="Stateful tool use.",
-            environment_type=AgentEnvironmentType.workspace,
+            environment_type=AgentEnvironmentType.docker_workspace,
         ),
     ]
     plan = make_plan(spec, blueprints)
@@ -394,8 +391,8 @@ def test_qc_round_keeps_valid_task_design_repairs_when_another_output_is_invalid
 
     tasks_by_job = {item.builder_job_id: item for item in result.tasks}
     assert tasks_by_job[job_ids[0]].expected_text == "fixed"
-    assert tasks_by_job[job_ids[1]].expected_text == "original"
-    assert qc_report.rejected_item_ids == [tasks_by_job[job_ids[1]].id]
+    assert job_ids[1] not in tasks_by_job
+    assert qc_report.rejected_item_ids == []
     assert any("keeping its previous tasks" in message for message in logs)
 
 
@@ -496,8 +493,8 @@ def test_qc_round_keeps_valid_repairs_within_partially_invalid_task_design(
         log=logs.append,
     )
 
-    assert [item.expected_text for item in result.tasks] == ["fixed", "original-2"]
-    assert qc_report.rejected_item_ids == [result.tasks[1].id]
+    assert [item.expected_text for item in result.tasks] == ["fixed"]
+    assert qc_report.rejected_item_ids == []
     assert any("keeping 1 structurally valid replacement" in message for message in logs)
 
 
@@ -539,7 +536,7 @@ def test_valid_vm_provider_request_false_positive_is_demoted() -> None:
         prompt="Repair the prepared workstation.",
         metadata={
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {
                     "guest_os": "windows",
@@ -840,8 +837,8 @@ def test_qc_loop_keeps_only_items_with_fewer_blocking_errors(monkeypatch) -> Non
         log=logs.append,
     )
 
-    assert [item.expected_text for item in result.tasks] == ["a-fixed", "b-original"]
-    assert [issue.item_id for issue in qc_report.issues] == ["task_b"]
+    assert [item.expected_text for item in result.tasks] == ["a-fixed"]
+    assert qc_report.issues == []
     assert any("kept 1 improved item repair(s), rolled back 1" in message for message in logs)
 
 
@@ -1021,5 +1018,55 @@ def test_unified_qc_loop_allows_explicit_incomplete_draft(monkeypatch) -> None:
         log=lambda message: None,
     )
 
-    assert [item.id for item in run_ready_suite.tasks] == ["rejected_task"]
-    assert qc_report.rejected_item_ids == ["rejected_task"]
+    assert run_ready_suite.tasks == []
+    assert qc_report.rejected_item_ids == []
+    assert qc_report.passed_item_ids == []
+    assert qc_report.issues == []
+
+
+def test_incomplete_benchmark_strict_filter_removes_warning_items(monkeypatch) -> None:
+    spec, blueprint, rejected_suite, rejected = _rejected_fixture()
+    warning_task = _task("warning_task", "core", "core_blueprint")
+    suite = rejected_suite.model_copy(update={"tasks": [rejected_suite.tasks[0], warning_task]})
+    report = rejected.model_copy(
+        update={
+            "issues": [
+                *rejected.issues,
+                QcIssue(
+                    item_id=warning_task.id,
+                    severity=QcSeverity.warning,
+                    category=QcCategory.clarity,
+                    message="The wording is terse.",
+                ),
+            ],
+            "passed_item_ids": [warning_task.id],
+        }
+    )
+    monkeypatch.setattr(
+        "evalclaw.benchmark.plan_benchmark",
+        lambda goal, config, **kwargs: make_plan(spec, [blueprint]),
+    )
+    monkeypatch.setattr("evalclaw.benchmark.build_task_suite", lambda *args, **kwargs: suite)
+    monkeypatch.setattr("evalclaw.benchmark.run_qc_gate", lambda candidate_suite, config: report)
+
+    _, ordinary_suite, ordinary_report = build_benchmark_suite_with_qc_loop(
+        spec.objective,
+        BenchmarkConfig(max_qc_iterations=0, allow_incomplete_benchmark=True),
+        log=lambda message: None,
+    )
+    _, strict_suite, strict_report = build_benchmark_suite_with_qc_loop(
+        spec.objective,
+        BenchmarkConfig(
+            max_qc_iterations=0,
+            allow_incomplete_benchmark=True,
+            strict_qc_filter=True,
+        ),
+        log=lambda message: None,
+    )
+
+    assert [item.id for item in ordinary_suite.tasks] == [warning_task.id]
+    assert [issue.item_id for issue in ordinary_report.issues] == [warning_task.id]
+    assert build_execution_plan(ordinary_suite, ordinary_report).accepted_item_ids == (warning_task.id,)
+    assert strict_suite.tasks == []
+    assert strict_report.issues == []
+    assert build_execution_plan(strict_suite, strict_report).accepted_item_ids == ()

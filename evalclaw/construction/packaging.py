@@ -1,4 +1,4 @@
-﻿"""Conversion of constructed TaskDefinitions into runner-ready BenchmarkItems."""
+"""Conversion of constructed TaskDefinitions into runner-ready BenchmarkItems."""
 from __future__ import annotations
 
 from typing import Any
@@ -31,22 +31,8 @@ def _environment_for_runner(task: TaskDefinition) -> dict[str, Any]:
     if task.environment is None:
         return {}
     env = task.environment.model_dump(mode="json")
-    env_type = str(env.get("type") or "workspace")
+    env_type = str(env.get("type") or "docker_workspace")
     env["type"] = env_type
-    if env_type == "workspace":
-        workspace = env.get("workspace") if isinstance(env.get("workspace"), dict) else {}
-        for key in ("start_room", "rooms", "item_descriptions", "goal", "max_steps"):
-            if key in workspace and key not in env:
-                env[key] = workspace[key]
-        if "rooms" not in env:
-            env["start_room"] = "office"
-            env["rooms"] = {"office": ["blue_notebook"], "mailroom": []}
-            env["goal"] = {"outgoing_bin": ["blue_notebook"]}
-            env["max_steps"] = env.get("max_steps") or 6
-    if env_type == "code_sandbox":
-        if not env.get("test_command"):
-            env["test_command"] = "python3 tests.py"
-        env.pop("workspace", None)
     if env_type == "docker_workspace":
         task_text = "\n".join(
             value
@@ -60,8 +46,7 @@ def _environment_for_runner(task: TaskDefinition) -> dict[str, Any]:
         env, _ = apply_docker_image_selection(env, task_text=task_text)
         if not env.get("test_command"):
             env["test_command"] = "pytest -q"
-        env.pop("workspace", None)
-    if env_type == "gui_desktop":
+    if env_type == "gui":
         if not isinstance(env.get("session"), dict):
             env["session"] = {}
         if not isinstance(env.get("evaluation"), dict):
@@ -71,7 +56,6 @@ def _environment_for_runner(task: TaskDefinition) -> dict[str, Any]:
         env["requires_vm"] = bool(env.get("requires_vm") or env.get("vm"))
         env["max_steps"] = env.get("max_steps") or 24
         env["timeout"] = env.get("timeout") or 30
-        env.pop("workspace", None)
     return env
 
 
@@ -83,7 +67,7 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
     public_environment = public_task_agent_initial_content(
         {
             key: agent_env[key]
-            for key in ("workspace", "visible_files", "image", "session", "vm", "browser", "notes")
+            for key in ("visible_files", "image", "session", "vm", "browser", "notes")
             if agent_env.get(key)
         }
     )
@@ -184,12 +168,12 @@ def _artifact_requirement(agent_env: dict[str, Any]) -> str:
 
 
 def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
-    env_type = str(agent_env.get("type") or "workspace")
+    env_type = str(agent_env.get("type") or "docker_workspace")
     tools = [str(tool.get("name") or tool.get("type") or "") for tool in agent_env.get("tools", []) if isinstance(tool, dict)]
     tools = [tool for tool in tools if tool]
     if tools:
         return tools
-    if env_type == "gui_desktop":
+    if env_type == "gui":
         return ["screenshot", "mouse_move", "click", "key", "type", "read_file", "write_file", "run_command", "evaluate"]
     if env_type == "docker_workspace":
         protected_material = bool(agent_env.get("runtime_files") or agent_env.get("hidden_files"))
@@ -211,9 +195,7 @@ def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
         if not protected_material:
             workspace_tools.append("run_command")
         return [*workspace_tools, "run_tests"]
-    if env_type == "code_sandbox":
-        return ["read_file", "write_file", "run_tests"]
-    return ["look", "move", "inspect", "take", "place", "final"]
+    return ["final"]
 
 
 def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]) -> dict[str, Any]:
@@ -274,9 +256,9 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
         if isinstance(required_capabilities, list)
         else []
     )
-    if env_type in {"code_sandbox", "docker_workspace"} and agent_env.get("image"):
+    if env_type == "docker_workspace" and agent_env.get("image"):
         required_software = list(dict.fromkeys([*required_software, str(agent_env["image"])]))
-    hidden_reference_artifacts = list(expected_artifacts) if env_type == "gui_desktop" else []
+    hidden_reference_artifacts = list(expected_artifacts) if env_type == "gui" else []
     if hidden_files:
         hidden_reference_artifacts.extend(sorted(str(path) for path in hidden_files.keys()))
     if not hidden_reference_artifacts and evaluation:
@@ -300,7 +282,7 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
         "arch",
     }:
         environment_os = "linux"
-    elif env_type in {"code_sandbox", "docker_workspace"}:
+    elif env_type == "docker_workspace":
         environment_os = "linux"
     elif declared_os:
         environment_os = declared_os
@@ -321,7 +303,7 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
             "type": env_type,
             "os": environment_os,
             "requires_vm": bool(agent_env.get("requires_vm") or vm),
-            "requires_gui": env_type == "gui_desktop",
+            "requires_gui": env_type == "gui",
             "required_software": required_software,
             "required_capabilities": required_capabilities,
             "network": str(agent_env.get("network") or vm.get("network") or "none"),
@@ -377,7 +359,7 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
         "artifact_collection": {
             "collect_paths": expected_artifacts,
             "collect_trajectory": True,
-            "logs": ["tool_trace", "stdout", "stderr"] + (["screenshots"] if env_type == "gui_desktop" else []),
+            "logs": ["tool_trace", "stdout", "stderr"] + (["screenshots"] if env_type == "gui" else []),
         },
         "trajectory_requirements": {
             "required_tools": _required_tools_for_env(agent_env),
