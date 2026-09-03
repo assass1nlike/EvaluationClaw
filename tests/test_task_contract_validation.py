@@ -93,11 +93,11 @@ def test_python_tests_judge_tool_must_consume_model_output() -> None:
     assert task_structure_issues(valid) == []
 
 
-def test_empty_code_sandbox_is_valid_when_the_agent_creates_files() -> None:
+def test_empty_docker_workspace_is_valid_when_the_agent_creates_files() -> None:
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.code_sandbox,
+            type=AgentEnvironmentType.docker_workspace,
             test_command="python3 verify.py",
         ),
     )
@@ -113,7 +113,7 @@ def test_container_asset_uses_host_path_internally_and_guest_filename_in_prompt(
     asset_path = work_dir / "TASK.md"
     asset_path.write_text("Implement the requested change.\n", encoding="utf-8")
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.code_sandbox,
+        type=AgentEnvironmentType.docker_workspace,
         test_command="python3 verify.py",
     )
     leaked = TaskDefinition(
@@ -216,12 +216,12 @@ def test_builder_environment_preflight_reports_item_failure_and_cleans_up(
         dimension.id,
         "Code task",
         task_type=TaskType.agent,
-        environment_type=AgentEnvironmentType.code_sandbox,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.code_sandbox,
+            type=AgentEnvironmentType.docker_workspace,
             test_command="python3 missing_evaluator.py",
         ),
     )
@@ -288,55 +288,6 @@ def test_docker_browser_validation_does_not_guess_capabilities_from_image_name()
     assert task_structure_issues(task) == []
 
 
-def test_workspace_contract_matches_the_builtin_room_inventory_runtime() -> None:
-    valid = _task(
-        TaskType.agent,
-        environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.workspace,
-            workspace={
-                "start_room": "office",
-                "rooms": {"office": ["brief"], "mailroom": []},
-                "goal": {"outgoing_bin": ["brief"]},
-            },
-        ),
-    )
-    invalid = valid.model_copy(
-        update={
-            "environment": valid.environment.model_copy(
-                update={
-                    "workspace": {
-                        "rooms": {"office": []},
-                        "goal": {"outgoing_bin": ["missing_brief"]},
-                    }
-                }
-            )
-        }
-    )
-
-    assert task_structure_issues(valid) == []
-    invalid_issues = task_structure_issues(invalid)
-    assert any("mailroom" in issue for issue in invalid_issues)
-    assert any("must exist" in issue for issue in invalid_issues)
-
-
-def test_workspace_contract_explains_the_executable_state_shape() -> None:
-    task = _task(
-        TaskType.agent,
-        environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.workspace,
-            workspace={
-                "rooms": [{"id": "office", "objects": ["brief"]}],
-                "goal": {"outgoing_bin": "mailroom"},
-            },
-        ),
-    )
-
-    issues = task_structure_issues(task)
-
-    assert any("mapping room names to arrays of item IDs" in issue for issue in issues)
-    assert any("array of required item IDs" in issue for issue in issues)
-
-
 def test_task_agent_qc_excerpt_preserves_prompt_ending_and_marks_clipping() -> None:
     system_prompt = "BEGIN " + ("adaptive policy " * 100) + " COMPLETE END"
 
@@ -359,7 +310,7 @@ def test_gui_contract_requires_a_startable_session_evaluator_and_vm_source() -> 
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui_desktop,
+            type=AgentEnvironmentType.gui,
             requires_vm=True,
             vm={"display": "1920x1080"},
             session={"workflow": "Edit the document."},
@@ -380,7 +331,7 @@ def test_gui_vm_contract_treats_vm_as_requires_vm_and_rejects_placeholder_source
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui_desktop,
+            type=AgentEnvironmentType.gui,
             vm={
                 "guest_os": "windows",
                 "template": "<runner-resolvable Windows template identifier>",
@@ -403,7 +354,7 @@ def test_gui_vm_contract_treats_vm_as_requires_vm_and_rejects_placeholder_source
 
 def test_windows_capability_vm_requires_concrete_named_user_setup() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui_desktop,
+        type=AgentEnvironmentType.gui,
         requires_vm=True,
         vm={
             "guest_os": "windows",
@@ -485,7 +436,7 @@ def test_windows_capability_vm_requires_concrete_named_user_setup() -> None:
 
 def test_windows_vm_rejects_target_inaccessible_evaluator_oracle() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui_desktop,
+        type=AgentEnvironmentType.gui,
         requires_vm=True,
         vm={
             "guest_os": "windows",
@@ -531,9 +482,9 @@ def test_windows_vm_rejects_target_inaccessible_evaluator_oracle() -> None:
     assert any("cannot read" in issue and "Embed expected values or hashes" in issue for issue in issues)
 
 
-def test_gui_desktop_rejects_unresolved_private_command_identifiers() -> None:
+def test_gui_rejects_unresolved_private_command_identifiers() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui_desktop,
+        type=AgentEnvironmentType.gui,
         requires_vm=True,
         vm={"image": "windows-11-cloudbase", "guest_os": "windows"},
         session={
@@ -601,9 +552,9 @@ def test_gui_desktop_rejects_unresolved_private_command_identifiers() -> None:
     assert task_structure_issues(valid) == []
 
 
-def test_gui_desktop_rejects_probe_only_evaluation_and_metadata_evaluator() -> None:
+def test_gui_rejects_probe_only_evaluation_and_metadata_evaluator() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui_desktop,
+        type=AgentEnvironmentType.gui,
         session={
             "application": "Windows Desktop",
             "launch_state": "The signed-in desktop is visible.",
@@ -633,11 +584,11 @@ def test_gui_desktop_rejects_probe_only_evaluation_and_metadata_evaluator() -> N
     assert any("ordinary task metadata is not executable" in issue for issue in issues)
 
 
-def test_gui_desktop_accepts_command_that_directly_asserts_final_state() -> None:
+def test_gui_accepts_command_that_directly_asserts_final_state() -> None:
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui_desktop,
+            type=AgentEnvironmentType.gui,
             session={
                 "application": "Windows Desktop",
                 "launch_state": "The signed-in desktop is visible.",
@@ -662,7 +613,7 @@ def test_gui_desktop_accepts_command_that_directly_asserts_final_state() -> None
 
 def test_gui_vm_provisioning_matches_declared_guest_os() -> None:
     base_environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui_desktop,
+        type=AgentEnvironmentType.gui,
         requires_vm=True,
         vm={"image": "windows-11-cloudbase", "guest_os": "windows"},
         session={
@@ -728,7 +679,7 @@ def test_windows_vm_provisioning_rejects_powershell_syntax_errors(monkeypatch) -
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui_desktop,
+            type=AgentEnvironmentType.gui,
             requires_vm=True,
             vm={"image": "windows-base", "guest_os": "windows"},
             vm_provisioning={"powershell_commands": ["broken syntax"]},
@@ -748,7 +699,7 @@ def test_windows_vm_provisioning_rejects_powershell_syntax_errors(monkeypatch) -
 
 def test_windows_vm_checks_use_raw_powershell_bodies() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui_desktop,
+        type=AgentEnvironmentType.gui,
         requires_vm=True,
         vm={"image": "windows-base", "guest_os": "windows"},
         session={
@@ -789,7 +740,7 @@ def test_windows_vm_checks_use_raw_powershell_bodies() -> None:
 
 def test_windows_interactive_provisioning_requires_restart() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui_desktop,
+        type=AgentEnvironmentType.gui,
         requires_vm=True,
         vm={"image": "windows-base", "guest_os": "windows"},
         vm_provisioning={
@@ -864,7 +815,7 @@ def test_windows_vm_provisioning_rejects_ambiguous_scheduled_task_parameters() -
     invalid = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui_desktop,
+            type=AgentEnvironmentType.gui,
             requires_vm=True,
             vm={"image": "windows-base", "guest_os": "windows"},
             vm_provisioning={
@@ -943,7 +894,7 @@ def test_agent_task_package_preserves_alternative_artifact_semantics() -> None:
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui_desktop,
+            type=AgentEnvironmentType.gui,
             session={
                 "application": "Windows Desktop",
                 "launch_state": "The signed-in desktop is visible.",
@@ -1006,39 +957,11 @@ def test_agent_task_package_preserves_alternative_artifact_semantics() -> None:
     assert len(declared_package["output_contract"]["constraints"]) == 2
 
 
-def test_workspace_agent_task_package_uses_builtin_runtime_tools() -> None:
-    task = _task(
-        TaskType.agent,
-        environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.workspace,
-            workspace={
-                "start_room": "office",
-                "rooms": {"office": ["brief"], "mailroom": []},
-                "goal": {"outgoing_bin": ["brief"]},
-            },
-        ),
-    )
-
-    package = _agent_task_package_for_task(
-        task,
-        task.environment.model_dump(mode="json"),
-    )
-
-    assert package["trajectory_requirements"]["required_tools"] == [
-        "look",
-        "move",
-        "inspect",
-        "take",
-        "place",
-        "final",
-    ]
-
-
 def test_agent_task_package_exposes_provider_image_capability_requirements() -> None:
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui_desktop,
+            type=AgentEnvironmentType.gui,
             requires_vm=True,
             vm={
                 "guest_os": "windows",
@@ -1135,7 +1058,7 @@ def test_multi_turn_packaging_uses_simulator_role() -> None:
 def test_task_agent_packaging_keeps_runner_private_vm_state_out_of_target_context() -> None:
     task = _task(
         TaskType.agent,
-        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.gui_desktop),
+        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.gui),
     ).model_copy(update={"description": "Inspect and repair the visible Windows project."})
     task.metadata["task_agent"] = {
         "initial_content": {
@@ -1145,7 +1068,7 @@ def test_task_agent_packaging_keeps_runner_private_vm_state_out_of_target_contex
         }
     }
     agent_env = {
-        "type": "gui_desktop",
+        "type": "gui",
         "visible_files": {"Desktop/readme.txt": "Public input."},
         "hidden_files": {"private-oracle.json": "PRIVATE-ANSWER"},
         "session": {
@@ -1299,7 +1222,7 @@ def test_asset_qc_requires_existing_prompt_referenced_paths(tmp_path) -> None:
 
     messages = [issue.message for issue in _static_item_issues(item)]
 
-    assert any("do not reference asset path" in message for message in messages)
+    assert any("do not reference asset 'Image 1'" in message for message in messages)
     assert any("does not exist" in message for message in messages)
 
 
@@ -1318,11 +1241,10 @@ def test_builder_relative_asset_path_resolves_against_job_directory(tmp_path) ->
         rubric="Score against visible evidence.",
     )
 
-    assert task_structure_issues(task, builder_work_dir=work_dir) == []
     _normalize_builder_asset_paths(task, work_dir)
 
     assert task.assets[0].path == str(asset_path.resolve())
-    assert task.assets[0].path in task.prompt
+    assert task.prompt == "Inspect Image 1 and describe the anomaly."
     assert task_structure_issues(task) == []
 
 
@@ -1345,7 +1267,7 @@ def test_choice_asset_path_may_be_referenced_by_choice(tmp_path) -> None:
         prompt="Select the matching candidate image.",
         assets=[{"path": str(image_path)}],
         choices=[
-            ChoiceOption(id="A", text=str(image_path)),
+            ChoiceOption(id="A", text="Image 1"),
             ChoiceOption(id="B", text="None of the above"),
         ],
         correct_choice_ids=["A"],
@@ -1409,7 +1331,7 @@ def test_task_design_file_inputs_require_assets(tmp_path) -> None:
         dimension_id="dimension_1",
         task_type=TaskType.generation,
         title="Asset contract test",
-        prompt=f"Inspect {image_path} and describe the object.",
+        prompt="Inspect Image 1 and describe the object.",
         assets=[{"path": str(image_path)}],
         rubric="Score correctness.",
     )
@@ -1457,7 +1379,7 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
         metadata={
             "task_design_id": design_id,
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "requires_vm": True,
                 "vm": {"template": "windows-template", "guest_os": "windows"},
                 "session": {
@@ -1576,7 +1498,7 @@ def test_llm_qc_metadata_compaction_keeps_execution_details() -> None:
     compact = _compact_metadata_for_qc(
         {
             "agent_env": {
-                "type": "gui_desktop",
+                "type": "gui",
                 "session": {"application": "desktop", "launch_state": "Start menu is open."},
                 "evaluation": {"checks": [{"command": "verify-state"}]},
                 "vm": {

@@ -38,7 +38,7 @@ class DesktopAgentStepOutcome:
 
 def desktop_bridge_setup_message() -> str:
     return (
-        "A GUI desktop task requires a CUA/desktop bridge, but no reachable bridge is configured.\n\n"
+        "A GUI task requires a CUA/desktop bridge, but no reachable bridge is configured.\n\n"
         "Configure one of:\n"
         f"1. Set {GUI_BRIDGE_ENV_VAR}=http://127.0.0.1:<port>\n"
         "2. Pass --gui-bridge-url http://127.0.0.1:<port>\n"
@@ -404,7 +404,7 @@ class DesktopBridgeAgentEnvironment:
 
     def observation(self) -> str:
         return (
-            "Environment: gui_desktop\n"
+            "Environment: gui\n"
             f"Bridge: {self.bridge_url}\n"
             f"VM: {self.vm_id or 'none'}\n"
             f"Session: {self.session_id}\n"
@@ -478,7 +478,7 @@ class DesktopBridgeAgentEnvironment:
 
     def state(self) -> dict[str, Any]:
         return {
-            "environment": "gui_desktop",
+            "environment": "gui",
             "bridge_url": self.bridge_url,
             "vm_id": self.vm_id,
             "vm_session": self.vm_session_data,

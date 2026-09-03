@@ -61,6 +61,8 @@ Model-name → provider routing is automatic:
 For reasoning models (`gpt-5*`, `o1/o3/o4`, `deepseek-reasoner`) the completion budget
 is raised automatically and truncated responses are retried; set
 `EVALCLAW_REASONING_EFFORT=low` to cut latency and cost substantially.
+Role-specific CLI options such as `--task-builder-reasoning-effort high` override this
+global fallback for that framework role.
 
 ## ID Ownership
 
@@ -236,7 +238,7 @@ standard exact-match or multiple-choice tasks unless a custom metric is added.
 `agent` tasks run through the EvaluationClaw direct runner because
 they require a stateful action/observation environment and deterministic
 environment scoring.
-Tasks that need interaction may optionally request built-in environments such as
-`workspace`, `code_sandbox`, `docker_workspace`, `dialogue`, or `gui_desktop`.
+Agent tasks may use `docker_workspace` or `gui`. Multi-turn dialogue is
+expressed through the task interaction contract rather than an agent environment.
 Tasks that do not need an environment omit these fields entirely and still pass
 through the same planner, builder, QC, execution, and reporting pipeline.

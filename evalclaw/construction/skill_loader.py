@@ -9,16 +9,12 @@ from ..types import AgentEnvironmentType, TaskBlueprint, TaskDesign, TaskType, e
 
 _SKILL_DIR = Path(__file__).parent / "skills" / "build-environment-tasks"
 _ENVIRONMENT_REFERENCES = {
-    AgentEnvironmentType.workspace: "references/workspace.md",
-    AgentEnvironmentType.code_sandbox: "references/code-sandbox.md",
     AgentEnvironmentType.docker_workspace: "references/docker-workspace.md",
-    AgentEnvironmentType.gui_desktop: "references/gui-desktop.md",
+    AgentEnvironmentType.gui: "references/gui.md",
 }
 _REFERENCE_ORDER = [
-    "references/workspace.md",
-    "references/code-sandbox.md",
     "references/docker-workspace.md",
-    "references/gui-desktop.md",
+    "references/gui.md",
     "references/task-agent.md",
     "references/agent-task-package.md",
 ]
@@ -45,7 +41,7 @@ def _design_route(design: TaskDesign) -> dict[str, object] | None:
     ):
         references.append("references/task-agent.md")
     if (
-        runtime_type in {AgentEnvironmentType.docker_workspace, AgentEnvironmentType.gui_desktop}
+        runtime_type in {AgentEnvironmentType.docker_workspace, AgentEnvironmentType.gui}
         or bool(design.environment_requirements.get("requires_vm"))
         or bool(design.environment_requirements.get("vm"))
     ):

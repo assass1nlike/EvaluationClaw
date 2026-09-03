@@ -15,18 +15,22 @@ class RoleModelSettings:
     provider: str | None
     api_key: str | None
     base_url: str | None
+    reasoning_effort: str | None = None
 
     @property
     def configured(self) -> bool:
         return bool(self.api_key)
 
-    def call_kwargs(self) -> dict[str, str | None]:
-        return {
+    def call_kwargs(self) -> dict[str, object]:
+        kwargs: dict[str, object] = {
             "model": self.model,
             "provider": self.provider,
             "api_key": self.api_key,
             "base_url": self.base_url,
         }
+        if self.reasoning_effort:
+            kwargs["reasoning_effort"] = self.reasoning_effort
+        return kwargs
 
 
 def role_model_settings(config: BenchmarkConfig, role: ModelRole) -> RoleModelSettings:
@@ -36,6 +40,7 @@ def role_model_settings(config: BenchmarkConfig, role: ModelRole) -> RoleModelSe
         provider=getattr(config, f"{role}_provider"),
         api_key=getattr(config, f"{role}_api_key"),
         base_url=getattr(config, f"{role}_base_url"),
+        reasoning_effort=getattr(config, f"{role}_reasoning_effort"),
     )
 
 

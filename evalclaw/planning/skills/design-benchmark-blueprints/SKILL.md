@@ -76,18 +76,14 @@ The framework has exactly these three effort levels.
 
 Use `environment_requirements` only for `agent` tasks, choosing the environment category that provides the required tools or state. `multi_turn` tasks express their dialogue behavior through `interaction_requirements` and do not use an execution environment. Leave `environment_requirements` empty for `choice`, `fill_blank`, `generation`, and `multi_turn`; if executable interaction is essential, design an `agent` task instead.
 
-For non-agent task types, convey task information in text and use file assets only for images. Do not plan a non-image asset for `choice`, `fill_blank`, `generation`, or `multi_turn`. If a non-image file is essential to the task, choose `agent` and declare an environment that can expose and process it.
+For non-agent task types, convey task information in text and use file assets only for images. Refer to those images with stable `Image N` labels in target-visible text; the framework attaches them in assets-list order as multimodal inputs, so do not expose host paths. Do not plan a non-image asset for `choice`, `fill_blank`, `generation`, or `multi_turn`. If a non-image file is essential to the task, choose `agent` and declare an environment that can expose and process it.
 
 Although `reference/universal_format.json` lists the complete field set, for these non-agent task types return exactly `{}` for `environment_requirements`; do not expand its inner fields with null, empty-string, or empty-list values.
 
 Choose the environment category according to its actual runtime capabilities:
 
-- `workspace` is only the built-in room, inventory, item inspection, and outgoing-bin runtime. It cannot edit files, run commands or validators, browse, or add custom tools.
-- `code_sandbox` supports reading and writing files and running tests in a standard code workspace.
 - `docker_workspace` supports task-specific packages, services, shell commands, browser automation, and executable validators in a container.
-- `gui_desktop` supports mouse/keyboard desktop interaction and may request a locally or remotely provisioned VM when a specific operating system or application state is required.
-
-If a task requires editable artifacts, scripts, schemas, hashes, tests, or other executable validation, do not select `workspace`; select `code_sandbox` or `docker_workspace` according to the required software and services.
+- `gui` supports screenshot-driven graphical interaction through a GUI bridge and may request a locally or remotely provisioned VM when a specific operating system or application state is required.
 
 For every `multi_turn` TaskDesign, set `interaction_requirements.followup_mode` to exactly `adaptive` or `scripted`. Use `adaptive` when later turns must respond to the target's actual replies, and `scripted` only when predetermined follow-up turns are substantively appropriate. Preserve any explicit user requirement about this choice.
 

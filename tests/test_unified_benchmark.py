@@ -207,7 +207,7 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together(monke
             "Mixed interaction",
             task_type=TaskType.agent,
             content="One workspace interaction.",
-            environment_type=AgentEnvironmentType.workspace,
+            environment_type=AgentEnvironmentType.docker_workspace,
             allowed_tools=["look", "read_file", "write_file"],
         ),
     ]
@@ -238,12 +238,8 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together(monke
                 "title": "Mixed interaction",
                 "prompt": "Move the blue notebook from the office to the mailroom.",
                 "environment": {
-                    "type": "workspace",
-                    "workspace": {
-                        "start_room": "office",
-                        "rooms": {"office": ["blue_notebook"], "mailroom": []},
-                        "goal": {"outgoing_bin": ["blue_notebook"]},
-                    },
+                    "type": "docker_workspace",
+                    "test_command": "python3 -c \"assert True\"",
                 },
                 "scoring": {"pass_criteria": "The blue notebook is in the outgoing bin."},
                 "metadata": {"challenge_effort_self_assessment": assessment},
@@ -270,5 +266,5 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together(monke
         TaskType.agent,
     ]
     assert "agent_env" not in suite.tasks[0].metadata
-    assert suite.tasks[1].metadata["agent_env"]["type"] == "workspace"
+    assert suite.tasks[1].metadata["agent_env"]["type"] == "docker_workspace"
     assert len(suite.tasks) == 2

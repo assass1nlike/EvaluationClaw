@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 from concurrent.futures import CancelledError
 from pathlib import Path
@@ -722,6 +723,323 @@ def test_task_builder_can_run_python_and_create_assets(tmp_path) -> None:
     assert asset_path.read_text(encoding="utf-8") == "x,y\n1,2\n"
 
 
+def test_task_builder_can_generate_image_asset(monkeypatch, tmp_path) -> None:
+    png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x02\x00\x00\x00\x03"
+    captured: dict[str, object] = {}
+
+    class Response:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return {"data": [{"b64_json": base64.b64encode(png).decode("ascii")}]}
+
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured.update(kwargs)
+        return Response()
+
+    monkeypatch.setattr("evalclaw.construction.research.httpx.post", fake_post)
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="image_1",
+            name="generate_image",
+            arguments={
+                "prompt": "A clear view of the apparatus.",
+                "output_path": "figures/apparatus.png",
+                "size": "1024x1024",
+            },
+        ),
+        BenchmarkConfig(
+            image_generation_model="gpt-image-2",
+            image_generation_api_key="test-key",
+            image_generation_base_url="https://images.example/v1",
+        ),
+        max_chars=50_000,
+        work_dir=tmp_path,
+    )
+
+    content = json.loads(result.content)
+    target = tmp_path.resolve() / "figures" / "apparatus.png"
+    assert result.error is None
+    assert captured["url"] == "https://images.example/v1/images/generations"
+    assert captured["json"] == {
+        "model": "gpt-image-2",
+        "prompt": "A clear view of the apparatus.",
+        "size": "1024x1024",
+        "n": 1,
+    }
+    assert content == {
+        "path": str(target),
+        "filename": "apparatus.png",
+        "media_type": "image/png",
+        "size_bytes": len(png),
+        "width": 2,
+        "height": 3,
+    }
+    assert target.read_bytes() == png
+
+
+def test_task_builder_can_generate_image_asset_with_reference_images(monkeypatch, tmp_path) -> None:
+    png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x02\x00\x00\x00\x03"
+    first_reference = tmp_path / "reference-one.png"
+    second_reference = tmp_path / "reference-two.jpg"
+    first_reference.write_bytes(b"first")
+    second_reference.write_bytes(b"second")
+    captured: dict[str, object] = {}
+
+    class Response:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return {"data": [{"b64_json": base64.b64encode(png).decode("ascii")}]}
+
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured.update(kwargs)
+        return Response()
+
+    monkeypatch.setattr("evalclaw.construction.research.httpx.post", fake_post)
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="image_1",
+            name="generate_image",
+            arguments={
+                "prompt": "Use the reference composition.",
+                "output_path": "generated/result.png",
+                "reference_paths": [str(first_reference), str(second_reference)],
+            },
+        ),
+        BenchmarkConfig(
+            image_generation_model="gpt-image-2",
+            image_generation_api_key="test-key",
+            image_generation_base_url="https://images.example/v1",
+        ),
+        max_chars=50_000,
+        work_dir=tmp_path,
+    )
+
+    assert result.error is None
+    assert captured["url"] == "https://images.example/v1/images/edits"
+    assert captured["data"] == {
+        "model": "gpt-image-2",
+        "prompt": "Use the reference composition.",
+        "size": "1024x1024",
+        "n": "1",
+    }
+    files = captured["files"]
+    assert isinstance(files, list)
+    assert [(name, upload[0], upload[2]) for name, upload in files] == [
+        ("image", "reference-one.png", "image/png"),
+        ("image", "reference-two.jpg", "image/jpeg"),
+    ]
+    assert [upload[1] for _, upload in files] == [b"first", b"second"]
+
+
+def test_task_builder_image_generation_rejects_too_many_reference_images(
+    monkeypatch, tmp_path
+) -> None:
+    monkeypatch.setattr(
+        "evalclaw.construction.research.httpx.post",
+        lambda *args, **kwargs: pytest.fail("reference limit should be enforced before the API call"),
+    )
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="image_1",
+            name="generate_image",
+            arguments={
+                "prompt": "Image",
+                "output_path": "result.png",
+                "reference_paths": [f"reference-{index}.png" for index in range(11)],
+            },
+        ),
+        BenchmarkConfig(
+            image_generation_model="gpt-image-2",
+            image_generation_api_key="test-key",
+            image_generation_base_url="https://images.example/v1",
+        ),
+        max_chars=50_000,
+        work_dir=tmp_path,
+    )
+
+    assert result.error == "tool_error"
+    assert "at most 10" in result.content
+
+
+def test_task_builder_image_generation_rejects_path_outside_job(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(
+        "evalclaw.construction.research.httpx.post",
+        lambda *args, **kwargs: pytest.fail("unsafe output path reached the image API"),
+    )
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="image_1",
+            name="generate_image",
+            arguments={"prompt": "Image", "output_path": "../outside.png"},
+        ),
+        BenchmarkConfig(
+            image_generation_model="gpt-image-2",
+            image_generation_api_key="test-key",
+            image_generation_base_url="https://images.example/v1",
+        ),
+        max_chars=50_000,
+        work_dir=tmp_path,
+    )
+
+    assert result.error == "tool_error"
+    assert "inside the Builder job directory" in result.content
+
+
+def test_task_builder_exposes_generate_image_only_when_configured(monkeypatch, tmp_path) -> None:
+    captured: list[list[str]] = []
+
+    def fake_call(messages, **kwargs):
+        captured.append([tool.name for tool in kwargs["tools"]])
+        return TargetToolModelResponse(
+            adapter="openai",
+            content='{"tasks": []}',
+            tool_calls=[],
+            assistant_message={"role": "assistant", "content": '{"tasks": []}'},
+            raw_response={},
+        )
+
+    monkeypatch.setattr("evalclaw.construction.research.call_orchestrator_with_tools", fake_call)
+    run_task_builder_tools(
+        {"task_plan": {"builder_job_id": "image-job"}},
+        system_prompt="Build a task.",
+        config=BenchmarkConfig(
+            task_builder_model="gpt-5",
+            task_builder_api_key="test-key",
+            image_generation_model="gpt-image-2",
+            image_generation_api_key="image-key",
+            image_generation_base_url="https://images.example/v1",
+            output_dir=str(tmp_path),
+        ),
+        include_source_tools=False,
+    )
+
+    assert "generate_image" in captured[0]
+
+
+def test_task_builder_view_image_attaches_image_to_next_openai_turn(monkeypatch, tmp_path) -> None:
+    work_dir = tmp_path / "assets" / "task-builder" / "image-job"
+    work_dir.mkdir(parents=True)
+    image_path = work_dir / "scene.png"
+    image_path.write_bytes(b"\x89PNG\r\n\x1a\n")
+    captured: list[dict] = []
+    responses = iter(
+        [
+            _openai_tool_response(
+                ToolCall(
+                    id="view_1",
+                    name="view_image",
+                    arguments={"path": "scene.png"},
+                )
+            ),
+            TargetToolModelResponse(
+                adapter="openai",
+                content='{"tasks": []}',
+                tool_calls=[],
+                assistant_message={"role": "assistant", "content": '{"tasks": []}'},
+                raw_response={},
+            ),
+        ]
+    )
+
+    def fake_call(messages, **kwargs):
+        captured.append({"messages": json.loads(json.dumps(messages)), "tools": kwargs["tools"]})
+        return next(responses)
+
+    monkeypatch.setattr("evalclaw.construction.research.call_orchestrator_with_tools", fake_call)
+    raw, _ = run_task_builder_tools(
+        {"task_plan": {"builder_job_id": "image-job"}},
+        system_prompt="Build a task.",
+        config=BenchmarkConfig(
+            task_builder_model="vision-model",
+            task_builder_api_key="test-key",
+            output_dir=str(tmp_path),
+        ),
+        include_source_tools=False,
+    )
+
+    assert raw == '{"tasks": []}'
+    assert "view_image" in [tool.name for tool in captured[0]["tools"]]
+    image_message = captured[1]["messages"][-1]
+    assert image_message["role"] == "user"
+    assert image_message["content"][1]["type"] == "image_url"
+    assert image_message["content"][1]["image_url"]["url"].startswith(
+        "data:image/png;base64,"
+    )
+
+
+@pytest.mark.parametrize(
+    ("adapter", "assistant_message", "image_type"),
+    [
+        (
+            "anthropic",
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "tool_use", "id": "view_1", "name": "view_image", "input": {}}
+                ],
+            },
+            "image",
+        ),
+        (
+            "openai_responses",
+            {
+                "responses_output": [
+                    {"type": "function_call", "call_id": "view_1", "name": "view_image"}
+                ]
+            },
+            "input_image",
+        ),
+    ],
+)
+def test_view_image_uses_provider_multimodal_blocks(
+    tmp_path, adapter, assistant_message, image_type
+) -> None:
+    image_path = tmp_path / "scene.webp"
+    image_path.write_bytes(b"image")
+    messages = [{"role": "user", "content": "Inspect the image."}]
+    response = TargetToolModelResponse(
+        adapter=adapter,
+        content="",
+        tool_calls=[ToolCall(id="view_1", name="view_image")],
+        assistant_message=assistant_message,
+        raw_response={},
+    )
+    result = ToolResult(
+        tool_call_id="view_1",
+        name="view_image",
+        content="attached",
+        raw={"image_path": str(image_path), "media_type": "image/webp"},
+    )
+
+    _append_tool_results(messages, response, [result])
+
+    content = messages[-1]["content"]
+    assert any(block.get("type") == image_type for block in content)
+
+
+def test_task_builder_view_image_rejects_files_outside_job(tmp_path) -> None:
+    outside = tmp_path / "outside.png"
+    outside.write_bytes(b"\x89PNG\r\n\x1a\n")
+    work_dir = tmp_path / "job"
+    work_dir.mkdir()
+
+    result = _execute_task_builder_tool(
+        ToolCall(id="view_1", name="view_image", arguments={"path": str(outside)}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        work_dir=work_dir,
+    )
+
+    assert result.error == "tool_error"
+    assert "inside the job directory" in result.content
+
+
 def test_task_builder_build_image_persists_context_and_returns_relative_reference(monkeypatch, tmp_path) -> None:
     dockerfile = tmp_path / "custom.Dockerfile"
     dockerfile.write_text("FROM python:3.11-slim\nCOPY requirements.txt /tmp/requirements.txt\n", encoding="utf-8")
@@ -820,6 +1138,69 @@ def test_task_builder_run_image_check_reports_result(monkeypatch, tmp_path) -> N
     assert payload["image"] == "evalclaw-builder:test"
     assert payload["exit_code"] == 1
     assert payload["stderr"] == "pytest is missing"
+
+
+def test_task_builder_build_vm_image_returns_provider_image(monkeypatch, tmp_path) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_build(provider_url, **kwargs):
+        captured["provider_url"] = provider_url
+        captured["kwargs"] = kwargs
+        return {
+            "image": {"id": "gui-blender-v1", "digest": "sha256:built"},
+            "status": "completed",
+        }
+
+    monkeypatch.setattr("evalclaw.construction.research.build_vm_image", fake_build)
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="vm_build_1",
+            name="build_vm_image",
+            arguments={
+                "base_image": {"guest_os": "windows", "required_capabilities": ["desktop_bridge"]},
+                "provisioning": {"choco_packages": ["blender"]},
+                "files": {"C:/tools/check.ps1": "Write-Output ready"},
+                "checks": [{"command": "blender --version"}],
+            },
+        ),
+        BenchmarkConfig(
+            output_dir=str(tmp_path),
+            vm_provider_url="https://provider.test",
+            vm_provider_api_key="secret",
+        ),
+        max_chars=50_000,
+        work_dir=tmp_path,
+    )
+
+    assert result.error is None
+    assert json.loads(result.content)["image"]["id"] == "gui-blender-v1"
+    assert captured["provider_url"] == "https://provider.test"
+    assert captured["kwargs"]["api_key"] == "secret"
+
+
+def test_task_builder_vm_image_tool_is_exposed_when_enabled(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_model(messages, **kwargs):
+        captured["tools"] = kwargs["tools"]
+        return TargetToolModelResponse(
+            adapter="openai",
+            content='{"tasks": []}',
+            tool_calls=[],
+            assistant_message={"role": "assistant", "content": '{"tasks": []}'},
+            raw_response={},
+        )
+
+    monkeypatch.setattr("evalclaw.construction.research.call_orchestrator_with_tools", fake_model)
+    run_task_builder_tools(
+        {"goal": "Build a GUI task."},
+        system_prompt="Build the task.",
+        config=BenchmarkConfig(**dummy_config_kwargs(), vm_provider_url="https://provider.test"),
+        include_source_tools=False,
+        include_vm_image_tools=True,
+    )
+
+    assert "build_vm_image" in {tool.name for tool in captured["tools"]}
 
 
 def test_task_builder_tools_recover_missing_final_content(monkeypatch) -> None:
@@ -928,10 +1309,19 @@ def test_task_builder_tools_use_anthropic_tool_result_blocks(monkeypatch) -> Non
 def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypatch) -> None:
     captured: dict = {}
 
-    def fake_tools(payload, *, system_prompt, config, include_source_tools, stop_event):
+    def fake_tools(
+        payload,
+        *,
+        system_prompt,
+        config,
+        include_source_tools,
+        include_image_tools=False,
+        stop_event,
+    ):
         captured["payload"] = payload
         captured["system_prompt"] = system_prompt
         captured["include_source_tools"] = include_source_tools
+        captured["include_image_tools"] = include_image_tools
         return (
             json.dumps(
                 {
@@ -951,12 +1341,8 @@ def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypat
                             "prompt": "Inspect the workspace and produce the requested result.",
                             "resource_ids": ["resource_1"],
                             "environment": {
-                                "type": "workspace",
-                                "workspace": {
-                                    "start_room": "office",
-                                    "rooms": {"office": ["brief"], "mailroom": []},
-                                    "goal": {"outgoing_bin": ["brief"]},
-                                },
+                                "type": "docker_workspace",
+                                "test_command": "python3 -c \"assert True\"",
                             },
                             "scoring": {"pass_criteria": "The requested result is complete."},
                             "metadata": {
@@ -995,7 +1381,7 @@ def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypat
         task_type=TaskType.agent,
         content="Research workflow.",
         challenge_effort=ChallengeEffort.E2,
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
         source_plan={
             "strategy": "reused",
             "suggested_urls": ["https://example.com/source"],
@@ -1101,7 +1487,7 @@ def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -
     def fake_tools(payload, **kwargs):
         payloads.append(payload)
         environment = {
-            "type": "code_sandbox",
+            "type": "docker_workspace",
             "hidden_files": {"tests.py": "raise SystemExit(0)\n"},
             "test_command": "python3 tests.py",
         }
@@ -1172,7 +1558,7 @@ def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -
         "Execution task",
         task_type=TaskType.agent,
         count=2,
-        environment_type=AgentEnvironmentType.code_sandbox,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
 
     suite = build_task_suite(
@@ -1227,7 +1613,7 @@ def test_builder_host_path_in_container_prompt_enters_repair(monkeypatch, tmp_pa
                             "prompt": f"Read {prompt_path} and implement the requested program.",
                             "assets": [{"path": str(asset_path)}],
                             "environment": {
-                                "type": "code_sandbox",
+                                "type": "docker_workspace",
                                 "test_command": "python3 verify.py",
                             },
                             "scoring": {
@@ -1261,7 +1647,7 @@ def test_builder_host_path_in_container_prompt_enters_repair(monkeypatch, tmp_pa
         dimension.id,
         "Execution task",
         task_type=TaskType.agent,
-        environment_type=AgentEnvironmentType.code_sandbox,
+        environment_type=AgentEnvironmentType.docker_workspace,
     )
 
     suite = build_task_suite(
@@ -1295,12 +1681,8 @@ def test_qc_repair_edits_file_with_tools_and_preserves_best_copy(monkeypatch, tm
             "title": f"Task {task_index}",
             "prompt": prompt,
             "environment": {
-                "type": "workspace",
-                "workspace": {
-                    "start_room": "office",
-                    "rooms": {"office": [f"brief_{task_index}"], "mailroom": []},
-                    "goal": {"outgoing_bin": [f"brief_{task_index}"]},
-                },
+                "type": "docker_workspace",
+                "test_command": "python3 -c \"assert True\"",
             },
             "scoring": {"pass_criteria": "The requested result is complete."},
             "metadata": {
@@ -1365,7 +1747,7 @@ def test_qc_repair_edits_file_with_tools_and_preserves_best_copy(monkeypatch, tm
             task_type=TaskType.agent,
             content=f"Research workflow scenario {index}.",
             challenge_effort=ChallengeEffort.E3,
-            environment_type=AgentEnvironmentType.workspace,
+            environment_type=AgentEnvironmentType.docker_workspace,
             metadata={"content_focus": f"scenario {index}"},
         )
         for index in (1, 2)

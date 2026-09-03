@@ -1,6 +1,6 @@
-# GUI Desktop Environment
+# GUI Environment
 
-Use runtime environment type `gui_desktop`.
+Use runtime environment type `gui`.
 
 - Use this canonical field layout. Do not move `evaluation` into `session`, rename
   `vm_provisioning` to `provisioning`, or invent aliases such as
@@ -9,7 +9,7 @@ Use runtime environment type `gui_desktop`.
 ```json
 {
   "environment": {
-    "type": "gui_desktop",
+    "type": "gui",
     "requires_vm": true,
     "vm": {
       "guest_os": "windows",
@@ -74,6 +74,7 @@ Use runtime environment type `gui_desktop`.
 - Generate JSON fixture files from PowerShell objects with `ConvertTo-Json`; do not hand-write JSON inside a quoted PowerShell string with `\"`, `\n`, or backtick-newline escapes. Those characters can be written literally and produce a file that `ConvertFrom-Json` cannot read. For multiline scripts or data embedded in the Builder response, prefer an array of complete lines joined with `[Environment]::NewLine`; a PowerShell here-string header must be followed immediately by a real newline.
 - Every evaluation command must itself decide whether the scored state is correct by returning a success or failure exit code (or by using an output comparison explicitly supported by the bridge). A command that only prints or serializes observations and then exits successfully is not an evaluator. Ordinary task metadata is descriptive and cannot register a runner-private or host-side evaluator.
 - Do not invent a task-specific image or snapshot identifier. Use a prebuilt artifact only when its concrete identifier was supplied in the TaskDesign or runtime inputs; otherwise declare OS/capability requirements and construct the task-specific fixture with `vm_provisioning` on the provider-resolved base image.
+- When a remote VM provider advertises `image_build`, the Builder may submit a declarative `build_vm_image` plan containing a base image selector, guest provisioning, files, and provider-executed checks. Use the returned `image_id` in `environment.vm.image`; the image is usable only after the provider reports successful checks.
 - Bound `max_steps` and timeout, and define bridge-executable artifact, UI-state, page-state, final-state, or trajectory checks with full, partial, and failure criteria.
 - `expected_artifacts` lists candidate paths. Set `artifact_requirement` to `all` (default), `any`, or `exactly_one` so alternative formats are not misrepresented as jointly required.
 - The desktop bridge executes both target actions and final-state evaluator commands as the signed-in target user. An evaluator therefore cannot read an oracle directory protected for only SYSTEM or Administrators. Keep private oracle material inaccessible to the target and embed the required expected values or hashes directly in evaluator commands; never make a private oracle target-readable merely so scoring can access it.

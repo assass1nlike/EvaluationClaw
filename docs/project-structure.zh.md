@@ -32,13 +32,13 @@
 - `suite.py`：每个 Blueprint 形成一次 Builder 调用；严格校验其题量和混合题型分配，并处理 Blueprint 并发、结构 repair、截断恢复和进度日志。QC repair 时建立只含问题题目的候选文件，读取编辑结果并按题目 ID 合并。
 - `parsing.py`：把 TaskBuilder 返回的 JSON 解析为框架拥有 ID 的 `TaskDefinition`。
 - `resources.py`：仅在 dimension 明确 `needs_research=true` 时选择外部来源，并做资源归一化与去重。
-- `research.py`：运行有界 TaskBuilder 工具循环；TaskBuilder 可执行 Python，非 generated 构题还可读取和下载来源；QC repair 用 Python 工具编辑候选文件。
+- `research.py`：运行有界 TaskBuilder 工具循环；TaskBuilder 可执行 Python、观察构题图片，并可调用已配置的图像模型生成任务图片；非 generated 构题还可读取和下载来源，QC repair 用 Python 工具编辑候选文件。
 - `validation.py`：在全局 QC 前校验题型字段、challenge effort 自检和可选执行环境契约。
 - `packaging.py`：提供 `pack_task_item`——把单个 `TaskDefinition` 就地转换为 run-ready 的 `BenchmarkItem`（含结构校验元数据、内容摘要、rubric 归一化，及带 `environment` 任务所需的 `agent_env`、`task_agent`、`agent_task_package`）。由 `suite.py` 在每个 Builder job 合并时调用；原 `task_suite_to_dataset` 与 `BenchmarkDataset` 已删除，`TaskSuite` 即 run-ready 容器。
 
 ## Planning 子系统
 
-- `planner.py`：目标翻译和规模指导；目标翻译需要已配置的 Planner role，维度与 Blueprint 规划统一读取当前 Planner Skill。
+- `planner.py`：目标翻译、报告翻译和规模指导；这些翻译调用需要已配置的 Planner role，维度与 Blueprint 规划统一读取当前 Planner Skill。
 - `task_planner.py`：唯一 benchmark planner 入口。加载 `planning/skills/design-benchmark-blueprints/SKILL.md`，让 Planner 自主决定 Blueprint 边界、题量、混合题型和 `family`/`archetype`/`per_task` 粒度，再执行题量、归属和工作量审计。
 - `skill_loader.py`：以 UTF-8 读取 Planner Skill，并把它注入维度和 Blueprint 规划调用。
 - `skills/design-benchmark-blueprints/SKILL.md`：需求、研究结果、维度和 Builder 工作量到完整 Blueprint 计划的规范。
@@ -55,7 +55,7 @@
 - `execution/plan.py`：只把 QC accepted items 交给 runner。
 - `execution/runner.py`：按 `task_type` 与实际 metadata/字段分派执行和评分。这是运行时分派，不是构题路线分流。
 
-`output_dir/debug/` 按阶段保存运行级检查点、模型调用、Research 轮次、QC、环境 preflight、逐题 runner 结果和可执行环境产物；失败不会删除已经完成的阶段或题目结果。
+`output_dir/debug/` 按阶段保存运行级检查点、模型调用、Research 轮次、QC、报告翻译、环境 preflight、逐题 runner 结果和可执行环境产物；失败不会删除已经完成的阶段或题目结果。
 
 ## 推荐导入路径
 

@@ -1112,7 +1112,7 @@ HTML_TEMPLATE = """<!doctype html>
       if (env.requires_vm || hasRenderableValue(env.vm) || hasRenderableValue((pack.environment_requirements || {}).vm)) {
         flags.push("requires VM");
       }
-      if (env.type === "gui_desktop" || (pack.environment_requirements || {}).requires_gui) flags.push("requires GUI");
+      if (env.type === "gui" || (pack.environment_requirements || {}).requires_gui) flags.push("requires GUI");
       if (Object.keys(hiddenFiles || {}).length || hasRenderableValue(hiddenRefs.reference_artifacts)) {
         flags.push("requires hidden evaluator");
       }
@@ -1218,9 +1218,6 @@ HTML_TEMPLATE = """<!doctype html>
         ["assets", firstRenderable(assets, visibleInputs.assets, visibleInputs.resources)],
         ["session_resources", visibleInputs.session],
       ]);
-      const repositoryContext = objectWithValues([
-        ["workspace", env.workspace],
-      ]);
       const observationActionSpace = objectWithValues([
         ["environment_type", env.type || envRequirements.type],
         ["observation_channels", env.observation_channels || envRequirements.observation_channels],
@@ -1252,7 +1249,6 @@ HTML_TEMPLATE = """<!doctype html>
         ["vm_provider_url", env.vm_provider_url],
       ]);
       const environmentState = objectWithValues([
-        ["workspace", env.workspace],
         ["session", env.session],
         ["initial_session", initial.session],
         ["initial_vm", initial.vm],
@@ -1313,7 +1309,6 @@ HTML_TEMPLATE = """<!doctype html>
           note: "Files, assets, repositories, media, and other resources visible at task start.",
           rows: [
             ["Model-visible resources", modelVisibleResources],
-            ["Repository context", repositoryContext],
           ],
         },
         {

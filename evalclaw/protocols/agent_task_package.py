@@ -18,7 +18,7 @@ AGENT_TASK_PACKAGE_SCHEMA: dict[str, Any] = {
     },
     "environment_requirements": {
         "environment_ref": "metadata.agent_env",
-        "type": "workspace | code_sandbox | docker_workspace | gui_desktop",
+        "type": "docker_workspace | gui",
         "os": "linux | windows | macos | any",
         "requires_vm": False,
         "requires_gui": False,
@@ -127,7 +127,7 @@ def item_requires_agent_task_package(item: BenchmarkItem) -> bool:
         return False
     env = _env_from_item(item)
     env_type = str(env.get("type") or "").lower()
-    if env_type in {"docker_workspace", "gui_desktop"}:
+    if env_type in {"docker_workspace", "gui"}:
         return True
     if bool(env.get("requires_vm") or env.get("vm")):
         return True
@@ -200,7 +200,7 @@ def agent_task_package_issues(item: BenchmarkItem) -> list[str]:
 
     env = _env_from_item(item)
     env_type = str(env.get("type") or "").lower()
-    if env_type in {"docker_workspace", "gui_desktop"}:
+    if env_type in {"docker_workspace", "gui"}:
         artifact_collection = package.get("artifact_collection")
         if not isinstance(artifact_collection, dict) or not (
             artifact_collection.get("collect_paths") or artifact_collection.get("collect_trajectory")

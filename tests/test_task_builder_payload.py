@@ -234,7 +234,7 @@ def test_execution_fields_are_added_only_for_blueprints_that_request_them() -> N
         "Tool tasks",
         task_type=TaskType.agent,
         content="Stateful tool tasks.",
-        environment_type=AgentEnvironmentType.workspace,
+        environment_type=AgentEnvironmentType.docker_workspace,
         allowed_tools=["look", "read_file"],
     )
 
@@ -247,14 +247,15 @@ def test_execution_fields_are_added_only_for_blueprints_that_request_them() -> N
 
     task_design = payload["task_plan"]["task_design"]
     contract = payload["task_builder_contract"]
-    assert task_design["environment_requirements"]["category"] == "workspace"
+    assert task_design["environment_requirements"]["category"] == "docker_workspace"
     assert task_design["interaction_requirements"][
         "allowed_action_or_tool_categories"
     ] == ["look", "read_file"]
     assert "environment" in contract["task_schema"]["optional"]
     assert "metadata_protocols" not in contract
     assert contract["environment_skill"]["loaded_references"] == [
-        "references/workspace.md"
+        "references/docker-workspace.md",
+        "references/agent-task-package.md",
     ]
 
 
@@ -268,7 +269,7 @@ def test_environment_skill_routes_only_environment_backed_task_designs() -> None
         "desktop_workflow",
         TaskType.agent,
         content="One desktop workflow.",
-        environment_type=AgentEnvironmentType.gui_desktop,
+        environment_type=AgentEnvironmentType.gui,
     )
     blueprint = make_blueprint(
         "mixed_tasks",
@@ -281,10 +282,10 @@ def test_environment_skill_routes_only_environment_backed_task_designs() -> None
     assert payload is not None
     assert payload["applies_to_task_design_ids"] == ["desktop_workflow"]
     assert payload["loaded_references"] == [
-        "references/gui-desktop.md",
+        "references/gui.md",
         "references/agent-task-package.md",
     ]
-    assert payload["routing"][0]["runtime_environment_type"] == "gui_desktop"
+    assert payload["routing"][0]["runtime_environment_type"] == "gui"
 
 
 def test_task_builder_payload_contract_supports_one_multi_item_task_design() -> None:

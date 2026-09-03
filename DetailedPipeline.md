@@ -34,7 +34,7 @@ Planner 只收到这份 brief 的紧凑索引，不收到来源全文，下游�
 
 Planner 收到用户目标、题量指导、支持的题型与执行环境，以及可选的 Deep Research 紧凑结果，输出完整的 **BenchmarkPlan**。它含两个设计层级：**Dimension** 定义互不重叠的测评维度（含测量目标、边界与方式），**TaskDesign** 定义某类具体任务的题型、题量与内容设计。各维度再按题量分配 `challenge_effort` 档位（E1/E2/E3）。
 
-可用执行环境是 `workspace`、`code_sandbox`、`docker_workspace`、`gui_desktop`，各自能力边界见 Planner Skill 的「Choose the environment category」一节（[B.3](#appendix-b-planner)）和各题型字段契约（[D.3](#appendix-d-task-types)）。Planner 的完整输入与输出契约见[附录 C](#appendix-c)，Dimension/TaskDesign 的共同完整字段见 `universal_format.json`（[B.3](#appendix-b-planner)），各字段的精确语义（含 `task_count`、`scoring_contract`）见[I.3](#appendix-i-tospec)。
+可用执行环境是 `docker_workspace` 和 `gui`，各自能力边界见 Planner Skill 的「Choose the environment category」一节（[B.3](#appendix-b-planner)）和各题型字段契约（[D.3](#appendix-d-task-types)）。Planner 的完整输入与输出契约见[附录 C](#appendix-c)，Dimension/TaskDesign 的共同完整字段见 `universal_format.json`（[B.3](#appendix-b-planner)），各字段的精确语义（含 `task_count`、`scoring_contract`）见[I.3](#appendix-i-tospec)。
 
 启用 `human_review` 时，框架先展示完整 `BenchmarkPlan`。用户批准后进入构题；用户提交意见时，Planner 根据意见和上一版完整计划重新规划，最多审核三轮。
 
@@ -50,9 +50,9 @@ Planner 收到用户目标、题量指导、支持的题型与执行环境，以
 
 一次完整调用由 system prompt（base prompt、可选环境 Skill、构题工具 prompt，见[B.4](#appendix-b-task-builder)）与 user message（当前题目设计信息、题量/题型规定、可用来源等，见[D.1](#appendix-d-payload)）组成。
 
-TaskBuilder 可调用 `run_python` 做计算、验证、生成题目文件或编辑 QC 候选；非 generated 的 TaskDesign 还可调用 `read_research_source`、`search_web`、`fetch_url` 和 `download_files` 读取来源。框架把工具结果追加进消息历史继续对话，直到 TaskBuilder 不再调用工具（工具 schema、预算与收尾见[D.2](#appendix-d-tools)）。`search_web` 是否可用仍由网页搜索配置决定。初次构题时，TaskBuilder 在末条回复中返回完整构题 JSON；QC 修复时，它编辑框架提供的候选 JSON 文件并返回简短确认。每道题是一个完整的 `TaskDefinition`，评分指标属单题契约，各题型的完整字段与分支见[D.3](#appendix-d-task-types)。
+TaskBuilder 可调用 `run_python` 做计算、验证、生成题目文件或编辑 QC 候选，并可调用 `view_image` 观察构题目录内的图片；配置图像生成模型后还可调用 `generate_image` 生成图片；非 generated 的 TaskDesign 还可调用 `read_research_source`、`search_web`、`fetch_url` 和 `download_files` 读取来源。框架把工具结果追加进消息历史继续对话，直到 TaskBuilder 不再调用工具（工具 schema、预算与收尾见[D.2](#appendix-d-tools)）。`search_web` 是否可用仍由网页搜索配置决定。初次构题时，TaskBuilder 在末条回复中返回完整构题 JSON；QC 修复时，它编辑框架提供的候选 JSON 文件并返回简短确认。每道题是一个完整的 `TaskDefinition`，评分指标属单题契约，各题型的完整字段与分支见[D.3](#appendix-d-task-types)。
 
-TaskBuilder 返回后，框架立即做纯代码结构检查，按题型分支校验各种字段契约（完整清单见[I.7](#appendix-i-structure)，与全局 QC 的静态检查[I.4](#appendix-i-static)是两层）。`code_sandbox` 和 `docker_workspace` 题通过字段检查后，还会在隔离容器中执行 setup 和 evaluator preflight。初次构题发现错误时，把结构或环境错误和上次返回内容交回 TaskBuilder，要求重新返回完整 JSON；QC 候选发现错误时，只发送错误并让 TaskBuilder 继续编辑同一个候选文件（repair 输入见[D.4](#appendix-d-repair)）。
+TaskBuilder 返回后，框架立即做纯代码结构检查，按题型分支校验各种字段契约（完整清单见[I.7](#appendix-i-structure)，与全局 QC 的静态检查[I.4](#appendix-i-static)是两层）。`docker_workspace` 题通过字段检查后，还会在隔离容器中执行 setup 和 evaluator preflight。初次构题发现错误时，把结构或环境错误和上次返回内容交回 TaskBuilder，要求重新返回完整 JSON；QC 候选发现错误时，只发送错误并让 TaskBuilder 继续编辑同一个候选文件（repair 输入见[D.4](#appendix-d-repair)）。
 
   ### 3. 构题整合出 run-ready TaskSuite
 
@@ -76,7 +76,7 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 
 替换题生成后，框架重跑完整三层 QC，并按单题严格比较：只有阻塞 error 数量严格减少的题才保留候选版本，其余题回退历史最佳版本。每道题独立维护历史最佳，所以同一轮可以部分保留、部分回退；某道替换题未通过结构校验时，只保留该题的旧版本，同一 TaskDesign 及其他 TaskDesign 的合法候选仍继续接受 QC。如此循环，最多运行 `max_qc_iterations` 轮。
 
-修复结束后，如果通过了 QC，benchmark 正式完成。仍有阻塞则默认抛异常拒绝产出 runner-ready benchmark；只有显式设置 `allow_incomplete_benchmark=true` 才保留不完整草稿。
+修复结束后，如果通过了 QC，benchmark 正式完成。仍有阻塞则默认抛异常拒绝产出 runner-ready benchmark；显式设置 `allow_incomplete_benchmark=true` 时，框架移除带 error 的题目，并以其余题目继续产出和执行。设置 `strict_qc_filter=true` 时，带 warning 的题目也会移除。
 
 <a id="section-human-review"></a>
 
@@ -124,7 +124,7 @@ QC 对每条绑定具体题目的 error 找到其所属 TaskDesign job，再调�
 | P1 | 初次规划 | Planner | base + Planner Skill + format reference | `<PLANNER_RESOURCES>` | 无 | 完整 plan JSON |
 | P2 | 计划解析/审计失败 | Planner | 与 P1 相同 | P1 输入 + repair file | 无 | 完整替换 plan |
 | P3 | 人工要求修改计划 | Planner | 与 P1 相同 | 用户 goal、人工意见与上一版完整 plan | 无 | 完整替换 plan |
-| B1 | 每个 TaskDesign | TaskBuilder | base + 可选环境 Skill + 构题工具 prompt | TaskBuilder payload JSON | `run_python`；环境题另有镜像构建/检查工具；非 generated 另有 4 个来源工具 | resources/tasks |
+| B1 | 每个 TaskDesign | TaskBuilder | base + 可选环境 Skill + 构题工具 prompt | TaskBuilder payload JSON | `run_python`、`view_image`；配置后有 `generate_image`；环境题另有容器镜像构建/检查工具；非 generated 另有 4 个来源工具 | resources/tasks |
 | B2 | 使用构题工具 | TaskBuilder | 与 B1 相同 | user + assistant tool call + tool result | 与 B1 相同 | 最终完整 JSON |
 | B3 | Builder 输出截断 | TaskBuilder | 截断摘要 prompt 后与 B1 相同 | 当前截断响应；重试保留原对话并以摘要替换该响应 | 摘要时无工具，重试时与 B1 相同 | 在原对话中继续并返回完整 JSON |
 | B4 | Builder 结构不合法 | TaskBuilder | 与 B1 相同 | payload + repair | 与 B1 相同 | 初次构题返回完整 JSON；QC repair 编辑候选文件 |
@@ -183,6 +183,8 @@ user message 不是 JSON，也不包含 BenchmarkConfig。模型应返回：
 框架用 `extract_json()` 解析并要求 `english_goal` 非空。JSON 不合法或结果为空时直接报错。
 
 这一步只是调用 Planner 的模型来翻译，内容不会作为历史消息后续传给 Planner.
+
+设置 `report_language` 时，正式报告生成后另起一次独立的 Planner 调用翻译 Markdown 报告。该调用使用 `REPORT_TRANSLATION_SYSTEM_PROMPT`，user message 包含目标语言和完整报告正文，不使用工具；原始报告仍作为 canonical 版本保存。
 
 ### A.2 R1-R4：Deep Research 的四类独立输入
 
@@ -490,12 +492,8 @@ Although `reference/universal_format.json` lists the complete field set, for the
 <!-- -->
 Choose the environment category according to its actual runtime capabilities:
 <!-- -->
-- `workspace` is only the built-in room, inventory, item inspection, and outgoing-bin runtime. It cannot edit files, run commands or validators, browse, or add custom tools.
-- `code_sandbox` supports reading and writing files and running tests in a standard code workspace.
 - `docker_workspace` supports task-specific packages, services, shell commands, browser automation, and executable validators in a container.
-- `gui_desktop` supports mouse/keyboard desktop interaction and may request a locally or remotely provisioned VM when a specific operating system or application state is required.
-<!-- -->
-If a task requires editable artifacts, scripts, schemas, hashes, tests, or other executable validation, do not select `workspace`; select `code_sandbox` or `docker_workspace` according to the required software and services.
+- `gui` supports screenshot-driven graphical interaction through a GUI bridge and may request a locally or remotely provisioned VM when a specific operating system or application state is required.
 <!-- -->
 For every `multi_turn` TaskDesign, set `interaction_requirements.followup_mode` to exactly `adaptive` or `scripted`. Use `adaptive` when later turns must respond to the target&#39;s actual replies, and `scripted` only when predetermined follow-up turns are substantively appropriate. Preserve any explicit user requirement about this choice.
 <!-- -->
@@ -582,7 +580,7 @@ Your entire final response must be the contents of the planning JSON file. Retur
               &quot;trajectory_requirements&quot;: [&quot;Required, forbidden, or score-relevant process behavior.&quot;]
             },
             &quot;environment_requirements&quot;: {
-              &quot;category&quot;: &quot;workspace, code_sandbox, docker_workspace, or gui_desktop; agent tasks only&quot;,
+              &quot;category&quot;: &quot;docker_workspace or gui; agent tasks only&quot;,
               &quot;purpose&quot;: &quot;Why an execution environment is necessary.&quot;,
               &quot;initial_state&quot;: &quot;The high-level state in which each task must begin.&quot;,
               &quot;required_capabilities&quot;: [&quot;Capabilities the environment must expose.&quot;],
@@ -750,8 +748,11 @@ Use each task&#39;s top-level assets list for files that are part of the task in
 Every asset object must contain exactly one field, path, whose value names a real
 host file available to the runner. The path may be absolute or relative to the current
 Builder job directory; the framework resolves relative asset paths before validation and
-execution. For a task without an environment, refer to that exact path in prompt or choices.
-For code_sandbox and docker_workspace tasks, the framework
+execution. For non-agent tasks, use only stable labels such as ``Image 1`` and ``Image 2``
+in prompt or choices to refer to image assets; the framework attaches them in assets-list
+order as multimodal inputs. Never expose host paths. For agent tasks,
+refer to each asset by the path visible in the agent environment.
+For docker_workspace tasks, the framework
 copies each asset into environment.workdir under its filename; refer only to that
 filename in prompt or choices and do not put the host path in any target-visible or environment
 field. Asset filenames are visible to the evaluated model, so name files without
@@ -768,7 +769,7 @@ path or directory structure must be preserved. Use assets instead when an existi
 file should be copied into the workdir under its filename. Represent each file by the
 one mechanism that matches its runtime role.
 <!-- -->
-For code_sandbox and docker_workspace tasks, environment.workdir must be an absolute
+For docker_workspace tasks, environment.workdir must be an absolute
 POSIX path inside the runtime; use /workspace unless the task requires another directory,
 and never use `.` or another relative path.
 <!-- -->
@@ -869,12 +870,25 @@ under the desired guest-relative path instead. Environment file-map values are f
 contents, never the returned host path or a filename. For environment-backed tasks, the
 framework copies each asset into the runtime workdir under its filename, so prompt or
 choices must refer only to that filename; never copy a host path into target-visible text
-or environment fields. For tasks without an environment, refer to the asset path verbatim
-in prompt or choices. When source tools are available, use read_research_source to
+or environment fields. For non-agent tasks, use only stable labels such as ``Image 1`` and
+``Image 2`` in prompt or choices to refer to image assets; the framework attaches them in
+assets-list order as multimodal inputs. Never expose host paths. For agent
+tasks, refer to each asset by the path visible in the agent environment. When source tools are available, use read_research_source to
 inspect text retained by Deep Research, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
-When image construction tools are available, use run_python to create or edit a
+Use view_image when visual inspection of an image created or downloaded in the Builder
+job directory is needed; the image will be attached to the next model turn. When
+generate_image is available, use it to create required PNG task inputs in the Builder
+job directory, put returned paths in the corresponding task's assets, and refer to them
+according to the asset rules above. It accepts optional reference_paths containing up to
+10 existing PNG, JPEG, or WebP files from the Builder job directory; use them when
+reference images materially guide the requested generation. If you want images of the same
+object from different angles, use reference images to keep details consistent across images.
+After generating an image, inspect it with view_image to verify that its visible content
+matches the intended task input before
+using it. When container image construction
+tools are available, use run_python to create or edit a
 Dockerfile and its context files in the Builder job directory, then use build_image to
 build and inspect that image. Use run_image_check for short dependency or startup
 checks after a successful build. Preserve the returned relative image_build.context_dir
@@ -903,6 +917,27 @@ TASK_BUILDER_PYTHON_TOOL = ToolSpec(
             },
         },
         &quot;required&quot;: [&quot;code&quot;],
+        &quot;additionalProperties&quot;: False,
+    },
+)
+<!-- -->
+<!-- -->
+TASK_BUILDER_VIEW_IMAGE_TOOL = ToolSpec(
+    name=&quot;view_image&quot;,
+    description=(
+        &quot;Attach one image from the current Builder job directory to the next model &quot;
+        &quot;turn for visual inspection. Supports PNG, JPEG, GIF, and WebP.&quot;
+    ),
+    parameters={
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {
+            &quot;path&quot;: {
+                &quot;type&quot;: &quot;string&quot;,
+                &quot;minLength&quot;: 1,
+                &quot;description&quot;: &quot;Existing image path inside the Builder job directory.&quot;,
+            },
+        },
+        &quot;required&quot;: [&quot;path&quot;],
         &quot;additionalProperties&quot;: False,
     },
 )
@@ -1238,9 +1273,9 @@ def run_task_builder_tools(
     &quot;&quot;&quot;Run a bounded TaskBuilder tool loop and return final builder JSON text.&quot;&quot;&quot;
     max_calls = _bounded_int(
         config.task_builder_tool_max_calls,
-        default=6,
+        default=50,
         minimum=1,
-        maximum=12,
+        maximum=50,
     )
     max_chars = _bounded_int(
         config.task_builder_tool_max_chars,
@@ -1350,7 +1385,7 @@ __all__ = [
 ]</code></pre></details>
 <details><summary>环境构题 Skill：<code>evalclaw/construction/skills/build-environment-tasks/SKILL.md</code></summary><pre><code class="language-markdown">---
 name: build-environment-tasks
-description: Construct agent benchmark tasks that require workspace, code-sandbox, container, browser, desktop, VM, or other executable environments. Use only for TaskDesigns with non-empty environment requirements.
+description: Construct agent benchmark tasks that require container, browser, desktop, VM, or other executable environments. Use only for TaskDesigns with non-empty environment requirements.
 ---
 <!-- -->
 # Build Environment-Backed Tasks
@@ -1372,7 +1407,7 @@ For every environment-backed task:
 - Prefer deterministic state, artifact, test, or trajectory checks over vague judge-only scoring when the environment permits them.
 - Ensure the evaluator consumes the target&#39;s actual final answer, artifacts, state, or trajectory. It must not create, repair, or substitute for the work being scored.
 - Keep task-specific files and state in structured fields rather than embedding them in long prompts.
-- Treat top-level asset paths as framework-private host locations. For code-sandbox and container tasks, refer to each asset only by its filename in target-visible fields; the framework copies it into the runtime workdir.
+- Treat top-level asset paths as framework-private host locations. For container tasks, refer to each asset only by its filename in target-visible fields; the framework copies it into the runtime workdir.
 - Make every generated setup and evaluation command internally exact: create required parent objects before using them, keep paths/identifiers/values byte-consistent across setup, baseline, prompt, and evaluation, and ensure commands work from the declared clean base rather than an assumed intermediate state.
 - Ensure every evaluation condition is attainable from the target-visible instructions and executable fixture. Do not require an undisclosed arbitrary value, invocation mode, artifact, or event that neither the environment nor the compliant workflow can produce.
 - When an evaluator creates fresh probes with unique identifiers, bind every relevant assertion to those exact identifiers; do not scan for any matching pre-existing artifact or event.
@@ -1385,56 +1420,10 @@ EvaluationClaw derives canonical `metadata.agent_env`, `metadata.task_agent`, an
 <!-- -->
 Read only the references selected by the runtime:
 <!-- -->
-- `references/workspace.md`
-- `references/code-sandbox.md`
 - `references/docker-workspace.md`
-- `references/gui-desktop.md`
+- `references/gui.md`
 - `references/task-agent.md`
 - `references/agent-task-package.md`</code></pre></details>
-<details><summary>workspace reference：<code>evalclaw/construction/skills/build-environment-tasks/references/workspace.md</code></summary><pre><code class="language-markdown"># Workspace Environment
-<!-- -->
-Use runtime environment type `workspace`.
-<!-- -->
-- Use this runtime only for EvaluationClaw&#39;s built-in room, object, inventory, and outgoing-bin interaction model. Use `code_sandbox` or `docker_workspace` for file or shell work.
-- Put the complete state under `environment.workspace` using exactly this shape:
-<!-- -->
-```json
-{
-  &quot;environment&quot;: {
-    &quot;type&quot;: &quot;workspace&quot;,
-    &quot;workspace&quot;: {
-      &quot;start_room&quot;: &quot;office&quot;,
-      &quot;rooms&quot;: {
-        &quot;office&quot;: [&quot;brief&quot;],
-        &quot;mailroom&quot;: []
-      },
-      &quot;item_descriptions&quot;: {
-        &quot;brief&quot;: &quot;The document the target must inspect and deliver.&quot;
-      },
-      &quot;goal&quot;: {
-        &quot;outgoing_bin&quot;: [&quot;brief&quot;]
-      },
-      &quot;max_steps&quot;: 8
-    }
-  }
-}
-```
-<!-- -->
-- `rooms` must be an object mapping room names to arrays of item ID strings. Do not use a room-object array, a separate `objects` array, or room `exits`; the built-in runtime makes every named room directly reachable.
-- `goal.outgoing_bin` must be a non-empty array of item IDs, and every required item must appear in one of the `rooms` arrays. Include the `mailroom` required by the built-in `place` action.
-- Use only the built-in look, move, inspect, take, place, and final actions. `environment.tools` cannot add custom behavior.
-- Do not add files, shell setup, browser state, VM state, or evaluator commands; the runtime scores the final room/inventory/outgoing-bin state directly.</code></pre></details>
-<details><summary>code_sandbox reference：<code>evalclaw/construction/skills/build-environment-tasks/references/code-sandbox.md</code></summary><pre><code class="language-markdown"># Code Sandbox Environment
-<!-- -->
-Use runtime environment type `code_sandbox`.
-<!-- -->
-- Put starter code and target-visible fixtures in `visible_files` when the task needs them; an empty mapping is valid for a create-from-scratch task.
-- Put setup-only fixtures in `runtime_files` and hidden tests in `hidden_files`.
-- Files created or downloaded through construction tools may remain in top-level `assets`; the framework copies them into the sandbox workdir under their filenames. Never put their host paths in the prompt or environment.
-- Provide the exact deterministic `test_command` the runner must invoke.
-- Keep hidden tests out of the prompt, visible files, setup commands, and task-visible tool output.
-- Make the requested code change and the evaluator agree on paths, APIs, dependencies, and expected behavior.
-- Prefer the minimal runtime needed for the task; use Docker workspace only when OS packages, non-Python runtimes, services, or native builds are genuinely required.</code></pre></details>
 <details><summary>docker_workspace reference：<code>evalclaw/construction/skills/build-environment-tasks/references/docker-workspace.md</code></summary><pre><code class="language-markdown"># Docker Workspace Environment
 <!-- -->
 Use runtime environment type `docker_workspace`.
@@ -1449,9 +1438,9 @@ Use runtime environment type `docker_workspace`.
 - Ensure the selected image or image build actually contains the declared runtime dependencies, but do not infer capabilities from image names alone.
 - Do not expose raw command execution when protected runtime or hidden files exist; use structured workspace tools and runner-private evaluation.
 - Keep image-build packages, commands, Dockerfile, and context files only as detailed as required by the TaskDesign.</code></pre></details>
-<details><summary>gui_desktop reference：<code>evalclaw/construction/skills/build-environment-tasks/references/gui-desktop.md</code></summary><pre><code class="language-markdown"># GUI Desktop Environment
+<details><summary>gui reference：<code>evalclaw/construction/skills/build-environment-tasks/references/gui.md</code></summary><pre><code class="language-markdown"># GUI Environment
 <!-- -->
-Use runtime environment type `gui_desktop`.
+Use runtime environment type `gui`.
 <!-- -->
 - Use this canonical field layout. Do not move `evaluation` into `session`, rename
   `vm_provisioning` to `provisioning`, or invent aliases such as
@@ -1460,7 +1449,7 @@ Use runtime environment type `gui_desktop`.
 ```json
 {
   &quot;environment&quot;: {
-    &quot;type&quot;: &quot;gui_desktop&quot;,
+    &quot;type&quot;: &quot;gui&quot;,
     &quot;requires_vm&quot;: true,
     &quot;vm&quot;: {
       &quot;guest_os&quot;: &quot;windows&quot;,
@@ -1538,7 +1527,7 @@ Use `system_prompt` and `interaction` to describe task-specific agent behavior. 
 - Put initial files, scenario state, session configuration, evaluator rules, and large structured content in their dedicated fields.
 - For multi-turn tasks, use the exact `interaction` fields `initial_user_message`, `max_turns`, `user_turns` (a list of strings) or `followup_instruction`, and `stop_condition`. Do not invent aliases or nest these fields under `environment`.
 - Make interaction scoring inspect the relevant transcript, state, artifact, or tool trace.
-- Do not describe a code sandbox or workspace controller as a conversational helper when the target itself is meant to operate the environment.</code></pre></details>
+- Do not describe an execution-environment controller as a conversational helper when the target itself is meant to operate the environment.</code></pre></details>
 <details><summary>agent-task-package reference：<code>evalclaw/construction/skills/build-environment-tasks/references/agent-task-package.md</code></summary><pre><code class="language-markdown"># Executable Agent Task Package
 <!-- -->
 EvaluationClaw derives canonical `metadata.agent_task_package` during packaging. Construct enough structured task and environment information for that package to be complete.
@@ -1633,24 +1622,10 @@ inspect what the target leaves behind and must not create or repair the expected
 state itself. Do not accept custom tool names unless the selected runtime
 actually exposes them.
 <!-- -->
-For task_type=agent with metadata.agent_env.type=code_sandbox:
-- visible_files are available to the target through file tools.
-- runtime_files are available to setup/runtime but protected from target file tools.
-- hidden_files are intentionally not readable by the target but are available
-  to the EvaluationClaw execution environment through run_tests.
-- Do not mark the item unexecutable merely because hidden tests are hidden from
-  the target or summarized in metadata, as long as hidden file names/count and a
-  test_command are present.
-- An empty visible_files mapping is valid when the task asks the agent to create
-  new files from scratch. The deterministic test_command is still required.
-- metadata.agent_env fields named visible_files_preview, files_preview, or
-  hidden_files_preview are intentionally compact QC excerpts, not the canonical
-  task files. Do not report truncation/omission issues solely because a preview
-  field is abbreviated; only flag truncation when the actual prompt, visible
-  task package, or executable file content explicitly contains placeholders
-  such as &quot;...&quot;, &quot;truncated&quot;, &quot;same as above&quot;, or missing required code.
-<!-- -->
 For task_type=agent with metadata.agent_env.type=docker_workspace:
+- visible_files are available to the target through file tools; an empty mapping
+  is valid when the task asks the agent to create new files from scratch.
+- runtime_files are available to setup/runtime but protected from target file tools.
 - hidden_files are likewise runner-private evaluator or reference files. Do not
   reject a task merely because an evaluator script is hidden from the target
   agent, as long as test_command/evaluation explains that the runner executes
@@ -1684,13 +1659,7 @@ For task_type=agent with metadata.agent_env.type=docker_workspace:
   infer that canonical files are truncated merely because the QC copy is an
   excerpt.
 <!-- -->
-For task_type=agent with metadata.agent_env.type=workspace:
-- This is EvaluationClaw&#39;s built-in room/inventory runtime, not a generic file
-  workspace. It needs reachable rooms, a mailroom, available goal items, and a
-  non-empty outgoing_bin goal. File editing, shell setup, browser state, and
-  invented custom tools are not implemented by this runtime.
-<!-- -->
-For task_type=agent with metadata.agent_env.type=gui_desktop:
+For task_type=agent with metadata.agent_env.type=gui:
 - Require an identifiable application or desktop surface, a launch/start
   state, bounded steps, and bridge-executable evaluation checks or method.
 - When requires_vm=true, accept either a concrete runner-resolvable
@@ -1752,11 +1721,11 @@ For task_type=multi_turn or task_type=agent:
 For items with assets:
 - Every asset should contain one path to a real local file.
 - Absolute local paths are valid; do not flag a path merely because it is absolute.
-- For code_sandbox and docker_workspace items, the framework copies each asset into
-  environment.workdir under its filename; the prompt or choices should use that filename and
-  must not expose the host path.
-- For other items, the prompt or choices should refer to each asset by its exact path. Their
-  current native target adapter supports image files only.
+- For agent items, the framework exposes each asset under its environment-visible path; the
+  prompt or choices should use that path and must not expose the host path. For
+  docker_workspace this is the copied filename.
+- For non-agent items, the prompt or choices should refer to each image asset by its `Image N`
+  label. Their current native target adapter supports image files only.
 <!-- -->
 For items using metadata.science:
 - metadata.science.schema_version should be evalclaw.science.v1.
@@ -2022,7 +1991,7 @@ TASK_AGENT_SCHEMA: dict[str, Any] = {
         },
     },
     &quot;execution&quot;: {
-        &quot;environment_type&quot;: &quot;workspace | code_sandbox | docker_workspace | gui_desktop&quot;,
+        &quot;environment_type&quot;: &quot;docker_workspace | gui&quot;,
         &quot;environment_ref&quot;: &quot;metadata.agent_env&quot;,
     },
     &quot;agent_task_package&quot;: &quot;Optional summary pointer; full executable task package should live at metadata.agent_task_package.&quot;,
@@ -2077,15 +2046,14 @@ Fields:
 - execution: environment_type and environment_ref=&quot;metadata.agent_env&quot;. The
   environment itself exists only at metadata.agent_env; never duplicate it in
   task_agent or agent_task_package.
-  For iterative code-repair tasks, prefer environment_type=&quot;code_sandbox&quot; with
+  For iterative code-repair tasks, use environment_type=&quot;docker_workspace&quot; with
   metadata.agent_env over a free-form environment_controller dialogue. In those
   tasks, the system_prompt should describe the target model as the coding agent
   who must inspect files, run tests, and revise code. Do not describe the helper
   as the environment itself or as an environment controller.
-  Use environment_type=&quot;docker_workspace&quot; only when the task needs realistic
-  OS dependencies, non-Python runtimes, package installation, command-line
-  diagnostics, or native builds. Both code_sandbox and docker_workspace run in
-  isolated containers. Provide image, visible_files, runtime_files,
+  The docker_workspace runtime supports realistic OS dependencies, non-Python
+  runtimes, package installation, command-line diagnostics, and native builds
+  in an isolated container. Provide image, visible_files, runtime_files,
   hidden_files, setup_commands, test_command, timeout, and resource_limits in
   metadata.agent_env. Setup-only server/application assets belong in
   runtime_files; hidden_files are injected only while the evaluator runs.
@@ -2102,7 +2070,7 @@ Fields:
   install_steps, commands, dockerfile, context_files, tag, rebuild, and
   build_timeout. EvaluationClaw will build a local task image before starting
   the container, then run the workspace in that image.
-  Use environment_type=&quot;gui_desktop&quot; when the task requires screenshot-driven
+  Use environment_type=&quot;gui&quot; when the task requires screenshot-driven
   browser or desktop software operation. Provide max_steps, timeout, session,
   evaluation, and usually requires_vm=true plus vm in agent_env. Put task files
   that should exist in the guest under agent_env.visible_files or
@@ -2327,7 +2295,7 @@ AGENT_TASK_PACKAGE_SCHEMA: dict[str, Any] = {
     },
     &quot;environment_requirements&quot;: {
         &quot;environment_ref&quot;: &quot;metadata.agent_env&quot;,
-        &quot;type&quot;: &quot;workspace | code_sandbox | docker_workspace | gui_desktop&quot;,
+        &quot;type&quot;: &quot;docker_workspace | gui&quot;,
         &quot;os&quot;: &quot;linux | windows | macos | any&quot;,
         &quot;requires_vm&quot;: False,
         &quot;requires_gui&quot;: False,
@@ -2436,7 +2404,7 @@ def item_requires_agent_task_package(item: BenchmarkItem) -&gt; bool:
         return False
     env = _env_from_item(item)
     env_type = str(env.get(&quot;type&quot;) or &quot;&quot;).lower()
-    if env_type in {&quot;docker_workspace&quot;, &quot;gui_desktop&quot;}:
+    if env_type in {&quot;docker_workspace&quot;, &quot;gui&quot;}:
         return True
     if bool(env.get(&quot;requires_vm&quot;) or env.get(&quot;vm&quot;)):
         return True
@@ -2509,7 +2477,7 @@ def agent_task_package_issues(item: BenchmarkItem) -&gt; list[str]:
 <!-- -->    
     env = _env_from_item(item)
     env_type = str(env.get(&quot;type&quot;) or &quot;&quot;).lower()
-    if env_type in {&quot;docker_workspace&quot;, &quot;gui_desktop&quot;}:
+    if env_type in {&quot;docker_workspace&quot;, &quot;gui&quot;}:
         artifact_collection = package.get(&quot;artifact_collection&quot;)
         if not isinstance(artifact_collection, dict) or not (
             artifact_collection.get(&quot;collect_paths&quot;) or artifact_collection.get(&quot;collect_trajectory&quot;)
@@ -2609,6 +2577,7 @@ def compact_agent_task_package(package: dict[str, Any]) -&gt; dict[str, Any]:
             compact[&quot;hidden_references&quot;] = compact_hidden
     return compact</code></pre></details>
 <a id="appendix-g"></a>
+每个框架角色还可通过对应的 `*_reasoning_effort` 显式设置 reasoning effort。显式值优先于 `EVALCLAW_REASONING_EFFORT`；可用 CLI 参数为 `--planner-reasoning-effort`、`--task-builder-reasoning-effort`、`--qc-reasoning-effort`、`--research-reasoning-effort` 和 `--analyser-reasoning-effort`。
 ## 附录 G：BenchmarkConfig 完整字段表
 
 定义位置：`evalclaw/types.py` 的 `BenchmarkConfig`。当前模型使用 `extra="forbid"`，因此表外字段会被 Pydantic 拒绝。下表覆盖当前全部 72 个字段。
@@ -2622,7 +2591,7 @@ def compact_agent_task_package(package: dict[str, Any]) -&gt; dict[str, Any]:
 
 API key、bridge key、provider key 和 base URL 都不会作为标准 prompt 文本发送。每个角色必须显式配置：planner/task_builder 未配置时流程 fail-closed；qc/research 未配置时按相应功能的规则跳过模型调用；未配置 analyser 时跳过 Analysis，但设置正数 `analysis_iterations` 时会 fail-closed。`task_models` 为空时，需要模型评分或对话模拟的任务在运行时无法选用模型、对应评分/模拟路径降级为确定性评分或跳过。`task_models` 中每项的任务级凭据（`api_key`/`api_key_env`/`base_url`）仅在该模型被实际调用时使用，不会进入 prompt 文本。模型调用分层与后端契约见[附录 K](#appendix-k)。
 
-### G.1 模型角色与目标模型（22 个字段）
+### G.1 模型角色与目标模型（25 个字段）
 
 | 字段 | 类型 | 默认值 | 作用 | LLM 可见性 |
 |---|---|---|---|---|
@@ -2634,6 +2603,9 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `task_builder_provider` | `Optional[str]` | `None` | TaskBuilder provider | 调用参数 |
 | `task_builder_api_key` | `Optional[str]` | `None` | TaskBuilder 凭据；缺失则 TaskBuilder 未配置、流程 fail-closed | 调用参数 |
 | `task_builder_base_url` | `Optional[str]` | `None` | TaskBuilder API 地址 | 调用参数 |
+| `image_generation_model` | `Optional[str]` | `None` | TaskBuilder 可调用的图像生成模型；三项图像生成配置完整时提供 `generate_image` | 否；仅用于工具调用 |
+| `image_generation_api_key` | `Optional[str]` | `None` | 图像生成凭据 | 否；仅用于工具调用 |
+| `image_generation_base_url` | `Optional[str]` | `None` | OpenAI-compatible 图像 API Base URL | 否；仅用于工具调用 |
 | `qc_model` | `Optional[str]` | `None` | 可选 LLM QC 模型 | 调用参数 |
 | `qc_provider` | `Optional[str]` | `None` | QC provider | 调用参数 |
 | `qc_api_key` | `Optional[str]` | `None` | QC 凭据；未配置时仍执行静态 QC | 调用参数 |
@@ -2679,13 +2651,14 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `task_builder_repair_attempts` | `int` | `2` | 每个 Builder job 在全局 QC 前的结构修复次数 | 直接：修复 payload 的 `max_repair_attempts` |
 | `task_builder_call_retries` | `int` | `2` | 每个 TaskBuilder 模型调用失败后的重试次数 | 否 |
 | `task_builder_truncation_retries` | `int` | `3` | 每个 Builder job 的输出截断恢复次数 | 否 |
-| `task_builder_tool_max_calls` | `int` | `6` | 单次 Builder 构题工具调用预算，运行时限制为 1-12 | 否 |
+| `task_builder_tool_max_calls` | `int` | `50` | 单次 Builder 构题工具调用预算，运行时限制为 1-50 | 否 |
 | `task_builder_tool_max_chars` | `int` | `50_000` | 每次构题工具结果的最大字符数，运行时限制为 1,000-100,000 | 派生：限制工具结果正文 |
 | `judge_double_pass` | `bool` | `True` | 执行阶段 Judge 是否进行双遍审计 | 派生：决定 Judge 调用次数和第二遍输入 |
 | `llm_backend` | `Literal["auto", "litellm"]` | `"auto"` | 标准模型调用使用 LiteLLM；`auto` 允许显式配置的 Responses、Anthropic native、target native tools 和 streaming adapter，`litellm` 则强制可由 LiteLLM 承担的调用使用 LiteLLM。LiteLLM 失败时不会切换协议或回退到手写 HTTP 实现 | 调用参数 |
-| `allow_incomplete_benchmark` | `bool` | `False` | QC 仍有阻塞问题时是否允许保留不完整草稿 | 否 |
+| `allow_incomplete_benchmark` | `bool` | `False` | QC 仍有阻塞问题时，是否移除带 error 的题目并以剩余题目继续 | 否 |
+| `strict_qc_filter` | `bool` | `False` | 不完整模式下是否同时移除带 warning 的题目 | 否 |
 
-### G.4 流程、输出、人工审核与 Analysis（14 个字段）
+### G.4 流程、输出、人工审核与 Analysis（15 个字段）
 
 | 字段 | 类型 | 默认值 | 作用 | LLM 可见性 |
 |---|---|---|---|---|
@@ -2703,6 +2676,7 @@ API key、bridge key、provider key 和 base URL 都不会作为标准 prompt �
 | `analysis_max_tasks` | `int` | `4` | 每轮验证实验允许请求的最大题数 | 直接：Analyser 收到上限，框架同时校验 |
 | `viewer_item_limit` | `int` | `1000` | viewer payload 最多嵌入的 benchmark items | 否 |
 | `viewer_result_limit` | `int` | `2000` | viewer payload 最多嵌入的执行结果 | 否 |
+| `report_language` | `Optional[str]` | `None` | 设置后在正式报告生成后使用 Planner 独立翻译 Markdown 报告，并另存语言版本 | 否 |
 
 ### G.5 Docker、GUI 与 VM 运行时（12 个字段）
 
@@ -2896,7 +2870,7 @@ call_llm(
   &quot;scale_budget_guidance&quot;: &quot;Use MID budget: plan about 20 total items. ...&quot;,
   &quot;count_policy&quot;: &quot;Use scale_budget as guidance for the total number of tasks.&quot;,
   &quot;available_task_types&quot;: [&quot;choice&quot;, &quot;fill_blank&quot;, &quot;generation&quot;, &quot;multi_turn&quot;, &quot;agent&quot;],
-  &quot;available_environment_types&quot;: [&quot;workspace&quot;, &quot;code_sandbox&quot;, &quot;docker_workspace&quot;, &quot;gui_desktop&quot;],
+  &quot;available_environment_types&quot;: [&quot;docker_workspace&quot;, &quot;gui&quot;],
   &quot;challenge_effort_distribution&quot;: {&quot;E1&quot;: 0.2, &quot;E2&quot;: 0.3, &quot;E3&quot;: 0.5},
   &quot;effort_policy&quot;: &quot;The framework requires the total task count to be distributed across challenge_effort levels as follows: E1 ≈ 20%, E2 ≈ 30%, E3 ≈ 50%. Set each TaskDesign.challenge_effort so the planned per-level task counts approximate these ratios.&quot;
 }
@@ -2966,7 +2940,7 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
 - Dimension/TaskDesign 的 id 必须全局/维度内唯一，必填字段（id、name、measurement_target、boundary、approach、task_designs）完整；
 - 总题数精确匹配用户显式请求（若指定）；
 - 配置了全局 E1/E2/E3 比例时，各档实际题数与目标偏差 ≤1；
-- `environment_requirements` 只允许用于 agent 题、category 必须是 workspace、code_sandbox、docker_workspace、gui_desktop 之一；
+- `environment_requirements` 只允许用于 agent 题、category 必须是 docker_workspace、gui 之一；
 - `source_plan.strategy` 必须为 generated、adapted、reused 或 imported_dataset；generated 的 `suggested_urls`/`search_queries` 必须为空，其他策略必须至少提供一个 http(s) URL；
 - multi_turn 必须声明 `interaction_requirements.followup_mode` 为 adaptive 或 scripted。
 
@@ -3082,13 +3056,16 @@ Planner 输出不会直接采用，而是先经过纯代码的确定性审计（
 <a id="appendix-d-tools"></a>
 ### D.2 构题工具消息
 
-所有 TaskDesign 在初次构题和 QC repair 时都可使用 `run_python`；`code_sandbox` 和 `docker_workspace` 还可使用受控的镜像构建与检查工具；adapted、reused 和 imported_dataset 还可使用四个来源工具。关闭网页搜索只会禁用 `search_web`，不会阻止读取既有正文、抓取 URL 正文或下载明确给出的文件。工具 schema 由模型调用接口直接提供，不在 D.1 的 user JSON 中重复声明。
+所有 TaskDesign 在初次构题和 QC repair 时都可使用 `run_python` 和 `view_image`；配置图像生成连接后还可使用 `generate_image`；`docker_workspace` 还可使用受控的容器镜像构建与检查工具；adapted、reused 和 imported_dataset 还可使用四个来源工具。关闭网页搜索只会禁用 `search_web`，不会阻止读取既有正文、抓取 URL 正文或下载明确给出的文件。工具 schema 由模型调用接口直接提供，不在 D.1 的 user JSON 中重复声明。
 
 工具：
 
 - `run_python(code)`：以当前 Builder job 的 `output_dir/assets/task-builder/<Builder job>/` 为工作目录，在独立 Python 进程中执行代码，用于计算、验证以及生成或处理题目文件；限制 60 秒，返回退出码、标准输出、错误输出及本次生成或改动的宿主机绝对路径。该路径只用于构题和 `assets.path`，不进入环境题的 target-visible 内容。
+- `view_image(path)`：观察当前 Builder job 目录内现存的 PNG、JPEG、GIF 或 WebP；框架将图片转换为当前 provider 的多模态输入并附加到下一轮模型调用。路径不能越出该 job 目录；框架不根据模型名称预判视觉能力，不支持视觉输入的模型由实际调用返回错误。
+- `generate_image(prompt, output_path, size?, reference_paths?)`：调用配置的 OpenAI-compatible 图像模型生成一张 PNG；`output_path` 必须是当前 Builder job 工作目录内以 `.png` 结尾的相对路径，`reference_paths` 可提供当前 Builder job 目录内最多 10 个 PNG、JPEG 或 WebP 参考图路径。如果要生成同一对象的不同角度图片，应使用参考图保持各张图片中的细节一致。有参考图时调用 `/images/edits`，以 multipart 形式将每张图作为 `image` 输入；没有参考图时调用 `/images/generations`。返回可直接写入 `assets.path` 的绝对路径、文件大小与实际像素尺寸。`size` 默认为 `1024x1024`，实际尺寸以服务返回的 PNG 为准。
 - `build_image(dockerfile_path, context_files?, tag?, build_args?, network?, timeout_s?)`：从当前 Builder job 工作目录内的 Dockerfile 和显式列出的文件构建一个临时镜像；构建上下文只接受该目录内的文件，最多 3 次构建，构建目录会保留在 Builder job 输出中。成功时返回镜像标签和相对 `image_build.context_dir`，最终环境应保存该配置。
 - `run_image_check(command, image?, timeout_s?)`：在最近构建的镜像（或显式镜像）中启动无宿主机挂载、无网络的临时容器执行短检查，返回退出码、标准输出和错误输出；最多 6 次检查。
+- `build_vm_image(base_image, provisioning, files?, checks, publish_name?, timeout_s?)`：当远程 VM provider 在 `/capabilities` 中声明 `image_build` 时，在隔离临时 guest 中按声明式计划构建并校验可复用 VM 镜像；成功后返回具体镜像 id，TaskBuilder 应将其写入 `environment.vm.image`。本地 VM provider 不提供此能力。
 - `read_research_source(url, max_chars?)`：按 URL 读取本次 Deep Research 已归档正文。
 - `search_web(query, max_results?)`：发起新查询。
 - `fetch_url(url, max_chars?)`：抓取公开 HTTP(S) 正文。
@@ -3118,7 +3095,7 @@ The bounded tool budget is exhausted. Return the complete final task-builder JSO
 | `challenge_effort` | 与所属 TaskDesign 一致 |
 | `metadata` | 含构题自检及题型所需的其他元数据 |
 
-`id`、`dimension_id` 和 `metadata.task_design_id` 由框架在解析后写入；TaskBuilder 不返回这些字段。公共可选字段为 `content_summary`、`assets`、`resource_ids`、`tags`，其他字段按当前题型动态加入。`assets` 是由 `{"path":"..."}` 组成的列表，路径可以是宿主机绝对路径，也可以是相对于当前 Builder 工作目录的路径；框架在校验前将相对路径解析为真实宿主机文件。无环境题的 prompt 或 choices 原样引用该路径；`code_sandbox` 和 `docker_workspace` 题在 prompt 或 choices 中只引用文件名，框架在运行时把宿主机文件复制到 `environment.workdir/<文件名>`。同一环境题的 asset 文件名必须唯一，且文件名不得泄露答案或其他非预期信息。没有文件输入时返回空列表。
+`id`、`dimension_id` 和 `metadata.task_design_id` 由框架在解析后写入；TaskBuilder 不返回这些字段。公共可选字段为 `content_summary`、`assets`、`resource_ids`、`tags`，其他字段按当前题型动态加入。`assets` 是由 `{"path":"..."}` 组成的列表，路径可以是宿主机绝对路径，也可以是相对于当前 Builder 工作目录的路径；框架在校验前将相对路径解析为真实宿主机文件。非 agent 题的 prompt 或 choices 使用 `Image 1`、`Image 2` 等标签引用图片；agent 题只引用运行环境中可见的文件路径，框架在运行时把宿主机文件复制到 `environment.workdir/<文件名>`。同一环境题的 asset 文件名必须唯一，且文件名不得泄露答案或其他非预期信息。没有文件输入时返回空列表。
 正常构题还要求：
 
 ~~~json
@@ -3189,7 +3166,7 @@ adaptive 必须给 `followup_instruction` 和任务特定 simulator `system_prom
 
 ~~~json
 {
-  "environment": {"type": "workspace/code_sandbox/docker_workspace/gui_desktop"},
+  "environment": {"type": "docker_workspace/gui"},
   "output_contract": {},
   "rubric": "必要时使用",
   "judge_tools": [],
@@ -3211,8 +3188,7 @@ evaluator/checks 或任务特定 rubric。environment 只允许用于 agent。�
 打包阶段会派生 `agent_env`、`task_agent` 和必要时的 `agent_task_package`。
 
 各环境类型的能力边界与完整字段见环境构题 Skill 的 references（[B.4](#appendix-b-task-builder)）：
-`workspace` 是 room/inventory runtime；`code_sandbox` 用于文件和测试；`docker_workspace`
-用于容器包、服务、shell、浏览器和 evaluator；`gui_desktop` 用于桌面/可选 VM。
+`docker_workspace` 用于容器包、服务、shell、浏览器和 evaluator；`gui` 用于桌面/可选 VM。
 
 <a id="appendix-d-repair"></a>
 ### D.4 三种后续输入
@@ -3402,8 +3378,8 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 - **fill_blank**：`expected_text` 非空（error）。
 - **generation / multi_turn**：有 rubric（error）。
 - **judge_tools**：只允许 `python_tests`（error）；仅 generation/multi-turn/agent 可用（error）；`test_code` 必须消费 `{model_output}`（error）。
-- **agent**：无 rubric 时必须有可执行环境 evaluator（error）；`metadata.agent_env` 必须存在（error）；环境文件路径无跨生命周期重叠（error）；`setup_commands` 不引用 hidden_files（error）；workspace/code_sandbox/gui_desktop 各有必填契约。
-- **题目文件**：`assets` 中每项只有宿主机 `path`，可以是绝对路径或相对于 Builder 工作目录的路径；框架在校验前解析相对路径并确认文件存在。无环境题的 prompt 或 choices 原样引用该路径；容器环境题在 prompt 或 choices 中引用映射后的文件名，文件名在单题内唯一。TaskDesign 声明非文本输入或文件要求时，必须提供可供目标读取的文件，且文件名不得泄露答案或其他非预期信息。
+- **agent**：无 rubric 时必须有可执行环境 evaluator（error）；`metadata.agent_env` 必须存在（error）；环境文件路径无跨生命周期重叠（error）；`setup_commands` 不引用 hidden_files（error）；docker_workspace/gui 各有必填契约。
+- **题目文件**：`assets` 中每项只有宿主机 `path`，可以是绝对路径或相对于 Builder 工作目录的路径；框架在校验前解析相对路径并确认文件存在。非 agent 题的 prompt 或 choices 使用 `Image N` 标签引用图片；容器环境题在 prompt 或 choices 中引用映射后的文件名，文件名在单题内唯一。TaskDesign 声明非文本输入或文件要求时，必须提供可供目标读取的文件，且文件名不得泄露答案或其他非预期信息。
 - **science / task_agent / agent_task_package**：schema_version、system_prompt、scoring guidance 等 metadata 契约。
 - **rubric 自纠正**：对非 choice 题检测 rubric 中自纠正/矛盾参考答案（error）。
 
@@ -3428,12 +3404,12 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 
 ### I.7 构题阶段单题结构检查（`task_structure_issues`）
 
-TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结构检查」（`evalclaw/construction/validation.py::task_structure_issues`），产出 `task_structure_issues: list[str]` 并写入 `metadata.task_structure_validation`（`schema_version` / `status: passed|failed` / `issues`）。它刻意窄于内容 QC：**不评判质量**，只校验「这道题按其题型与可选执行能力是否具备可执行所需的字段」。`code_sandbox` 和 `docker_workspace` 候选通过字段检查后，还会创建隔离容器并调用 evaluator；setup 或 evaluator 无法执行时，具体错误进入同一次 TaskBuilder 结构修复。出现任何 issue 时，把错误与上次返回一并交回 TaskBuilder 修复。
+TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结构检查」（`evalclaw/construction/validation.py::task_structure_issues`），产出 `task_structure_issues: list[str]` 并写入 `metadata.task_structure_validation`（`schema_version` / `status: passed|failed` / `issues`）。它刻意窄于内容 QC：**不评判质量**，只校验「这道题按其题型与可选执行能力是否具备可执行所需的字段」。`docker_workspace` 候选通过字段检查后，还会创建隔离容器并调用 evaluator；setup 或 evaluator 无法执行时，具体错误进入同一次 TaskBuilder 结构修复。出现任何 issue 时，把错误与上次返回一并交回 TaskBuilder 修复。
 
 基础字段：
 - `id`、`title`、`prompt` 非空；`prompt` 不以截断/不完整指令结尾。
 - 提供 `dimension` 时 `dimension_id` 必须匹配；提供 `task_design`/`dimension` 的期望 `challenge_effort` 时，任务必须一致。
-- TaskDesign 声明非文本输入或文件要求时，任务必须提供可供目标读取的文件。`assets.path` 可以是宿主机绝对路径或相对于 Builder 工作目录的路径，框架会在校验前解析相对路径；无环境题的 prompt 或 choices 原样引用该路径，容器环境题在 prompt 或 choices 中引用映射后的唯一文件名。已知 Builder 宿主机目录不得出现在环境题的 target-visible 内容或环境契约中。
+- TaskDesign 声明非文本输入或文件要求时，任务必须提供可供目标读取的文件。`assets.path` 可以是宿主机绝对路径或相对于 Builder 工作目录的路径，框架会在校验前解析相对路径；非 agent 题的 prompt 或 choices 使用 `Image N` 标签引用图片，容器环境题在 prompt 或 choices 中引用映射后的唯一文件名。已知 Builder 宿主机目录不得出现在环境题的 target-visible 内容或环境契约中。
 - 元数据里任何名字含 `evaluator`/`evaluation`/`validation` 的字段不得声明 runner 可执行求值器——普通 metadata 不可执行，完整求值器必须放进被选中 runtime 的规范环境求值字段。
 - 对 LLM 构题（`require_challenge_effort_self_assessment`）：必须有 `metadata.challenge_effort_self_assessment`，`requested_effort` 匹配期望档、`meets_requested_effort=true`、`rationale` 解释自评。
 
@@ -3447,10 +3423,8 @@ TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结�
 
 环境契约（有 `blueprint` 时其 `environment_type` 是权威；任务环境类型必须匹配，且只有 agent 任务可携带可执行环境）：
 - 通用：`artifact_requirement` ∈ {all, any, exactly_one}；`max_steps`、`timeout` 为正；`environment.tools` 不定义自定义可执行行为；`visible_files`/`runtime_files`/`hidden_files` 彼此无路径冲突，每个文件只属一个阶段；`setup_commands` 不得引用 evaluator 私有 `hidden_files`。
-- `code_sandbox`：必须有确定性的 `test_command`。
 - `docker_workspace`：必须有确定性的 `test_command`；TaskDesign 要求 browser 动作时 `browser.enabled=true` 且必须是实际含 Playwright 与浏览器的 runtime；`browser.runtime=playwright_python`、有 `start_url`、非空 `allowed_origins`；`executable_path` 必须是精确 guest 路径而非通配符；prompt 不得命名 `final_answer` 工具；有文件产物时经 `workspace_tools` 暴露 `write_file` 且产物落在 `workdir` 内。
-- `gui_desktop`：必须有 `environment.session`（application/kind/applications 之一 + launch/start 状态之一）与可执行求值（`environment.evaluation`，不是 `session.evaluation_checks`）；`requires_vm=true` 时需 runner 可解析的 template/image/disk 标识、或 guest OS + 非空 `required_capabilities`，`baseline_checks`、provisioning、PowerShell 语法与身份、protected-evaluator 引用等走专项检查子程序。
-- `workspace`：必须有非空 `workspace.rooms`（对象映射 room 名→item-id 数组，含 `mailroom`）与非空 `workspace.goal.outgoing_bin`（且每个 goal item 都存在于某 room）；不得混入文件/shell/browser/VM 能力。
+- `gui`：必须有 `environment.session`（application/kind/applications 之一 + launch/start 状态之一）与可执行求值（`environment.evaluation`，不是 `session.evaluation_checks`）；`requires_vm=true` 时需 runner 可解析的 template/image/disk 标识、或 guest OS + 非空 `required_capabilities`，`baseline_checks`、provisioning、PowerShell 语法与身份、protected-evaluator 引用等走专项检查子程序。
 
 结果以 `metadata.task_structure_validation.status` 落库，供下游 QC 读取：`passed` 仅表示通过低层 shape/runner 契约校验，**绝不**证明 Planner 需求、初始状态、工具或求值语义完整（见 B.5 QC 中对 status=passed 的说明）。
 
@@ -3465,7 +3439,7 @@ TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结�
 3. **生成内容摘要**：调用 `compact_task_content_summary`（`evalclaw/core/task_summary.py`），不调用模型。按顺序取第一个非空候选——`task.content_summary` → 已有的 `metadata.task_content_summary` → `task.title` → `task.description` → `task.prompt`——截取前 8 个词并做去下划线、首字母大写等归一化，写入 `metadata.task_content_summary`，供报告展示用。
 4. **归一化 rubric**：优先 `task.rubric`；否则 `task.scoring.instructions`；再否则拼接 `pass_criteria`/`partial_criteria`/`fail_criteria` 三段文本。
 5. **生成 `task_agent` metadata**（`_task_agent_metadata_for_task`，不调用模型）：仅当题目是 `multi_turn` 或带 `environment` 时执行。内容包括 `agent_role`（multi_turn 为 `dialogue_simulator`，其余为 `target_agent_executor`）、`system_prompt`（沿用 `task.system_prompt` 或按角色给默认值）、`initial_content`（汇总环境的可见文件/session/vm/browser 等公开信息）、归一化后的 `scoring`（`allows_partial_credit=true` 且未给出 `score_levels` 时补 0/0.5/1 映射）。
-6. **生成 `agent_env` 与 `agent_task_package`**（仅带 `environment` 的题目，不调用模型）：`_environment_for_runner` 把 `TaskDefinition.environment` 按环境类型（workspace/code_sandbox/docker_workspace/gui_desktop）铺开成 runner 可直接消费的字典，补默认值（如 workspace 缺 `rooms` 时补一个最小房间布局，`code_sandbox` 缺 `test_command` 时补 `python3 tests.py`）；`_agent_task_package_for_task` 在此基础上组装完整的 `agent_task_package`（能力目标、环境需求、可见输入、隐藏引用、输出契约、执行/求值/产物采集/轨迹要求、来源溯源），若 Builder 已给出同 schema 版本的旧值则做字段级合并而非整体覆盖。
+6. **生成 `agent_env` 与 `agent_task_package`**（仅带 `environment` 的题目，不调用模型）：`_environment_for_runner` 把 `TaskDefinition.environment` 按环境类型（docker_workspace/gui）铺开成 runner 可直接消费的字典并补运行默认值；`_agent_task_package_for_task` 在此基础上组装完整的 `agent_task_package`（能力目标、环境需求、可见输入、隐藏引用、输出契约、执行/求值/产物采集/轨迹要求、来源溯源），若 Builder 已给出同 schema 版本的旧值则做字段级合并而非整体覆盖。
 7. **构造 `BenchmarkSource`**：优先从 `agent_task_package.resource_provenance` 取来源类型与 URI；若无则退回 `task.resource_ids` 指向的 `TaskResource`；两者都没有则标记为 `self_generated`。
 8. **组装 `BenchmarkItem`**：字段为 `id`、`dimension_id`、`task_type`、`prompt`、`assets`、`choices`、`correct_choice_ids`、`expected_text`、`rubric`（第 4 步结果）、`judge_tools`、`output_contract`、`challenge_effort`、`source`（第 7 步结果）、`tags`、`metadata`（含前述步骤写入的所有字段），并保留原始 `TaskDefinition` 到 `source_definition`（`exclude=True`，不写入 JSON），用于创建 QC repair 的候选文件。`build_task_suite` 最终把它加入 `TaskSuite.tasks`。
 
@@ -3503,7 +3477,7 @@ run-ready 的单题格式，定义在 `evalclaw/types.py`：
 
 ### J.1 ExecutionPlan
 
-`build_execution_plan`（`evalclaw/execution/plan.py`）以 `TaskSuite` 与 `QcReport` 为输入，产出只含 `passed_item_ids` 的执行视图：
+`build_execution_plan`（`evalclaw/execution/plan.py`）以 `TaskSuite` 与 `QcReport` 为输入，产出只含 `passed_item_ids` 的执行视图。不完整模式下，`TaskSuite` 已先移除未达到筛选阈值的题目：
 
 - 校验 `suite.tasks` 中 item id 全局唯一；校验 `passed_item_ids` / `rejected_item_ids` 无重复、无未知 id、两者无交集，否则直接抛错。
 - `accepted_item_ids` = passed ids，`rejected_item_ids` 保留供报告；`suite` 的 `tasks` 被替换为 accepted 子集。
@@ -3514,13 +3488,13 @@ run-ready 的单题格式，定义在 `evalclaw/types.py`：
 
 执行前的环境准备由 `run_environment_claw`（`evalclaw/execution/environment_claw.py`）完成，输出 `EnvironmentClawReport`（probes / actions / blocking_errors）。它逐题探测实际需要，并做轻量决策：
 
-- **Docker**：对 `code_sandbox` / `docker_workspace` 题探测 `docker status`；按任务文本决定镜像选择（`apply_docker_image_selection`，`docker_auto_select_image=true` 时自动选择/构建），必要时探测镜像是否已存在。
-- **VM**：对需要 VM 的 `gui_desktop` 题，探测 VM provider（`probe_vm_provider`）；需要时物化 NoCloud config-drive ISO（`materialize_vm_task`，Linux 用 cloud-init、Windows 用 Cloudbase-Init），并把 `seed_iso` 写回 `agent_env`。
+- **Docker**：对 `docker_workspace` 题探测 `docker status`；按任务文本决定镜像选择（`apply_docker_image_selection`，`docker_auto_select_image=true` 时自动选择/构建），必要时探测镜像是否已存在。
+- **VM**：对需要 VM 的 `gui` 题，探测 VM provider（`probe_vm_provider`）；需要时物化 NoCloud config-drive ISO（`materialize_vm_task`，Linux 用 cloud-init、Windows 用 Cloudbase-Init），并把 `seed_iso` 写回 `agent_env`。TaskBuilder 可在 provider 声明 `image_build` 时提交 VM 镜像构建计划，成功返回的镜像 id 用于 `environment.vm.image`。
 - **GUI bridge**：对不依赖 VM 的桌面题，探测桌面 bridge 地址可用性。
 - **自动补全**：`environment_claw_auto_configure=true` 时，对可安全恢复的配置（如缺失的 bridge URL、VM provider URL）自动补全并回写 `item.metadata.agent_env`。
 - **阻塞错误**：`blocking_errors` 非空且 `run_targets=true` 时流程直接报错停止；`run_environment_claw` 同时返回更新后的 config（用于把探测到的 bridge/VM 地址注入目标执行）。
 
-随后检查题目文件与 target 协议的兼容性：普通目标模型调用当前只支持图像文件，target 不支持图像输入时直接抛错。Docker、镜像、VM provider 与 GUI bridge 等运行基础设施仍在此处探测；`code_sandbox`/`docker_workspace` 题的 setup/evaluator preflight 已在 TaskBuilder 构题检查中完成。
+随后检查题目文件与 target 协议的兼容性：普通目标模型调用当前只支持图像文件，target 不支持图像输入时直接抛错。Docker、镜像、VM provider 与 GUI bridge 等运行基础设施仍在此处探测；`docker_workspace` 题的 setup/evaluator preflight 已在 TaskBuilder 构题检查中完成。
 
 执行前环境探测会在 `output_dir/debug/environment/` 保存报告；构题阶段的可执行题 preflight 会在对应 TaskBuilder 调试目录中保存结果、环境状态、完整 evaluator 输出和不含 runner-private 文件的工作区。
 
@@ -3542,7 +3516,7 @@ run-ready 的单题格式，定义在 `evalclaw/types.py`：
 | `fill_blank` | `_score_fill_blank`：裁剪首尾空白后与 `expected_text` 完全匹配 |
 | `generation` | Judge 按 rubric 打 1-5 分并归一化到 [0,1]；可选 `python_tests` 工具在 Docker 沙箱中执行 `test_code`（消费 `{model_output}`），结果作为 evidence 交给 Judge，工具本身不直接定分 |
 | `multi_turn` | Judge 对完整 transcript 评分，scoring 可取自 `task_agent.scoring` |
-| `agent` | 环境 evaluator 依据最终 state/artifacts/answer/trajectory 给出确定性分数（workspace 的 `score()`、Docker 的 `test_command`、GUI bridge 的 evaluation checks），该分数直接作为题目得分，`env.summary()` 作为 judge_reasoning 记录 |
+| `agent` | 环境 evaluator 依据最终 state/artifacts/answer/trajectory 给出确定性分数（Docker 的 `test_command` 或 GUI bridge 的 evaluation checks），该分数直接作为题目得分，`env.summary()` 作为 judge_reasoning 记录 |
 
 Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模型；`task_models` 为空时，需要模型评分或对话模拟的任务降级为确定性评分或跳过。默认 `judge_double_pass=true`：第二遍以“先找第一遍可能偏低/偏高的理由”为指令再次评分，两遍平均，分歧 ≥0.4 时在 reasoning 中标记 `judge_instability=true`；`--single-pass-judge` 关闭第二遍。
 
@@ -3554,12 +3528,13 @@ Judge 选用 `config.task_models` 中按 `metadata.task_model_id` 选中的模�
 
 - `evalclaw_<timestamp>.json`：canonical 包（`BenchmarkPackage` 全量 JSON，含 spec/plan/suite/qc_report/run/analysis/report，`research_brief` 存在时一并写入 `research_brief.json`）。
 - `evalclaw_<timestamp>.md`：人类可读 Markdown 报告（含来源覆盖、按 target/dimension/type 的分数、recommendations，末尾追加 artifact index）。
+- `evalclaw_<timestamp>_<language>.md`：设置 `report_language` 时由 Planner 独立翻译的 Markdown 报告；原始报告仍保留。
 - `evalclaw_<timestamp>.html`：浏览器 viewer（`build_report_viewer_html`，受 `viewer_item_limit` / `viewer_result_limit` 限制）。
 - `tasks_<timestamp>.html`：专用于浏览生成题目的独立 HTML 页面，按题目展示正文、素材、选项、参考答案、评分与执行环境。
 - `manifest.json`：artifact 索引。
 - `lm-eval/`：`runner=lm-eval` 或 `auto` 时的 JSONL/YAML/metadata 导出；`run_lm_eval` 对每个 target 运行 lm-eval-harness（若可解析出可执行文件），结果写入 `lm-eval-results/<target>/`。
 
-`debug/` 保存可恢复和排障所需的中间状态：`runs/` 含脱敏配置、原始/标准化 goal、pipeline 日志、Plan/Suite/QC 阶段检查点及最终状态或异常；`planner/`、`task-builder/`、`qc/`、`human-review/`、`analysis/` 保存各阶段请求、响应和校验结果；`runner/` 在每个 target × item 完成后立即保存结果。Agent 题还会逐步保存交互轨迹，并在清理环境前导出最终工作区、完整 evaluator 输出或桌面桥状态。对已有 run 目录使用 `evalclaw generate --resume-run <run-id-or-directory>` 可从最近的完整阶段继续；恢复时重新提供当前运行所需的角色凭据，goal 可省略以使用该 run 记录的 goal。
+`debug/` 保存可恢复和排障所需的中间状态：`runs/` 含脱敏配置、原始/标准化 goal、pipeline 日志、Plan/Suite/QC 阶段检查点及最终状态或异常；`planner/`、`task-builder/`、`qc/`、`human-review/`、`analysis/`、`report-translation/` 保存各阶段请求、响应和校验结果；`runner/` 在每个 target × item 完成后立即保存结果。Agent 题还会逐步保存交互轨迹，并在清理环境前导出最终工作区、完整 evaluator 输出或桌面桥状态。对已有 run 目录使用 `evalclaw generate --resume-run <run-id-or-directory>` 可从最近的完整阶段继续；恢复时重新提供当前运行所需的角色凭据，goal 可省略以使用该 run 记录的 goal。
 
 公开 package、报告与 viewer 会掩码 `sk-` 密钥串；调试配置、provider 请求和异常记录还会按敏感字段名及 Authorization/Bearer 形式递归脱敏。HTTP 请求头不写入调试文件。
 

@@ -181,7 +181,7 @@
 
     <h3>5.2 Builder 实际收到的内容</h3>
     <p>基础 system prompt 要求 Builder 实现一个 Planner 已设计好的 Blueprint，并返回纯 JSON。user payload 包含整套测评目标、当前维度、当前 Blueprint、其完整 TaskDesign、所需任务总数、各题型数量、各 TaskDesign 数量、来源上下文以及任务字段契约。</p>
-    <p>没有环境要求时，请求中不出现环境构题协议。存在环境要求时，框架根据每个 TaskDesign 的环境类别，确定性地加载环境构题 Skill，并只附加当前 Blueprint 用到的参考说明。例如普通 workspace 不会收到 Docker、GUI 或 VM 说明；混合 Blueprint 中的路由表会标明环境说明适用于哪些 TaskDesign。</p>
+    <p>没有环境要求时，请求中不出现环境构题协议。存在环境要求时，框架根据每个 TaskDesign 的环境类别，确定性地加载环境构题 Skill，并只附加当前 Blueprint 用到的参考说明；混合 Blueprint 中的路由表会标明环境说明适用于哪些 TaskDesign。</p>
     <p>当当前维度的构题投入为 E3、这是首次构建且 Web 研究可用时，Builder 可以在受限次数和字符预算内搜索或抓取公开材料。</p>
 
     <h3>5.3 三种 Builder 模式</h3>
@@ -199,7 +199,7 @@
       <p><strong>离开：</strong>该 Blueprint 的完整任务和资源，或一个明确失败。</p>
     </div>
     <p>远程 Builder 必须返回一个对象，其中包含构建说明、资源数组和任务数组。任务数组长度必须等于本次要求的数量；各题型数量和每个 TaskDesign 对应的数量必须完全匹配。每道任务通过元数据中的 TaskDesign ID 与 Planner 的具体题组设计关联。</p>
-    <p>框架把返回字段规范化为统一任务对象，然后逐题检查：ID、标题和题面完整；维度、题型和构题投入正确；判断、选择、简答和代码题拥有必要答案或测试；评分可用；LLM Builder 已完成构题投入自检；环境字段与 Blueprint 一致；同一 Blueprint 内没有完全重复的题面。容器、浏览器、桌面和 workspace 还会执行各自的文件隔离、运行材料、评分器和环境完整性检查。</p>
+    <p>框架把返回字段规范化为统一任务对象，然后逐题检查：ID、标题和题面完整；维度、题型和构题投入正确；判断、选择、简答和代码题拥有必要答案或测试；评分可用；LLM Builder 已完成构题投入自检；环境字段与 Blueprint 一致；同一 Blueprint 内没有完全重复的题面。Docker 和 GUI 环境还会执行各自的文件隔离、运行材料、评分器和环境完整性检查。</p>
 
     <h3>6.1 普通结构修复</h3>
     <p>无法解析或结构检查失败时，框架把当前发现的全部问题和上一份完整返回交回 Builder，要求重新返回完整对象。修复提示要求只改动被问题指出的字段，并尽量保留正确的题面、文件、环境行为和评分。严格模式在重试耗尽后失败；auto 模式改用本地构题补足整个 Blueprint。</p>
@@ -301,17 +301,15 @@
     <table>
       <thead><tr><th>环境</th><th>执行后端</th><th>评分来源</th></tr></thead>
       <tbody>
-        <tr><td>workspace</td><td>内置房间、物品、背包和目标状态环境。</td><td>目标状态完成比例，并扣除多余物品和非法动作影响。</td></tr>
-        <tr><td>code_sandbox</td><td>带默认代码工具和镜像选择的 Docker workspace。</td><td>隐藏测试或配置的容器 evaluator。</td></tr>
         <tr><td>docker_workspace</td><td>完整 Docker workspace，可包含镜像构建、服务和标准浏览器工具。</td><td>test command 或结构化 evaluator。</td></tr>
-        <tr><td>gui_desktop</td><td>通过 GUI bridge 或 VM provider 创建桌面会话，并发送鼠标、键盘、截图和文件动作。</td><td>桌面 bridge 的 evaluate 接口返回分数。</td></tr>
+        <tr><td>gui</td><td>通过 GUI bridge 或 VM provider 创建桌面会话，并发送鼠标、键盘、截图和文件动作。</td><td>桌面 bridge 的 evaluate 接口返回分数。</td></tr>
       </tbody>
     </table>
     <p>OpenAI/Anthropic 兼容目标优先使用原生 tool calling；其他目标使用文本 JSON action。Runner 保存每步模型输出、工具调用、工具结果、观察、错误、当步分数和最终状态。</p>
     <p>dialogue 环境由 multi-turn 对话路线表达，不由 agent 环境工厂创建。因此 <code>multi_turn + dialogue</code> 是当前正常组合；<code>agent_interaction + dialogue</code> 会在创建环境时失败。</p>
 
     <div class="constraint">
-      <p><strong>字段存在不等于字段会执行：</strong>当前由 task_type 决定执行器。给 open generation、short answer 或 code execution 题附加工具环境，不会让它们自动进入多步环境交互；给 multi-turn 题附加 workspace 也不会创建 workspace。需要真实工具操作的任务必须使用 agent interaction，并选择该执行器支持的环境。</p>
+      <p><strong>字段存在不等于字段会执行：</strong>当前由 task_type 决定执行器。给 open generation、short answer、code execution 或 multi-turn 题附加工具环境，不会让它们自动进入多步环境交互。需要真实工具操作的任务必须使用 agent interaction，并选择该执行器支持的环境。</p>
     </div>
 
     <h3>11.3 当前评分协议的优先级</h3>

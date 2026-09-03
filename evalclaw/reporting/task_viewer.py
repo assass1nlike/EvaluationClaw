@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from ..types import BenchmarkPackage
+from ..protocols.assets import replace_non_agent_asset_references
+from ..types import BenchmarkPackage, TaskType
 from ._katex_assets import inject_katex
 from .task_viewer_template import HTML_TEMPLATE
 
@@ -57,6 +58,17 @@ def _task_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
         task_agent = metadata.get("task_agent") if isinstance(metadata.get("task_agent"), dict) else {}
         scoring = _definition_value(item, "scoring") or task_agent.get("scoring") or {}
         interaction = _definition_value(item, "interaction") or task_agent.get("interaction") or {}
+        prompt = item.prompt
+        if item.task_type != TaskType.agent:
+            description = replace_non_agent_asset_references(description, item.assets)
+            content_summary = replace_non_agent_asset_references(content_summary, item.assets)
+        choices = [choice.model_dump(mode="json") for choice in item.choices]
+        if item.task_type != TaskType.agent:
+            prompt = replace_non_agent_asset_references(prompt, item.assets)
+            for choice in choices:
+                choice["text"] = replace_non_agent_asset_references(
+                    str(choice.get("text") or ""), item.assets
+                )
         tasks.append(
             {
                 "number": index,
@@ -67,9 +79,9 @@ def _task_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
                 "title": str(title),
                 "content_summary": str(content_summary),
                 "description": str(description),
-                "prompt": item.prompt,
+                "prompt": prompt,
                 "assets": [asset.model_dump(mode="json") for asset in item.assets],
-                "choices": [choice.model_dump(mode="json") for choice in item.choices],
+                "choices": choices,
                 "correct_choice_ids": list(item.correct_choice_ids),
                 "expected_text": item.expected_text,
                 "rubric": item.rubric,

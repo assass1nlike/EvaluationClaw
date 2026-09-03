@@ -207,7 +207,10 @@ def _viewer_payload(
         item
         for item in used_items
         if any(tool.tool == "python_tests" for tool in item.judge_tools)
-        or (isinstance(item.metadata.get("agent_env"), dict) and item.metadata.get("agent_env", {}).get("type") == "code_sandbox")
+        or (
+            isinstance(item.metadata.get("agent_env"), dict)
+            and item.metadata.get("agent_env", {}).get("type") == "docker_workspace"
+        )
     ]
     planned_llm_judged = sum(1 for item in used_items if _planned_uses_llm_judge(item))
     planned_deterministic = max(0, len(used_items) - planned_llm_judged)
@@ -267,10 +270,11 @@ def _viewer_payload(
             },
             "code": {
                 "code_item_count": len(code_items),
-                "sandbox_item_count": sum(
+                "docker_workspace_item_count": sum(
                     1
                     for item in code_items
-                    if isinstance(item.metadata.get("agent_env"), dict) and item.metadata.get("agent_env", {}).get("type") == "code_sandbox"
+                    if isinstance(item.metadata.get("agent_env"), dict)
+                    and item.metadata.get("agent_env", {}).get("type") == "docker_workspace"
                 ),
                 "test_commands": sorted(
                     {

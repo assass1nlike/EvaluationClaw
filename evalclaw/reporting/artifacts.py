@@ -156,6 +156,7 @@ def write_artifact_manifest(
     report_path: Path,
     frontend_report_path: Path | None = None,
     task_viewer_path: Path | None = None,
+    translated_report_path: Path | None = None,
     lm_eval_paths: dict[str, Path],
     research_brief_paths: dict[str, Path] | None = None,
 ) -> Path:
@@ -176,6 +177,11 @@ def write_artifact_manifest(
         payload["frontend_report"] = str(frontend_report_path)
     if task_viewer_path is not None:
         payload["task_viewer"] = str(task_viewer_path)
+    if translated_report_path is not None:
+        payload["translated_report"] = str(translated_report_path)
+        payload["notes"].append(
+            "translated_report is an optional Planner-generated translation of the Markdown report."
+        )
     if research_brief_paths:
         payload["research_brief"] = {key: str(value) for key, value in research_brief_paths.items()}
         payload["notes"].append(

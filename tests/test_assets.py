@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from evalclaw.execution.runner import run_item
+from evalclaw.protocols.assets import build_asset_user_content
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkItem,
@@ -45,5 +46,25 @@ def test_runner_sends_asset_content_to_target(monkeypatch, tmp_path: Path) -> No
     assert result.score == 1.0
     assert isinstance(captured["user_content"], list)
     assert captured["user_content"][0]["type"] == "text"
-    assert captured["user_content"][1] == {"type": "text", "text": f"Asset path: {item.assets[0].path}"}
+    assert captured["user_content"][0]["text"] == "Look at Image 1 and answer yes or no."
+    assert captured["user_content"][1] == {"type": "text", "text": "Image 1"}
     assert captured["user_content"][2]["type"] == "image_url"
+
+
+def test_agent_asset_content_uses_environment_filename(tmp_path: Path) -> None:
+    image_path = tmp_path / "private" / "scene.png"
+    image_path.parent.mkdir()
+    image_path.write_bytes(b"\x89PNG\r\n\x1a\n")
+    item = BenchmarkItem(
+        id="agent_item",
+        dimension_id="vision",
+        task_type=TaskType.agent,
+        prompt=f"Inspect {image_path}.",
+        assets=[{"path": str(image_path)}],
+    )
+
+    content = build_asset_user_content(item, item.prompt, "openai")
+
+    assert str(image_path) not in content[0]["text"]
+    assert content[0]["text"] == "Inspect scene.png."
+    assert content[1] == {"type": "text", "text": "scene.png"}

@@ -467,6 +467,7 @@ def _call_openai_responses(
     max_tokens: int,
     api_key: str | None,
     base_url: str | None,
+    reasoning_effort: str | None = None,
     reduce_reasoning_effort: bool,
     retry_on_truncation: bool,
     tools: list[ToolSpec] | None = None,
@@ -489,11 +490,11 @@ def _call_openai_responses(
         if requested_tools:
             body["tools"] = _responses_tools(requested_tools)
             body["tool_choice"] = "auto"
-        reasoning_effort = (
-            "low" if reduce_reasoning_effort else os.environ.get("EVALCLAW_REASONING_EFFORT")
+        resolved_effort = _resolve_reasoning_effort(
+            model, reasoning_effort, reduce_reasoning_effort
         )
-        if reasoning_effort and _is_reasoning_model(model):
-            body["reasoning"] = {"effort": reasoning_effort}
+        if resolved_effort:
+            body["reasoning"] = {"effort": resolved_effort}
         trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
         request = {
             "provider": "openai_responses",
@@ -698,6 +699,18 @@ def _is_reasoning_model(model: str) -> bool:
     return name.startswith(_REASONING_MODEL_MARKERS)
 
 
+def _resolve_reasoning_effort(
+    model: str,
+    explicit_effort: Optional[str],
+    reduce_reasoning_effort: bool,
+) -> str | None:
+    if not _is_reasoning_model(model):
+        return None
+    if reduce_reasoning_effort:
+        return "low"
+    return explicit_effort or os.environ.get("EVALCLAW_REASONING_EFFORT")
+
+
 def _effective_max_tokens(model: str, max_tokens: int) -> int:
     """Apply the framework-wide minimum output budget."""
     return max(max_tokens, DEFAULT_MAX_OUTPUT_TOKENS)
@@ -760,6 +773,7 @@ def _call_litellm(
     max_tokens: int,
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
+    reasoning_effort: Optional[str] = None,
     reduce_reasoning_effort: bool = False,
     retry_on_truncation: bool = True,
     expect_json: bool = False,
@@ -792,12 +806,13 @@ def _call_litellm(
     elif reduce_reasoning_effort:
         if model.startswith("deepseek-v4"):
             kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
-        elif _is_reasoning_model(model):
-            kwargs["reasoning_effort"] = "low"
-    else:
-        reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
-        if reasoning_effort and _is_reasoning_model(model):
-            kwargs["reasoning_effort"] = reasoning_effort
+    resolved_effort = None
+    if not (model.startswith("deepseek-v4") and expect_json):
+        resolved_effort = _resolve_reasoning_effort(
+            model, reasoning_effort, reduce_reasoning_effort
+        )
+    if resolved_effort:
+        kwargs["reasoning_effort"] = resolved_effort
     if api_key:
         kwargs["api_key"] = api_key
     if base_url:
@@ -961,6 +976,7 @@ def call_llm(
     base_url: Optional[str] = None,
     provider: Optional[str] = None,
     backend: str = "auto",
+    reasoning_effort: Optional[str] = None,
     reduce_reasoning_effort: bool = False,
     retry_on_truncation: bool = True,
     expect_json: bool = False,
@@ -989,6 +1005,7 @@ def call_llm(
             max_tokens=max_tokens,
             api_key=api_key,
             base_url=base_url,
+            reasoning_effort=reasoning_effort,
             reduce_reasoning_effort=reduce_reasoning_effort,
             retry_on_truncation=retry_on_truncation,
             on_token=on_token,
@@ -1027,11 +1044,11 @@ def call_llm(
         budget = _effective_max_tokens(model_name, max_tokens)
         for attempt in range(2 if retry_on_truncation else 1):
             body: dict[str, Any] = {"model": model_name, "messages": messages_dict, "max_tokens": budget}
-            reasoning_effort = (
-                "low" if reduce_reasoning_effort else os.environ.get("EVALCLAW_REASONING_EFFORT")
+            resolved_effort = _resolve_reasoning_effort(
+                model_name, reasoning_effort, reduce_reasoning_effort
             )
-            if reasoning_effort and _is_reasoning_model(model_name):
-                body["reasoning_effort"] = reasoning_effort
+            if resolved_effort:
+                body["reasoning_effort"] = resolved_effort
             if expect_json:
                 body["response_format"] = {"type": "json_object"}
             if (
@@ -1111,6 +1128,7 @@ def call_llm(
         max_tokens=max_tokens,
         api_key=api_key,
         base_url=base_url,
+        reasoning_effort=reasoning_effort,
         reduce_reasoning_effort=reduce_reasoning_effort,
         retry_on_truncation=retry_on_truncation,
         expect_json=expect_json,
@@ -1118,6 +1136,133 @@ def call_llm(
         trace_dir=trace_dir,
         trace_name=trace_name,
     )
+
+
+def _call_openai_compatible_tools(
+    messages: list[dict[str, Any]],
+    *,
+    system_prompt: Optional[str],
+    model: str,
+    api_key: Optional[str],
+    base_url: str,
+    reasoning_effort: Optional[str],
+    tools: list[ToolSpec],
+    max_tokens: int,
+    retry_on_truncation: bool,
+    expect_json: bool,
+    on_token: Optional[Any],
+    trace_dir: str | Path | None,
+    trace_name: str,
+) -> TargetToolModelResponse:
+    """Call an OpenAI-compatible endpoint while preserving native tool calls."""
+    key = (
+        api_key
+        or (os.environ.get("DEEPSEEK_API_KEY") if model.startswith("deepseek-") else None)
+        or (os.environ.get("GEMINI_API_KEY") if model.startswith("gemini") else None)
+        or os.environ.get("OPENAI_API_KEY", "")
+    )
+    request_messages: list[dict[str, Any]] = []
+    if system_prompt:
+        request_messages.append({"role": "system", "content": system_prompt})
+    request_messages.extend(messages)
+    budget = _effective_max_tokens(model, max_tokens)
+    for attempt in range(2 if retry_on_truncation else 1):
+        body: dict[str, Any] = {
+            "model": model,
+            "messages": request_messages,
+            "max_tokens": budget,
+        }
+        if tools:
+            body["tools"] = openai_tools(tools)
+        elif model.startswith("deepseek-v4") and expect_json:
+            body["response_format"] = {"type": "json_object"}
+            body["thinking"] = {"type": "disabled"}
+        if reasoning_effort:
+            body["reasoning_effort"] = reasoning_effort
+        trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
+        request = {
+            "provider": "openai_compatible_stream",
+            "base_url": base_url,
+            "body": body,
+        }
+        raw_events: list[dict[str, Any]] = []
+        try:
+            response = _post_streaming_openai_compatible(
+                f"{base_url.rstrip('/')}/chat/completions",
+                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                body=body,
+                raw_events=raw_events,
+                on_token=on_token,
+                trace_dir=Path(trace_dir) / "http" if trace_dir is not None else None,
+                trace_name=trace_name,
+            )
+        except BaseException as exc:
+            _write_llm_trace(trace_path, request=request, status="failed", error=exc)
+            raise
+        choices = response.get("choices") or []
+        first = choices[0] if choices and isinstance(choices[0], dict) else None
+        finish_reason = str((first or {}).get("finish_reason") or "") or None
+        if finish_reason == "length":
+            _write_llm_trace(
+                trace_path,
+                request=request,
+                status="truncated",
+                response=raw_events,
+                finish_reason=finish_reason,
+            )
+            if retry_on_truncation and attempt == 0:
+                budget = min(budget * 2, _MAX_COMPLETION_TOKENS_CAP)
+                continue
+            raise LLMOutputTruncatedError(
+                f"Orchestrator tool response truncated at {budget} completion tokens "
+                f"(finish_reason=length) for model {model}.",
+                raw_response=raw_events,
+            )
+        if first is None or not isinstance(first.get("message"), dict):
+            _write_llm_trace(
+                trace_path,
+                request=request,
+                status="invalid_response",
+                response=response,
+                finish_reason=finish_reason,
+            )
+            raise LLMProtocolAdapterError(
+                f"OpenAI-compatible stream returned no assistant message for model {model}."
+            )
+        message = first["message"]
+        tool_calls = openai_tool_calls_from_response(response)
+        if tool_calls:
+            content = ""
+        else:
+            try:
+                content = _extract_litellm_content(response)
+            except ValueError as exc:
+                _write_llm_trace(
+                    trace_path,
+                    request=request,
+                    status="invalid_response",
+                    response=response,
+                    finish_reason=finish_reason,
+                    error=exc,
+                )
+                raise LLMProtocolAdapterError(
+                    f"OpenAI-compatible stream returned no final content for model {model}."
+                ) from exc
+        _write_llm_trace(
+            trace_path,
+            request=request,
+            status="completed",
+            response=response,
+            finish_reason=finish_reason,
+        )
+        return TargetToolModelResponse(
+            adapter="openai_compatible",
+            content=content,
+            tool_calls=tool_calls,
+            assistant_message=message,
+            raw_response=response,
+        )
+    raise AssertionError("unreachable")
 
 
 def call_orchestrator_with_tools(
@@ -1129,6 +1274,7 @@ def call_orchestrator_with_tools(
     base_url: Optional[str] = None,
     provider: Optional[str] = None,
     backend: str = "auto",
+    reasoning_effort: Optional[str] = None,
     tools: list[ToolSpec] | None = None,
     max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
     retry_on_truncation: bool = True,
@@ -1158,6 +1304,7 @@ def call_orchestrator_with_tools(
             max_tokens=max_tokens,
             api_key=api_key,
             base_url=base_url,
+            reasoning_effort=reasoning_effort,
             reduce_reasoning_effort=False,
             retry_on_truncation=retry_on_truncation,
             tools=tool_specs,
@@ -1228,6 +1375,29 @@ def call_orchestrator_with_tools(
             raw_response=_jsonable(response),
         )
 
+    resolved_effort = _resolve_reasoning_effort(model_name, reasoning_effort, False)
+    if (
+        base_url
+        and resolved_provider == "openai_compatible"
+        and backend != "litellm"
+        and resolved_effort
+    ):
+        return _call_openai_compatible_tools(
+            messages,
+            system_prompt=system_prompt,
+            model=model_name,
+            api_key=api_key,
+            base_url=base_url,
+            reasoning_effort=resolved_effort,
+            tools=tool_specs,
+            max_tokens=max_tokens,
+            retry_on_truncation=retry_on_truncation,
+            expect_json=expect_json,
+            on_token=on_token,
+            trace_dir=trace_dir,
+            trace_name=trace_name,
+        )
+
     import litellm
 
     litellm.suppress_debug_info = True
@@ -1251,9 +1421,8 @@ def call_orchestrator_with_tools(
             kwargs["api_key"] = api_key
         if base_url:
             kwargs["base_url"] = base_url
-        reasoning_effort = os.environ.get("EVALCLAW_REASONING_EFFORT")
-        if reasoning_effort and _is_reasoning_model(model_name):
-            kwargs["reasoning_effort"] = reasoning_effort
+        if resolved_effort:
+            kwargs["reasoning_effort"] = resolved_effort
         trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
         try:
             response, chunks = _stream_litellm_response(litellm, kwargs, on_token=on_token)

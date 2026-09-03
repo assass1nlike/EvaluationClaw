@@ -1,4 +1,4 @@
-﻿"""EvaluationClaw CLI."""
+"""EvaluationClaw CLI."""
 from __future__ import annotations
 
 import json
@@ -205,14 +205,20 @@ def generate(
     planner_provider: Optional[str] = typer.Option(None, "--planner-provider", help="Protocol/provider for --planner-model."),
     planner_api_key: Optional[str] = typer.Option(None, "--planner-api-key", help="API key for the Planner role."),
     planner_base_url: Optional[str] = typer.Option(None, "--planner-base-url", help="Base URL for the Planner role."),
+    planner_reasoning_effort: Optional[str] = typer.Option(None, "--planner-reasoning-effort", help="Reasoning effort passed to the Planner model."),
     task_builder_model: Optional[str] = typer.Option(None, "--task-builder-model", help="Optional TaskBuilder model override."),
     task_builder_provider: Optional[str] = typer.Option(None, "--task-builder-provider", help="Protocol/provider for --task-builder-model."),
     task_builder_api_key: Optional[str] = typer.Option(None, "--task-builder-api-key", help="API key for the TaskBuilder role."),
     task_builder_base_url: Optional[str] = typer.Option(None, "--task-builder-base-url", help="Base URL for the TaskBuilder role."),
+    task_builder_reasoning_effort: Optional[str] = typer.Option(None, "--task-builder-reasoning-effort", help="Reasoning effort passed to the TaskBuilder model."),
+    image_generation_model: Optional[str] = typer.Option(None, "--image-generation-model", help="Image model available to TaskBuilder."),
+    image_generation_api_key: Optional[str] = typer.Option(None, "--image-generation-api-key", help="API key for image generation."),
+    image_generation_base_url: Optional[str] = typer.Option(None, "--image-generation-base-url", help="OpenAI-compatible base URL for image generation."),
     qc_model: Optional[str] = typer.Option(None, "--qc-model", help="Optional LLM QC model override."),
     qc_provider: Optional[str] = typer.Option(None, "--qc-provider", help="Protocol/provider for --qc-model."),
     qc_api_key: Optional[str] = typer.Option(None, "--qc-api-key", help="API key for the LLM QC role."),
     qc_base_url: Optional[str] = typer.Option(None, "--qc-base-url", help="Base URL for the LLM QC role."),
+    qc_reasoning_effort: Optional[str] = typer.Option(None, "--qc-reasoning-effort", help="Reasoning effort passed to the QC model."),
     task_model: list[str] = typer.Option(
         [],
         "--task-model",
@@ -228,10 +234,12 @@ def generate(
     research_provider: Optional[str] = typer.Option(None, "--research-provider", help="Protocol/provider for --research-model."),
     research_api_key: Optional[str] = typer.Option(None, "--research-api-key", help="API key for the research role."),
     research_base_url: Optional[str] = typer.Option(None, "--research-base-url", help="Base URL for the research role."),
+    research_reasoning_effort: Optional[str] = typer.Option(None, "--research-reasoning-effort", help="Reasoning effort passed to the Research model."),
     analyser_model: Optional[str] = typer.Option(None, "--analyser-model", help="Optional model-performance Analyser model."),
     analyser_provider: Optional[str] = typer.Option(None, "--analyser-provider", help="Protocol/provider for --analyser-model."),
     analyser_api_key: Optional[str] = typer.Option(None, "--analyser-api-key", help="API key for the Analyser role."),
     analyser_base_url: Optional[str] = typer.Option(None, "--analyser-base-url", help="Base URL for the Analyser role."),
+    analyser_reasoning_effort: Optional[str] = typer.Option(None, "--analyser-reasoning-effort", help="Reasoning effort passed to the Analyser model."),
     target_api_key: Optional[str] = typer.Option(
         None,
         "--target-api-key",
@@ -342,7 +350,7 @@ def generate(
         help="Maximum retries after a TaskBuilder output is truncated.",
     ),
     task_builder_tool_max_calls: int = typer.Option(
-        6,
+        50,
         "--task-builder-tool-max-calls",
         help="Maximum tool calls for one task-builder invocation.",
     ),
@@ -380,7 +388,7 @@ def generate(
     container_sandbox_image: str = typer.Option(
         "python:3.11-slim",
         "--container-sandbox-image",
-        help="Default isolated image for code_sandbox agent tasks and Python Judge tests.",
+        help="Default isolated image for Python Judge tests.",
     ),
     no_environment_preflight: bool = typer.Option(
         False,
@@ -390,12 +398,22 @@ def generate(
     allow_incomplete_benchmark: bool = typer.Option(
         False,
         "--allow-incomplete-benchmark",
-        help="Permit a QC-incomplete draft package; target execution still uses accepted items only.",
+        help="Filter out QC-error items and continue with the remaining benchmark.",
+    ),
+    strict_qc_filter: bool = typer.Option(
+        False,
+        "--strict-qc-filter",
+        help="With --allow-incomplete-benchmark, also filter out items with QC warnings.",
+    ),
+    report_language: Optional[str] = typer.Option(
+        None,
+        "--report-language",
+        help="Translate the completed Markdown report into this language using Planner.",
     ),
     gui_bridge_url: Optional[str] = typer.Option(
         None,
         "--gui-bridge-url",
-        help="HTTP URL for a GUI/CUA desktop bridge used by agent_env.type=gui_desktop.",
+        help="HTTP URL for a GUI/CUA desktop bridge used by agent_env.type=gui.",
     ),
     gui_bridge_api_key: Optional[str] = typer.Option(
         None,
@@ -511,25 +529,27 @@ def generate(
         raise typer.Exit(1)
 
     role_options = {
-        "planner": (planner_model, planner_provider, planner_api_key, planner_base_url),
+        "planner": (planner_model, planner_provider, planner_api_key, planner_base_url, planner_reasoning_effort),
         "task_builder": (
             task_builder_model,
             task_builder_provider,
             task_builder_api_key,
             task_builder_base_url,
+            task_builder_reasoning_effort,
         ),
-        "qc": (qc_model, qc_provider, qc_api_key, qc_base_url),
-        "research": (research_model, research_provider, research_api_key, research_base_url),
+        "qc": (qc_model, qc_provider, qc_api_key, qc_base_url, qc_reasoning_effort),
+        "research": (research_model, research_provider, research_api_key, research_base_url, research_reasoning_effort),
         "analyser": (
             analyser_model,
             analyser_provider,
             analyser_api_key,
             analyser_base_url,
+            analyser_reasoning_effort,
         ),
     }
     role_config: dict[str, Optional[str]] = {}
-    for role, (role_model, role_provider, role_key, role_base) in role_options.items():
-        if not any((role_model, role_provider, role_key, role_base)):
+    for role, (role_model, role_provider, role_key, role_base, role_effort) in role_options.items():
+        if not any((role_model, role_provider, role_key, role_base, role_effort)):
             continue
         if not role_model:
             console.print(
@@ -549,8 +569,33 @@ def generate(
                 f"{role}_provider": normalize_provider(role_provider) if role_provider else None,
                 f"{role}_api_key": resolved_key,
                 f"{role}_base_url": resolved_base,
+                f"{role}_reasoning_effort": role_effort,
             }
         )
+    image_config: dict[str, Optional[str]] = {}
+    if any((image_generation_model, image_generation_api_key, image_generation_base_url)):
+        if not image_generation_model or not image_generation_base_url:
+            console.print(
+                "[red]--image-generation-model and --image-generation-base-url are both "
+                "required when configuring image generation.[/red]"
+            )
+            raise typer.Exit(1)
+        resolved_image_key, resolved_image_base = resolve_role_connection(
+            image_generation_model,
+            api_key=image_generation_api_key,
+            base_url=image_generation_base_url,
+        )
+        if not resolved_image_key:
+            console.print(
+                "[red]Image generation requires --image-generation-api-key or "
+                "OPENAI_API_KEY.[/red]"
+            )
+            raise typer.Exit(1)
+        image_config = {
+            "image_generation_model": image_generation_model,
+            "image_generation_api_key": resolved_image_key,
+            "image_generation_base_url": resolved_image_base,
+        }
     try:
         targets = (
             _parse_target_configs(target_config, fallback_key=target_api_key)
@@ -578,6 +623,7 @@ def generate(
         resolved_live_url = f"http://127.0.0.1:{live_port}"
     config = BenchmarkConfig(
         **role_config,
+        **image_config,
         task_models=task_models,
         targets=targets,
         scale_budget=parsed_scale_budget,
@@ -615,6 +661,8 @@ def generate(
         container_sandbox_image=container_sandbox_image,
         environment_preflight=not no_environment_preflight,
         allow_incomplete_benchmark=allow_incomplete_benchmark,
+        strict_qc_filter=strict_qc_filter,
+        report_language=report_language.strip() if report_language and report_language.strip() else None,
         gui_bridge_url=gui_bridge_url,
         gui_bridge_api_key=gui_bridge_api_key,
         gui_bridge_timeout_s=gui_bridge_timeout,

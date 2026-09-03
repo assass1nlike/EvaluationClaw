@@ -38,7 +38,6 @@
 | FT-020 | Windows identity 命名用户断言识别不完整 | P0 | 已验证修复 | Operator 任务 v3 |
 | FT-021 | target 不可读私有 evaluator oracle 被误记为 0 分 | P0 | 已验证修复 | Operator 任务 v2 |
 | FT-022 | QC 摘要曾无标记地截断 task-agent system prompt并产生假阳性 | P1 | 已缓解，待复测 | 医疗欺骗 benchmark v10 |
-| FT-023 | Planner 缺少执行环境能力边界，可能选择无法实现任务合同的 runtime | P0 | 已缓解，待复测 | 医疗欺骗 benchmark v14 |
 | FT-024 | OpenAI-compatible 流式路径曾缺少瞬态错误重试 | P1 | 已缓解，待复测 | 医疗欺骗 benchmark v11-v14 |
 | FT-025 | Planner 可生成超出单次 Builder 稳定承载能力的 Blueprint | P0 | 待修复 | 医疗欺骗 benchmark v22 |
 | FT-026 | 真实数据约束下缺少可执行、可审计的来源载荷 | P0 | 待修复 | 医疗欺骗 benchmark v23-v24 |
@@ -156,10 +155,6 @@ Builder skill 要求模型“标识 application 或 desktop surface”并提供�
 ### 当前状态
 
 Builder Skill、结构验证器、打包器和 QC 现已统一使用 `environment.vm_provisioning`、`environment.session` 与 `environment.evaluation`。Windows command 检查统一使用 raw PowerShell body；Scheduled Task 参数检查按每次 AST 调用分别判断，不再合并两个独立调用，验证器也不再原地修改待验证命令列表。v10-v13 的多轮真实 Builder 响应和最终本机运行均未再出现旧字段或协议错位，因此标记为“已验证修复”。
-
-医疗欺骗 benchmark v9 又发现同类 workspace 协议错位：Builder 把房间写成对象数组，并把对象放在独立 `objects` 数组；运行时实际只接受 `environment.workspace.rooms` 为“房间名 -> item ID 数组”的映射。v14 进一步发现 canonical agent package 为 workspace 错误声明了 `read_file/write_file`，而运行时实际暴露 `look/move/inspect/take/place/final`。
-
-当前已在 workspace Builder reference 中加入唯一可执行 JSON 形状和明确的修复反馈，并修正 canonical 工具列表。定向回归测试通过，但尚未得到同类端到端成功包，因此本条整体状态重新标记为“已缓解，待复测”。
 
 ## FT-006：失败运行缺少完整的 Planner 与 QC 审计信息
 
@@ -358,18 +353,6 @@ Builder Skill 已明确说明 evaluator 与 target 使用同一登录令牌；Wi
 ### 当前状态
 
 task-agent QC 摘要现在保留首尾、原始字符数，并插入 QC 已认识的 `QC review excerpt clipped` 标记。回归测试证明 prompt 尾部和标记均存在；尚待同类端到端复测，状态为“已缓解，待复测”。
-
-## FT-023：Planner 缺少执行环境能力边界
-
-### 实测证据
-
-医疗欺骗 benchmark v14 的 Planner 要求任务提供可编辑 workspace、受保护证据、报告文件、JSON schema、哈希和确定性 validator，却把环境类别选为内置 `workspace`。该 runtime 只能进行房间移动、物品检查和 outgoing-bin 搬运，Builder 无法实现文件编辑合同。QC 正确拒绝了任务。
-
-日志：[`medical v14 run.log`](../benchmark-output/medical-deception-real-world-20260804-v14-stream-worker1-low/run.log)
-
-### 当前状态
-
-Planner Skill 现在明确四种 runtime 的实际能力，并要求包含文件、脚本、schema、hash、测试或可执行 validator 的任务选择 `code_sandbox` 或 `docker_workspace`，不得选择 `workspace`。该变化已通过 Planner/Builder 合同测试，尚待同类端到端复测，状态为“已缓解，待复测”。
 
 ## FT-024：OpenAI-compatible 流式路径缺少瞬态错误重试
 
