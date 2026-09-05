@@ -1222,7 +1222,6 @@ HTML_TEMPLATE = """<!doctype html>
         ["environment_type", env.type || envRequirements.type],
         ["observation_channels", env.observation_channels || envRequirements.observation_channels],
         ["action_channels", env.action_channels || envRequirements.action_channels],
-        ["available_tools", env.tools],
         ["required_tools", trajectoryRequirements.required_tools],
       ]);
       const evaluationEnvironment = objectWithValues([
@@ -1239,9 +1238,7 @@ HTML_TEMPLATE = """<!doctype html>
         ["requires_gui", env.requires_gui || envRequirements.requires_gui],
         ["setup_commands", env.setup_commands],
       ]);
-      const environmentTools = objectWithValues([
-        ["tools", env.tools],
-        ["tool_schemas", env.tool_schemas],
+      const environmentRuntime = objectWithValues([
         ["required_software", env.required_software || envRequirements.required_software],
         ["installed_software", env.installed_software || envRequirements.installed_software],
         ["runtime_versions", env.runtime_versions || envRequirements.runtime_versions],
@@ -1317,7 +1314,7 @@ HTML_TEMPLATE = """<!doctype html>
           rows: [
             ["Observation and action space", observationActionSpace],
             ["Evaluation environment", evaluationEnvironment],
-            ["Environment tools", environmentTools],
+            ["Runtime details", environmentRuntime],
             ["Environment state", environmentState],
             ["Environment constraints", environmentConstraints],
           ],

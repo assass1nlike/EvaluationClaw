@@ -44,7 +44,15 @@ def patch_task_builder_model(monkeypatch, responder) -> None:
             )
         revision = payload.get("revision") if isinstance(payload.get("revision"), dict) else {}
         if revision.get("path"):
-            Path(revision["path"]).write_text(response, encoding="utf-8")
+            try:
+                response_payload = json.loads(response)
+            except json.JSONDecodeError:
+                response_payload = None
+            if not (
+                isinstance(response_payload, dict)
+                and response_payload.get("status") == "saved"
+            ):
+                Path(revision["path"]).write_text(response, encoding="utf-8")
             response = '{"status":"saved"}'
         return response, []
 

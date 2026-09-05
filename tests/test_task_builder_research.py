@@ -1481,6 +1481,47 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
     assert "No external sources" in captured["payload"]["resources"]["context"]
 
 
+def test_gui_task_builder_receives_vm_image_tools(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_tools(payload, **kwargs):
+        captured["include_vm_image_tools"] = kwargs.get("include_vm_image_tools")
+        raise RuntimeError("route probe")
+
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
+    dimension = EvalDimension(
+        id="gui",
+        name="GUI",
+        description="Evaluate GUI interaction.",
+        approach="Use a GUI task.",
+        task_types=[TaskType.agent],
+    )
+    blueprint = make_blueprint(
+        "gui_blueprint",
+        dimension.id,
+        "GUI task",
+        task_type=TaskType.agent,
+        environment_type=AgentEnvironmentType.gui,
+    )
+
+    with pytest.raises(RuntimeError, match="route probe"):
+        build_task_suite(
+            EvalSpec(
+                objective="Evaluate GUI interaction.",
+                dimensions=[dimension],
+                task_types=[TaskType.agent],
+            ),
+            [blueprint],
+            BenchmarkConfig(
+                **dummy_config_kwargs(),
+                environment_preflight=False,
+                task_builder_repair_attempts=0,
+            ),
+        )
+
+    assert captured["include_vm_image_tools"] is True
+
+
 def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -> None:
     payloads: list[dict] = []
 
@@ -1513,21 +1554,23 @@ def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -
                 result["environment"] = environment
             return result
 
-        return (
-            json.dumps(
-                {
-                    "resources": [],
-                    "tasks": [
-                        task(
-                            "First executable task",
-                            include_environment=len(payloads) > 1,
-                        ),
-                        task("Second executable task"),
-                    ],
-                }
-            ),
-            [],
+        response = json.dumps(
+            {
+                "resources": [],
+                "tasks": [
+                    task(
+                        "First executable task",
+                        include_environment=len(payloads) > 1,
+                    ),
+                    task("Second executable task"),
+                ],
+            }
         )
+        revision = payload.get("revision") if isinstance(payload.get("revision"), dict) else {}
+        if revision.get("path"):
+            Path(revision["path"]).write_text(response, encoding="utf-8")
+            return '{"status":"saved"}', []
+        return response, []
 
     preflight_calls = 0
     preflight_task_counts: list[int] = []
@@ -1602,37 +1645,45 @@ def test_builder_host_path_in_container_prompt_enters_repair(monkeypatch, tmp_pa
     def fake_tools(payload, **kwargs):
         payloads.append(payload)
         prompt_path = str(asset_path) if len(payloads) == 1 else asset_path.name
-        return (
-            json.dumps(
-                {
-                    "resources": [],
-                    "tasks": [
-                        {
-                            "task_type": "agent",
-                            "title": "Executable task",
-                            "prompt": f"Read {prompt_path} and implement the requested program.",
-                            "assets": [{"path": str(asset_path)}],
-                            "environment": {
-                                "type": "docker_workspace",
-                                "test_command": "python3 verify.py",
-                            },
-                            "scoring": {
-                                "method": "executable_test",
-                                "pass_criteria": "The evaluator exits successfully.",
-                            },
-                            "metadata": {
-                                "challenge_effort_self_assessment": {
-                                    "requested_effort": "E3",
-                                    "meets_requested_effort": True,
-                                    "rationale": "The task requires implementation and execution verification.",
-                                }
-                            },
-                        }
-                    ],
-                }
-            ),
-            [],
+        response = json.dumps(
+            {
+                "resources": [],
+                "tasks": [
+                    {
+                        "task_type": "agent",
+                        "title": "Executable task",
+                        "prompt": f"Read {prompt_path} and implement the requested program.",
+                        "assets": [{"path": str(asset_path)}],
+                        "environment": {
+                            "type": "docker_workspace",
+                            "test_command": "python3 verify.py",
+                        },
+                        "scoring": {
+                            "method": "executable_test",
+                            "pass_criteria": "The evaluator exits successfully.",
+                        },
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": "E3",
+                                "meets_requested_effort": True,
+                                "rationale": "The task requires implementation and execution verification.",
+                            }
+                        },
+                    }
+                ],
+            }
         )
+        revision = payload.get("revision") if isinstance(payload.get("revision"), dict) else {}
+        if revision.get("path"):
+            repaired = json.loads(response)
+            repaired["tasks"][0]["prompt"] = "Read TASK.md and implement the requested program."
+            repaired["tasks"][0]["assets"] = [{"path": "TASK.md"}]
+            Path(revision["path"]).write_text(
+                json.dumps(repaired),
+                encoding="utf-8",
+            )
+            return '{"status":"saved"}', []
+        return response, []
 
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
     dimension = EvalDimension(

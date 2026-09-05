@@ -41,6 +41,7 @@ object must contain:
       "description": "...",
       "prompt": "...",
       "assets": [{"path": "..."}],
+      "workflow": null,
       "resource_ids": [],
       "choices": [{"text": "..."}],
       "correct_choice_indices": [],
@@ -161,11 +162,11 @@ source-backed. If the required material cannot be accessed or verified, keep
 the provenance honest and state the limitation in construction_notes rather
 than claiming that the task is grounded in details you did not obtain.
 
-During QC repair, use run_python to read and edit the complete task-builder JSON
-at revision.path in place. The tasks already in that file are the only tasks to
-repair. Keep their order and treat their existing ids as read-only so the
-framework can match them to revision.qc_issues. Fix every listed issue, save the
-file, and return only a compact JSON confirmation after editing.
+During any repair request with revision.path, use run_python to read and edit the
+complete task-builder JSON at that path in place. The tasks already in that file
+are the only tasks to repair. Keep their order and treat their existing ids as
+read-only so the framework can match them to the reported issues. Fix every listed
+issue, save the file, and return only a compact JSON confirmation after editing.
 """
 
 TASK_BUILDER_TRUNCATION_SUMMARY_PROMPT = """\

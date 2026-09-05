@@ -180,7 +180,7 @@ HTML_TEMPLATE = r'''<!doctype html>
     function renderEnvironment(parent, environment) {
       if (!environment || typeof environment !== "object" || !Object.keys(environment).length) return;
       const selected = {};
-      ["type", "image", "workdir", "network", "setup_commands", "test_command", "max_steps", "timeout", "tools", "visible_files", "runtime_files", "session", "browser", "vm"].forEach((key) => {
+      ["type", "image", "workdir", "network", "setup_commands", "test_command", "max_steps", "timeout", "visible_files", "runtime_files", "session", "browser", "vm"].forEach((key) => {
         if (nonempty(environment[key]) || (environment[key] && typeof environment[key] === "object" && Object.keys(environment[key]).length)) selected[key] = environment[key];
       });
       objectSection(parent, "Execution environment", selected);

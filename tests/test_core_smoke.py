@@ -1251,45 +1251,35 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
                     ]
                 }
             )
-        return json.dumps(
-            {
-                "tasks": [
-                    {
-                        "id": "gui_task",
-                        "dimension_id": "desktop_agent",
-                        "challenge_effort": challenge_effort,
-                        "title": "GUI task",
-                        "prompt": "Complete the desktop workflow and save the requested artifact.",
-                        "environment": {
-                            "type": "gui",
-                            "session": {
-                                "application": "spreadsheet",
-                                "entrypoint": "Desktop/input.xlsx",
-                                "expected_artifacts": ["Desktop/output.xlsx"],
-                            },
-                            "evaluation": {
-                                "method": "artifact_check",
-                                "expected_artifacts": ["Desktop/output.xlsx"],
-                                "pass_criteria": "Desktop/output.xlsx exists and matches the hidden checks.",
-                            },
-                        },
-                        "scoring": {
-                            "method": "deterministic",
-                            "pass_criteria": "Desktop/output.xlsx exists and matches the hidden checks.",
-                            "partial_criteria": "The agent creates a related artifact but misses one check.",
-                            "fail_criteria": "No usable artifact is produced.",
-                        },
-                        "metadata": {
-                            "challenge_effort_self_assessment": {
-                                "requested_effort": challenge_effort,
-                                "meets_requested_effort": True,
-                                "rationale": "The repaired task is complete enough for the requested effort level.",
-                            }
-                        },
-                    }
-                ]
+        candidate_path = Path(payload["revision"]["path"])
+        candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+        candidate["tasks"][0]["environment"] = {
+            "type": "gui",
+            "session": {
+                "application": "spreadsheet",
+                "entrypoint": "Desktop/input.xlsx",
+            },
+            "evaluation": {
+                "method": "artifact_check",
+                "expected_artifacts": ["Desktop/output.xlsx"],
+                "pass_criteria": "Desktop/output.xlsx exists and matches the hidden checks.",
+            },
+        }
+        candidate["tasks"][0]["scoring"] = {
+            "method": "deterministic",
+            "pass_criteria": "Desktop/output.xlsx exists and matches the hidden checks.",
+            "partial_criteria": "The agent creates a related artifact but misses one check.",
+            "fail_criteria": "No usable artifact is produced.",
+        }
+        candidate["tasks"][0]["metadata"] = {
+            "challenge_effort_self_assessment": {
+                "requested_effort": challenge_effort,
+                "meets_requested_effort": True,
+                "rationale": "The repaired task is complete enough for the requested effort level.",
             }
-        )
+        }
+        candidate_path.write_text(json.dumps(candidate), encoding="utf-8")
+        return '{"status":"saved"}'
 
     patch_task_builder_model(monkeypatch, repairable_call_llm)
     dimension = EvalDimension(
@@ -1491,7 +1481,8 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
 
     assert len(payloads) == 2
     assert payloads[1]["repair"]["issues"] == ["ValueError: expected a JSON object, got list"]
-    assert payloads[1]["repair"]["previous_response"] == [{"unexpected": "top-level list"}]
+    assert Path(payloads[1]["revision"]["path"]).is_file()
+    assert "previous_response" not in payloads[1]["repair"]
     assert suite.tasks[0].id == "tool_use_blueprint_task_1"
 
 
@@ -1658,29 +1649,14 @@ def test_task_structure_validation_allows_short_final_domain_symbol() -> None:
     assert not any("prompt appears truncated" in issue.lower() for issue in issues)
 
 
-def test_docker_structure_does_not_treat_custom_tool_descriptors_as_executable() -> None:
-    task = TaskDefinition(
-        id="custom_tool_docker",
-        dimension_id="tool_use",
-        task_type=TaskType.agent,
-        title="Unsupported custom Docker tool",
-        prompt="Use the supplied website tool to update the application state.",
-        environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.docker_workspace,
-            tools=[
-                {
-                    "name": "update_website",
-                    "description": "Update website state.",
-                    "parameters": {"type": "object", "properties": {}},
-                }
-            ],
-        ),
-        scoring=TaskScoringSpec(pass_criteria="The website state is updated."),
-    )
-
-    issues = task_structure_issues(task)
-
-    assert any("does not define executable custom behavior" in issue for issue in issues)
+def test_agent_environment_rejects_removed_tools_field() -> None:
+    with pytest.raises(ValueError, match="tools"):
+        AgentEnvironmentSpec.model_validate(
+            {
+                "type": "docker_workspace",
+                "tools": [{"name": "read_file"}],
+            }
+        )
 
 
 def test_compact_agent_task_package_marks_clipped_visible_instructions() -> None:
@@ -3884,7 +3860,6 @@ def test_report_viewer_item_explorer_uses_six_unified_task_fields() -> None:
                 "visible_files": {"parser.py": "def parse(x):\n    return x.split(',')\n"},
                 "hidden_files": {"tests/test_parser.py": "def test_hidden():\n    assert True\n"},
                 "test_command": "python -m pytest",
-                "tools": [{"name": "read_file"}, {"name": "write_file"}, {"name": "run_command"}],
             },
             "agent_task_package": {
                 "schema_version": "evalclaw.agent_task_package.v1",

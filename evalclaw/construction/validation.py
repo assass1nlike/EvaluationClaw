@@ -85,22 +85,6 @@ def _has_environment_evaluator(task: TaskDefinition) -> bool:
     return False
 
 
-def _environment_has_visible_file_input(task: TaskDefinition) -> bool:
-    env = task.environment
-    if env is None:
-        return False
-    if env.visible_files or (
-        task.assets
-        and env.type == AgentEnvironmentType.docker_workspace
-    ):
-        return True
-    for key in ("files", "input_files", "asset_files", "assets"):
-        value = env.session.get(key)
-        if isinstance(value, (dict, list)) and bool(value):
-            return True
-    return False
-
-
 def resolve_builder_asset_path(path: str | Path, builder_work_dir: Path | None = None) -> Path:
     """Resolve an asset path against the current Builder job when it is relative."""
     candidate = Path(str(path).strip()).expanduser()
@@ -808,19 +792,20 @@ def task_structure_issues(
     if task_design is not None:
         modalities = task_design.input_requirements.get("modalities")
         asset_requirements = task_design.input_requirements.get("asset_requirements")
-        requires_assets = bool(asset_requirements) or (
+        requires_task_assets = (
+            isinstance(asset_requirements, list)
+            and any(
+                not isinstance(requirement, dict)
+                or str(requirement.get("visibility") or "").strip().lower()
+                not in {"runner_private", "runner-private"}
+                for requirement in asset_requirements
+            )
+        ) or (
             isinstance(modalities, list)
             and any(str(modality).strip().lower() != "text" for modality in modalities)
         )
-        if requires_assets:
-            if task.environment is not None:
-                if not _environment_has_visible_file_input(task):
-                    issues.append(
-                        "TaskDesign requires file inputs, so the environment must provide "
-                        "target-visible guest files."
-                    )
-            elif not task.assets:
-                issues.append("TaskDesign requires file inputs, so the task must provide assets.")
+        if requires_task_assets and task.environment is None and not task.assets:
+            issues.append("TaskDesign requires file inputs, so the task must provide assets.")
     if task.task_type != TaskType.agent:
         non_image_assets = [
             asset.path
@@ -1025,11 +1010,6 @@ def task_structure_issues(
         issues.append("Executable environments must set max_steps to a positive bound.")
     if env.timeout < 1:
         issues.append("Executable environments must set timeout to a positive bound.")
-    if env.tools:
-        issues.append(
-            "environment.tools does not define executable custom behavior; use only tools exposed by "
-            "the selected runtime and its structured configuration."
-        )
     image_build = env.image_build if isinstance(env.image_build, dict) else {}
     context_dir = str(image_build.get("context_dir") or "").strip()
     if context_dir:
