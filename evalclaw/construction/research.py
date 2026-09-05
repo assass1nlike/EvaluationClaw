@@ -115,10 +115,10 @@ need software or state unavailable in the base image. Its plan is executed and
 checked inside an isolated temporary guest by the provider; preserve the
 returned concrete image id in the task's environment.vm.image. Do not claim a
 custom VM image is ready without a successful provider result.
-During QC repair, use run_python to edit the JSON file at revision.path in place,
-then return a compact JSON confirmation. Otherwise, return the complete task-builder
-JSON object after tool use. The tool budget is bounded; stop once the task is
-adequately constructed.
+During any repair request with revision.path, use run_python to edit the JSON file
+at revision.path in place, then return a compact JSON confirmation. Otherwise,
+return the complete task-builder JSON object after tool use. The tool budget is
+bounded; stop once the task is adequately constructed.
 """
 
 
@@ -1240,7 +1240,7 @@ def run_task_builder_tools(
     truncations_used = 0
     call_retries = max(
         0,
-        int(getattr(config, "task_builder_call_retries", 2) or 0),
+        int(getattr(config, "task_builder_call_retries", 5) or 0),
     )
     trace_index = len(list(debug_dir.glob("tool-round-*.json"))) if debug_dir else 0
     tool_state: dict[str, Any] = {}

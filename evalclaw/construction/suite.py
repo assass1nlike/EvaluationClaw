@@ -406,10 +406,13 @@ def _task_builder_payload(
                 f"This TaskDesign requests: {', '.join(requested_followup_modes)}."
             )
     if TaskType.agent in task_types:
-        optional_fields.extend(["environment", "output_contract", "rubric", "judge_tools"])
+        optional_fields.extend(["environment", "workflow", "output_contract", "rubric", "judge_tools"])
         type_requirements[TaskType.agent.value] = [
             "Provide the executable environment, output contract, and deterministic checks or a "
-            "task-specific rubric for the resulting state, artifacts, answer, or trajectory."
+            "task-specific rubric for the resulting state, artifacts, answer, or trajectory. "
+            "For one task with ordered phases, provide workflow.stages with explicit stage ids, "
+            "kind, prompts, context, environment lifecycle, file handoffs, and evaluation stages; "
+            "reference only preceding stage outputs and define workflow.score_stage and metrics."
         ]
     if config is not None and config.task_models:
         task_model_hint = (
@@ -949,13 +952,7 @@ def build_task_suite(
             }
             if blueprint.environment_type == AgentEnvironmentType.docker_workspace:
                 tool_kwargs["include_image_tools"] = True
-            if (
-                blueprint.environment_type == AgentEnvironmentType.gui
-                and any(
-                    bool(design.environment_requirements.get("requires_vm") or design.environment_requirements.get("vm"))
-                    for design in blueprint.task_designs
-                )
-            ):
+            if blueprint.environment_type == AgentEnvironmentType.gui:
                 tool_kwargs["include_vm_image_tools"] = True
             raw_response, tool_notes = run_task_builder_tools(
                 call_payload,
@@ -964,11 +961,17 @@ def build_task_suite(
                 **tool_kwargs,
             )
             result_notes.extend(tool_notes)
-            if job_revision:
-                raw_response = Path(str(job_revision["path"])).read_text(encoding="utf-8")
-            if job_revision and not raw_response.strip():
+            revision = (
+                call_payload.get("revision")
+                if isinstance(call_payload.get("revision"), dict)
+                else {}
+            )
+            revision_path = str(revision.get("path") or "").strip()
+            if revision_path:
+                raw_response = Path(revision_path).read_text(encoding="utf-8")
+            if revision_path and not raw_response.strip():
                 raise LLMFinalContentMissingError(
-                    "TaskBuilder produced an empty QC candidate file."
+                    "TaskBuilder produced an empty repair candidate file."
                 )
             return raw_response
 
@@ -1218,6 +1221,35 @@ def build_task_suite(
         last_failure_is_output = False
         last_truncation_error: LLMOutputTruncatedError | None = None
         best_partial_result: _ParsedBuilderResponse | None = None
+        structural_repair_path: Path | None = None
+
+        def prepare_structural_repair_file() -> Path:
+            nonlocal structural_repair_path
+            if structural_repair_path is not None:
+                return structural_repair_path
+            if builder_work_dir is None:
+                raise strict_error(
+                    blueprint,
+                    "benchmark output_dir is required for file-based structural repair.",
+                )
+            revision_dir = builder_work_dir / "structural-repair" / debug_invocation_id
+            revision_dir.mkdir(parents=True, exist_ok=True)
+            best_path = revision_dir / "best.json"
+            candidate_path = revision_dir / "candidate.json"
+            source = (
+                json.dumps(parsed, ensure_ascii=False, indent=2)
+                if parsed is not None
+                else raw
+            )
+            best_path.write_text(source, encoding="utf-8")
+            shutil.copyfile(best_path, candidate_path)
+            structural_repair_path = candidate_path
+            emit(
+                f"  Task builder: saved structural-repair candidate JSON for {label}: "
+                f"{revision_dir}."
+            )
+            return candidate_path
+
         repair_fields = (
             "missing or inconsistent type-specific fields, rubric, Judge tools, challenge_effort, and "
             "metadata.challenge_effort_self_assessment fields"
@@ -1229,17 +1261,17 @@ def build_task_suite(
         for attempt in range(repair_attempts + 1):
             call_payload = payload
             if attempt > 0:
-                previous_response = None
-                if not job_revision:
-                    previous_response = parsed
-                    if previous_response is None and raw:
-                        previous_response = {"raw_response_prefix": raw[:4000]}
+                repair_path = (
+                    str(job_revision.get("path") or "")
+                    if job_revision
+                    else str(structural_repair_path or "")
+                )
                 repair_instruction = (
                     "Use run_python to repair the complete JSON object at revision.path in place. "
                     "Do not return a patch. Preserve the intended capability target and all unaffected "
                     "task content while fixing every listed structural issue. The tasks array in that "
                     f"file must contain exactly {target_task_count} complete task(s)."
-                    if job_revision
+                    if repair_path
                     else (
                         "Return a complete replacement JSON object with resources and tasks. "
                         "Do not return a patch. Preserve the intended capability target, but repair "
@@ -1261,8 +1293,25 @@ def build_task_suite(
                         "instruction": repair_instruction,
                     },
                 }
-                if previous_response is not None:
-                    call_payload["repair"]["previous_response"] = previous_response
+                if repair_path:
+                    existing_revision = (
+                        payload.get("revision")
+                        if isinstance(payload.get("revision"), dict)
+                        else {}
+                    )
+                    call_payload["revision"] = {
+                        **existing_revision,
+                        "path": repair_path,
+                    }
+                    contract = call_payload.get("task_builder_contract")
+                    if isinstance(contract, dict):
+                        call_payload["task_builder_contract"] = {
+                            **contract,
+                            "response_format": (
+                                "Edit the complete JSON object at revision.path in place, then "
+                                "return a compact JSON confirmation."
+                            ),
+                        }
             raw = ""
             parsed = None
             parsed_keys: list[str] = []
@@ -1335,6 +1384,8 @@ def build_task_suite(
                     parsed_keys=parsed_keys,
                 )
                 if attempt < repair_attempts:
+                    if not job_revision:
+                        prepare_structural_repair_file()
                     emit(
                         f"  Task builder: retrying {label} "
                         f"({attempt + 1}/{repair_attempts}) after invalid response."
@@ -1393,6 +1444,8 @@ def build_task_suite(
                 parsed_keys=parsed_keys,
             )
             if attempt < repair_attempts:
+                if not job_revision:
+                    prepare_structural_repair_file()
                 emit(
                     f"  Task builder: retrying {label} "
                     f"({attempt + 1}/{repair_attempts}) for "

@@ -340,7 +340,7 @@ def generate(
         help="Maximum per-TaskDesign Builder structural repair attempts before QC.",
     ),
     task_builder_call_retries: int = typer.Option(
-        2,
+        5,
         "--task-builder-call-retries",
         help="Maximum retries for a failed TaskBuilder model call.",
     ),

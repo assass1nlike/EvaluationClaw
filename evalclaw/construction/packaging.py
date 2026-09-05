@@ -169,10 +169,6 @@ def _artifact_requirement(agent_env: dict[str, Any]) -> str:
 
 def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
     env_type = str(agent_env.get("type") or "docker_workspace")
-    tools = [str(tool.get("name") or tool.get("type") or "") for tool in agent_env.get("tools", []) if isinstance(tool, dict)]
-    tools = [tool for tool in tools if tool]
-    if tools:
-        return tools
     if env_type == "gui":
         return ["screenshot", "mouse_move", "click", "key", "type", "read_file", "write_file", "run_command", "evaluate"]
     if env_type == "docker_workspace":
@@ -504,6 +500,7 @@ def pack_task_item(
         id=task.id,
         dimension_id=task.dimension_id,
         task_type=task.task_type,
+        workflow=task.workflow,
         prompt=task.prompt,
         assets=task.assets,
         choices=task.choices,

@@ -200,8 +200,11 @@ def _run_agent_interaction_native_tools(
     config: BenchmarkConfig,
     *,
     artifact_dir: Path | None = None,
+    environment: Any = None,
+    messages: list[dict[str, Any]] | None = None,
+    max_tokens: int = 32768,
 ) -> tuple[str, float, str]:
-    env = build_agent_environment(item, config)
+    env = environment if environment is not None else build_agent_environment(item, config)
     try:
         system_prompt = task_agent_system_prompt(
             item,
@@ -211,9 +214,10 @@ def _run_agent_interaction_native_tools(
             ),
         )
         native_system_prompt = _native_system_prompt(system_prompt)
-        native_messages: list[dict[str, Any]] = [
+        native_messages = messages if messages is not None else []
+        native_messages.append(
             {"role": "user", "content": _initial_user_prompt(item, env, include_action_schema=False)}
-        ]
+        )
         trace: list[dict[str, Any]] = []
         tool_specs = env.tool_specs() if hasattr(env, "tool_specs") else []
 
@@ -224,6 +228,7 @@ def _run_agent_interaction_native_tools(
                 tool_specs,
                 system_prompt=native_system_prompt,
                 backend=config.llm_backend,
+                max_tokens=max_tokens,
                 trace_dir=artifact_dir / "llm" if artifact_dir is not None else None,
                 trace_name=f"agent-step-{len(trace) + 1:03d}",
             )
@@ -277,9 +282,9 @@ def _run_agent_interaction_native_tools(
                 _save_interaction_progress(artifact_dir, trace, env)
                 if done or env.steps >= env.max_steps:
                     break
+            native_messages.extend(_native_tool_result_messages(response.adapter, results))
             if done or env.steps >= env.max_steps:
                 break
-            native_messages.extend(_native_tool_result_messages(response.adapter, results))
 
         raw = {
             "tool_protocol_version": TOOL_PROTOCOL_VERSION,
@@ -295,7 +300,7 @@ def _run_agent_interaction_native_tools(
     finally:
         _save_environment_artifacts(env, artifact_dir)
         cleanup = getattr(env, "cleanup", None)
-        if callable(cleanup):
+        if environment is None and callable(cleanup):
             cleanup()
 
 
@@ -305,8 +310,11 @@ def _run_agent_interaction_json_actions(
     config: BenchmarkConfig,
     *,
     artifact_dir: Path | None = None,
+    environment: Any = None,
+    messages: list[Message] | None = None,
+    max_tokens: int = 32768,
 ) -> tuple[str, float, str]:
-    env = build_agent_environment(item, config)
+    env = environment if environment is not None else build_agent_environment(item, config)
     try:
         system_prompt = task_agent_system_prompt(
             item,
@@ -315,7 +323,7 @@ def _run_agent_interaction_json_actions(
                 "Choose one valid action per turn. Do not invent tools. Return JSON only."
             ),
         )
-        history: list[Message] = []
+        history = messages if messages is not None else []
         trace: list[dict[str, Any]] = []
         tool_specs = env.tool_specs() if hasattr(env, "tool_specs") else []
         user_prompt = _initial_user_prompt(item, env, include_action_schema=True)
@@ -327,6 +335,7 @@ def _run_agent_interaction_json_actions(
                 system_prompt=system_prompt,
                 history=history,
                 backend=config.llm_backend,
+                max_tokens=max_tokens,
                 trace_dir=artifact_dir / "llm" if artifact_dir is not None else None,
                 trace_name=f"agent-step-{step_index + 1:03d}",
             )
@@ -365,6 +374,7 @@ def _run_agent_interaction_json_actions(
             )
             _save_interaction_progress(artifact_dir, trace, env)
             if done:
+                history.append(Message(role="user", content=f"Observation:\n{observation}"))
                 break
             user_prompt = f"Observation:\n{observation}\n\nContinue with one JSON action."
 
@@ -380,7 +390,7 @@ def _run_agent_interaction_json_actions(
     finally:
         _save_environment_artifacts(env, artifact_dir)
         cleanup = getattr(env, "cleanup", None)
-        if callable(cleanup):
+        if environment is None and callable(cleanup):
             cleanup()
 
 
@@ -392,6 +402,10 @@ def run_agent_interaction(
     artifact_dir: str | Path | None = None,
 ) -> tuple[str, float, str]:
     artifact_path = Path(artifact_dir) if artifact_dir is not None else None
+    if item.workflow is not None:
+        from .workflow import run_workflow
+
+        return run_workflow(item, target, config, artifact_dir=artifact_path)
     adapter = tool_adapter_for_target(target)
     if adapter in {"openai", "anthropic"}:
         return _run_agent_interaction_native_tools(

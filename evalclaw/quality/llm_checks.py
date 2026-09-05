@@ -101,16 +101,6 @@ def _compact_metadata_for_qc(metadata: dict, *, string_limit: int = 1200) -> dic
         setup_commands = env.get("setup_commands")
         if isinstance(setup_commands, list):
             env_summary["setup_commands"] = [str(command)[:1200] for command in setup_commands[:12]]
-        tools = env.get("tools")
-        if isinstance(tools, list):
-            env_summary["declared_tools"] = [
-                {
-                    "name": str(tool.get("name") or ""),
-                    "description": str(tool.get("description") or "")[:400],
-                }
-                for tool in tools[:20]
-                if isinstance(tool, dict)
-            ]
         browser = env.get("browser")
         if isinstance(browser, dict):
             env_summary["browser"] = {

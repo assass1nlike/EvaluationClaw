@@ -444,7 +444,6 @@ class AgentEnvironmentSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: AgentEnvironmentType = AgentEnvironmentType.docker_workspace
-    tools: list[dict[str, Any]] = Field(default_factory=list)
     visible_files: dict[StrictStr, StrictStr] = Field(default_factory=dict)
     runtime_files: dict[StrictStr, StrictStr] = Field(default_factory=dict)
     hidden_files: dict[StrictStr, StrictStr] = Field(default_factory=dict)
@@ -473,6 +472,94 @@ class AgentEnvironmentSpec(BaseModel):
     session: dict[str, Any] = Field(default_factory=dict)
     evaluation: dict[str, Any] = Field(default_factory=dict)
     notes: StrictStr = ""
+
+
+class StageInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    stage_id: str
+    field: Literal["output", "transcript", "evaluation"] = "output"
+
+
+class StageFile(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    stage_id: str
+    path: str
+    destination: str
+
+
+class WorkflowStage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
+    kind: Literal["agent", "text", "evaluate"]
+    prompt: str = ""
+    system_prompt: str = ""
+    context: Literal["fresh", "continue"] = "fresh"
+    inputs: list[StageInput] = Field(default_factory=list)
+    environment: Literal["fresh", "reuse"] = "fresh"
+    environment_spec: Optional[AgentEnvironmentSpec] = None
+    files: list[StageFile] = Field(default_factory=list)
+    output_files: list[str] = Field(default_factory=list)
+    max_steps: int = Field(default=40, ge=1, strict=True)
+    max_tokens: int = Field(default=32768, ge=1, strict=True)
+    allow_evaluation_feedback: bool = False
+    test_command: str = ""
+    evaluation: dict[str, Any] = Field(default_factory=dict)
+    resume_commands: list[str] = Field(default_factory=list)
+
+
+class WorkflowMetric(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    operation: Literal["mean", "difference"]
+    stages: list[str] = Field(min_length=1)
+
+
+class AgentWorkflow(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    stages: list[WorkflowStage] = Field(min_length=1)
+    score_stage: str
+    metrics: dict[str, WorkflowMetric] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def validate_stages(self) -> "AgentWorkflow":
+        seen: dict[str, WorkflowStage] = {}
+        has_environment = False
+        for stage in self.stages:
+            if stage.id in seen:
+                raise ValueError(f"Duplicate workflow stage id: {stage.id}")
+            if stage.environment_spec is not None and stage.environment != "fresh":
+                raise ValueError(f"Stage {stage.id}: environment_spec requires environment=fresh.")
+            if stage.kind == "text":
+                if stage.environment != "reuse" or stage.environment_spec or stage.files or stage.output_files:
+                    raise ValueError(f"Text stage {stage.id} cannot operate on an environment.")
+            else:
+                if stage.environment == "reuse" and not has_environment:
+                    raise ValueError(f"Stage {stage.id} must create a fresh environment first.")
+                has_environment = True
+            if stage.kind != "evaluate" and not stage.prompt.strip():
+                raise ValueError(f"Stage {stage.id} requires a prompt.")
+            for ref in stage.inputs:
+                if ref.stage_id not in seen:
+                    raise ValueError(f"Stage {stage.id} references a non-preceding stage: {ref.stage_id}")
+                if ref.field == "evaluation" and seen[ref.stage_id].kind != "evaluate":
+                    raise ValueError(f"Stage {ref.stage_id} does not produce an evaluation.")
+            for ref in stage.files:
+                if ref.stage_id not in seen or ref.path not in seen[ref.stage_id].output_files:
+                    raise ValueError(f"Stage {stage.id} references an undeclared output file: {ref.path}")
+            seen[stage.id] = stage
+        evaluators = {stage.id for stage in self.stages if stage.kind == "evaluate"}
+        if self.score_stage not in evaluators:
+            raise ValueError("workflow.score_stage must reference an evaluate stage.")
+        for metric in self.metrics.values():
+            if not set(metric.stages) <= evaluators:
+                raise ValueError("Workflow metrics must reference evaluate stages.")
+            if metric.operation == "difference" and len(metric.stages) != 2:
+                raise ValueError("A difference metric requires two stages, in minuend/subtrahend order.")
+        return self
 
 
 class TaskScoringSpec(BaseModel):
@@ -511,6 +598,7 @@ class TaskDefinition(BaseModel):
     system_prompt: str = ""
     resource_ids: list[str] = Field(default_factory=list)
     environment: Optional[AgentEnvironmentSpec] = None
+    workflow: Optional[AgentWorkflow] = None
     interaction: dict[str, Any] = Field(default_factory=dict)
     scoring: TaskScoringSpec = Field(default_factory=TaskScoringSpec)
     challenge_effort: ChallengeEffort = ChallengeEffort.E3
@@ -525,6 +613,7 @@ class BenchmarkItem(BaseModel):
     id: str
     dimension_id: str
     task_type: TaskType
+    workflow: Optional[AgentWorkflow] = None
     prompt: str
     assets: list[TaskAsset] = Field(default_factory=list)
     choices: list[ChoiceOption] = Field(default_factory=list)
@@ -854,7 +943,7 @@ class BenchmarkConfig(BaseModel):
     use_hf_discovery: bool = True
     task_builder_max_workers: int = 4
     task_builder_repair_attempts: int = 2
-    task_builder_call_retries: int = 2
+    task_builder_call_retries: int = 5
     task_builder_truncation_retries: int = 3
     task_builder_tool_max_calls: int = 50
     task_builder_tool_max_chars: int = 50_000
