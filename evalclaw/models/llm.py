@@ -1555,7 +1555,7 @@ def call_target_model_with_tools(
                 max_tokens=request["max_tokens"],
                 system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
                 messages=messages,
-                tools=request["tools"],
+                tools=request["tools"] or anthropic.NOT_GIVEN,
             )
         except BaseException as exc:
             _write_llm_trace(trace_path, request=request, status="failed", error=exc)
@@ -1602,6 +1602,9 @@ def call_target_model_with_tools(
         "tool_choice": "auto",
         "max_tokens": _effective_max_tokens(target.model, max_tokens),
     }
+    if not tools:
+        body.pop("tools", None)
+        body.pop("tool_choice", None)
     if "api.deepseek.com" in base_url and target.model.startswith("deepseek-v4"):
         body["thinking"] = {"type": "disabled"}
     if backend == "litellm":
@@ -1656,6 +1659,7 @@ def call_target_model(
     user_content: Any | None = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "target",
+    max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
 ) -> str:
     """Call the target model under evaluation."""
     _require_supported_backend(backend)
@@ -1668,7 +1672,7 @@ def call_target_model(
                 "provider": "anthropic",
                 "stream": True,
                 "model": _anthropic_model_name(target.model),
-                "max_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
+                "max_tokens": max_tokens,
                 "system": system_prompt,
                 "messages": [{"role": m.role, "content": m.content} for m in history]
                 + [{"role": "user", "content": user_content}],
@@ -1730,7 +1734,7 @@ def call_target_model(
         body = {
             "model": target.model,
             "messages": messages,
-            "max_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
+            "max_tokens": max_tokens,
         }
         request = {"provider": "openai_compatible", "base_url": base_url, "body": body}
         trace_path = _llm_trace_path(trace_dir, trace_name, 1)
@@ -1772,6 +1776,7 @@ def call_target_model(
             backend=backend,
             trace_dir=trace_dir,
             trace_name=trace_name,
+            max_tokens=max_tokens,
         )
 
     # OpenAI or OpenAI-compatible
@@ -1793,7 +1798,7 @@ def call_target_model(
     return _call_litellm(
         model=target.model,
         messages=messages,
-        max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+        max_tokens=max_tokens,
         api_key=api_key,
         base_url=base_url,
         trace_dir=trace_dir,

@@ -313,16 +313,6 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                 )
         if not task_structure_prevalidated and isinstance(env, dict):
             env_type = str(env.get("type") or "")
-            if env.get("tools"):
-                issues.append(
-                    _issue(
-                        item.id,
-                        QcSeverity.error,
-                        QcCategory.schema,
-                        "metadata.agent_env.tools cannot create executable custom tools.",
-                        "Use the selected runtime's supported structured configuration and tool surface.",
-                    )
-                )
             if env_type == "docker_workspace" and not str(
                 env.get("test_command") or ""
             ).strip():

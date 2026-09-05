@@ -1340,6 +1340,31 @@ def test_task_design_file_inputs_require_assets(tmp_path) -> None:
     assert task_structure_issues(valid, task_design=design) == []
 
 
+def test_task_design_runner_private_assets_do_not_require_visible_files() -> None:
+    design = TaskDesign(
+        id="gui_design",
+        task_type=TaskType.agent,
+        task_count=1,
+        input_requirements={
+            "modalities": ["text"],
+            "asset_requirements": [
+                {"asset_ref": "artifact_validator", "visibility": "runner_private"}
+            ],
+        },
+        environment_requirements={"category": "gui"},
+    )
+    task = _task(
+        TaskType.agent,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui,
+            session={"application": "Blender", "launch_state": "clean"},
+            evaluation={"method": "bridge_state_check"},
+        ),
+    )
+
+    assert task_structure_issues(task, task_design=design) == []
+
+
 def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(monkeypatch) -> None:
     captured: dict = {}
 
