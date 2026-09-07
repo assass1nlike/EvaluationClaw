@@ -5,6 +5,7 @@ import json
 import re
 import time
 from collections import defaultdict
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Callable
 
@@ -703,40 +704,60 @@ def run_eval(
     results: list[ItemResult] = []
     if config.run_targets and config.targets:
         total = len(accepted) * len(config.targets)
-        done = 0
-        for target in config.targets:
-            for item in accepted:
-                done += 1
-                if on_progress:
-                    on_progress(done, total, target.id, item.id)
-                item_dir = (
-                    debug_dir / safe_name(target.id) / safe_name(item.id)
-                    if debug_dir is not None
-                    else None
-                )
-                if item_dir is not None:
-                    write_json(item_dir / "item.json", item.model_dump(mode="json"))
-                cached_result = None
-                if item_dir is not None and _io_path(item_dir / "result.json").is_file():
-                    try:
-                        result_path = _io_path(item_dir / "result.json")
-                        cached_result = ItemResult.model_validate(
-                            json.loads(result_path.read_text(encoding="utf-8"))
-                        )
-                    except (OSError, TypeError, ValueError, UnicodeError, json.JSONDecodeError):
-                        cached_result = None
-                if (
-                    cached_result is not None
-                    and cached_result.target_id == target.id
-                    and cached_result.item_id == item.id
-                    and not cached_result.error
-                ):
-                    results.append(cached_result)
-                    continue
-                result = _run_item(item, config, target.id, trace_dir=item_dir)
+        jobs = [(target.id, item) for target in config.targets for item in accepted]
+
+        def execute(target_id: str, item: BenchmarkItem) -> ItemResult:
+            item_dir = (
+                debug_dir / safe_name(target_id) / safe_name(item.id)
+                if debug_dir is not None
+                else None
+            )
+            if item_dir is not None:
+                write_json(item_dir / "item.json", item.model_dump(mode="json"))
+            cached_result = None
+            if item_dir is not None and _io_path(item_dir / "result.json").is_file():
+                try:
+                    result_path = _io_path(item_dir / "result.json")
+                    cached_result = ItemResult.model_validate(
+                        json.loads(result_path.read_text(encoding="utf-8"))
+                    )
+                except (OSError, TypeError, ValueError, UnicodeError, json.JSONDecodeError):
+                    cached_result = None
+            if (
+                cached_result is not None
+                and cached_result.target_id == target_id
+                and cached_result.item_id == item.id
+                and not cached_result.error
+            ):
+                return cached_result
+            result = _run_item(item, config, target_id, trace_dir=item_dir)
+            if item_dir is not None:
+                write_json(item_dir / "result.json", result.model_dump(mode="json"))
+            return result
+
+        max_workers = max(1, int(getattr(config, "runner_max_workers", 4) or 1))
+        if max_workers == 1 or len(jobs) <= 1:
+            completed = 0
+            for target_id, item in jobs:
+                result = execute(target_id, item)
                 results.append(result)
-                if item_dir is not None:
-                    write_json(item_dir / "result.json", result.model_dump(mode="json"))
+                completed += 1
+                if on_progress:
+                    on_progress(completed, total, target_id, item.id)
+        else:
+            completed = 0
+            with ThreadPoolExecutor(max_workers=min(max_workers, len(jobs))) as executor:
+                futures: dict[Future[ItemResult], tuple[str, BenchmarkItem]] = {
+                    executor.submit(execute, target_id, item): (target_id, item)
+                    for target_id, item in jobs
+                }
+                for future in as_completed(futures):
+                    target_id, item = futures[future]
+                    result = future.result()
+                    results.append(result)
+                    completed += 1
+                    if on_progress:
+                        on_progress(completed, total, target_id, item.id)
     summaries = _summarize(suite, results, config)
     run = EvalRun(
         suite=suite,
