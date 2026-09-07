@@ -957,6 +957,33 @@ def test_agent_task_package_preserves_alternative_artifact_semantics() -> None:
     assert len(declared_package["output_contract"]["constraints"]) == 2
 
 
+def test_agent_task_package_uses_top_level_output_contract() -> None:
+    task = _task(
+        TaskType.agent,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.gui,
+            session={"application": "Blender"},
+            evaluation={"method": "bridge_state_check"},
+        ),
+    ).model_copy(
+        update={
+            "output_contract": {
+                "expected_artifacts": ["C:/output/scene.blend"],
+                "artifact_requirement": "exactly_one",
+            }
+        }
+    )
+
+    package = _agent_task_package_for_task(task, task.environment.model_dump(mode="json"))
+
+    assert package["output_contract"]["expected_artifacts"] == ["C:/output/scene.blend"]
+    assert package["output_contract"]["artifact_requirement"] == "exactly_one"
+    assert package["output_contract"]["required_outputs"] == [
+        "Exactly one of: C:/output/scene.blend"
+    ]
+    assert package["artifact_collection"]["collect_paths"] == ["C:/output/scene.blend"]
+
+
 def test_agent_task_package_exposes_provider_image_capability_requirements() -> None:
     task = _task(
         TaskType.agent,
