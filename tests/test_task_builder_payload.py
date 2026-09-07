@@ -13,6 +13,7 @@ from evalclaw.construction.suite import (
 from evalclaw.prompts.task_builder import (
     build_task_builder_prompt,
     project_task_builder_document,
+    task_builder_document_template,
     task_builder_fields,
 )
 from evalclaw.types import (
@@ -475,6 +476,26 @@ def test_task_builder_field_sets_keep_type_specific_fields_disjoint() -> None:
     )
     assert "resource_ids" not in task_builder_fields(TaskType.generation)
     assert "resource_ids" in task_builder_fields(TaskType.generation, source_backed=True)
+
+
+def test_task_builder_document_template_is_scoped_and_independent() -> None:
+    document = task_builder_document_template(
+        TaskType.fill_blank,
+        task_count=2,
+        challenge_effort="E2",
+        source_backed=True,
+    )
+
+    first, second = document["tasks"]
+    assert set(first) == task_builder_fields(TaskType.fill_blank, source_backed=True)
+    assert first["task_type"] == "fill_blank"
+    assert first["challenge_effort"] == "E2"
+    assert first["resource_ids"] == []
+    assert first["metadata"]["challenge_effort_self_assessment"]["requested_effort"] == "E2"
+    assert "id" not in first
+    assert "dimension_id" not in first
+    first["metadata"]["challenge_effort_self_assessment"]["rationale"] = "first only"
+    assert second["metadata"]["challenge_effort_self_assessment"]["rationale"] == ""
 
 
 def test_source_backed_repair_projection_preserves_resource_binding() -> None:

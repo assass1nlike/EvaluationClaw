@@ -28,6 +28,7 @@ from ..prompts.task_builder import (
     build_task_builder_prompt,
     build_task_builder_tool_prompt,
     project_task_builder_document,
+    task_builder_document_template,
 )
 from ..protocols.assets import replace_non_agent_asset_references
 from ..research.deep_research import compact_brief_context
@@ -278,6 +279,7 @@ def _task_builder_payload(
     resource_context: str,
     revision_context: dict[str, object] | None = None,
     deep_research_context: dict[str, object] | None = None,
+    task_file_path: Path | None = None,
     config: BenchmarkConfig | None = None,
 ) -> dict[str, object]:
     if len(blueprint.task_designs) != 1:
@@ -451,7 +453,12 @@ def _task_builder_payload(
             "Edit the complete JSON object at revision.path in place, then return a compact JSON "
             "confirmation."
             if revision_context
-            else "Return one complete JSON object with construction_notes, resources, and tasks."
+            else (
+                "Edit the JSON working document at task_file.path in place, then return a compact "
+                "JSON confirmation."
+                if task_file_path is not None
+                else "Return one complete JSON object with construction_notes, resources, and tasks."
+            )
         ),
     }
     if blueprint.requires_environment:
@@ -497,6 +504,8 @@ def _task_builder_payload(
             for key in ("path", "qc_issues", "instruction")
             if key in revision_context
         }
+    elif task_file_path is not None:
+        payload["task_file"] = {"path": str(task_file_path.resolve())}
     return payload
 
 
@@ -844,6 +853,7 @@ def build_task_suite(
             for idx, source in enumerate(source_candidates, 1)
         ]
         builder_work_dir = task_builder_work_dir(config, blueprint.id)
+        initial_task_path: Path | None = None
         if job_revision:
             if builder_work_dir is None:
                 raise strict_error(
@@ -877,6 +887,30 @@ def build_task_suite(
             emit(
                 f"  Task builder: saved QC best and candidate JSON for {label}: {revision_dir}."
             )
+        else:
+            if builder_work_dir is None:
+                raise strict_error(
+                    blueprint,
+                    "benchmark output_dir is required for file-based task construction.",
+                )
+            initial_dir = builder_work_dir / "initial" / debug_invocation_id
+            initial_dir.mkdir(parents=True, exist_ok=True)
+            initial_task_path = initial_dir / "candidate.json"
+            initial_task_path.write_text(
+                json.dumps(
+                    task_builder_document_template(
+                        blueprint.task_designs[0].task_type,
+                        task_count=blueprint.planned_task_count,
+                        challenge_effort=blueprint.task_designs[0].challenge_effort.value,
+                        source_backed=blueprint.source_strategy
+                        in {"adapted", "reused", "imported_dataset"},
+                    ),
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            emit(f"  Task builder: created working JSON for {label}: {initial_task_path}.")
         result_resources: list[TaskResource] = list(local_resources)
         result_tasks: list[TaskDefinition] = []
         result_notes: list[str] = []
@@ -951,6 +985,7 @@ def build_task_suite(
                 and blueprint.source_strategy != "generated"
                 else None
             ),
+            task_file_path=initial_task_path,
             config=config,
         )
         payload["resources"]["available"] = [
@@ -1004,12 +1039,17 @@ def build_task_suite(
                 if isinstance(call_payload.get("revision"), dict)
                 else {}
             )
-            revision_path = str(revision.get("path") or "").strip()
-            if revision_path:
-                raw_response = Path(revision_path).read_text(encoding="utf-8")
-            if revision_path and not raw_response.strip():
+            task_file = (
+                call_payload.get("task_file")
+                if isinstance(call_payload.get("task_file"), dict)
+                else {}
+            )
+            document_path = str(revision.get("path") or task_file.get("path") or "").strip()
+            if document_path:
+                raw_response = Path(document_path).read_text(encoding="utf-8")
+            if document_path and not raw_response.strip():
                 raise LLMFinalContentMissingError(
-                    "TaskBuilder produced an empty repair candidate file."
+                    "TaskBuilder produced an empty task candidate file."
                 )
             return raw_response
 
@@ -1340,6 +1380,7 @@ def build_task_suite(
                     },
                 }
                 if repair_path:
+                    call_payload.pop("task_file", None)
                     existing_revision = (
                         payload.get("revision")
                         if isinstance(payload.get("revision"), dict)

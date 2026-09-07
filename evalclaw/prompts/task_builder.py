@@ -1,6 +1,7 @@
 """TaskBuilder prompts scoped to one Planner-authored TaskDesign."""
 from __future__ import annotations
 
+import copy
 import json
 
 from ..types import TaskType
@@ -79,6 +80,30 @@ def task_builder_fields(task_type: TaskType, *, source_backed: bool = False) -> 
     return frozenset(fields)
 
 
+def task_builder_document_template(
+    task_type: TaskType,
+    *,
+    task_count: int,
+    challenge_effort: str,
+    source_backed: bool,
+) -> dict[str, object]:
+    """Create the working JSON document edited during one Builder job."""
+    task_type = TaskType(task_type)
+    task = copy.deepcopy({**_COMMON_FIELDS, **_TYPE_FIELDS[task_type]})
+    task["task_type"] = task_type.value
+    task["challenge_effort"] = challenge_effort
+    task["metadata"]["challenge_effort_self_assessment"][
+        "requested_effort"
+    ] = challenge_effort
+    if source_backed:
+        task["resource_ids"] = []
+    return {
+        "construction_notes": "",
+        "resources": [],
+        "tasks": [copy.deepcopy(task) for _ in range(task_count)],
+    }
+
+
 def project_task_builder_task(
     task: dict[str, object],
     task_type: TaskType,
@@ -153,12 +178,13 @@ def build_task_builder_prompt(
     """Build a system prompt containing only fields relevant to one task type."""
     task_type = TaskType(task_type)
     source_backed = source_strategy in {"adapted", "reused", "imported_dataset"}
-    task = {**_COMMON_FIELDS, **_TYPE_FIELDS[task_type]}
-    task["task_type"] = task_type.value
-    if source_backed:
-        task["resource_ids"] = []
     example = json.dumps(
-        {"construction_notes": "", "resources": [], "tasks": [task]},
+        task_builder_document_template(
+            task_type,
+            task_count=1,
+            challenge_effort="E3",
+            source_backed=source_backed,
+        ),
         ensure_ascii=False,
         indent=2,
     )
@@ -186,7 +212,7 @@ def build_task_builder_prompt(
     scoring_rule = (
         "\nscoring, when present, is an object with method, instructions, pass_criteria, "
         "partial_criteria, fail_criteria, allows_partial_credit, and score_levels."
-        if "scoring" in task
+        if "scoring" in task_builder_fields(task_type)
         else ""
     )
     environment_rule = ""
@@ -203,7 +229,7 @@ def build_task_builder_prompt(
         "\nWhen scoring is present, set allows_partial_credit only for a real middle band and describe "
         "that band in partial_criteria. If score_levels is empty while partial credit is enabled, the "
         "framework supplies fail/partial/pass levels."
-        if "scoring" in task
+        if "scoring" in task_builder_fields(task_type)
         else ""
     )
     model_guidance = (
@@ -228,9 +254,14 @@ Implement the single Planner-authored TaskDesign in task_plan. Treat the TaskDes
 task_builder_contract as authoritative. Materialize every input, asset, runtime dependency, and
 piece of scoring evidence needed by the target and evaluator; do not merely describe a dependency.
 
-Return pure JSON during initial construction using exactly this task shape. Omit optional empty
-fields, but do not emit fields from another task type or invent aliases:
+During initial construction, task_file.path points to a JSON working document with this task shape:
 {example}
+
+Use run_python to edit that file throughout construction. As soon as a part of a task is settled,
+write its fields into the file instead of retaining the result only in reasoning or waiting to
+reproduce the whole task in the final message. Keep the document valid JSON after each edit when
+practical. Complete every required task before finishing, omit optional empty fields, and do not add
+fields from another task type or invent aliases.
 
 The framework owns task, dimension, TaskDesign, resource, and choice-option ids; do not emit them.
 Put all target-visible instructions in prompt. description is reporting metadata, while
@@ -242,9 +273,9 @@ language.{count_guidance}
 {_TYPE_RULES[task_type]}{asset_rule}{scoring_rule}{scoring_guidance}{model_guidance}{environment_rule}
 {provenance_guidance}
 
-For repair requests with revision.path, use run_python to edit that complete JSON object in place.
-Repair only the listed tasks, preserve their order and ids, fix every listed issue, and return a
-compact confirmation."""
+For repair requests with revision.path, use the same file-editing process on that document. Repair
+only the listed tasks, preserve their order and ids, and fix every listed issue. For both initial
+construction and repair, return only a compact confirmation after the file is complete."""
 
 
 # Compatibility value for callers that imported the former module-level prompt.
@@ -297,8 +328,9 @@ def build_task_builder_tool_prompt(
             "then preserve the returned image id in environment.vm.image."
         )
     parts.append(
-        "With revision.path, edit the file in place and return a compact confirmation. Otherwise "
-        "return the complete task-builder JSON after tool use."
+        "When task_file.path or revision.path is supplied, progressively edit that JSON file in place "
+        "and return only a compact confirmation after it is complete. Otherwise return the complete "
+        "task-builder JSON after tool use."
     )
     return "\n\n".join(parts)
 
@@ -318,4 +350,5 @@ __all__ = [
     "project_task_builder_document",
     "project_task_builder_task",
     "task_builder_fields",
+    "task_builder_document_template",
 ]

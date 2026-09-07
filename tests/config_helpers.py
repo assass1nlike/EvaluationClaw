@@ -8,6 +8,24 @@ from evalclaw.models.llm import LLMFinalContentMissingError
 from evalclaw.types import Message, TargetModelConfig
 
 
+def save_task_builder_response(payload: dict, response: str) -> str:
+    revision = payload.get("revision") if isinstance(payload.get("revision"), dict) else {}
+    task_file = payload.get("task_file") if isinstance(payload.get("task_file"), dict) else {}
+    document_path = revision.get("path") or task_file.get("path")
+    if not document_path:
+        return response
+    try:
+        response_payload = json.loads(response)
+    except json.JSONDecodeError:
+        response_payload = None
+    if not (
+        isinstance(response_payload, dict)
+        and response_payload.get("status") == "saved"
+    ):
+        Path(document_path).write_text(response, encoding="utf-8")
+    return '{"status":"saved"}'
+
+
 def patch_task_builder_model(monkeypatch, responder) -> None:
     def run_tools(payload, *, system_prompt, config, **kwargs):
         messages = [
@@ -42,19 +60,7 @@ def patch_task_builder_model(monkeypatch, responder) -> None:
             raise LLMFinalContentMissingError(
                 "TaskBuilder returned no final content after one no-thinking recovery attempt."
             )
-        revision = payload.get("revision") if isinstance(payload.get("revision"), dict) else {}
-        if revision.get("path"):
-            try:
-                response_payload = json.loads(response)
-            except json.JSONDecodeError:
-                response_payload = None
-            if not (
-                isinstance(response_payload, dict)
-                and response_payload.get("status") == "saved"
-            ):
-                Path(revision["path"]).write_text(response, encoding="utf-8")
-            response = '{"status":"saved"}'
-        return response, []
+        return save_task_builder_response(payload, response), []
 
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", run_tools)
 
