@@ -359,6 +359,11 @@ def generate(
         "--task-builder-tool-max-chars",
         help="Maximum characters returned by each task-builder tool call.",
     ),
+    runner_max_workers: int = typer.Option(
+        4,
+        "--runner-workers",
+        help="Maximum concurrent independent target-item executions.",
+    ),
     single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one judge pass instead of the default double-pass audit."),
     llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto or litellm."),
     runner: str = typer.Option("direct", "--runner", help="Runner mode: direct, lm-eval, or auto."),
@@ -521,6 +526,9 @@ def generate(
     if task_builder_truncation_retries < 0:
         console.print("[red]--task-builder-truncation-retries cannot be negative.[/red]")
         raise typer.Exit(1)
+    if runner_max_workers < 1:
+        console.print("[red]--runner-workers must be at least 1.[/red]")
+        raise typer.Exit(1)
     if max_research_iterations < 1:
         console.print("[red]--max-research-iterations must be at least 1.[/red]")
         raise typer.Exit(1)
@@ -648,6 +656,7 @@ def generate(
         task_builder_truncation_retries=task_builder_truncation_retries,
         task_builder_tool_max_calls=task_builder_tool_max_calls,
         task_builder_tool_max_chars=task_builder_tool_max_chars,
+        runner_max_workers=runner_max_workers,
         judge_double_pass=not single_pass_judge,
         llm_backend=llm_backend,
         runner=runner,
