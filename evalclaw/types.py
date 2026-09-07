@@ -947,6 +947,7 @@ class BenchmarkConfig(BaseModel):
     task_builder_truncation_retries: int = 3
     task_builder_tool_max_calls: int = 50
     task_builder_tool_max_chars: int = 50_000
+    runner_max_workers: int = 4
     judge_double_pass: bool = True
     llm_backend: Literal["auto", "litellm"] = "auto"
     runner: str = "direct"  # direct | lm-eval | auto
