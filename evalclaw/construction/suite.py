@@ -24,7 +24,11 @@ from ..models.llm import (
     extract_json,
 )
 from ..models.roles import role_model_settings
-from ..prompts.task_builder import TASK_BUILDER_PROMPT
+from ..prompts.task_builder import (
+    build_task_builder_prompt,
+    build_task_builder_tool_prompt,
+    project_task_builder_document,
+)
 from ..protocols.assets import replace_non_agent_asset_references
 from ..research.deep_research import compact_brief_context
 from ..types import (
@@ -43,7 +47,6 @@ from ..types import (
 from .packaging import pack_task_item
 from .parsing import _task_from_raw
 from .research import (
-    TASK_BUILDER_TOOL_PROMPT,
     TaskBuilderCallError,
     TaskBuilderTruncationSummaryError,
     run_task_builder_tools,
@@ -327,7 +330,9 @@ def _task_builder_payload(
         "challenge_effort": task_design.challenge_effort.value,
         "required_return_task_count": required_return_count,
     }
-    optional_fields = ["content_summary", "assets", "resource_ids", "tags"]
+    optional_fields = ["content_summary", "description", "assets", "tags"]
+    if blueprint.source_strategy in {"adapted", "reused", "imported_dataset"}:
+        optional_fields.append("resource_ids")
     task_schema: dict[str, object] = {
         "required": ["task_type", "title", "prompt", "challenge_effort", "metadata"],
         "optional": optional_fields,
@@ -357,14 +362,16 @@ def _task_builder_payload(
             "the runner uses exact text matching apart from surrounding whitespace."
         ]
     if TaskType.generation in task_types:
-        optional_fields.extend(["rubric", "judge_tools", "output_contract"])
+        optional_fields.extend(["rubric", "judge_tools", "output_contract", "scoring"])
         type_requirements[TaskType.generation.value] = [
             "Provide a concrete rubric. Optional judge_tools may request registered external verification "
             "using python_tests. The Judge uses tool results as evidence; "
             "the tools do not directly assign the final score."
         ]
     if TaskType.multi_turn in task_types:
-        optional_fields.extend(["system_prompt", "interaction", "rubric", "judge_tools"])
+        optional_fields.extend(
+            ["system_prompt", "interaction", "rubric", "judge_tools", "scoring"]
+        )
         requested_followup_modes = sorted(
             {
                 str(design.interaction_requirements.get("followup_mode") or "").strip().lower()
@@ -406,7 +413,18 @@ def _task_builder_payload(
                 f"This TaskDesign requests: {', '.join(requested_followup_modes)}."
             )
     if TaskType.agent in task_types:
-        optional_fields.extend(["environment", "workflow", "output_contract", "rubric", "judge_tools"])
+        optional_fields.extend(
+            [
+                "system_prompt",
+                "interaction",
+                "environment",
+                "workflow",
+                "output_contract",
+                "rubric",
+                "judge_tools",
+                "scoring",
+            ]
+        )
         type_requirements[TaskType.agent.value] = [
             "Provide the executable environment, output contract, and deterministic checks or a "
             "task-specific rubric for the resulting state, artifacts, answer, or trajectory. "
@@ -838,11 +856,17 @@ def build_task_suite(
             candidate_path = revision_dir / "candidate.json"
             best_path.write_text(
                 json.dumps(
-                    {
-                        "construction_notes": "",
-                        "resources": job_revision.get("previous_resources", []),
-                        "tasks": job_revision.get("previous_tasks", []),
-                    },
+                    project_task_builder_document(
+                        {
+                            "construction_notes": "",
+                            "resources": job_revision.get("previous_resources", []),
+                            "tasks": job_revision.get("previous_tasks", []),
+                        },
+                        blueprint.task_designs[0].task_type,
+                        source_backed=blueprint.source_strategy
+                        in {"adapted", "reused", "imported_dataset"},
+                        preserve_identity=True,
+                    ),
                     ensure_ascii=False,
                     indent=2,
                 ),
@@ -936,10 +960,24 @@ def build_task_suite(
         def call_task_builder(
             call_payload: dict[str, object],
         ) -> str:
-            system_prompt = TASK_BUILDER_PROMPT
+            task_type = blueprint.task_designs[0].task_type
+            system_prompt = build_task_builder_prompt(
+                task_type,
+                source_strategy=blueprint.source_strategy,
+                requires_environment=blueprint.requires_environment,
+            )
             if blueprint.requires_environment:
                 system_prompt += "\n\n" + environment_skill_system_prompt(blueprint)
-            system_prompt += "\n\n" + TASK_BUILDER_TOOL_PROMPT
+            system_prompt += "\n\n" + build_task_builder_tool_prompt(
+                task_type,
+                source_backed=blueprint.source_strategy != "generated",
+                include_image_tools=(
+                    blueprint.environment_type == AgentEnvironmentType.docker_workspace
+                ),
+                include_vm_image_tools=(
+                    blueprint.environment_type == AgentEnvironmentType.gui
+                ),
+            )
             debug_kwargs = (
                 {"debug_dir": debug_job_dir / "tool-trace"}
                 if debug_job_dir is not None
@@ -1236,11 +1274,19 @@ def build_task_suite(
             revision_dir.mkdir(parents=True, exist_ok=True)
             best_path = revision_dir / "best.json"
             candidate_path = revision_dir / "candidate.json"
-            source = (
-                json.dumps(parsed, ensure_ascii=False, indent=2)
-                if parsed is not None
-                else raw
-            )
+            source = raw
+            if isinstance(parsed, dict):
+                source = json.dumps(
+                    project_task_builder_document(
+                        parsed,
+                        blueprint.task_designs[0].task_type,
+                        source_backed=blueprint.source_strategy
+                        in {"adapted", "reused", "imported_dataset"},
+                        preserve_identity=bool(job_revision),
+                    ),
+                    ensure_ascii=False,
+                    indent=2,
+                )
             best_path.write_text(source, encoding="utf-8")
             shutil.copyfile(best_path, candidate_path)
             structural_repair_path = candidate_path
