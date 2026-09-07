@@ -205,11 +205,12 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
     runtime_files = agent_env.get("runtime_files") if isinstance(agent_env.get("runtime_files"), dict) else {}
     hidden_files = agent_env.get("hidden_files") if isinstance(agent_env.get("hidden_files"), dict) else {}
     expected_artifacts = _expected_artifacts(agent_env)
-    declared_output = (
-        task.metadata.get("output_contract")
-        if isinstance(task.metadata.get("output_contract"), dict)
-        else {}
-    )
+    declared_output: dict[str, Any] = {}
+    legacy_output = task.metadata.get("output_contract")
+    if isinstance(legacy_output, dict):
+        declared_output.update(legacy_output)
+    if isinstance(task.output_contract, dict):
+        declared_output.update(task.output_contract)
     if not expected_artifacts:
         declared_artifacts = declared_output.get("expected_artifacts")
         if not isinstance(declared_artifacts, list):
