@@ -69,8 +69,7 @@ class TaskBuilderCallError(RuntimeError):
     """A TaskBuilder model call failed after its dedicated retry budget."""
 
 
-# This prompt must explain when to use construction and source tools, where files
-# belong, and that the Builder must return its complete response after tool use.
+# This prompt explains when to use construction and source tools and where files belong.
 TASK_BUILDER_TOOL_PROMPT = """\
 You may use the supplied tools when they materially improve task construction.
 Use run_python for computation, validation, or creating and processing task files.
@@ -115,9 +114,9 @@ need software or state unavailable in the base image. Its plan is executed and
 checked inside an isolated temporary guest by the provider; preserve the
 returned concrete image id in the task's environment.vm.image. Do not claim a
 custom VM image is ready without a successful provider result.
-During any repair request with revision.path, use run_python to edit the JSON file
-at revision.path in place, then return a compact JSON confirmation. Otherwise,
-return the complete task-builder JSON object after tool use. The tool budget is
+When task_file.path or revision.path is supplied, use run_python to edit that JSON
+file in place throughout construction, then return a compact JSON confirmation.
+Otherwise, return the complete task-builder JSON object after tool use. The tool budget is
 bounded; stop once the task is adequately constructed.
 """
 
@@ -1248,10 +1247,11 @@ def run_task_builder_tools(
     builder_job_id = str(task_plan.get("builder_job_id") or "task-builder")
     work_dir = task_builder_work_dir(config, builder_job_id)
     revision = payload.get("revision") if isinstance(payload.get("revision"), dict) else {}
-    revision_path = str(revision.get("path") or "").strip()
+    task_file = payload.get("task_file") if isinstance(payload.get("task_file"), dict) else {}
+    document_path = str(revision.get("path") or task_file.get("path") or "").strip()
     final_instruction = (
-        "The candidate file has been edited. Return a compact JSON confirmation now."
-        if revision_path
+        "The task file has been edited. Return a compact JSON confirmation now."
+        if document_path
         else "Return the complete final task-builder JSON now."
     )
 

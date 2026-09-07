@@ -33,7 +33,7 @@ from evalclaw.types import (
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
-from tests.config_helpers import dummy_config_kwargs
+from tests.config_helpers import dummy_config_kwargs, save_task_builder_response
 
 
 def _openai_tool_response(call: ToolCall) -> TargetToolModelResponse:
@@ -274,6 +274,98 @@ def test_task_builder_call_failure_has_separate_retries(monkeypatch) -> None:
     assert len(calls) == 2
     assert calls[0] == calls[1]
     assert any("model call failed; retrying (1/1)" in note for note in notes)
+
+
+def test_task_builder_progressively_edits_initial_task_file(monkeypatch, tmp_path) -> None:
+    config = BenchmarkConfig(
+        **dummy_config_kwargs(),
+        output_dir=str(tmp_path),
+        task_builder_tool_max_calls=2,
+    )
+    candidate_path = task_builder_work_dir(config, "progressive") / "candidate.json"
+    candidate_path.parent.mkdir(parents=True)
+    candidate_path.write_text(
+        json.dumps(
+            {
+                "construction_notes": "",
+                "resources": [],
+                "tasks": [{"task_type": "fill_blank", "title": "", "prompt": ""}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    calls: list[list[dict]] = []
+
+    def fake_model(messages, **kwargs):
+        calls.append(json.loads(json.dumps(messages)))
+        if len(calls) == 1:
+            return _openai_tool_response(
+                ToolCall(
+                    id="write_prompt",
+                    name="run_python",
+                    arguments={
+                        "code": (
+                            "import json\n"
+                            f"p = {str(candidate_path)!r}\n"
+                            "d = json.load(open(p))\n"
+                            "d['tasks'][0]['title'] = 'Staged task'\n"
+                            "d['tasks'][0]['prompt'] = 'Return the exact word ready.'\n"
+                            "json.dump(d, open(p, 'w'))\n"
+                        )
+                    },
+                )
+            )
+        if len(calls) == 2:
+            staged = json.loads(candidate_path.read_text(encoding="utf-8"))
+            assert staged["tasks"][0]["title"] == "Staged task"
+            return _openai_tool_response(
+                ToolCall(
+                    id="write_answer",
+                    name="run_python",
+                    arguments={
+                        "code": (
+                            "import json\n"
+                            f"p = {str(candidate_path)!r}\n"
+                            "d = json.load(open(p))\n"
+                            "d['tasks'][0]['expected_text'] = 'ready'\n"
+                            "json.dump(d, open(p, 'w'))\n"
+                        )
+                    },
+                )
+            )
+        assert kwargs["tools"] == []
+        assert "compact JSON confirmation" in messages[-1]["content"]
+        return TargetToolModelResponse(
+            adapter="openai",
+            content='{"status":"saved"}',
+            tool_calls=[],
+            assistant_message={"role": "assistant", "content": '{"status":"saved"}'},
+            raw_response={},
+        )
+
+    monkeypatch.setattr(
+        "evalclaw.construction.research.call_orchestrator_with_tools",
+        fake_model,
+    )
+
+    raw, _ = run_task_builder_tools(
+        {
+            "task_plan": {"builder_job_id": "progressive"},
+            "task_file": {"path": str(candidate_path)},
+        },
+        system_prompt="Build the task in the supplied file.",
+        config=config,
+        include_source_tools=False,
+    )
+
+    document = json.loads(candidate_path.read_text(encoding="utf-8"))
+    assert raw == '{"status":"saved"}'
+    assert document["tasks"][0] == {
+        "task_type": "fill_blank",
+        "title": "Staged task",
+        "prompt": "Return the exact word ready.",
+        "expected_text": "ready",
+    }
 
 
 def test_task_builder_call_failure_does_not_consume_structure_repairs(monkeypatch) -> None:
@@ -1322,7 +1414,7 @@ def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypat
         captured["system_prompt"] = system_prompt
         captured["include_source_tools"] = include_source_tools
         captured["include_image_tools"] = include_image_tools
-        return (
+        response, notes = (
             json.dumps(
                 {
                     "resources": [
@@ -1358,6 +1450,7 @@ def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypat
             ),
             ["task-builder used 1 tool call(s), total=1"],
         )
+        return save_task_builder_response(payload, response), notes
 
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
     monkeypatch.setattr("evalclaw.construction.suite._select_blueprint_sources", lambda *args, **kwargs: [])
@@ -1409,7 +1502,10 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
     def fake_tools(payload, *, system_prompt, config, include_source_tools, stop_event):
         captured["payload"] = payload
         captured["include_source_tools"] = include_source_tools
-        return (
+        captured["initial_document"] = json.loads(
+            Path(payload["task_file"]["path"]).read_text(encoding="utf-8")
+        )
+        response, notes = (
             json.dumps(
                 {
                     "resources": [],
@@ -1432,6 +1528,7 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
             ),
             [],
         )
+        return save_task_builder_response(payload, response), notes
 
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
     dimension = EvalDimension(
@@ -1479,6 +1576,14 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
     assert captured["payload"]["resources"]["available"] == []
     assert captured["payload"]["resources"]["deep_research"] == {}
     assert "No external sources" in captured["payload"]["resources"]["context"]
+    assert captured["payload"]["task_builder_contract"]["response_format"].startswith(
+        "Edit the JSON working document at task_file.path"
+    )
+    initial_task = captured["initial_document"]["tasks"][0]
+    assert initial_task["task_type"] == "fill_blank"
+    assert "expected_text" in initial_task
+    assert "choices" not in initial_task
+    assert "environment" not in initial_task
 
 
 def test_gui_task_builder_receives_vm_image_tools(monkeypatch) -> None:
@@ -1566,11 +1671,7 @@ def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -
                 ],
             }
         )
-        revision = payload.get("revision") if isinstance(payload.get("revision"), dict) else {}
-        if revision.get("path"):
-            Path(revision["path"]).write_text(response, encoding="utf-8")
-            return '{"status":"saved"}', []
-        return response, []
+        return save_task_builder_response(payload, response), []
 
     preflight_calls = 0
     preflight_task_counts: list[int] = []
@@ -1620,6 +1721,9 @@ def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -
 
     assert len(suite.tasks) == 2
     assert len(payloads) == 2
+    assert "task_file" in payloads[0]
+    assert "task_file" not in payloads[1]
+    assert "revision" in payloads[1]
     assert preflight_task_counts == [1, 2]
     assert any(
         "environment preflight failed" in issue
@@ -1678,12 +1782,8 @@ def test_builder_host_path_in_container_prompt_enters_repair(monkeypatch, tmp_pa
             repaired = json.loads(response)
             repaired["tasks"][0]["prompt"] = "Read TASK.md and implement the requested program."
             repaired["tasks"][0]["assets"] = [{"path": "TASK.md"}]
-            Path(revision["path"]).write_text(
-                json.dumps(repaired),
-                encoding="utf-8",
-            )
-            return '{"status":"saved"}', []
-        return response, []
+            response = json.dumps(repaired)
+        return save_task_builder_response(payload, response), []
 
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
     dimension = EvalDimension(
