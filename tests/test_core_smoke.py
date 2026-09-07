@@ -87,7 +87,11 @@ from evalclaw.types import (
     TaskType,
 )
 from tests.blueprint_factory import make_blueprint
-from tests.config_helpers import dummy_config_kwargs, patch_task_builder_model
+from tests.config_helpers import (
+    dummy_config_kwargs,
+    patch_task_builder_model,
+    save_task_builder_response,
+)
 
 
 def test_sandbox_runs_in_isolated_container(monkeypatch) -> None:
@@ -851,6 +855,7 @@ def test_task_builder_recovers_truncation_in_preserved_conversation(monkeypatch)
                 ]
             }
         )
+        content = save_task_builder_response(json.loads(calls[0][0]["content"]), content)
         return TargetToolModelResponse(
             adapter="openai",
             content=content,
@@ -1088,7 +1093,7 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
         finally:
             with lock:
                 active_calls -= 1
-        return (
+        response, notes = (
             json.dumps(
                 {
                     "tasks": [
@@ -1116,6 +1121,7 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
             ),
             [],
         )
+        return save_task_builder_response(payload, response), notes
 
     monkeypatch.setattr(
         "evalclaw.construction.suite.run_task_builder_tools", concurrent_task_builder_tools
