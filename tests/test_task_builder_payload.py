@@ -10,6 +10,11 @@ from evalclaw.construction.suite import (
     _task_builder_payload,
     _task_duplicate_key,
 )
+from evalclaw.prompts.task_builder import (
+    build_task_builder_prompt,
+    project_task_builder_document,
+    task_builder_fields,
+)
 from evalclaw.types import (
     AgentEnvironmentType,
     ChoiceOption,
@@ -391,7 +396,109 @@ def test_multi_turn_builder_contract_exposes_runtime_fields() -> None:
     payload = _task_builder_payload(spec, dimension, blueprint, "No external sources.")
     task_schema = payload["task_builder_contract"]["task_schema"]
 
-    assert {"system_prompt", "interaction", "rubric", "judge_tools"}.issubset(
+    assert {
+        "system_prompt",
+        "interaction",
+        "rubric",
+        "judge_tools",
+        "scoring",
+    }.issubset(
         task_schema["optional"]
     )
     assert environment_skill_system_prompt(blueprint) == ""
+
+
+def test_task_builder_prompt_is_scoped_to_the_selected_task_type() -> None:
+    prompt = build_task_builder_prompt(TaskType.choice)
+
+    assert '"choices"' in prompt
+    assert '"correct_choice_indices"' in prompt
+    for unrelated_field in (
+        "expected_text",
+        "system_prompt",
+        "interaction",
+        "environment",
+        "workflow",
+        "rubric",
+        "judge_tools",
+        "output_contract",
+    ):
+        assert f'"{unrelated_field}"' not in prompt
+
+
+def test_task_builder_repair_document_projects_out_unrelated_fields() -> None:
+    document = {
+        "construction_notes": "",
+        "resources": [],
+        "tasks": [
+            {
+                "id": "task_1",
+                "dimension_id": "dimension_1",
+                "task_type": "choice",
+                "prompt": "Choose one.",
+                "choices": [{"id": "choice_1", "text": "A"}],
+                "expected_text": "must disappear",
+                "environment": {"type": "docker_workspace"},
+                "metadata": {
+                    "task_design_id": "design_1",
+                    "challenge_effort_self_assessment": {"rationale": "keep"},
+                    "agent_env": {"hidden_files": {"secret.txt": "private"}},
+                },
+            }
+        ],
+    }
+
+    projected = project_task_builder_document(
+        document,
+        TaskType.choice,
+        source_backed=False,
+        preserve_identity=True,
+    )
+
+    task = projected["tasks"][0]
+    assert task["id"] == "task_1"
+    assert task["dimension_id"] == "dimension_1"
+    assert task["choices"] == [{"text": "A"}]
+    assert "expected_text" not in task
+    assert "environment" not in task
+    assert task["metadata"] == {
+        "challenge_effort_self_assessment": {"rationale": "keep"}
+    }
+
+
+def test_task_builder_field_sets_keep_type_specific_fields_disjoint() -> None:
+    assert task_builder_fields(TaskType.choice).isdisjoint(
+        {"expected_text", "rubric", "system_prompt", "environment", "workflow"}
+    )
+    assert task_builder_fields(TaskType.fill_blank).isdisjoint(
+        {"choices", "correct_choice_indices", "judge_tools", "environment"}
+    )
+    assert "resource_ids" not in task_builder_fields(TaskType.generation)
+    assert "resource_ids" in task_builder_fields(TaskType.generation, source_backed=True)
+
+
+def test_source_backed_repair_projection_preserves_resource_binding() -> None:
+    projected = project_task_builder_document(
+        {
+            "resources": [{"id": "resource_1"}],
+            "tasks": [
+                {
+                    "id": "task_1",
+                    "task_type": "generation",
+                    "prompt": "Use the source.",
+                    "resource_ids": ["resource_1"],
+                    "choices": [{"id": "choice_1", "text": "unrelated"}],
+                    "environment": {"type": "docker_workspace"},
+                }
+            ],
+        },
+        TaskType.generation,
+        source_backed=True,
+        preserve_identity=True,
+    )
+
+    task = projected["tasks"][0]
+    assert task["resource_ids"] == ["resource_1"]
+    assert task["id"] == "task_1"
+    assert "choices" not in task
+    assert "environment" not in task
