@@ -43,10 +43,10 @@ def test_materialize_vm_task_creates_seed_iso_and_updates_agent_env(monkeypatch,
                     "collect_trajectory": True,
                 },
                 "trajectory_requirements": {"required_tools": ["screenshot", "write_file"]},
-                "environment_requirements": {"type": "gui", "requires_vm": True},
+                "environment_requirements": {"type": "vm", "requires_vm": True},
             },
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "visible_files": {
@@ -71,7 +71,7 @@ def test_materialize_vm_task_creates_seed_iso_and_updates_agent_env(monkeypatch,
                     "session": {"asset_files": {"Desktop/session.csv": "region,profit\nNA,3\n"}},
                 },
                 "execution": {
-                    "environment_type": "gui",
+                    "environment_type": "vm",
                     "environment_ref": "metadata.agent_env",
                 },
             },
@@ -134,7 +134,7 @@ def test_vm_public_manifests_do_not_expose_runner_private_evaluation() -> None:
                 "evaluation": {"checks": [{"command": private_command}]},
             },
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"guest_os": "windows"},
                 "session": {
@@ -173,7 +173,7 @@ def test_materialize_vm_task_preserves_explicit_seed_iso(monkeypatch, tmp_path) 
         prompt="Use the VM.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"seed_iso": str(existing_seed)},
                 "visible_files": {"Desktop/input.txt": "content"},
@@ -209,7 +209,7 @@ def test_materialize_windows_vm_uses_cloudbase_init_powershell(monkeypatch, tmp_
         prompt="Repair the hidden Windows configuration fault.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "windows-11-cloudbase", "guest_os": "windows"},
                 "visible_files": {"Desktop/readme.txt": "Inspect the workstation."},
@@ -289,7 +289,7 @@ def test_windows_vm_rejects_linux_only_provisioning(tmp_path) -> None:
         prompt="Use the Windows VM.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "windows-base", "guest_os": "windows"},
                 "session": {
@@ -322,7 +322,7 @@ def test_materialize_vm_task_adds_cloud_init_vm_provisioning(monkeypatch, tmp_pa
         prompt="Use the provisioned VM.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "ubuntu-base"},
                 "session": {
@@ -387,7 +387,7 @@ def test_environment_claw_materializes_and_probes_gui_vm_items(monkeypatch) -> N
         task_type=TaskType.agent,
         prompt="Run a VM-backed desktop task.",
         metadata={
-            "agent_env": {"type": "gui", "requires_vm": True, "vm": {"image": "base-vm"}}
+            "agent_env": {"type": "vm", "requires_vm": True, "vm": {"image": "base-vm"}}
         },
     )
 

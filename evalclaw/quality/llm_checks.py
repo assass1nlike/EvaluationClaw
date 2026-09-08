@@ -246,7 +246,7 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
         return issue
     env_type = str(env.get("type") or "")
     message = issue.message.lower()
-    if env_type == "gui":
+    if env_type == "vm":
         vm = env.get("vm")
         has_provider_request = (
             bool(env.get("requires_vm"))

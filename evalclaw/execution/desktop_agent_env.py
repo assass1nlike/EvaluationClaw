@@ -404,7 +404,7 @@ class DesktopBridgeAgentEnvironment:
 
     def observation(self) -> str:
         return (
-            "Environment: gui\n"
+            "Environment: vm\n"
             f"Bridge: {self.bridge_url}\n"
             f"VM: {self.vm_id or 'none'}\n"
             f"Session: {self.session_id}\n"
@@ -478,7 +478,7 @@ class DesktopBridgeAgentEnvironment:
 
     def state(self) -> dict[str, Any]:
         return {
-            "environment": "gui",
+            "environment": "vm",
             "bridge_url": self.bridge_url,
             "vm_id": self.vm_id,
             "vm_session": self.vm_session_data,

@@ -1010,7 +1010,7 @@ def build_task_suite(
                     blueprint.environment_type == AgentEnvironmentType.docker_workspace
                 ),
                 include_vm_image_tools=(
-                    blueprint.environment_type == AgentEnvironmentType.gui
+                    blueprint.environment_type == AgentEnvironmentType.vm
                 ),
             )
             debug_kwargs = (
@@ -1025,7 +1025,7 @@ def build_task_suite(
             }
             if blueprint.environment_type == AgentEnvironmentType.docker_workspace:
                 tool_kwargs["include_image_tools"] = True
-            if blueprint.environment_type == AgentEnvironmentType.gui:
+            if blueprint.environment_type == AgentEnvironmentType.vm:
                 tool_kwargs["include_vm_image_tools"] = True
             raw_response, tool_notes = run_task_builder_tools(
                 call_payload,

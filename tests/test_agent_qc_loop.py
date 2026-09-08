@@ -536,7 +536,7 @@ def test_valid_vm_provider_request_false_positive_is_demoted() -> None:
         prompt="Repair the prepared workstation.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {
                     "guest_os": "windows",

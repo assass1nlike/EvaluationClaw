@@ -508,7 +508,7 @@ def test_environment_claw_resolves_remote_image_before_target_execution(monkeypa
         prompt="Repair the Windows workstation.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"guest_os": "windows"},
                 "session": {

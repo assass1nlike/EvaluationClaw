@@ -98,13 +98,13 @@ def _has_docker_workspace(items: list[BenchmarkItem]) -> bool:
 
 
 def _has_gui(items: list[BenchmarkItem]) -> bool:
-    return any(_agent_env_type(item) == "gui" for item in items)
+    return any(_agent_env_type(item) == "vm" for item in items)
 
 
 def _first_gui_bridge_url(items: list[BenchmarkItem]) -> str | None:
     for item in items:
         env = item.metadata.get("agent_env")
-        if isinstance(env, dict) and str(env.get("type") or "").lower() == "gui":
+        if isinstance(env, dict) and str(env.get("type") or "").lower() == "vm":
             value = env.get("bridge_url")
             if isinstance(value, str) and value.strip():
                 return value.strip()
@@ -150,7 +150,7 @@ def _has_vm_required(items: list[BenchmarkItem]) -> bool:
 
 
 def _has_gui_without_vm(items: list[BenchmarkItem]) -> bool:
-    return any(_agent_env_type(item) == "gui" and not _item_requires_vm(item) for item in items)
+    return any(_agent_env_type(item) == "vm" and not _item_requires_vm(item) for item in items)
 
 
 def _first_vm_provider_url(items: list[BenchmarkItem]) -> str | None:

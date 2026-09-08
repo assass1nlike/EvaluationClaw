@@ -148,7 +148,7 @@ class BenchmarkSource(BaseModel):
 
 class AgentEnvironmentType(str, Enum):
     docker_workspace = "docker_workspace"
-    gui = "gui"
+    vm = "vm"
 
 
 def environment_category(design: "TaskDesign") -> Optional[AgentEnvironmentType]:
@@ -762,17 +762,29 @@ class ResearchBrief(BaseModel):
     created_at: str = Field(default_factory=utc_now)
 
 
+SUPPORTED_HARNESSES: set[str] = {"openhands"}
+
+
 class TargetModelConfig(BaseModel):
     id: str = ""
     provider: str
     model: str
     api_key: Optional[str] = None
     base_url: Optional[str] = None
+    harness: str = ""
 
     @model_validator(mode="after")
     def fill_default_id(self) -> "TargetModelConfig":
         if not self.id:
             self.id = self.model.replace("/", "_").replace(":", "_")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_harness(self) -> "TargetModelConfig":
+        if self.harness and self.harness not in SUPPORTED_HARNESSES:
+            raise ValueError(
+                f"Unsupported harness {self.harness!r}; supported: {sorted(SUPPORTED_HARNESSES)}."
+            )
         return self
 
 
