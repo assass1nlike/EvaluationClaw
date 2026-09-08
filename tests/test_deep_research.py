@@ -14,6 +14,7 @@ from evalclaw.cli import app
 from evalclaw.construction.resources import _source_context
 from evalclaw.pipeline import _persist_package, run_pipeline
 from evalclaw.planning.task_planner import _planner_resources
+from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.prompts.research import (
     RESEARCH_COMPRESS_SYSTEM_PROMPT,
     RESEARCH_QUERY_SYSTEM_PROMPT,
@@ -23,6 +24,7 @@ from evalclaw.prompts.research import (
 from evalclaw.reporting.reporter import build_report
 from evalclaw.research import deep_research
 from evalclaw.research.backends import SearchResult
+from evalclaw.protocols.tool import ToolCall
 from evalclaw.research.deep_research import (
     _parse_brief,
     compact_brief_context,
@@ -148,8 +150,43 @@ def _patch_search(monkeypatch, calls: list[str]) -> None:
     monkeypatch.setattr(deep_research, "web_search", fake_web_search)
     monkeypatch.setattr(deep_research, "fetch_url_text", lambda url, **kwargs: f"page text of {url}")
 
+    def fake_selector(messages, **kwargs):
+        if any(message.get("role") == "tool" for message in messages):
+            return TargetToolModelResponse(
+                adapter="openai",
+                content="done",
+                tool_calls=[],
+                assistant_message={"role": "assistant", "content": "done"},
+                raw_response={},
+            )
+        payload = json.loads(messages[0]["content"])
+        url = payload["citations"][0]["url"]
+        call = ToolCall(id="fetch_1", name="fetch_url_text", arguments={"url": url})
+        return TargetToolModelResponse(
+            adapter="openai",
+            content="",
+            tool_calls=[call],
+            assistant_message={
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "id": call.id,
+                        "type": "function",
+                        "function": {
+                            "name": call.name,
+                            "arguments": json.dumps(call.arguments),
+                        },
+                    }
+                ],
+            },
+            raw_response={},
+        )
 
-def test_gather_round_caps_fetch_attempts_when_fetches_fail(monkeypatch) -> None:
+    monkeypatch.setattr(deep_research, "call_orchestrator_with_tools", fake_selector)
+
+
+def test_gather_round_caps_model_selected_fetch_attempts(monkeypatch) -> None:
     fetch_calls: list[str] = []
 
     def fake_web_search(query, **kwargs):
@@ -167,6 +204,26 @@ def test_gather_round_caps_fetch_attempts_when_fetches_fail(monkeypatch) -> None
 
     monkeypatch.setattr(deep_research, "web_search", fake_web_search)
     monkeypatch.setattr(deep_research, "fetch_url_text", fake_fetch)
+
+    def fake_selector(messages, **kwargs):
+        payload = json.loads(messages[0]["content"])
+        calls = [
+            ToolCall(
+                id=f"fetch_{index}",
+                name="fetch_url_text",
+                arguments={"url": payload["citations"][index]["url"]},
+            )
+            for index in range(deep_research.MAX_FETCHES_PER_ROUND)
+        ]
+        return TargetToolModelResponse(
+            adapter="openai",
+            content="",
+            tool_calls=calls,
+            assistant_message={"role": "assistant", "content": None, "tool_calls": []},
+            raw_response={},
+        )
+
+    monkeypatch.setattr(deep_research, "call_orchestrator_with_tools", fake_selector)
 
     material, citations = deep_research._gather_round(
         ["q1", "q2"],
@@ -194,6 +251,17 @@ def test_gather_round_retries_failed_search_and_records_attempts(monkeypatch, tm
 
     monkeypatch.setattr(deep_research, "web_search", fake_web_search)
     monkeypatch.setattr(deep_research, "fetch_url_text", lambda url, **kwargs: None)
+    monkeypatch.setattr(
+        deep_research,
+        "call_orchestrator_with_tools",
+        lambda *args, **kwargs: TargetToolModelResponse(
+            adapter="openai",
+            content="done",
+            tool_calls=[],
+            assistant_message={"role": "assistant", "content": "done"},
+            raw_response={},
+        ),
+    )
 
     material, citations = deep_research._gather_round(
         ["q1"],
