@@ -464,7 +464,7 @@ class DockerWorkspaceAgentEnvironment:
     def _restore_workspace(self) -> None:
         command = (
             f"find {shlex.quote(self.workdir)} -mindepth 1 -delete && "
-            f"tar -xf /tmp/evalclaw-workspace-before-eval.tar -C {shlex.quote(self.workdir)} && "
+            f"tar --no-same-owner -xf /tmp/evalclaw-workspace-before-eval.tar -C {shlex.quote(self.workdir)} && "
             "rm -f /tmp/evalclaw-workspace-before-eval.tar"
         )
         self._require_ok(
