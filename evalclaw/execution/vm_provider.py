@@ -949,7 +949,7 @@ def _qemu_clone_and_start(
         "-smp",
         _qemu_cpus(vm_spec),
         "-drive",
-        f"file={overlay_path},if=virtio,format=qcow2",
+        f"file={overlay_path},if=virtio,format=qcow2,cache=writethrough",
         "-nic",
         f"user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:{host_port}-:{guest_port}",
     ]
@@ -1502,3 +1502,295 @@ def destroy_vm_session(
     with _provider_client(url, api_key=api_key, timeout=timeout) as client:
         response = client.delete(f"/vms/{vm_id}")
         response.raise_for_status()
+
+
+@dataclass
+class VmCommandSession:
+    vm_id: str
+    provider_url: str | None
+    bridge_url: str
+    bridge_api_key: str | None
+    bridge_session_id: str
+    vm_data: dict[str, Any] = field(default_factory=dict)
+
+
+def start_vm_command_session(
+    provider_url: str | None,
+    image: str,
+    *,
+    api_key: str | None = None,
+    vm_spec_extra: dict[str, Any] | None = None,
+    timeout: int = 120,
+) -> VmCommandSession:
+    """Create a VM from an image and open a desktop-bridge session for multi-round commands."""
+    image_id = str(image or "").strip()
+    if not image_id:
+        raise ValueError("VM session requires an image.")
+    vm_spec = {"image": image_id, **(vm_spec_extra or {})}
+    session = create_vm_session(
+        provider_url,
+        api_key=api_key,
+        vm_spec=vm_spec,
+        timeout=timeout,
+    )
+    try:
+        bridge_session_id = _bridge_open_session(
+            session.bridge_url,
+            session.bridge_api_key,
+            timeout=timeout,
+        )
+    except Exception:
+        destroy_vm_session(provider_url, session.vm_id, api_key=api_key)
+        raise
+    return VmCommandSession(
+        vm_id=session.vm_id,
+        provider_url=provider_url,
+        bridge_url=session.bridge_url,
+        bridge_api_key=session.bridge_api_key,
+        bridge_session_id=bridge_session_id,
+        vm_data=session.data,
+    )
+
+
+def run_vm_session_command(
+    session: VmCommandSession,
+    command: str,
+    *,
+    timeout: int = 120,
+) -> dict[str, Any]:
+    """Run one shell command in the VM's live bridge session."""
+    return _bridge_run_action(
+        session.bridge_url,
+        session.bridge_api_key,
+        session.bridge_session_id,
+        command,
+        timeout=timeout,
+    )
+
+
+def close_vm_command_session(
+    session: VmCommandSession,
+    *,
+    api_key: str | None = None,
+) -> None:
+    """Close the bridge session and destroy the VM."""
+    try:
+        _bridge_close_session(session.bridge_url, session.bridge_api_key, session.bridge_session_id)
+    finally:
+        destroy_vm_session(session.provider_url, session.vm_id, api_key=api_key)
+
+
+def commit_vm_command_session(
+    session: VmCommandSession,
+    *,
+    name: str = "",
+    api_key: str | None = None,
+    timeout: int = 600,
+) -> dict[str, Any]:
+    """Solidify the probed VM into a reusable image and return its identifier.
+
+    The returned dict carries an ``image`` key the caller can copy into
+    ``environment.vm.image``; the probed VM itself may be destroyed afterwards.
+    """
+    url = _resolve_provider_url(session.provider_url)
+    if _is_local_provider(url):
+        backend = _local_provider_backend(url)
+        if backend == "qemu":
+            return _commit_qemu_overlay(session, name, timeout)
+        return _commit_virtualbox_template(session, name, timeout)
+    return _commit_remote_vm(session, name, api_key, timeout)
+
+
+def _commit_qemu_overlay(
+    session: VmCommandSession,
+    name: str,
+    timeout: int,
+) -> dict[str, Any]:
+    img_executable = _qemu_img_executable()
+    if not img_executable:
+        raise RuntimeError(local_vm_setup_message())
+    overlay_path = _LOCAL_QEMU_OVERLAYS.get(session.vm_id) or session.vm_data.get("overlay_path")
+    if not overlay_path or not Path(str(overlay_path)).exists():
+        raise RuntimeError("QEMU overlay for the VM session is unavailable.")
+    # Flush guest filesystem buffers so the overlay captures the latest writes
+    # before the VM is stopped for commit.
+    try:
+        run_vm_session_command(session, "sync", timeout=30)
+    except Exception:
+        pass
+    process = _LOCAL_QEMU_PROCESSES.get(session.vm_id)
+    if process and process.poll() is None:
+        process.terminate()
+        try:
+            process.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=5)
+    committed_name = _safe_vm_name(name or "evalclaw-committed")
+    new_image = _qemu_work_dir() / f"{committed_name}-{uuid.uuid4().hex[:8]}.qcow2"
+    ok, output = _run_command(
+        [img_executable, "convert", "-O", "qcow2", str(overlay_path), str(new_image)],
+        timeout=max(1, timeout),
+    )
+    if not ok:
+        raise RuntimeError(f"QEMU overlay commit failed: {output}")
+    return {"image": str(new_image), "backend": "qemu"}
+
+
+def _commit_virtualbox_template(
+    session: VmCommandSession,
+    name: str,
+    timeout: int,
+) -> dict[str, Any]:
+    executable = _virtualbox_executable()
+    if not executable:
+        raise RuntimeError(local_vm_setup_message())
+    template_name = _safe_vm_name(name or "evalclaw-committed")
+    commands = [
+        [executable, "controlvm", session.vm_id, "poweroff"],
+        [executable, "clonevm", session.vm_id, "--name", template_name, "--register", "--mode", "machine"],
+    ]
+    for command in commands:
+        ok, output = _run_command(command, timeout=max(1, timeout))
+        if not ok:
+            raise RuntimeError(f"VirtualBox commit failed: {' '.join(command)}: {output}")
+    return {"image": template_name, "backend": "virtualbox"}
+
+
+def _commit_remote_vm(
+    session: VmCommandSession,
+    name: str,
+    api_key: str | None,
+    timeout: int,
+) -> dict[str, Any]:
+    url = _resolve_provider_url(session.provider_url)
+    if not url:
+        raise RuntimeError("Remote VM commit requires a provider URL.")
+    with _provider_client(url, api_key=api_key, timeout=timeout) as client:
+        body: dict[str, Any] = {"name": name} if name.strip() else {}
+        response = client.post(f"/vms/{session.vm_id}/commit", json=body)
+        response.raise_for_status()
+        data = response.json() if response.content else {}
+        if not isinstance(data, dict):
+            data = {"result": data}
+        image = data.get("image") or data.get("image_id") or data.get("snapshot")
+        if not image:
+            raise RuntimeError("Remote VM commit did not return an image identifier.")
+        return {"image": str(image), "backend": "remote"}
+
+
+def run_command_in_vm(
+    provider_url: str | None,
+    image: str,
+    command: str,
+    *,
+    api_key: str | None = None,
+    vm_spec_extra: dict[str, Any] | None = None,
+    timeout: int = 120,
+) -> dict[str, Any]:
+    """Create a VM from an image, run one shell command via its desktop bridge, and destroy it.
+
+    Returns ``{"command", "observation", "error"}``. The VM is destroyed after the
+    command regardless of outcome.
+    """
+    if not str(command or "").strip():
+        raise ValueError("VM command requires a command.")
+    session = start_vm_command_session(
+        provider_url,
+        image,
+        api_key=api_key,
+        vm_spec_extra=vm_spec_extra,
+        timeout=timeout,
+    )
+    try:
+        return run_vm_session_command(session, command, timeout=timeout)
+    finally:
+        close_vm_command_session(session, api_key=api_key)
+
+
+def _bridge_open_session(
+    bridge_url: str,
+    bridge_api_key: str | None,
+    *,
+    timeout: int = 120,
+) -> str:
+    url = bridge_url.rstrip("/")
+    with httpx.Client(
+        base_url=url,
+        timeout=max(1, timeout),
+        headers=_headers(bridge_api_key),
+        trust_env=trust_env_for_url(url),
+    ) as client:
+        response = client.post("/sessions", json={"session": {}})
+        response.raise_for_status()
+        payload = response.json() if response.content else {}
+        session_id = str(payload.get("session_id") or payload.get("id") or "")
+        if not session_id:
+            raise RuntimeError("Desktop bridge did not return session_id from POST /sessions.")
+        return session_id
+
+
+def _bridge_run_action(
+    bridge_url: str,
+    bridge_api_key: str | None,
+    session_id: str,
+    command: str,
+    *,
+    timeout: int = 120,
+    step: int = 1,
+) -> dict[str, Any]:
+    url = bridge_url.rstrip("/")
+    with httpx.Client(
+        base_url=url,
+        timeout=max(1, timeout),
+        headers=_headers(bridge_api_key),
+        trust_env=trust_env_for_url(url),
+    ) as client:
+        response = client.post(
+            f"/sessions/{session_id}/actions",
+            json={
+                "action": "run_command",
+                "args": {"command": command, "timeout": timeout},
+                "step": step,
+            },
+        )
+        response.raise_for_status()
+        payload = response.json() if response.content else {}
+        if not isinstance(payload, dict):
+            payload = {"result": payload}
+        return {
+            "command": command,
+            "observation": _bridge_observation(payload),
+            "error": str(payload.get("error") or "") or None,
+        }
+
+
+def _bridge_close_session(
+    bridge_url: str,
+    bridge_api_key: str | None,
+    session_id: str,
+) -> None:
+    url = bridge_url.rstrip("/")
+    with httpx.Client(
+        base_url=url,
+        timeout=max(1, 30),
+        headers=_headers(bridge_api_key),
+        trust_env=trust_env_for_url(url),
+    ) as client:
+        try:
+            client.delete(f"/sessions/{session_id}")
+        except Exception:
+            pass
+
+
+def _bridge_observation(payload: dict[str, Any]) -> str:
+    for key in ("observation", "text", "summary", "message"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    parts = []
+    for key in ("stdout", "stderr"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            parts.append(value.strip())
+    return "\n".join(parts) if parts else "Action run_command completed."

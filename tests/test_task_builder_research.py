@@ -18,7 +18,12 @@ from evalclaw.construction.research import (
 )
 from evalclaw.construction.resources import _select_blueprint_sources
 from evalclaw.construction.suite import build_task_suite
-from evalclaw.execution.docker_images import DockerImageBuildResult, DockerImageCheckResult
+from evalclaw.execution.docker_images import (
+    DockerImageBuildResult,
+    DockerImageCheckResult,
+    DockerInspectResult,
+)
+from evalclaw.execution.vm_provider import VmCommandSession
 from evalclaw.models.llm import LLMOutputTruncatedError, TargetToolModelResponse
 from evalclaw.protocols.tool import ToolCall, ToolResult
 from evalclaw.research.backends import SearchBackendError, SearchResult, SearchTimeoutError
@@ -1935,3 +1940,301 @@ def test_qc_repair_edits_file_with_tools_and_preserves_best_copy(monkeypatch, tm
     assert best_snapshot["tasks"][0]["prompt"] == "Original prompt with a scoring defect."
     assert [task.id for task in suite.tasks] == ["task_1"]
     assert suite.tasks[0].prompt == "Original prompt with the scoring defect repaired."
+
+
+def test_task_builder_starts_inspection_container(monkeypatch) -> None:
+    stopped: list[str] = []
+
+    def fake_start(image, *, docker_executable="docker", network="default", timeout_s=120):
+        return DockerInspectResult(
+            container="inspect-1", action="start", detail=f"Started from {image}."
+        )
+
+    def fake_stop(container, *, docker_executable="docker", timeout_s=30):
+        stopped.append(container)
+        return DockerInspectResult(container=container, action="stop")
+
+    monkeypatch.setattr("evalclaw.construction.research.start_inspection_container", fake_start)
+    monkeypatch.setattr("evalclaw.construction.research.stop_inspection_container", fake_stop)
+
+    state: dict = {}
+    result = _execute_task_builder_tool(
+        ToolCall(id="s1", name="start_inspect_container", arguments={"image": "python:3.11-slim"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        work_dir=Path("/tmp"),
+        tool_state=state,
+    )
+
+    assert result.error is None
+    assert state["inspect_container"] == "inspect-1"
+    assert state["inspect_starts_used"] == 1
+    assert state["inspect_commands_used"] == 0
+    assert stopped == []
+
+
+def test_task_builder_start_inspect_container_recycles_existing(monkeypatch) -> None:
+    stopped: list[str] = []
+
+    def fake_start(image, *, docker_executable="docker", network="default", timeout_s=120):
+        return DockerInspectResult(container="inspect-2", action="start")
+
+    def fake_stop(container, *, docker_executable="docker", timeout_s=30):
+        stopped.append(container)
+        return DockerInspectResult(container=container, action="stop")
+
+    monkeypatch.setattr("evalclaw.construction.research.start_inspection_container", fake_start)
+    monkeypatch.setattr("evalclaw.construction.research.stop_inspection_container", fake_stop)
+
+    state = {"inspect_container": "inspect-1", "inspect_starts_used": 1}
+    _execute_task_builder_tool(
+        ToolCall(id="s2", name="start_inspect_container", arguments={}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        work_dir=Path("/tmp"),
+        tool_state=state,
+    )
+
+    assert stopped == ["inspect-1"]
+    assert state["inspect_container"] == "inspect-2"
+
+
+def test_task_builder_run_in_container_reports_stdout(monkeypatch) -> None:
+    def fake_run(container, command, *, docker_executable="docker", workdir="/workspace", timeout_s=60):
+        return DockerInspectResult(
+            container=container, action="run", exit_code=0, stdout="installed ok", stderr=""
+        )
+
+    monkeypatch.setattr("evalclaw.construction.research.run_in_inspection_container", fake_run)
+
+    state = {"inspect_container": "inspect-1", "inspect_commands_used": 0}
+    result = _execute_task_builder_tool(
+        ToolCall(id="r1", name="run_in_container", arguments={"command": "pip install numpy"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        tool_state=state,
+    )
+
+    assert result.error is None
+    content = json.loads(result.content)
+    assert content["exit_code"] == 0
+    assert content["stdout"] == "installed ok"
+    assert state["inspect_commands_used"] == 1
+
+
+def test_task_builder_run_in_container_requires_started() -> None:
+    result = _execute_task_builder_tool(
+        ToolCall(id="r1", name="run_in_container", arguments={"command": "ls"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+    )
+
+    assert result.error == "no_inspection_container"
+
+
+def test_task_builder_run_in_container_marks_failed_command(monkeypatch) -> None:
+    def fake_run(container, command, *, docker_executable="docker", workdir="/workspace", timeout_s=60):
+        return DockerInspectResult(
+            container=container, action="run", exit_code=1, stdout="", stderr="no such package"
+        )
+
+    monkeypatch.setattr("evalclaw.construction.research.run_in_inspection_container", fake_run)
+
+    state = {"inspect_container": "inspect-1", "inspect_commands_used": 0}
+    result = _execute_task_builder_tool(
+        ToolCall(id="r1", name="run_in_container", arguments={"command": "pip install missing"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        tool_state=state,
+    )
+
+    assert result.error == "inspect_command_failed"
+    assert "no such package" in result.content
+
+
+def test_task_builder_commit_inspect_container(monkeypatch) -> None:
+    stopped: list[str] = []
+
+    def fake_commit(container, tag="", *, docker_executable="docker", timeout_s=120):
+        return DockerInspectResult(
+            container=container,
+            action="commit",
+            image=f"evalclaw-task-{tag or 'auto'}",
+            detail="Committed.",
+        )
+
+    def fake_stop(container, *, docker_executable="docker", timeout_s=30):
+        stopped.append(container)
+        return DockerInspectResult(container=container, action="stop")
+
+    monkeypatch.setattr("evalclaw.construction.research.commit_inspection_container", fake_commit)
+    monkeypatch.setattr("evalclaw.construction.research.stop_inspection_container", fake_stop)
+
+    state = {"inspect_container": "inspect-1"}
+    result = _execute_task_builder_tool(
+        ToolCall(id="c1", name="commit_inspect_container", arguments={"tag": "task-1"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        tool_state=state,
+    )
+
+    assert result.error is None
+    content = json.loads(result.content)
+    assert content["image"] == "evalclaw-task-task-1"
+    assert state["last_image"] == "evalclaw-task-task-1"
+    assert "inspect_container" not in state
+    assert stopped == ["inspect-1"]
+
+
+def test_task_builder_commit_inspect_container_requires_started() -> None:
+    result = _execute_task_builder_tool(
+        ToolCall(id="c1", name="commit_inspect_container", arguments={}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+    )
+
+    assert result.error == "no_inspection_container"
+
+
+def test_task_builder_run_vm_command(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_run(provider_url, image, command, *, api_key=None, vm_spec_extra=None, timeout=120):
+        captured.update(
+            {"image": image, "command": command, "api_key": api_key, "timeout": timeout}
+        )
+        return {"command": command, "observation": "pandas 2.2.3", "error": None}
+
+    monkeypatch.setattr("evalclaw.construction.research.run_command_in_vm", fake_run)
+
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="v1",
+            name="run_vm_command",
+            arguments={"image": "img-1", "command": "python -c 'import pandas'"},
+        ),
+        BenchmarkConfig(),
+        max_chars=50_000,
+    )
+
+    assert result.error is None
+    content = json.loads(result.content)
+    assert content["observation"] == "pandas 2.2.3"
+    assert captured["image"] == "img-1"
+    assert captured["command"] == "python -c 'import pandas'"
+
+
+def test_task_builder_run_vm_command_requires_image() -> None:
+    result = _execute_task_builder_tool(
+        ToolCall(id="v1", name="run_vm_command", arguments={"command": "echo hi"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+    )
+
+    assert result.error == "tool_error"
+    assert "image must be non-empty" in result.content
+
+
+def test_task_builder_starts_vm_session(monkeypatch) -> None:
+    closed: list[str] = []
+
+    def fake_start(provider_url, image, *, api_key=None, vm_spec_extra=None, timeout=120):
+        return VmCommandSession(
+            vm_id="vm-1", provider_url=provider_url, bridge_url="http://b",
+            bridge_api_key=None, bridge_session_id="bs-1",
+        )
+
+    def fake_close(session, *, api_key=None):
+        closed.append(session.vm_id)
+
+    monkeypatch.setattr("evalclaw.construction.research.start_vm_command_session", fake_start)
+    monkeypatch.setattr("evalclaw.construction.research.close_vm_command_session", fake_close)
+
+    state: dict = {}
+    result = _execute_task_builder_tool(
+        ToolCall(id="s1", name="start_vm_session", arguments={"image": "img-1"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        tool_state=state,
+    )
+
+    assert result.error is None
+    assert state["vm_session"].vm_id == "vm-1"
+    assert state["vm_session_starts_used"] == 1
+    assert state["vm_session_commands_used"] == 0
+    assert closed == []
+
+
+def test_task_builder_run_in_vm(monkeypatch) -> None:
+    def fake_run(session, command, *, timeout=120):
+        return {"command": command, "observation": "pandas ok", "error": None}
+
+    monkeypatch.setattr("evalclaw.construction.research.run_vm_session_command", fake_run)
+
+    session = VmCommandSession(
+        vm_id="vm-1", provider_url=None, bridge_url="http://b",
+        bridge_api_key=None, bridge_session_id="bs-1",
+    )
+    state = {"vm_session": session, "vm_session_commands_used": 0}
+    result = _execute_task_builder_tool(
+        ToolCall(id="r1", name="run_in_vm", arguments={"command": "python -c 'import pandas'"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        tool_state=state,
+    )
+
+    assert result.error is None
+    content = json.loads(result.content)
+    assert content["observation"] == "pandas ok"
+    assert state["vm_session_commands_used"] == 1
+
+
+def test_task_builder_run_in_vm_requires_session() -> None:
+    result = _execute_task_builder_tool(
+        ToolCall(id="r1", name="run_in_vm", arguments={"command": "echo hi"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+    )
+
+    assert result.error == "no_vm_session"
+
+
+def test_task_builder_commit_vm_session(monkeypatch) -> None:
+    closed: list[str] = []
+
+    def fake_commit(session, *, name="", api_key=None, timeout=600):
+        return {"image": "committed-img-1", "backend": "qemu"}
+
+    def fake_close(session, *, api_key=None):
+        closed.append(session.vm_id)
+
+    monkeypatch.setattr("evalclaw.construction.research.commit_vm_command_session", fake_commit)
+    monkeypatch.setattr("evalclaw.construction.research.close_vm_command_session", fake_close)
+
+    session = VmCommandSession(
+        vm_id="vm-1", provider_url=None, bridge_url="http://b",
+        bridge_api_key=None, bridge_session_id="bs-1",
+    )
+    state = {"vm_session": session}
+    result = _execute_task_builder_tool(
+        ToolCall(id="c1", name="commit_vm_session", arguments={"name": "my-image"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        tool_state=state,
+    )
+
+    assert result.error is None
+    content = json.loads(result.content)
+    assert content["image"] == "committed-img-1"
+    assert "vm_session" not in state
+    assert closed == ["vm-1"]
+
+
+def test_task_builder_commit_vm_session_requires_session() -> None:
+    result = _execute_task_builder_tool(
+        ToolCall(id="c1", name="commit_vm_session", arguments={}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+    )
+
+    assert result.error == "no_vm_session"

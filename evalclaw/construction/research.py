@@ -20,11 +20,23 @@ import httpx
 
 from ..diagnostics import write_json
 from ..execution.docker_images import (
+    DEFAULT_DOCKER_IMAGE,
     build_docker_image_from_context,
+    commit_inspection_container,
     run_docker_image_check,
+    run_in_inspection_container,
     safe_context_path,
+    start_inspection_container,
+    stop_inspection_container,
 )
-from ..execution.vm_provider import build_vm_image
+from ..execution.vm_provider import (
+    build_vm_image,
+    close_vm_command_session,
+    commit_vm_command_session,
+    run_command_in_vm,
+    run_vm_session_command,
+    start_vm_command_session,
+)
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
@@ -53,6 +65,10 @@ _MAX_IMAGE_CHECKS = 6
 _MAX_IMAGE_CONTEXT_FILES = 128
 _MAX_IMAGE_CONTEXT_BYTES = 256 * 1024 * 1024
 _MAX_IMAGE_CHECK_COMMAND_CHARS = 4000
+_MAX_INSPECT_STARTS = 3
+_MAX_INSPECT_COMMANDS = 12
+_MAX_VM_SESSION_STARTS = 2
+_MAX_VM_SESSION_COMMANDS = 8
 _IMAGE_GENERATION_TIMEOUT_SECONDS = 600
 _MAX_GENERATED_IMAGE_BYTES = 64 * 1024 * 1024
 _MAX_IMAGE_REFERENCE_FILES = 10
@@ -109,6 +125,13 @@ checks after a successful build. The build tool returns a relative image_build.c
 preserve that value in the final task's environment.image_build together with
 image_build.enabled=true and the image tag. Do not put host paths in target-visible
 fields, and do not claim an image is ready without a successful build or check.
+When start_inspect_container, run_in_container, and commit_inspect_container are
+available, you may start a long-lived inspection container from a base or built image
+and run commands inside it to install and verify software step by step. The container
+state persists across run_in_container calls. When the environment is ready, call
+commit_inspect_container to commit it into a reusable image and copy the returned
+image tag into the task's environment.image; that committed image is the delivered
+task environment.
 When VM image construction is available, use build_vm_image for GUI tasks that
 need software or state unavailable in the base image. Its plan is executed and
 checked inside an isolated temporary guest by the provider; preserve the
@@ -299,6 +322,73 @@ TASK_BUILDER_IMAGE_TOOLS = [
             "additionalProperties": False,
         },
     ),
+    ToolSpec(
+        name="start_inspect_container",
+        description=(
+            "Start a long-lived disposable inspection container from an image so you can "
+            "interactively install and verify software across multiple commands. State "
+            "persists across run_in_container calls; the container is not delivered as the "
+            "final task environment. Use it to test an install plan, then write the verified "
+            "commands back into a Dockerfile and build_image."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "image": {
+                    "type": "string",
+                    "description": (
+                        "Image to probe. Defaults to the most recently built image, or the "
+                        "default Python image when nothing was built."
+                    ),
+                },
+            },
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
+        name="run_in_container",
+        description=(
+            "Run one shell command inside the current inspection container and return its "
+            "exit code, stdout, and stderr. Installs and file changes persist in the container "
+            "for later commands, so you can build up and verify an environment step by step."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Shell command to run in the inspection container.",
+                },
+                "timeout_s": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 120,
+                    "description": "Maximum command duration in seconds.",
+                },
+            },
+            "required": ["command"],
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
+        name="commit_inspect_container",
+        description=(
+            "Commit the current inspection container into a reusable image. The returned image "
+            "tag is the delivered task environment; copy it into the task's environment.image. "
+            "The container is discarded after commit."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "tag": {
+                    "type": "string",
+                    "description": "Optional image tag; defaults to an auto-generated tag.",
+                },
+            },
+            "additionalProperties": False,
+        },
+    ),
 ]
 
 
@@ -362,6 +452,99 @@ TASK_BUILDER_VM_IMAGE_TOOLS = [
                 },
             },
             "required": ["base_image", "provisioning", "checks"],
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
+        name="run_vm_command",
+        description=(
+            "Create a VM from a built image and run one shell command inside it, returning "
+            "the command output. Use it to verify a built VM image. The VM is destroyed "
+            "after the command."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "image": {
+                    "type": "string",
+                    "description": "VM image id, typically the image_id returned by build_vm_image.",
+                },
+                "command": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Shell command to run inside the VM.",
+                },
+                "timeout_s": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 600,
+                    "description": "Maximum VM command duration in seconds.",
+                },
+            },
+            "required": ["image", "command"],
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
+        name="start_vm_session",
+        description=(
+            "Create a VM from a built image and keep it running for multi-round command "
+            "inspection. Use run_in_vm to execute commands in it. The VM is destroyed when "
+            "construction ends or when a new VM session is started."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "image": {
+                    "type": "string",
+                    "description": "VM image id, typically the image_id returned by build_vm_image.",
+                },
+            },
+            "required": ["image"],
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
+        name="run_in_vm",
+        description=(
+            "Run one shell command inside the current VM session and return its output. "
+            "File and install changes persist across run_in_vm calls, so you can build up and "
+            "verify a VM environment step by step."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Shell command to run inside the VM.",
+                },
+                "timeout_s": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 600,
+                    "description": "Maximum command duration in seconds.",
+                },
+            },
+            "required": ["command"],
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
+        name="commit_vm_session",
+        description=(
+            "Solidify the current probed VM into a reusable image. The returned image "
+            "identifier is the delivered VM image; copy it into the task's environment.vm.image. "
+            "The probed VM is destroyed after commit."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Optional name for the committed image; defaults to an auto-generated name.",
+                },
+            },
             "additionalProperties": False,
         },
     ),
@@ -889,6 +1072,127 @@ def _execute_task_builder_tool(
                 ),
             )
 
+        if call.name == "start_inspect_container":
+            if work_dir is None:
+                raise ValueError("benchmark output_dir is required for container inspection")
+            starts_used = int(state.get("inspect_starts_used") or 0)
+            if starts_used >= _MAX_INSPECT_STARTS:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content=f"Inspection container start budget exhausted after {_MAX_INSPECT_STARTS} start(s).",
+                    error="inspect_start_budget_exhausted",
+                )
+            image = str(args.get("image") or state.get("last_image") or DEFAULT_DOCKER_IMAGE).strip()
+            existing = str(state.get("inspect_container") or "").strip()
+            if existing:
+                try:
+                    stop_inspection_container(existing, docker_executable=config.docker_executable)
+                except Exception:
+                    pass
+            result = start_inspection_container(image, docker_executable=config.docker_executable)
+            state["inspect_container"] = result.container
+            state["inspect_starts_used"] = starts_used + 1
+            state["inspect_commands_used"] = 0
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(
+                    {
+                        "container": result.container,
+                        "image": image,
+                        "detail": result.detail,
+                    },
+                    max_chars=max_chars,
+                ),
+            )
+
+        if call.name == "run_in_container":
+            container = str(state.get("inspect_container") or "").strip()
+            if not container:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="No inspection container is running. Call start_inspect_container first.",
+                    error="no_inspection_container",
+                )
+            commands_used = int(state.get("inspect_commands_used") or 0)
+            if commands_used >= _MAX_INSPECT_COMMANDS:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content=f"Inspection command budget exhausted after {_MAX_INSPECT_COMMANDS} command(s).",
+                    error="inspect_command_budget_exhausted",
+                )
+            command = str(args.get("command") or "").strip()
+            if not command:
+                raise ValueError("command must be non-empty")
+            if len(command) > _MAX_IMAGE_CHECK_COMMAND_CHARS:
+                raise ValueError(
+                    f"Inspection command exceeds {_MAX_IMAGE_CHECK_COMMAND_CHARS} characters."
+                )
+            result = run_in_inspection_container(
+                container,
+                command,
+                docker_executable=config.docker_executable,
+                timeout_s=_bounded_int(
+                    args.get("timeout_s"),
+                    default=60,
+                    minimum=1,
+                    maximum=120,
+                ),
+            )
+            state["inspect_commands_used"] = commands_used + 1
+            value = {
+                "container": result.container,
+                "command": command,
+                "exit_code": result.exit_code,
+                "stdout": result.stdout[:max_chars],
+                "stderr": result.stderr[:max_chars],
+                "timed_out": result.timed_out,
+            }
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(value, max_chars=max_chars),
+                error=(
+                    "inspect_command_timeout"
+                    if result.timed_out
+                    else "inspect_command_failed"
+                    if result.exit_code != 0
+                    else None
+                ),
+            )
+
+        if call.name == "commit_inspect_container":
+            container = str(state.get("inspect_container") or "").strip()
+            if not container:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="No inspection container is running. Call start_inspect_container first.",
+                    error="no_inspection_container",
+                )
+            result = commit_inspection_container(
+                container,
+                tag=str(args.get("tag") or "").strip(),
+                docker_executable=config.docker_executable,
+            )
+            state["last_image"] = result.image
+            state.pop("inspect_container", None)
+            try:
+                stop_inspection_container(container, docker_executable=config.docker_executable)
+            except Exception:
+                pass
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(
+                    {"image": result.image, "detail": result.detail},
+                    max_chars=max_chars,
+                ),
+            )
+
         if call.name == "build_vm_image":
             base_image = args.get("base_image")
             provisioning = args.get("provisioning")
@@ -914,6 +1218,134 @@ def _execute_task_builder_tool(
                 timeout=_bounded_int(args.get("timeout_s"), default=600, minimum=1, maximum=3600),
             )
             state["last_vm_image"] = result.get("image")
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(result, max_chars=max_chars),
+            )
+
+        if call.name == "run_vm_command":
+            image = str(args.get("image") or "").strip()
+            command = str(args.get("command") or "").strip()
+            if not image:
+                raise ValueError("image must be non-empty")
+            if not command:
+                raise ValueError("command must be non-empty")
+            provider_url = str(getattr(config, "vm_provider_url", None) or "").strip() or None
+            result = run_command_in_vm(
+                provider_url,
+                image,
+                command,
+                api_key=config.vm_provider_api_key,
+                timeout=_bounded_int(
+                    args.get("timeout_s"),
+                    default=120,
+                    minimum=1,
+                    maximum=600,
+                ),
+            )
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(result, max_chars=max_chars),
+                error=result.get("error") if isinstance(result, dict) else None,
+            )
+
+        if call.name == "start_vm_session":
+            image = str(args.get("image") or "").strip()
+            if not image:
+                raise ValueError("image must be non-empty")
+            starts_used = int(state.get("vm_session_starts_used") or 0)
+            if starts_used >= _MAX_VM_SESSION_STARTS:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content=f"VM session start budget exhausted after {_MAX_VM_SESSION_STARTS} start(s).",
+                    error="vm_session_start_budget_exhausted",
+                )
+            provider_url = str(getattr(config, "vm_provider_url", None) or "").strip() or None
+            existing = state.get("vm_session")
+            if existing is not None:
+                try:
+                    close_vm_command_session(existing, api_key=config.vm_provider_api_key)
+                except Exception:
+                    pass
+            session = start_vm_command_session(
+                provider_url,
+                image,
+                api_key=config.vm_provider_api_key,
+                timeout=120,
+            )
+            state["vm_session"] = session
+            state["vm_session_starts_used"] = starts_used + 1
+            state["vm_session_commands_used"] = 0
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(
+                    {"vm_id": session.vm_id, "bridge_session_id": session.bridge_session_id},
+                    max_chars=max_chars,
+                ),
+            )
+
+        if call.name == "run_in_vm":
+            session = state.get("vm_session")
+            if session is None:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="No VM session is running. Call start_vm_session first.",
+                    error="no_vm_session",
+                )
+            commands_used = int(state.get("vm_session_commands_used") or 0)
+            if commands_used >= _MAX_VM_SESSION_COMMANDS:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content=f"VM command budget exhausted after {_MAX_VM_SESSION_COMMANDS} command(s).",
+                    error="vm_command_budget_exhausted",
+                )
+            command = str(args.get("command") or "").strip()
+            if not command:
+                raise ValueError("command must be non-empty")
+            result = run_vm_session_command(
+                session,
+                command,
+                timeout=_bounded_int(
+                    args.get("timeout_s"),
+                    default=120,
+                    minimum=1,
+                    maximum=600,
+                ),
+            )
+            state["vm_session_commands_used"] = commands_used + 1
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(result, max_chars=max_chars),
+                error=result.get("error") if isinstance(result, dict) else None,
+            )
+
+        if call.name == "commit_vm_session":
+            session = state.get("vm_session")
+            if session is None:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="No VM session is running. Call start_vm_session first.",
+                    error="no_vm_session",
+                )
+            result = commit_vm_command_session(
+                session,
+                name=str(args.get("name") or "").strip(),
+                api_key=config.vm_provider_api_key,
+                timeout=_bounded_int(args.get("timeout_s"), default=600, minimum=1, maximum=3600),
+            )
+            state.pop("vm_session", None)
+            try:
+                close_vm_command_session(session, api_key=config.vm_provider_api_key)
+            except Exception:
+                pass
             return ToolResult(
                 tool_call_id=call.id,
                 name=call.name,
@@ -1367,61 +1799,85 @@ def run_task_builder_tools(
             )
         return recovery
 
-    while True:
-        raise_if_stopped()
-        response = call_model(messages, tools)
-        if not response.tool_calls:
-            response = recover_missing_final_content(response)
+    def _stop_inspect_container() -> None:
+        container = str(tool_state.get("inspect_container") or "").strip()
+        if not container:
+            return
+        tool_state.pop("inspect_container", None)
+        try:
+            stop_inspection_container(container, docker_executable=config.docker_executable)
+        except Exception:
+            pass
+
+    def _stop_vm_session() -> None:
+        session = tool_state.get("vm_session")
+        if session is None:
+            return
+        tool_state.pop("vm_session", None)
+        try:
+            close_vm_command_session(session, api_key=config.vm_provider_api_key)
+        except Exception:
+            pass
+
+    try:
+        while True:
             raise_if_stopped()
-            return response.content, notes
-        remaining = max_calls - calls_used
-        if remaining <= 0:
-            messages.append(response.assistant_message)
-            messages.append(
-                {
-                    "role": "user",
-                    "content": f"The bounded tool budget is exhausted. {final_instruction}",
-                }
-            )
-            response = call_model(messages, [])
-            response = recover_missing_final_content(response)
-            return response.content, notes + [f"tool budget exhausted at {calls_used} call(s)"]
-        selected_calls = response.tool_calls[:remaining]
-        results: list[ToolResult] = []
-        for call in selected_calls:
-            raise_if_stopped()
-            results.append(
-                _execute_task_builder_tool(
-                    call,
-                    config,
-                    max_chars=max_chars,
-                    work_dir=work_dir,
-                    tool_state=tool_state,
+            response = call_model(messages, tools)
+            if not response.tool_calls:
+                response = recover_missing_final_content(response)
+                raise_if_stopped()
+                return response.content, notes
+            remaining = max_calls - calls_used
+            if remaining <= 0:
+                messages.append(response.assistant_message)
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": f"The bounded tool budget is exhausted. {final_instruction}",
+                    }
                 )
-            )
-        for skipped_call in response.tool_calls[remaining:]:
-            results.append(
-                ToolResult(
-                    tool_call_id=skipped_call.id,
-                    name=skipped_call.name,
-                    content="This tool call was skipped because the bounded tool budget was exhausted.",
-                    error="tool_budget_exhausted",
+                response = call_model(messages, [])
+                response = recover_missing_final_content(response)
+                return response.content, notes + [f"tool budget exhausted at {calls_used} call(s)"]
+            selected_calls = response.tool_calls[:remaining]
+            results: list[ToolResult] = []
+            for call in selected_calls:
+                raise_if_stopped()
+                results.append(
+                    _execute_task_builder_tool(
+                        call,
+                        config,
+                        max_chars=max_chars,
+                        work_dir=work_dir,
+                        tool_state=tool_state,
+                    )
                 )
-            )
-        calls_used += len(selected_calls)
-        notes.append(f"task-builder used {len(selected_calls)} tool call(s), total={calls_used}")
-        _append_tool_results(messages, response, results)
-        if calls_used >= max_calls:
-            messages.append(
-                {
-                    "role": "user",
-                    "content": f"The bounded tool budget is exhausted. {final_instruction}",
-                }
-            )
-            response = call_model(messages, [])
-            response = recover_missing_final_content(response)
-            raise_if_stopped()
-            return response.content, notes + [f"tool budget exhausted at {calls_used} call(s)"]
+            for skipped_call in response.tool_calls[remaining:]:
+                results.append(
+                    ToolResult(
+                        tool_call_id=skipped_call.id,
+                        name=skipped_call.name,
+                        content="This tool call was skipped because the bounded tool budget was exhausted.",
+                        error="tool_budget_exhausted",
+                    )
+                )
+            calls_used += len(selected_calls)
+            notes.append(f"task-builder used {len(selected_calls)} tool call(s), total={calls_used}")
+            _append_tool_results(messages, response, results)
+            if calls_used >= max_calls:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": f"The bounded tool budget is exhausted. {final_instruction}",
+                    }
+                )
+                response = call_model(messages, [])
+                response = recover_missing_final_content(response)
+                raise_if_stopped()
+                return response.content, notes + [f"tool budget exhausted at {calls_used} call(s)"]
+    finally:
+        _stop_inspect_container()
+        _stop_vm_session()
 
 
 __all__ = [
