@@ -78,6 +78,7 @@ def target_from_model(
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
     fallback_key: Optional[str] = None,
+    harness: Optional[str] = None,
 ) -> TargetModelConfig:
     """Build a target config from a model name plus optional overrides."""
     provider, inferred_base = infer_provider(model, base_url, provider)
@@ -87,6 +88,7 @@ def target_from_model(
         model=model,
         api_key=api_key or default_api_key(provider, model, fallback_key),
         base_url=inferred_base,
+        harness=harness or "",
     )
 
 

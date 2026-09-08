@@ -406,6 +406,10 @@ def run_agent_interaction(
         from .workflow import run_workflow
 
         return run_workflow(item, target, config, artifact_dir=artifact_path)
+    if target.harness:
+        from .harness import get_harness
+
+        return get_harness(target.harness).run(item, target, config, artifact_dir=artifact_path)
     adapter = tool_adapter_for_target(target)
     if adapter in {"openai", "anthropic"}:
         return _run_agent_interaction_native_tools(
