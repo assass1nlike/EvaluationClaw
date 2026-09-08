@@ -106,6 +106,7 @@ def _parse_model_config_objects(
                 api_key=api_key,
                 base_url=str(raw.get("base_url") or "").strip() or None,
                 fallback_key=fallback_key,
+                harness=str(raw.get("harness") or "").strip() or None,
             )
         )
     for model in models:
@@ -198,8 +199,13 @@ def generate(
         "--target-config",
         help=(
             "Per-target JSON; may be repeated. Fields: id, model, provider or protocol, base_url, "
-            "api_key or api_key_env. Replaces --model/--compare target selection when supplied."
+            "api_key or api_key_env, harness. Replaces --model/--compare target selection when supplied."
         ),
+    ),
+    harness_manifest: list[str] = typer.Option(
+        [],
+        "--harness-manifest",
+        help="Path to a harness manifest YAML to register as a custom harness. May be repeated.",
     ),
     planner_model: Optional[str] = typer.Option(None, "--planner-model", help="Optional Planner model override."),
     planner_provider: Optional[str] = typer.Option(None, "--planner-provider", help="Protocol/provider for --planner-model."),
@@ -417,7 +423,7 @@ def generate(
     gui_bridge_url: Optional[str] = typer.Option(
         None,
         "--gui-bridge-url",
-        help="HTTP URL for a GUI/CUA desktop bridge used by agent_env.type=gui.",
+        help="HTTP URL for a GUI/CUA desktop bridge used by agent_env.type=vm.",
     ),
     gui_bridge_api_key: Optional[str] = typer.Option(
         None,
@@ -600,6 +606,14 @@ def generate(
             "image_generation_api_key": resolved_image_key,
             "image_generation_base_url": resolved_image_base,
         }
+    for manifest_path in harness_manifest:
+        try:
+            from .runners.harness import load_manifest_harness
+
+            load_manifest_harness(manifest_path)
+        except (OSError, ValueError) as exc:
+            console.print(f"[red]Failed to load harness manifest {manifest_path}: {exc}[/red]")
+            raise typer.Exit(1) from exc
     try:
         targets = (
             _parse_target_configs(target_config, fallback_key=target_api_key)

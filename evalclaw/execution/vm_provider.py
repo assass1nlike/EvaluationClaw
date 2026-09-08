@@ -1516,17 +1516,21 @@ class VmCommandSession:
 
 def start_vm_command_session(
     provider_url: str | None,
-    image: str,
+    image: str = "",
     *,
     api_key: str | None = None,
     vm_spec_extra: dict[str, Any] | None = None,
     timeout: int = 120,
 ) -> VmCommandSession:
-    """Create a VM from an image and open a desktop-bridge session for multi-round commands."""
+    """Create a VM from an image and open a desktop-bridge session for multi-round commands.
+
+    When ``image`` is empty the provider falls back to its default base image
+    (e.g. ``EVALCLAW_VM_TEMPLATE`` for the local QEMU provider).
+    """
+    vm_spec = dict(vm_spec_extra or {})
     image_id = str(image or "").strip()
-    if not image_id:
-        raise ValueError("VM session requires an image.")
-    vm_spec = {"image": image_id, **(vm_spec_extra or {})}
+    if image_id:
+        vm_spec["image"] = image_id
     session = create_vm_session(
         provider_url,
         api_key=api_key,
