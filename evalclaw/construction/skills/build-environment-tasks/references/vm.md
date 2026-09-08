@@ -1,6 +1,6 @@
-# GUI Environment
+# VM Environment
 
-Use runtime environment type `gui`.
+Use runtime environment type `vm`.
 
 - Use this canonical field layout. Do not move `evaluation` into `session`, rename
   `vm_provisioning` to `provisioning`, or invent aliases such as
@@ -9,7 +9,7 @@ Use runtime environment type `gui`.
 ```json
 {
   "environment": {
-    "type": "gui",
+    "type": "vm",
     "requires_vm": true,
     "vm": {
       "guest_os": "windows",

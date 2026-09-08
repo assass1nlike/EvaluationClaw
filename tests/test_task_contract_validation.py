@@ -310,7 +310,7 @@ def test_gui_contract_requires_a_startable_session_evaluator_and_vm_source() -> 
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             requires_vm=True,
             vm={"display": "1920x1080"},
             session={"workflow": "Edit the document."},
@@ -331,7 +331,7 @@ def test_gui_vm_contract_treats_vm_as_requires_vm_and_rejects_placeholder_source
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             vm={
                 "guest_os": "windows",
                 "template": "<runner-resolvable Windows template identifier>",
@@ -354,7 +354,7 @@ def test_gui_vm_contract_treats_vm_as_requires_vm_and_rejects_placeholder_source
 
 def test_windows_capability_vm_requires_concrete_named_user_setup() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui,
+        type=AgentEnvironmentType.vm,
         requires_vm=True,
         vm={
             "guest_os": "windows",
@@ -436,7 +436,7 @@ def test_windows_capability_vm_requires_concrete_named_user_setup() -> None:
 
 def test_windows_vm_rejects_target_inaccessible_evaluator_oracle() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui,
+        type=AgentEnvironmentType.vm,
         requires_vm=True,
         vm={
             "guest_os": "windows",
@@ -484,7 +484,7 @@ def test_windows_vm_rejects_target_inaccessible_evaluator_oracle() -> None:
 
 def test_gui_rejects_unresolved_private_command_identifiers() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui,
+        type=AgentEnvironmentType.vm,
         requires_vm=True,
         vm={"image": "windows-11-cloudbase", "guest_os": "windows"},
         session={
@@ -554,7 +554,7 @@ def test_gui_rejects_unresolved_private_command_identifiers() -> None:
 
 def test_gui_rejects_probe_only_evaluation_and_metadata_evaluator() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui,
+        type=AgentEnvironmentType.vm,
         session={
             "application": "Windows Desktop",
             "launch_state": "The signed-in desktop is visible.",
@@ -588,7 +588,7 @@ def test_gui_accepts_command_that_directly_asserts_final_state() -> None:
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             session={
                 "application": "Windows Desktop",
                 "launch_state": "The signed-in desktop is visible.",
@@ -613,7 +613,7 @@ def test_gui_accepts_command_that_directly_asserts_final_state() -> None:
 
 def test_gui_vm_provisioning_matches_declared_guest_os() -> None:
     base_environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui,
+        type=AgentEnvironmentType.vm,
         requires_vm=True,
         vm={"image": "windows-11-cloudbase", "guest_os": "windows"},
         session={
@@ -679,7 +679,7 @@ def test_windows_vm_provisioning_rejects_powershell_syntax_errors(monkeypatch) -
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             requires_vm=True,
             vm={"image": "windows-base", "guest_os": "windows"},
             vm_provisioning={"powershell_commands": ["broken syntax"]},
@@ -699,7 +699,7 @@ def test_windows_vm_provisioning_rejects_powershell_syntax_errors(monkeypatch) -
 
 def test_windows_vm_checks_use_raw_powershell_bodies() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui,
+        type=AgentEnvironmentType.vm,
         requires_vm=True,
         vm={"image": "windows-base", "guest_os": "windows"},
         session={
@@ -740,7 +740,7 @@ def test_windows_vm_checks_use_raw_powershell_bodies() -> None:
 
 def test_windows_interactive_provisioning_requires_restart() -> None:
     environment = AgentEnvironmentSpec(
-        type=AgentEnvironmentType.gui,
+        type=AgentEnvironmentType.vm,
         requires_vm=True,
         vm={"image": "windows-base", "guest_os": "windows"},
         vm_provisioning={
@@ -815,7 +815,7 @@ def test_windows_vm_provisioning_rejects_ambiguous_scheduled_task_parameters() -
     invalid = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             requires_vm=True,
             vm={"image": "windows-base", "guest_os": "windows"},
             vm_provisioning={
@@ -894,7 +894,7 @@ def test_agent_task_package_preserves_alternative_artifact_semantics() -> None:
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             session={
                 "application": "Windows Desktop",
                 "launch_state": "The signed-in desktop is visible.",
@@ -961,7 +961,7 @@ def test_agent_task_package_uses_top_level_output_contract() -> None:
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             session={"application": "Blender"},
             evaluation={"method": "bridge_state_check"},
         ),
@@ -988,7 +988,7 @@ def test_agent_task_package_exposes_provider_image_capability_requirements() -> 
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             requires_vm=True,
             vm={
                 "guest_os": "windows",
@@ -1085,7 +1085,7 @@ def test_multi_turn_packaging_uses_simulator_role() -> None:
 def test_task_agent_packaging_keeps_runner_private_vm_state_out_of_target_context() -> None:
     task = _task(
         TaskType.agent,
-        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.gui),
+        environment=AgentEnvironmentSpec(type=AgentEnvironmentType.vm),
     ).model_copy(update={"description": "Inspect and repair the visible Windows project."})
     task.metadata["task_agent"] = {
         "initial_content": {
@@ -1095,7 +1095,7 @@ def test_task_agent_packaging_keeps_runner_private_vm_state_out_of_target_contex
         }
     }
     agent_env = {
-        "type": "gui",
+        "type": "vm",
         "visible_files": {"Desktop/readme.txt": "Public input."},
         "hidden_files": {"private-oracle.json": "PRIVATE-ANSWER"},
         "session": {
@@ -1378,12 +1378,12 @@ def test_task_design_runner_private_assets_do_not_require_visible_files() -> Non
                 {"asset_ref": "artifact_validator", "visibility": "runner_private"}
             ],
         },
-        environment_requirements={"category": "gui"},
+        environment_requirements={"category": "vm"},
     )
     task = _task(
         TaskType.agent,
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             session={"application": "Blender", "launch_state": "clean"},
             evaluation={"method": "bridge_state_check"},
         ),
@@ -1431,7 +1431,7 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
         metadata={
             "task_design_id": design_id,
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"template": "windows-template", "guest_os": "windows"},
                 "session": {
@@ -1550,7 +1550,7 @@ def test_llm_qc_metadata_compaction_keeps_execution_details() -> None:
     compact = _compact_metadata_for_qc(
         {
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "session": {"application": "desktop", "launch_state": "Start menu is open."},
                 "evaluation": {"checks": [{"command": "verify-state"}]},
                 "vm": {

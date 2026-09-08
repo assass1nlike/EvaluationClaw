@@ -1112,7 +1112,7 @@ HTML_TEMPLATE = """<!doctype html>
       if (env.requires_vm || hasRenderableValue(env.vm) || hasRenderableValue((pack.environment_requirements || {}).vm)) {
         flags.push("requires VM");
       }
-      if (env.type === "gui" || (pack.environment_requirements || {}).requires_gui) flags.push("requires GUI");
+      if (env.type === "vm" || (pack.environment_requirements || {}).requires_vm) flags.push("requires VM");
       if (Object.keys(hiddenFiles || {}).length || hasRenderableValue(hiddenRefs.reference_artifacts)) {
         flags.push("requires hidden evaluator");
       }
@@ -1235,7 +1235,7 @@ HTML_TEMPLATE = """<!doctype html>
         ["vm_materialization", env.vm_materialization],
         ["vm_provisioning", env.vm_provisioning || envRequirements.vm_provisioning],
         ["requires_vm", env.requires_vm || envRequirements.requires_vm],
-        ["requires_gui", env.requires_gui || envRequirements.requires_gui],
+        ["requires_vm", env.requires_vm || envRequirements.requires_vm],
         ["setup_commands", env.setup_commands],
       ]);
       const environmentRuntime = objectWithValues([

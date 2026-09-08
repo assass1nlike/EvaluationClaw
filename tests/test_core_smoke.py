@@ -1251,7 +1251,7 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
                             "challenge_effort": challenge_effort,
                             "title": "GUI task",
                             "prompt": "Complete the desktop workflow and save the requested artifact.",
-                            "environment": {"type": "gui"},
+                            "environment": {"type": "vm"},
                             "scoring": {"pass_criteria": "The artifact is produced."},
                         }
                     ]
@@ -1260,7 +1260,7 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
         candidate_path = Path(payload["revision"]["path"])
         candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
         candidate["tasks"][0]["environment"] = {
-            "type": "gui",
+            "type": "vm",
             "session": {
                 "application": "spreadsheet",
                 "entrypoint": "Desktop/input.xlsx",
@@ -1305,7 +1305,7 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
         "Desktop workflow",
         task_type=TaskType.agent,
         content="One desktop workflow.",
-        environment_type=AgentEnvironmentType.gui,
+        environment_type=AgentEnvironmentType.vm,
     )
 
     suite = build_task_suite(
@@ -1347,7 +1347,7 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
                         "title": "Unscored GUI task",
                         "prompt": "Inspect the desktop and repair the requested state.",
                         "environment": {
-                            "type": "gui",
+                            "type": "vm",
                             "session": {
                                 "application": "desktop",
                                 "start_state": "The desktop is visible.",
@@ -1384,7 +1384,7 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
         "Desktop workflow",
         task_type=TaskType.agent,
         content="One desktop workflow.",
-        environment_type=AgentEnvironmentType.gui,
+        environment_type=AgentEnvironmentType.vm,
     )
 
     with pytest.raises(RuntimeError, match="environment.evaluation") as raised:
@@ -1610,7 +1610,7 @@ def test_agent_task_structure_validation_flags_truncated_prompt() -> None:
             "run the bridge evaluation. The design-change propagation requirement must be carried"
         ),
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             requires_vm=True,
             vm={"image": "evalclaw-gui"},
             session={"application": "desktop", "expected_artifacts": ["Desktop/out.txt"]},
@@ -1704,7 +1704,7 @@ def test_report_source_backed_ignores_generated_agent_fixture_provenance() -> No
 def test_qc_rejects_complex_gui_item_without_task_package() -> None:
     item = BenchmarkItem(
         id="gui_missing_package",
-        dimension_id="gui",
+        dimension_id="vm",
         task_type=TaskType.agent,
         prompt="Use the desktop app to create an artifact.",
         rubric="Score by bridge artifact checks.",
@@ -1715,7 +1715,7 @@ def test_qc_rejects_complex_gui_item_without_task_package() -> None:
                 "scoring": {"method": "deterministic", "instructions": "Use bridge checks."},
             },
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {"application": "file_manager", "expected_artifacts": ["Desktop/out.txt"]},
@@ -1727,7 +1727,7 @@ def test_qc_rejects_complex_gui_item_without_task_package() -> None:
         objective="Evaluate GUI desktop agents.",
         dimensions=[
             EvalDimension(
-                id="gui",
+                id="vm",
                 name="GUI",
                 description="GUI task",
                 approach="Use a GUI desktop bridge with artifact scoring.",
@@ -1750,7 +1750,7 @@ def test_qc_rejects_complex_gui_item_without_task_package() -> None:
 
 def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
     dimension = EvalDimension(
-        id="gui",
+        id="vm",
         name="GUI",
         description="Evaluate GUI desktop task execution.",
         approach="Use a VM-backed GUI task.",
@@ -1766,7 +1766,7 @@ def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
         "GUI task",
         task_type=TaskType.agent,
         content="One GUI task.",
-        environment_type=AgentEnvironmentType.gui,
+        environment_type=AgentEnvironmentType.vm,
     )
     task = TaskDefinition(
         id="gui_blueprint_task_1",
@@ -1776,7 +1776,7 @@ def test_agent_dataset_repairs_invalid_builder_task_package() -> None:
         description="Complete the requested file operation in the desktop environment.",
         prompt="Use the file manager to create Desktop/out.txt.",
         environment=AgentEnvironmentSpec(
-            type=AgentEnvironmentType.gui,
+            type=AgentEnvironmentType.vm,
             requires_vm=True,
             vm={"image": "evalclaw-gui"},
             session={"application": "file_manager", "expected_artifacts": ["Desktop/out.txt"]},
@@ -1815,12 +1815,12 @@ def test_build_agent_environment_injects_gui_bridge_runtime_config(monkeypatch) 
     )
     item = BenchmarkItem(
         id="gui_item",
-        dimension_id="gui",
+        dimension_id="vm",
         task_type=TaskType.agent,
         prompt="Operate the GUI.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "session": {"application": "browser"},
                 "evaluation": {"method": "bridge_state_check"},
             }
@@ -1858,12 +1858,12 @@ def test_build_agent_environment_injects_vm_provider_runtime_config(monkeypatch)
     )
     item = BenchmarkItem(
         id="gui_vm_item",
-        dimension_id="gui",
+        dimension_id="vm",
         task_type=TaskType.agent,
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {
@@ -1911,12 +1911,12 @@ def test_build_agent_environment_defaults_vm_provider_to_local_auto(monkeypatch)
     )
     item = BenchmarkItem(
         id="gui_vm_item",
-        dimension_id="gui",
+        dimension_id="vm",
         task_type=TaskType.agent,
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {"application": "file_manager"},
@@ -1939,12 +1939,12 @@ def test_environment_claw_blocks_missing_gui_bridge(monkeypatch) -> None:
     )
     item = BenchmarkItem(
         id="gui_item",
-        dimension_id="gui",
+        dimension_id="vm",
         task_type=TaskType.agent,
         prompt="Operate the GUI.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "session": {"application": "browser"},
                 "evaluation": {"method": "bridge_state_check"},
             }
@@ -1964,12 +1964,12 @@ def test_environment_claw_blocks_missing_vm_provider(monkeypatch) -> None:
     )
     item = BenchmarkItem(
         id="gui_vm_item",
-        dimension_id="gui",
+        dimension_id="vm",
         task_type=TaskType.agent,
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {"application": "browser"},
@@ -1995,12 +1995,12 @@ def test_environment_claw_defaults_vm_provider_probe_to_local_auto(monkeypatch) 
     monkeypatch.setattr("evalclaw.execution.environment_claw.probe_vm_provider", fake_probe)
     item = BenchmarkItem(
         id="gui_vm_item",
-        dimension_id="gui",
+        dimension_id="vm",
         task_type=TaskType.agent,
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {"application": "browser"},
@@ -2027,12 +2027,12 @@ def test_environment_claw_accepts_available_vm_provider(monkeypatch) -> None:
     )
     item = BenchmarkItem(
         id="gui_vm_item",
-        dimension_id="gui",
+        dimension_id="vm",
         task_type=TaskType.agent,
         prompt="Operate the VM GUI.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "requires_vm": True,
                 "vm": {"image": "evalclaw-gui"},
                 "session": {
@@ -2064,12 +2064,12 @@ def test_environment_claw_accepts_available_gui_bridge(monkeypatch) -> None:
     )
     item = BenchmarkItem(
         id="gui_item",
-        dimension_id="gui",
+        dimension_id="vm",
         task_type=TaskType.agent,
         prompt="Operate the GUI.",
         metadata={
             "agent_env": {
-                "type": "gui",
+                "type": "vm",
                 "session": {"application": "browser"},
                 "evaluation": {"method": "bridge_state_check"},
             }
@@ -2138,7 +2138,7 @@ def test_desktop_bridge_creates_and_cleans_vm_session(monkeypatch) -> None:
 
     env = DesktopBridgeAgentEnvironment.from_config(
         {
-            "type": "gui",
+            "type": "vm",
             "requires_vm": True,
             "vm_provider_url": "http://vm-provider:7788",
             "vm_provider_api_key": "vm-token",
@@ -2484,7 +2484,7 @@ def test_create_local_vm_session_qemu_uses_overlay_and_port_forward(monkeypatch,
     process = processes[0]
     assert "-nic" in process.command
     assert "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:18767-:7766" in process.command
-    assert f"file={tmp_path / 'runtime' / 'evalclaw-qemu-base-feedface.qcow2'},if=virtio,format=qcow2" in process.command
+    assert f"file={tmp_path / 'runtime' / 'evalclaw-qemu-base-feedface.qcow2'},if=virtio,format=qcow2,cache=writethrough" in process.command
     assert f"file={seed_iso.resolve()},if=ide,media=cdrom,readonly=on" in process.command
 
     overlay_path = tmp_path / "runtime" / "evalclaw-qemu-base-feedface.qcow2"

@@ -56,13 +56,13 @@ def save_environment(env: Any, directory: Path) -> dict[str, Any]:
     if isinstance(env, DesktopBridgeAgentEnvironment):
         if env.vm_session_data.get("backend") != "virtualbox":
             raise RuntimeError(
-                "Resuming a reused GUI environment requires a local VirtualBox VM snapshot. "
-                "This GUI backend does not implement workflow checkpoints."
+                "Resuming a reused VM environment requires a local VirtualBox VM snapshot. "
+                "This VM backend does not implement workflow checkpoints."
             )
         snapshot = f"workflow-{uuid.uuid4().hex}"
         _vbox(env.vm_id, "snapshot", "take", snapshot, "--live")
         return {
-            "kind": "gui", "snapshot": snapshot,
+            "kind": "vm", "snapshot": snapshot,
             "attributes": {
                 key: value for key, value in vars(env).items()
                 if key not in {"_client", "bridge_api_key", "vm_provider_api_key"}

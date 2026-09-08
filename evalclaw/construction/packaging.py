@@ -46,7 +46,7 @@ def _environment_for_runner(task: TaskDefinition) -> dict[str, Any]:
         env, _ = apply_docker_image_selection(env, task_text=task_text)
         if not env.get("test_command"):
             env["test_command"] = "pytest -q"
-    if env_type == "gui":
+    if env_type == "vm":
         if not isinstance(env.get("session"), dict):
             env["session"] = {}
         if not isinstance(env.get("evaluation"), dict):
@@ -169,7 +169,7 @@ def _artifact_requirement(agent_env: dict[str, Any]) -> str:
 
 def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
     env_type = str(agent_env.get("type") or "docker_workspace")
-    if env_type == "gui":
+    if env_type == "vm":
         return ["screenshot", "mouse_move", "click", "key", "type", "read_file", "write_file", "run_command", "evaluate"]
     if env_type == "docker_workspace":
         protected_material = bool(agent_env.get("runtime_files") or agent_env.get("hidden_files"))
@@ -255,7 +255,7 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
     )
     if env_type == "docker_workspace" and agent_env.get("image"):
         required_software = list(dict.fromkeys([*required_software, str(agent_env["image"])]))
-    hidden_reference_artifacts = list(expected_artifacts) if env_type == "gui" else []
+    hidden_reference_artifacts = list(expected_artifacts) if env_type == "vm" else []
     if hidden_files:
         hidden_reference_artifacts.extend(sorted(str(path) for path in hidden_files.keys()))
     if not hidden_reference_artifacts and evaluation:
@@ -300,7 +300,7 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
             "type": env_type,
             "os": environment_os,
             "requires_vm": bool(agent_env.get("requires_vm") or vm),
-            "requires_gui": env_type == "gui",
+            "requires_vm": env_type == "vm",
             "required_software": required_software,
             "required_capabilities": required_capabilities,
             "network": str(agent_env.get("network") or vm.get("network") or "none"),
@@ -356,7 +356,7 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
         "artifact_collection": {
             "collect_paths": expected_artifacts,
             "collect_trajectory": True,
-            "logs": ["tool_trace", "stdout", "stderr"] + (["screenshots"] if env_type == "gui" else []),
+            "logs": ["tool_trace", "stdout", "stderr"] + (["screenshots"] if env_type == "vm" else []),
         },
         "trajectory_requirements": {
             "required_tools": _required_tools_for_env(agent_env),
