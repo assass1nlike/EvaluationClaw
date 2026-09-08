@@ -4,8 +4,6 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from pathlib import Path
-from queue import Empty, Queue
-from threading import Thread
 from typing import Any, Callable
 
 from ..benchmark import build_suite_from_spec_with_qc_loop
@@ -171,35 +169,12 @@ def _call_analyser_json(
     trace_dir: Path | None = None,
     artifact_dir: Path | None = None,
 ) -> dict[str, Any]:
-    result_queue: Queue[tuple[dict[str, Any] | None, BaseException | None]] = Queue(maxsize=1)
-
-    def worker() -> None:
-        try:
-            result_queue.put_nowait(
-                (
-                    _run_analyser_tool_loop(
-                        payload,
-                        config,
-                        trace_dir=trace_dir,
-                        artifact_dir=artifact_dir,
-                    ),
-                    None,
-                )
-            )
-        except BaseException as exc:
-            result_queue.put_nowait((None, exc))
-
-    Thread(target=worker, daemon=True).start()
-    timeout_s = max(1, int(config.analysis_timeout_s))
-    try:
-        data, error = result_queue.get(timeout=timeout_s)
-    except Empty as exc:
-        raise TimeoutError(f"Analyser timed out after {timeout_s}s.") from exc
-    if error is not None:
-        raise error
-    if data is None:
-        raise ValueError("Analyser returned no JSON.")
-    return data
+    return _run_analyser_tool_loop(
+        payload,
+        config,
+        trace_dir=trace_dir,
+        artifact_dir=artifact_dir,
+    )
 
 
 def _task_context(suite: TaskSuite) -> list[dict[str, Any]]:

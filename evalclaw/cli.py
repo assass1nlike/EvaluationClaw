@@ -383,7 +383,6 @@ def generate(
         help="Review the Planner output before construction and the completed tasks before target execution.",
     ),
     analysis_iterations: int = typer.Option(0, "--analysis-iterations", help="Maximum hypothesis-driven probe iterations after the main run."),
-    analysis_timeout: int = typer.Option(90, "--analysis-timeout", help="Analyser call timeout in seconds."),
     analysis_max_tasks: int = typer.Option(4, "--analysis-max-tasks", help="Maximum probe tasks requested in one analysis iteration."),
     docker_executable: str = typer.Option(
         "docker",
@@ -460,9 +459,6 @@ def generate(
         raise typer.Exit(1)
     if analysis_iterations < 0:
         console.print("[red]--analysis-iterations cannot be negative.[/red]")
-        raise typer.Exit(1)
-    if analysis_timeout < 1:
-        console.print("[red]--analysis-timeout must be at least 1 second.[/red]")
         raise typer.Exit(1)
     if analysis_max_tasks < 0:
         console.print("[red]--analysis-max-tasks cannot be negative.[/red]")
@@ -664,7 +660,6 @@ def generate(
         environment_claw_auto_configure=not no_environment_claw_auto_configure,
         human_review=human_review,
         analysis_iterations=analysis_iterations,
-        analysis_timeout_s=analysis_timeout,
         analysis_max_tasks=analysis_max_tasks,
         docker_executable=docker_executable,
         container_sandbox_image=container_sandbox_image,

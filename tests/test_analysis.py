@@ -82,7 +82,6 @@ def _config(**updates) -> BenchmarkConfig:
         analyser_model="analyser-model",
         analyser_provider="openai_compatible",
         analyser_api_key="analyser-key",
-        analysis_timeout_s=5,
         **updates,
     )
 
