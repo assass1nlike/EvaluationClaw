@@ -955,7 +955,6 @@ class BenchmarkConfig(BaseModel):
     environment_claw_auto_configure: bool = True
     human_review: bool = False
     analysis_iterations: int = 0
-    analysis_timeout_s: int = 90
     analysis_max_tasks: int = 4
     docker_auto_select_image: bool = True
     docker_pull_timeout_s: int = 300
