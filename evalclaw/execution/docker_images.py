@@ -8,6 +8,7 @@ import re
 import shlex
 import subprocess
 import tempfile
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -59,6 +60,18 @@ class DockerImageCheckResult:
     stdout: str = ""
     stderr: str = ""
     timed_out: bool = False
+
+
+@dataclass(frozen=True)
+class DockerInspectResult:
+    container: str
+    action: str
+    image: str = ""
+    exit_code: int = 0
+    stdout: str = ""
+    stderr: str = ""
+    timed_out: bool = False
+    detail: str = ""
 
 
 @dataclass(frozen=True)
@@ -673,3 +686,212 @@ def inspect_docker_image(
         return DockerImageProbe(image=image, local=True, detail="Image is available locally.")
     detail = (proc.stderr or proc.stdout or "Image is not available locally.").strip()
     return DockerImageProbe(image=image, local=False, detail=detail)
+
+
+def start_inspection_container(
+    image: str,
+    *,
+    docker_executable: str = "docker",
+    network: str = "default",
+    timeout_s: int = 120,
+) -> DockerInspectResult:
+    """Start a long-lived disposable container for interactive environment probing.
+
+    The container stays alive across ``run_in_inspection_container`` calls so the
+    caller can install software and verify an environment step by step. It is
+    never delivered as the final task image; callers must re-express the verified
+    setup in a Dockerfile and build it.
+    """
+    image_name = str(image or "").strip()
+    if not image_name:
+        raise ValueError("Inspection container start requires an image.")
+    if network not in {"default", "none", "host"}:
+        raise ValueError("Inspection container network must be 'default', 'none', or 'host'.")
+    resolved = resolve_docker_executable(docker_executable)
+    if not resolved:
+        raise RuntimeError("Docker executable is not available for inspection containers.")
+    container = f"evalclaw-inspect-{uuid.uuid4().hex[:12]}"
+    command = [
+        resolved,
+        "run",
+        "-d",
+        "--name",
+        container,
+        "--network",
+        network,
+        "--security-opt",
+        "no-new-privileges",
+        "--workdir",
+        "/workspace",
+        image_name,
+        "sleep",
+        "infinity",
+    ]
+    try:
+        proc = subprocess.run(
+            command,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            check=False,
+            timeout=max(1, int(timeout_s)),
+            env=docker_subprocess_env(docker_executable),
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"Inspection container start timed out for {image_name}.") from exc
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "Unknown error.").strip()
+        raise RuntimeError(
+            f"Failed to start inspection container from {image_name}: {detail[-4000:]}"
+        )
+    return DockerInspectResult(
+        container=container,
+        action="start",
+        detail=f"Started inspection container {container} from {image_name}.",
+    )
+
+
+def run_in_inspection_container(
+    container: str,
+    command: str,
+    *,
+    docker_executable: str = "docker",
+    workdir: str = "/workspace",
+    timeout_s: int = 60,
+) -> DockerInspectResult:
+    """Run one command inside a running inspection container."""
+    container_name = str(container or "").strip()
+    check_command = str(command or "").strip()
+    if not container_name:
+        raise ValueError("Inspection container run requires a container.")
+    if not check_command:
+        raise ValueError("Inspection container run requires a command.")
+    resolved = resolve_docker_executable(docker_executable)
+    if not resolved:
+        raise RuntimeError("Docker executable is not available for inspection containers.")
+    command_args = [
+        resolved,
+        "exec",
+        "--workdir",
+        workdir,
+        container_name,
+        "sh",
+        "-lc",
+        check_command,
+    ]
+    try:
+        proc = subprocess.run(
+            command_args,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            check=False,
+            timeout=max(1, int(timeout_s)),
+            env=docker_subprocess_env(docker_executable),
+        )
+    except subprocess.TimeoutExpired as exc:
+        return DockerInspectResult(
+            container=container_name,
+            action="run",
+            exit_code=-1,
+            stdout=str(exc.stdout or ""),
+            stderr=str(exc.stderr or "") or "Inspection command timed out.",
+            timed_out=True,
+        )
+    return DockerInspectResult(
+        container=container_name,
+        action="run",
+        exit_code=proc.returncode,
+        stdout=proc.stdout or "",
+        stderr=proc.stderr or "",
+    )
+
+
+def stop_inspection_container(
+    container: str,
+    *,
+    docker_executable: str = "docker",
+    timeout_s: int = 30,
+) -> DockerInspectResult:
+    """Force-remove a running inspection container."""
+    container_name = str(container or "").strip()
+    if not container_name:
+        return DockerInspectResult(container="", action="stop", detail="No container to stop.")
+    resolved = resolve_docker_executable(docker_executable)
+    if not resolved:
+        return DockerInspectResult(
+            container=container_name,
+            action="stop",
+            detail="Docker executable is not available.",
+        )
+    try:
+        proc = subprocess.run(
+            [resolved, "rm", "-f", container_name],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            check=False,
+            timeout=max(1, int(timeout_s)),
+            env=docker_subprocess_env(docker_executable),
+        )
+    except Exception as exc:
+        return DockerInspectResult(
+            container=container_name,
+            action="stop",
+            detail=f"Failed to stop inspection container: {exc}",
+        )
+    return DockerInspectResult(
+        container=container_name,
+        action="stop",
+        exit_code=proc.returncode,
+        stdout=proc.stdout or "",
+        stderr=proc.stderr or "",
+    )
+
+
+def commit_inspection_container(
+    container: str,
+    tag: str = "",
+    *,
+    docker_executable: str = "docker",
+    timeout_s: int = 120,
+) -> DockerInspectResult:
+    """Commit a running inspection container into a reusable image.
+
+    The committed image is the delivered task environment; the container is
+    discarded after commit. The caller records the command trace separately.
+    """
+    container_name = str(container or "").strip()
+    if not container_name:
+        raise ValueError("Inspection container commit requires a container.")
+    resolved = resolve_docker_executable(docker_executable)
+    if not resolved:
+        raise RuntimeError("Docker executable is not available for inspection containers.")
+    image_tag = str(tag or "").strip() or f"evalclaw-task-{uuid.uuid4().hex[:12]}"
+    try:
+        proc = subprocess.run(
+            [resolved, "commit", container_name, image_tag],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            check=False,
+            timeout=max(1, int(timeout_s)),
+            env=docker_subprocess_env(docker_executable),
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"Inspection container commit timed out for {container_name}.") from exc
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "Unknown error.").strip()
+        raise RuntimeError(
+            f"Failed to commit inspection container {container_name}: {detail[-4000:]}"
+        )
+    return DockerInspectResult(
+        container=container_name,
+        action="commit",
+        image=image_tag,
+        detail=f"Committed inspection container {container_name} as {image_tag}.",
+    )
