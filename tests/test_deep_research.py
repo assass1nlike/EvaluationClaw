@@ -12,19 +12,19 @@ from typer.testing import CliRunner
 
 from evalclaw.cli import app
 from evalclaw.construction.resources import _source_context
+from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.pipeline import _persist_package, run_pipeline
 from evalclaw.planning.task_planner import _planner_resources
-from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.prompts.research import (
     RESEARCH_COMPRESS_SYSTEM_PROMPT,
     RESEARCH_QUERY_SYSTEM_PROMPT,
     RESEARCH_REFLECT_SYSTEM_PROMPT,
     RESEARCH_SYNTHESIS_SYSTEM_PROMPT,
 )
+from evalclaw.protocols.tool import ToolCall
 from evalclaw.reporting.reporter import build_report
 from evalclaw.research import deep_research
 from evalclaw.research.backends import SearchResult
-from evalclaw.protocols.tool import ToolCall
 from evalclaw.research.deep_research import (
     _parse_brief,
     compact_brief_context,

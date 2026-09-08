@@ -176,7 +176,7 @@ def _add_required_vm_capabilities(
 ) -> None:
     required = vm_spec.get("required_capabilities")
     capabilities = [str(value) for value in required if str(value).strip()] if isinstance(required, list) else []
-    if str(env.get("type") or "").lower() == "gui":
+    if str(env.get("type") or "").lower() == "vm":
         capabilities.append("desktop_bridge")
     if needs_config_drive:
         if guest_os == _WINDOWS:

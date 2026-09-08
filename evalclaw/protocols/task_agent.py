@@ -104,7 +104,7 @@ TASK_AGENT_SCHEMA: dict[str, Any] = {
         },
     },
     "execution": {
-        "environment_type": "docker_workspace | gui",
+        "environment_type": "docker_workspace | vm",
         "environment_ref": "metadata.agent_env",
     },
     "agent_task_package": "Optional summary pointer; full executable task package should live at metadata.agent_task_package.",
@@ -182,8 +182,9 @@ Fields:
   and build_timeout. A relative context_dir may point to the current Builder
   job's persisted build context; EvaluationClaw resolves it privately before
   building a local task image, then runs the workspace in that image.
-  Use environment_type="gui" when the task requires screenshot-driven
-  browser or desktop software operation. Provide max_steps, timeout, session,
+  Use environment_type="vm" when the task requires a VM-backed environment
+  that Docker cannot provide, such as Windows-only desktop software or a full
+  desktop session. Provide max_steps, timeout, session,
   evaluation, and usually requires_vm=true plus vm in agent_env. Put task files
   that should exist in the guest under agent_env.visible_files or
   initial_content.files; put session-specific documents/data under

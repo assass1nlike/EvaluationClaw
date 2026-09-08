@@ -70,7 +70,7 @@ def _has_environment_evaluator(task: TaskDefinition) -> bool:
         return False
     if env.type == AgentEnvironmentType.docker_workspace:
         return _has_text(env.test_command)
-    if env.type == AgentEnvironmentType.gui:
+    if env.type == AgentEnvironmentType.vm:
         evaluation = env.evaluation
         return bool(
             isinstance(evaluation.get("checks"), list)
@@ -549,7 +549,7 @@ def _vm_protected_evaluator_reference_issues(env: object) -> list[str]:
     if not inaccessible:
         return []
     return [
-        "Windows gui evaluation runs as the signed-in target user and cannot read "
+        "Windows vm evaluation runs as the signed-in target user and cannot read "
         "provisioning paths whose ACL grants only SYSTEM/Administrators: "
         + ", ".join(inaccessible)
         + ". Embed expected values or hashes in the evaluator command instead of reading a "
@@ -1119,10 +1119,10 @@ def task_structure_issues(
                         f"Browser file artifact {artifact} must be inside environment.workdir={workdir}."
                     )
 
-    elif env.type == AgentEnvironmentType.gui:
+    elif env.type == AgentEnvironmentType.vm:
         if not env.session:
             issues.append(
-                "gui tasks must include environment.session with application, launch/start state, "
+                "vm tasks must include environment.session with application, launch/start state, "
                 "input assets, expected artifacts, or task restrictions."
             )
         else:
@@ -1138,17 +1138,17 @@ def task_structure_issues(
             )
             if not has_application:
                 issues.append(
-                    "gui tasks must set environment.session.application, kind, or applications; "
+                    "vm tasks must set environment.session.application, kind, or applications; "
                     "session.surface is not consumed by the runtime."
                 )
             if not has_start_state:
                 issues.append(
-                    "gui tasks must set environment.session.launch_state, start_state, "
+                    "vm tasks must set environment.session.launch_state, start_state, "
                     "start_url, or entrypoint."
                 )
         if not _has_environment_evaluator(task):
             issues.append(
-                "gui tasks must put an executable method or checks in environment.evaluation; "
+                "vm tasks must put an executable method or checks in environment.evaluation; "
                 "session.evaluation_checks is not consumed by the runtime."
             )
         issues.extend(
@@ -1166,7 +1166,7 @@ def task_structure_issues(
         requires_vm = bool(env.requires_vm or env.vm)
         if requires_vm:
             if not env.vm:
-                issues.append("gui tasks with requires_vm=true must include environment.vm.")
+                issues.append("vm tasks with requires_vm=true must include environment.vm.")
             else:
                 source_fields = (
                     "template",
@@ -1191,7 +1191,7 @@ def task_structure_issues(
                 )
                 if not _has_any_text(*source_values) and not has_runtime_requirements:
                     issues.append(
-                        "VM-backed gui tasks must provide a runner-resolvable template, "
+                        "VM-backed vm tasks must provide a runner-resolvable template, "
                         "image, or disk identifier, or guest OS plus required_capabilities for "
                         "runtime provider resolution."
                     )
@@ -1214,7 +1214,7 @@ def task_structure_issues(
                 and env.session["baseline_checks"]
             ):
                 issues.append(
-                    "Every VM-backed gui task must define executable "
+                    "Every VM-backed task must define executable "
                     "environment.session.baseline_checks for the bridge to verify before the target starts."
                 )
 

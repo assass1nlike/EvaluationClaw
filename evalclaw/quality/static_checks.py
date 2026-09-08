@@ -42,7 +42,7 @@ def _item_environment_has_evaluator(item: BenchmarkItem) -> bool:
     env_type = str(env.get("type") or "")
     if env_type == "docker_workspace":
         return bool(str(env.get("test_command") or "").strip())
-    if env_type == "gui":
+    if env_type == "vm":
         evaluation = env.get("evaluation")
         if not isinstance(evaluation, dict):
             return False
@@ -325,7 +325,7 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                         "Add the deterministic evaluator command that the runner should invoke.",
                     )
                 )
-            if env_type == "gui":
+            if env_type == "vm":
                 session = env.get("session")
                 vm = env.get("vm")
                 if not isinstance(session, dict) or not session:

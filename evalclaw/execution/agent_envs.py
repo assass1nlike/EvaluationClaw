@@ -71,7 +71,7 @@ def build_agent_environment(
         if config is not None:
             env_config.setdefault("pull_timeout", config.docker_pull_timeout_s)
             env_config.setdefault("docker_executable", config.docker_executable)
-    if env_type == "gui" and config is not None:
+    if env_type == "vm" and config is not None:
         requires_vm = bool(env_config.get("requires_vm") or env_config.get("vm"))
         env_config = {
             **env_config,
@@ -88,6 +88,6 @@ def build_agent_environment(
             env_config,
             input_assets=environment_asset_sources(item.assets),
         )
-    if env_type == "gui":
+    if env_type == "vm":
         return DesktopBridgeAgentEnvironment.from_config(env_config)
     raise ValueError(f"Unsupported agent environment type: {env_type}")

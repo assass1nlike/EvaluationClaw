@@ -275,7 +275,7 @@ def test_environment_skill_routes_only_environment_backed_task_designs() -> None
         "desktop_workflow",
         TaskType.agent,
         content="One desktop workflow.",
-        environment_type=AgentEnvironmentType.gui,
+        environment_type=AgentEnvironmentType.vm,
     )
     blueprint = make_blueprint(
         "mixed_tasks",
@@ -288,10 +288,10 @@ def test_environment_skill_routes_only_environment_backed_task_designs() -> None
     assert payload is not None
     assert payload["applies_to_task_design_ids"] == ["desktop_workflow"]
     assert payload["loaded_references"] == [
-        "references/gui.md",
+        "references/vm.md",
         "references/agent-task-package.md",
     ]
-    assert payload["routing"][0]["runtime_environment_type"] == "gui"
+    assert payload["routing"][0]["runtime_environment_type"] == "vm"
 
 
 def test_task_builder_payload_contract_supports_one_multi_item_task_design() -> None:

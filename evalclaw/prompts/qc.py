@@ -118,7 +118,7 @@ For task_type=agent with metadata.agent_env.type=docker_workspace:
   infer that canonical files are truncated merely because the QC copy is an
   excerpt.
 
-For task_type=agent with metadata.agent_env.type=gui:
+For task_type=agent with metadata.agent_env.type=vm:
 - Require an identifiable application or desktop surface, a launch/start
   state, bounded steps, and bridge-executable evaluation checks or method.
 - When requires_vm=true, accept either a concrete runner-resolvable

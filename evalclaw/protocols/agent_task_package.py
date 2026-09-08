@@ -18,10 +18,10 @@ AGENT_TASK_PACKAGE_SCHEMA: dict[str, Any] = {
     },
     "environment_requirements": {
         "environment_ref": "metadata.agent_env",
-        "type": "docker_workspace | gui",
+        "type": "docker_workspace | vm",
         "os": "linux | windows | macos | any",
         "requires_vm": False,
-        "requires_gui": False,
+        "requires_vm": False,
         "required_software": ["Runtime or application requirements, without secrets."],
         "required_capabilities": ["Provider image capabilities required at runtime."],
         "network": "none | restricted | internet",
@@ -127,7 +127,7 @@ def item_requires_agent_task_package(item: BenchmarkItem) -> bool:
         return False
     env = _env_from_item(item)
     env_type = str(env.get("type") or "").lower()
-    if env_type in {"docker_workspace", "gui"}:
+    if env_type in {"docker_workspace", "vm"}:
         return True
     if bool(env.get("requires_vm") or env.get("vm")):
         return True
@@ -200,15 +200,15 @@ def agent_task_package_issues(item: BenchmarkItem) -> list[str]:
 
     env = _env_from_item(item)
     env_type = str(env.get("type") or "").lower()
-    if env_type in {"docker_workspace", "gui"}:
+    if env_type in {"docker_workspace", "vm"}:
         artifact_collection = package.get("artifact_collection")
         if not isinstance(artifact_collection, dict) or not (
             artifact_collection.get("collect_paths") or artifact_collection.get("collect_trajectory")
         ):
-            issues.append("Docker/GUI agent task package must define artifact_collection paths or trajectory capture.")
+            issues.append("Docker/VM agent task package must define artifact_collection paths or trajectory capture.")
         trajectory = package.get("trajectory_requirements")
         if not isinstance(trajectory, dict) or not trajectory.get("required_tools"):
-            issues.append("Docker/GUI agent task package must define trajectory_requirements.required_tools.")
+            issues.append("Docker/VM agent task package must define trajectory_requirements.required_tools.")
 
     visible_files = set()
     visible_inputs = package.get("visible_inputs")

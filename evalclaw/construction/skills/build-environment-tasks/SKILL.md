@@ -36,6 +36,6 @@ EvaluationClaw derives canonical `metadata.agent_env`, `metadata.task_agent`, an
 Read only the references selected by the runtime:
 
 - `references/docker-workspace.md`
-- `references/gui.md`
+- `references/vm.md`
 - `references/task-agent.md`
 - `references/agent-task-package.md`
