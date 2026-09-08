@@ -6,19 +6,30 @@ benchmark-design evidence for the Planner and Task Builder.
 from __future__ import annotations
 
 import json
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable, Optional
 
 from ..diagnostics import error_record, write_json
 from ..models.json_utils import extract_json
-from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm
+from ..models.llm import (
+    DEFAULT_MAX_OUTPUT_TOKENS,
+    TargetToolModelResponse,
+    call_llm,
+    call_orchestrator_with_tools,
+)
 from ..models.roles import role_model_settings
 from ..prompts.research import (
     RESEARCH_COMPRESS_SYSTEM_PROMPT,
+    RESEARCH_FETCH_SYSTEM_PROMPT,
     RESEARCH_QUERY_SYSTEM_PROMPT,
     RESEARCH_REFLECT_SYSTEM_PROMPT,
     RESEARCH_SYNTHESIS_SYSTEM_PROMPT,
+)
+from ..protocols.tool import ToolResult, ToolSpec
+from ..protocols.tool_adapters import (
+    evalclaw_tool_result_to_anthropic,
+    evalclaw_tool_result_to_openai,
+    evalclaw_tool_result_to_openai_response_input,
 )
 from ..sources.hf_discovery import discover_hf_datasets
 from ..types import (
@@ -47,6 +58,25 @@ MAX_FETCHES_PER_ROUND = 3
 FETCH_MAX_CHARS = 50_000
 MAX_EVIDENCE = 60
 SEARCH_MAX_ATTEMPTS = 3
+
+RESEARCH_FETCH_TOOL = ToolSpec(
+    name="fetch_url_text",
+    description=(
+        "Fetch readable text from one URL in the supplied citation list. "
+        f"The framework returns at most {FETCH_MAX_CHARS:,} characters."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "url": {
+                "type": "string",
+                "description": "A URL copied exactly from the citation list.",
+            },
+        },
+        "required": ["url"],
+        "additionalProperties": False,
+    },
+)
 
 
 def _call_orchestrator_json(
@@ -100,9 +130,10 @@ def _gather_round(
     config: BenchmarkConfig,
     fetched_urls: set[str],
     *,
+    goal: str = "",
     trace_dir: Path | None = None,
 ) -> tuple[list[dict], list[dict]]:
-    """Search each query and fetch top result URLs.
+    """Search each query and let the research model fetch useful citations.
 
     Returns (material entries for compression, citations seen this round).
     """
@@ -176,44 +207,217 @@ def _gather_round(
             if url:
                 citations.append({"url": url, "title": citation.get("title") or url})
 
-    fetch_urls: list[str] = []
-    for citation in citations:
-        if len(fetch_urls) >= MAX_FETCHES_PER_ROUND:
-            break
-        url = citation["url"]
-        if url in fetched_urls:
-            continue
-        fetched_urls.add(url)
-        fetch_urls.append(url)
-
-    with ThreadPoolExecutor(max_workers=max(1, len(fetch_urls))) as executor:
-        fetched_text = list(
-            executor.map(
-                lambda url: fetch_url_text(url, max_chars=FETCH_MAX_CHARS),
-                fetch_urls,
-            )
-        )
-    titles_by_url = {
-        str(citation.get("url") or ""): str(citation.get("title") or citation.get("url") or "")
-        for citation in citations
-    }
-    for url, text in zip(fetch_urls, fetched_text):
-        if text:
-            material.append({"url": url, "title": titles_by_url.get(url, url), "content": text})
     if trace_dir is not None:
         write_json(trace_dir / "searches.json", searches)
+    material.extend(
+        _research_model_fetches(
+            queries,
+            material,
+            citations,
+            config,
+            fetched_urls,
+            goal=goal,
+            trace_dir=trace_dir,
+        )
+    )
+    return material, citations
+
+
+def _append_research_tool_results(
+    messages: list[dict],
+    response: TargetToolModelResponse,
+    results: list[ToolResult],
+) -> None:
+    """Append a provider-native assistant/tool exchange to a research chat."""
+    messages.append(response.assistant_message)
+    if response.adapter == "anthropic":
+        messages.append(
+            {
+                "role": "user",
+                "content": [evalclaw_tool_result_to_anthropic(result) for result in results],
+            }
+        )
+        return
+    if response.adapter == "openai_responses":
+        messages.pop()
+        output = response.assistant_message.get("responses_output")
+        if isinstance(output, list):
+            messages.extend(item for item in output if isinstance(item, dict))
+        messages.extend(
+            evalclaw_tool_result_to_openai_response_input(result) for result in results
+        )
+        return
+    messages.extend(evalclaw_tool_result_to_openai(result) for result in results)
+
+
+def _research_model_fetches(
+    queries: list[str],
+    material: list[dict],
+    citations: list[dict],
+    config: BenchmarkConfig,
+    fetched_urls: set[str],
+    *,
+    goal: str = "",
+    trace_dir: Path | None = None,
+) -> list[dict]:
+    """Allow the research model to select citation URLs for full-text retrieval."""
+    citation_by_url: dict[str, dict] = {}
+    for citation in citations:
+        url = str(citation.get("url") or "").strip()
+        if url and url not in citation_by_url:
+            citation_by_url[url] = {
+                "url": url,
+                "title": str(citation.get("title") or url),
+            }
+    if not citation_by_url:
+        return []
+
+    payload = {
+        "goal": goal,
+        "queries": queries[:MAX_QUERIES_PER_ROUND],
+        "search_summaries": material,
+        "citations": list(citation_by_url.values()),
+        "already_fetched_urls": sorted(fetched_urls),
+        "max_fetches": MAX_FETCHES_PER_ROUND,
+    }
+    settings = role_model_settings(config, "research")
+    messages: list[dict] = [{"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)}]
+    fetched_material: list[dict] = []
+    calls_used = 0
+    trace_index = 0
+
+    def append_fetched(url: str, title: str, content: str | None) -> None:
+        if content:
+            fetched_material.append({"url": url, "title": title, "content": content})
+
+    def call_model(current_messages: list[dict]) -> TargetToolModelResponse:
+        nonlocal trace_index
+        response = call_orchestrator_with_tools(
+            current_messages,
+            system_prompt=RESEARCH_FETCH_SYSTEM_PROMPT,
+            **settings.call_kwargs(),
+            backend=config.llm_backend,
+            tools=[RESEARCH_FETCH_TOOL],
+            max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+            retry_on_truncation=True,
+            trace_dir=trace_dir / "llm" if trace_dir is not None else None,
+            trace_name=f"fetch-selection-{trace_index + 1:03d}",
+        )
+        if trace_dir is not None:
+            trace_index += 1
+            write_json(
+                trace_dir / f"fetch-selection-{trace_index:03d}.json",
+                {
+                    "messages": current_messages,
+                    "assistant_message": response.assistant_message,
+                    "tool_calls": [call.model_dump(mode="json") for call in response.tool_calls],
+                },
+                redact=True,
+            )
+        return response
+
+    try:
+        while True:
+            response = call_model(messages)
+            if not response.tool_calls:
+                break
+            remaining = MAX_FETCHES_PER_ROUND - calls_used
+            if remaining <= 0:
+                messages.append(response.assistant_message)
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            "The full-text retrieval budget is exhausted. Stop retrieving and "
+                            "return a brief confirmation."
+                        ),
+                    }
+                )
+                break
+            results: list[ToolResult] = []
+            for call in response.tool_calls[:remaining]:
+                calls_used += 1
+                url = str(call.arguments.get("url") or "").strip()
+                citation = citation_by_url.get(url)
+                if citation is None:
+                    results.append(
+                        ToolResult(
+                            tool_call_id=call.id,
+                            name=call.name,
+                            content="The URL must be copied exactly from the supplied citation list.",
+                            error="url_not_in_citations",
+                        )
+                    )
+                    continue
+                if url in fetched_urls:
+                    results.append(
+                        ToolResult(
+                            tool_call_id=call.id,
+                            name=call.name,
+                            content="That URL was already fetched in an earlier research round.",
+                            error="url_already_fetched",
+                        )
+                    )
+                    continue
+                fetched_urls.add(url)
+                content = fetch_url_text(url, max_chars=FETCH_MAX_CHARS)
+                if content:
+                    append_fetched(url, citation["title"], content)
+                    result_content = json.dumps(
+                        {"url": url, "title": citation["title"], "content": content},
+                        ensure_ascii=False,
+                    )
+                    results.append(
+                        ToolResult(tool_call_id=call.id, name=call.name, content=result_content)
+                    )
+                else:
+                    results.append(
+                        ToolResult(
+                            tool_call_id=call.id,
+                            name=call.name,
+                            content="The URL could not be fetched as readable text.",
+                            error="fetch_failed",
+                        )
+                    )
+            for skipped_call in response.tool_calls[remaining:]:
+                results.append(
+                    ToolResult(
+                        tool_call_id=skipped_call.id,
+                        name=skipped_call.name,
+                        content="This fetch call was skipped because the round budget was exhausted.",
+                        error="fetch_budget_exhausted",
+                    )
+                )
+            _append_research_tool_results(messages, response, results)
+            if calls_used >= MAX_FETCHES_PER_ROUND:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            "The full-text retrieval budget is exhausted. Stop retrieving and "
+                            "return a brief confirmation."
+                        ),
+                    }
+                )
+                break
+    except Exception as exc:
+        if trace_dir is not None:
+            write_json(trace_dir / "fetch-selection-fallback.json", error_record(exc))
+
+    if trace_dir is not None:
         write_json(
             trace_dir / "fetches.json",
             [
                 {
-                    "url": url,
-                    "status": "fetched" if text else "unavailable",
-                    "content": text,
+                    "url": entry["url"],
+                    "title": entry["title"],
+                    "status": "fetched",
+                    "content": entry["content"],
                 }
-                for url, text in zip(fetch_urls, fetched_text)
+                for entry in fetched_material
             ],
         )
-    return material, citations
+    return fetched_material
 
 
 def _compress(
@@ -596,6 +800,7 @@ def run_deep_research(
                 queries,
                 config,
                 fetched_urls,
+                goal=goal,
                 trace_dir=round_trace,
             )
         except Exception as exc:

@@ -40,6 +40,21 @@ Rules:
 - Emit at most 12 evidence entries per call.
 """
 
+RESEARCH_FETCH_SYSTEM_PROMPT = """\
+You select source pages for EvaluationClaw's Benchmark Design Research stage.
+
+The user payload contains the research goal, search-result summaries, titled
+citation URLs, and the URLs already fetched in earlier rounds. Review the
+summaries first. You may call fetch_url_text for a cited URL when its full page
+is likely to improve the research evidence. The tool returns at most the
+framework's fixed page limit. Do not request URLs that are absent from the
+citation list, and do not call the tool merely to inspect a source that the
+summaries already answer. You may stop without a tool call when the summaries
+are sufficient. After each tool result, decide whether another cited page is
+needed. Do not synthesize benchmark evidence in this stage; the next stage will
+compress the summaries and selected page text.
+"""
+
 RESEARCH_REFLECT_SYSTEM_PROMPT = """\
 You review accumulated evidence for EvaluationClaw's Benchmark Design Research
 stage and decide whether more research is needed.
