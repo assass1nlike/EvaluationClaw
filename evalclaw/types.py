@@ -884,6 +884,7 @@ class BenchmarkConfig(BaseModel):
         ),
     )
     large_scale_llm_qc_sample_size: int = 120
+    use_llm_qc: bool = False
     output_dir: str = "./benchmark-output"
     live_url: Optional[str] = None
     planner_debug_dir: Optional[str] = None

@@ -225,6 +225,7 @@ def generate(
     qc_api_key: Optional[str] = typer.Option(None, "--qc-api-key", help="API key for the LLM QC role."),
     qc_base_url: Optional[str] = typer.Option(None, "--qc-base-url", help="Base URL for the LLM QC role."),
     qc_reasoning_effort: Optional[str] = typer.Option(None, "--qc-reasoning-effort", help="Reasoning effort passed to the QC model."),
+    use_llm_qc: bool = typer.Option(False, "--use-llm-qc/--no-llm-qc", help="Enable LLM-based QC review (off by default)."),
     task_model: list[str] = typer.Option(
         [],
         "--task-model",
@@ -664,6 +665,7 @@ def generate(
         environment_preflight=not no_environment_preflight,
         allow_incomplete_benchmark=allow_incomplete_benchmark,
         strict_qc_filter=strict_qc_filter,
+        use_llm_qc=use_llm_qc,
         report_language=report_language.strip() if report_language and report_language.strip() else None,
         gui_bridge_url=gui_bridge_url,
         gui_bridge_api_key=gui_bridge_api_key,

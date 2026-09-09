@@ -2558,6 +2558,7 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
         suite,
         BenchmarkConfig(
             **dummy_config_kwargs(),
+            use_llm_qc=True,
             scale_budget=ScaleBudget.large,
             large_scale_llm_qc_sample_size=10,
         ),
@@ -3641,7 +3642,7 @@ def test_llm_qc_receives_agent_env_metadata(monkeypatch) -> None:
             },
         },
     )
-    config = BenchmarkConfig(**dummy_config_kwargs())
+    config = BenchmarkConfig(**dummy_config_kwargs(), use_llm_qc=True)
 
     qc = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), config)
 
