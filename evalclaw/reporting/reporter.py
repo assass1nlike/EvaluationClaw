@@ -243,17 +243,13 @@ def build_report(
             [
                 "## Model Performance Analysis",
                 "",
-                analysis.conclusion,
+                analysis.analysis,
                 "",
                 f"- Verification iterations: {len(analysis.iterations)}",
                 f"- Verification tasks: {sum(len(item.suite.tasks) for item in analysis.iterations if item.suite is not None)}",
                 "",
             ]
         )
-        if analysis.recommendations:
-            lines.extend(["### Strengthening Recommendations", ""])
-            lines.extend(f"- {recommendation}" for recommendation in analysis.recommendations)
-            lines.append("")
 
     recommendations = _recommendations(run)
     lines.extend(["## Recommendations", ""])

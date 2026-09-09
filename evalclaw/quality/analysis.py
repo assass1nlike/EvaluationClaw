@@ -6,7 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Callable
 
-from ..benchmark import build_suite_from_spec_with_qc_loop
+from ..benchmark import build_benchmark_suite_with_qc_loop, build_suite_from_spec_with_qc_loop
 from ..diagnostics import new_debug_dir, redact_secrets, write_json
 from ..execution.environment_claw import run_environment_claw
 from ..execution.plan import build_execution_plan
@@ -18,6 +18,7 @@ from ..models.llm import (
     extract_json,
 )
 from ..models.roles import role_model_settings
+from ..planning.loop import apply_review_to_suite
 from ..planning.task_planner import _audit_plan
 from ..protocols.tool import ToolResult
 from ..protocols.tool_adapters import (
@@ -44,12 +45,53 @@ _MAX_ARTIFACT_CALLS = 6
 ANALYSER_SYSTEM_PROMPT = """\
 You are the EvaluationClaw Analyser. Analyse the evaluated model's behaviour
 from the completed benchmark run. Use aggregate results and concrete model
-responses to identify supported weaknesses, explain their likely causes, and
-recommend how the model could be strengthened. Do not treat benchmark-design
-gaps as model weaknesses.
+responses to identify supported weaknesses and their likely causes. Do not treat
+benchmark-design gaps as model weaknesses.
 
-If the available evidence is insufficient to distinguish plausible
-explanations, design focused probe tasks that test the relevant hypothesis.
+Your "analysis" is a narrative stating: a summary of what the evidence so far
+shows; which model-capability weaknesses are still unconfirmed; the hypothesis
+you hold about them; and how you plan to experiment to test that hypothesis.
+
+If you still need evidence, write a focused evaluation goal for that experiment.
+The framework runs the goal through the full Planner -> Builder -> Runner
+pipeline to produce the probe tasks. Probes are experiments, not adversarial
+expansion for its own sake. Write the goal so the Planner designs a small,
+focused probe.
+
+Set "done": true only when you have fully identified every model capability
+weakness, AND produced a benchmark that covers exactly those weaknesses (so the
+model underperforms on it because of genuine inability), AND that benchmark has
+already passed one run showing it is itself correct — the model's poor
+performance is not caused by flawed, imprecise, or ambiguous tasks. Then leave
+"goal" empty. Otherwise set "done": false and give a goal.
+
+QC is not part of the default analysis context. A read_run_artifact tool may be
+available. Read the named QC artifact only when you need to determine whether
+an observed result was caused by the task or infrastructure rather than the
+evaluated model.
+
+Return pure JSON only:
+{
+  "analysis": "...",
+  "goal": "...",
+  "done": false
+}
+
+The probe's total task count must not exceed max_probe_tasks.
+"""
+
+
+ANALYSER_TASK_DESIGN_PROMPT = """\
+You are the EvaluationClaw Analyser. Analyse the evaluated model's behaviour
+from the completed benchmark run. Use aggregate results and concrete model
+responses to identify supported weaknesses and their likely causes. Do not treat
+benchmark-design gaps as model weaknesses.
+
+Your "analysis" is a narrative stating: a summary of what the evidence so far
+shows; which model-capability weaknesses are still unconfirmed; the hypothesis
+you hold about them; and how you plan to experiment to test that hypothesis.
+
+If you still need evidence, design focused probe tasks that test the hypothesis.
 Probes are experiments, not adversarial expansion for its own sake. Return
 TaskDesigns for the existing TaskBuilder to materialize; do not construct final
 task JSON. Use only dimension ids listed in the request. The framework assigns
@@ -59,28 +101,52 @@ Each task_designs entry contains dimension_id plus these TaskDesign fields:
 task_type, task_count, challenge_effort, content_design, input_requirements,
 interaction_requirements, environment_requirements, output_requirements,
 scoring_contract, source_plan, construction_requirements,
-type_specific_requirements, and metadata. content_design must include a
-concrete description or purpose. Non-agent task types must use an empty
+type_specific_requirements, and metadata. content_design must include a concrete
+description or purpose. Non-agent task types must use an empty
 environment_requirements object. Agent tasks must declare an environment
 category. source_plan.strategy is generated, adapted, reused, or
-imported_dataset. generated uses no URLs or search queries; the other
-strategies require an existing URL.
+imported_dataset. generated uses no URLs or search queries; the other strategies
+require an existing URL.
 
-QC is not part of the default analysis context. A read_run_artifact tool may be
-available. Read the named QC artifact only when you need to determine whether
-an observed result was caused by the task or infrastructure rather than the
-evaluated model.
+Set "done": true only when you have fully identified every model capability
+weakness, AND produced a benchmark that covers exactly those weaknesses (so the
+model underperforms on it because of genuine inability), AND that benchmark has
+already passed one run showing it is itself correct — the model's poor
+performance is not caused by flawed, imprecise, or ambiguous tasks. Then leave
+"task_designs" empty. Otherwise set "done": false and give task_designs.
 
 Return pure JSON only:
 {
-  "analysis": "Evidence-based current conclusion or hypothesis.",
-  "recommendations": ["Concrete model-strengthening recommendation."],
-  "task_designs": []
+  "analysis": "...",
+  "task_designs": [],
+  "done": false
 }
 
-When remaining_probe_iterations is zero, or the evidence is already sufficient,
-task_designs must be empty and analysis must state the final conclusion. When
-requesting probes, their total task_count must not exceed max_probe_tasks.
+When requesting probes, their total task_count must not exceed max_probe_tasks.
+"""
+
+
+def _analyser_system_prompt(mode: str) -> str:
+    return ANALYSER_TASK_DESIGN_PROMPT if mode == "task_design" else ANALYSER_SYSTEM_PROMPT
+
+
+ANALYSER_REVIEW_SYSTEM_PROMPT = """\
+You are the EvaluationClaw Analyser reviewing freshly-built probe tasks before they run.
+These probe tasks were materialised from your TaskDesigns to test a hypothesis. Inspect
+each probe task and judge whether it faithfully and effectively distinguishes the
+hypothesis; fix the ones that do not.
+
+Return pure JSON only:
+{
+  "done": false,
+  "update_items": [{"item_id": "...", "dimension_id": "...", "guidance": "Rewrite this task so that ..."}],
+  "delete_item_ids": ["..."],
+  "needs_more_items": [{"dimension_id": "...", "count": 1, "guidance": "..."}]
+}
+
+Use only the item ids and dimension ids listed in the request. done=true means every
+probe task is ready to run; then leave the three lists empty. Do not restructure
+dimensions — only fix the probe tasks themselves.
 """
 
 
@@ -114,6 +180,7 @@ def _run_analyser_tool_loop(
     *,
     trace_dir: Path | None,
     artifact_dir: Path | None,
+    system_prompt: str = ANALYSER_SYSTEM_PROMPT,
 ) -> dict[str, Any]:
     settings = role_model_settings(config, "analyser")
     messages: list[dict[str, Any]] = [
@@ -124,7 +191,7 @@ def _run_analyser_tool_loop(
         tools = [ANALYSER_ARTIFACT_TOOL] if artifact_dir is not None and calls_used < _MAX_ARTIFACT_CALLS else []
         response = call_orchestrator_with_tools(
             messages,
-            system_prompt=ANALYSER_SYSTEM_PROMPT,
+            system_prompt=system_prompt,
             **settings.call_kwargs(),
             backend=config.llm_backend,
             tools=tools,
@@ -174,6 +241,9 @@ def _call_analyser_json(
         config,
         trace_dir=trace_dir,
         artifact_dir=artifact_dir,
+        system_prompt=_analyser_system_prompt(
+            str(getattr(config, "analysis_probe_mode", "goal"))
+        ),
     )
 
 
@@ -209,6 +279,7 @@ def _analysis_payload(
             {
                 "iteration": iteration.iteration,
                 "analysis": iteration.analysis,
+                "goal": iteration.goal,
                 "task_designs": [
                     design.model_dump(mode="json") for design in iteration.task_designs
                 ],
@@ -253,49 +324,63 @@ def _parse_response(
     *,
     iteration: int,
     remaining_probe_iterations: int,
-) -> tuple[str, list[str], list[AnalysisProbeDesign]]:
+) -> tuple[str, str, bool, list[AnalysisProbeDesign]]:
     analysis = str(data.get("analysis") or "").strip()
     if not analysis:
         raise ValueError("Analyser response requires a non-empty analysis.")
-    raw_recommendations = data.get("recommendations", [])
-    if not isinstance(raw_recommendations, list):
-        raise ValueError("Analyser recommendations must be a list.")
-    recommendations = list(
-        dict.fromkeys(str(value).strip() for value in raw_recommendations if str(value).strip())
-    )
-    raw_designs = data.get("task_designs", [])
-    if not isinstance(raw_designs, list):
-        raise ValueError("Analyser task_designs must be a list.")
-    if raw_designs and remaining_probe_iterations <= 0:
-        raise ValueError("Analyser returned TaskDesigns after the probe-iteration budget was exhausted.")
 
-    known_dimensions = {dimension.id for dimension in suite.spec.dimensions}
+    done = bool(data.get("done"))
+    if done:
+        return analysis, "", True, []
+
+    mode = str(getattr(config, "analysis_probe_mode", "goal"))
+    goal = ""
     designs: list[AnalysisProbeDesign] = []
-    total_tasks = 0
-    for index, raw in enumerate(raw_designs, 1):
-        if not isinstance(raw, dict):
-            raise ValueError(f"Analyser task_designs entry {index} must be an object.")
-        if "id" in raw:
-            raise ValueError("Analyser must not assign TaskDesign ids.")
-        dimension_id = str(raw.get("dimension_id") or "").strip()
-        if dimension_id not in known_dimensions:
-            raise ValueError(
-                f"Analyser task_designs entry {index} references unknown dimension {dimension_id!r}."
-            )
-        design_payload = {key: value for key, value in raw.items() if key != "dimension_id"}
-        design = TaskDesign(
-            id=f"analysis_{iteration:02d}_design_{index:02d}",
-            **design_payload,
-        )
-        total_tasks += design.task_count
-        designs.append(AnalysisProbeDesign(dimension_id=dimension_id, task_design=design))
 
-    max_tasks = max(0, int(config.analysis_max_tasks))
-    if total_tasks > max_tasks:
-        raise ValueError(
-            f"Analyser requested {total_tasks} probe tasks, exceeding analysis_max_tasks={max_tasks}."
-        )
-    return analysis, recommendations, designs
+    if mode == "task_design":
+        raw_designs = data.get("task_designs", [])
+        if not isinstance(raw_designs, list):
+            raise ValueError("Analyser task_designs must be a list.")
+        if raw_designs and remaining_probe_iterations <= 0:
+            raise ValueError(
+                "Analyser returned TaskDesigns after the probe-iteration budget was exhausted."
+            )
+        known_dimensions = {dimension.id for dimension in suite.spec.dimensions}
+        total_tasks = 0
+        for index, raw in enumerate(raw_designs, 1):
+            if not isinstance(raw, dict):
+                raise ValueError(f"Analyser task_designs entry {index} must be an object.")
+            if "id" in raw:
+                raise ValueError("Analyser must not assign TaskDesign ids.")
+            dimension_id = str(raw.get("dimension_id") or "").strip()
+            if dimension_id not in known_dimensions:
+                raise ValueError(
+                    f"Analyser task_designs entry {index} references unknown dimension {dimension_id!r}."
+                )
+            design_payload = {key: value for key, value in raw.items() if key != "dimension_id"}
+            design = TaskDesign(
+                id=f"analysis_{iteration:02d}_design_{index:02d}",
+                **design_payload,
+            )
+            total_tasks += design.task_count
+            designs.append(AnalysisProbeDesign(dimension_id=dimension_id, task_design=design))
+        max_tasks = max(0, int(config.analysis_max_tasks))
+        if total_tasks > max_tasks:
+            raise ValueError(
+                f"Analyser requested {total_tasks} probe tasks, exceeding analysis_max_tasks={max_tasks}."
+            )
+    else:
+        raw_goal = data.get("goal")
+        if not isinstance(raw_goal, str) or not raw_goal.strip():
+            raise ValueError("Analyser response requires a non-empty goal when done=false.")
+        goal = raw_goal.strip()
+        if remaining_probe_iterations <= 0:
+            raise ValueError("Analyser returned a goal after the probe-iteration budget was exhausted.")
+
+    if not goal and not designs:
+        raise ValueError("Analyser response with done=false must include a goal or task_designs.")
+
+    return analysis, goal, False, designs
 
 
 def _probe_plan(
@@ -336,42 +421,105 @@ def _probe_plan(
     return plan
 
 
+def _review_probes(
+    probe_suite: TaskSuite,
+    analysis: str,
+    config: BenchmarkConfig,
+    *,
+    trace_dir: Path | None,
+) -> dict[str, Any]:
+    """Ask the analyser to review freshly-built probe tasks, returning a review dict."""
+    payload = {
+        "hypothesis": analysis,
+        "tasks": _task_context(probe_suite),
+    }
+    data = _run_analyser_tool_loop(
+        payload,
+        config,
+        trace_dir=trace_dir,
+        artifact_dir=None,
+        system_prompt=ANALYSER_REVIEW_SYSTEM_PROMPT,
+    )
+    if not isinstance(data, dict):
+        raise ValueError("Analyser review must be a JSON object.")
+    if "done" not in data:
+        raise ValueError("Analyser review requires a done field.")
+    return data
+
+
 def _build_and_run_probes(
     main_suite: TaskSuite,
-    task_designs: list[AnalysisProbeDesign],
     config: BenchmarkConfig,
+    analysis: str,
+    goal: str,
+    task_designs: list[AnalysisProbeDesign],
     *,
     iteration: int,
     trace_dir: Path | None,
     log: Callable[[str], None],
 ) -> tuple[TaskSuite, QcReport, EvalRun]:
-    plan = _probe_plan(main_suite, task_designs, iteration=iteration)
-    spec = plan.to_eval_spec()
-    original_dimensions = {dimension.id: dimension for dimension in main_suite.spec.dimensions}
-    spec = spec.model_copy(
-        update={
-            "dimensions": [
-                dimension.model_copy(
-                    update={
-                        "description": original_dimensions[dimension.id].description,
-                        "weight": original_dimensions[dimension.id].weight,
-                        "item_requirements": list(
-                            original_dimensions[dimension.id].item_requirements
-                        ),
-                    }
-                )
-                for dimension in spec.dimensions
-            ]
-        }
-    )
-    probe_suite, probe_qc = build_suite_from_spec_with_qc_loop(
-        spec,
-        plan.builder_jobs,
-        config,
-        log=log,
-        trace_dir=trace_dir / "construction" if trace_dir is not None else None,
-    )
-    probe_suite.plan = plan
+    if goal:
+        probe_suite, probe_qc = build_benchmark_suite_with_qc_loop(
+            goal,
+            config,
+            log=log,
+            trace_dir=trace_dir / "construction" if trace_dir is not None else None,
+        )
+        max_tasks = max(0, int(config.analysis_max_tasks))
+        if len(probe_suite.tasks) > max_tasks:
+            raise ValueError(
+                f"Goal-mode probe produced {len(probe_suite.tasks)} tasks, exceeding "
+                f"analysis_max_tasks={max_tasks}."
+            )
+    else:
+        plan = _probe_plan(main_suite, task_designs, iteration=iteration)
+        spec = plan.to_eval_spec()
+        original_dimensions = {dimension.id: dimension for dimension in main_suite.spec.dimensions}
+        spec = spec.model_copy(
+            update={
+                "dimensions": [
+                    dimension.model_copy(
+                        update={
+                            "description": original_dimensions[dimension.id].description,
+                            "weight": original_dimensions[dimension.id].weight,
+                            "item_requirements": list(
+                                original_dimensions[dimension.id].item_requirements
+                            ),
+                        }
+                    )
+                    for dimension in spec.dimensions
+                ]
+            }
+        )
+        probe_suite, probe_qc = build_suite_from_spec_with_qc_loop(
+            spec,
+            plan.builder_jobs,
+            config,
+            log=log,
+            trace_dir=trace_dir / "construction" if trace_dir is not None else None,
+        )
+        probe_suite.plan = plan
+    for review_index in range(
+        max(0, int(getattr(config, "analysis_review_max_iterations", 3) or 0))
+    ):
+        review_trace = (
+            trace_dir / f"review-{review_index + 1:02d}" if trace_dir is not None else None
+        )
+        review = _review_probes(probe_suite, analysis, config, trace_dir=review_trace)
+        if review.get("done"):
+            if log:
+                log(f"  [Analysis] probe review accepted after {review_index + 1} pass(es).")
+            break
+        if log:
+            log(f"  [Analysis] probe review requested changes (pass {review_index + 1}).")
+        probe_suite, probe_qc = apply_review_to_suite(
+            probe_suite,
+            review,
+            probe_qc,
+            config,
+            log=log,
+            trace_dir=review_trace,
+        )
     execution_plan = build_execution_plan(probe_suite, probe_qc)
     environment_config = config.model_copy(update={"environment_preflight": False})
     run_config, environment_report = run_environment_claw(
@@ -455,17 +603,16 @@ def run_analysis(
         )
         if call_dir is not None:
             write_json(call_dir / "response.json", data)
-        analysis, recommendations, task_designs = _parse_response(
+        analysis, goal, done, task_designs = _parse_response(
             data,
             suite,
             config,
             iteration=next_iteration,
             remaining_probe_iterations=remaining,
         )
-        if not task_designs:
+        if done:
             report = AnalysisReport(
-                conclusion=analysis,
-                recommendations=recommendations,
+                analysis=analysis,
                 iterations=iterations,
             )
             if root is not None:
@@ -473,14 +620,20 @@ def run_analysis(
             return report
 
         iteration_dir = root / f"iteration-{next_iteration:02d}" if root is not None else None
-        log(
-            f"  [Analysis] Building {sum(item.task_design.task_count for item in task_designs)} "
-            "hypothesis-driven probe task(s)."
-        )
+        if task_designs:
+            probe_desc = (
+                f"{sum(item.task_design.task_count for item in task_designs)} "
+                "hypothesis-driven probe task(s)"
+            )
+        else:
+            probe_desc = "a goal-driven probe"
+        log(f"  [Analysis] Building {probe_desc}.")
         probe_suite, probe_qc, probe_run = _build_and_run_probes(
             suite,
-            task_designs,
             config,
+            analysis,
+            goal,
+            task_designs,
             iteration=next_iteration,
             trace_dir=iteration_dir,
             log=log,
@@ -488,6 +641,7 @@ def run_analysis(
         completed = AnalysisIteration(
             iteration=next_iteration,
             analysis=analysis,
+            goal=goal,
             task_designs=task_designs,
             suite=probe_suite,
             qc_report=probe_qc,
