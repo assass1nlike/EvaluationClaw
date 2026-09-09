@@ -96,3 +96,69 @@ def test_manifest_runner_launches_and_scores(monkeypatch) -> None:
     ]
     assert calls["env"]["MY_AGENT_MODEL"] == "gpt-5"
     assert calls["env"]["MY_AGENT_KEY"] == "k"
+
+
+def test_builtin_harnesses_registered() -> None:
+    expected = {"openhands", "miniswe", "codex", "claude-code", "cursor", "grok", "opencode", "aider", "goose"}
+    for name in expected:
+        assert harness_module.get_harness(name).name == name
+
+
+def test_config_args_rendered_into_command(monkeypatch) -> None:
+    calls: dict = {}
+
+    def fake_run(command, **kwargs):
+        calls["command"] = command
+        calls["stdin"] = kwargs.get("stdin")
+        return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
+
+    monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
+    manifest = harness_module.ManifestHarness(
+        name="codex",
+        run="codex exec {config_args} -m {model} {task}",
+        model_env={"api_key": "SUDOCODE_API_KEY"},
+        config_args=(
+            "-c model_provider=sudocode",
+            "-c model_providers.sudocode.base_url={base_url}",
+            "-c model_providers.sudocode.env_key=SUDOCODE_API_KEY",
+        ),
+        timeout=60,
+    )
+    target = TargetModelConfig(
+        provider="openai", model="gpt-5", api_key="k", base_url="https://api.sudocode.chat/v1"
+    )
+    harness_module.ManifestHarnessRunner(manifest)._launch(
+        _item(), target, "img", Path("/tmp/work")
+    )
+
+    assert calls["command"] == [
+        "codex",
+        "exec",
+        "-c",
+        "model_provider=sudocode",
+        "-c",
+        "model_providers.sudocode.base_url=https://api.sudocode.chat/v1",
+        "-c",
+        "model_providers.sudocode.env_key=SUDOCODE_API_KEY",
+        "-m",
+        "gpt-5",
+        "Write a function.",
+    ]
+    assert calls["stdin"] == harness_module.subprocess.DEVNULL
+
+
+def test_manifest_launch_sets_cwd(monkeypatch) -> None:
+    calls: dict = {}
+
+    def fake_run(command, **kwargs):
+        calls["cwd"] = kwargs.get("cwd")
+        return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
+
+    monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
+    manifest = harness_module.ManifestHarness(
+        name="x", run="my-agent {task}", model_env={}, timeout=60
+    )
+    harness_module.ManifestHarnessRunner(manifest)._launch(
+        _item(), _target(), "img", Path("/tmp/work")
+    )
+    assert calls["cwd"] == "/tmp/work"

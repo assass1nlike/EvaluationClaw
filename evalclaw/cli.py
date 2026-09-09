@@ -606,10 +606,11 @@ def generate(
             "image_generation_api_key": resolved_image_key,
             "image_generation_base_url": resolved_image_base,
         }
+    from .runners.harness import ensure_builtins_registered, load_manifest_harness
+
+    ensure_builtins_registered()
     for manifest_path in harness_manifest:
         try:
-            from .runners.harness import load_manifest_harness
-
             load_manifest_harness(manifest_path)
         except (OSError, ValueError) as exc:
             console.print(f"[red]Failed to load harness manifest {manifest_path}: {exc}[/red]")
