@@ -683,58 +683,6 @@ class QcReport(BaseModel):
         return not hard_failures and not self.rejected_item_ids
 
 
-class ResearchDimension(BaseModel):
-    """A candidate measurement dimension supported by design research."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    name: str
-    measurement_target: str = ""
-    boundary: str = ""
-    task_shapes: list[str] = Field(default_factory=list)
-
-
-class ResearchDifficultyFactor(BaseModel):
-    """A difficulty factor that can become observable benchmark behavior."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    factor: str
-    observable_signal: str = ""
-    design_implication: str = ""
-
-
-class ResearchTaskPattern(BaseModel):
-    """A task construction pattern relevant to the current goal."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    name: str
-    description: str = ""
-    suitable_task_types: list[str] = Field(default_factory=list)
-    scoring_direction: str = ""
-
-
-class ResearchSourceRecommendation(BaseModel):
-    """A verified source candidate for source-backed task construction."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    title: str
-    url: str
-    why_useful: str = ""
-
-
-class ResearchEvidence(BaseModel):
-    """An external observation paired with its benchmark-design consequence."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    observation: str
-    design_implication: str
-    source_urls: list[str] = Field(default_factory=list)
-
-
 class ResearchSourceMaterial(BaseModel):
     """Readable source text retained from deep research for later task construction."""
 
@@ -747,16 +695,10 @@ class ResearchSourceMaterial(BaseModel):
 
 
 class ResearchBrief(BaseModel):
-    """Benchmark-design evidence produced before Planner runs."""
+    """Source text retained by the Planner for TaskBuilder source-backed reuse."""
 
     model_config = ConfigDict(extra="forbid")
 
-    dimensions: list[ResearchDimension] = Field(default_factory=list)
-    difficulty_factors: list[ResearchDifficultyFactor] = Field(default_factory=list)
-    task_patterns: list[ResearchTaskPattern] = Field(default_factory=list)
-    source_recommendations: list[ResearchSourceRecommendation] = Field(default_factory=list)
-    evidence: list[ResearchEvidence] = Field(default_factory=list)
-    challenge_effort_anchors: dict[ChallengeEffort, str] = Field(default_factory=dict)
     source_materials: list[ResearchSourceMaterial] = Field(default_factory=list)
     research_notes: str = ""
     created_at: str = Field(default_factory=utc_now)
@@ -949,16 +891,15 @@ class BenchmarkConfig(BaseModel):
     run_targets: bool = True
     use_web_research: bool = False
     search_backend: str = "auto"  # auto | gemini | keyless | none
-    use_deep_research: bool = False
-    max_research_iterations: int = 3
     research_brief: Optional[ResearchBrief] = None
-    use_hf_discovery: bool = True
     task_builder_max_workers: int = 4
     task_builder_repair_attempts: int = 2
     task_builder_call_retries: int = 5
     task_builder_truncation_retries: int = 3
     task_builder_tool_max_calls: int = 50
     task_builder_tool_max_chars: int = 50_000
+    planner_tool_max_calls: int = 20
+    planner_tool_max_chars: int = 50_000
     runner_max_workers: int = 4
     judge_double_pass: bool = True
     llm_backend: Literal["auto", "litellm"] = "auto"

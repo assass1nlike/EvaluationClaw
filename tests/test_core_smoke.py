@@ -284,7 +284,7 @@ def test_task_builder_requires_role_key_by_default() -> None:
         build_task_suite(
             spec,
             [blueprint],
-            BenchmarkConfig(use_web_research=False, use_hf_discovery=False),
+            BenchmarkConfig(use_web_research=False),
         )
 
 
@@ -320,7 +320,6 @@ def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> Non
             BenchmarkConfig(
                 **dummy_config_kwargs(),
                 use_web_research=False,
-                use_hf_discovery=False,
             ),
         )
 
@@ -361,7 +360,6 @@ def test_task_builder_call_failure_does_not_use_structure_repairs(monkeypatch) -
             BenchmarkConfig(
                 **dummy_config_kwargs(),
                 use_web_research=False,
-                use_hf_discovery=False,
                 task_builder_repair_attempts=5,
             ),
         )
@@ -433,7 +431,6 @@ def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=False,
-            use_hf_discovery=False,
             task_builder_max_workers=1,
         ),
         log=progress.append,
@@ -532,7 +529,6 @@ def test_task_builder_repairs_missing_external_source_binding(
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=False,
-            use_hf_discovery=False,
             task_builder_max_workers=1,
             task_builder_repair_attempts=1,
         ),
@@ -685,7 +681,6 @@ def test_task_builder_preserves_resource_bindings_when_shared_urls_are_deduplica
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=False,
-            use_hf_discovery=False,
             task_builder_max_workers=1,
         ),
     )
@@ -750,7 +745,6 @@ def test_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
             BenchmarkConfig(
                 **dummy_config_kwargs(),
                 use_web_research=False,
-                use_hf_discovery=False,
             ),
         )
 
@@ -813,7 +807,6 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=False,
-            use_hf_discovery=False,
         ),
     )
 
@@ -896,7 +889,6 @@ def test_task_builder_recovers_truncation_in_preserved_conversation(monkeypatch)
     config = BenchmarkConfig(
         **dummy_config_kwargs(),
         use_web_research=False,
-        use_hf_discovery=False,
         task_builder_repair_attempts=0,
     )
 
@@ -960,7 +952,6 @@ def test_task_builder_reports_truncation_after_separate_retry_limit(monkeypatch)
             BenchmarkConfig(
                 **dummy_config_kwargs(),
                 use_web_research=False,
-                use_hf_discovery=False,
                 task_builder_repair_attempts=2,
             ),
         )
@@ -1162,7 +1153,6 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=False,
-            use_hf_discovery=False,
             task_builder_max_workers=2,
         ),
     )
@@ -1314,7 +1304,6 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=False,
-            use_hf_discovery=False,
             task_builder_repair_attempts=1,
             task_builder_debug_dir=str(tmp_path / "builder-debug"),
         ),
@@ -1394,7 +1383,6 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
             BenchmarkConfig(
                 **dummy_config_kwargs(),
                 use_web_research=False,
-                use_hf_discovery=False,
                 task_builder_repair_attempts=1,
                 task_builder_debug_dir=str(tmp_path / "builder-debug"),
             ),
@@ -1480,7 +1468,6 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=False,
-            use_hf_discovery=False,
             task_builder_repair_attempts=1,
         ),
     )
@@ -1556,7 +1543,7 @@ def test_task_builder_reports_per_task_normalization_errors_to_repair(monkeypatc
 
 
 def test_agent_task_content_summary_is_persisted_for_reports() -> None:
-    config = BenchmarkConfig(use_web_research=False, use_hf_discovery=False)
+    config = BenchmarkConfig(use_web_research=False)
     dimension = EvalDimension(
         id="code_repair",
         name="Code repair",

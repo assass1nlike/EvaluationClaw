@@ -324,17 +324,6 @@ def generate(
         "--search-backend",
         help="Web search backend: auto (gemini if GEMINI_API_KEY else keyless), gemini, keyless, or none.",
     ),
-    deep_research: bool = typer.Option(
-        False,
-        "--deep-research/--no-deep-research",
-        help="Run a bounded deep-research loop before planning to ground the spec in domain research.",
-    ),
-    max_research_iterations: int = typer.Option(
-        3,
-        "--max-research-iterations",
-        help="Maximum deep-research search/reflection rounds.",
-    ),
-    no_hf_discovery: bool = typer.Option(False, "--no-hf-discovery", help="Disable HuggingFace dataset discovery."),
     task_builder_max_workers: int = typer.Option(
         4,
         "--task-builder-workers",
@@ -531,9 +520,6 @@ def generate(
     if runner_max_workers < 1:
         console.print("[red]--runner-workers must be at least 1.[/red]")
         raise typer.Exit(1)
-    if max_research_iterations < 1:
-        console.print("[red]--max-research-iterations must be at least 1.[/red]")
-        raise typer.Exit(1)
     if live_port < 1 or live_port > 65535:
         console.print("[red]--live-port must be between 1 and 65535.[/red]")
         raise typer.Exit(1)
@@ -658,9 +644,6 @@ def generate(
         run_targets=bool(targets) and not no_run,
         use_web_research=web_research,
         search_backend=search_backend.lower(),
-        use_deep_research=deep_research,
-        max_research_iterations=max_research_iterations,
-        use_hf_discovery=not no_hf_discovery,
         task_builder_max_workers=task_builder_max_workers,
         task_builder_repair_attempts=task_builder_repair_attempts,
         task_builder_call_retries=task_builder_call_retries,

@@ -3,15 +3,35 @@ from __future__ import annotations
 
 import json
 import re
+import tempfile
 import uuid
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
-from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
-from ..models.roles import role_model_settings
+from ..models.llm import (
+    DEFAULT_MAX_OUTPUT_TOKENS,
+    LLMFinalContentMissingError,
+    TargetToolModelResponse,
+    call_orchestrator_with_tools,
+    extract_json,
+)
+from ..models.roles import RoleModelSettings, role_model_settings
+from ..diagnostics import (
+    document_append,
+    document_get,
+    document_remove,
+    document_set,
+)
 from ..prompts.planner import BENCHMARK_PLANNER_SYSTEM_PROMPT
-from ..research.deep_research import compact_brief_context, compact_brief_field_guide
+from ..protocols.tool import ToolCall, ToolResult, ToolSpec
+from ..protocols.tool_adapters import (
+    evalclaw_tool_result_to_anthropic,
+    evalclaw_tool_result_to_openai,
+    evalclaw_tool_result_to_openai_response_input,
+)
+from ..research.backends import fetch_url_text, web_search
 from ..types import (
     AgentEnvironmentType,
     BenchmarkConfig,
@@ -19,7 +39,8 @@ from ..types import (
     BenchmarkPlanAudit,
     ChallengeEffort,
     EvalSpec,
-    Message,
+    ResearchBrief,
+    ResearchSourceMaterial,
     TaskBlueprint,
     TaskType,
     environment_category,
@@ -175,26 +196,398 @@ def _instruction_resource(
     return "\n".join(sections).strip()
 
 
-def _planner_resources(instruction: str, config: BenchmarkConfig) -> str:
+_PLANNER_TOOLS: list[ToolSpec] = [
+    ToolSpec(
+        name="search_web",
+        description=(
+            "Search public web sources for authoritative benchmark design material "
+            "(capability dimensions, failure modes, software documentation, task resources). "
+            "Returns a summary with citation URLs."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Focused search query."},
+                "max_results": {
+                    "type": "integer",
+                    "description": "Maximum number of result summaries to retain.",
+                },
+            },
+            "required": ["query"],
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
+        name="fetch_url",
+        description="Fetch readable text from one public HTTP(S) URL for source-grounded task design.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "Public HTTP(S) URL to inspect."},
+                "max_chars": {
+                    "type": "integer",
+                    "description": "Maximum text characters to return.",
+                },
+            },
+            "required": ["url"],
+            "additionalProperties": False,
+        },
+    ),
+]
+
+
+_PLANNER_READ_TOOL = ToolSpec(
+    name="read_plan",
+    description=(
+        "Read the working plan JSON file (top-level keys objective, constraints, planner_notes, "
+        "dimensions). With no path returns the full document; with a dot path returns just that "
+        "node (e.g. \"dimensions.0\" or \"objective\")."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "path": {"type": "string", "description": "Optional dot path to read."},
+        },
+        "additionalProperties": False,
+    },
+)
+
+
+_PLANNER_WRITE_TOOL = ToolSpec(
+    name="update_plan",
+    description=(
+        "Apply a list of operations to the working plan JSON file (top-level keys objective, "
+        "constraints, planner_notes, dimensions). Each operation is {\"op\": \"set\"|\"remove\"|\"append\", "
+        "\"path\": \"dot.path\" (list items indexed from 0), \"value\": ...}. Returns the updated "
+        "plan summary (dimension names and task_designs counts)."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "operations": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "op": {"type": "string", "enum": ["set", "remove", "append"]},
+                        "path": {"type": "string"},
+                        "value": {},
+                    },
+                    "required": ["op", "path"],
+                    "additionalProperties": False,
+                },
+                "description": "Ordered operations to apply to the plan.",
+            },
+        },
+        "required": ["operations"],
+        "additionalProperties": False,
+    },
+)
+
+
+def _bounded_int(value: object, *, default: int, minimum: int, maximum: int) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(minimum, min(maximum, parsed))
+
+
+def _plan_summary(document: dict[str, Any]) -> dict[str, Any]:
+    dimensions = document.get("dimensions")
+    if not isinstance(dimensions, list):
+        dimensions = []
+    return {
+        "objective": str(document.get("objective") or ""),
+        "constraints": len(document.get("constraints") or []),
+        "dimensions": [
+            {
+                "name": str(d.get("name") or f"dimension_{index}") if isinstance(d, dict) else f"dimension_{index}",
+                "task_designs": len(d.get("task_designs") or []) if isinstance(d, dict) else 0,
+            }
+            for index, d in enumerate(dimensions)
+        ],
+    }
+
+
+def _record_source_material(
+    source_materials: dict[str, ResearchSourceMaterial],
+    url: str,
+    *,
+    content: str,
+) -> None:
+    existing = source_materials.get(url)
+    if existing is None or len(content) > len(existing.content):
+        source_materials[url] = ResearchSourceMaterial(url=url, content=content)
+
+
+def _execute_planner_tool(
+    call: ToolCall,
+    config: BenchmarkConfig,
+    *,
+    max_chars: int,
+    source_materials: dict[str, ResearchSourceMaterial],
+    document_path: str = "",
+) -> ToolResult:
+    try:
+        if call.name in ("read_plan", "update_plan"):
+            if not document_path:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="No working plan document is available.",
+                    error="no_document",
+                )
+            target = Path(document_path)
+            try:
+                current = json.loads(target.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                raise ValueError(f"Could not read the working plan document: {exc}") from exc
+            if not isinstance(current, dict):
+                raise ValueError("The working plan document is not a JSON object")
+
+            if call.name == "read_plan":
+                path = str(call.arguments.get("path") or "").strip()
+                if path:
+                    try:
+                        node = document_get(current, path)
+                    except KeyError as exc:
+                        return ToolResult(
+                            tool_call_id=call.id,
+                            name=call.name,
+                            content=f"No node at path {path!r}: {exc}",
+                            error="missing_path",
+                        )
+                    return ToolResult(
+                        tool_call_id=call.id,
+                        name=call.name,
+                        content=json.dumps(node, ensure_ascii=False)[:max_chars],
+                    )
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content=json.dumps(current, ensure_ascii=False)[:max_chars],
+                )
+
+            operations = call.arguments.get("operations")
+            if not isinstance(operations, list):
+                raise ValueError("operations must be a list")
+            for operation in operations:
+                if not isinstance(operation, dict):
+                    raise ValueError("each operation must be an object")
+                op = str(operation.get("op") or "")
+                path = str(operation.get("path") or "")
+                if op == "set":
+                    document_set(current, path, operation.get("value"))
+                elif op == "remove":
+                    document_remove(current, path)
+                elif op == "append":
+                    document_append(current, path, operation.get("value"))
+                else:
+                    raise ValueError(f"unknown operation {op!r}")
+            target.write_text(
+                json.dumps(current, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=json.dumps(_plan_summary(current), ensure_ascii=False)[:max_chars],
+            )
+        if call.name == "search_web":
+            query = str(call.arguments.get("query") or "").strip()
+            if not query:
+                raise ValueError("query must be non-empty")
+            if not config.use_web_research or str(config.search_backend).lower() == "none":
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="Web search is disabled by benchmark configuration.",
+                    error="search_disabled",
+                )
+            result = web_search(query, backend=config.search_backend)
+            if result is None:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="No search result was available.",
+                    error="no_search_result",
+                )
+            max_results = _bounded_int(
+                call.arguments.get("max_results"), default=5, minimum=1, maximum=8
+            )
+            value = {
+                "query": query,
+                "content": result.content,
+                "citations": result.citations[:max_results],
+            }
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=json.dumps(value, ensure_ascii=False)[:max_chars],
+            )
+        if call.name == "fetch_url":
+            url = str(call.arguments.get("url") or "").strip()
+            if not url.startswith(("http://", "https://")):
+                raise ValueError("url must be an absolute HTTP(S) URL")
+            requested_chars = _bounded_int(
+                call.arguments.get("max_chars"), default=max_chars, minimum=500, maximum=max_chars
+            )
+            content = fetch_url_text(url, max_chars=requested_chars)
+            if content is None:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="The URL could not be fetched as readable text.",
+                    error="fetch_failed",
+                )
+            _record_source_material(source_materials, url, content=content)
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=json.dumps({"url": url, "content": content}, ensure_ascii=False)[:max_chars],
+            )
+        return ToolResult(
+            tool_call_id=call.id,
+            name=call.name,
+            content=f"Unknown tool: {call.name}",
+            error="unknown_tool",
+        )
+    except Exception as exc:
+        return ToolResult(
+            tool_call_id=call.id,
+            name=call.name,
+            content=f"Tool error: {exc}",
+            error="tool_error",
+        )
+
+
+def _append_planner_tool_results(
+    messages: list[dict[str, Any]],
+    response: TargetToolModelResponse,
+    results: list[ToolResult],
+) -> None:
+    messages.append(response.assistant_message)
+    if response.adapter == "anthropic":
+        messages.append(
+            {
+                "role": "user",
+                "content": [evalclaw_tool_result_to_anthropic(result) for result in results],
+            }
+        )
+    elif response.adapter == "openai_responses":
+        messages.pop()
+        output = response.assistant_message.get("responses_output")
+        if isinstance(output, list):
+            messages.extend(item for item in output if isinstance(item, dict))
+        messages.extend(
+            evalclaw_tool_result_to_openai_response_input(result) for result in results
+        )
+    else:
+        messages.extend(evalclaw_tool_result_to_openai(result) for result in results)
+
+
+def _run_planner_tool_loop(
+    user_content: str,
+    system: str,
+    config: BenchmarkConfig,
+    settings: RoleModelSettings,
+    *,
+    max_calls: int,
+    max_chars: int,
+    source_materials: dict[str, ResearchSourceMaterial],
+    debug_dir: Path | None,
+    trace_name: str,
+    document_path: str = "",
+) -> str:
+    final_instruction = (
+        "Commit your finished plan parts with update_plan, then stop with no further tool calls."
+    )
+    tools = [*_PLANNER_TOOLS, _PLANNER_READ_TOOL, _PLANNER_WRITE_TOOL]
+    messages: list[dict[str, Any]] = [{"role": "user", "content": user_content}]
+    calls_used = 0
+
+    def _read_document() -> str:
+        if not document_path:
+            return ""
+        try:
+            return Path(document_path).read_text(encoding="utf-8")
+        except OSError:
+            return ""
+
+    def _call(tools: list[ToolSpec], name: str) -> TargetToolModelResponse:
+        return call_orchestrator_with_tools(
+            messages,
+            system_prompt=system,
+            **settings.call_kwargs(),
+            backend=config.llm_backend,
+            tools=tools,
+            max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+            retry_on_truncation=True,
+            trace_dir=debug_dir / "llm" if debug_dir is not None else None,
+            trace_name=name,
+        )
+
+    def _final_content() -> str:
+        document = _read_document().strip()
+        if document:
+            return document
+        raise LLMFinalContentMissingError("Planner produced no planning document.")
+
+    def _force_final() -> str:
+        messages.append(
+            {"role": "user", "content": f"The bounded tool budget is exhausted. {final_instruction}"}
+        )
+        _call([], f"{trace_name}-final")
+        return _final_content()
+
+    while True:
+        response = _call(tools, trace_name)
+        if not response.tool_calls:
+            document = _read_document().strip()
+            if document:
+                return document
+            if response.content.strip():
+                return response.content
+            recovery = _call([], f"{trace_name}-recover")
+            if recovery.content.strip():
+                return recovery.content
+            raise LLMFinalContentMissingError("Planner returned no final planning JSON.")
+        remaining = max_calls - calls_used
+        if remaining <= 0:
+            messages.append(response.assistant_message)
+            return _force_final()
+        selected = response.tool_calls[:remaining]
+        results = [
+            _execute_planner_tool(
+                call,
+                config,
+                max_chars=max_chars,
+                source_materials=source_materials,
+                document_path=document_path,
+            )
+            for call in selected
+        ]
+        for skipped in response.tool_calls[remaining:]:
+            results.append(
+                ToolResult(
+                    tool_call_id=skipped.id,
+                    name=skipped.name,
+                    content="This tool call was skipped because the bounded tool budget was exhausted.",
+                    error="tool_budget_exhausted",
+                )
+            )
+        calls_used += len(selected)
+        _append_planner_tool_results(messages, response, results)
+        if calls_used >= max_calls:
+            return _force_final()
+
+
+def _planner_resources(instruction: str) -> str:
     files = [
         '<FILE path="resources/instruction.md">\n'
         + instruction
         + "\n</FILE>"
     ]
-    if config.research_brief is not None:
-        files.append(
-            '<FILE path="resources/deepresearch/brief.json">\n'
-            + json.dumps(
-                compact_brief_context(config.research_brief),
-                ensure_ascii=False,
-                indent=2,
-            )
-            + "\n\n"
-            + compact_brief_field_guide()
-            + "\n</FILE>"
-        )
-    else:
-        files.append('<DIRECTORY path="resources/deepresearch" empty="true" />')
     return (
         "The following read-only Planner resources are available by path.\n\n"
         "<PLANNER_RESOURCES>\n"
@@ -406,12 +799,12 @@ def _run_planner(
     log: Callable[[str], None] | None,
     expected_task_count: int | None = None,
     framework_dimension_ids: list[str] | None = None,
-) -> BenchmarkPlan:
+) -> tuple[BenchmarkPlan, list[ResearchSourceMaterial]]:
     settings = role_model_settings(config, "planner")
     if not settings.configured:
         raise RuntimeError("Planner model is not configured.")
     system = benchmark_planner_system_prompt(BENCHMARK_PLANNER_SYSTEM_PROMPT)
-    base_resources = _planner_resources(instruction, config)
+    base_resources = _planner_resources(instruction)
     debug_root = Path(config.planner_debug_dir).expanduser() if config.planner_debug_dir else None
     debug_invocation_id = (
         datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
@@ -419,6 +812,20 @@ def _run_planner(
         + uuid.uuid4().hex[:8]
     )
     debug_dir = debug_root / debug_invocation_id if debug_root is not None else None
+    if debug_dir is not None:
+        debug_dir.mkdir(parents=True, exist_ok=True)
+        plan_document = debug_dir / "plan.json"
+    else:
+        plan_document = Path(tempfile.mkdtemp(prefix="evalclaw-plan-")) / "plan.json"
+    plan_document.write_text(
+        json.dumps(
+            {"objective": "", "constraints": [], "planner_notes": "", "dimensions": []},
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    document_path = str(plan_document)
 
     def persist_planner_debug(
         *,
@@ -463,6 +870,9 @@ def _run_planner(
 
     errors: list[str] = []
     previous_response: object | None = None
+    source_materials: dict[str, ResearchSourceMaterial] = {}
+    max_calls = _bounded_int(config.planner_tool_max_calls, default=20, minimum=1, maximum=100)
+    max_chars = _bounded_int(config.planner_tool_max_chars, default=50_000, minimum=1000, maximum=100_000)
     max_attempts = max(1, config.max_planner_iterations)
     for attempt in range(1, max_attempts + 1):
         user_content = base_resources
@@ -489,20 +899,22 @@ def _run_planner(
         raw: str | None = None
         parsed_response: object | None = None
         try:
-            raw = call_llm(
-                [Message(role="user", content=user_content)],
-                system=system,
-                **settings.call_kwargs(),
-                backend=config.llm_backend,
-                max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
-                expect_json=True,
-                trace_dir=debug_dir / "llm" if debug_dir is not None else None,
+            raw = _run_planner_tool_loop(
+                user_content,
+                system,
+                config,
+                settings,
+                max_calls=max_calls,
+                max_chars=max_chars,
+                source_materials=source_materials,
+                debug_dir=debug_dir,
                 trace_name=f"planner-attempt-{attempt:02d}",
+                document_path=document_path,
             )
             parsed_response = extract_json(raw)
             previous_response = parsed_response
             plan, errors = _parse_plan_response(
-                parsed_response,
+                {"plan": parsed_response},
                 config,
                 expected_task_count=expected_task_count,
                 framework_dimension_ids=framework_dimension_ids,
@@ -546,7 +958,7 @@ def _run_planner(
                     f"{len(completed.builder_jobs)} TaskDesign builder job(s), and "
                     f"{sum(job.planned_task_count for job in completed.builder_jobs)} task(s)."
                 )
-            return completed
+            return completed, list(source_materials.values())
     raise RuntimeError(
         "Planner could not produce a valid benchmark plan: " + "; ".join(errors[:12])
     )
@@ -568,12 +980,15 @@ def plan_benchmark(
         previous_plan=previous_plan,
     )
     if role_model_settings(config, "planner").configured:
-        return _run_planner(
+        plan, materials = _run_planner(
             instruction,
             config,
             log=log,
             expected_task_count=_explicit_total_task_count(goal),
         )
+        if materials:
+            config.research_brief = ResearchBrief(source_materials=materials)
+        return plan
     raise RuntimeError(
         "Planner model is not configured. Benchmark planning requires a configured Planner role "
         "and does not substitute a local plan."
@@ -603,13 +1018,16 @@ def plan_from_spec(
         and all(dimension.target_item_count is not None for dimension in spec.dimensions)
         else None
     )
-    return _run_planner(
+    plan, materials = _run_planner(
         _instruction_resource(instruction, config),
         config,
         log=log,
         expected_task_count=expected_task_count,
         framework_dimension_ids=[dimension.id for dimension in spec.dimensions],
     )
+    if materials:
+        config.research_brief = ResearchBrief(source_materials=materials)
+    return plan
 
 
 def plan_blueprints_for_spec(
