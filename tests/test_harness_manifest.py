@@ -99,7 +99,7 @@ def test_manifest_runner_launches_and_scores(monkeypatch) -> None:
 
 
 def test_builtin_harnesses_registered() -> None:
-    expected = {"openhands", "miniswe", "codex", "claude-code", "cursor", "grok", "opencode", "aider", "goose"}
+    expected = {"openhands", "miniswe", "codex", "claude-code", "cursor", "grok", "opencode", "aider", "goose", "openclaw"}
     for name in expected:
         assert harness_module.get_harness(name).name == name
 
@@ -116,16 +116,16 @@ def test_config_args_rendered_into_command(monkeypatch) -> None:
     manifest = harness_module.ManifestHarness(
         name="codex",
         run="codex exec {config_args} -m {model} {task}",
-        model_env={"api_key": "SUDOCODE_API_KEY"},
+        model_env={"api_key": "OPENAI_API_KEY"},
         config_args=(
-            "-c model_provider=sudocode",
-            "-c model_providers.sudocode.base_url={base_url}",
-            "-c model_providers.sudocode.env_key=SUDOCODE_API_KEY",
+            "-c model_provider=evalclaw",
+            "-c model_providers.evalclaw.base_url={base_url}",
+            "-c model_providers.evalclaw.env_key=OPENAI_API_KEY",
         ),
         timeout=60,
     )
     target = TargetModelConfig(
-        provider="openai", model="gpt-5", api_key="k", base_url="https://api.sudocode.chat/v1"
+        provider="openai", model="gpt-5", api_key="k", base_url="https://api.openai.com/v1"
     )
     harness_module.ManifestHarnessRunner(manifest)._launch(
         _item(), target, "img", Path("/tmp/work")
@@ -135,11 +135,11 @@ def test_config_args_rendered_into_command(monkeypatch) -> None:
         "codex",
         "exec",
         "-c",
-        "model_provider=sudocode",
+        "model_provider=evalclaw",
         "-c",
-        "model_providers.sudocode.base_url=https://api.sudocode.chat/v1",
+        "model_providers.evalclaw.base_url=https://api.openai.com/v1",
         "-c",
-        "model_providers.sudocode.env_key=SUDOCODE_API_KEY",
+        "model_providers.evalclaw.env_key=OPENAI_API_KEY",
         "-m",
         "gpt-5",
         "Write a function.",
