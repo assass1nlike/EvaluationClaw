@@ -868,31 +868,21 @@ def _dedupe_blueprints(blueprints: list) -> list:
     return list(seen.values())
 
 
-def apply_human_review_feedback(
+def apply_review_to_suite(
     suite: TaskSuite,
+    review: dict[str, Any],
     qc_report: QcReport,
     config: BenchmarkConfig,
-    feedback: str,
     *,
     log: Callable[[str], None] | None = None,
+    trace_dir: Path | None = None,
 ) -> tuple[EvalSpec, TaskSuite, QcReport]:
-    """Apply a human review request, keeping unaffected items verbatim.
+    """Apply a structured review to a suite, keeping unaffected items verbatim.
 
-    Instead of discarding the whole suite and regenerating from scratch, this
-    keeps everything the review did not touch, rewrites the items named by
-    ``update_items`` in place (via a targeted Builder revision that preserves
-    their ids), and generates only the missing items each dimension still needs.
+    Rewrites the items named by ``update_items`` in place (via a targeted
+    Builder revision that preserves their ids), drops deleted items, generates
+    the missing items each dimension still needs, then re-runs QC.
     """
-    trace_dir = new_debug_dir(config.output_dir, "human-review")
-    if trace_dir is not None:
-        write_json(trace_dir / "input.json", {"feedback": feedback})
-    review = _planner_review(
-        suite,
-        qc_report,
-        config,
-        human_feedback=feedback,
-        trace_dir=trace_dir,
-    )
     outcome = _apply_review(suite, review, qc_report, config)
     notes = outcome.notes
     if log and notes:
@@ -942,13 +932,12 @@ def apply_human_review_feedback(
             "resources": suite.resources,
             "construction_notes": (
                 suite.construction_notes.rstrip()
-                + "\nHuman review changes:\n"
+                + "\nReview changes:\n"
                 + "\n".join(notes)
             ).strip(),
         }
     )
     new_suite.plan = suite.plan
-    revised_spec = new_suite.spec
     revised_qc = run_qc_gate(
         new_suite,
         config,
@@ -959,9 +948,44 @@ def apply_human_review_feedback(
             trace_dir / "result.json",
             {
                 "review": review,
-                "spec": revised_spec.model_dump(mode="json"),
+                "spec": new_suite.spec.model_dump(mode="json"),
                 "suite": new_suite.model_dump(mode="json"),
                 "qc_report": revised_qc.model_dump(mode="json"),
             },
         )
-    return revised_spec, new_suite, revised_qc
+    return new_suite.spec, new_suite, revised_qc
+
+
+def apply_human_review_feedback(
+    suite: TaskSuite,
+    qc_report: QcReport,
+    config: BenchmarkConfig,
+    feedback: str,
+    *,
+    log: Callable[[str], None] | None = None,
+) -> tuple[EvalSpec, TaskSuite, QcReport]:
+    """Apply a human review request, keeping unaffected items verbatim.
+
+    Instead of discarding the whole suite and regenerating from scratch, this
+    keeps everything the review did not touch, rewrites the items named by
+    ``update_items`` in place (via a targeted Builder revision that preserves
+    their ids), and generates only the missing items each dimension still needs.
+    """
+    trace_dir = new_debug_dir(config.output_dir, "human-review")
+    if trace_dir is not None:
+        write_json(trace_dir / "input.json", {"feedback": feedback})
+    review = _planner_review(
+        suite,
+        qc_report,
+        config,
+        human_feedback=feedback,
+        trace_dir=trace_dir,
+    )
+    return apply_review_to_suite(
+        suite,
+        review,
+        qc_report,
+        config,
+        log=log,
+        trace_dir=trace_dir,
+    )

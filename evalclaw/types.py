@@ -767,6 +767,7 @@ class AnalysisProbeDesign(BaseModel):
 class AnalysisIteration(BaseModel):
     iteration: int
     analysis: str = ""
+    goal: str = ""
     task_designs: list[AnalysisProbeDesign] = Field(default_factory=list)
     suite: Optional[TaskSuite] = None
     qc_report: Optional[QcReport] = None
@@ -791,8 +792,7 @@ class AnalysisIteration(BaseModel):
 
 
 class AnalysisReport(BaseModel):
-    conclusion: str = ""
-    recommendations: list[str] = Field(default_factory=list)
+    analysis: str = ""
     iterations: list[AnalysisIteration] = Field(default_factory=list)
 
 
@@ -909,6 +909,8 @@ class BenchmarkConfig(BaseModel):
     human_review: bool = False
     analysis_iterations: int = 0
     analysis_max_tasks: int = 4
+    analysis_review_max_iterations: int = 3
+    analysis_probe_mode: str = "goal"  # "goal" | "task_design"
     docker_auto_select_image: bool = True
     docker_pull_timeout_s: int = 300
     docker_executable: str = "docker"

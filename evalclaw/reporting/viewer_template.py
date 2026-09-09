@@ -1408,16 +1408,9 @@ HTML_TEMPLATE = """<!doctype html>
         section.append(node("p", {class: "empty"}, "No analysis configured."));
         return;
       }
-      section.append(renderTaskSection("Conclusion", "Analyser's evidence-based conclusion.", [
-        markdownNode(analysis.conclusion || "-")
+      section.append(renderTaskSection("Analysis", "Analyser's narrative analysis.", [
+        markdownNode(analysis.analysis || "-")
       ]));
-      if ((analysis.recommendations || []).length) {
-        section.append(node("h3", {}, "Strengthening Recommendations"));
-        section.append(table(
-          ["Recommendation"],
-          analysis.recommendations.map(recommendation => [markdownNode(recommendation)])
-        ));
-      }
       const iterations = analysis.iterations || [];
       if (iterations.length) {
         section.append(node("h3", {}, "Verification Iterations"));
