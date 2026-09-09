@@ -295,13 +295,13 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
     ManifestHarness(
         name="codex",
         run="codex exec {config_args} --sandbox workspace-write --skip-git-repo-check -m {model} {task}",
-        model_env={"api_key": "CODEC_API_KEY"},
+        model_env={"api_key": "OPENAI_API_KEY"},
         config_args=(
             "-c model_provider=evalclaw",
             "-c model_providers.evalclaw.name=evalclaw",
             "-c model_providers.evalclaw.base_url={base_url}",
             "-c model_providers.evalclaw.wire_api=responses",
-            "-c model_providers.evalclaw.env_key=CODEC_API_KEY",
+            "-c model_providers.evalclaw.env_key=OPENAI_API_KEY",
         ),
     ),
     ManifestHarness(
@@ -334,6 +334,11 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
         name="goose",
         run="goose run -t {task}",
         model_env={"model": "GOOSE_MODEL", "api_key": "OPENAI_API_KEY", "base_url": "OPENAI_BASE_URL"},
+    ),
+    ManifestHarness(
+        name="openclaw",
+        run="openclaw agent exec --model {model} --cwd {workdir} {task}",
+        model_env={"api_key": "OPENAI_API_KEY"},
     ),
 )
 
