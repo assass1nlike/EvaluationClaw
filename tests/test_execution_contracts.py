@@ -161,7 +161,6 @@ def test_direct_runner_and_lm_eval_share_the_accepted_item_view(monkeypatch, tmp
         targets=[target],
         run_targets=True,
         use_web_research=False,
-        use_hf_discovery=False,
     )
 
     monkeypatch.setattr(

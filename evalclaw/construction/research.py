@@ -18,7 +18,13 @@ from urllib.parse import urlsplit
 
 import httpx
 
-from ..diagnostics import write_json
+from ..diagnostics import (
+    document_append,
+    document_get,
+    document_remove,
+    document_set,
+    write_json,
+)
 from ..execution.docker_images import (
     DEFAULT_DOCKER_IMAGE,
     build_docker_image_from_context,
@@ -104,7 +110,7 @@ or environment fields. For non-agent tasks, use only stable labels such as ``Ima
 ``Image 2`` in prompt or choices to refer to image assets; the framework attaches them in
 assets-list order as multimodal inputs. Never expose host paths. For agent
 tasks, refer to each asset by the path visible in the agent environment. When source tools are available, use read_research_source to
-inspect text retained by Deep Research, search_web for a new query, fetch_url for
+inspect text retained by the Planner, search_web for a new query, fetch_url for
 readable public HTTP(S) text, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
 Use view_image when visual inspection of an image created or downloaded in the Builder
@@ -140,8 +146,7 @@ image and copy the returned image into the task's environment.vm.image; that
 committed image is the delivered task environment. Use run_vm_command for a
 one-shot command check. build_vm_image is a declarative alternative only when a
 remote provider advertises image_build.
-When task_file.path or revision.path is supplied, use run_python to edit that JSON
-file in place throughout construction, then return a compact JSON confirmation.
+When task_file.path or revision.path is supplied, use read_candidate to inspect the file and update_candidate to edit it throughout construction, then return a compact JSON confirmation.
 Otherwise, return the complete task-builder JSON object after tool use. The tool budget is
 bounded; stop once the task is adequately constructed.
 """
@@ -164,6 +169,55 @@ TASK_BUILDER_PYTHON_TOOL = ToolSpec(
             },
         },
         "required": ["code"],
+        "additionalProperties": False,
+    },
+)
+
+
+TASK_BUILDER_READ_TOOL = ToolSpec(
+    name="read_candidate",
+    description=(
+        "Read the working candidate JSON file (top-level keys construction_notes, resources, "
+        "tasks). With no path returns the full document; with a dot path returns just that node "
+        "(e.g. \"tasks.0\" or \"construction_notes\")."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "path": {"type": "string", "description": "Optional dot path to read."},
+        },
+        "additionalProperties": False,
+    },
+)
+
+
+TASK_BUILDER_WRITE_TOOL = ToolSpec(
+    name="update_candidate",
+    description=(
+        "Apply a list of operations to the working candidate JSON file (top-level keys "
+        "construction_notes, resources, tasks). Each operation is {\"op\": \"set\"|\"remove\"|\"append\", "
+        "\"path\": \"dot.path\" (list items indexed from 0), \"value\": ...}. Returns the updated "
+        "document summary (task titles and completion)."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "operations": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "op": {"type": "string", "enum": ["set", "remove", "append"]},
+                        "path": {"type": "string"},
+                        "value": {},
+                    },
+                    "required": ["op", "path"],
+                    "additionalProperties": False,
+                },
+                "description": "Ordered operations to apply to the document.",
+            },
+        },
+        "required": ["operations"],
         "additionalProperties": False,
     },
 )
@@ -556,7 +610,7 @@ TASK_BUILDER_VM_IMAGE_TOOLS = [
 TASK_BUILDER_SOURCE_TOOLS = [
     ToolSpec(
         name="read_research_source",
-        description="Read source text retained by Deep Research without another network request.",
+        description="Read source text retained by the Planner without another network request.",
         parameters={
             "type": "object",
             "properties": {
@@ -640,6 +694,23 @@ def _bounded_int(value: object, *, default: int, minimum: int, maximum: int) -> 
 def _tool_content(value: Any, *, max_chars: int) -> str:
     encoded = json.dumps(value, ensure_ascii=False)
     return encoded[:max_chars]
+
+
+def _candidate_summary(document: dict[str, Any]) -> dict[str, Any]:
+    tasks = document.get("tasks")
+    if not isinstance(tasks, list):
+        tasks = []
+    return {
+        "construction_notes": bool(document.get("construction_notes")),
+        "resources": len(document.get("resources") or []),
+        "tasks": [
+            {
+                "title": str(t.get("title") or f"task_{index}") if isinstance(t, dict) else f"task_{index}",
+                "filled": bool(t.get("prompt")) if isinstance(t, dict) else False,
+            }
+            for index, t in enumerate(tasks)
+        ],
+    }
 
 
 def _file_state(directory: Path) -> dict[Path, tuple[int, int]]:
@@ -851,10 +922,74 @@ def _execute_task_builder_tool(
     max_chars: int,
     work_dir: Path | None = None,
     tool_state: dict[str, Any] | None = None,
+    document_path: str = "",
 ) -> ToolResult:
     args = call.arguments if isinstance(call.arguments, dict) else {}
     state = tool_state if tool_state is not None else {}
     try:
+        if call.name in ("read_candidate", "update_candidate"):
+            if not document_path:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="No working JSON document is available for this job.",
+                    error="no_document",
+                )
+            target = Path(document_path)
+            try:
+                current = json.loads(target.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                raise ValueError(f"Could not read the working document: {exc}") from exc
+            if not isinstance(current, dict):
+                raise ValueError("The working document is not a JSON object")
+
+            if call.name == "read_candidate":
+                path = str(args.get("path") or "").strip()
+                if path:
+                    try:
+                        node = document_get(current, path)
+                    except KeyError as exc:
+                        return ToolResult(
+                            tool_call_id=call.id,
+                            name=call.name,
+                            content=f"No node at path {path!r}: {exc}",
+                            error="missing_path",
+                        )
+                    return ToolResult(
+                        tool_call_id=call.id,
+                        name=call.name,
+                        content=_tool_content(node, max_chars=max_chars),
+                    )
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content=_tool_content(current, max_chars=max_chars),
+                )
+
+            operations = args.get("operations")
+            if not isinstance(operations, list):
+                raise ValueError("operations must be a list")
+            for operation in operations:
+                if not isinstance(operation, dict):
+                    raise ValueError("each operation must be an object")
+                op = str(operation.get("op") or "")
+                path = str(operation.get("path") or "")
+                if op == "set":
+                    document_set(current, path, operation.get("value"))
+                elif op == "remove":
+                    document_remove(current, path)
+                elif op == "append":
+                    document_append(current, path, operation.get("value"))
+                else:
+                    raise ValueError(f"unknown operation {op!r}")
+            target.write_text(
+                json.dumps(current, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(_candidate_summary(current), max_chars=max_chars),
+            )
         if call.name == "run_python":
             code = str(args.get("code") or "")
             if not code.strip():
@@ -1367,7 +1502,7 @@ def _execute_task_builder_tool(
                 return ToolResult(
                     tool_call_id=call.id,
                     name=call.name,
-                    content="No retained Deep Research source matched that URL.",
+                    content="No retained Planner source matched that URL.",
                     error="source_not_found",
                 )
             requested_chars = _bounded_int(
@@ -1646,7 +1781,7 @@ def run_task_builder_tools(
         minimum=1000,
         maximum=100_000,
     )
-    tools = [TASK_BUILDER_PYTHON_TOOL, TASK_BUILDER_VIEW_IMAGE_TOOL]
+    tools = [TASK_BUILDER_PYTHON_TOOL, TASK_BUILDER_READ_TOOL, TASK_BUILDER_WRITE_TOOL, TASK_BUILDER_VIEW_IMAGE_TOOL]
     if _image_generation_configured(config):
         tools.append(TASK_BUILDER_GENERATE_IMAGE_TOOL)
     if include_image_tools:
@@ -1850,6 +1985,7 @@ def run_task_builder_tools(
                         max_chars=max_chars,
                         work_dir=work_dir,
                         tool_state=tool_state,
+                        document_path=document_path,
                     )
                 )
             for skipped_call in response.tool_calls[remaining:]:

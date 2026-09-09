@@ -13,7 +13,6 @@ from evalclaw.models.llm import (
 from evalclaw.pipeline import _redact_secrets, run_pipeline
 from evalclaw.quality.qc import run_qc_gate
 from evalclaw.research.backends import SearchResult
-from evalclaw.research.deep_research import run_deep_research
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkItem,
@@ -164,59 +163,6 @@ def test_truncated_stream_preserves_incremental_tool_call() -> None:
 
     assert "run_python" in partial
     assert "print(4)" in partial
-
-
-def test_deep_research_persists_round_and_brief(monkeypatch, tmp_path) -> None:
-    from evalclaw.prompts.research import (
-        RESEARCH_COMPRESS_SYSTEM_PROMPT,
-        RESEARCH_QUERY_SYSTEM_PROMPT,
-        RESEARCH_REFLECT_SYSTEM_PROMPT,
-    )
-
-    def fake_json(config, system, payload, **kwargs):
-        if system == RESEARCH_QUERY_SYSTEM_PROMPT:
-            return {"queries": ["query"]}
-        if system == RESEARCH_COMPRESS_SYSTEM_PROMPT:
-            return {
-                "evidence": [
-                    {
-                        "observation": "Observed behavior.",
-                        "design_implication": "Test it.",
-                        "source_urls": ["https://example.test/source"],
-                    }
-                ]
-            }
-        if system == RESEARCH_REFLECT_SYSTEM_PROMPT:
-            return {"done": True, "gaps": [], "follow_up_queries": []}
-        return {"research_notes": "Complete."}
-
-    monkeypatch.setattr("evalclaw.research.deep_research._call_orchestrator_json", fake_json)
-    monkeypatch.setattr(
-        "evalclaw.research.deep_research.web_search",
-        lambda *args, **kwargs: SearchResult(
-            content="Search summary",
-            citations=[{"url": "https://example.test/source", "title": "Source"}],
-        ),
-    )
-    monkeypatch.setattr(
-        "evalclaw.research.deep_research.fetch_url_text",
-        lambda *args, **kwargs: "Fetched source body.",
-    )
-    config = BenchmarkConfig(
-        research_model="research-model",
-        research_api_key="research-key",
-        search_backend="keyless",
-        use_hf_discovery=False,
-        max_research_iterations=1,
-    )
-
-    brief = run_deep_research("goal", config, trace_dir=tmp_path)
-
-    assert brief is not None
-    assert (tmp_path / "round-01" / "searches.json").is_file()
-    assert (tmp_path / "round-01" / "fetches.json").is_file()
-    assert (tmp_path / "round-01" / "result.json").is_file()
-    assert (tmp_path / "brief.json").is_file()
 
 
 def test_qc_failure_persists_all_attempts(monkeypatch, tmp_path) -> None:

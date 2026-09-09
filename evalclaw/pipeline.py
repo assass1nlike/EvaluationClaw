@@ -37,7 +37,7 @@ from .reporting.reporter import artifact_index_markdown, build_report
 from .reporting.task_viewer import build_task_viewer_html
 from .reporting.viewer import build_report_viewer_html
 from .research.backends import reset_network_state
-from .research.deep_research import render_brief_markdown, run_deep_research
+from .research.deep_research import render_brief_markdown
 from .types import (
     BenchmarkConfig,
     BenchmarkPackage,
@@ -45,7 +45,6 @@ from .types import (
     EvalRun,
     EvalSpec,
     QcReport,
-    ResearchBrief,
     TaskDefinition,
     TaskSuite,
 )
@@ -470,48 +469,6 @@ def _run_pipeline(
     if goal != original_goal:
         _live_emit("\n[Input] Normalized the evaluation goal to English before planning.")
         _live_emit(f"  English goal: {goal}")
-
-    mark_stage("research")
-    saved_brief = (
-        _load_model(debug_run_dir / "research" / "brief.json", ResearchBrief)
-        if resuming and debug_run_dir is not None
-        else None
-    )
-    if saved_brief is not None and config.research_brief is None:
-        config = config.model_copy(update={"research_brief": saved_brief})
-    if config.use_deep_research and config.research_brief is None:
-        _live_emit("\n[Benchmark Design Research] Running bounded research loop before planning...")
-        _live_stage(live_run_id, "research")
-        brief = run_deep_research(
-            goal,
-            config,
-            log=_live_emit,
-            trace_dir=debug_run_dir / "research" if debug_run_dir is not None else None,
-        )
-        if brief is None:
-            raise RuntimeError(
-                "Deep research was requested but could not run. Configure the Research role "
-                "with a non-none search backend, or disable --deep-research."
-            )
-        if debug_run_dir is not None:
-            write_json(debug_run_dir / "research" / "brief.json", brief.model_dump(mode="json"))
-        if config.output_dir:
-            output_root = Path(config.output_dir)
-            write_json(output_root / "research_brief.json", brief.model_dump(mode="json"))
-            write_text(output_root / "research_brief.md", render_brief_markdown(brief))
-        config = config.model_copy(update={"research_brief": brief})
-        _live_emit(
-            f"  Design brief: {len(brief.dimensions)} candidate dimensions, "
-            f"{len(brief.task_patterns)} task patterns, "
-            f"{len(brief.source_recommendations)} source recommendations"
-        )
-    elif saved_brief is not None:
-        _live_emit("\n[Benchmark Design Research] Resumed completed research brief.")
-    elif config.use_deep_research and config.research_brief is not None and debug_run_dir is not None:
-        write_json(debug_run_dir / "research" / "brief.json", config.research_brief.model_dump(mode="json"))
-    mark_stage("research", "done")
-    if config.use_deep_research:
-        _live_stage(live_run_id, "research", status="done")
 
     log("\n[Planner/Builder/QC] Building benchmark through the single task-construction pipeline...")
     _live_stage(live_run_id, "planner")

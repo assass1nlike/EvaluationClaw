@@ -72,61 +72,59 @@ def test_planner_derives_one_builder_job_per_requested_task_design(monkeypatch) 
     )
     captured: dict[str, object] = {"calls": 0}
 
-    def fake_call_llm(messages, *, system, **kwargs):
+    def fake_tool_loop(user_content, system, config, settings, **kwargs):
         captured["calls"] = int(captured["calls"]) + 1
         captured["system"] = system
-        captured["payload"] = messages[0].content
+        captured["payload"] = user_content
         return json.dumps(
             {
-                "plan": {
-                    "id": "shared_case_plan",
-                    "objective": spec.objective,
-                    "constraints": [],
-                    "planner_notes": "",
-                    "dimensions": [
-                        {
-                            "id": "mixed",
-                            "name": "Mixed capability",
-                            "measurement_target": (
-                                "Complementary factual and explanatory analysis over one shared case; "
-                                "cover both supported facts and evidence-grounded explanations."
-                            ),
-                            "boundary": (
-                                "Exclude stateful tool use, unrelated recall, and claims unsupported "
-                                "by the shared case."
-                            ),
-                            "approach": "Use one shared case.",
-                            "task_designs": [
-                                {
-                                    "id": "shared_case_mcq",
-                                    "task_type": "choice",
-                                    "task_count": 5,
-                                    "challenge_effort": "E3",
-                                        "content_design": {
-                                            "purpose": "Test supported facts.",
-                                            "description": "Five distinct factual questions over one case.",
-                                        },
-                                        "source_plan": {"strategy": "generated"},
-                                    },
-                                {
-                                    "id": "shared_case_explanation",
-                                    "task_type": "generation",
-                                    "task_count": 10,
-                                    "challenge_effort": "E3",
-                                        "content_design": {
-                                            "purpose": "Test explanation.",
-                                            "description": "Ten distinct explanations over the same case.",
-                                        },
-                                        "source_plan": {"strategy": "generated"},
-                                    },
-                            ],
-                        }
-                    ],
-                }
+                "id": "shared_case_plan",
+                "objective": spec.objective,
+                "constraints": [],
+                "planner_notes": "",
+                "dimensions": [
+                    {
+                        "id": "mixed",
+                        "name": "Mixed capability",
+                        "measurement_target": (
+                            "Complementary factual and explanatory analysis over one shared case; "
+                            "cover both supported facts and evidence-grounded explanations."
+                        ),
+                        "boundary": (
+                            "Exclude stateful tool use, unrelated recall, and claims unsupported "
+                            "by the shared case."
+                        ),
+                        "approach": "Use one shared case.",
+                        "task_designs": [
+                            {
+                                "id": "shared_case_mcq",
+                                "task_type": "choice",
+                                "task_count": 5,
+                                "challenge_effort": "E3",
+                                "content_design": {
+                                    "purpose": "Test supported facts.",
+                                    "description": "Five distinct factual questions over one case.",
+                                },
+                                "source_plan": {"strategy": "generated"},
+                            },
+                            {
+                                "id": "shared_case_explanation",
+                                "task_type": "generation",
+                                "task_count": 10,
+                                "challenge_effort": "E3",
+                                "content_design": {
+                                    "purpose": "Test explanation.",
+                                    "description": "Ten distinct explanations over the same case.",
+                                },
+                                "source_plan": {"strategy": "generated"},
+                            },
+                        ],
+                    }
+                ],
             }
         )
 
-    monkeypatch.setattr("evalclaw.planning.task_planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.task_planner._run_planner_tool_loop", fake_tool_loop)
 
     plan = plan_benchmark(
         spec.objective,

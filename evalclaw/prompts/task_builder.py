@@ -257,11 +257,11 @@ piece of scoring evidence needed by the target and evaluator; do not merely desc
 During initial construction, task_file.path points to a JSON working document with this task shape:
 {example}
 
-Use run_python to edit that file throughout construction. As soon as a part of a task is settled,
-write its fields into the file instead of retaining the result only in reasoning or waiting to
-reproduce the whole task in the final message. Keep the document valid JSON after each edit when
-practical. Complete every required task before finishing, omit optional empty fields, and do not add
-fields from another task type or invent aliases.
+Use read_candidate and update_candidate to inspect and edit that file throughout construction. As soon
+as a part of a task is settled, merge its fields into the file instead of retaining the result only
+in reasoning or waiting to reproduce the whole task in the final message. Keep the document valid
+JSON after each merge when practical. Complete every required task before finishing, omit optional
+empty fields, and do not add fields from another task type or invent aliases.
 
 The framework owns task, dimension, TaskDesign, resource, and choice-option ids; do not emit them.
 Put all target-visible instructions in prompt. description is reporting metadata, while
@@ -328,9 +328,9 @@ def build_task_builder_tool_prompt(
             "then preserve the returned image id in environment.vm.image."
         )
     parts.append(
-        "When task_file.path or revision.path is supplied, progressively edit that JSON file in place "
-        "and return only a compact confirmation after it is complete. Otherwise return the complete "
-        "task-builder JSON after tool use."
+        "When task_file.path or revision.path is supplied, progressively merge your finished parts into "
+        "that JSON file with read_candidate / update_candidate and return only a compact confirmation after it is complete. "
+        "Otherwise return the complete task-builder JSON after tool use."
     )
     return "\n\n".join(parts)
 

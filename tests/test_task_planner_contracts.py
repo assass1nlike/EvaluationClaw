@@ -162,11 +162,11 @@ def test_planner_repairs_wrong_explicit_total(monkeypatch) -> None:
     responses = [_plan(task_count=51), _plan(task_count=50)]
     payloads: list[str] = []
 
-    def fake_call_llm(messages, **kwargs):
-        payloads.append(messages[0].content)
-        return json.dumps({"plan": responses[len(payloads) - 1].model_dump(mode="json")})
+    def fake_tool_loop(user_content, system, config, settings, **kwargs):
+        payloads.append(user_content)
+        return json.dumps(responses[len(payloads) - 1].model_dump(mode="json"))
 
-    monkeypatch.setattr("evalclaw.planning.task_planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.task_planner._run_planner_tool_loop", fake_tool_loop)
 
     plan = plan_benchmark(
         "Create exactly 50 evaluation questions.",
@@ -181,13 +181,13 @@ def test_planner_repairs_wrong_explicit_total(monkeypatch) -> None:
 def test_planner_debug_saves_each_raw_attempt(monkeypatch, tmp_path) -> None:
     responses = [_plan(task_count=2), _plan(task_count=1)]
     raw_responses = [
-        json.dumps({"plan": response.model_dump(mode="json")}) for response in responses
+        json.dumps(response.model_dump(mode="json")) for response in responses
     ]
 
-    def fake_call_llm(messages, **kwargs):
+    def fake_tool_loop(user_content, system, config, settings, **kwargs):
         return raw_responses.pop(0)
 
-    monkeypatch.setattr("evalclaw.planning.task_planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.task_planner._run_planner_tool_loop", fake_tool_loop)
 
     plan_benchmark(
         "Create exactly 1 benchmark task.",
@@ -202,12 +202,12 @@ def test_planner_debug_saves_each_raw_attempt(monkeypatch, tmp_path) -> None:
     diagnostic_paths = sorted(tmp_path.glob("planner-debug/**/*.diagnostics.json"))
     assert len(response_paths) == 2
     assert len(diagnostic_paths) == 2
-    assert json.loads(response_paths[0].read_text(encoding="utf-8"))["plan"][
-        "dimensions"
-    ][0]["task_designs"][0]["task_count"] == 2
-    assert json.loads(response_paths[1].read_text(encoding="utf-8"))["plan"][
-        "dimensions"
-    ][0]["task_designs"][0]["task_count"] == 1
+    assert json.loads(response_paths[0].read_text(encoding="utf-8"))["dimensions"][
+        0
+    ]["task_designs"][0]["task_count"] == 2
+    assert json.loads(response_paths[1].read_text(encoding="utf-8"))["dimensions"][
+        0
+    ]["task_designs"][0]["task_count"] == 1
     assert [
         json.loads(path.read_text(encoding="utf-8"))["status"]
         for path in diagnostic_paths
@@ -223,11 +223,11 @@ def test_planner_repairs_removed_dimension_fields(monkeypatch) -> None:
     responses = [stale_plan, valid_plan]
     payloads: list[str] = []
 
-    def fake_call_llm(messages, **kwargs):
-        payloads.append(messages[0].content)
-        return json.dumps({"plan": responses[len(payloads) - 1]})
+    def fake_tool_loop(user_content, system, config, settings, **kwargs):
+        payloads.append(user_content)
+        return json.dumps(responses[len(payloads) - 1])
 
-    monkeypatch.setattr("evalclaw.planning.task_planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.task_planner._run_planner_tool_loop", fake_tool_loop)
 
     plan = plan_benchmark(
         "Create exactly one benchmark task.",
@@ -249,24 +249,6 @@ def test_plan_maps_merged_dimension_fields_without_item_requirements() -> None:
     assert dimension.measurement_target == plan.dimensions[0].measurement_target
     assert dimension.boundary == plan.dimensions[0].boundary
     assert dimension.item_requirements == []
-
-
-def test_low_effort_planner_keeps_uniform_output_budget(monkeypatch) -> None:
-    captured: dict = {}
-
-    def fake_call_llm(messages, **kwargs):
-        captured.update(kwargs)
-        return json.dumps({"plan": _plan().model_dump(mode="json")})
-
-    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
-    monkeypatch.setattr("evalclaw.planning.task_planner.call_llm", fake_call_llm)
-
-    plan_benchmark(
-        "Create exactly one benchmark task.",
-        BenchmarkConfig(**dummy_config_kwargs()),
-    )
-
-    assert captured["max_tokens"] == 32768
 
 
 def _multi_design_plan(
@@ -365,11 +347,11 @@ def test_effort_distribution_is_passed_to_planner_constraints(monkeypatch) -> No
     responses = [_multi_design_plan(counts_and_efforts=[(1, ChallengeEffort.E3)]).model_dump(mode="json")]
     payloads: list[str] = []
 
-    def fake_call_llm(messages, **kwargs):
-        payloads.append(messages[0].content if isinstance(messages[0].content, str) else "")
-        return json.dumps({"plan": responses[len(payloads) - 1]})
+    def fake_tool_loop(user_content, system, config, settings, **kwargs):
+        payloads.append(user_content)
+        return json.dumps(responses[len(payloads) - 1])
 
-    monkeypatch.setattr("evalclaw.planning.task_planner.call_llm", fake_call_llm)
+    monkeypatch.setattr("evalclaw.planning.task_planner._run_planner_tool_loop", fake_tool_loop)
 
     plan_benchmark(
         "Create one benchmark task.",

@@ -31,7 +31,6 @@ from ..prompts.task_builder import (
     task_builder_document_template,
 )
 from ..protocols.assets import replace_non_agent_asset_references
-from ..research.deep_research import compact_brief_context
 from ..types import (
     AgentEnvironmentType,
     BenchmarkConfig,
@@ -278,7 +277,6 @@ def _task_builder_payload(
     blueprint: TaskBlueprint,
     resource_context: str,
     revision_context: dict[str, object] | None = None,
-    deep_research_context: dict[str, object] | None = None,
     task_file_path: Path | None = None,
     config: BenchmarkConfig | None = None,
 ) -> dict[str, object]:
@@ -481,7 +479,6 @@ def _task_builder_payload(
         },
         "resources": {
             "context": resource_context,
-            "deep_research": deep_research_context or {},
             "selection": {
                 "queries": list(blueprint.source_plan.search_queries),
                 "suggested_urls": list(blueprint.source_plan.suggested_urls),
@@ -573,7 +570,7 @@ def _revision_context_for_job(
         "instruction": (
             str(revision_context.get("instruction"))
             or (
-                "Use run_python to read and edit the task-builder JSON at revision.path in place. "
+                "Use read_candidate and update_candidate to inspect and edit the task-builder JSON at revision.path. "
                 "Fix every listed QC issue, preserve the order and read-only ids of the tasks in "
                 "that file, and do not add any other task from the TaskDesign."
             )
@@ -979,12 +976,6 @@ def build_task_suite(
                 config.research_brief if blueprint.source_strategy != "generated" else None,
             ),
             job_revision,
-            deep_research_context=(
-                compact_brief_context(config.research_brief)
-                if config.research_brief is not None
-                and blueprint.source_strategy != "generated"
-                else None
-            ),
             task_file_path=initial_task_path,
             config=config,
         )
@@ -1353,7 +1344,7 @@ def build_task_suite(
                     else str(structural_repair_path or "")
                 )
                 repair_instruction = (
-                    "Use run_python to repair the complete JSON object at revision.path in place. "
+                    "Use read_candidate and update_candidate to inspect and edit the complete JSON object at revision.path. "
                     "Do not return a patch. Preserve the intended capability target and all unaffected "
                     "task content while fixing every listed structural issue. The tasks array in that "
                     f"file must contain exactly {target_task_count} complete task(s)."
