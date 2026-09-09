@@ -59,7 +59,7 @@ def test_qc_trace_persists_model_exchange_and_complete_report(tmp_path, monkeypa
 
     report = run_qc_gate(
         suite,
-        BenchmarkConfig(**dummy_config_kwargs()),
+        BenchmarkConfig(**dummy_config_kwargs(), use_llm_qc=True),
         trace_dir=trace_dir,
     )
 
@@ -117,7 +117,7 @@ def test_llm_qc_omits_choice_rubric(monkeypatch) -> None:
             objective="Evaluate arithmetic",
             tasks=[item],
         ),
-        BenchmarkConfig(**dummy_config_kwargs()),
+        BenchmarkConfig(**dummy_config_kwargs(), use_llm_qc=True),
     )
 
     assert captured["items"][0]["rubric"] is None

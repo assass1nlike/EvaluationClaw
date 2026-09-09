@@ -1451,7 +1451,7 @@ def test_llm_qc_receives_task_design_and_execution_relevant_environment_details(
     )
     suite = TaskSuite(spec=spec, objective=spec.objective, tasks=[item], blueprints=[blueprint])
 
-    _llm_qc(suite, BenchmarkConfig(**dummy_config_kwargs()))
+    _llm_qc(suite, BenchmarkConfig(**dummy_config_kwargs(), use_llm_qc=True))
 
     assert captured["task_designs"][0]["id"] == design_id
     assert captured["items"][0]["prompt"] == item.prompt
@@ -1506,7 +1506,7 @@ def test_configured_llm_qc_retries_then_raises_on_failure(monkeypatch) -> None:
     with pytest.raises(RuntimeError, match="LLM QC failed after 3 attempts"):
         _llm_qc(
             _minimal_llm_qc_suite(),
-            BenchmarkConfig(**dummy_config_kwargs()),
+            BenchmarkConfig(**dummy_config_kwargs(), use_llm_qc=True),
             trace=trace,
         )
 
@@ -1535,7 +1535,7 @@ def test_configured_llm_qc_retries_invalid_responses_until_success(monkeypatch) 
 
     issues = _llm_qc(
         _minimal_llm_qc_suite(),
-        BenchmarkConfig(**dummy_config_kwargs()),
+        BenchmarkConfig(**dummy_config_kwargs(), use_llm_qc=True),
         trace=trace,
     )
 

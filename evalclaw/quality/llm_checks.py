@@ -343,6 +343,10 @@ def _llm_qc(
     trace: dict[str, object] | None = None,
     trace_dir: str | Path | None = None,
 ) -> list[QcIssue]:
+    if not config.use_llm_qc:
+        if trace is not None:
+            trace["status"] = "disabled"
+        return []
     settings = role_model_settings(config, "qc")
     if not settings.configured:
         if trace is not None:
