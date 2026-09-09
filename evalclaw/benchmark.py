@@ -116,7 +116,7 @@ def _revision_contexts(
                 if resource.id in resource_ids
             ],
             "instruction": (
-                "Use run_python to read and edit the task-builder JSON at revision.path in place. "
+                "Use read_candidate and update_candidate to inspect and edit the task-builder JSON at revision.path. "
                 "Fix every listed problem, preserve the order and read-only ids of the tasks in "
                 "that file, and do not add any other task from the TaskDesign."
             ),

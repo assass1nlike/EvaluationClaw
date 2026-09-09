@@ -76,7 +76,6 @@ def test_builder_reuses_completed_job_checkpoint(monkeypatch, tmp_path) -> None:
         output_dir=str(tmp_path),
         task_builder_max_workers=1,
         use_web_research=False,
-        use_hf_discovery=False,
     )
     checkpoint_dir = tmp_path / "checkpoints"
 

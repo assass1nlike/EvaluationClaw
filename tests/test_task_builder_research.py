@@ -720,7 +720,7 @@ def test_task_builder_downloads_into_its_own_asset_directory(monkeypatch, tmp_pa
     assert destinations == [tmp_path.resolve() / "assets" / "task-builder" / "vision_job"]
 
 
-def test_task_builder_can_read_retained_deep_research_source() -> None:
+def test_task_builder_can_read_retained_planner_source() -> None:
     result = _execute_task_builder_tool(
         ToolCall(
             id="read_1",
@@ -743,6 +743,51 @@ def test_task_builder_can_read_retained_deep_research_source() -> None:
 
     assert result.error is None
     assert "Full retained evidence for task construction." in result.content
+
+
+def test_task_builder_update_candidate_edits_document(tmp_path) -> None:
+    document = tmp_path / "candidate.json"
+    document.write_text(
+        json.dumps(
+            {"construction_notes": "", "resources": [], "tasks": [{"title": "", "prompt": ""}]}
+        ),
+        encoding="utf-8",
+    )
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="write_1",
+            name="update_candidate",
+            arguments={
+                "operations": [
+                    {"op": "set", "path": "tasks.0.title", "value": "T"},
+                    {"op": "set", "path": "tasks.0.prompt", "value": "P"},
+                ]
+            },
+        ),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        document_path=str(document),
+    )
+    assert result.error is None
+    merged = json.loads(document.read_text(encoding="utf-8"))
+    assert merged["tasks"][0]["title"] == "T"
+    assert merged["tasks"][0]["prompt"] == "P"
+
+
+def test_task_builder_read_candidate_reads_document(tmp_path) -> None:
+    document = tmp_path / "candidate.json"
+    document.write_text(
+        json.dumps({"construction_notes": "", "resources": [], "tasks": [{"title": "T"}]}),
+        encoding="utf-8",
+    )
+    result = _execute_task_builder_tool(
+        ToolCall(id="read_1", name="read_candidate", arguments={"path": "tasks.0.title"}),
+        BenchmarkConfig(),
+        max_chars=50_000,
+        document_path=str(document),
+    )
+    assert result.error is None
+    assert "T" in result.content
 
 
 def test_task_builder_can_download_multiple_file_types(monkeypatch, tmp_path) -> None:
@@ -1498,7 +1543,6 @@ def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypat
     assert suite.tasks[0].challenge_effort == ChallengeEffort.E2
     assert captured["include_source_tools"] is True
     assert captured["payload"]["task_plan"]["builder_job_id"] == "research_blueprint"
-    assert captured["payload"]["resources"]["deep_research"] == {}
 
 
 def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None:
@@ -1579,7 +1623,6 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
     assert suite.resources == []
     assert captured["include_source_tools"] is False
     assert captured["payload"]["resources"]["available"] == []
-    assert captured["payload"]["resources"]["deep_research"] == {}
     assert "No external sources" in captured["payload"]["resources"]["context"]
     assert captured["payload"]["task_builder_contract"]["response_format"].startswith(
         "Edit the JSON working document at task_file.path"

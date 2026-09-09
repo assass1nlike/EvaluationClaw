@@ -20,7 +20,7 @@ from .backends import (
     resolve_backend_name,
     web_search,
 )
-from .deep_research import compact_brief_context, render_brief_markdown, run_deep_research
+from .deep_research import render_brief_markdown
 
 __all__ = [
     "DEFAULT_SEARCH_MODEL",
@@ -33,7 +33,6 @@ __all__ = [
     "SearchError",
     "SearchResult",
     "SearchTimeoutError",
-    "compact_brief_context",
     "download_url_file",
     "fetch_url_text",
     "format_search_result",
@@ -41,6 +40,5 @@ __all__ = [
     "render_brief_markdown",
     "reset_network_state",
     "resolve_backend_name",
-    "run_deep_research",
     "web_search",
 ]

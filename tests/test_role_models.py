@@ -10,7 +10,6 @@ from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.models.roles import resolve_task_model, role_model_settings
 from evalclaw.planning import planner
 from evalclaw.quality import analysis, llm_checks
-from evalclaw.research import deep_research
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkItem,
@@ -157,7 +156,6 @@ def test_task_builder_uses_task_builder_role(monkeypatch) -> None:
                     "task_builder_max_workers": 1,
                     "task_builder_repair_attempts": 0,
                     "use_web_research": False,
-                    "use_hf_discovery": False,
                 }
             ),
         )
@@ -214,42 +212,6 @@ def test_resolve_task_model_uses_per_task_selection() -> None:
     assert resolve_task_model(config, item).model == "task-b"
     assert resolve_task_model(config).model == "task-a"
     assert resolve_task_model(BenchmarkConfig(), item) is None
-
-
-def test_research_uses_research_role(monkeypatch) -> None:
-    captured: dict = {}
-
-    def fake_call_llm(*args, **kwargs):
-        captured.update(kwargs)
-        return '{"findings":["grounded"]}'
-
-    monkeypatch.setattr(deep_research, "call_llm", fake_call_llm)
-
-    assert deep_research._call_orchestrator_json(
-        _config_for("research"),
-        "system",
-        {"goal": "goal"},
-    ) == {"findings": ["grounded"]}
-    _assert_role_call(captured, "research")
-
-
-def test_low_effort_research_keeps_uniform_output_budget(monkeypatch) -> None:
-    captured: dict = {}
-
-    def fake_call_llm(*args, **kwargs):
-        captured.update(kwargs)
-        return '{"findings":["grounded"]}'
-
-    monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
-    monkeypatch.setattr(deep_research, "call_llm", fake_call_llm)
-
-    deep_research._call_orchestrator_json(
-        _config_for("research"),
-        "system",
-        {"goal": "goal"},
-    )
-
-    assert captured["max_tokens"] == 32768
 
 
 def test_analysis_uses_analyser_role(monkeypatch) -> None:

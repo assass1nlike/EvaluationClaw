@@ -518,14 +518,15 @@ def artifact_index_markdown(
 def _research_brief_lines(research_brief: ResearchBrief | None) -> list[str]:
     if research_brief is None:
         return []
-    return [
-        "## Benchmark Design Research",
+    lines = [
+        "## Benchmark Source Materials",
         "",
-        "- Planning and generation used a benchmark-design research brief "
-        "(see research_brief.md / research_brief.json).",
-        f"- Candidate dimensions: {len(research_brief.dimensions)}",
-        f"- Difficulty factors: {len(research_brief.difficulty_factors)}",
-        f"- Task patterns: {len(research_brief.task_patterns)}",
-        f"- Source recommendations: {len(research_brief.source_recommendations)}",
-        "",
+        "- The Planner retained web source text during planning for source-backed "
+        "task construction (see research_brief.md / research_brief.json).",
+        f"- Retained sources: {len(research_brief.source_materials)}",
     ]
+    for material in research_brief.source_materials:
+        title = material.title or material.url
+        lines.append(f"- {title} ({material.url})")
+    lines.append("")
+    return lines

@@ -18,12 +18,18 @@ Use the following information together:
 
 - The user's natural-language evaluation request; see `resources/instruction.md`.
 - Constraints such as the total task count specified by the user and the available task types; also see `resources/instruction.md`.
-- An optional pre-generated deep-research brief; see `resources/deepresearch`. It is the result returned after calling the DeepResearch tool:
-  - It searches comprehensive information and gives you richer references and supplements for dimension planning.
-  - It can supplement your own knowledge when you do not know enough about the relevant domain.
-  - Its links and similar materials can serve as content sources when concrete tasks are constructed and can be placed in the relevant TaskDesign's `source_plan` for the Task Builder to use.
+## Tools
 
-When Deep Research is enabled, it produces a ResearchBrief for any evaluation request. The brief is reference material derived from already collected sources. Use its sources when they materially support large-scale task construction or when the evaluation request requires source grounding. When the requested tasks can be constructed faithfully from the model's own capabilities, they need not be source-backed merely because a ResearchBrief is available.
+You have two web-research tools to ground the design in real, current material, plus a write tool to commit the plan progressively:
+
+- `search_web(query)` returns a backend-generated summary of results plus citation URLs. Write the query yourself — it should target the specific dimension, failure mode, task shape, or source material you need next.
+- `fetch_url(url)` returns the readable text of one citation URL so you can inspect it before committing it as a source.
+- `read_plan(path?)` reads the working plan file — no path returns the full document, a dot path (e.g. `dimensions.0`) returns just that node.
+- `update_plan(operations)` edits the working plan file (top-level keys `objective`, `constraints`, `planner_notes`, `dimensions`). Each operation is `{"op": "set"|"remove"|"append", "path": "dot.path", "value": ...}`; list items are indexed from 0. It returns the updated plan summary (dimension names + task_designs counts).
+
+Commit your finished parts as you go instead of reproducing the whole plan at the end: set plan-level fields once decided, then `append` each dimension, then `set` its `task_designs`. Use `read_plan` before `set` when you need to see a field's current value, and `remove` to drop a dimension you no longer want.
+
+Use search/fetch when the evaluation request needs domain grounding, current facts, or authoritative sources for source-backed tasks. When a fetched URL is a candidate source, place it in the relevant TaskDesign's `source_plan.suggested_urls`. Do not over-search: search only when it materially changes the dimension or task design. When the plan is complete, stop (return no further tool calls).
 
 ## Workflow
 
@@ -83,7 +89,7 @@ Although `reference/universal_format.json` lists the complete field set, for the
 Choose the environment category according to its actual runtime capabilities:
 
 - `docker_workspace` supports task-specific packages, services, shell commands, browser automation, and executable validators in a container.
-- `gui` supports screenshot-driven graphical interaction through a GUI bridge and may request a locally or remotely provisioned VM when a specific operating system or application state is required.
+- `vm` supports screenshot-driven graphical interaction through a GUI bridge and may request a locally or remotely provisioned VM when a specific operating system or application state is required.
 
 For every `multi_turn` TaskDesign, set `interaction_requirements.followup_mode` to exactly `adaptive` or `scripted`. Use `adaptive` when later turns must respond to the target's actual replies, and `scripted` only when predetermined follow-up turns are substantively appropriate. Preserve any explicit user requirement about this choice.
 
