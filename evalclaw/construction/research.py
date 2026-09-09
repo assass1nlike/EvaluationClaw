@@ -132,11 +132,14 @@ state persists across run_in_container calls. When the environment is ready, cal
 commit_inspect_container to commit it into a reusable image and copy the returned
 image tag into the task's environment.image; that committed image is the delivered
 task environment.
-When VM image construction is available, use build_vm_image for GUI tasks that
-need software or state unavailable in the base image. Its plan is executed and
-checked inside an isolated temporary guest by the provider; preserve the
-returned concrete image id in the task's environment.vm.image. Do not claim a
-custom VM image is ready without a successful provider result.
+When start_vm_session, run_in_vm, and commit_vm_session are available, you may
+start a long-lived VM from a base image and run commands inside it to install
+and verify software step by step. VM state persists across run_in_vm calls. When
+the environment is ready, call commit_vm_session to solidify it into a reusable
+image and copy the returned image into the task's environment.vm.image; that
+committed image is the delivered task environment. Use run_vm_command for a
+one-shot command check. build_vm_image is a declarative alternative only when a
+remote provider advertises image_build.
 When task_file.path or revision.path is supplied, use run_python to edit that JSON
 file in place throughout construction, then return a compact JSON confirmation.
 Otherwise, return the complete task-builder JSON object after tool use. The tool budget is
@@ -399,7 +402,7 @@ TASK_BUILDER_VM_IMAGE_TOOLS = [
             "Build and publish a reusable VM image through the configured remote VM provider. "
             "The provider executes the declarative plan inside an isolated temporary guest, "
             "runs the supplied checks, and returns a concrete image id only after success. "
-            "Use this for GUI tasks that need software or state unavailable in the base image. "
+            "Use this for VM tasks that need software or state unavailable in the base image. "
             "Copy the returned image_id into environment.vm.image."
         ),
         parameters={
@@ -488,7 +491,7 @@ TASK_BUILDER_VM_IMAGE_TOOLS = [
     ToolSpec(
         name="start_vm_session",
         description=(
-            "Create a VM from a built image and keep it running for multi-round command "
+            "Create a VM from a base image and keep it running for multi-round command "
             "inspection. Use run_in_vm to execute commands in it. The VM is destroyed when "
             "construction ends or when a new VM session is started."
         ),
@@ -497,10 +500,9 @@ TASK_BUILDER_VM_IMAGE_TOOLS = [
             "properties": {
                 "image": {
                     "type": "string",
-                    "description": "VM image id, typically the image_id returned by build_vm_image.",
+                    "description": "VM image id; omit to use the provider's default base image.",
                 },
             },
-            "required": ["image"],
             "additionalProperties": False,
         },
     ),
@@ -1253,8 +1255,6 @@ def _execute_task_builder_tool(
 
         if call.name == "start_vm_session":
             image = str(args.get("image") or "").strip()
-            if not image:
-                raise ValueError("image must be non-empty")
             starts_used = int(state.get("vm_session_starts_used") or 0)
             if starts_used >= _MAX_VM_SESSION_STARTS:
                 return ToolResult(
