@@ -1600,7 +1600,7 @@ def test_gui_task_builder_receives_vm_image_tools(monkeypatch) -> None:
 
     monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
     dimension = EvalDimension(
-        id="gui",
+        id="vm",
         name="GUI",
         description="Evaluate GUI interaction.",
         approach="Use a GUI task.",
@@ -1611,7 +1611,7 @@ def test_gui_task_builder_receives_vm_image_tools(monkeypatch) -> None:
         dimension.id,
         "GUI task",
         task_type=TaskType.agent,
-        environment_type=AgentEnvironmentType.gui,
+        environment_type=AgentEnvironmentType.vm,
     )
 
     with pytest.raises(RuntimeError, match="route probe"):
