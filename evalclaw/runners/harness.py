@@ -51,12 +51,19 @@ def register_harness(runner: HarnessRunner) -> None:
     _HARNESS_RUNNERS[runner.name] = runner
 
 
-def get_harness(name: str) -> HarnessRunner:
+def ensure_builtins_registered() -> None:
+    """Register the built-in harnesses (OpenHands + the built-in manifests)."""
     global _builtins_loaded
-    if not _builtins_loaded:
-        _builtins_loaded = True
-        from . import openhands  # noqa: F401  (registers the built-in harness)
+    if _builtins_loaded:
+        return
+    _builtins_loaded = True
+    from . import openhands  # noqa: F401  (registers the built-in harness)
 
+    _register_builtin_manifests()
+
+
+def get_harness(name: str) -> HarnessRunner:
+    ensure_builtins_registered()
     if name not in _HARNESS_RUNNERS:
         raise ValueError(f"Unsupported harness {name!r}; supported: {sorted(_HARNESS_RUNNERS)}.")
     return _HARNESS_RUNNERS[name]
@@ -185,6 +192,7 @@ class ManifestHarness:
     name: str
     run: str  # command template with {task} {image} {workdir} placeholders
     model_env: dict[str, str]  # env var name -> target field (model/api_key/base_url)
+    config_args: tuple[str, ...] = ()  # argv fragments rendered at {config_args}
     timeout: int = 1800
 
 
@@ -217,12 +225,20 @@ class ManifestHarnessRunner:
             shutil.rmtree(workdir, ignore_errors=True)
 
     def _launch(self, item: BenchmarkItem, target: TargetModelConfig, image: str, workdir: Path) -> str:
+        values = {
+            "task": item.prompt,
+            "image": image,
+            "workdir": str(workdir),
+            "model": target.model,
+            "api_key": target.api_key or "",
+            "base_url": target.base_url or "",
+        }
+        quoted = {key: shlex.quote(value) for key, value in values.items()}
+        config_tokens: list[str] = []
+        for template in self._manifest.config_args:
+            config_tokens.extend(shlex.split(template.format(**quoted)))
         command = shlex.split(
-            self._manifest.run.format(
-                task=shlex.quote(item.prompt),
-                image=shlex.quote(image),
-                workdir=shlex.quote(str(workdir)),
-            )
+            self._manifest.run.format(**quoted, config_args=shlex.join(config_tokens))
         )
         env = os.environ.copy()
         for field, var_name in self._manifest.model_env.items():
@@ -233,6 +249,8 @@ class ManifestHarnessRunner:
             proc = subprocess.run(
                 command,
                 env=env,
+                cwd=str(workdir),
+                stdin=subprocess.DEVNULL,
                 capture_output=True,
                 text=True,
                 timeout=self._manifest.timeout,
@@ -255,6 +273,7 @@ def load_manifest_harness(path: str | Path) -> str:
         name=str(raw.get("name") or "").strip(),
         run=str(raw.get("run") or "").strip(),
         model_env={str(key): str(value) for key, value in (raw.get("model_env") or {}).items()},
+        config_args=tuple(str(arg) for arg in (raw.get("config_args") or [])),
         timeout=max(1, int(raw.get("timeout") or 1800)),
     )
     if not manifest.name or not manifest.run:
@@ -262,3 +281,64 @@ def load_manifest_harness(path: str | Path) -> str:
     SUPPORTED_HARNESSES.add(manifest.name)
     register_harness(ManifestHarnessRunner(manifest))
     return manifest.name
+
+
+_BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
+    # Sandboxed, model-agnostic (self-hosted Docker/podman).
+    ManifestHarness(
+        name="miniswe",
+        run="mini -m {model} -t {task} -y",
+        model_env={"api_key": "DEEPSEEK_API_KEY"},
+    ),
+    # Family-bound (official harnesses). codex has no OPENAI_BASE_URL env var: its
+    # base_url / wire_api / env_key live in config.toml, so it's driven by -c flags.
+    ManifestHarness(
+        name="codex",
+        run="codex exec {config_args} --sandbox workspace-write --skip-git-repo-check -m {model} {task}",
+        model_env={"api_key": "CODEC_API_KEY"},
+        config_args=(
+            "-c model_provider=evalclaw",
+            "-c model_providers.evalclaw.name=evalclaw",
+            "-c model_providers.evalclaw.base_url={base_url}",
+            "-c model_providers.evalclaw.wire_api=responses",
+            "-c model_providers.evalclaw.env_key=CODEC_API_KEY",
+        ),
+    ),
+    ManifestHarness(
+        name="claude-code",
+        run="claude -p --model {model} --permission-mode bypassPermissions {task}",
+        model_env={"api_key": "ANTHROPIC_API_KEY", "base_url": "ANTHROPIC_BASE_URL"},
+    ),
+    ManifestHarness(
+        name="cursor",
+        run="cursor-agent -p --trust --force --model {model} {task}",
+        model_env={"api_key": "CURSOR_API_KEY", "base_url": "CURSOR_API_ENDPOINT"},
+    ),
+    ManifestHarness(
+        name="grok",
+        run="grok -p {task} -m {model} --permission-mode bypassPermissions --always-approve",
+        model_env={"api_key": "XAI_API_KEY"},
+    ),
+    # Model-agnostic terminal agents.
+    ManifestHarness(
+        name="opencode",
+        run="opencode run --dir {workdir} -m {model} --format json {task}",
+        model_env={"api_key": "DEEPSEEK_API_KEY"},
+    ),
+    ManifestHarness(
+        name="aider",
+        run="aider --model {model} --message {task} --yes --no-git",
+        model_env={"api_key": "DEEPSEEK_API_KEY"},
+    ),
+    ManifestHarness(
+        name="goose",
+        run="goose run -t {task}",
+        model_env={"model": "GOOSE_MODEL", "api_key": "OPENAI_API_KEY", "base_url": "OPENAI_BASE_URL"},
+    ),
+)
+
+
+def _register_builtin_manifests() -> None:
+    for manifest in _BUILTIN_MANIFESTS:
+        SUPPORTED_HARNESSES.add(manifest.name)
+        register_harness(ManifestHarnessRunner(manifest))
