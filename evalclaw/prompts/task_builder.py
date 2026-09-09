@@ -275,7 +275,9 @@ language.{count_guidance}
 
 For repair requests with revision.path, use the same file-editing process on that document. Repair
 only the listed tasks, preserve their order and ids, and fix every listed issue. For both initial
-construction and repair, return only a compact confirmation after the file is complete."""
+construction and repair, return only a compact confirmation after the file is complete. When every
+required task is done, do not call any more tools — return only that confirmation; a turn with no
+tool calls is your completion signal."""
 
 
 # Compatibility value for callers that imported the former module-level prompt.

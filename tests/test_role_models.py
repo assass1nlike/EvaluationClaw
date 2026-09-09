@@ -31,6 +31,7 @@ def _config_for(role: str) -> BenchmarkConfig:
             f"{role}_api_key": f"{role}-key",
             f"{role}_base_url": f"https://{role}.example",
         },
+        use_llm_qc=True,
     )
 
 

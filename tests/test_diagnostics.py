@@ -174,6 +174,7 @@ def test_qc_failure_persists_all_attempts(monkeypatch, tmp_path) -> None:
         qc_model="qc-model",
         qc_api_key="qc-key",
         output_dir=str(tmp_path),
+        use_llm_qc=True,
     )
 
     with pytest.raises(RuntimeError, match="LLM QC failed"):
