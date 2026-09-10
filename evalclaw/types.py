@@ -591,7 +591,7 @@ class TaskDefinition(BaseModel):
     assets: list[TaskAsset] = Field(default_factory=list)
     choices: list[ChoiceOption] = Field(default_factory=list)
     correct_choice_ids: list[str] = Field(default_factory=list)
-    expected_text: Optional[str] = None
+    expected_texts: list[str] = Field(default_factory=list)
     rubric: Optional[str] = None
     judge_tools: list[JudgeToolRef] = Field(default_factory=list)
     output_contract: dict[str, Any] = Field(default_factory=dict)
@@ -618,7 +618,7 @@ class BenchmarkItem(BaseModel):
     assets: list[TaskAsset] = Field(default_factory=list)
     choices: list[ChoiceOption] = Field(default_factory=list)
     correct_choice_ids: list[str] = Field(default_factory=list)
-    expected_text: Optional[str] = None
+    expected_texts: list[str] = Field(default_factory=list)
     rubric: Optional[str] = None
     judge_tools: list[JudgeToolRef] = Field(default_factory=list)
     output_contract: dict[str, Any] = Field(default_factory=dict)
@@ -885,6 +885,7 @@ class BenchmarkConfig(BaseModel):
     )
     large_scale_llm_qc_sample_size: int = 120
     use_llm_qc: bool = False
+    ablation_simplified_contract: bool = False
     output_dir: str = "./benchmark-output"
     live_url: Optional[str] = None
     planner_debug_dir: Optional[str] = None

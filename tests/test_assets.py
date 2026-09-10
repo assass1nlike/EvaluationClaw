@@ -18,7 +18,7 @@ def _image_item(path: Path) -> BenchmarkItem:
         task_type=TaskType.fill_blank,
         prompt=f"Look at {path} and answer yes or no.",
         assets=[{"path": str(path)}],
-        expected_text="yes",
+        expected_texts=["yes"],
     )
 
 

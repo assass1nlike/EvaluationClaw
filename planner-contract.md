@@ -166,7 +166,7 @@ plan
 
 ### 任务与类型
 
-- 只用五种任务类型：`choice`（两个以上选项 + 一个或多个正确位置）、`fill_blank`（唯一 expected_text，精确匹配）、`generation`（Judge 按 rubric 评分）、`multi_turn`（scripted/adaptive 对话）、`agent`（工具 + 可执行环境）。
+- 只用五种任务类型：`choice`（两个以上选项 + 一个或多个正确位置）、`fill_blank`（expected_texts 列表，任一命中即精确匹配）、`generation`（Judge 按 rubric 评分）、`multi_turn`（scripted/adaptive 对话）、`agent`（工具 + 可执行环境）。
 - 所有维度 `task_count` 之和 = 用户目标总数；按覆盖价值分配，不默认均分。
 - `challenge_effort` 只有三档。
 - **环境仅 agent**：`choice`/`fill_blank`/`generation`/`multi_turn` 的 `environment_requirements` 必须返回 `{}`（不要展开内部字段为 null/空串/空列表）；要可执行交互就改成 `agent`。`multi_turn` 的对话行为走 `interaction_requirements`，不用执行环境。

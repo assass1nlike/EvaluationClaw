@@ -79,7 +79,7 @@ def _minimal_package(research_brief: ResearchBrief | None) -> BenchmarkPackage:
         dimension_id="core",
         task_type=TaskType.fill_blank,
         prompt="Answer briefly.",
-        expected_text="ok",
+        expected_texts=["ok"],
     )
     run = EvalRun(
         suite=TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
@@ -155,6 +155,17 @@ def test_planner_search_web_disabled_when_web_research_off() -> None:
     assert result.error == "search_disabled"
 
 
+def test_planner_fetch_url_disabled_when_web_research_off() -> None:
+    config = BenchmarkConfig(use_web_research=False)
+    result = _execute_planner_tool(
+        ToolCall(id="c1", name="fetch_url", arguments={"url": "https://ex.com/a"}),
+        config,
+        max_chars=1000,
+        source_materials={},
+    )
+    assert result.error == "fetch_disabled"
+
+
 def test_planner_fetch_url_records_source_material(monkeypatch) -> None:
     monkeypatch.setattr(
         "evalclaw.planning.task_planner.fetch_url_text",
@@ -163,7 +174,7 @@ def test_planner_fetch_url_records_source_material(monkeypatch) -> None:
     materials: dict = {}
     result = _execute_planner_tool(
         ToolCall(id="c1", name="fetch_url", arguments={"url": "https://ex.com/a"}),
-        BenchmarkConfig(),
+        BenchmarkConfig(use_web_research=True),
         max_chars=1000,
         source_materials=materials,
     )
@@ -180,13 +191,13 @@ def test_planner_fetch_url_keeps_longest_content(monkeypatch) -> None:
     materials: dict = {}
     _execute_planner_tool(
         ToolCall(id="c1", name="fetch_url", arguments={"url": "https://ex.com/a"}),
-        BenchmarkConfig(),
+        BenchmarkConfig(use_web_research=True),
         max_chars=1000,
         source_materials=materials,
     )
     _execute_planner_tool(
         ToolCall(id="c2", name="fetch_url", arguments={"url": "https://ex.com/a"}),
-        BenchmarkConfig(),
+        BenchmarkConfig(use_web_research=True),
         max_chars=1000,
         source_materials=materials,
     )

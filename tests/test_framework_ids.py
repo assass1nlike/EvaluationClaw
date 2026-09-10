@@ -102,6 +102,39 @@ def test_planner_rejects_missing_existing_spec_dimension() -> None:
     assert any("expected 2, got 1" in issue for issue in issues)
 
 
+def test_ablation_planner_accepts_simplified_contract() -> None:
+    config = BenchmarkConfig(ablation_simplified_contract=True)
+    plan, issues = _parse_plan_response(
+        {
+            "plan": {
+                "objective": "Evaluate reasoning.",
+                "dimensions": [
+                    {
+                        "name": "Reasoning",
+                        "task_designs": [
+                            {
+                                "task_type": "generation",
+                                "task_count": 3,
+                                "content_design": "Assess whether the model reasons correctly.",
+                            }
+                        ],
+                    }
+                ],
+            }
+        },
+        config,
+    )
+
+    assert issues == []
+    dimension = plan.dimensions[0]
+    assert dimension.measurement_target == ""
+    assert dimension.boundary == ""
+    assert dimension.approach == ""
+    design = dimension.task_designs[0]
+    assert design.content_design == {"description": "Assess whether the model reasons correctly."}
+    assert design.description == "Assess whether the model reasons correctly."
+
+
 def test_choice_indices_are_zero_based_and_canonical() -> None:
     choices, correct = normalize_choice_data(
         [{"id": "ignored", "text": "one"}, {"id": "also-ignored", "text": "two"}],
@@ -120,7 +153,7 @@ def test_resources_ignore_model_ids_and_task_assets_only_accept_paths() -> None:
             "title": "Image task",
             "prompt": "Inspect fixture.png.",
             "assets": [{"path": "fixture.png"}],
-            "expected_text": "yes",
+            "expected_texts": ["yes"],
         },
         "framework-task-1",
         default_dimension_id="vision",
@@ -135,7 +168,7 @@ def test_resources_ignore_model_ids_and_task_assets_only_accept_paths() -> None:
                 "title": "Invalid image task",
                 "prompt": "Inspect fixture.png.",
                 "assets": [{"path": "fixture.png", "kind": "image"}],
-                "expected_text": "yes",
+                "expected_texts": ["yes"],
             },
             "framework-task-2",
             default_dimension_id="vision",

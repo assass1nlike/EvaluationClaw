@@ -26,7 +26,7 @@ _COMMON_FIELDS = {
 
 _TYPE_FIELDS = {
     TaskType.choice: {"choices": [{"text": ""}, {"text": ""}], "correct_choice_indices": [0]},
-    TaskType.fill_blank: {"expected_text": ""},
+    TaskType.fill_blank: {"expected_texts": [""]},
     TaskType.generation: {"rubric": "", "judge_tools": [], "output_contract": {}, "scoring": {}},
     TaskType.multi_turn: {
         "system_prompt": "",
@@ -53,8 +53,9 @@ _TYPE_RULES = {
         "The framework assigns choice ids. Put all options in choices and do not repeat them in prompt."
     ),
     TaskType.fill_blank: (
-        "Provide exactly one expected_text string and state the response format in prompt. "
-        "Scoring is exact apart from surrounding whitespace."
+        "Provide expected_texts as a list of accepted answers; scoring is exact apart from "
+        "surrounding whitespace and any listed answer counts as correct. State the constraints in "
+        "prompt or enumerate every correct answer, and ensure no correct answer outside the list is possible."
     ),
     TaskType.generation: (
         "Provide concrete scoring guidance. Use judge_tools or output_contract only when required by "
@@ -71,10 +72,34 @@ _TYPE_RULES = {
     ),
 }
 
+_ABLATION_COMMON_FIELDS = {
+    "title": "",
+    "prompt": "",
+}
 
-def task_builder_fields(task_type: TaskType, *, source_backed: bool = False) -> frozenset[str]:
+_ABLATION_TYPE_FIELDS = {
+    TaskType.choice: {"choices": [{"text": ""}, {"text": ""}], "correct_choice_indices": [0]},
+    TaskType.fill_blank: {"expected_texts": [""]},
+    TaskType.generation: {"rubric": "", "judge_tools": [], "output_contract": {}, "scoring": {}},
+}
+
+
+def _common_fields(simplified: bool) -> dict[str, object]:
+    return _ABLATION_COMMON_FIELDS if simplified else _COMMON_FIELDS
+
+
+def _type_fields(simplified: bool) -> dict[TaskType, dict[str, object]]:
+    return _ABLATION_TYPE_FIELDS if simplified else _TYPE_FIELDS
+
+
+def task_builder_fields(
+    task_type: TaskType,
+    *,
+    source_backed: bool = False,
+    simplified: bool = False,
+) -> frozenset[str]:
     """Return fields that one concrete Builder task may contain."""
-    fields = {*_COMMON_FIELDS, *_TYPE_FIELDS[TaskType(task_type)]}
+    fields = {*_common_fields(simplified), *_type_fields(simplified)[TaskType(task_type)]}
     if source_backed:
         fields.add("resource_ids")
     return frozenset(fields)
@@ -86,15 +111,17 @@ def task_builder_document_template(
     task_count: int,
     challenge_effort: str,
     source_backed: bool,
+    simplified: bool = False,
 ) -> dict[str, object]:
     """Create the working JSON document edited during one Builder job."""
     task_type = TaskType(task_type)
-    task = copy.deepcopy({**_COMMON_FIELDS, **_TYPE_FIELDS[task_type]})
-    task["task_type"] = task_type.value
-    task["challenge_effort"] = challenge_effort
-    task["metadata"]["challenge_effort_self_assessment"][
-        "requested_effort"
-    ] = challenge_effort
+    task = copy.deepcopy({**_common_fields(simplified), **_type_fields(simplified)[task_type]})
+    if not simplified:
+        task["task_type"] = task_type.value
+        task["challenge_effort"] = challenge_effort
+        task["metadata"]["challenge_effort_self_assessment"][
+            "requested_effort"
+        ] = challenge_effort
     if source_backed:
         task["resource_ids"] = []
     return {
@@ -110,13 +137,14 @@ def project_task_builder_task(
     *,
     source_backed: bool,
     preserve_identity: bool = False,
+    simplified: bool = False,
 ) -> dict[str, object]:
     """Project a task document onto the fields visible to its Builder job."""
     task_type = TaskType(task_type)
-    allowed = task_builder_fields(task_type, source_backed=source_backed)
+    allowed = task_builder_fields(task_type, source_backed=source_backed, simplified=simplified)
     projected = {key: value for key, value in task.items() if key in allowed}
     metadata = task.get("metadata")
-    if isinstance(metadata, dict):
+    if isinstance(metadata, dict) and not simplified:
         projected["metadata"] = {
             key: metadata[key]
             for key in ("challenge_effort_self_assessment", "task_model_id")
@@ -149,6 +177,7 @@ def project_task_builder_document(
     *,
     source_backed: bool,
     preserve_identity: bool = False,
+    simplified: bool = False,
 ) -> dict[str, object]:
     """Project every task in a Builder or repair document onto its task schema."""
     tasks = document.get("tasks")
@@ -162,6 +191,7 @@ def project_task_builder_document(
                 task_type,
                 source_backed=source_backed,
                 preserve_identity=preserve_identity,
+                simplified=simplified,
             )
             for task in tasks
             if isinstance(task, dict)
@@ -174,6 +204,7 @@ def build_task_builder_prompt(
     *,
     source_strategy: str = "generated",
     requires_environment: bool = False,
+    simplified: bool = False,
 ) -> str:
     """Build a system prompt containing only fields relevant to one task type."""
     task_type = TaskType(task_type)
@@ -184,6 +215,7 @@ def build_task_builder_prompt(
             task_count=1,
             challenge_effort="E3",
             source_backed=source_backed,
+            simplified=simplified,
         ),
         ensure_ascii=False,
         indent=2,
@@ -208,15 +240,17 @@ def build_task_builder_prompt(
         "For non-agent tasks, use assets only for images and refer to them as Image 1, Image 2, and "
         "so on. For agent tasks, refer to an asset by the filename visible in its runtime. Never put "
         "a host path in target-visible text."
+        if not simplified
+        else ""
     )
     scoring_rule = (
         "\nscoring, when present, is an object with method, instructions, pass_criteria, "
         "partial_criteria, fail_criteria, allows_partial_credit, and score_levels."
-        if "scoring" in task_builder_fields(task_type)
+        if "scoring" in task_builder_fields(task_type, simplified=simplified)
         else ""
     )
     environment_rule = ""
-    if requires_environment:
+    if requires_environment and not simplified:
         environment_rule = (
             "\nEnvironment file maps contain literal contents under guest-relative paths. Keep "
             "target-visible files, runtime support, and evaluator-only material separate. For a "
@@ -229,12 +263,14 @@ def build_task_builder_prompt(
         "\nWhen scoring is present, set allows_partial_credit only for a real middle band and describe "
         "that band in partial_criteria. If score_levels is empty while partial credit is enabled, the "
         "framework supplies fail/partial/pass levels."
-        if "scoring" in task_builder_fields(task_type)
+        if "scoring" in task_builder_fields(task_type, simplified=simplified)
         else ""
     )
     model_guidance = (
         "\nIf available_models.models is non-empty and this task uses an LLM judge or adaptive dialogue, "
         "select exactly one listed model and record its id in metadata.task_model_id."
+        if not simplified
+        else ""
     )
     count_guidance = (
         "\nReturn exactly the task count and type counts required by task_builder_contract. A design with "
@@ -248,6 +284,18 @@ def build_task_builder_prompt(
         if source_backed
         else ""
     )
+    if simplified:
+        field_guidance = (
+            "Put all target-visible instructions in prompt. The framework owns task_type, "
+            "challenge_effort, metadata, id, and dimension_id and injects them after construction; "
+            "write only the fields shown in the working document shape."
+        )
+    else:
+        field_guidance = (
+            "Put all target-visible instructions in prompt. description is reporting metadata, while "
+            "content_summary is a short report label. Store only required construction metadata such as "
+            "the effort self-assessment and selected task model."
+        )
     return f"""You are the EvaluationClaw Task Builder.
 
 Implement the single Planner-authored TaskDesign in task_plan. Treat the TaskDesign, resources, and
@@ -264,9 +312,7 @@ JSON after each merge when practical. Complete every required task before finish
 empty fields, and do not add fields from another task type or invent aliases.
 
 The framework owns task, dimension, TaskDesign, resource, and choice-option ids; do not emit them.
-Put all target-visible instructions in prompt. description is reporting metadata, while
-content_summary is a short report label. Store only required construction metadata such as the effort
-self-assessment and selected task model. Use English unless the evaluation explicitly tests another
+{field_guidance} Use English unless the evaluation explicitly tests another
 language.{count_guidance}
 
 {source_rule}

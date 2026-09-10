@@ -99,7 +99,7 @@ def _task(
             if interactive
             else "State the requested result from the supplied evidence."
         ),
-        expected_text=None if interactive else "result",
+        expected_texts=[] if interactive else ["result"],
         rubric="The requested result is correct.",
         metadata=metadata,
     )
@@ -337,7 +337,7 @@ def test_qc_round_keeps_valid_task_design_repairs_when_another_output_is_invalid
                         "task_type": "fill_blank",
                         "title": f"Task for {job_id}",
                         "prompt": f"Provide the answer for {job_id}.",
-                        "expected_text": answer,
+                        "expected_texts": [answer],
                         "rubric": "The supplied answer is exact.",
                         "metadata": {
                             "challenge_effort_self_assessment": {
@@ -362,7 +362,7 @@ def test_qc_round_keeps_valid_task_design_repairs_when_another_output_is_invalid
                 message="The answer still needs repair.",
             )
             for item in candidate.tasks
-            if item.expected_text == "original"
+            if item.expected_texts == ["original"]
         ]
         rejected = [issue.item_id for issue in issues if issue.item_id]
         return QcReport(
@@ -389,7 +389,7 @@ def test_qc_round_keeps_valid_task_design_repairs_when_another_output_is_invalid
     )
 
     tasks_by_job = {item.builder_job_id: item for item in result.tasks}
-    assert tasks_by_job[job_ids[0]].expected_text == "fixed"
+    assert tasks_by_job[job_ids[0]].expected_texts == ["fixed"]
     assert job_ids[1] not in tasks_by_job
     assert qc_report.rejected_item_ids == []
     assert any("keeping its previous tasks" in message for message in logs)
@@ -435,7 +435,7 @@ def test_qc_round_keeps_valid_repairs_within_partially_invalid_task_design(
             "task_type": "fill_blank",
             "title": f"Knowledge task {index}",
             "prompt": f"Provide answer {index}.",
-            "expected_text": answer,
+            "expected_texts": [answer],
             "rubric": "The supplied answer is exact.",
             "metadata": {
                 "challenge_effort_self_assessment": {
@@ -465,7 +465,7 @@ def test_qc_round_keeps_valid_repairs_within_partially_invalid_task_design(
                 message="The answer still needs repair.",
             )
             for item in candidate.tasks
-            if item.expected_text != "fixed"
+            if item.expected_texts != ["fixed"]
         ]
         rejected = [issue.item_id for issue in issues if issue.item_id]
         return QcReport(
@@ -491,7 +491,7 @@ def test_qc_round_keeps_valid_repairs_within_partially_invalid_task_design(
         log=logs.append,
     )
 
-    assert [item.expected_text for item in result.tasks] == ["fixed"]
+    assert [item.expected_texts[0] for item in result.tasks] == ["fixed"]
     assert qc_report.rejected_item_ids == []
     assert any("keeping 1 structurally valid replacement" in message for message in logs)
 
@@ -586,7 +586,7 @@ def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeyp
     failed = _task("failed_task", dimension.id, blueprint.id)
     passed = _task("passed_task", dimension.id, blueprint.id)
     repaired = _task("failed_task", dimension.id, blueprint.id).model_copy(
-        update={"expected_text": "supported result"}
+        update={"expected_texts": ["supported result"]}
     )
     initial_suite = TaskSuite(
         spec=spec,
@@ -649,7 +649,7 @@ def test_qc_repair_replaces_only_failed_task_inside_multi_task_blueprint(monkeyp
     )
 
     assert [item.id for item in run_ready_suite.tasks] == ["failed_task", "passed_task"]
-    assert run_ready_suite.tasks[0].expected_text == "supported result"
+    assert run_ready_suite.tasks[0].expected_texts == ["supported result"]
     assert run_ready_suite.tasks[1].prompt == passed.prompt
 
 
@@ -678,7 +678,7 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
 
     def suite(answer: str) -> TaskSuite:
         task = _task("knowledge_task", dimension.id, blueprint.id).model_copy(
-            update={"expected_text": answer}
+            update={"expected_texts": [answer]}
         )
         return TaskSuite(
             spec=spec,
@@ -700,11 +700,11 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
         build_calls += 1
         revision = kwargs.get("revision_context_by_dimension")
         if build_calls in {3, 4}:
-            assert revision[dimension.id]["previous_tasks"][0]["expected_text"] == "best"
+            assert revision[dimension.id]["previous_tasks"][0]["expected_texts"] == ["best"]
         return suite(next(answers))
 
     def fake_qc(candidate_suite, config):
-        answer = candidate_suite.tasks[0].expected_text
+        answer = candidate_suite.tasks[0].expected_texts[0]
         issue_count = {"initial": 2, "best": 1, "worse": 2, "fixed": 0}[answer]
         issues = [
             QcIssue(
@@ -733,7 +733,7 @@ def test_qc_loop_discards_regressive_repair_and_retries_from_best(monkeypatch) -
         log=logs.append,
     )
 
-    assert run_ready_suite.tasks[0].expected_text == "fixed"
+    assert run_ready_suite.tasks[0].expected_texts == ["fixed"]
     assert qc_report.rejected_item_ids == []
     assert any("discarded non-improving replacement" in message for message in logs)
 
@@ -770,13 +770,13 @@ def test_qc_loop_keeps_only_items_with_fewer_blocking_errors(monkeypatch) -> Non
         ),
     ]
     original_a = _task("task_a", dimension.id, blueprints[0].id).model_copy(
-        update={"expected_text": "a-original"}
+        update={"expected_texts": ["a-original"]}
     )
     original_b = _task("task_b", dimension.id, blueprints[1].id).model_copy(
-        update={"expected_text": "b-original"}
+        update={"expected_texts": ["b-original"]}
     )
-    repaired_a = original_a.model_copy(update={"expected_text": "a-fixed"})
-    repaired_b = original_b.model_copy(update={"expected_text": "b-regressed"})
+    repaired_a = original_a.model_copy(update={"expected_texts": ["a-fixed"]})
+    repaired_b = original_b.model_copy(update={"expected_texts": ["b-regressed"]})
     initial_suite = TaskSuite(
         spec=spec,
         objective=spec.objective,
@@ -817,7 +817,7 @@ def test_qc_loop_keeps_only_items_with_fewer_blocking_errors(monkeypatch) -> Non
         )
 
     def fake_qc(candidate, config):
-        answers = [item.expected_text for item in candidate.tasks]
+        answers = [item.expected_texts[0] for item in candidate.tasks]
         if answers == ["a-original", "b-original"]:
             return report(("task_a", 1), ("task_b", 1))
         if answers == ["a-fixed", "b-regressed"]:
@@ -835,7 +835,7 @@ def test_qc_loop_keeps_only_items_with_fewer_blocking_errors(monkeypatch) -> Non
         log=logs.append,
     )
 
-    assert [item.expected_text for item in result.tasks] == ["a-fixed"]
+    assert [item.expected_texts[0] for item in result.tasks] == ["a-fixed"]
     assert qc_report.issues == []
     assert any("kept 1 improved item repair(s), rolled back 1" in message for message in logs)
 
@@ -846,7 +846,7 @@ def test_qc_repair_preserves_task_order_and_replaces_resource_by_id() -> None:
     failed = _task("a_failed", "knowledge", "knowledge_family").model_copy(
         update={"resource_ids": ["failed_evidence"]}
     )
-    repaired = failed.model_copy(update={"expected_text": "supported result"})
+    repaired = failed.model_copy(update={"expected_texts": ["supported result"]})
     previous = TaskSuite(
         spec=spec,
         objective="Evaluate grounded knowledge.",
@@ -877,7 +877,7 @@ def test_qc_repair_preserves_task_order_and_replaces_resource_by_id() -> None:
     merged = _merge_repaired_suite(previous, repair)
 
     assert [task.id for task in merged.tasks] == ["z_kept", "a_failed"]
-    assert merged.tasks[1].expected_text == "supported result"
+    assert merged.tasks[1].expected_texts == ["supported result"]
     assert merged.resources[0].content_summary == "Corrected supporting evidence."
 
 
@@ -886,7 +886,7 @@ def test_partial_qc_repair_merges_only_resources_used_by_kept_items() -> None:
 
     def item_with_resource(item_id: str, resource_id: str, answer: str) -> BenchmarkItem:
         item = _task(item_id, "knowledge", "knowledge_family").model_copy(
-            update={"expected_text": answer}
+            update={"expected_texts": [answer]}
         )
         definition = TaskDefinition(
             id=item_id,
@@ -894,7 +894,7 @@ def test_partial_qc_repair_merges_only_resources_used_by_kept_items() -> None:
             task_type=TaskType.fill_blank,
             title=item_id,
             prompt=item.prompt,
-            expected_text=answer,
+            expected_texts=[answer],
             resource_ids=[resource_id],
         )
         return item.model_copy(update={"source_definition": definition})
@@ -926,7 +926,7 @@ def test_partial_qc_repair_merges_only_resources_used_by_kept_items() -> None:
 
     merged = _merge_repaired_suite(previous, repaired, item_ids={"task_a"})
 
-    assert [item.expected_text for item in merged.tasks] == ["a-fixed", "b-original"]
+    assert [item.expected_texts[0] for item in merged.tasks] == ["a-fixed", "b-original"]
     assert [resource.content_summary for resource in merged.resources] == [
         "A repaired",
         "B original",

@@ -59,9 +59,11 @@ def _task_from_raw(
         assets=raw.get("assets", []),
         choices=choices,
         correct_choice_ids=correct_choice_ids,
-        expected_text=(
-            str(raw["expected_text"]) if raw.get("expected_text") is not None else None
-        ),
+        expected_texts=[
+            str(value).strip()
+            for value in raw.get("expected_texts", [])
+            if value is not None and str(value).strip()
+        ],
         rubric=str(raw["rubric"]) if raw.get("rubric") is not None else None,
         judge_tools=[
             value for value in raw.get("judge_tools", []) if isinstance(value, dict)

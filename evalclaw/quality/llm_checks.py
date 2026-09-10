@@ -381,7 +381,7 @@ def _llm_qc(
             "assets": [asset.model_dump(mode="json") for asset in item.assets],
             "choices": [choice.model_dump(mode="json") for choice in item.choices],
             "correct_choice_ids": item.correct_choice_ids,
-            "expected_text": item.expected_text,
+            "expected_texts": item.expected_texts,
             "rubric": None if item.task_type == TaskType.choice else item.rubric,
             "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
             "output_contract": item.output_contract,

@@ -114,9 +114,9 @@ def _static_item_issues(item: BenchmarkItem) -> list[QcIssue]:
                     "Rewrite choices so every candidate is distinct.",
                 )
             )
-    if item.task_type == TaskType.fill_blank and not item.expected_text:
+    if item.task_type == TaskType.fill_blank and not item.expected_texts:
         issues.append(
-            _issue(item.id, QcSeverity.error, QcCategory.scoring, "Fill-blank item lacks expected_text.")
+            _issue(item.id, QcSeverity.error, QcCategory.scoring, "Fill-blank item lacks expected_texts.")
         )
     if item.task_type in {TaskType.generation, TaskType.multi_turn} and not item.rubric:
         issues.append(

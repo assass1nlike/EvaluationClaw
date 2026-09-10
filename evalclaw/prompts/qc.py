@@ -43,8 +43,10 @@ Do not accept a field merely because it contains plausible prose.
 Apply task-type requirements according to what the runner actually consumes:
 - choice needs at least two distinct id/text choices and one or more valid
   correct_choice_ids; multi-select is scored by exact set equality.
-- fill_blank needs one non-empty expected_text and a prompt that makes the
-  exact required response format unambiguous.
+- fill_blank needs a non-empty expected_texts list and a prompt that makes the
+  exact required response format unambiguous. Every listed answer is scored
+  correct, so the prompt must state the constraints or enumerate every correct
+  answer, ensuring no correct answer outside the list is possible.
 - generation and multi_turn need a concrete judge rubric. generation may use
   python_tests as Judge evidence; its test code must consume {model_output}.
 - agent needs an environment whose actual evaluator scores the
