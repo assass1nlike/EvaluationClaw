@@ -31,6 +31,7 @@ from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_openai,
     evalclaw_tool_result_to_openai_response_input,
 )
+from ..research.authoritative import load_source, search_sources
 from ..research.backends import fetch_url_text, web_search
 from ..types import (
     AgentEnvironmentType,
@@ -236,6 +237,56 @@ _PLANNER_TOOLS: list[ToolSpec] = [
 ]
 
 
+_AUTHORITATIVE_TOOLS: list[ToolSpec] = [
+    ToolSpec(
+        name="search_sources",
+        description=(
+            "Search a fixed catalog of authoritative sources (curated benchmarks, HuggingFace "
+            "datasets, Wikipedia, arXiv) for material relevant to a benchmark-design query. "
+            "Returns candidates each with a ref, title, and short description."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Focused search query."},
+                "max_results": {
+                    "type": "integer",
+                    "description": "Maximum number of candidates to return.",
+                },
+            },
+            "required": ["query"],
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
+        name="load_source",
+        description=(
+            "Read raw content from one source ref returned by search_sources. For "
+            "hf://datasets/{id} it returns raw dataset rows; for a Wikipedia or arXiv URL it "
+            "returns the raw article text or abstract."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "ref": {
+                    "type": "string",
+                    "description": (
+                        "Source ref from search_sources (e.g. hf://datasets/{id}, "
+                        "https://en.wikipedia.org/wiki/{title}, https://arxiv.org/abs/{id})."
+                    ),
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of rows to return for a dataset.",
+                },
+            },
+            "required": ["ref"],
+            "additionalProperties": False,
+        },
+    ),
+]
+
+
 def _plan_tool_keys(simplified: bool) -> str:
     return "objective, dimensions" if simplified else "objective, constraints, planner_notes, dimensions"
 
@@ -289,6 +340,21 @@ def _planner_write_tool(simplified: bool) -> ToolSpec:
             "additionalProperties": False,
         },
     )
+
+
+def _planner_tool_list(
+    config: BenchmarkConfig,
+    *,
+    read_tool: ToolSpec,
+    write_tool: ToolSpec,
+) -> list[ToolSpec]:
+    """Select the Planner's tool set based on the configured research mode."""
+    if config.ablation_authoritative_research:
+        return [*_AUTHORITATIVE_TOOLS, read_tool, write_tool]
+    web_enabled = bool(config.use_web_research) and str(config.search_backend).lower() != "none"
+    if web_enabled:
+        return [*_PLANNER_TOOLS, read_tool, write_tool]
+    return [read_tool, write_tool]
 
 
 def _bounded_int(value: object, *, default: int, minimum: int, maximum: int) -> int:
@@ -464,6 +530,30 @@ def _execute_planner_tool(
                 name=call.name,
                 content=json.dumps({"url": url, "content": content}, ensure_ascii=False)[:max_chars],
             )
+        if call.name == "search_sources":
+            query = str(call.arguments.get("query") or "").strip()
+            if not query:
+                raise ValueError("query must be non-empty")
+            max_results = _bounded_int(
+                call.arguments.get("max_results"), default=8, minimum=1, maximum=20
+            )
+            candidates = search_sources(query, limit=max_results)
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=json.dumps(candidates, ensure_ascii=False)[:max_chars],
+            )
+        if call.name == "load_source":
+            ref = str(call.arguments.get("ref") or "").strip()
+            if not ref:
+                raise ValueError("ref must be non-empty")
+            limit = _bounded_int(call.arguments.get("limit"), default=5, minimum=1, maximum=20)
+            content = load_source(ref, limit=limit)
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=json.dumps({"ref": ref, "content": content}, ensure_ascii=False)[:max_chars],
+            )
         return ToolResult(
             tool_call_id=call.id,
             name=call.name,
@@ -520,15 +610,10 @@ def _run_planner_tool_loop(
     final_instruction = (
         "Commit your finished plan parts with update_plan, then stop with no further tool calls."
     )
-    web_enabled = bool(config.use_web_research) and str(config.search_backend).lower() != "none"
     simplified = config.ablation_simplified_contract
     read_tool = _planner_read_tool(simplified)
     write_tool = _planner_write_tool(simplified)
-    tools = (
-        [*_PLANNER_TOOLS, read_tool, write_tool]
-        if web_enabled
-        else [read_tool, write_tool]
-    )
+    tools = _planner_tool_list(config, read_tool=read_tool, write_tool=write_tool)
     messages: list[dict[str, Any]] = [{"role": "user", "content": user_content}]
     calls_used = 0
 
@@ -731,7 +816,11 @@ def _audit_plan(
                         "one suggested URL."
                     )
                 for url in source_urls:
-                    if not url.lower().startswith(("https://", "http://")):
+                    lowered = url.lower()
+                    if not (
+                        lowered.startswith(("https://", "http://"))
+                        or lowered.startswith("hf://datasets/")
+                    ):
                         issues.append(f"{design_prefix}: suggested URL is invalid: {url!r}.")
 
 
@@ -853,6 +942,7 @@ def _run_planner(
     system = benchmark_planner_system_prompt(
         BENCHMARK_PLANNER_SYSTEM_PROMPT,
         simplified=config.ablation_simplified_contract,
+        authoritative_research=config.ablation_authoritative_research,
     )
     base_resources = _planner_resources(instruction)
     debug_root = Path(config.planner_debug_dir).expanduser() if config.planner_debug_dir else None
@@ -936,8 +1026,9 @@ def _run_planner(
                         "issues": errors,
                         "previous_response": previous_response,
                         "instruction": (
-                            "Return the complete planning JSON file again. Fix every listed issue "
-                            "while changing sound parts as little as possible."
+                            "Use read_plan and update_plan to fix the listed issues in the existing "
+                            "planning document in place. Do not regenerate the whole plan; keep sound "
+                            "parts unchanged and only correct what each issue flags."
                         ),
                     },
                     ensure_ascii=False,

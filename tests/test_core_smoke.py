@@ -313,15 +313,16 @@ def test_task_builder_llm_failure_does_not_silently_fallback(monkeypatch) -> Non
         environment_type=AgentEnvironmentType.docker_workspace,
     )
 
-    with pytest.raises(RuntimeError, match="quota exhausted"):
-        build_task_suite(
-            spec,
-            [blueprint],
-            BenchmarkConfig(
-                **dummy_config_kwargs(),
-                use_web_research=False,
-            ),
-        )
+    suite = build_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            use_web_research=False,
+        ),
+    )
+
+    assert suite.tasks == []
 
 
 def test_task_builder_call_failure_does_not_use_structure_repairs(monkeypatch) -> None:
@@ -353,18 +354,18 @@ def test_task_builder_call_failure_does_not_use_structure_repairs(monkeypatch) -
         environment_type=AgentEnvironmentType.docker_workspace,
     )
 
-    with pytest.raises(RuntimeError, match="model call failed after 2 retry attempts"):
-        build_task_suite(
-            spec,
-            [blueprint],
-            BenchmarkConfig(
-                **dummy_config_kwargs(),
-                use_web_research=False,
-                task_builder_repair_attempts=5,
-            ),
-        )
+    suite = build_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            use_web_research=False,
+            task_builder_repair_attempts=5,
+        ),
+    )
 
     assert calls == 1
+    assert suite.tasks == []
 
 
 def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
@@ -738,15 +739,16 @@ def test_task_builder_rejects_overfilled_llm_output(monkeypatch) -> None:
         environment_type=AgentEnvironmentType.docker_workspace,
     )
 
-    with pytest.raises(RuntimeError, match="returned 2 task object"):
-        build_task_suite(
-            spec,
-            [blueprint],
-            BenchmarkConfig(
-                **dummy_config_kwargs(),
-                use_web_research=False,
-            ),
-        )
+    suite = build_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            use_web_research=False,
+        ),
+    )
+
+    assert suite.tasks == []
 
 
 def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
@@ -945,18 +947,19 @@ def test_task_builder_reports_truncation_after_separate_retry_limit(monkeypatch)
         environment_type=AgentEnvironmentType.docker_workspace,
     )
 
-    with pytest.raises(RuntimeError, match="output truncated after 3 retry attempt") as raised:
-        build_task_suite(
-            spec,
-            [blueprint],
-            BenchmarkConfig(
-                **dummy_config_kwargs(),
-                use_web_research=False,
-                task_builder_repair_attempts=2,
-            ),
-        )
+    suite = build_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            use_web_research=False,
+            task_builder_repair_attempts=2,
+        ),
+    )
 
-    assert "structural validation failed" not in str(raised.value)
+    assert suite.tasks == []
+    assert "output truncated after 3 retry attempt" in suite.construction_notes
+    assert "structural validation failed" not in suite.construction_notes
     assert calls == 4
 
 
@@ -1048,22 +1051,22 @@ def test_task_builder_missing_final_content_does_not_use_structure_repairs(monke
         source_plan={"strategy": "generated"},
     )
 
-    with pytest.raises(RuntimeError, match="no final content after one no-thinking recovery attempt"):
-        build_task_suite(
-            EvalSpec(
-                objective="Evaluate generated knowledge.",
-                dimensions=[dimension],
-                task_types=[TaskType.fill_blank],
-            ),
-            [blueprint],
-            BenchmarkConfig(
-                **dummy_config_kwargs(),
-                task_builder_max_workers=1,
-                task_builder_repair_attempts=5,
-            ),
-        )
+    suite = build_task_suite(
+        EvalSpec(
+            objective="Evaluate generated knowledge.",
+            dimensions=[dimension],
+            task_types=[TaskType.fill_blank],
+        ),
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            task_builder_max_workers=1,
+            task_builder_repair_attempts=5,
+        ),
+    )
 
     assert calls == 2
+    assert suite.tasks == []
 
 
 def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) -> None:
@@ -1164,19 +1167,46 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
     ]
 
 
-def test_parallel_task_builder_failure_stops_running_jobs_before_returning(monkeypatch) -> None:
+def test_parallel_task_builder_failure_abandons_only_failed_job(monkeypatch) -> None:
     slow_started = threading.Event()
     slow_finished = threading.Event()
 
     def task_builder_tools(payload, **kwargs):
         blueprint_id = payload["task_plan"]["builder_job_id"]
+        dimension_id = payload["task_plan"]["capability"]["id"]
+        challenge_effort = payload["task_plan"]["capability"].get("challenge_effort", "E3")
         if blueprint_id == "slow_blueprint":
             slow_started.set()
             try:
-                assert kwargs["stop_event"].wait(timeout=1)
+                time.sleep(0.15)
             finally:
                 slow_finished.set()
-            return '{"tasks": []}', []
+            response = json.dumps(
+                {
+                    "tasks": [
+                        {
+                            "id": "slow_task",
+                            "dimension_id": dimension_id,
+                            "challenge_effort": challenge_effort,
+                            "title": "Slow task",
+                            "prompt": "Complete the slow task.",
+                            "environment": {
+                                "type": "docker_workspace",
+                                "test_command": "python3 -c \"assert True\"",
+                            },
+                            "scoring": {"pass_criteria": "Done."},
+                            "metadata": {
+                                "challenge_effort_self_assessment": {
+                                    "requested_effort": challenge_effort,
+                                    "meets_requested_effort": True,
+                                    "rationale": "The task matches the requested construction effort.",
+                                }
+                            },
+                        }
+                    ]
+                }
+            )
+            return save_task_builder_response(payload, response), []
         assert slow_started.wait(timeout=1)
         raise RuntimeError("builder failed")
 
@@ -1211,17 +1241,19 @@ def test_parallel_task_builder_failure_stops_running_jobs_before_returning(monke
         ),
     ]
 
-    with pytest.raises(RuntimeError, match="builder failed"):
-        build_task_suite(
-            spec,
-            blueprints,
-            BenchmarkConfig(
-                **dummy_config_kwargs(),
-                task_builder_max_workers=2,
-                task_builder_repair_attempts=0,
-            ),
-        )
+    suite = build_task_suite(
+        spec,
+        blueprints,
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            task_builder_max_workers=2,
+            task_builder_repair_attempts=0,
+        ),
+    )
+
     assert slow_finished.is_set()
+    assert [task.id for task in suite.tasks] == ["slow_blueprint_task_1"]
+    assert "builder failed" in suite.construction_notes
 
 
 def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path) -> None:
@@ -1376,20 +1408,21 @@ def test_task_builder_saves_all_raw_responses_when_repairs_fail(monkeypatch, tmp
         environment_type=AgentEnvironmentType.vm,
     )
 
-    with pytest.raises(RuntimeError, match="environment.evaluation") as raised:
-        build_task_suite(
-            spec,
-            [blueprint],
-            BenchmarkConfig(
-                **dummy_config_kwargs(),
-                use_web_research=False,
-                task_builder_repair_attempts=1,
-                task_builder_debug_dir=str(tmp_path / "builder-debug"),
-            ),
-        )
+    suite = build_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            use_web_research=False,
+            task_builder_repair_attempts=1,
+            task_builder_debug_dir=str(tmp_path / "builder-debug"),
+        ),
+    )
 
-    assert "structural validation failed after 1 repair attempt" in str(raised.value)
-    assert "output truncated" not in str(raised.value)
+    assert suite.tasks == []
+    assert "environment.evaluation" in suite.construction_notes
+    assert "structural validation failed after 1 repair attempt" in suite.construction_notes
+    assert "output truncated" not in suite.construction_notes
     responses = sorted(tmp_path.glob("builder-debug/**/*.response.txt"))
     diagnostics = sorted(tmp_path.glob("builder-debug/**/*.diagnostics.json"))
     assert len(responses) == 2

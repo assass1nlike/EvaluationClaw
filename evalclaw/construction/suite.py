@@ -1006,6 +1006,7 @@ def build_task_suite(
                 source_strategy=blueprint.source_strategy,
                 requires_environment=blueprint.requires_environment,
                 simplified=simplified,
+                challenge_effort=blueprint.task_designs[0].challenge_effort.value,
             )
             if blueprint.requires_environment:
                 system_prompt += "\n\n" + environment_skill_system_prompt(blueprint)
@@ -1303,6 +1304,7 @@ def build_task_suite(
         repair_attempts = max(0, int(getattr(config, "task_builder_repair_attempts", 2) or 0))
         last_validation_issues: list[str] = []
         last_failure_is_output = False
+        last_failure_is_call_error = False
         last_truncation_error: LLMOutputTruncatedError | None = None
         best_partial_result: _ParsedBuilderResponse | None = None
         structural_repair_path: Path | None = None
@@ -1439,6 +1441,7 @@ def build_task_suite(
                 )
                 break
             except TaskBuilderCallError as exc:
+                last_failure_is_call_error = True
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
                 persist_builder_debug(
                     attempt=attempt,
@@ -1446,8 +1449,9 @@ def build_task_suite(
                     validation_issues=last_validation_issues,
                     error=exc,
                 )
-                raise strict_error(blueprint, str(exc)) from exc
+                break
             except LLMFinalContentMissingError as exc:
+                last_failure_is_call_error = True
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
                 persist_builder_debug(
                     attempt=attempt,
@@ -1455,8 +1459,9 @@ def build_task_suite(
                     validation_issues=last_validation_issues,
                     error=exc,
                 )
-                raise strict_error(blueprint, str(exc)) from exc
+                break
             except TaskBuilderTruncationSummaryError as exc:
+                last_failure_is_call_error = True
                 last_validation_issues = [f"{type(exc).__name__}: {exc}"]
                 persist_builder_debug(
                     attempt=attempt,
@@ -1464,7 +1469,7 @@ def build_task_suite(
                     validation_issues=last_validation_issues,
                     error=exc,
                 )
-                raise strict_error(blueprint, str(exc)) from exc
+                break
             except CancelledError:
                 raise
             except Exception as exc:
@@ -1556,6 +1561,10 @@ def build_task_suite(
                 f"{truncation_retries} retry attempt(s): "
                 f"{type(last_truncation_error).__name__}: {last_truncation_error}"
             )
+        elif last_failure_is_call_error:
+            failure_message = "task-builder call failed: " + "; ".join(
+                last_validation_issues[:6]
+            )
         else:
             failure_message = (
                 "structural validation failed after "
@@ -1593,7 +1602,23 @@ def build_task_suite(
                 tasks=[],
                 notes=result_notes,
             )
-        raise strict_error(blueprint, failure_message)
+        result_notes.append(f"{blueprint.id}: {failure_message}")
+        if job_revision is not None:
+            emit(
+                f"  Task builder: no valid replacement produced for {label} "
+                f"({failure_message}); keeping its previous tasks."
+            )
+        else:
+            emit(
+                f"  Task builder: abandoning {label} ({failure_message}); "
+                "its tasks are excluded from the benchmark."
+            )
+        return _BlueprintBuildResult(
+            order=job.order,
+            resources=[],
+            tasks=[],
+            notes=result_notes,
+        )
 
     max_workers = max(1, int(getattr(config, "task_builder_max_workers", 4) or 1))
     completed_jobs = 0

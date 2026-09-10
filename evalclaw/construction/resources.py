@@ -5,6 +5,7 @@ import re
 from typing import Any
 
 from ..models.roles import role_model_settings
+from ..research.authoritative import load_source
 from ..research.backends import (
     SearchError,
     SearchResult,
@@ -41,7 +42,10 @@ def _source_context(
     parts: list[str] = []
     for source in sources:
         if source.kind == SourceKind.hf_dataset:
-            parts.append(f"--- {source.title} ---\nURI: {source.uri}\n{source.notes}")
+            content = source.notes
+            if source.uri.startswith("hf://datasets/"):
+                content = load_source(source.uri, limit=3)
+            parts.append(f"--- {source.title} ---\nURI: {source.uri}\n{content}")
             continue
         text = retained_by_url.get(source.uri)
         if text is None and source.uri:
@@ -119,7 +123,11 @@ def _select_blueprint_sources(
         return []
     sources = [
         BenchmarkSource(
-            kind=SourceKind.web,
+            kind=(
+                SourceKind.hf_dataset
+                if uri.lower().startswith("hf://datasets/")
+                else SourceKind.web
+            ),
             uri=uri,
             title=uri,
             notes="Planner-suggested source from the benchmark plan.",

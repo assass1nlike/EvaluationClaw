@@ -241,15 +241,22 @@ def test_call_llm_litellm_backend_propagates_network_error(monkeypatch) -> None:
 
 
 def test_orchestrator_tool_truncation_is_propagated(monkeypatch) -> None:
-    import litellm as _litellm
+    stream_calls = 0
 
-    completion_calls = 0
-    def truncated(**kwargs):
-        nonlocal completion_calls
-        completion_calls += 1
-        return _chat_stream("partial", "length")
+    def truncated(url, headers, body, **kwargs):
+        nonlocal stream_calls
+        stream_calls += 1
+        return {
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": "partial"},
+                    "finish_reason": "length",
+                }
+            ]
+        }
 
-    monkeypatch.setattr(_litellm, "completion", truncated)
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", truncated)
 
     with pytest.raises(llm.LLMOutputTruncatedError):
         llm.call_orchestrator_with_tools(
@@ -261,19 +268,13 @@ def test_orchestrator_tool_truncation_is_propagated(monkeypatch) -> None:
             tools=[],
         )
 
-    assert completion_calls == 2
+    assert stream_calls == 2
 
 
 def test_orchestrator_tool_empty_stream_is_rejected(monkeypatch) -> None:
-    import litellm as _litellm
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", lambda url, headers, body, **kwargs: {})
 
-    monkeypatch.setattr(
-        _litellm,
-        "completion",
-        lambda **kwargs: iter([]),
-    )
-
-    with pytest.raises(llm.LLMProtocolAdapterError, match="empty response stream"):
+    with pytest.raises(llm.LLMProtocolAdapterError, match="no assistant message"):
         llm.call_orchestrator_with_tools(
             [{"role": "user", "content": "build one task"}],
             model="deepseek-v4-pro",
@@ -284,8 +285,6 @@ def test_orchestrator_tool_empty_stream_is_rejected(monkeypatch) -> None:
 
 
 def test_orchestrator_tools_auto_connect_live_streamer(monkeypatch, tmp_path) -> None:
-    import litellm as _litellm
-
     streamed: list[str] = []
     requested: list[tuple[object, str]] = []
 
@@ -294,32 +293,22 @@ def test_orchestrator_tools_auto_connect_live_streamer(monkeypatch, tmp_path) ->
         return streamed.append
 
     monkeypatch.setattr("evalclaw.live.streamers.get_streamer", get_streamer)
-    monkeypatch.setattr(
-        _litellm,
-        "completion",
-        lambda **kwargs: iter(
-            [
+
+    def fake_stream(url, headers, body, on_token=None, **kwargs):
+        if on_token is not None:
+            on_token("planning")
+            on_token("task builder output")
+        return {
+            "choices": [
                 {
-                    "choices": [
-                        {
-                            "index": 0,
-                            "delta": {"reasoning_content": "planning"},
-                            "finish_reason": None,
-                        }
-                    ]
-                },
-                {
-                    "choices": [
-                        {
-                            "index": 0,
-                            "delta": {"content": "task builder output"},
-                            "finish_reason": "stop",
-                        }
-                    ]
-                },
+                    "index": 0,
+                    "message": {"role": "assistant", "content": "task builder output"},
+                    "finish_reason": "stop",
+                }
             ]
-        ),
-    )
+        }
+
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", fake_stream)
 
     response = llm.call_orchestrator_with_tools(
         [{"role": "user", "content": "build one task"}],
@@ -336,56 +325,35 @@ def test_orchestrator_tools_auto_connect_live_streamer(monkeypatch, tmp_path) ->
     assert streamed == ["planning", "task builder output"]
 
 
-def test_orchestrator_uses_openai_litellm_route_for_custom_base_url(monkeypatch) -> None:
-    import litellm as _litellm
-
+def test_orchestrator_uses_openai_direct_route_for_custom_base_url(monkeypatch) -> None:
     captured: dict = {}
 
-    def complete(**kwargs):
-        captured.update(kwargs)
-        return iter(
-            [
+    def fake_stream(url, headers, body, **kwargs):
+        captured.update({"url": url, "headers": headers, "body": body})
+        return {
+            "choices": [
                 {
-                    "choices": [
-                        {
-                            "index": 0,
-                            "delta": {
-                                "role": "assistant",
-                                "tool_calls": [
-                                    {
-                                        "index": 0,
-                                        "id": "call_1",
-                                        "type": "function",
-                                        "function": {
-                                            "name": "run_python",
-                                            "arguments": '{"code":',
-                                        },
-                                    }
-                                ],
-                            },
-                        }
-                    ]
-                },
-                {
-                    "choices": [
-                        {
-                            "index": 0,
-                            "delta": {
-                                "tool_calls": [
-                                    {
-                                        "index": 0,
-                                        "function": {"arguments": '"print(4)"}'},
-                                    }
-                                ]
-                            },
-                            "finish_reason": "tool_calls",
-                        }
-                    ]
-                },
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": None,
+                        "tool_calls": [
+                            {
+                                "id": "call_1",
+                                "type": "function",
+                                "function": {
+                                    "name": "run_python",
+                                    "arguments": '{"code":"print(4)"}',
+                                },
+                            }
+                        ],
+                    },
+                    "finish_reason": "tool_calls",
+                }
             ]
-        )
+        }
 
-    monkeypatch.setattr(_litellm, "completion", complete)
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", fake_stream)
 
     response = llm.call_orchestrator_with_tools(
         [{"role": "user", "content": "Compute a value."}],
@@ -404,11 +372,10 @@ def test_orchestrator_uses_openai_litellm_route_for_custom_base_url(monkeypatch)
         ],
     )
 
-    assert captured["model"] == "openai/deepseek-v4-flash"
-    assert captured["base_url"] == "https://api.deepseek.com"
-    assert captured["stream"] is True
-    assert captured["tools"][0]["function"]["name"] == "run_python"
-    assert "tool_choice" not in captured
+    assert captured["url"] == "https://api.deepseek.com/chat/completions"
+    assert captured["body"]["model"] == "deepseek-v4-flash"
+    assert captured["body"]["tools"][0]["function"]["name"] == "run_python"
+    assert "tool_choice" not in captured["body"]
     assert response.tool_calls[0].name == "run_python"
 
 
@@ -473,15 +440,21 @@ def test_orchestrator_tools_forward_reasoning_effort_to_openai_compatible_endpoi
 
 
 def test_orchestrator_deepseek_json_recovery_disables_thinking(monkeypatch) -> None:
-    import litellm as _litellm
-
     captured: dict = {}
 
-    def complete(**kwargs):
-        captured.update(kwargs)
-        return _chat_stream('{"tasks": []}')
+    def fake_stream(url, headers, body, **kwargs):
+        captured.update({"url": url, "body": body})
+        return {
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": '{"tasks": []}'},
+                    "finish_reason": "stop",
+                }
+            ]
+        }
 
-    monkeypatch.setattr(_litellm, "completion", complete)
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", fake_stream)
 
     response = llm.call_orchestrator_with_tools(
         [{"role": "user", "content": "Return the final task JSON."}],
@@ -493,9 +466,8 @@ def test_orchestrator_deepseek_json_recovery_disables_thinking(monkeypatch) -> N
     )
 
     assert response.content == '{"tasks": []}'
-    assert captured["response_format"] == {"type": "json_object"}
-    assert captured["extra_body"] == {"thinking": {"type": "disabled"}}
-    assert captured["stream"] is True
+    assert captured["body"]["response_format"] == {"type": "json_object"}
+    assert captured["body"]["thinking"] == {"type": "disabled"}
 
 
 def test_call_llm_propagates_litellm_adapter_failure(monkeypatch) -> None:
@@ -722,6 +694,33 @@ def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
     assert captured["body"]["stream"] is True
     assert captured["body"]["response_format"] == {"type": "json_object"}
     assert captured["body"]["reasoning_effort"] == "high"
+
+
+def test_target_call_sends_model_max_output_budget(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_stream(url, headers, body, **kwargs):
+        captured.update({"body": body})
+        return {
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": "answer"},
+                    "finish_reason": "stop",
+                }
+            ]
+        }
+
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", fake_stream)
+    target = TargetModelConfig(
+        provider="openai_compatible",
+        model="deepseek-v4-flash",
+        api_key="test-key",
+        base_url="https://api.deepseek.com",
+    )
+
+    assert llm.call_target_model("question", target, user_content="question") == "answer"
+    assert captured["body"]["max_tokens"] == 393_216
 
 
 def test_target_multimodal_call_uses_streaming_route(monkeypatch) -> None:

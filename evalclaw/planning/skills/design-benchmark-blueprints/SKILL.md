@@ -74,11 +74,13 @@ Make the sum of the task counts across all dimensions equal the user's target ta
 
 Use only these `challenge_effort` levels:
 
-- `E1`: simple, direct construction with minimal planning.
-- `E2`: moderate planning with meaningful edge cases.
-- `E3`: maximum construction effort, with deep planning, source use when helpful, difficult content, and robust evaluation design.
+- `E1`: simple construction — the task is meaningfully challenging but stays below research-level depth.
+- `E2`: difficult construction — the task should require a non-obvious insight or a multi-step rigorous argument.
+- `E3`: maximum construction effort — the task is extremely difficult: requiring broad knowledge, tedious reasoning, or bold hypotheses, and using every technique to raise difficulty.
 
 The framework has exactly these three effort levels.
+
+The higher the `challenge_effort`, the less you should constrain the task content. Do not prescribe a narrow example concept or a tight coverage list that would cap how hard the Builder can make the task; give the Builder room to reach the level's difficulty ceiling, especially for E2 and E3.
 
 Use `environment_requirements` only for `agent` tasks, choosing the environment category that provides the required tools or state. `multi_turn` tasks express their dialogue behavior through `interaction_requirements` and do not use an execution environment. Leave `environment_requirements` empty for `choice`, `fill_blank`, `generation`, and `multi_turn`; if executable interaction is essential, design an `agent` task instead.
 
@@ -102,7 +104,13 @@ Choose exactly one `source_plan.strategy` for every TaskDesign:
 
 For `adapted`, `reused`, and `imported_dataset`, provide at least one usable URL in `suggested_urls`. Formatting or packaging changes are not content-level changes. When only a source's format or style matters, express those requirements directly in the TaskDesign and use `generated` without a URL.
 
-At the end of this step, determine the JSON for every task group and express all information in your design through JSON fields. The complete field set for one task-group JSON object is `plan.dimensions[].task_designs` in `reference/universal_format.json`. This field specification is shared by all tasks, so an individual task does not necessarily need—and usually will not need—to fill every field.
+At the end of this step, determine the JSON for every task group and express all information in your design through JSON fields. The complete field set for one task-group JSON object is `plan.dimensions[].task_designs` in `reference/universal_format.json`.
+
+**Field Filling Rules**
+
+- **Always fill (every TaskDesign):** `task_type`, `task_count`; `content_design` with a concrete `description` or `purpose`; `source_plan.strategy`.
+- **Fill when the task type or strategy requires it:** `environment_requirements` (agent only); `interaction_requirements` (multi_turn only, set `followup_mode`); `source_plan.suggested_urls` (`adapted`/`reused`/`imported_dataset` only).
+- **Fill if the task needs them; leave empty otherwise:** `challenge_effort` (defaults to E3); `input_requirements`, `output_requirements`, `scoring_contract`, `construction_requirements`, `type_specific_requirements`, `metadata`; `content_design.coverage_requirements` / `variation_requirements` / `task_relationships` / `exclusions`; `source_plan.search_queries` / `requirements` / `asset_source_overrides` / `usage_guidance`.
 
 The framework owns canonical plan, dimension, TaskDesign, task, resource, and
 choice-option ids. Do not invent ids in the planning JSON. Existing ids supplied

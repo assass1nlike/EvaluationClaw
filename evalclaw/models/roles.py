@@ -1,8 +1,8 @@
 """Resolve per-role model settings."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Literal
+from dataclasses import dataclass, field
+from typing import Any, Literal
 
 from ..types import BenchmarkConfig, TargetModelConfig
 
@@ -16,6 +16,7 @@ class RoleModelSettings:
     api_key: str | None
     base_url: str | None
     reasoning_effort: str | None = None
+    extra_body: dict[str, Any] = field(default_factory=dict)
 
     @property
     def configured(self) -> bool:
@@ -27,6 +28,7 @@ class RoleModelSettings:
             "provider": self.provider,
             "api_key": self.api_key,
             "base_url": self.base_url,
+            "extra_body": self.extra_body,
         }
         if self.reasoning_effort:
             kwargs["reasoning_effort"] = self.reasoning_effort
@@ -41,6 +43,7 @@ def role_model_settings(config: BenchmarkConfig, role: ModelRole) -> RoleModelSe
         api_key=getattr(config, f"{role}_api_key"),
         base_url=getattr(config, f"{role}_base_url"),
         reasoning_effort=getattr(config, f"{role}_reasoning_effort"),
+        extra_body=getattr(config, f"{role}_extra_body", {}),
     )
 
 

@@ -121,3 +121,40 @@ def test_llm_qc_omits_choice_rubric(monkeypatch) -> None:
     )
 
     assert captured["items"][0]["rubric"] is None
+
+
+def test_ablation_skips_qc() -> None:
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate knowledge.",
+        approach="Use a fill-blank task.",
+        task_types=[TaskType.fill_blank],
+    )
+    suite = TaskSuite(
+        spec=EvalSpec(
+            objective="Evaluate knowledge.",
+            dimensions=[dimension],
+            task_types=[TaskType.fill_blank],
+        ),
+        objective="Evaluate knowledge.",
+        tasks=[
+            BenchmarkItem(
+                id="blank_1",
+                dimension_id="knowledge",
+                task_type=TaskType.fill_blank,
+                prompt="Fill in the blank.",
+                # Missing expected_texts would fail static QC when it runs.
+            )
+        ],
+    )
+
+    report = run_qc_gate(
+        suite,
+        BenchmarkConfig(ablation_simplified_contract=True),
+    )
+
+    assert report.passed_item_ids == ["blank_1"]
+    assert report.rejected_item_ids == []
+    assert report.is_acceptable is True
+    assert "skipped" in report.summary

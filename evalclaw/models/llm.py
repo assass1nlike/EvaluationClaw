@@ -686,7 +686,14 @@ class TargetToolModelResponse:
 
 
 _REASONING_MODEL_MARKERS = ("gpt-5", "o1", "o3", "o4", "deepseek-reasoner")
-_MAX_COMPLETION_TOKENS_CAP = 65536
+# Highest output budget each model accepts, so long reasoning is never cut off
+# by the framework. Models absent from this table keep the framework floor
+# instead of being asked for more than they advertise.
+_MODEL_MAX_OUTPUT_TOKENS: dict[str, int] = {
+    "deepseek-v4-flash": 393_216,
+    "deepseek-v4-pro": 393_216,
+}
+_MAX_COMPLETION_TOKENS_CAP = 393_216
 
 
 def _is_reasoning_model(model: str) -> bool:
@@ -712,7 +719,14 @@ def _resolve_reasoning_effort(
 
 
 def _effective_max_tokens(model: str, max_tokens: int) -> int:
-    """Apply the framework-wide minimum output budget."""
+    """Apply the output budget the model accepts.
+
+    Known models get their full advertised budget; anything else keeps the
+    framework floor.
+    """
+    model_max = _MODEL_MAX_OUTPUT_TOKENS.get(model.split("/", 1)[-1].lower())
+    if model_max is not None:
+        return model_max
     return max(max_tokens, DEFAULT_MAX_OUTPUT_TOKENS)
 
 
@@ -780,6 +794,7 @@ def _call_litellm(
     on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "llm",
+    extra_body: Optional[dict[str, Any]] = None,
 ) -> str:
     import litellm
 
@@ -791,6 +806,7 @@ def _call_litellm(
         "messages": messages,
         "timeout": 300,
     }
+    extra = dict(extra_body or {})
     if (
         expect_json
         and base_url
@@ -801,11 +817,13 @@ def _call_litellm(
         # DeepSeek V4's thinking mode can consume the entire response window
         # before emitting the JSON body. Match the direct OpenAI-compatible
         # path for framework calls that explicitly require structured JSON.
-        kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
+        extra["thinking"] = {"type": "disabled"}
         kwargs["response_format"] = {"type": "json_object"}
     elif reduce_reasoning_effort:
         if model.startswith("deepseek-v4"):
-            kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
+            extra["thinking"] = {"type": "disabled"}
+    if extra:
+        kwargs["extra_body"] = extra
     resolved_effort = None
     if not (model.startswith("deepseek-v4") and expect_json):
         resolved_effort = _resolve_reasoning_effort(
@@ -983,6 +1001,7 @@ def call_llm(
     on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "llm",
+    extra_body: Optional[dict[str, Any]] = None,
 ) -> str:
     """Call the orchestrator LLM.
 
@@ -1044,6 +1063,7 @@ def call_llm(
         budget = _effective_max_tokens(model_name, max_tokens)
         for attempt in range(2 if retry_on_truncation else 1):
             body: dict[str, Any] = {"model": model_name, "messages": messages_dict, "max_tokens": budget}
+            body.update(extra_body or {})
             resolved_effort = _resolve_reasoning_effort(
                 model_name, reasoning_effort, reduce_reasoning_effort
             )
@@ -1135,6 +1155,7 @@ def call_llm(
         on_token=on_token,
         trace_dir=trace_dir,
         trace_name=trace_name,
+        extra_body=extra_body,
     )
 
 
@@ -1153,6 +1174,7 @@ def _call_openai_compatible_tools(
     on_token: Optional[Any],
     trace_dir: str | Path | None,
     trace_name: str,
+    extra_body: Optional[dict[str, Any]] = None,
 ) -> TargetToolModelResponse:
     """Call an OpenAI-compatible endpoint while preserving native tool calls."""
     key = (
@@ -1172,6 +1194,7 @@ def _call_openai_compatible_tools(
             "messages": request_messages,
             "max_tokens": budget,
         }
+        body.update(extra_body or {})
         if tools:
             body["tools"] = openai_tools(tools)
         elif model.startswith("deepseek-v4") and expect_json:
@@ -1282,6 +1305,7 @@ def call_orchestrator_with_tools(
     on_token: Optional[Any] = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "llm-tools",
+    extra_body: Optional[dict[str, Any]] = None,
 ) -> TargetToolModelResponse:
     """Call the orchestrator with provider-native tools.
 
@@ -1380,7 +1404,6 @@ def call_orchestrator_with_tools(
         base_url
         and resolved_provider == "openai_compatible"
         and backend != "litellm"
-        and resolved_effort
     ):
         return _call_openai_compatible_tools(
             messages,
@@ -1396,6 +1419,7 @@ def call_orchestrator_with_tools(
             on_token=on_token,
             trace_dir=trace_dir,
             trace_name=trace_name,
+            extra_body=extra_body,
         )
 
     import litellm
@@ -1412,11 +1436,14 @@ def call_orchestrator_with_tools(
             "timeout": 300,
             "max_tokens": budget,
         }
+        extra = dict(extra_body or {})
         if tool_specs:
             kwargs["tools"] = openai_tools(tool_specs)
         elif model_name.startswith("deepseek-v4") and expect_json:
             kwargs["response_format"] = {"type": "json_object"}
-            kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
+            extra["thinking"] = {"type": "disabled"}
+        if extra:
+            kwargs["extra_body"] = extra
         if api_key:
             kwargs["api_key"] = api_key
         if base_url:
@@ -1602,6 +1629,7 @@ def call_target_model_with_tools(
         "tool_choice": "auto",
         "max_tokens": _effective_max_tokens(target.model, max_tokens),
     }
+    body.update(target.extra_body or {})
     if not tools:
         body.pop("tools", None)
         body.pop("tool_choice", None)
@@ -1672,7 +1700,7 @@ def call_target_model(
                 "provider": "anthropic",
                 "stream": True,
                 "model": _anthropic_model_name(target.model),
-                "max_tokens": max_tokens,
+                "max_tokens": _effective_max_tokens(target.model, max_tokens),
                 "system": system_prompt,
                 "messages": [{"role": m.role, "content": m.content} for m in history]
                 + [{"role": "user", "content": user_content}],
@@ -1730,12 +1758,14 @@ def call_target_model(
                 base_url=target.base_url,
                 trace_dir=trace_dir,
                 trace_name=trace_name,
+                extra_body=target.extra_body,
             )
         body = {
             "model": target.model,
             "messages": messages,
-            "max_tokens": max_tokens,
+            "max_tokens": _effective_max_tokens(target.model, max_tokens),
         }
+        body.update(target.extra_body or {})
         request = {"provider": "openai_compatible", "base_url": base_url, "body": body}
         trace_path = _llm_trace_path(trace_dir, trace_name, 1)
         try:
@@ -1777,6 +1807,7 @@ def call_target_model(
             trace_dir=trace_dir,
             trace_name=trace_name,
             max_tokens=max_tokens,
+            extra_body=target.extra_body,
         )
 
     # OpenAI or OpenAI-compatible
@@ -1803,4 +1834,5 @@ def call_target_model(
         base_url=base_url,
         trace_dir=trace_dir,
         trace_name=trace_name,
+        extra_body=target.extra_body,
     )

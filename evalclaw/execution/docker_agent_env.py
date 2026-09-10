@@ -271,19 +271,28 @@ class DockerWorkspaceAgentEnvironment:
         for path, content in self.visible_files.items():
             clean = self._clean_path(path)
             if clean is None:
-                continue
+                raise ValueError(
+                    f"Invalid environment visible_files path: {path!r}. "
+                    f"Use a path relative to workdir {self.workdir}."
+                )
             self._write_local_file(clean, content)
             self._visible_paths.add(clean)
         for path, content in self.runtime_files.items():
             clean = self._clean_path(path)
             if clean is None:
-                continue
+                raise ValueError(
+                    f"Invalid environment runtime_files path: {path!r}. "
+                    f"Use a path relative to workdir {self.workdir}."
+                )
             self._write_local_file(clean, content, area="runtime")
             self._runtime_paths.add(clean)
         for path, content in self.hidden_files.items():
             clean = self._clean_path(path)
             if clean is None:
-                continue
+                raise ValueError(
+                    f"Invalid environment hidden_files path: {path!r}. "
+                    f"Use a path relative to workdir {self.workdir}."
+                )
             self._write_local_file(clean, content, area="hidden")
             self._hidden_paths.add(clean)
         input_assets: dict[str, Path] = {}

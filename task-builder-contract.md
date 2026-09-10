@@ -55,33 +55,33 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 
 ### 3.3 选择题 `choice` 专属
 
-| 字段 | 类型 | 语义 |
-|---|---|---|
-| `choices` | `list[ChoiceOption]` | 至少两个选项，每项只有 `text`（`id` 由框架规范化） |
-| `correct_choice_indices` | `list[int]` | 零基位置；单个=单选，多个=多选。框架转成 `correct_choice_ids`（canonical id） |
+| 字段 | 类型 | 必填 | 语义 |
+|---|---|---|---|
+| `choices` | `list[ChoiceOption]` | 是 | 至少两个选项，每项只有 `text`（`id` 由框架规范化） |
+| `correct_choice_indices` | `list[int]` | 是 | 零基位置；单个=单选，多个=多选。框架转成 `correct_choice_ids`（canonical id） |
 
 ### 3.4 填空题 `fill_blank` 专属
 
-| 字段 | 类型 | 语义 |
-|---|---|---|
-| `expected_texts` | `list[str]` | 可接受答案列表；任一命中即正确（精确匹配，忽略首尾空白） |
+| 字段 | 类型 | 必填 | 语义 |
+|---|---|---|---|
+| `expected_texts` | `list[str]` | 是 | 可接受答案列表；任一命中即正确（精确匹配，忽略首尾空白） |
 
 ### 3.5 生成题 `generation` 专属
 
-| 字段 | 类型 | 语义 |
-|---|---|---|
-| `rubric` | `str` | 具体评分标准 |
-| `judge_tools` | `list[JudgeToolRef]` | 可请求的外部验证（如 `python_tests`），结果作为证据，不直接给分 |
-| `output_contract` | `dict` | 声明期望的输出结构 |
-| `scoring` | `TaskScoringSpec` | 评分规格 |
+| 字段 | 类型 | 必填 | 语义 |
+|---|---|---|---|
+| `rubric` | `str` | 是 | 具体评分标准 |
+| `judge_tools` | `list[JudgeToolRef]` | 否 | 可请求的外部验证（如 `python_tests`），结果作为证据，不直接给分 |
+| `output_contract` | `dict` | 否 | 声明期望的输出结构 |
+| `scoring` | `TaskScoringSpec` | 否 | 评分规格 |
 
 ### 3.6 多轮交互 `multi_turn` 专属
 
-| 字段 | 类型 | 语义 |
-|---|---|---|
-| `system_prompt` | `str` | 对话模拟器的 prompt（与任务 prompt 分离） |
-| `interaction` | `dict` | `max_turns`（1–5）+ 追问方式（见下） |
-| `rubric` / `judge_tools` / `scoring` | — | 同生成题 |
+| 字段 | 类型 | 必填 | 语义 |
+|---|---|---|---|
+| `system_prompt` | `str` | 仅 adaptive | 对话模拟器的 prompt（与任务 prompt 分离） |
+| `interaction` | `dict` | 是 | `max_turns`（1–5）+ 追问方式（见下） |
+| `rubric` / `judge_tools` / `scoring` | — | rubric 是；其余否 | 同生成题 |
 
 `interaction` 的追问方式二选一：
 - **scripted**：`interaction.user_turns`（1–5 个非空字符串）。
@@ -89,102 +89,102 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 
 ### 3.7 agent / 环境题 `agent` 专属
 
-| 字段 | 类型 | 语义 |
-|---|---|---|
-| `environment` | `AgentEnvironmentSpec` | 可执行环境定义（见 §4.4） |
-| `workflow` | `AgentWorkflow` | 多阶段工作流（见 §4.5） |
-| `system_prompt` / `interaction` | — | 同多轮 |
-| `output_contract` / `rubric` / `judge_tools` / `scoring` | — | 同生成题 |
+| 字段 | 类型 | 必填 | 语义 |
+|---|---|---|---|
+| `environment` | `AgentEnvironmentSpec` | 是 | 可执行环境定义（见 §4.4） |
+| `workflow` | `AgentWorkflow` | 否（仅多阶段） | 多阶段工作流（见 §4.5） |
+| `system_prompt` / `interaction` | — | 否 | 同多轮 |
+| `output_contract` / `rubric` / `judge_tools` / `scoring` | — | 否 | 同生成题 |
 
 ## 4. 子结构
 
 ### 4.1 ChoiceOption
 
-| 字段 | 类型 |
-|---|---|
-| `id` | `str` |
-| `text` | `str` |
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| `id` | `str` | 否（框架规范化） |
+| `text` | `str` | 是 |
 
 ### 4.2 JudgeToolRef
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `tool` | `str` | 工具名（当前支持 `python_tests`） |
-| `config` | `dict` | 工具配置 |
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `tool` | `str` | 是 | 工具名（当前支持 `python_tests`） |
+| `config` | `dict` | 是（`python_tests` 需 `config.test_code`） | 工具配置 |
 
 ### 4.3 TaskScoringSpec
 
-| 字段 | 类型 | 默认 |
-|---|---|---|
-| `method` | `str` | `"deterministic"` |
-| `instructions` | `str` | `""` |
-| `pass_criteria` | `str` | `""` |
-| `partial_criteria` | `str` | `""` |
-| `fail_criteria` | `str` | `""` |
-| `allows_partial_credit` | `bool` | `false` |
-| `score_levels` | `dict[str,str]` | `{}` |
+| 字段 | 类型 | 必填 | 默认 |
+|---|---|---|---|
+| `method` | `str` | 否 | `"deterministic"` |
+| `instructions` | `str` | 否 | `""` |
+| `pass_criteria` | `str` | 否 | `""` |
+| `partial_criteria` | `str` | 否 | `""` |
+| `fail_criteria` | `str` | 否 | `""` |
+| `allows_partial_credit` | `bool` | 否 | `false` |
+| `score_levels` | `dict[str,str]` | 否 | `{}` |
 
 ### 4.4 AgentEnvironmentSpec（environment 字段）
 
-| 字段 | 类型 | 默认 | 说明 |
-|---|---|---|---|
-| `type` | `docker_workspace` \| `vm` | `docker_workspace` | 环境类别 |
-| `visible_files` | `dict[str,str]` | `{}` | 解题前可见的文件（path→内容） |
-| `runtime_files` | `dict[str,str]` | `{}` | 运行时文件 |
-| `hidden_files` | `dict[str,str]` | `{}` | 评分用的隐藏文件（如测试） |
-| `image` | `str` | `""` | Docker 镜像（空则自动选） |
-| `auto_select_image` | `bool` | `true` | 是否按任务文本自动选镜像 |
-| `image_selection` | `dict` | `{}` | 镜像选择元数据 |
-| `image_build` | `dict` | `{}` | 镜像构建定义（`context_dir`/`base_image`/`dockerfile_name` 等） |
-| `pull_image` | `bool` | `true` | 是否拉取镜像 |
-| `pull_timeout` | `int` | `300` | 拉取超时（秒） |
-| `setup_commands` | `list[str]` | `[]` | 环境初始化命令 |
-| `test_command` | `str` | `""` | 评分测试命令（默认 `pytest -q`） |
-| `max_steps` | `int` | `8` | 最大交互步数 |
-| `timeout` | `int` | `20` | 单步超时 |
-| `network` | `str` | `"none"` | 容器网络策略 |
-| `resource_limits` | `dict` | `{}` | 资源限制 |
-| `workdir` | `str` | `"/workspace"` | 容器内工作目录 |
-| `browser` | `dict` | `{}` | 浏览器工具约束 |
-| `bridge_url` | `str` | `""` | GUI 桥接地址（vm 用） |
-| `bridge_api_key` | `str?` | `null` | 桥接鉴权 |
-| `requires_vm` | `bool` | `false` | 是否需要 VM |
-| `vm_provider_url` | `str` | `""` | VM provider 地址 |
-| `vm_provider_api_key` | `str?` | `null` | VM provider 鉴权 |
-| `vm` / `vm_materialization` / `vm_provisioning` | `dict` | `{}` | VM 相关定义 |
-| `session` | `dict` | `{}` | 会话定义 |
-| `evaluation` | `dict` | `{}` | 评估定义 |
-| `notes` | `str` | `""` | 备注 |
+| 字段 | 类型 | 必填 | 默认 | 说明 |
+|---|---|---|---|---|
+| `type` | `docker_workspace` \| `vm` | 是 | `docker_workspace` | 环境类别 |
+| `visible_files` | `dict[str,str]` | 否 | `{}` | 解题前可见的文件（path→内容） |
+| `runtime_files` | `dict[str,str]` | 否 | `{}` | 运行时文件 |
+| `hidden_files` | `dict[str,str]` | 否 | `{}` | 评分用的隐藏文件（如测试） |
+| `image` | `str` | 否 | `""` | Docker 镜像（空则自动选） |
+| `auto_select_image` | `bool` | 否 | `true` | 是否按任务文本自动选镜像 |
+| `image_selection` | `dict` | 否 | `{}` | 镜像选择元数据 |
+| `image_build` | `dict` | 否 | `{}` | 镜像构建定义（`context_dir`/`base_image`/`dockerfile_name` 等） |
+| `pull_image` | `bool` | 否 | `true` | 是否拉取镜像 |
+| `pull_timeout` | `int` | 否 | `300` | 拉取超时（秒） |
+| `setup_commands` | `list[str]` | 否 | `[]` | 环境初始化命令 |
+| `test_command` | `str` | 否 | `""` | 评分测试命令（默认 `pytest -q`） |
+| `max_steps` | `int` | 否 | `8` | 最大交互步数 |
+| `timeout` | `int` | 否 | `20` | 单步超时 |
+| `network` | `str` | 否 | `"none"` | 容器网络策略 |
+| `resource_limits` | `dict` | 否 | `{}` | 资源限制 |
+| `workdir` | `str` | 否 | `"/workspace"` | 容器内工作目录 |
+| `browser` | `dict` | 否 | `{}` | 浏览器工具约束 |
+| `bridge_url` | `str` | 否 | `""` | GUI 桥接地址（vm 用） |
+| `bridge_api_key` | `str?` | 否 | `null` | 桥接鉴权 |
+| `requires_vm` | `bool` | 否 | `false` | 是否需要 VM |
+| `vm_provider_url` | `str` | 否 | `""` | VM provider 地址 |
+| `vm_provider_api_key` | `str?` | 否 | `null` | VM provider 鉴权 |
+| `vm` / `vm_materialization` / `vm_provisioning` | `dict` | 否 | `{}` | VM 相关定义 |
+| `session` | `dict` | 否 | `{}` | 会话定义 |
+| `evaluation` | `dict` | 否 | `{}` | 评估定义 |
+| `notes` | `str` | 否 | `""` | 备注 |
 
 ### 4.5 AgentWorkflow / WorkflowStage / WorkflowMetric
 
 `AgentWorkflow`：
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `stages` | `list[WorkflowStage]` | 阶段列表（≥1，id 唯一） |
-| `score_stage` | `str` | 指到某个 `evaluate` 阶段 |
-| `metrics` | `dict[str,WorkflowMetric]` | 指标（引用的阶段必须是 evaluate） |
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `stages` | `list[WorkflowStage]` | 是 | 阶段列表（≥1，id 唯一） |
+| `score_stage` | `str` | 是 | 指到某个 `evaluate` 阶段 |
+| `metrics` | `dict[str,WorkflowMetric]` | 否 | 指标（引用的阶段必须是 evaluate） |
 
 `WorkflowStage`：
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `str` | 阶段 id |
-| `kind` | `agent` \| `text` \| `evaluate` | 阶段类型 |
-| `prompt` | `str` | 阶段 prompt（非 evaluate 必填） |
-| `system_prompt` | `str` | 系统 prompt |
-| `context` | `fresh` \| `continue` | 上下文模式 |
-| `inputs` | `list[StageInput]` | 引用前置阶段输出（`stage_id`+`field`） |
-| `environment` | `fresh` \| `reuse` | 环境生命周期 |
-| `environment_spec` | `AgentEnvironmentSpec?` | 仅 `environment=fresh` 时可用 |
-| `files` | `list[StageFile]` | 从前置阶段引入文件 |
-| `output_files` | `list[str]` | 本阶段产出的文件 |
-| `max_steps` / `max_tokens` | `int` | 步数/令牌上限 |
-| `allow_evaluation_feedback` | `bool` | 是否允许评估反馈 |
-| `test_command` | `str` | 测试命令 |
-| `evaluation` | `dict` | 评估定义 |
-| `resume_commands` | `list[str]` | 恢复命令 |
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `id` | `str` | 是 | 阶段 id |
+| `kind` | `agent` \| `text` \| `evaluate` | 是 | 阶段类型 |
+| `prompt` | `str` | 是（非 evaluate） | 阶段 prompt（非 evaluate 必填） |
+| `system_prompt` | `str` | 否 | 系统 prompt |
+| `context` | `fresh` \| `continue` | 否 | 上下文模式 |
+| `inputs` | `list[StageInput]` | 否 | 引用前置阶段输出（`stage_id`+`field`） |
+| `environment` | `fresh` \| `reuse` | 否 | 环境生命周期 |
+| `environment_spec` | `AgentEnvironmentSpec?` | 否（仅 `environment=fresh`） | 仅 `environment=fresh` 时可用 |
+| `files` | `list[StageFile]` | 否 | 从前置阶段引入文件 |
+| `output_files` | `list[str]` | 否 | 本阶段产出的文件 |
+| `max_steps` / `max_tokens` | `int` | 否 | 步数/令牌上限 |
+| `allow_evaluation_feedback` | `bool` | 否 | 是否允许评估反馈 |
+| `test_command` | `str` | 否 | 测试命令 |
+| `evaluation` | `dict` | 否 | 评估定义 |
+| `resume_commands` | `list[str]` | 否 | 恢复命令 |
 
 `WorkflowMetric`：`operation`（`mean`/`difference`）+ `stages`（列表，`difference` 须恰好两个）。
 

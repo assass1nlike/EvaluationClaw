@@ -122,6 +122,26 @@ def test_plan_audit_accepts_source_strategies(strategy: str) -> None:
     assert _audit_plan(_plan(source_strategy=strategy, suggested_urls=urls)) == []
 
 
+def test_plan_audit_accepts_hf_dataset_url() -> None:
+    issues = _audit_plan(
+        _plan(
+            source_strategy="imported_dataset",
+            suggested_urls=["hf://datasets/openai/gsm8k"],
+        )
+    )
+    assert issues == []
+
+
+def test_plan_audit_rejects_unsupported_url_scheme() -> None:
+    issues = _audit_plan(
+        _plan(
+            source_strategy="imported_dataset",
+            suggested_urls=["ftp://example.com/source"],
+        )
+    )
+    assert any("suggested URL is invalid" in issue for issue in issues)
+
+
 @pytest.mark.parametrize(
     "strategy",
     ["", "self_contained", "source_backed", "mixed", "unsupported"],

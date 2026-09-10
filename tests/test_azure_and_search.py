@@ -109,6 +109,13 @@ def test_effective_max_tokens_applies_uniform_floor() -> None:
     assert llm._effective_max_tokens("azure/gpt-5.5", 40000) == 40000
 
 
+def test_effective_max_tokens_uses_model_advertised_maximum() -> None:
+    assert llm._effective_max_tokens("deepseek-v4-flash", 4096) == 393_216
+    assert llm._effective_max_tokens("deepseek-v4-pro", 4096) == 393_216
+    # A caller asking for more than the model accepts is clamped to its maximum.
+    assert llm._effective_max_tokens("deepseek-v4-flash", 500_000) == 393_216
+
+
 def test_effective_max_tokens_keeps_uniform_floor_at_low_effort(monkeypatch) -> None:
     monkeypatch.setenv("EVALCLAW_REASONING_EFFORT", "low")
 
