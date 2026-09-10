@@ -18,6 +18,7 @@ from evalclaw.prompts.task_builder import (
 )
 from evalclaw.types import (
     AgentEnvironmentType,
+    BenchmarkConfig,
     ChoiceOption,
     EvalDimension,
     EvalSpec,
@@ -365,7 +366,7 @@ def test_task_builder_contract_matches_fill_blank_and_generation_runners() -> No
             "No external sources.",
         )["task_builder_contract"]["task_schema"]
 
-    assert "expected_text" in schemas["short"]["optional"]
+    assert "expected_texts" in schemas["short"]["optional"]
     assert "assets" in schemas["short"]["optional"]
     assert {"rubric", "judge_tools", "output_contract"}.issubset(
         schemas["code"]["optional"]
@@ -415,7 +416,7 @@ def test_task_builder_prompt_is_scoped_to_the_selected_task_type() -> None:
     assert '"choices"' in prompt
     assert '"correct_choice_indices"' in prompt
     for unrelated_field in (
-        "expected_text",
+        "expected_texts",
         "system_prompt",
         "interaction",
         "environment",
@@ -438,7 +439,7 @@ def test_task_builder_repair_document_projects_out_unrelated_fields() -> None:
                 "task_type": "choice",
                 "prompt": "Choose one.",
                 "choices": [{"id": "choice_1", "text": "A"}],
-                "expected_text": "must disappear",
+                "expected_texts": ["must disappear"],
                 "environment": {"type": "docker_workspace"},
                 "metadata": {
                     "task_design_id": "design_1",
@@ -460,7 +461,7 @@ def test_task_builder_repair_document_projects_out_unrelated_fields() -> None:
     assert task["id"] == "task_1"
     assert task["dimension_id"] == "dimension_1"
     assert task["choices"] == [{"text": "A"}]
-    assert "expected_text" not in task
+    assert "expected_texts" not in task
     assert "environment" not in task
     assert task["metadata"] == {
         "challenge_effort_self_assessment": {"rationale": "keep"}
@@ -469,7 +470,7 @@ def test_task_builder_repair_document_projects_out_unrelated_fields() -> None:
 
 def test_task_builder_field_sets_keep_type_specific_fields_disjoint() -> None:
     assert task_builder_fields(TaskType.choice).isdisjoint(
-        {"expected_text", "rubric", "system_prompt", "environment", "workflow"}
+        {"expected_texts", "rubric", "system_prompt", "environment", "workflow"}
     )
     assert task_builder_fields(TaskType.fill_blank).isdisjoint(
         {"choices", "correct_choice_indices", "judge_tools", "environment"}
@@ -523,3 +524,88 @@ def test_source_backed_repair_projection_preserves_resource_binding() -> None:
     assert task["id"] == "task_1"
     assert "choices" not in task
     assert "environment" not in task
+
+
+def test_ablation_builder_fields_drop_framework_owned_common_fields() -> None:
+    assert task_builder_fields(TaskType.choice, simplified=True) == {
+        "title",
+        "prompt",
+        "choices",
+        "correct_choice_indices",
+    }
+    assert task_builder_fields(TaskType.fill_blank, simplified=True) == {
+        "title",
+        "prompt",
+        "expected_texts",
+    }
+    assert task_builder_fields(
+        TaskType.generation, source_backed=True, simplified=True
+    ) == {
+        "title",
+        "prompt",
+        "resource_ids",
+        "rubric",
+        "judge_tools",
+        "output_contract",
+        "scoring",
+    }
+
+
+def test_ablation_builder_document_template_omits_framework_owned_fields() -> None:
+    document = task_builder_document_template(
+        TaskType.choice,
+        task_count=1,
+        challenge_effort="E3",
+        source_backed=False,
+        simplified=True,
+    )
+    task = document["tasks"][0]
+    assert set(task) == {"title", "prompt", "choices", "correct_choice_indices"}
+    assert "task_type" not in task
+    assert "challenge_effort" not in task
+    assert "metadata" not in task
+
+
+def test_ablation_builder_payload_inherits_task_type_and_challenge_effort() -> None:
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate knowledge.",
+        approach="Use multiple-choice questions.",
+        task_types=[TaskType.choice],
+    )
+    spec = EvalSpec(
+        objective="Evaluate knowledge.",
+        task_types=[TaskType.choice],
+        dimensions=[dimension],
+    )
+    blueprint = make_blueprint(
+        "knowledge_tasks",
+        dimension.id,
+        "Knowledge tasks",
+        task_type=TaskType.choice,
+        content="Knowledge tasks.",
+    )
+    payload = _task_builder_payload(
+        spec,
+        dimension,
+        blueprint,
+        "No external sources.",
+        config=BenchmarkConfig(ablation_simplified_contract=True),
+    )
+    schema = payload["task_builder_contract"]["task_schema"]
+    assert schema["required"] == ["title", "prompt"]
+    assert "task_type" in schema["framework_injected_fields"]
+    assert "challenge_effort" in schema["framework_injected_fields"]
+    assert "metadata" not in schema["required"]
+    assert "content_summary" not in schema["optional"]
+
+
+def test_ablation_builder_prompt_omits_removed_field_keys() -> None:
+    prompt = build_task_builder_prompt(TaskType.generation, simplified=True)
+    assert '"task_type"' not in prompt
+    assert '"challenge_effort"' not in prompt
+    assert '"metadata"' not in prompt
+    assert '"content_summary"' not in prompt
+    assert '"description"' not in prompt
+    assert '"assets"' not in prompt

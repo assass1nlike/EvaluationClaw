@@ -330,18 +330,27 @@ def _task_builder_payload(
         "challenge_effort": task_design.challenge_effort.value,
         "required_return_task_count": required_return_count,
     }
-    optional_fields = ["content_summary", "description", "assets", "tags"]
+    simplified = bool(config is not None and config.ablation_simplified_contract)
+    optional_fields = [] if simplified else ["content_summary", "description", "assets", "tags"]
     if blueprint.source_strategy in {"adapted", "reused", "imported_dataset"}:
         optional_fields.append("resource_ids")
     task_schema: dict[str, object] = {
-        "required": ["task_type", "title", "prompt", "challenge_effort", "metadata"],
+        "required": (
+            ["title", "prompt"]
+            if simplified
+            else ["task_type", "title", "prompt", "challenge_effort", "metadata"]
+        ),
         "optional": optional_fields,
         "allowed_task_types": [task_type.value for task_type in task_types],
         "required_task_type_counts": {
             **required_type_counts
         },
         "required_task_design_counts": required_task_design_counts,
-        "framework_injected_fields": ["id", "dimension_id", "metadata.task_design_id"],
+        "framework_injected_fields": (
+            ["id", "dimension_id", "task_type", "challenge_effort", "metadata.task_design_id"]
+            if simplified
+            else ["id", "dimension_id", "metadata.task_design_id"]
+        ),
     }
     # These instructions must state the fields and runtime semantics required by
     # each selected task type.
@@ -356,10 +365,12 @@ def _task_builder_payload(
             "answer options only in choices; do not include option labels or repeat option text in prompt."
         ]
     if TaskType.fill_blank in task_types:
-        optional_fields.append("expected_text")
+        optional_fields.append("expected_texts")
         type_requirements[TaskType.fill_blank.value] = [
-            "Provide exactly one expected_text string. State the required response format in the prompt; "
-            "the runner uses exact text matching apart from surrounding whitespace."
+            "Provide expected_texts as a list of accepted answers; the runner scores a response correct "
+            "when it exactly matches any listed answer apart from surrounding whitespace. State the "
+            "constraints in the prompt or enumerate every correct answer, and ensure no correct answer "
+            "outside the list is possible."
         ]
     if TaskType.generation in task_types:
         optional_fields.extend(["rubric", "judge_tools", "output_contract", "scoring"])
@@ -596,6 +607,7 @@ def build_task_suite(
         with progress_lock:
             log(message)
 
+    simplified = config.ablation_simplified_contract
     debug_root = (
         Path(config.task_builder_debug_dir).expanduser()
         if config.task_builder_debug_dir
@@ -873,6 +885,7 @@ def build_task_suite(
                         source_backed=blueprint.source_strategy
                         in {"adapted", "reused", "imported_dataset"},
                         preserve_identity=True,
+                        simplified=simplified,
                     ),
                     ensure_ascii=False,
                     indent=2,
@@ -901,6 +914,7 @@ def build_task_suite(
                         challenge_effort=blueprint.task_designs[0].challenge_effort.value,
                         source_backed=blueprint.source_strategy
                         in {"adapted", "reused", "imported_dataset"},
+                        simplified=simplified,
                     ),
                     ensure_ascii=False,
                     indent=2,
@@ -991,6 +1005,7 @@ def build_task_suite(
                 task_type,
                 source_strategy=blueprint.source_strategy,
                 requires_environment=blueprint.requires_environment,
+                simplified=simplified,
             )
             if blueprint.requires_environment:
                 system_prompt += "\n\n" + environment_skill_system_prompt(blueprint)
@@ -1208,7 +1223,7 @@ def build_task_suite(
                         dimension=dimension,
                         blueprint=validation_blueprint,
                         task_design=task_design,
-                        require_challenge_effort_self_assessment=True,
+                        require_challenge_effort_self_assessment=not simplified,
                         builder_work_dir=builder_work_dir,
                     )
                 )
@@ -1314,6 +1329,7 @@ def build_task_suite(
                         source_backed=blueprint.source_strategy
                         in {"adapted", "reused", "imported_dataset"},
                         preserve_identity=bool(job_revision),
+                        simplified=simplified,
                     ),
                     ensure_ascii=False,
                     indent=2,

@@ -904,8 +904,8 @@ def task_structure_issues(
         elif any(value not in set(choice_ids) for value in task.correct_choice_ids):
             issues.append("correct_choice_ids must refer to provided choice ids.")
     elif task.task_type == TaskType.fill_blank:
-        if task.expected_text is None or not _has_text(task.expected_text):
-            issues.append("fill_blank tasks must provide one non-empty expected_text.")
+        if not task.expected_texts or any(not _has_text(value) for value in task.expected_texts):
+            issues.append("fill_blank tasks must provide a non-empty expected_texts list with non-empty answers.")
     if task.task_type in {TaskType.generation, TaskType.multi_turn} and not _has_scoring_guidance(task):
         issues.append("generation and multi_turn tasks must provide a judge rubric or scoring guidance.")
 

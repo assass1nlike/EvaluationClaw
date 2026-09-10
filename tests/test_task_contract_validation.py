@@ -48,7 +48,7 @@ def _task(
     task_type: TaskType,
     *,
     environment: AgentEnvironmentSpec | None = None,
-    expected_text: str | None = None,
+    expected_texts: list[str] | None = None,
     rubric: str | None = None,
     judge_tools: list[JudgeToolRef] | None = None,
     interaction: dict | None = None,
@@ -59,7 +59,7 @@ def _task(
         task_type=task_type,
         title="Contract test",
         prompt="Complete the requested benchmark task and return the required result.",
-        expected_text=expected_text,
+        expected_texts=expected_texts or [],
         rubric=rubric,
         judge_tools=judge_tools or [],
         environment=environment,
@@ -67,11 +67,11 @@ def _task(
     )
 
 
-def test_fill_blank_requires_one_exact_expected_text() -> None:
+def test_fill_blank_requires_non_empty_expected_texts() -> None:
     missing = _task(TaskType.fill_blank, rubric="Accept any equivalent explanation of the result.")
-    valid = _task(TaskType.fill_blank, expected_text="4")
+    valid = _task(TaskType.fill_blank, expected_texts=["4"])
 
-    assert any("expected_text" in issue for issue in task_structure_issues(missing))
+    assert any("expected_texts" in issue for issue in task_structure_issues(missing))
     assert task_structure_issues(valid) == []
 
 

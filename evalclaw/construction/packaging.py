@@ -506,7 +506,7 @@ def pack_task_item(
         assets=task.assets,
         choices=task.choices,
         correct_choice_ids=task.correct_choice_ids,
-        expected_text=task.expected_text,
+        expected_texts=task.expected_texts,
         rubric=task.rubric or task.scoring.instructions or (
             f"{task.scoring.pass_criteria} {task.scoring.partial_criteria} {task.scoring.fail_criteria}".strip()
             or None

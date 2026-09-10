@@ -472,7 +472,7 @@ def test_task_builder_repairs_missing_external_source_binding(
             "task_type": "fill_blank",
             "title": "Source-backed task",
             "prompt": "Answer using the selected external source.",
-            "expected_text": selected_source_id,
+            "expected_texts": [selected_source_id],
             "scoring": {"pass_criteria": f"The answer is {selected_source_id}."},
             "metadata": {
                 "challenge_effort_self_assessment": {
@@ -548,7 +548,7 @@ def test_task_builder_repairs_external_resources_from_generated_strategy(monkeyp
             "task_type": "fill_blank",
             "title": "Generated task",
             "prompt": "Provide the exact answer specified by this generated task.",
-            "expected_text": "answer",
+            "expected_texts": ["answer"],
             "metadata": {
                 "challenge_effort_self_assessment": {
                     "requested_effort": "E3",
@@ -625,7 +625,7 @@ def test_task_builder_preserves_resource_bindings_when_shared_urls_are_deduplica
                         "task_type": "fill_blank",
                         "title": f"Task for {blueprint_id}",
                         "prompt": f"Answer the distinct question for {blueprint_id}.",
-                        "expected_text": blueprint_id,
+                        "expected_texts": [blueprint_id],
                         "resource_ids": ["shared_source"],
                         "scoring": {"pass_criteria": f"The answer is {blueprint_id}."},
                         "metadata": {
@@ -974,7 +974,7 @@ def test_task_builder_recovers_missing_final_content_before_structure_repair(mon
                         "task_type": "fill_blank",
                         "title": "Recovered task",
                         "prompt": "Provide the exact generated answer for this task.",
-                        "expected_text": "answer",
+                        "expected_texts": ["answer"],
                         "metadata": {
                             "challenge_effort_self_assessment": {
                                 "requested_effort": "E3",
@@ -1021,7 +1021,7 @@ def test_task_builder_recovers_missing_final_content_before_structure_repair(mon
     assert calls[1]["content"] == calls[0]["content"]
     assert calls[1]["kwargs"]["reduce_reasoning_effort"] is True
     assert calls[1]["kwargs"].get("expect_json", False) is False
-    assert suite.tasks[0].expected_text == "answer"
+    assert suite.tasks[0].expected_texts == ["answer"]
 
 
 def test_task_builder_missing_final_content_does_not_use_structure_repairs(monkeypatch) -> None:
@@ -2668,9 +2668,16 @@ def test_choice_scoring_requires_exact_selected_id_set() -> None:
 
 
 def test_fill_blank_scoring_only_trims_outer_whitespace() -> None:
-    assert _score_fill_blank("  Exact answer\n", "Exact answer") == 1.0
-    assert _score_fill_blank("exact answer", "Exact answer") == 0.0
-    assert _score_fill_blank("Exact answer.", "Exact answer") == 0.0
+    assert _score_fill_blank("  Exact answer\n", ["Exact answer"]) == 1.0
+    assert _score_fill_blank("exact answer", ["Exact answer"]) == 0.0
+    assert _score_fill_blank("Exact answer.", ["Exact answer"]) == 0.0
+
+
+def test_fill_blank_scoring_accepts_any_listed_answer() -> None:
+    assert _score_fill_blank("42", ["42", "forty-two"]) == 1.0
+    assert _score_fill_blank("  forty-two ", ["42", "forty-two"]) == 1.0
+    assert _score_fill_blank("43", ["42", "forty-two"]) == 0.0
+    assert _score_fill_blank("42", []) == 0.0
 
 
 def test_choice_scoring_does_not_accept_incidental_letters() -> None:
@@ -2710,7 +2717,7 @@ def test_qc_warns_on_invalid_science_metadata() -> None:
         dimension_id="science",
         task_type=TaskType.fill_blank,
         prompt="What force is required for a 1 kg object accelerating at 2 m/s^2?",
-        expected_text="2 N",
+        expected_texts=["2 N"],
         metadata={"science": {"schema_version": "old"}},
     )
     spec = EvalSpec(
@@ -4027,7 +4034,7 @@ def test_lm_eval_artifacts_use_portable_data_file_paths(tmp_path) -> None:
         dimension_id=dimension.id,
         task_type=TaskType.fill_blank,
         prompt="Return OK.",
-        expected_text="OK",
+        expected_texts=["OK"],
     )
 
     artifacts = write_lm_eval_artifacts(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), tmp_path)

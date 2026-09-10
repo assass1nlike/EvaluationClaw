@@ -146,7 +146,7 @@ def _item_excerpt(item: BenchmarkItem, *, truncate: bool = True) -> dict[str, ob
         "assets": [asset.model_dump(mode="json") for asset in item.assets],
         "choices": [choice.model_dump(mode="json") for choice in item.choices],
         "correct_choice_ids": item.correct_choice_ids,
-        "expected_text": item.expected_text,
+        "expected_texts": item.expected_texts,
         "rubric": (item.rubric or "")[:500] if truncate else (item.rubric or ""),
         "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
         "output_contract": item.output_contract,
@@ -639,8 +639,8 @@ def format_human_review_overview(
             for choice in item.choices:
                 marker = "correct" if choice.id in correct_ids else "incorrect"
                 lines.append(f"  - `{choice.id}` ({marker}): {choice.text}")
-        if item.expected_text is not None:
-            lines.extend(["- Expected text:", "```text", item.expected_text, "```"])
+        if item.expected_texts:
+            lines.extend(["- Expected text:", "```text", "\n".join(item.expected_texts), "```"])
         if item.rubric:
             lines.extend(["- Rubric:", "```text", item.rubric, "```"])
         if item.judge_tools:

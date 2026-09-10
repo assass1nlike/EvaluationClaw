@@ -83,7 +83,7 @@ def _task_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
                 "assets": [asset.model_dump(mode="json") for asset in item.assets],
                 "choices": choices,
                 "correct_choice_ids": list(item.correct_choice_ids),
-                "expected_text": item.expected_text,
+                "expected_texts": list(item.expected_texts),
                 "rubric": item.rubric,
                 "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
                 "output_contract": item.output_contract,

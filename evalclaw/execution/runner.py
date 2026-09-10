@@ -143,10 +143,9 @@ def _is_judge_failure(reasoning: str | None) -> bool:
     return "judge returned invalid json" in lowered or "no judge model configured" in lowered
 
 
-def _score_fill_blank(response: str, expected_text: str | None) -> float:
-    if expected_text is None:
-        return 0.0
-    return 1.0 if response.strip() == expected_text.strip() else 0.0
+def _score_fill_blank(response: str, expected_texts: list[str]) -> float:
+    normalized = response.strip()
+    return 1.0 if any(normalized == expected.strip() for expected in expected_texts) else 0.0
 
 
 def _call_judge_json(
@@ -275,7 +274,10 @@ def _judge_item(
         return score, f"task_agent_judge: {reason}"
     judge_config = resolve_task_model(config, item)
     if judge_config is None:
-        return 0.0, "No task model configured."
+        raise RuntimeError(
+            "Item requires an LLM judge but no task model is configured; "
+            "pass --task-model to score generation/multi_turn items."
+        )
 
     base_prompt = {
         "instruction": "Score the model response from 1 to 5 using the rubric. Return JSON only.",
@@ -595,7 +597,7 @@ def _run_item(
             score = _score_choice(response, item)
             return ItemResult(item_id=item.id, target_id=target.id, raw_response=response, score=score, latency_ms=latency_ms)
         if item.task_type == TaskType.fill_blank:
-            score = _score_fill_blank(response, item.expected_text)
+            score = _score_fill_blank(response, item.expected_texts)
             return ItemResult(item_id=item.id, target_id=target.id, raw_response=response, score=score, latency_ms=latency_ms)
         if item.task_type == TaskType.generation:
             evidence = _judge_tool_evidence(item, response, config)

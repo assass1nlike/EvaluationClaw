@@ -236,53 +236,59 @@ _PLANNER_TOOLS: list[ToolSpec] = [
 ]
 
 
-_PLANNER_READ_TOOL = ToolSpec(
-    name="read_plan",
-    description=(
-        "Read the working plan JSON file (top-level keys objective, constraints, planner_notes, "
-        "dimensions). With no path returns the full document; with a dot path returns just that "
-        "node (e.g. \"dimensions.0\" or \"objective\")."
-    ),
-    parameters={
-        "type": "object",
-        "properties": {
-            "path": {"type": "string", "description": "Optional dot path to read."},
-        },
-        "additionalProperties": False,
-    },
-)
+def _plan_tool_keys(simplified: bool) -> str:
+    return "objective, dimensions" if simplified else "objective, constraints, planner_notes, dimensions"
 
 
-_PLANNER_WRITE_TOOL = ToolSpec(
-    name="update_plan",
-    description=(
-        "Apply a list of operations to the working plan JSON file (top-level keys objective, "
-        "constraints, planner_notes, dimensions). Each operation is {\"op\": \"set\"|\"remove\"|\"append\", "
-        "\"path\": \"dot.path\" (list items indexed from 0), \"value\": ...}. Returns the updated "
-        "plan summary (dimension names and task_designs counts)."
-    ),
-    parameters={
-        "type": "object",
-        "properties": {
-            "operations": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "op": {"type": "string", "enum": ["set", "remove", "append"]},
-                        "path": {"type": "string"},
-                        "value": {},
-                    },
-                    "required": ["op", "path"],
-                    "additionalProperties": False,
-                },
-                "description": "Ordered operations to apply to the plan.",
+def _planner_read_tool(simplified: bool) -> ToolSpec:
+    return ToolSpec(
+        name="read_plan",
+        description=(
+            f"Read the working plan JSON file (top-level keys {_plan_tool_keys(simplified)}). "
+            "With no path returns the full document; with a dot path returns just that "
+            "node (e.g. \"dimensions.0\" or \"objective\")."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Optional dot path to read."},
             },
+            "additionalProperties": False,
         },
-        "required": ["operations"],
-        "additionalProperties": False,
-    },
-)
+    )
+
+
+def _planner_write_tool(simplified: bool) -> ToolSpec:
+    return ToolSpec(
+        name="update_plan",
+        description=(
+            f"Apply a list of operations to the working plan JSON file (top-level keys "
+            f"{_plan_tool_keys(simplified)}). Each operation is {{\"op\": \"set\"|\"remove\"|\"append\", "
+            "\"path\": \"dot.path\" (list items indexed from 0), \"value\": ...}. Returns the updated "
+            "plan summary (dimension names and task_designs counts)."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "operations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "op": {"type": "string", "enum": ["set", "remove", "append"]},
+                            "path": {"type": "string"},
+                            "value": {},
+                        },
+                        "required": ["op", "path"],
+                        "additionalProperties": False,
+                    },
+                    "description": "Ordered operations to apply to the plan.",
+                },
+            },
+            "required": ["operations"],
+            "additionalProperties": False,
+        },
+    )
 
 
 def _bounded_int(value: object, *, default: int, minimum: int, maximum: int) -> int:
@@ -293,13 +299,12 @@ def _bounded_int(value: object, *, default: int, minimum: int, maximum: int) -> 
     return max(minimum, min(maximum, parsed))
 
 
-def _plan_summary(document: dict[str, Any]) -> dict[str, Any]:
+def _plan_summary(document: dict[str, Any], *, simplified: bool = False) -> dict[str, Any]:
     dimensions = document.get("dimensions")
     if not isinstance(dimensions, list):
         dimensions = []
-    return {
+    summary: dict[str, Any] = {
         "objective": str(document.get("objective") or ""),
-        "constraints": len(document.get("constraints") or []),
         "dimensions": [
             {
                 "name": str(d.get("name") or f"dimension_{index}") if isinstance(d, dict) else f"dimension_{index}",
@@ -308,6 +313,9 @@ def _plan_summary(document: dict[str, Any]) -> dict[str, Any]:
             for index, d in enumerate(dimensions)
         ],
     }
+    if not simplified:
+        summary["constraints"] = len(document.get("constraints") or [])
+    return summary
 
 
 def _record_source_material(
@@ -391,7 +399,10 @@ def _execute_planner_tool(
             return ToolResult(
                 tool_call_id=call.id,
                 name=call.name,
-                content=json.dumps(_plan_summary(current), ensure_ascii=False)[:max_chars],
+                content=json.dumps(
+                    _plan_summary(current, simplified=config.ablation_simplified_contract),
+                    ensure_ascii=False,
+                )[:max_chars],
             )
         if call.name == "search_web":
             query = str(call.arguments.get("query") or "").strip()
@@ -426,6 +437,13 @@ def _execute_planner_tool(
                 content=json.dumps(value, ensure_ascii=False)[:max_chars],
             )
         if call.name == "fetch_url":
+            if not config.use_web_research or str(config.search_backend).lower() == "none":
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="Web fetch is disabled by benchmark configuration.",
+                    error="fetch_disabled",
+                )
             url = str(call.arguments.get("url") or "").strip()
             if not url.startswith(("http://", "https://")):
                 raise ValueError("url must be an absolute HTTP(S) URL")
@@ -502,7 +520,15 @@ def _run_planner_tool_loop(
     final_instruction = (
         "Commit your finished plan parts with update_plan, then stop with no further tool calls."
     )
-    tools = [*_PLANNER_TOOLS, _PLANNER_READ_TOOL, _PLANNER_WRITE_TOOL]
+    web_enabled = bool(config.use_web_research) and str(config.search_backend).lower() != "none"
+    simplified = config.ablation_simplified_contract
+    read_tool = _planner_read_tool(simplified)
+    write_tool = _planner_write_tool(simplified)
+    tools = (
+        [*_PLANNER_TOOLS, read_tool, write_tool]
+        if web_enabled
+        else [read_tool, write_tool]
+    )
     messages: list[dict[str, Any]] = [{"role": "user", "content": user_content}]
     calls_used = 0
 
@@ -601,6 +627,7 @@ def _audit_plan(
     *,
     expected_task_count: int | None = None,
     expected_effort_distribution: dict[ChallengeEffort, float] | None = None,
+    simplified: bool = False,
 ) -> list[str]:
     issues: list[str] = []
     if not plan.dimensions:
@@ -610,13 +637,24 @@ def _audit_plan(
         issues.append("Dimension ids must be unique.")
 
     all_design_ids: set[str] = set()
-    allowed_task_types = set(TaskType)
+    allowed_task_types = (
+        {TaskType.choice, TaskType.fill_blank, TaskType.generation}
+        if simplified
+        else set(TaskType)
+    )
     for dimension in plan.dimensions:
         prefix = dimension.id or "unnamed_dimension"
-        if not all(
-            [dimension.id, dimension.name, dimension.measurement_target, dimension.boundary, dimension.approach]
-        ):
-            issues.append(f"{prefix}: id, name, measurement_target, boundary, and approach are required.")
+        required_fields = (
+            [dimension.id, dimension.name]
+            if simplified
+            else [dimension.id, dimension.name, dimension.measurement_target, dimension.boundary, dimension.approach]
+        )
+        if not all(required_fields):
+            issues.append(
+                f"{prefix}: id and name are required."
+                if simplified
+                else f"{prefix}: id, name, measurement_target, boundary, and approach are required."
+            )
         if not dimension.task_designs:
             issues.append(f"{prefix}: task_designs must not be empty.")
         local_design_ids = [design.id for design in dimension.task_designs]
@@ -634,66 +672,67 @@ def _audit_plan(
                 issues.append(
                     f"{design_prefix}: content_design must include a concrete purpose or description."
                 )
-            declared_category = str(
-                design.environment_requirements.get("category") or ""
-            ).strip()
-            resolved_category = environment_category(design)
-            if design.environment_requirements and not declared_category:
-                issues.append(
-                    f"{design_prefix}: non-empty environment_requirements must define category."
-                )
-            if declared_category and resolved_category is None:
-                issues.append(
-                    f"{design_prefix}: environment category {declared_category!r} is not one of "
-                    + ", ".join(environment.value for environment in AgentEnvironmentType)
-                    + "."
-                )
-            if design.task_type == TaskType.agent and not declared_category:
-                issues.append(f"{design_prefix}: agent tasks require environment_requirements.")
-            if design.task_type == TaskType.multi_turn:
-                followup_mode = str(
-                    design.interaction_requirements.get("followup_mode") or ""
-                ).strip().lower()
-                if followup_mode not in {"adaptive", "scripted"}:
+            if not simplified:
+                declared_category = str(
+                    design.environment_requirements.get("category") or ""
+                ).strip()
+                resolved_category = environment_category(design)
+                if design.environment_requirements and not declared_category:
                     issues.append(
-                        f"{design_prefix}: multi_turn TaskDesigns must set "
-                        "interaction_requirements.followup_mode to 'adaptive' or 'scripted'."
+                        f"{design_prefix}: non-empty environment_requirements must define category."
                     )
-            if declared_category and design.task_type != TaskType.agent:
-                issues.append(
-                    f"{design_prefix}: environment category {declared_category!r} is only valid "
-                    "for agent tasks. Remove the environment or change the task type when executable "
-                    "interaction is essential."
-                )
-            source_strategy = str(design.source_plan.get("strategy") or "").strip()
-            source_queries = _unique_strings(design.source_plan.get("search_queries"))
-            source_urls = _unique_strings(design.source_plan.get("suggested_urls"))
-            external_strategies = {
-                "adapted",
-                "reused",
-                "imported_dataset",
-            }
-            if source_strategy not in {
-                "generated",
-                *external_strategies,
-            }:
-                issues.append(
-                    f"{design_prefix}: source_plan.strategy must be generated, adapted, reused, "
-                    "or imported_dataset."
-                )
-            elif source_strategy == "generated" and (source_urls or source_queries):
-                issues.append(
-                    f"{design_prefix}: generated source_plan.strategy requires empty "
-                    "suggested_urls and search_queries."
-                )
-            elif source_strategy in external_strategies and not source_urls:
-                issues.append(
-                    f"{design_prefix}: {source_strategy} source_plan.strategy requires at least "
-                    "one suggested URL."
-                )
-            for url in source_urls:
-                if not url.lower().startswith(("https://", "http://")):
-                    issues.append(f"{design_prefix}: suggested URL is invalid: {url!r}.")
+                if declared_category and resolved_category is None:
+                    issues.append(
+                        f"{design_prefix}: environment category {declared_category!r} is not one of "
+                        + ", ".join(environment.value for environment in AgentEnvironmentType)
+                        + "."
+                    )
+                if design.task_type == TaskType.agent and not declared_category:
+                    issues.append(f"{design_prefix}: agent tasks require environment_requirements.")
+                if design.task_type == TaskType.multi_turn:
+                    followup_mode = str(
+                        design.interaction_requirements.get("followup_mode") or ""
+                    ).strip().lower()
+                    if followup_mode not in {"adaptive", "scripted"}:
+                        issues.append(
+                            f"{design_prefix}: multi_turn TaskDesigns must set "
+                            "interaction_requirements.followup_mode to 'adaptive' or 'scripted'."
+                        )
+                if declared_category and design.task_type != TaskType.agent:
+                    issues.append(
+                        f"{design_prefix}: environment category {declared_category!r} is only valid "
+                        "for agent tasks. Remove the environment or change the task type when executable "
+                        "interaction is essential."
+                    )
+                source_strategy = str(design.source_plan.get("strategy") or "").strip()
+                source_queries = _unique_strings(design.source_plan.get("search_queries"))
+                source_urls = _unique_strings(design.source_plan.get("suggested_urls"))
+                external_strategies = {
+                    "adapted",
+                    "reused",
+                    "imported_dataset",
+                }
+                if source_strategy not in {
+                    "generated",
+                    *external_strategies,
+                }:
+                    issues.append(
+                        f"{design_prefix}: source_plan.strategy must be generated, adapted, reused, "
+                        "or imported_dataset."
+                    )
+                elif source_strategy == "generated" and (source_urls or source_queries):
+                    issues.append(
+                        f"{design_prefix}: generated source_plan.strategy requires empty "
+                        "suggested_urls and search_queries."
+                    )
+                elif source_strategy in external_strategies and not source_urls:
+                    issues.append(
+                        f"{design_prefix}: {source_strategy} source_plan.strategy requires at least "
+                        "one suggested URL."
+                    )
+                for url in source_urls:
+                    if not url.lower().startswith(("https://", "http://")):
+                        issues.append(f"{design_prefix}: suggested URL is invalid: {url!r}.")
 
 
     planned_task_count = sum(
@@ -707,7 +746,7 @@ def _audit_plan(
             f"{planned_task_count}. Adjust TaskDesign.task_count values so their sum is exactly "
             f"{expected_task_count}."
         )
-    if expected_effort_distribution and planned_task_count:
+    if not simplified and expected_effort_distribution and planned_task_count:
         actual: dict[ChallengeEffort, int] = {}
         for dim in plan.dimensions:
             for design in dim.task_designs:
@@ -742,6 +781,7 @@ def _parse_plan_response(
         raise ValueError("Planner response must be an object with a plan object at its root.")
     raw_plan = dict(data["plan"])
     raw_plan["id"] = "evalclaw_plan"
+    simplified = config.ablation_simplified_contract
     raw_dimensions = raw_plan.get("dimensions")
     if not isinstance(raw_dimensions, list):
         raw_dimensions = []
@@ -757,6 +797,10 @@ def _parse_plan_response(
             else f"dimension_{dimension_index}"
         )
         dimension["id"] = dimension_id
+        if simplified:
+            dimension.setdefault("measurement_target", "")
+            dimension.setdefault("boundary", "")
+            dimension.setdefault("approach", "")
         raw_designs = dimension.get("task_designs")
         if not isinstance(raw_designs, list):
             raw_designs = []
@@ -767,6 +811,8 @@ def _parse_plan_response(
                 continue
             design = dict(raw_design)
             design["id"] = f"{dimension_id}_task_design_{design_index}"
+            if simplified and isinstance(design.get("content_design"), str):
+                design["content_design"] = {"description": design["content_design"]}
             normalized_designs.append(design)
         dimension["task_designs"] = normalized_designs
         normalized_dimensions.append(dimension)
@@ -783,6 +829,7 @@ def _parse_plan_response(
         expected_effort_distribution=_valid_effort_distribution(
             config.challenge_effort_distribution
         ),
+        simplified=simplified,
     )
     if framework_dimension_ids is not None and len(plan.dimensions) != len(framework_dimension_ids):
         issues.append(
@@ -803,7 +850,10 @@ def _run_planner(
     settings = role_model_settings(config, "planner")
     if not settings.configured:
         raise RuntimeError("Planner model is not configured.")
-    system = benchmark_planner_system_prompt(BENCHMARK_PLANNER_SYSTEM_PROMPT)
+    system = benchmark_planner_system_prompt(
+        BENCHMARK_PLANNER_SYSTEM_PROMPT,
+        simplified=config.ablation_simplified_contract,
+    )
     base_resources = _planner_resources(instruction)
     debug_root = Path(config.planner_debug_dir).expanduser() if config.planner_debug_dir else None
     debug_invocation_id = (
@@ -817,12 +867,13 @@ def _run_planner(
         plan_document = debug_dir / "plan.json"
     else:
         plan_document = Path(tempfile.mkdtemp(prefix="evalclaw-plan-")) / "plan.json"
+    initial_document = (
+        {"objective": "", "dimensions": []}
+        if config.ablation_simplified_contract
+        else {"objective": "", "constraints": [], "planner_notes": "", "dimensions": []}
+    )
     plan_document.write_text(
-        json.dumps(
-            {"objective": "", "constraints": [], "planner_notes": "", "dimensions": []},
-            ensure_ascii=False,
-            indent=2,
-        ),
+        json.dumps(initial_document, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
     document_path = str(plan_document)

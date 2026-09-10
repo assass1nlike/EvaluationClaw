@@ -63,7 +63,7 @@ Further design the substantive content that makes up each dimension. Determine:
 Use only these task types:
 
 - `choice`: two or more candidate choices and one or more correct choice positions; the framework assigns option ids, and multiple positions express multi-select.
-- `fill_blank`: one uniquely formatted expected text, scored by exact text match after trimming surrounding whitespace.
+- `fill_blank`: a list of accepted answers, scored by exact match after trimming surrounding whitespace; any listed answer counts as correct.
 - `generation`: an open response scored by a Judge against a rubric. When useful, the Judge may use registered external-verification tools such as Python tests.
 - `multi_turn`: a scripted or response-adaptive dialogue scored over the complete transcript.
 - `agent`: a task in which the target acts through tools in an executable, resettable environment and is scored from the resulting state, artifacts, answer, or trajectory.

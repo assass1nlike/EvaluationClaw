@@ -190,7 +190,7 @@ HTML_TEMPLATE = r'''<!doctype html>
       if (item.task_type === "choice" && (item.correct_choice_ids || []).length) {
         textSection(body, "Correct choice IDs", item.correct_choice_ids.join(", "), "reference");
       }
-      textSection(body, "Expected answer", item.expected_text, "reference");
+      textSection(body, "Expected answer", (item.expected_texts || []).join("\n"), "reference");
       textSection(body, "Rubric", item.rubric, "reference");
       objectSection(body, "Scoring", item.scoring);
       objectSection(body, "Output contract", item.output_contract);

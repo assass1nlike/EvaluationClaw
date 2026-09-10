@@ -39,7 +39,7 @@ def test_builder_reuses_completed_job_checkpoint(monkeypatch, tmp_path) -> None:
                         "task_type": "fill_blank",
                         "title": "A task",
                         "prompt": "Return the exact value.",
-                        "expected_text": "42",
+                        "expected_texts": ["42"],
                         "metadata": {
                             "challenge_effort_self_assessment": {
                                 "requested_effort": "E3",

@@ -48,7 +48,7 @@ def _package_with_all_task_types() -> BenchmarkPackage:
             task_type=TaskType.fill_blank,
             title="Fill task",
             prompt="Complete the expression.",
-            expected_text="x = 1",
+            expected_texts=["x = 1"],
         ),
         TaskDefinition(
             id="generation-1",
@@ -88,7 +88,7 @@ def _package_with_all_task_types() -> BenchmarkPackage:
             prompt=definition.prompt,
             choices=definition.choices,
             correct_choice_ids=definition.correct_choice_ids,
-            expected_text=definition.expected_text,
+            expected_texts=definition.expected_texts,
             rubric=definition.rubric,
             source=BenchmarkSource(kind=SourceKind.self_generated, title=definition.title),
             source_definition=definition,
