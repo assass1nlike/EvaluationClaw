@@ -261,7 +261,7 @@ def test_build_and_run_probes_reviews_until_accepted(monkeypatch) -> None:
 
     def fake_apply(suite_arg, review, qc, config, *, log=None, trace_dir=None):
         apply_calls.append(review)
-        return suite_arg, qc
+        return suite_arg.spec, suite_arg, qc
 
     class _Plan:
         suite = probe_suite
@@ -366,7 +366,6 @@ def test_analysis_defaults_to_goal_probe(monkeypatch, tmp_path) -> None:
         (_probe_design(id="model_assigned"), 1, 4, "must not assign"),
         (_probe_design(dimension_id="unknown"), 1, 4, "unknown dimension"),
         (_probe_design(task_count=2), 1, 1, "exceeding analysis_max_tasks"),
-        (_probe_design(), 0, 4, "budget was exhausted"),
     ],
 )
 def test_analysis_rejects_invalid_probe_requests(
@@ -389,3 +388,22 @@ def test_analysis_rejects_invalid_probe_requests(
             iteration=1,
             remaining_probe_iterations=remaining,
         )
+
+
+def test_parse_response_converges_on_budget_exhaustion() -> None:
+    suite, _ = _suite_and_run()
+    analysis, goal, done, designs = analysis_module._parse_response(
+        {
+            "analysis": "More evidence is needed.",
+            "task_designs": [_probe_design()],
+            "done": False,
+        },
+        suite,
+        _config(analysis_probe_mode="task_design"),
+        iteration=1,
+        remaining_probe_iterations=0,
+    )
+    assert done is True
+    assert goal == ""
+    assert designs == []
+    assert analysis == "More evidence is needed."

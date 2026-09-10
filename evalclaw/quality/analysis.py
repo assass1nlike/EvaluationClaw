@@ -77,7 +77,9 @@ Return pure JSON only:
   "done": false
 }
 
-The probe's total task count must not exceed max_probe_tasks.
+The probe's total task count must not exceed max_probe_tasks. When
+remaining_probe_iterations is zero, do not give a goal — set "done": true and state your
+conclusion in analysis.
 """
 
 
@@ -122,7 +124,9 @@ Return pure JSON only:
   "done": false
 }
 
-When requesting probes, their total task_count must not exceed max_probe_tasks.
+When requesting probes, their total task_count must not exceed max_probe_tasks. When
+remaining_probe_iterations is zero, do not give task_designs — set "done": true and state
+your conclusion in analysis.
 """
 
 
@@ -342,9 +346,7 @@ def _parse_response(
         if not isinstance(raw_designs, list):
             raise ValueError("Analyser task_designs must be a list.")
         if raw_designs and remaining_probe_iterations <= 0:
-            raise ValueError(
-                "Analyser returned TaskDesigns after the probe-iteration budget was exhausted."
-            )
+            return analysis, "", True, []
         known_dimensions = {dimension.id for dimension in suite.spec.dimensions}
         total_tasks = 0
         for index, raw in enumerate(raw_designs, 1):
@@ -375,7 +377,7 @@ def _parse_response(
             raise ValueError("Analyser response requires a non-empty goal when done=false.")
         goal = raw_goal.strip()
         if remaining_probe_iterations <= 0:
-            raise ValueError("Analyser returned a goal after the probe-iteration budget was exhausted.")
+            return analysis, "", True, []
 
     if not goal and not designs:
         raise ValueError("Analyser response with done=false must include a goal or task_designs.")
@@ -459,7 +461,7 @@ def _build_and_run_probes(
     log: Callable[[str], None],
 ) -> tuple[TaskSuite, QcReport, EvalRun]:
     if goal:
-        probe_suite, probe_qc = build_benchmark_suite_with_qc_loop(
+        _probe_spec, probe_suite, probe_qc = build_benchmark_suite_with_qc_loop(
             goal,
             config,
             log=log,
@@ -512,7 +514,7 @@ def _build_and_run_probes(
             break
         if log:
             log(f"  [Analysis] probe review requested changes (pass {review_index + 1}).")
-        probe_suite, probe_qc = apply_review_to_suite(
+        _review_spec, probe_suite, probe_qc = apply_review_to_suite(
             probe_suite,
             review,
             probe_qc,
