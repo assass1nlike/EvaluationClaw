@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 from rich.console import Console
@@ -98,6 +98,7 @@ def _parse_model_config_objects(
                 raise ValueError(
                     f"{option_name} #{index} references unset or empty environment variable {api_key_env}."
                 )
+        raw_extra = raw.get("extra_body")
         parsed.append(
             target_from_model(
                 model,
@@ -107,6 +108,7 @@ def _parse_model_config_objects(
                 base_url=str(raw.get("base_url") or "").strip() or None,
                 fallback_key=fallback_key,
                 harness=str(raw.get("harness") or "").strip() or None,
+                extra_body=raw_extra if isinstance(raw_extra, dict) else {},
             )
         )
     for model in models:
@@ -212,11 +214,13 @@ def generate(
     planner_api_key: Optional[str] = typer.Option(None, "--planner-api-key", help="API key for the Planner role."),
     planner_base_url: Optional[str] = typer.Option(None, "--planner-base-url", help="Base URL for the Planner role."),
     planner_reasoning_effort: Optional[str] = typer.Option(None, "--planner-reasoning-effort", help="Reasoning effort passed to the Planner model."),
+    planner_extra_body: Optional[str] = typer.Option(None, "--planner-extra-body", help="JSON extra request body for the Planner model."),
     task_builder_model: Optional[str] = typer.Option(None, "--task-builder-model", help="Optional TaskBuilder model override."),
     task_builder_provider: Optional[str] = typer.Option(None, "--task-builder-provider", help="Protocol/provider for --task-builder-model."),
     task_builder_api_key: Optional[str] = typer.Option(None, "--task-builder-api-key", help="API key for the TaskBuilder role."),
     task_builder_base_url: Optional[str] = typer.Option(None, "--task-builder-base-url", help="Base URL for the TaskBuilder role."),
     task_builder_reasoning_effort: Optional[str] = typer.Option(None, "--task-builder-reasoning-effort", help="Reasoning effort passed to the TaskBuilder model."),
+    task_builder_extra_body: Optional[str] = typer.Option(None, "--task-builder-extra-body", help="JSON extra request body for the TaskBuilder model."),
     image_generation_model: Optional[str] = typer.Option(None, "--image-generation-model", help="Image model available to TaskBuilder."),
     image_generation_api_key: Optional[str] = typer.Option(None, "--image-generation-api-key", help="API key for image generation."),
     image_generation_base_url: Optional[str] = typer.Option(None, "--image-generation-base-url", help="OpenAI-compatible base URL for image generation."),
@@ -225,11 +229,17 @@ def generate(
     qc_api_key: Optional[str] = typer.Option(None, "--qc-api-key", help="API key for the LLM QC role."),
     qc_base_url: Optional[str] = typer.Option(None, "--qc-base-url", help="Base URL for the LLM QC role."),
     qc_reasoning_effort: Optional[str] = typer.Option(None, "--qc-reasoning-effort", help="Reasoning effort passed to the QC model."),
+    qc_extra_body: Optional[str] = typer.Option(None, "--qc-extra-body", help="JSON extra request body for the QC model."),
     use_llm_qc: bool = typer.Option(False, "--use-llm-qc/--no-llm-qc", help="Enable LLM-based QC review (off by default)."),
     ablation_simplified_contract: bool = typer.Option(
         False,
         "--ablation-simplified-contract/--no-ablation-simplified-contract",
         help="Shrink the Planner/Builder contracts to a minimal schema (ablation).",
+    ),
+    ablation_authoritative_research: bool = typer.Option(
+        False,
+        "--ablation-authoritative-research/--no-ablation-authoritative-research",
+        help="Restrict Planner research to fixed authoritative sources with raw content (ablation).",
     ),
     task_model: list[str] = typer.Option(
         [],
@@ -247,11 +257,13 @@ def generate(
     research_api_key: Optional[str] = typer.Option(None, "--research-api-key", help="API key for the research role."),
     research_base_url: Optional[str] = typer.Option(None, "--research-base-url", help="Base URL for the research role."),
     research_reasoning_effort: Optional[str] = typer.Option(None, "--research-reasoning-effort", help="Reasoning effort passed to the Research model."),
+    research_extra_body: Optional[str] = typer.Option(None, "--research-extra-body", help="JSON extra request body for the Research model."),
     analyser_model: Optional[str] = typer.Option(None, "--analyser-model", help="Optional model-performance Analyser model."),
     analyser_provider: Optional[str] = typer.Option(None, "--analyser-provider", help="Protocol/provider for --analyser-model."),
     analyser_api_key: Optional[str] = typer.Option(None, "--analyser-api-key", help="API key for the Analyser role."),
     analyser_base_url: Optional[str] = typer.Option(None, "--analyser-base-url", help="Base URL for the Analyser role."),
     analyser_reasoning_effort: Optional[str] = typer.Option(None, "--analyser-reasoning-effort", help="Reasoning effort passed to the Analyser model."),
+    analyser_extra_body: Optional[str] = typer.Option(None, "--analyser-extra-body", help="JSON extra request body for the Analyser model."),
     target_api_key: Optional[str] = typer.Option(
         None,
         "--target-api-key",
@@ -268,7 +280,7 @@ def generate(
         help="Base URL for the primary target's inferred protocol.",
     ),
     max_planner_iterations: int = typer.Option(5, "--max-planner-iterations", help="Planner self-critique iterations."),
-    max_qc_iterations: int = typer.Option(3, "--max-qc-iterations", help="Reserved for future QC regeneration loops."),
+    max_qc_iterations: int = typer.Option(5, "--max-qc-iterations", help="Reserved for future QC regeneration loops."),
     max_hf_records: int = typer.Option(1, "--max-hf-records", help="Maximum imported HuggingFace dataset rows per dimension."),
     large_scale_generated_cap: int = typer.Option(
         50,
@@ -321,7 +333,7 @@ def generate(
     no_interactive: bool = typer.Option(False, "--no-interactive", help="Skip confirmation prompts."),
     no_run: bool = typer.Option(False, "--no-run", help="Build and QC the benchmark without running targets."),
     web_research: bool = typer.Option(
-        False,
+        True,
         "--web-research/--no-web-research",
         help="Enable automatic source search and TaskBuilder web research during generation.",
     ),
@@ -336,7 +348,7 @@ def generate(
         help="Maximum concurrent task-builder LLM calls.",
     ),
     task_builder_repair_attempts: int = typer.Option(
-        2,
+        4,
         "--task-builder-repair-attempts",
         help="Maximum per-TaskDesign Builder structural repair attempts before QC.",
     ),
@@ -383,8 +395,8 @@ def generate(
         "--human-review",
         help="Review the Planner output before construction and the completed tasks before target execution.",
     ),
-    analysis_iterations: int = typer.Option(0, "--analysis-iterations", help="Maximum hypothesis-driven probe iterations after the main run."),
-    analysis_max_tasks: int = typer.Option(4, "--analysis-max-tasks", help="Maximum probe tasks requested in one analysis iteration."),
+    analysis_iterations: int = typer.Option(3, "--analysis-iterations", help="Maximum hypothesis-driven probe iterations after the main run."),
+    analysis_max_tasks: Optional[int] = typer.Option(None, "--analysis-max-tasks", help="Maximum probe tasks requested in one analysis iteration (default: half the successful task count, floored)."),
     docker_executable: str = typer.Option(
         "docker",
         "--docker-executable",
@@ -461,7 +473,7 @@ def generate(
     if analysis_iterations < 0:
         console.print("[red]--analysis-iterations cannot be negative.[/red]")
         raise typer.Exit(1)
-    if analysis_max_tasks < 0:
+    if analysis_max_tasks is not None and analysis_max_tasks < 0:
         console.print("[red]--analysis-max-tasks cannot be negative.[/red]")
         raise typer.Exit(1)
     if max_hf_records < 0:
@@ -531,27 +543,29 @@ def generate(
         raise typer.Exit(1)
 
     role_options = {
-        "planner": (planner_model, planner_provider, planner_api_key, planner_base_url, planner_reasoning_effort),
+        "planner": (planner_model, planner_provider, planner_api_key, planner_base_url, planner_reasoning_effort, planner_extra_body),
         "task_builder": (
             task_builder_model,
             task_builder_provider,
             task_builder_api_key,
             task_builder_base_url,
             task_builder_reasoning_effort,
+            task_builder_extra_body,
         ),
-        "qc": (qc_model, qc_provider, qc_api_key, qc_base_url, qc_reasoning_effort),
-        "research": (research_model, research_provider, research_api_key, research_base_url, research_reasoning_effort),
+        "qc": (qc_model, qc_provider, qc_api_key, qc_base_url, qc_reasoning_effort, qc_extra_body),
+        "research": (research_model, research_provider, research_api_key, research_base_url, research_reasoning_effort, research_extra_body),
         "analyser": (
             analyser_model,
             analyser_provider,
             analyser_api_key,
             analyser_base_url,
             analyser_reasoning_effort,
+            analyser_extra_body,
         ),
     }
-    role_config: dict[str, Optional[str]] = {}
-    for role, (role_model, role_provider, role_key, role_base, role_effort) in role_options.items():
-        if not any((role_model, role_provider, role_key, role_base, role_effort)):
+    role_config: dict[str, Any] = {}
+    for role, (role_model, role_provider, role_key, role_base, role_effort, role_extra_body) in role_options.items():
+        if not any((role_model, role_provider, role_key, role_base, role_effort, role_extra_body)):
             continue
         if not role_model:
             console.print(
@@ -565,6 +579,17 @@ def generate(
             base_url=role_base,
             provider=role_provider,
         )
+        extra_body: dict[str, Any] = {}
+        if role_extra_body:
+            try:
+                parsed_extra = json.loads(role_extra_body)
+            except json.JSONDecodeError as exc:
+                console.print(f"[red]--{role.replace('_', '-')}-extra-body is not valid JSON: {exc.msg}[/red]")
+                raise typer.Exit(1)
+            if not isinstance(parsed_extra, dict):
+                console.print(f"[red]--{role.replace('_', '-')}-extra-body must be a JSON object.[/red]")
+                raise typer.Exit(1)
+            extra_body = parsed_extra
         role_config.update(
             {
                 f"{role}_model": role_model,
@@ -572,6 +597,7 @@ def generate(
                 f"{role}_api_key": resolved_key,
                 f"{role}_base_url": resolved_base,
                 f"{role}_reasoning_effort": role_effort,
+                f"{role}_extra_body": extra_body,
             }
         )
     image_config: dict[str, Optional[str]] = {}
@@ -672,6 +698,7 @@ def generate(
         strict_qc_filter=strict_qc_filter,
         use_llm_qc=use_llm_qc,
         ablation_simplified_contract=ablation_simplified_contract,
+        ablation_authoritative_research=ablation_authoritative_research,
         report_language=report_language.strip() if report_language and report_language.strip() else None,
         gui_bridge_url=gui_bridge_url,
         gui_bridge_api_key=gui_bridge_api_key,

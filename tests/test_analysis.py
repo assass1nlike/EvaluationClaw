@@ -195,7 +195,11 @@ def test_analysis_runs_probe_then_analyses_new_evidence(monkeypatch, tmp_path) -
     report = analysis_module.run_analysis(
         suite,
         run,
-        _config(analysis_iterations=1, analysis_probe_mode="task_design"),
+        _config(
+            analysis_iterations=1,
+            analysis_probe_mode="task_design",
+            analysis_max_tasks=4,
+        ),
         artifact_dir=tmp_path,
         log=lambda _message: None,
     )

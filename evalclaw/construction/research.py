@@ -11,12 +11,13 @@ import subprocess
 import sys
 import tempfile
 from concurrent.futures import CancelledError
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from threading import Event
 from typing import Any
 from urllib.parse import urlsplit
 
 import httpx
+from pydantic import ValidationError
 
 from ..diagnostics import (
     document_append,
@@ -60,7 +61,7 @@ from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_openai_response_input,
 )
 from ..research.backends import download_url_file, fetch_url_text, web_search
-from ..types import BenchmarkConfig, Message
+from ..types import AgentEnvironmentSpec, BenchmarkConfig, Message
 
 _MAX_DOWNLOAD_URLS = 32
 _MAX_DOWNLOAD_BYTES = 256 * 1024 * 1024
@@ -197,7 +198,8 @@ TASK_BUILDER_WRITE_TOOL = ToolSpec(
         "Apply a list of operations to the working candidate JSON file (top-level keys "
         "construction_notes, resources, tasks). Each operation is {\"op\": \"set\"|\"remove\"|\"append\", "
         "\"path\": \"dot.path\" (list items indexed from 0), \"value\": ...}. Returns the updated "
-        "document summary (task titles and completion)."
+        "document summary (task titles and completion) plus any field-level validity issues "
+        "(unknown field names, wrong types, invalid file paths) for the written fields."
     ),
     parameters={
         "type": "object",
@@ -713,6 +715,59 @@ def _candidate_summary(document: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _invalid_file_key(path: object) -> bool:
+    raw = str(path or "").strip()
+    if not raw:
+        return True
+    pure = PurePosixPath(raw)
+    return pure.is_absolute() or ".." in pure.parts
+
+
+def _field_level_issues(document: dict[str, Any]) -> list[str]:
+    """Field-level validity issues for the working candidate document.
+
+    Only local checks that are safe on an incomplete document: unknown field
+    names, wrong value types, and invalid environment file-path keys.
+    Completeness checks (missing required fields, coverage, duplicates) still
+    run at the end of construction.
+    """
+    issues: list[str] = []
+    tasks = document.get("tasks")
+    if not isinstance(tasks, list):
+        return issues
+    for task_index, task in enumerate(tasks):
+        if not isinstance(task, dict):
+            continue
+        environment = task.get("environment")
+        if isinstance(environment, dict) and environment:
+            try:
+                AgentEnvironmentSpec.model_validate(environment)
+            except ValidationError as exc:
+                for error in exc.errors():
+                    etype = error.get("type", "")
+                    loc = error.get("loc", ())
+                    if etype == "extra_forbidden":
+                        issues.append(
+                            f"tasks.{task_index}.environment: unknown field {loc[-1]!r}"
+                        )
+                    elif etype.endswith("_type"):
+                        path = ".".join(str(part) for part in loc)
+                        issues.append(
+                            f"tasks.{task_index}.environment.{path}: "
+                            f"{error.get('msg', 'invalid value')}"
+                        )
+            for files_key in ("visible_files", "runtime_files", "hidden_files"):
+                files = environment.get(files_key)
+                if isinstance(files, dict):
+                    for path in files:
+                        if _invalid_file_key(path):
+                            issues.append(
+                                f"tasks.{task_index}.environment.{files_key}: "
+                                f"path {path!r} must be a workdir-relative path"
+                            )
+    return issues
+
+
 def _file_state(directory: Path) -> dict[Path, tuple[int, int]]:
     state: dict[Path, tuple[int, int]] = {}
     for path in directory.rglob("*"):
@@ -985,10 +1040,14 @@ def _execute_task_builder_tool(
             target.write_text(
                 json.dumps(current, ensure_ascii=False, indent=2), encoding="utf-8"
             )
+            summary = _candidate_summary(current)
+            field_issues = _field_level_issues(current)
+            if field_issues:
+                summary["field_issues"] = field_issues
             return ToolResult(
                 tool_call_id=call.id,
                 name=call.name,
-                content=_tool_content(_candidate_summary(current), max_chars=max_chars),
+                content=_tool_content(summary, max_chars=max_chars),
             )
         if call.name == "run_python":
             code = str(args.get("code") or "")

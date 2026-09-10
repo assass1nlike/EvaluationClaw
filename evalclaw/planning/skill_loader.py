@@ -56,7 +56,23 @@ reference format, pure JSON only.
 """
 
 
-def benchmark_planner_system_prompt(base_prompt: str, *, simplified: bool = False) -> str:
+_AUTHORITATIVE_RESEARCH_NOTE = """\
+<RESEARCH_MODE>
+This run grounds the design in a fixed catalog of authoritative sources instead of open web search.
+Your research tools are search_sources (find datasets/articles) and load_source (read raw content:
+dataset rows, article text, or abstracts). For a HuggingFace dataset, set source_plan.strategy to
+"imported_dataset" and put "hf://datasets/{id}" in source_plan.suggested_urls. For a Wikipedia or
+arXiv source, use "reused" or "adapted" and put the article URL in source_plan.suggested_urls.
+Do not over-fetch.
+</RESEARCH_MODE>"""
+
+
+def benchmark_planner_system_prompt(
+    base_prompt: str,
+    *,
+    simplified: bool = False,
+    authoritative_research: bool = False,
+) -> str:
     """Place the base Planner prompt before the active Skill and its reference."""
     if simplified:
         skill = _ABLATION_SKILL
@@ -66,7 +82,7 @@ def benchmark_planner_system_prompt(base_prompt: str, *, simplified: bool = Fals
         skill = load_benchmark_planner_skill()
         format_path = "reference/universal_format.json"
         format_text = load_benchmark_plan_format()
-    return (
+    text = (
         base_prompt.rstrip()
         + "\n\n<ACTIVE_EVALCLAW_PLANNER_SKILL>\n"
         + skill
@@ -75,6 +91,9 @@ def benchmark_planner_system_prompt(base_prompt: str, *, simplified: bool = Fals
         + format_text
         + "\n</REFERENCE_FILE>"
     )
+    if authoritative_research:
+        text += "\n\n" + _AUTHORITATIVE_RESEARCH_NOTE
+    return text
 
 
 __all__ = [

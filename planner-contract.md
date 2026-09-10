@@ -52,109 +52,109 @@ plan
 
 ### 4.1 顶层字段
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `str` | 框架拥有（planner 不发明） |
-| `task_type` | `TaskType` | `choice` / `fill_blank` / `generation` / `multi_turn` / `agent` |
-| `task_count` | `int`（≥1） | 这一个 TaskDesign 要产出的具体任务总数 |
-| `challenge_effort` | `E1`/`E2`/`E3` | 构建投入：E1 直接、E2 中等带边界、E3 深度规划+源使用 |
-| `content_design` | `dict` | 内容设计（§4.2） |
-| `input_requirements` | `dict` | 输入要求（§4.3） |
-| `interaction_requirements` | `dict` | 交互要求（§4.4） |
-| `environment_requirements` | `dict` | 环境要求（§4.5，仅 agent） |
-| `output_requirements` | `dict` | 输出要求（§4.6） |
-| `scoring_contract` | `dict` | 评分契约（§4.7） |
-| `source_plan` | `dict` | 素材来源计划（§4.8） |
-| `construction_requirements` | `list[str]` | 构建任务时的额外要求 |
-| `type_specific_requirements` | `dict` | 类型专属扩展（§4.9） |
-| `metadata` | `dict` | 附加元数据 |
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `id` | `str` | 否（框架注入） | 框架拥有（planner 不发明） |
+| `task_type` | `TaskType` | 是 | `choice` / `fill_blank` / `generation` / `multi_turn` / `agent` |
+| `task_count` | `int`（≥1） | 是 | 这一个 TaskDesign 要产出的具体任务总数 |
+| `challenge_effort` | `E1`/`E2`/`E3` | 否（默认 E3） | 构建投入：E1 简单（有意义难度、不到研究级）、E2 难（非显然洞察或多步严格论证）、E3 最大投入（极限难、穷尽变难手段） |
+| `content_design` | `dict` | 是（`description`/`purpose` 至少其一） | 内容设计（§4.2） |
+| `input_requirements` | `dict` | 否 | 输入要求（§4.3） |
+| `interaction_requirements` | `dict` | 仅 multi_turn | 交互要求（§4.4） |
+| `environment_requirements` | `dict` | 仅 agent | 环境要求（§4.5，仅 agent） |
+| `output_requirements` | `dict` | 否 | 输出要求（§4.6） |
+| `scoring_contract` | `dict` | 否 | 评分契约（§4.7） |
+| `source_plan` | `dict` | 是（`strategy`） | 素材来源计划（§4.8） |
+| `construction_requirements` | `list[str]` | 否 | 构建任务时的额外要求 |
+| `type_specific_requirements` | `dict` | 否 | 类型专属扩展（§4.9） |
+| `metadata` | `dict` | 否 | 附加元数据 |
 
 ### 4.2 `content_design`
 
-| key | 说明 |
-|---|---|
-| `purpose` | 覆盖的任务在维度内测量什么 |
-| `description` | 一个复杂任务的具体构想，或多个简单任务的共享内容描述 |
-| `coverage_requirements` | 这些任务必须覆盖的内容 |
-| `variation_requirements` | 多个任务如何彼此区分 |
-| `task_relationships` | 任务间的可选关系/依赖 |
-| `exclusions` | 必须避免的内容、捷径、混淆项 |
+| key | 必填 | 说明 |
+|---|---|---|
+| `purpose` | 与 `description` 至少其一 | 覆盖的任务在维度内测量什么 |
+| `description` | 与 `purpose` 至少其一 | 一个复杂任务的具体构想，或多个简单任务的共享内容描述 |
+| `coverage_requirements` | 否 | 这些任务必须覆盖的内容 |
+| `variation_requirements` | 否 | 多个任务如何彼此区分 |
+| `task_relationships` | 否 | 任务间的可选关系/依赖 |
+| `exclusions` | 否 | 必须避免的内容、捷径、混淆项 |
 
 ### 4.3 `input_requirements`
 
-| key | 说明 |
-|---|---|
-| `description` | 任务收到什么信息/材料 |
-| `modalities` | `text` / `image` / `audio` / `video` / `table` / `files` |
-| `format_or_schema` | 输入格式/结构/schema |
-| `shared_inputs` | 共享输入 |
-| `per_task_variation` | 具体任务间输入如何变化 |
-| `asset_requirements` | 资产列表，每项 `asset_ref` / `kind` / `role` / `visibility`（`task_visible` 或 `runner_private`）/ `properties` |
+| key | 必填 | 说明 |
+|---|---|---|
+| `description` | 否 | 任务收到什么信息/材料 |
+| `modalities` | 否 | `text` / `image` / `audio` / `video` / `table` / `files` |
+| `format_or_schema` | 否 | 输入格式/结构/schema |
+| `shared_inputs` | 否 | 共享输入 |
+| `per_task_variation` | 否 | 具体任务间输入如何变化 |
+| `asset_requirements` | 否 | 资产列表，每项 `asset_ref` / `kind` / `role` / `visibility`（`task_visible` 或 `runner_private`）/ `properties` |
 
 ### 4.4 `interaction_requirements`
 
-| key | 说明 |
-|---|---|
-| `mode` | `single_turn` / `multi_turn` / `tool_use` / `environment_interaction` / `mixed` |
-| `followup_mode` | 仅 multi_turn：`adaptive` 或 `scripted`（必填） |
-| `roles` | 参与交互的角色 |
-| `statefulness` | 什么状态持久、如何变化 |
-| `turn_or_step_policy` | 轮次/步数策略 |
-| `allowed_action_or_tool_categories` | 被评测对象可用的能力 |
-| `observation_model` | 动作应产生的反馈 |
-| `completion_condition` | 成功/终止条件 |
-| `trajectory_requirements` | 过程行为的必需/禁止/计分点 |
+| key | 必填 | 说明 |
+|---|---|---|
+| `mode` | 否 | `single_turn` / `multi_turn` / `tool_use` / `environment_interaction` / `mixed` |
+| `followup_mode` | 仅 multi_turn | 仅 multi_turn：`adaptive` 或 `scripted`（必填） |
+| `roles` | 否 | 参与交互的角色 |
+| `statefulness` | 否 | 什么状态持久、如何变化 |
+| `turn_or_step_policy` | 否 | 轮次/步数策略 |
+| `allowed_action_or_tool_categories` | 否 | 被评测对象可用的能力 |
+| `observation_model` | 否 | 动作应产生的反馈 |
+| `completion_condition` | 否 | 成功/终止条件 |
+| `trajectory_requirements` | 否 | 过程行为的必需/禁止/计分点 |
 
 ### 4.5 `environment_requirements`（仅 agent）
 
-| key | 说明 |
-|---|---|
-| `category` | `docker_workspace` 或 `vm` |
-| `purpose` | 为什么需要执行环境 |
-| `initial_state` | 每个任务的初始状态 |
-| `required_capabilities` | 环境必须暴露的能力 |
-| `required_software_or_services` | 需要的软件/服务 |
-| `network_requirements` | 是否需要网络及原因 |
-| `fixture_asset_refs` | 引用 `input_asset` |
-| `constraints` | Builder 必须保留/避免的环境属性 |
+| key | 必填 | 说明 |
+|---|---|---|
+| `category` | 仅 agent | `docker_workspace` 或 `vm` |
+| `purpose` | 否 | 为什么需要执行环境 |
+| `initial_state` | 否 | 每个任务的初始状态 |
+| `required_capabilities` | 否 | 环境必须暴露的能力 |
+| `required_software_or_services` | 否 | 需要的软件/服务 |
+| `network_requirements` | 否 | 是否需要网络及原因 |
+| `fixture_asset_refs` | 否 | 引用 `input_asset` |
+| `constraints` | 否 | Builder 必须保留/避免的环境属性 |
 
 ### 4.6 `output_requirements`
 
-| key | 说明 |
-|---|---|
-| `response_modes` | `choice` / `text` / `structured_data` / `code` / `artifact` / `state_change` / `trajectory` |
-| `description` | 成功响应/完成任务应产出什么 |
-| `format_or_schema` | 输出格式/schema/接口 |
-| `required_components` | 响应的必需部分 |
-| `artifacts` | 交付物列表，每项 `kind` / `description` / `format` / `required` |
-| `constraints` | 输出属性、限制、禁止的捷径 |
+| key | 必填 | 说明 |
+|---|---|---|
+| `response_modes` | 否 | `choice` / `text` / `structured_data` / `code` / `artifact` / `state_change` / `trajectory` |
+| `description` | 否 | 成功响应/完成任务应产出什么 |
+| `format_or_schema` | 否 | 输出格式/schema/接口 |
+| `required_components` | 否 | 响应的必需部分 |
+| `artifacts` | 否 | 交付物列表，每项 `kind` / `description` / `format` / `required` |
+| `constraints` | 否 | 输出属性、限制、禁止的捷径 |
 
 ### 4.7 `scoring_contract`
 
-| key | 说明 |
-|---|---|
-| `components` | 评分组件列表，每项 `method`（exact answer / rubric / executable test / artifact inspection / final-state check / trajectory check / comparison / 其他）、`oracle_type`、`criteria`、`partial_credit`、`required_evidence`、`verification_direction` |
-| `aggregation` | 多检查/轮次/交付物/子分如何合并 |
-| `trial_policy` | 可选的重复/采样/随机评估要求 |
-| `failure_conditions` | 必须判失败的条件 |
+| key | 必填 | 说明 |
+|---|---|---|
+| `components` | 否 | 评分组件列表，每项 `method`（exact answer / rubric / executable test / artifact inspection / final-state check / trajectory check / comparison / 其他）、`oracle_type`、`criteria`、`partial_credit`、`required_evidence`、`verification_direction` |
+| `aggregation` | 否 | 多检查/轮次/交付物/子分如何合并 |
+| `trial_policy` | 否 | 可选的重复/采样/随机评估要求 |
+| `failure_conditions` | 否 | 必须判失败的条件 |
 
 ### 4.8 `source_plan`
 
-| key | 说明 |
-|---|---|
-| `strategy` | 恰好一个：`generated` / `adapted` / `reused` / `imported_dataset` |
-| `search_queries` | 补充检索词（`generated` 时留空） |
-| `suggested_urls` | 源 URL（`adapted`/`reused`/`imported_dataset` 至少一个） |
-| `requirements` | 权威性/时效/可复现/许可/来源要求 |
-| `asset_source_overrides` | 每项 `asset_ref` + `strategy` |
-| `usage_guidance` | 所选策略如何使用素材 |
+| key | 必填 | 说明 |
+|---|---|---|
+| `strategy` | 是 | 恰好一个：`generated` / `adapted` / `reused` / `imported_dataset` |
+| `search_queries` | 否 | 补充检索词（`generated` 时留空） |
+| `suggested_urls` | 仅 `adapted`/`reused`/`imported_dataset` | 源 URL（`adapted`/`reused`/`imported_dataset` 至少一个） |
+| `requirements` | 否 | 权威性/时效/可复现/许可/来源要求 |
+| `asset_source_overrides` | 否 | 每项 `asset_ref` + `strategy` |
+| `usage_guidance` | 否 | 所选策略如何使用素材 |
 
 ### 4.9 `type_specific_requirements`
 
-| key | 说明 |
-|---|---|
-| `protocol` | 可选的命名空间协议/类型扩展标识 |
-| `requirements` | 仅放 universal 字段表达不了的要求 |
+| key | 必填 | 说明 |
+|---|---|---|
+| `protocol` | 否 | 可选的命名空间协议/类型扩展标识 |
+| `requirements` | 否 | 仅放 universal 字段表达不了的要求 |
 
 ## 5. 关键行为规则（SKILL.md 摘录）
 

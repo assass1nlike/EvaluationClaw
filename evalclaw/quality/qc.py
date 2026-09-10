@@ -74,6 +74,11 @@ def run_qc_gate(
     trace_dir: str | Path | None = None,
 ) -> QcReport:
     """Run MVP static QC plus optional LLM review."""
+    if config.ablation_simplified_contract:
+        return QcReport(
+            passed_item_ids=[item.id for item in suite.tasks],
+            summary="QC skipped (ablation-simplified-contract).",
+        )
     issues: list[QcIssue] = []
     for item in suite.tasks:
         issues.extend(_static_item_issues(item))

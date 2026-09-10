@@ -426,12 +426,7 @@ def _item_source_for_task(task: TaskDefinition, package: dict[str, Any] | None =
     source_kind = _resource_source_kind(provenance_kind)
     source_uris = [str(uri) for uri in provenance.get("source_uris", []) if _has_real_source_uri(str(uri))]
     if source_kind == SourceKind.self_generated or not source_uris:
-        return BenchmarkSource(
-            kind=SourceKind.self_generated,
-            uri="",
-            title=task.title,
-            notes=task.description or str(provenance.get("construction_notes") or ""),
-        )
+        return BenchmarkSource(kind=SourceKind.self_generated)
     return BenchmarkSource(
         kind=source_kind,
         uri=source_uris[0],
