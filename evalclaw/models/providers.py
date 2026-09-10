@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import os
-from typing import Optional
+from typing import Any, Optional
 
 from ..types import TargetModelConfig
 
@@ -79,6 +79,7 @@ def target_from_model(
     base_url: Optional[str] = None,
     fallback_key: Optional[str] = None,
     harness: Optional[str] = None,
+    extra_body: Optional[dict[str, Any]] = None,
 ) -> TargetModelConfig:
     """Build a target config from a model name plus optional overrides."""
     provider, inferred_base = infer_provider(model, base_url, provider)
@@ -89,6 +90,7 @@ def target_from_model(
         api_key=api_key or default_api_key(provider, model, fallback_key),
         base_url=inferred_base,
         harness=harness or "",
+        extra_body=extra_body or {},
     )
 
 

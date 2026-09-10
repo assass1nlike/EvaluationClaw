@@ -868,6 +868,30 @@ def _dedupe_blueprints(blueprints: list) -> list:
     return list(seen.values())
 
 
+def _ensure_unique_item_ids(items: list[BenchmarkItem]) -> list[BenchmarkItem]:
+    """Rename duplicate item ids so the suite can build an execution plan."""
+    seen: set[str] = set()
+    duplicate_counts: Counter[str] = Counter()
+    result: list[BenchmarkItem] = []
+    for item in items:
+        original_id = item.id
+        if original_id not in seen:
+            seen.add(original_id)
+            result.append(item)
+            continue
+        prefix = item.builder_job_id or "task"
+        duplicate_counts[original_id] += 1
+        candidate = f"{prefix}__{original_id}"
+        if duplicate_counts[original_id] > 1:
+            candidate += f"__{duplicate_counts[original_id]}"
+        while candidate in seen:
+            duplicate_counts[original_id] += 1
+            candidate = f"{prefix}__{original_id}__{duplicate_counts[original_id]}"
+        seen.add(candidate)
+        result.append(item.model_copy(update={"id": candidate}))
+    return result
+
+
 def apply_review_to_suite(
     suite: TaskSuite,
     review: dict[str, Any],
@@ -928,7 +952,7 @@ def apply_review_to_suite(
             "spec": outcome.spec,
             "dimensions": outcome.spec.dimensions,
             "blueprints": _dedupe_blueprints(generated_blueprints),
-            "tasks": _order_items_by_dimension(materialized, outcome.spec),
+            "tasks": _ensure_unique_item_ids(_order_items_by_dimension(materialized, outcome.spec)),
             "resources": suite.resources,
             "construction_notes": (
                 suite.construction_notes.rstrip()

@@ -12,6 +12,7 @@ from evalclaw.construction.research import (
     TaskBuilderCallError,
     _append_tool_results,
     _execute_task_builder_tool,
+    _field_level_issues,
     run_task_builder_tools,
     summarize_task_builder_truncation,
     task_builder_work_dir,
@@ -62,6 +63,56 @@ def _openai_tool_response(call: ToolCall) -> TargetToolModelResponse:
         },
         raw_response={},
     )
+
+
+def test_field_level_issues_catches_unknown_fields_and_absolute_paths() -> None:
+    document = {
+        "tasks": [
+            {
+                "task_type": "agent",
+                "title": "t",
+                "prompt": "p",
+                "environment": {
+                    "type": "docker_workspace",
+                    "image": "python:3.11-slim",
+                    "workdir": "/workspace",
+                    "timeout_s": 300,
+                    "hidden_files": {
+                        "/evaluator/run_tests.sh": "#!/bin/bash",
+                        "tests/test_regression.py": "print(1)",
+                    },
+                },
+            }
+        ]
+    }
+
+    issues = _field_level_issues(document)
+
+    assert any("unknown field 'timeout_s'" in issue for issue in issues)
+    assert any(
+        "must be a workdir-relative path" in issue for issue in issues
+    )
+
+
+def test_field_level_issues_accepts_valid_environment() -> None:
+    document = {
+        "tasks": [
+            {
+                "task_type": "agent",
+                "title": "t",
+                "prompt": "p",
+                "environment": {
+                    "type": "docker_workspace",
+                    "image": "python:3.11-slim",
+                    "workdir": "/workspace",
+                    "timeout": 300,
+                    "hidden_files": {"tests/run_tests.sh": "#!/bin/bash"},
+                },
+            }
+        ]
+    }
+
+    assert _field_level_issues(document) == []
 
 
 def test_responses_tool_result_is_appended_as_function_output() -> None:
@@ -1657,20 +1708,19 @@ def test_gui_task_builder_receives_vm_image_tools(monkeypatch) -> None:
         environment_type=AgentEnvironmentType.vm,
     )
 
-    with pytest.raises(RuntimeError, match="route probe"):
-        build_task_suite(
-            EvalSpec(
-                objective="Evaluate GUI interaction.",
-                dimensions=[dimension],
-                task_types=[TaskType.agent],
-            ),
-            [blueprint],
-            BenchmarkConfig(
-                **dummy_config_kwargs(),
-                environment_preflight=False,
-                task_builder_repair_attempts=0,
-            ),
-        )
+    build_task_suite(
+        EvalSpec(
+            objective="Evaluate GUI interaction.",
+            dimensions=[dimension],
+            task_types=[TaskType.agent],
+        ),
+        [blueprint],
+        BenchmarkConfig(
+            **dummy_config_kwargs(),
+            environment_preflight=False,
+            task_builder_repair_attempts=0,
+        ),
+    )
 
     assert captured["include_vm_image_tools"] is True
 

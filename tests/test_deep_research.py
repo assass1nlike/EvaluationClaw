@@ -69,6 +69,27 @@ def test_source_context_reuses_retained_material_without_refetch(monkeypatch) ->
     assert "Complete retained source text." in context
 
 
+def test_source_context_loads_hf_dataset_rows(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.construction.resources.load_source",
+        lambda ref, limit=3: '{"question": "1 + 1", "answer": "2"}',
+    )
+
+    context = _source_context(
+        [
+            BenchmarkSource(
+                kind=SourceKind.hf_dataset,
+                uri="hf://datasets/openai/gsm8k",
+                title="GSM8K",
+            )
+        ],
+        None,
+    )
+
+    assert "hf://datasets/openai/gsm8k" in context
+    assert "1 + 1" in context
+
+
 def _minimal_package(research_brief: ResearchBrief | None) -> BenchmarkPackage:
     dimension = EvalDimension(
         id="core", name="Core", description="d", approach="a", challenge_effort=ChallengeEffort.E2

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from ..benchmark import build_benchmark_suite_with_qc_loop, build_suite_from_spec_with_qc_loop
-from ..diagnostics import new_debug_dir, redact_secrets, write_json
+from ..diagnostics import new_debug_dir, write_json
 from ..execution.environment_claw import run_environment_claw
 from ..execution.plan import build_execution_plan
 from ..execution.runner import run_eval
@@ -38,7 +38,12 @@ from ..types import (
     TaskDesign,
     TaskSuite,
 )
-from .analysis_tools import ANALYSER_ARTIFACT_TOOL, read_run_artifact
+from .analysis_tools import (
+    ANALYSER_ARTIFACT_TOOL,
+    ANALYSER_ITEM_EVIDENCE_TOOL,
+    read_item_evidence,
+    read_run_artifact,
+)
 
 _MAX_ARTIFACT_CALLS = 6
 
@@ -56,7 +61,16 @@ If you still need evidence, write a focused evaluation goal for that experiment.
 The framework runs the goal through the full Planner -> Builder -> Runner
 pipeline to produce the probe tasks. Probes are experiments, not adversarial
 expansion for its own sake. Write the goal so the Planner designs a small,
-focused probe.
+focused probe. You may specify the task type, task count, and challenge effort
+level — per task or for the probe as a whole — according to what your hypothesis
+needs. The three effort levels are:
+
+- E1 (simple construction): meaningfully challenging, but below research-level depth.
+- E2 (difficult construction): requires a non-obvious insight or a multi-step rigorous argument.
+- E3 (maximum construction effort): extremely difficult; demands broad knowledge,
+  tedious reasoning, or bold hypotheses, using every technique to raise difficulty.
+
+State these in the goal so the Planner materializes the probe as intended.
 
 Set "done": true only when you have fully identified every model capability
 weakness, AND produced a benchmark that covers exactly those weaknesses (so the
@@ -65,10 +79,12 @@ already passed one run showing it is itself correct — the model's poor
 performance is not caused by flawed, imprecise, or ambiguous tasks. Then leave
 "goal" empty. Otherwise set "done": false and give a goal.
 
-QC is not part of the default analysis context. A read_run_artifact tool may be
-available. Read the named QC artifact only when you need to determine whether
-an observed result was caused by the task or infrastructure rather than the
-evaluated model.
+QC is not part of the default analysis context. Two read-only tools may be
+available: read_run_artifact reads a named run artifact (read the QC artifact
+only when you need to determine whether an observed result was caused by the
+task or infrastructure rather than the evaluated model), and read_item_evidence
+reads one item's full raw response and judge reasoning. Use these only when the
+request payload is not enough.
 
 Return pure JSON only:
 {
@@ -192,7 +208,11 @@ def _run_analyser_tool_loop(
     ]
     calls_used = 0
     while True:
-        tools = [ANALYSER_ARTIFACT_TOOL] if artifact_dir is not None and calls_used < _MAX_ARTIFACT_CALLS else []
+        tools = (
+            [ANALYSER_ARTIFACT_TOOL, ANALYSER_ITEM_EVIDENCE_TOOL]
+            if artifact_dir is not None and calls_used < _MAX_ARTIFACT_CALLS
+            else []
+        )
         response = call_orchestrator_with_tools(
             messages,
             system_prompt=system_prompt,
@@ -221,7 +241,12 @@ def _run_analyser_tool_loop(
                 }
             )
             continue
-        results = [read_run_artifact(call, artifact_dir) for call in selected]
+        results = [
+            read_item_evidence(call, artifact_dir)
+            if call.name == ANALYSER_ITEM_EVIDENCE_TOOL.name
+            else read_run_artifact(call, artifact_dir)
+            for call in selected
+        ]
         calls_used += len(selected)
         _append_tool_results(messages, response, results)
         if calls_used >= _MAX_ARTIFACT_CALLS:
@@ -251,22 +276,57 @@ def _call_analyser_json(
     )
 
 
+_RAW_RESPONSE_LIMIT = 2000
+
+
+def _truncate(value: str, limit: int = _RAW_RESPONSE_LIMIT) -> str:
+    if len(value) <= limit:
+        return value
+    return value[:limit] + f"... [truncated {len(value) - limit} chars]"
+
+
 def _task_context(suite: TaskSuite) -> list[dict[str, Any]]:
     tasks: list[dict[str, Any]] = []
     for item in suite.tasks:
-        payload = item.model_dump(mode="json")
-        if item.source_definition is not None:
-            payload["definition"] = item.source_definition.model_dump(mode="json")
-        tasks.append(redact_secrets(payload))
+        tasks.append(
+            {
+                "id": item.id,
+                "dimension_id": item.dimension_id,
+                "task_type": item.task_type.value,
+                "challenge_effort": item.challenge_effort.value,
+                "prompt": item.prompt,
+                "choices": [choice.model_dump(mode="json") for choice in item.choices],
+                "correct_choice_ids": list(item.correct_choice_ids),
+                "expected_texts": list(item.expected_texts),
+                "rubric": item.rubric,
+            }
+        )
     return tasks
 
 
 def _run_context(run: EvalRun) -> dict[str, Any]:
     return {
         "summaries": [summary.model_dump(mode="json") for summary in run.summaries],
-        "results": [result.model_dump(mode="json") for result in run.results],
-        "runner_artifacts": redact_secrets(run.runner_artifacts),
+        "results": [
+            {
+                "item_id": result.item_id,
+                "target_id": result.target_id,
+                "score": result.score,
+                "judge_reasoning": result.judge_reasoning,
+                "error": result.error,
+                "raw_response": _truncate(result.raw_response),
+            }
+            for result in run.results
+        ],
     }
+
+
+def _analysis_max_tasks(config: BenchmarkConfig, suite: TaskSuite) -> int:
+    """Probe-task cap: explicit config, else half the main run's task count (floored)."""
+    configured = config.analysis_max_tasks
+    if configured is not None:
+        return max(0, int(configured))
+    return len(suite.tasks) // 2
 
 
 def _analysis_payload(
@@ -301,6 +361,18 @@ def _analysis_payload(
                     "measurement_target": dimension.measurement_target,
                     "boundary": dimension.boundary,
                     "approach": dimension.approach,
+                    "task_designs": [
+                        {
+                            "id": design.id,
+                            "task_type": design.task_type.value,
+                            "task_count": design.task_count,
+                            "challenge_effort": design.challenge_effort.value,
+                            "content_design": design.content_design,
+                        }
+                        for blueprint in suite.blueprints
+                        if blueprint.dimension_id == dimension.id
+                        for design in blueprint.task_designs
+                    ],
                 }
                 for dimension in suite.spec.dimensions
             ],
@@ -309,7 +381,7 @@ def _analysis_payload(
         "main_run": _run_context(run),
         "verification_history": history,
         "remaining_probe_iterations": max(0, config.analysis_iterations - len(iterations)),
-        "max_probe_tasks": max(0, config.analysis_max_tasks),
+        "max_probe_tasks": _analysis_max_tasks(config, suite),
     }
     if artifact_dir is not None:
         payload["available_artifacts"] = {
@@ -366,7 +438,7 @@ def _parse_response(
             )
             total_tasks += design.task_count
             designs.append(AnalysisProbeDesign(dimension_id=dimension_id, task_design=design))
-        max_tasks = max(0, int(config.analysis_max_tasks))
+        max_tasks = _analysis_max_tasks(config, suite)
         if total_tasks > max_tasks:
             raise ValueError(
                 f"Analyser requested {total_tasks} probe tasks, exceeding analysis_max_tasks={max_tasks}."
@@ -467,12 +539,23 @@ def _build_and_run_probes(
             log=log,
             trace_dir=trace_dir / "construction" if trace_dir is not None else None,
         )
-        max_tasks = max(0, int(config.analysis_max_tasks))
-        if len(probe_suite.tasks) > max_tasks:
-            raise ValueError(
-                f"Goal-mode probe produced {len(probe_suite.tasks)} tasks, exceeding "
-                f"analysis_max_tasks={max_tasks}."
+        max_tasks = _analysis_max_tasks(config, main_suite)
+        produced = len(probe_suite.tasks)
+        if produced > max_tasks:
+            kept = probe_suite.tasks[:max_tasks]
+            kept_ids = {item.id for item in kept}
+            probe_suite = probe_suite.model_copy(update={"tasks": kept})
+            probe_qc = probe_qc.model_copy(
+                update={
+                    "passed_item_ids": [i for i in probe_qc.passed_item_ids if i in kept_ids],
+                    "rejected_item_ids": [i for i in probe_qc.rejected_item_ids if i in kept_ids],
+                }
             )
+            if log:
+                log(
+                    f"  [Analysis] Goal-mode probe produced {produced} tasks; "
+                    f"clamped to the first {max_tasks} (analysis_max_tasks)."
+                )
     else:
         plan = _probe_plan(main_suite, task_designs, iteration=iteration)
         spec = plan.to_eval_spec()

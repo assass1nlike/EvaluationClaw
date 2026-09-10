@@ -88,7 +88,21 @@ def test_unset_role_fields_remain_none() -> None:
         "provider": None,
         "api_key": None,
         "base_url": None,
+        "extra_body": {},
     }
+
+
+def test_role_extra_body_is_forwarded() -> None:
+    settings = role_model_settings(
+        BenchmarkConfig(
+            planner_model="planner-model",
+            planner_api_key="key",
+            planner_extra_body={"enable_thinking": True},
+        ),
+        "planner",
+    )
+
+    assert settings.call_kwargs()["extra_body"] == {"enable_thinking": True}
 
 
 def test_role_reasoning_effort_is_forwarded() -> None:
@@ -148,18 +162,17 @@ def test_task_builder_uses_task_builder_role(monkeypatch) -> None:
 
     patch_task_builder_model(monkeypatch, fake_call_llm)
 
-    with pytest.raises(RuntimeError, match="stop after capture"):
-        build_task_suite(
-            suite.spec,
-            [blueprint],
-            _config_for("task_builder").model_copy(
-                update={
-                    "task_builder_max_workers": 1,
-                    "task_builder_repair_attempts": 0,
-                    "use_web_research": False,
-                }
-            ),
-        )
+    build_task_suite(
+        suite.spec,
+        [blueprint],
+        _config_for("task_builder").model_copy(
+            update={
+                "task_builder_max_workers": 1,
+                "task_builder_repair_attempts": 0,
+                "use_web_research": False,
+            }
+        ),
+    )
     _assert_role_call(captured, "task_builder")
 
 

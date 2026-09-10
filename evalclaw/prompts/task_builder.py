@@ -72,6 +72,27 @@ _TYPE_RULES = {
     ),
 }
 
+_EFFORT_GUIDANCE = {
+    "E1": (
+        "challenge_effort is E1 (simple construction): build a task that is meaningfully challenging, "
+        "but not research-level depth."
+    ),
+    "E2": (
+        "challenge_effort is E2 (difficult construction): build a difficult task. Plan deeply, make "
+        "the content hard, and design robust evaluation. The task should require a non-obvious insight "
+        "or a multi-step rigorous argument."
+    ),
+    "E3": (
+        "challenge_effort is E3 (maximum construction effort): use maximum effort to create an "
+        "extremely difficult task. Keep optimizing to make the task harder until you have exhausted "
+        "every possible way to increase difficulty. Make a correct solution require extremely broad "
+        "knowledge, tedious reasoning, and even bold hypotheses and verification; while keeping the task "
+        "correct and solvable in principle by a sufficiently strong testee, use every difficulty-increasing "
+        "technique — including but not limited to deepening the reasoning chain, complicating through "
+        "combination, adding interference, and even reverse engineering — to increase difficulty."
+    ),
+}
+
 _ABLATION_COMMON_FIELDS = {
     "title": "",
     "prompt": "",
@@ -205,15 +226,17 @@ def build_task_builder_prompt(
     source_strategy: str = "generated",
     requires_environment: bool = False,
     simplified: bool = False,
+    challenge_effort: str = "E3",
 ) -> str:
     """Build a system prompt containing only fields relevant to one task type."""
     task_type = TaskType(task_type)
     source_backed = source_strategy in {"adapted", "reused", "imported_dataset"}
+    effort_guidance = _EFFORT_GUIDANCE.get(challenge_effort, "")
     example = json.dumps(
         task_builder_document_template(
             task_type,
             task_count=1,
-            challenge_effort="E3",
+            challenge_effort=challenge_effort,
             source_backed=source_backed,
             simplified=simplified,
         ),
@@ -301,6 +324,8 @@ def build_task_builder_prompt(
 Implement the single Planner-authored TaskDesign in task_plan. Treat the TaskDesign, resources, and
 task_builder_contract as authoritative. Materialize every input, asset, runtime dependency, and
 piece of scoring evidence needed by the target and evaluator; do not merely describe a dependency.
+
+{effort_guidance}
 
 During initial construction, task_file.path points to a JSON working document with this task shape:
 {example}

@@ -256,7 +256,7 @@ def test_pipeline_reuses_completed_run_checkpoint(monkeypatch, tmp_path) -> None
 
     package = run_pipeline(
         None,
-        BenchmarkConfig(output_dir=str(tmp_path), run_targets=False),
+        BenchmarkConfig(output_dir=str(tmp_path), run_targets=False, analysis_iterations=0),
         resume_run=run_dir,
     )
     assert [item.id for item in package.suite.tasks] == ["item"]

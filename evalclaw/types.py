@@ -714,6 +714,7 @@ class TargetModelConfig(BaseModel):
     api_key: Optional[str] = None
     base_url: Optional[str] = None
     harness: str = ""
+    extra_body: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def fill_default_id(self) -> "TargetModelConfig":
@@ -837,11 +838,13 @@ class BenchmarkConfig(BaseModel):
     planner_api_key: Optional[str] = None
     planner_base_url: Optional[str] = None
     planner_reasoning_effort: Optional[str] = None
+    planner_extra_body: dict[str, Any] = Field(default_factory=dict)
     task_builder_model: Optional[str] = None
     task_builder_provider: Optional[str] = None
     task_builder_api_key: Optional[str] = None
     task_builder_base_url: Optional[str] = None
     task_builder_reasoning_effort: Optional[str] = None
+    task_builder_extra_body: dict[str, Any] = Field(default_factory=dict)
     image_generation_model: Optional[str] = None
     image_generation_api_key: Optional[str] = None
     image_generation_base_url: Optional[str] = None
@@ -850,6 +853,7 @@ class BenchmarkConfig(BaseModel):
     qc_api_key: Optional[str] = None
     qc_base_url: Optional[str] = None
     qc_reasoning_effort: Optional[str] = None
+    qc_extra_body: dict[str, Any] = Field(default_factory=dict)
     task_models: list[TargetModelConfig] = Field(
         default_factory=list,
         description=(
@@ -863,15 +867,17 @@ class BenchmarkConfig(BaseModel):
     research_api_key: Optional[str] = None
     research_base_url: Optional[str] = None
     research_reasoning_effort: Optional[str] = None
+    research_extra_body: dict[str, Any] = Field(default_factory=dict)
     analyser_model: Optional[str] = None
     analyser_provider: Optional[str] = None
     analyser_api_key: Optional[str] = None
     analyser_base_url: Optional[str] = None
     analyser_reasoning_effort: Optional[str] = None
+    analyser_extra_body: dict[str, Any] = Field(default_factory=dict)
     targets: list[TargetModelConfig] = Field(default_factory=list)
     scale_budget: ScaleBudget = ScaleBudget.mid
     max_planner_iterations: int = 5
-    max_qc_iterations: int = 3
+    max_qc_iterations: int = 5
     max_research_sources: int = 3
     max_hf_records_per_dimension: int = 1
     large_scale_generated_item_cap_per_dimension: int = 50
@@ -886,16 +892,17 @@ class BenchmarkConfig(BaseModel):
     large_scale_llm_qc_sample_size: int = 120
     use_llm_qc: bool = False
     ablation_simplified_contract: bool = False
+    ablation_authoritative_research: bool = False
     output_dir: str = "./benchmark-output"
     live_url: Optional[str] = None
     planner_debug_dir: Optional[str] = None
     task_builder_debug_dir: Optional[str] = None
     run_targets: bool = True
-    use_web_research: bool = False
+    use_web_research: bool = True
     search_backend: str = "auto"  # auto | gemini | keyless | none
     research_brief: Optional[ResearchBrief] = None
     task_builder_max_workers: int = 4
-    task_builder_repair_attempts: int = 2
+    task_builder_repair_attempts: int = 4
     task_builder_call_retries: int = 5
     task_builder_truncation_retries: int = 3
     task_builder_tool_max_calls: int = 50
@@ -909,8 +916,9 @@ class BenchmarkConfig(BaseModel):
     environment_claw: bool = True
     environment_claw_auto_configure: bool = True
     human_review: bool = False
-    analysis_iterations: int = 0
-    analysis_max_tasks: int = 4
+    analysis_iterations: int = 3
+    # None = auto: half of the main run's finally-successful task count (floored).
+    analysis_max_tasks: int | None = None
     analysis_review_max_iterations: int = 3
     analysis_probe_mode: str = "goal"  # "goal" | "task_design"
     docker_auto_select_image: bool = True
