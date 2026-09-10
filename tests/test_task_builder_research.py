@@ -332,7 +332,7 @@ def test_task_builder_progressively_edits_initial_task_file(monkeypatch, tmp_pat
                             "import json\n"
                             f"p = {str(candidate_path)!r}\n"
                             "d = json.load(open(p))\n"
-                            "d['tasks'][0]['expected_text'] = 'ready'\n"
+                            "d['tasks'][0]['expected_texts'] = ['ready']\n"
                             "json.dump(d, open(p, 'w'))\n"
                         )
                     },
@@ -369,7 +369,7 @@ def test_task_builder_progressively_edits_initial_task_file(monkeypatch, tmp_pat
         "task_type": "fill_blank",
         "title": "Staged task",
         "prompt": "Return the exact word ready.",
-        "expected_text": "ready",
+        "expected_texts": ["ready"],
     }
 
 
@@ -1563,7 +1563,7 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
                             "task_type": "fill_blank",
                             "title": "Generated task",
                             "prompt": "Provide the exact generated answer requested by this task.",
-                            "expected_text": "answer",
+                            "expected_texts": ["answer"],
                             "metadata": {
                                 "challenge_effort_self_assessment": {
                                     "requested_effort": "E3",
@@ -1629,7 +1629,7 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
     )
     initial_task = captured["initial_document"]["tasks"][0]
     assert initial_task["task_type"] == "fill_blank"
-    assert "expected_text" in initial_task
+    assert "expected_texts" in initial_task
     assert "choices" not in initial_task
     assert "environment" not in initial_task
 

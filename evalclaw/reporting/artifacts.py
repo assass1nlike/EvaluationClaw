@@ -34,7 +34,7 @@ def _write_lm_eval_task(
     with jsonl_path.open("w", encoding="utf-8") as handle:
         for item in items:
             choice_ids = [choice.id for choice in item.choices]
-            answer: str | int = item.expected_text or ""
+            answer: str | int = item.expected_texts[0] if item.expected_texts else ""
             if item.task_type == TaskType.choice:
                 answer = choice_ids.index(item.correct_choice_ids[0])
             record = {
@@ -45,7 +45,7 @@ def _write_lm_eval_task(
                 "choices": [choice.text for choice in item.choices],
                 "answer": answer,
                 "correct_choice_ids": item.correct_choice_ids,
-                "expected_text": item.expected_text or "",
+                "expected_texts": item.expected_texts,
                 "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
                 "rubric": item.rubric or "",
                 "challenge_effort": item.challenge_effort.value,
@@ -100,7 +100,7 @@ def write_lm_eval_artifacts(suite: TaskSuite, out_dir: Path) -> dict[str, Path]:
     exact_match = [
         item
         for item in suite.tasks
-        if item.task_type == TaskType.fill_blank and item.expected_text and not item.assets
+        if item.task_type == TaskType.fill_blank and len(item.expected_texts) == 1 and not item.assets
     ]
     supported_ids = {item.id for item in [*multiple_choice, *exact_match]}
     unsupported_ids = [item.id for item in suite.tasks if item.id not in supported_ids]

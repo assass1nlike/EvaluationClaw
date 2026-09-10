@@ -52,7 +52,7 @@ def _suite() -> TaskSuite:
                 dimension_id="core",
                 task_type=TaskType.fill_blank,
                 prompt="Return the expected token.",
-                expected_text="token",
+                expected_texts=["token"],
             ),
             BenchmarkItem(
                 id="agent",

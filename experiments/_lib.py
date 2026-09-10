@@ -278,7 +278,7 @@ Be strict: generic dimensions that could apply to any goal deserve low relevance
 
 ITEM_VALIDITY_SYSTEM_PROMPT = """\
 You audit benchmark items for validity.
-Input JSON: {"goal": "...", "items": [{"id", "prompt", "choices", "correct_choice_ids", "expected_text", "rubric", "task_type"}]}
+Input JSON: {"goal": "...", "items": [{"id", "prompt", "choices", "correct_choice_ids", "expected_texts", "rubric", "task_type"}]}
 Return pure JSON only:
 {"items": [{"id": "...", "valid": true|false, "reason": "..."}]}
 An item is valid when it: tests the goal capability (not trivia or filler), is
@@ -336,7 +336,7 @@ def audit_item_validity(goal: str, items: Sequence, orch: dict, *, call: Callabl
             "prompt": item.prompt[:1500],
             "choices": [choice.model_dump(mode="json") for choice in item.choices],
             "correct_choice_ids": item.correct_choice_ids,
-            "expected_text": (item.expected_text or "")[:400],
+            "expected_texts": item.expected_texts,
             "rubric": (item.rubric or "")[:600],
             "task_type": item.task_type.value,
         }

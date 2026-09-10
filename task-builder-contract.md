@@ -2,7 +2,24 @@
 
 TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（`TaskDefinition`），框架再打包成 `BenchmarkItem` 交给 Runner 执行。本文列出**所有任务类型字段的并集**（最通用的超集），以及每个字段的类型、语义、适用任务类型、必填性。
 
-## 1. 任务类型（TaskType）
+## 1. 输出结构总览
+
+```
+tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
+├── task_type / title / prompt / challenge_effort / metadata   # 公共必填
+├── content_summary / description / assets / tags               # 公共可选
+├── resource_ids                                                # 仅 source-backed
+├── [choice]     choices / correct_choice_indices
+├── [fill_blank] expected_texts
+├── [generation] rubric / judge_tools / output_contract / scoring
+├── [multi_turn] system_prompt / interaction / rubric / judge_tools / scoring
+└── [agent]      system_prompt / interaction / environment / workflow
+                 / output_contract / rubric / judge_tools / scoring
+```
+
+`[type]` 标记该组字段只属于对应任务类型；`resource_ids` 仅 `adapted`/`reused`/`imported_dataset` 任务。`choices`、`judge_tools`、`scoring`、`environment`、`workflow` 内部还有子结构（见 §4）。
+
+## 2. 任务类型（TaskType）
 
 | 值 | 含义 |
 |---|---|
@@ -12,9 +29,9 @@ TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（
 | `multi_turn` | 多轮交互题 |
 | `agent` | agent / 环境操作题 |
 
-## 2. 字段超集
+## 3. 字段超集
 
-### 2.1 公共字段（所有任务类型）
+### 3.1 公共字段（所有任务类型）
 
 | 字段 | 类型 | 必填 | 语义 |
 |---|---|---|---|
@@ -28,7 +45,7 @@ TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（
 | `assets` | `list[TaskAsset]` | 否 | 附加资源文件（`TaskAsset.path`） |
 | `tags` | `list[str]` | 否 | 标签 |
 
-### 2.2 框架注入字段（Builder 不写，由框架生成）
+### 3.2 框架注入字段（Builder 不写，由框架生成）
 
 | 字段 | 来源 |
 |---|---|
@@ -36,20 +53,20 @@ TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（
 | `dimension_id` | 所属维度 id |
 | `metadata.task_design_id` | 关联的 TaskDesign id |
 
-### 2.3 选择题 `choice` 专属
+### 3.3 选择题 `choice` 专属
 
 | 字段 | 类型 | 语义 |
 |---|---|---|
 | `choices` | `list[ChoiceOption]` | 至少两个选项，每项只有 `text`（`id` 由框架规范化） |
 | `correct_choice_indices` | `list[int]` | 零基位置；单个=单选，多个=多选。框架转成 `correct_choice_ids`（canonical id） |
 
-### 2.4 填空题 `fill_blank` 专属
+### 3.4 填空题 `fill_blank` 专属
 
 | 字段 | 类型 | 语义 |
 |---|---|---|
-| `expected_text` | `str` | 精确匹配（除首尾空白）的标准答案 |
+| `expected_texts` | `list[str]` | 可接受答案列表；任一命中即正确（精确匹配，忽略首尾空白） |
 
-### 2.5 生成题 `generation` 专属
+### 3.5 生成题 `generation` 专属
 
 | 字段 | 类型 | 语义 |
 |---|---|---|
@@ -58,7 +75,7 @@ TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（
 | `output_contract` | `dict` | 声明期望的输出结构 |
 | `scoring` | `TaskScoringSpec` | 评分规格 |
 
-### 2.6 多轮交互 `multi_turn` 专属
+### 3.6 多轮交互 `multi_turn` 专属
 
 | 字段 | 类型 | 语义 |
 |---|---|---|
@@ -70,32 +87,32 @@ TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（
 - **scripted**：`interaction.user_turns`（1–5 个非空字符串）。
 - **adaptive**：`interaction.followup_instruction`（按模型响应条件追问）。
 
-### 2.7 agent / 环境题 `agent` 专属
+### 3.7 agent / 环境题 `agent` 专属
 
 | 字段 | 类型 | 语义 |
 |---|---|---|
-| `environment` | `AgentEnvironmentSpec` | 可执行环境定义（见 §3.4） |
-| `workflow` | `AgentWorkflow` | 多阶段工作流（见 §3.5） |
+| `environment` | `AgentEnvironmentSpec` | 可执行环境定义（见 §4.4） |
+| `workflow` | `AgentWorkflow` | 多阶段工作流（见 §4.5） |
 | `system_prompt` / `interaction` | — | 同多轮 |
 | `output_contract` / `rubric` / `judge_tools` / `scoring` | — | 同生成题 |
 
-## 3. 子结构
+## 4. 子结构
 
-### 3.1 ChoiceOption
+### 4.1 ChoiceOption
 
 | 字段 | 类型 |
 |---|---|
 | `id` | `str` |
 | `text` | `str` |
 
-### 3.2 JudgeToolRef
+### 4.2 JudgeToolRef
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `tool` | `str` | 工具名（当前支持 `python_tests`） |
 | `config` | `dict` | 工具配置 |
 
-### 3.3 TaskScoringSpec
+### 4.3 TaskScoringSpec
 
 | 字段 | 类型 | 默认 |
 |---|---|---|
@@ -107,7 +124,7 @@ TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（
 | `allows_partial_credit` | `bool` | `false` |
 | `score_levels` | `dict[str,str]` | `{}` |
 
-### 3.4 AgentEnvironmentSpec（environment 字段）
+### 4.4 AgentEnvironmentSpec（environment 字段）
 
 | 字段 | 类型 | 默认 | 说明 |
 |---|---|---|---|
@@ -139,7 +156,7 @@ TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（
 | `evaluation` | `dict` | `{}` | 评估定义 |
 | `notes` | `str` | `""` | 备注 |
 
-### 3.5 AgentWorkflow / WorkflowStage / WorkflowMetric
+### 4.5 AgentWorkflow / WorkflowStage / WorkflowMetric
 
 `AgentWorkflow`：
 
@@ -171,7 +188,7 @@ TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（
 
 `WorkflowMetric`：`operation`（`mean`/`difference`）+ `stages`（列表，`difference` 须恰好两个）。
 
-## 4. 字段契约规则（Builder 侧约束）
+## 5. 字段契约规则（Builder 侧约束）
 
 - **必填（所有类型）**：`task_type`、`title`、`prompt`、`challenge_effort`、`metadata`。
 - **可选基础**：`content_summary`、`description`、`assets`、`tags`。
@@ -180,17 +197,18 @@ TaskBuilder 的职责：根据 planner 给的 TaskDesign，生成任务对象（
 | 任务类型 | 追加可选字段 |
 |---|---|
 | `choice` | `choices`、`correct_choice_indices` |
-| `fill_blank` | `expected_text` |
+| `fill_blank` | `expected_texts` |
 | `generation` | `rubric`、`judge_tools`、`output_contract`、`scoring` |
 | `multi_turn` | `system_prompt`、`interaction`、`rubric`、`judge_tools`、`scoring` |
 | `agent` | `system_prompt`、`interaction`、`environment`、`workflow`、`output_contract`、`rubric`、`judge_tools`、`scoring` |
 
+- **source-backed 任务另有 `resource_ids`**：`adapted`/`reused`/`imported_dataset` 任务绑定所用素材 id（对应工作文件 `resources` 里的 id）。
 - **框架注入（Builder 不写）**：`id`、`dimension_id`、`metadata.task_design_id`。
 
-## 5. 各类型的语义要求（Builder 必须遵守）
+## 6. 各类型的语义要求（Builder 必须遵守）
 
 - **choice**：`choices` 至少两个，每项仅 `text`；`correct_choice_indices` 非空，用零基位置；不要把多部分答案对象塞进选择题；选项只放 `choices`，prompt 里不要重复选项文本。
-- **fill_blank**：恰好一个 `expected_text` 字符串；prompt 里声明要求的回答格式；评分用精确匹配（忽略首尾空白）。
+- **fill_blank**：`expected_texts` 为可接受答案列表，任一命中即正确；评分用精确匹配（忽略首尾空白）。prompt 里说清楚限制或枚举所有正确答案，确保列表之外不可能有正确答案。
 - **generation**：提供具体 `rubric`；可选 `judge_tools` 请求 `python_tests` 做外部验证，Judge 把工具结果当证据，不直接给分。
 - **multi_turn**：顶层 `interaction` 对象，`interaction.max_turns` 在 1–5；scripted 用 `interaction.user_turns`（1–5 个非空字符串）、adaptive 用 `interaction.followup_instruction`（别名如 `scripted_user_turns`/`turns`/`follow_up_policy` 非法）；提供针对性的转写评分标准；`prompt` 是发给目标的第一段完整内容，`system_prompt` 单独作为对话模拟器 prompt。
 - **agent**：提供可执行环境、输出契约、确定性检查或针对结果的 rubric；单任务多阶段时提供 `workflow.stages`（显式 stage id、kind、prompts、context、环境生命周期、文件交接、evaluation 阶段），只引用前置阶段的输出，并定义 `workflow.score_stage` 和 `metrics`。

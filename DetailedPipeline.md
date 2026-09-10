@@ -469,7 +469,7 @@ Further design the substantive content that makes up each dimension. Determine:
 Use only these task types:
 <!-- -->
 - `choice`: two or more candidate choices and one or more correct choice ids; two choices can express a binary judgment, and multiple correct ids express multi-select.
-- `fill_blank`: one uniquely formatted expected text, scored by exact text match after trimming surrounding whitespace.
+- `fill_blank`: a list of accepted answers, scored by exact match after trimming surrounding whitespace; any listed answer counts as correct.
 - `generation`: an open response scored by a Judge against a rubric. When useful, the Judge may use registered external-verification tools such as Python tests.
 - `multi_turn`: a scripted or response-adaptive dialogue scored over the complete transcript.
 - `agent`: a task in which the target acts through tools in an executable, resettable environment and is scored from the resulting state, artifacts, answer, or trajectory.
@@ -705,7 +705,7 @@ object must contain:
       &quot;resource_ids&quot;: [],
       &quot;choices&quot;: [{&quot;text&quot;: &quot;...&quot;}],
       &quot;correct_choice_indices&quot;: [],
-      &quot;expected_text&quot;: null,
+      &quot;expected_texts&quot;: [],
       &quot;rubric&quot;: null,
       &quot;judge_tools&quot;: [],
       &quot;output_contract&quot;: {},
@@ -1584,8 +1584,10 @@ Do not accept a field merely because it contains plausible prose.
 Apply task-type requirements according to what the runner actually consumes:
 - choice needs at least two distinct id/text choices and one or more valid
   correct_choice_ids; multi-select is scored by exact set equality.
-- fill_blank needs one non-empty expected_text and a prompt that makes the
-  exact required response format unambiguous.
+- fill_blank needs a non-empty expected_texts list and a prompt that makes the
+  exact required response format unambiguous; every listed answer is scored
+  correct, so the prompt must state the constraints or enumerate every correct
+  answer, ensuring no correct answer outside the list is possible.
 - generation and multi_turn need a concrete judge rubric. generation may use
   python_tests as Judge evidence; its test code must consume {model_output}.
 - agent needs an environment whose actual evaluator scores the
@@ -3126,7 +3128,7 @@ generated 的 `resources` 和每题 `resource_ids` 必须为空。adapted、reus
 #### `fill_blank`
 
 ~~~json
-{"expected_text": "唯一非空字符串"}
+{"expected_texts": ["唯一非空字符串", "另一个正确答案"]}
 ~~~
 
 prompt 必须明确精确输出格式。runner 只裁剪首尾空白，再做完全匹配。
@@ -3257,7 +3259,7 @@ TaskBuilder 用 `run_python` 读取并原地编辑 `candidate.json`，框架不�
       &quot;prompt_character_count&quot;: 1234,
       &quot;choices&quot;: [],
       &quot;correct_choice_ids&quot;: [],
-      &quot;expected_text&quot;: null,
+      &quot;expected_texts&quot;: [],
       &quot;rubric&quot;: &quot;非 choice 题的 rubric；choice 为 null&quot;,
       &quot;judge_tools&quot;: [],
       &quot;output_contract&quot;: {},
@@ -3377,7 +3379,7 @@ run-ready 的正式任务容器，贯穿 QC、执行、报告。定义在 `evalc
 
 - **基础**：`prompt` 非空（error）、不过短（<20 字符 warning）。
 - **choice**：至少两个选项（error）；选项 id 唯一非空（error）；有 `correct_choice_ids` 且指向存在的选项（error）；选项文本去规范化后无重复（error）。choice 的 rubric 不参与 QC。
-- **fill_blank**：`expected_text` 非空（error）。
+- **fill_blank**：`expected_texts` 非空列表（error）。
 - **generation / multi_turn**：有 rubric（error）。
 - **judge_tools**：只允许 `python_tests`（error）；仅 generation/multi-turn/agent 可用（error）；`test_code` 必须消费 `{model_output}`（error）。
 - **agent**：无 rubric 时必须有可执行环境 evaluator（error）；`metadata.agent_env` 必须存在（error）；环境文件路径无跨生命周期重叠（error）；`setup_commands` 不引用 hidden_files（error）；docker_workspace/gui 各有必填契约。
@@ -3417,7 +3419,7 @@ TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结�
 
 按题型的字段契约：
 - `choice`：至少两个非空且互异的 choice；至少一个 `correct_choice_id` 且引用已有的 choice id。
-- `fill_blank`：非空 `expected_text`。
+- `fill_blank`：非空 `expected_texts` 列表。
 - `generation`/`multi_turn`：必须提供 judge rubric 或评分指引。
 - `judge_tools`：仅 `python_tests` 被注册；仅对 generation/multi_turn/agent 合法；`python_tests` 必须有非空 `config.test_code` 且其代码消费 `{model_output}`。
 - `agent`：必须提供可执行 `environment`。
@@ -3443,7 +3445,7 @@ TaskBuilder 返回后、进入全局 QC 之前，系统对每题跑一遍「结�
 5. **生成 `task_agent` metadata**（`_task_agent_metadata_for_task`，不调用模型）：仅当题目是 `multi_turn` 或带 `environment` 时执行。内容包括 `agent_role`（multi_turn 为 `dialogue_simulator`，其余为 `target_agent_executor`）、`system_prompt`（沿用 `task.system_prompt` 或按角色给默认值）、`initial_content`（汇总环境的可见文件/session/vm/browser 等公开信息）、归一化后的 `scoring`（`allows_partial_credit=true` 且未给出 `score_levels` 时补 0/0.5/1 映射）。
 6. **生成 `agent_env` 与 `agent_task_package`**（仅带 `environment` 的题目，不调用模型）：`_environment_for_runner` 把 `TaskDefinition.environment` 按环境类型（docker_workspace/gui）铺开成 runner 可直接消费的字典并补运行默认值；`_agent_task_package_for_task` 在此基础上组装完整的 `agent_task_package`（能力目标、环境需求、可见输入、隐藏引用、输出契约、执行/求值/产物采集/轨迹要求、来源溯源），若 Builder 已给出同 schema 版本的旧值则做字段级合并而非整体覆盖。
 7. **构造 `BenchmarkSource`**：优先从 `agent_task_package.resource_provenance` 取来源类型与 URI；若无则退回 `task.resource_ids` 指向的 `TaskResource`；两者都没有则标记为 `self_generated`。
-8. **组装 `BenchmarkItem`**：字段为 `id`、`dimension_id`、`task_type`、`prompt`、`assets`、`choices`、`correct_choice_ids`、`expected_text`、`rubric`（第 4 步结果）、`judge_tools`、`output_contract`、`challenge_effort`、`source`（第 7 步结果）、`tags`、`metadata`（含前述步骤写入的所有字段），并保留原始 `TaskDefinition` 到 `source_definition`（`exclude=True`，不写入 JSON），用于创建 QC repair 的候选文件。`build_task_suite` 最终把它加入 `TaskSuite.tasks`。
+8. **组装 `BenchmarkItem`**：字段为 `id`、`dimension_id`、`task_type`、`prompt`、`assets`、`choices`、`correct_choice_ids`、`expected_texts`、`rubric`（第 4 步结果）、`judge_tools`、`output_contract`、`challenge_effort`、`source`（第 7 步结果）、`tags`、`metadata`（含前述步骤写入的所有字段），并保留原始 `TaskDefinition` 到 `source_definition`（`exclude=True`，不写入 JSON），用于创建 QC repair 的候选文件。`build_task_suite` 最终把它加入 `TaskSuite.tasks`。
 
 ### I.9 BenchmarkItem 字段
 
@@ -3458,7 +3460,7 @@ run-ready 的单题格式，定义在 `evalclaw/types.py`：
 | `assets` | `list[TaskAsset]` | `[]` | 题目使用的文件路径，每项为 `{"path":"..."}` |
 | `choices` | `list[ChoiceOption]` | `[]` | choice 选项 |
 | `correct_choice_ids` | `list[str]` | `[]` | choice 正确选项 id |
-| `expected_text` | `Optional[str]` | `None` | fill_blank 答案 |
+| `expected_texts` | `list[str]` | `[]` | fill_blank 答案列表 |
 | `rubric` | `Optional[str]` | `None` | 评分 rubric（打包时由 `scoring` 归一化） |
 | `judge_tools` | `list[JudgeToolRef]` | `[]` | 需要的 judge 工具 |
 | `output_contract` | `dict` | `{}` | 输出契约 |
@@ -3515,7 +3517,7 @@ run-ready 的单题格式，定义在 `evalclaw/types.py`：
 | 题型 | 评分方式 |
 |---|---|
 | `choice` | `_score_choice`：解析返回的 choice id(s)，与 `correct_choice_ids` 做精确集合相等；单选/多选均由答案键决定 |
-| `fill_blank` | `_score_fill_blank`：裁剪首尾空白后与 `expected_text` 完全匹配 |
+| `fill_blank` | `_score_fill_blank`：裁剪首尾空白后与 `expected_texts` 中任一答案完全匹配 |
 | `generation` | Judge 按 rubric 打 1-5 分并归一化到 [0,1]；可选 `python_tests` 工具在 Docker 沙箱中执行 `test_code`（消费 `{model_output}`），结果作为 evidence 交给 Judge，工具本身不直接定分 |
 | `multi_turn` | Judge 对完整 transcript 评分，scoring 可取自 `task_agent.scoring` |
 | `agent` | 环境 evaluator 依据最终 state/artifacts/answer/trajectory 给出确定性分数（Docker 的 `test_command` 或 GUI bridge 的 evaluation checks），该分数直接作为题目得分，`env.summary()` 作为 judge_reasoning 记录 |
