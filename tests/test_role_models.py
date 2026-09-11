@@ -15,6 +15,7 @@ from evalclaw.types import (
     BenchmarkItem,
     EvalDimension,
     EvalSpec,
+    FailoverEndpoint,
     TargetModelConfig,
     TaskSuite,
     TaskType,
@@ -116,6 +117,46 @@ def test_role_reasoning_effort_is_forwarded() -> None:
     )
 
     assert settings.call_kwargs()["reasoning_effort"] == "high"
+
+
+def test_role_failover_endpoint_is_forwarded() -> None:
+    settings = role_model_settings(
+        BenchmarkConfig(
+            planner_model="planner-model",
+            planner_api_key="key",
+            failover_endpoint=FailoverEndpoint(
+                base_url="https://stable.example/v1", api_key="stable-key"
+            ),
+        ),
+        "planner",
+    )
+
+    assert settings.call_kwargs()["failover"] == FailoverEndpoint(
+        base_url="https://stable.example/v1", api_key="stable-key"
+    )
+
+
+def test_planner_call_carries_the_failover_endpoint(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_call_llm(*args, **kwargs):
+        captured.update(kwargs)
+        return '{"english_goal":"Evaluate analysis"}'
+
+    monkeypatch.setattr(planner, "call_llm", fake_call_llm)
+
+    config = _config_for("planner").model_copy(
+        update={
+            "failover_endpoint": FailoverEndpoint(
+                base_url="https://stable.example/v1", api_key="stable-key"
+            )
+        }
+    )
+    planner.translate_goal_to_english("评估分析能力", config)
+
+    assert captured["failover"] == FailoverEndpoint(
+        base_url="https://stable.example/v1", api_key="stable-key"
+    )
 
 
 def test_role_key_is_sufficient() -> None:

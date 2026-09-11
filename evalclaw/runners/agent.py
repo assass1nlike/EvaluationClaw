@@ -231,6 +231,7 @@ def _run_agent_interaction_native_tools(
                 max_tokens=max_tokens,
                 trace_dir=artifact_dir / "llm" if artifact_dir is not None else None,
                 trace_name=f"agent-step-{len(trace) + 1:03d}",
+                failover=config.failover_endpoint,
             )
             native_messages.append(response.assistant_message)
             if not response.tool_calls:
@@ -338,6 +339,7 @@ def _run_agent_interaction_json_actions(
                 max_tokens=max_tokens,
                 trace_dir=artifact_dir / "llm" if artifact_dir is not None else None,
                 trace_name=f"agent-step-{step_index + 1:03d}",
+                failover=config.failover_endpoint,
             )
             history.extend([Message(role="user", content=user_prompt), Message(role="assistant", content=response)])
             action, parse_error = parse_agent_action(response)

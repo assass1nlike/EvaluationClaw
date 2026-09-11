@@ -1,12 +1,14 @@
 """Evalclaw: LLM call utilities (Anthropic + OpenAI-compatible)."""
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
 import json
 import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import anthropic
 import httpx
@@ -24,7 +26,7 @@ from ..protocols.tool_adapters import (
     openai_tools,
     tool_adapter_for_target,
 )
-from ..types import Message, TargetModelConfig
+from ..types import FailoverEndpoint, Message, TargetModelConfig
 from .json_utils import extract_json
 from .providers import infer_provider
 
@@ -56,6 +58,15 @@ class LLMProtocolAdapterError(RuntimeError):
     """LiteLLM could not adapt the request or response for the selected provider."""
 
 
+class LLMIncompleteStreamError(RuntimeError):
+    """The provider ended a stream without ever reporting why it stopped.
+
+    Some gateways close a stream part-way through a generation and still send
+    ``[DONE]``. The partial text that arrives before that is not a shorter
+    answer, so accepting it would record a truncated response as a real one.
+    """
+
+
 DEFAULT_MAX_OUTPUT_TOKENS = 32_768
 
 
@@ -64,14 +75,92 @@ def _require_supported_backend(backend: str) -> None:
         raise ValueError(f"Unsupported LLM backend {backend!r}; expected 'auto' or 'litellm'.")
 
 
+def _is_failover_eligible(exc: Exception) -> bool:
+    """Whether retrying this failure against a different endpoint could help.
+
+    A truncated completion is a property of the model's output budget, not of
+    the endpoint, and the callers of a truncation continue from its partial
+    output -- replaying it elsewhere would splice two endpoints into one
+    conversation. A malformed request fails identically everywhere. A cancelled
+    future is a deliberate stop signal from a caller, not a failure.
+    """
+    if isinstance(
+        exc,
+        (
+            LLMOutputTruncatedError,
+            LLMProtocolAdapterError,
+            concurrent.futures.CancelledError,
+            asyncio.CancelledError,
+        ),
+    ):
+        return False
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code not in (400, 422)
+    return True
+
+
 def _is_transient_streaming_error(exc: Exception) -> bool:
-    if isinstance(exc, httpx.TransportError):
+    if isinstance(exc, (httpx.TransportError, LLMIncompleteStreamError)):
         return True
     if isinstance(exc, httpx.HTTPStatusError):
         status = exc.response.status_code
         return status == 429 or status >= 500
     message = str(exc).lower()
     return "upstream_error" in message or "temporarily unavailable" in message
+
+
+@dataclass(frozen=True)
+class EndpointConnection:
+    """The three fields that decide which endpoint a call goes to."""
+
+    provider: Optional[str] = None
+    base_url: Optional[str] = None
+    api_key: Optional[str] = None
+
+    def merged_with(self, failover: "EndpointConnection") -> "EndpointConnection":
+        """Overlay a failover endpoint, keeping the caller's values where unset."""
+        return EndpointConnection(
+            provider=failover.provider or self.provider,
+            base_url=failover.base_url or self.base_url,
+            api_key=failover.api_key or self.api_key,
+        )
+
+
+def _endpoint_connection(failover: Optional["FailoverEndpoint"]) -> Optional[EndpointConnection]:
+    if failover is None:
+        return None
+    return EndpointConnection(failover.provider, failover.base_url, failover.api_key)
+
+
+def _with_endpoint_failover(
+    run: Callable[[EndpointConnection, str], Any],
+    *,
+    primary: EndpointConnection,
+    failover: Optional[EndpointConnection],
+    trace_name: str,
+) -> Any:
+    """Run one complete call, retrying it against the failover endpoint once.
+
+    ``run`` owns everything below the endpoint choice -- transport, retries and
+    the token callback -- so the retry is a whole call, not a replayed request.
+    The failover attempt gets its own trace name so its streamed tokens land in
+    a separate live card instead of interleaving with the abandoned attempt.
+    """
+    try:
+        return run(primary, trace_name)
+    except Exception as exc:
+        if failover is None or not _is_failover_eligible(exc):
+            raise
+        target = primary.merged_with(failover)
+        print(
+            f"  [llm failover] {primary.base_url or 'default endpoint'} failed "
+            f"({type(exc).__name__}); retrying on "
+            f"{target.base_url or 'default endpoint'}."
+        )
+        try:
+            return run(target, f"{trace_name}-failover")
+        except Exception as failover_exc:
+            raise failover_exc from exc
 
 
 def _assemble_openai_chat_stream(events: list[Any]) -> dict[str, Any]:
@@ -206,6 +295,15 @@ def _post_streaming_openai_compatible(
                                     on_token(text)
                     if isinstance(chunk.get("error"), dict):
                         raise RuntimeError(str(chunk["error"]))
+            assembled = _assemble_openai_chat_stream(attempt_events)
+            finish_reason = str(
+                (assembled.get("choices") or [{}])[0].get("finish_reason") or ""
+            ) or None
+            if finish_reason is None:
+                raise LLMIncompleteStreamError(
+                    f"Model endpoint {endpoint} ended a stream after "
+                    f"{len(attempt_events)} events without a finish reason."
+                )
         except (httpx.TransportError, httpx.HTTPStatusError, RuntimeError) as exc:
             if raw_events is not None:
                 raw_events.extend(attempt_events)
@@ -243,10 +341,6 @@ def _post_streaming_openai_compatible(
             time.sleep(wait_s)
             delay = min(delay * 2, 30.0)
             continue
-        assembled = _assemble_openai_chat_stream(attempt_events)
-        finish_reason = str(
-            (assembled.get("choices") or [{}])[0].get("finish_reason") or ""
-        ) or None
         if raw_events is not None:
             raw_events.extend(attempt_events)
         _write_llm_trace(
@@ -993,6 +1087,7 @@ def call_llm(
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
     provider: Optional[str] = None,
+    failover: Optional["FailoverEndpoint"] = None,
     backend: str = "auto",
     reasoning_effort: Optional[str] = None,
     reduce_reasoning_effort: bool = False,
@@ -1003,7 +1098,7 @@ def call_llm(
     trace_name: str = "llm",
     extra_body: Optional[dict[str, Any]] = None,
 ) -> str:
-    """Call the orchestrator LLM.
+    """Call the orchestrator LLM, retrying once against ``failover``.
 
     The explicit provider selects the wire protocol. Claude models with a
     custom base URL use the native Anthropic SDK; other custom endpoints
@@ -1011,6 +1106,50 @@ def call_llm(
     caller parses the response as JSON, so providers that support a structured
     output mode are asked for one.
     """
+    return _with_endpoint_failover(
+        lambda connection, attempt_name: _call_llm_once(
+            messages,
+            system=system,
+            model=model,
+            max_tokens=max_tokens,
+            api_key=connection.api_key,
+            base_url=connection.base_url,
+            provider=connection.provider,
+            backend=backend,
+            reasoning_effort=reasoning_effort,
+            reduce_reasoning_effort=reduce_reasoning_effort,
+            retry_on_truncation=retry_on_truncation,
+            expect_json=expect_json,
+            on_token=on_token,
+            trace_dir=trace_dir,
+            trace_name=attempt_name,
+            extra_body=extra_body,
+        ),
+        primary=EndpointConnection(provider, base_url, api_key),
+        failover=_endpoint_connection(failover),
+        trace_name=trace_name,
+    )
+
+
+def _call_llm_once(
+    messages: list[Message],
+    *,
+    system: Optional[str] = None,
+    model: Optional[str] = None,
+    max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    provider: Optional[str] = None,
+    backend: str = "auto",
+    reasoning_effort: Optional[str] = None,
+    reduce_reasoning_effort: bool = False,
+    retry_on_truncation: bool = True,
+    expect_json: bool = False,
+    on_token: Optional[Any] = None,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "llm",
+    extra_body: Optional[dict[str, Any]] = None,
+) -> str:
     _require_supported_backend(backend)
     on_token = _resolve_token_callback(on_token, trace_dir, trace_name)
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
@@ -1296,6 +1435,7 @@ def call_orchestrator_with_tools(
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
     provider: Optional[str] = None,
+    failover: Optional[FailoverEndpoint] = None,
     backend: str = "auto",
     reasoning_effort: Optional[str] = None,
     tools: list[ToolSpec] | None = None,
@@ -1314,6 +1454,50 @@ def call_orchestrator_with_tools(
     task-builder research loop uses this for bounded external retrieval. Set
     ``expect_json`` when the caller parses a tool-free response as JSON.
     """
+    return _with_endpoint_failover(
+        lambda connection, attempt_name: _call_orchestrator_with_tools_once(
+            messages,
+            system_prompt=system_prompt,
+            model=model,
+            api_key=connection.api_key,
+            base_url=connection.base_url,
+            provider=connection.provider,
+            backend=backend,
+            reasoning_effort=reasoning_effort,
+            tools=tools,
+            max_tokens=max_tokens,
+            retry_on_truncation=retry_on_truncation,
+            expect_json=expect_json,
+            on_token=on_token,
+            trace_dir=trace_dir,
+            trace_name=attempt_name,
+            extra_body=extra_body,
+        ),
+        primary=EndpointConnection(provider, base_url, api_key),
+        failover=_endpoint_connection(failover),
+        trace_name=trace_name,
+    )
+
+
+def _call_orchestrator_with_tools_once(
+    messages: list[dict[str, Any]],
+    *,
+    system_prompt: Optional[str] = None,
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    provider: Optional[str] = None,
+    backend: str = "auto",
+    reasoning_effort: Optional[str] = None,
+    tools: list[ToolSpec] | None = None,
+    max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
+    retry_on_truncation: bool = True,
+    expect_json: bool = False,
+    on_token: Optional[Any] = None,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "llm-tools",
+    extra_body: Optional[dict[str, Any]] = None,
+) -> TargetToolModelResponse:
     _require_supported_backend(backend)
     on_token = _resolve_token_callback(on_token, trace_dir, trace_name)
     model_name = model or DEFAULT_ORCHESTRATOR_MODEL
@@ -1547,6 +1731,7 @@ def call_target_model_with_tools(
     tools: list[ToolSpec],
     *,
     system_prompt: Optional[str] = None,
+    failover: Optional[FailoverEndpoint] = None,
     backend: str = "auto",
     max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
     trace_dir: str | Path | None = None,
@@ -1560,6 +1745,47 @@ def call_target_model_with_tools(
     appended without lossy conversion through EvalClaw's simple ``Message``
     model.
     """
+    return _with_endpoint_failover(
+        lambda connection, attempt_name: _call_target_model_with_tools_once(
+            messages,
+            _target_on_connection(target, connection),
+            tools,
+            system_prompt=system_prompt,
+            backend=backend,
+            max_tokens=max_tokens,
+            trace_dir=trace_dir,
+            trace_name=attempt_name,
+        ),
+        primary=EndpointConnection(target.provider, target.base_url, target.api_key),
+        failover=_endpoint_connection(failover),
+        trace_name=trace_name,
+    )
+
+
+def _target_on_connection(
+    target: TargetModelConfig, connection: EndpointConnection
+) -> TargetModelConfig:
+    """The same target pointed at another endpoint; the model name is unchanged."""
+    return target.model_copy(
+        update={
+            "provider": connection.provider,
+            "base_url": connection.base_url,
+            "api_key": connection.api_key,
+        }
+    )
+
+
+def _call_target_model_with_tools_once(
+    messages: list[dict[str, Any]],
+    target: TargetModelConfig,
+    tools: list[ToolSpec],
+    *,
+    system_prompt: Optional[str] = None,
+    backend: str = "auto",
+    max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "target-tools",
+) -> TargetToolModelResponse:
     _require_supported_backend(backend)
     adapter = tool_adapter_for_target(target)
     if adapter == "anthropic":
@@ -1683,13 +1909,44 @@ def call_target_model(
     *,
     system_prompt: Optional[str] = None,
     history: Optional[list[Message]] = None,
+    failover: Optional[FailoverEndpoint] = None,
     backend: str = "auto",
     user_content: Any | None = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "target",
     max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
 ) -> str:
-    """Call the target model under evaluation."""
+    """Call the target model under evaluation, retrying once on ``failover``."""
+    return _with_endpoint_failover(
+        lambda connection, attempt_name: _call_target_model_once(
+            prompt,
+            _target_on_connection(target, connection),
+            system_prompt=system_prompt,
+            history=history,
+            backend=backend,
+            user_content=user_content,
+            trace_dir=trace_dir,
+            trace_name=attempt_name,
+            max_tokens=max_tokens,
+        ),
+        primary=EndpointConnection(target.provider, target.base_url, target.api_key),
+        failover=_endpoint_connection(failover),
+        trace_name=trace_name,
+    )
+
+
+def _call_target_model_once(
+    prompt: str,
+    target: TargetModelConfig,
+    *,
+    system_prompt: Optional[str] = None,
+    history: Optional[list[Message]] = None,
+    backend: str = "auto",
+    user_content: Any | None = None,
+    trace_dir: str | Path | None = None,
+    trace_name: str = "target",
+    max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
+) -> str:
     _require_supported_backend(backend)
     history = history or []
 
@@ -1796,6 +2053,8 @@ def call_target_model(
 
     if target.provider == "anthropic":
         msgs = [*history, Message(role="user", content=prompt)]
+        # No failover here: this already runs against the endpoint the caller
+        # selected, and the outer call_target_model owns the failover decision.
         return call_llm(
             msgs,
             system=system_prompt,

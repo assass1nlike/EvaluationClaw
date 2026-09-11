@@ -197,6 +197,7 @@ def run_workflow(
                     response = call_target_model_with_tools(
                         messages, target, [], system_prompt=system, backend=config.llm_backend,
                         max_tokens=stage.max_tokens, trace_dir=stage_dir / "llm",
+                        failover=config.failover_endpoint,
                     )
                     if response.tool_calls:
                         raise ValueError("Text stage returned a tool call without available tools.")
@@ -206,6 +207,7 @@ def run_workflow(
                     output = call_target_model(
                         prompt, target, system_prompt=system, history=messages, backend=config.llm_backend,
                         max_tokens=stage.max_tokens, trace_dir=stage_dir / "llm",
+                        failover=config.failover_endpoint,
                     )
                     messages.extend([Message(role="user", content=prompt), Message(role="assistant", content=output)])
                 if not output.strip():

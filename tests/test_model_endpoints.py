@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 from types import SimpleNamespace
 
@@ -7,7 +8,7 @@ from evalclaw.cli import _parse_target_configs
 from evalclaw.models import llm
 from evalclaw.models.providers import infer_provider, target_from_model
 from evalclaw.protocols.tool import ToolSpec, object_schema
-from evalclaw.types import BenchmarkConfig, Message, TargetModelConfig
+from evalclaw.types import BenchmarkConfig, FailoverEndpoint, Message, TargetModelConfig
 
 
 @pytest.fixture(autouse=True)
@@ -206,6 +207,70 @@ def test_streaming_post_enforces_total_deadline(monkeypatch) -> None:
 
     assert calls == 2
     assert request_timeouts == [6.0, 1.0]
+
+
+def test_streaming_post_rejects_a_stream_with_no_finish_reason(monkeypatch) -> None:
+    """A gateway that closes mid-generation must not look like a short answer."""
+    attempts = 0
+
+    def fake_stream(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        return _FakeHTTPStream(
+            [
+                "data: " + json.dumps({"choices": [{"delta": {"content": "1\n2\n3"}}]}),
+                "data: [DONE]",
+            ]
+        )
+
+    waits: list[float] = []
+    monkeypatch.setattr(llm.httpx, "stream", fake_stream)
+    monkeypatch.setattr(llm.time, "sleep", waits.append)
+
+    with pytest.raises(llm.LLMIncompleteStreamError, match="without a finish reason"):
+        llm._post_streaming_openai_compatible(
+            "https://model.example/v1",
+            {},
+            {},
+            max_retries=3,
+        )
+
+    assert attempts == 3
+    assert waits == [5.0, 10.0]
+
+
+def test_streaming_post_recovers_when_a_later_attempt_finishes(monkeypatch) -> None:
+    attempts = 0
+
+    def fake_stream(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return _FakeHTTPStream(
+                [
+                    "data: "
+                    + json.dumps({"choices": [{"delta": {"content": "1\n2\n3"}}]}),
+                    "data: [DONE]",
+                ]
+            )
+        return _FakeHTTPStream(
+            [
+                "data: "
+                + json.dumps(
+                    {"choices": [{"delta": {"content": "1\n2"}, "finish_reason": "stop"}]}
+                ),
+                "data: [DONE]",
+            ]
+        )
+
+    monkeypatch.setattr(llm.httpx, "stream", fake_stream)
+    monkeypatch.setattr(llm.time, "sleep", lambda seconds: None)
+
+    result = llm._post_streaming_openai_compatible("https://model.example/v1", {}, {})
+
+    assert result["choices"][0]["message"]["content"] == "1\n2"
+    assert result["choices"][0]["finish_reason"] == "stop"
+    assert attempts == 2
 
 
 def test_call_llm_litellm_backend_propagates_truncation(monkeypatch) -> None:
@@ -881,7 +946,10 @@ def test_openai_compatible_streaming_retries_upstream_error(monkeypatch) -> None
             )
         return FakeStream(
             [
-                "data: " + json.dumps({"choices": [{"delta": {"content": "ok"}}]}),
+                "data: "
+                + json.dumps(
+                    {"choices": [{"delta": {"content": "ok"}, "finish_reason": "stop"}]}
+                ),
                 "data: [DONE]",
             ]
         )
@@ -1198,3 +1266,316 @@ def test_target_from_model_allows_explicit_openai_protocol_for_claude_gateway() 
 
     assert target.provider == "openai_compatible"
     assert target.base_url == "https://relay.example/v1"
+
+
+def _endpoint_router(fail_host: str, error: Exception, content: str = "answer"):
+    """A streaming POST that fails on one host and answers on any other."""
+    calls: list[tuple[str, dict]] = []
+
+    def post(url: str, headers: dict, body: dict, **kwargs):
+        calls.append((url, body))
+        if llm.httpx.URL(url).host == fail_host:
+            raise error
+        return {
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": content},
+                    "finish_reason": "stop",
+                }
+            ]
+        }
+
+    return post, calls
+
+
+def test_call_llm_fails_over_to_the_second_endpoint(monkeypatch) -> None:
+    post, calls = _endpoint_router("relay.example", llm.httpx.ConnectError("relay is down"))
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+
+    result = llm.call_llm(
+        [Message(role="user", content="solve it")],
+        model="gpt-5.6-sol",
+        provider="openai_compatible",
+        api_key="relay-key",
+        base_url="https://relay.example/v1",
+        failover=FailoverEndpoint(base_url="https://stable.example/v1", api_key="stable-key"),
+    )
+
+    assert result == "answer"
+    assert [llm.httpx.URL(url).host for url, _ in calls] == ["relay.example", "stable.example"]
+    assert calls[0][1]["model"] == calls[1][1]["model"] == "gpt-5.6-sol"
+    assert calls[1][0] == "https://stable.example/v1/chat/completions"
+
+
+def test_call_llm_fails_over_with_the_failover_api_key(monkeypatch) -> None:
+    keys: list[str] = []
+
+    def post(url: str, headers: dict, body: dict, **kwargs):
+        keys.append(headers["Authorization"])
+        if "relay" in url:
+            raise llm.httpx.ConnectError("relay is down")
+        return {
+            "choices": [
+                {"index": 0, "message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}
+            ]
+        }
+
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+
+    llm.call_llm(
+        [Message(role="user", content="solve it")],
+        model="gpt-5.6-sol",
+        provider="openai_compatible",
+        api_key="relay-key",
+        base_url="https://relay.example/v1",
+        failover=FailoverEndpoint(base_url="https://stable.example/v1", api_key="stable-key"),
+    )
+
+    assert keys == ["Bearer relay-key", "Bearer stable-key"]
+
+
+def test_failover_is_not_used_for_a_truncated_completion(monkeypatch) -> None:
+    post, calls = _endpoint_router(
+        "relay.example", llm.LLMOutputTruncatedError("output truncated")
+    )
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+
+    with pytest.raises(llm.LLMOutputTruncatedError):
+        llm.call_llm(
+            [Message(role="user", content="solve it")],
+            model="gpt-5.6-sol",
+            provider="openai_compatible",
+            api_key="relay-key",
+            base_url="https://relay.example/v1",
+            failover=FailoverEndpoint(base_url="https://stable.example/v1", api_key="stable-key"),
+        )
+
+    assert [llm.httpx.URL(url).host for url, _ in calls] == ["relay.example"]
+
+
+def test_failover_is_not_used_for_a_cancelled_call(monkeypatch) -> None:
+    cancelled = concurrent.futures.CancelledError()
+    post, calls = _endpoint_router("relay.example", cancelled)
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+
+    with pytest.raises(concurrent.futures.CancelledError):
+        llm.call_llm(
+            [Message(role="user", content="solve it")],
+            model="gpt-5.6-sol",
+            provider="openai_compatible",
+            api_key="relay-key",
+            base_url="https://relay.example/v1",
+            failover=FailoverEndpoint(base_url="https://stable.example/v1", api_key="stable-key"),
+        )
+
+    assert [llm.httpx.URL(url).host for url, _ in calls] == ["relay.example"]
+
+
+def test_failover_is_not_used_for_a_rejected_request(monkeypatch) -> None:
+    rejected = llm.httpx.HTTPStatusError(
+        "bad request",
+        request=llm.httpx.Request("POST", "https://relay.example/v1/chat/completions"),
+        response=llm.httpx.Response(400),
+    )
+    post, calls = _endpoint_router("relay.example", rejected)
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+
+    with pytest.raises(llm.httpx.HTTPStatusError):
+        llm.call_llm(
+            [Message(role="user", content="solve it")],
+            model="gpt-5.6-sol",
+            provider="openai_compatible",
+            api_key="relay-key",
+            base_url="https://relay.example/v1",
+            failover=FailoverEndpoint(base_url="https://stable.example/v1", api_key="stable-key"),
+        )
+
+    assert [llm.httpx.URL(url).host for url, _ in calls] == ["relay.example"]
+
+
+def test_failover_reports_the_failover_error_over_the_primary_one(monkeypatch) -> None:
+    def post(url: str, headers: dict, body: dict, **kwargs):
+        raise llm.httpx.ConnectError("down: " + llm.httpx.URL(url).host)
+
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+
+    with pytest.raises(llm.httpx.ConnectError, match="down: stable.example") as excinfo:
+        llm.call_llm(
+            [Message(role="user", content="solve it")],
+            model="gpt-5.6-sol",
+            provider="openai_compatible",
+            api_key="relay-key",
+            base_url="https://relay.example/v1",
+            failover=FailoverEndpoint(base_url="https://stable.example/v1", api_key="stable-key"),
+        )
+
+    assert "down: relay.example" in str(excinfo.value.__cause__)
+
+
+def test_call_llm_without_failover_propagates_the_primary_error(monkeypatch) -> None:
+    post, calls = _endpoint_router("relay.example", llm.httpx.ConnectError("relay is down"))
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+
+    with pytest.raises(llm.httpx.ConnectError):
+        llm.call_llm(
+            [Message(role="user", content="solve it")],
+            model="gpt-5.6-sol",
+            provider="openai_compatible",
+            api_key="relay-key",
+            base_url="https://relay.example/v1",
+        )
+
+    assert [llm.httpx.URL(url).host for url, _ in calls] == ["relay.example"]
+
+
+def test_failover_switches_protocol_when_the_endpoint_declares_one(monkeypatch) -> None:
+    post, calls = _endpoint_router("relay.example", llm.httpx.ConnectError("relay is down"))
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+    client = _FakeAnthropicClient()
+    requested_clients: list[tuple[str | None, str | None]] = []
+
+    def fake_client(api_key=None, base_url=None):
+        requested_clients.append((api_key, base_url))
+        return client
+
+    monkeypatch.setattr(llm, "_get_anthropic_client", fake_client)
+
+    result = llm.call_llm(
+        [Message(role="user", content="solve it")],
+        model="claude-sonnet-4-6",
+        provider="openai_compatible",
+        api_key="relay-key",
+        base_url="https://relay.example/v1",
+        failover=FailoverEndpoint(
+            base_url="https://claude.example/v1", api_key="claude-key", provider="anthropic"
+        ),
+    )
+
+    assert result == "anthropic response"
+    assert [llm.httpx.URL(url).host for url, _ in calls] == ["relay.example"]
+    assert requested_clients == [("claude-key", "https://claude.example/v1")]
+
+
+def test_failover_inherits_the_callers_provider_when_unset(monkeypatch) -> None:
+    client = _FakeAnthropicClient()
+    requested_clients: list[tuple[str | None, str | None]] = []
+
+    def fake_client(api_key=None, base_url=None):
+        requested_clients.append((api_key, base_url))
+        if base_url == "https://relay-claude.example/v1":
+            raise llm.httpx.ConnectError("relay is down")
+        return client
+
+    monkeypatch.setattr(llm, "_get_anthropic_client", fake_client)
+
+    result = llm.call_llm(
+        [Message(role="user", content="solve it")],
+        model="claude-sonnet-4-6",
+        provider="anthropic",
+        api_key="relay-key",
+        base_url="https://relay-claude.example/v1",
+        failover=FailoverEndpoint(base_url="https://claude.example/v1", api_key="claude-key"),
+    )
+
+    assert result == "anthropic response"
+    assert requested_clients == [
+        ("relay-key", "https://relay-claude.example/v1"),
+        ("claude-key", "https://claude.example/v1"),
+    ]
+
+
+def test_target_call_fails_over_to_the_second_endpoint(monkeypatch) -> None:
+    post, calls = _endpoint_router("relay.example", llm.httpx.ConnectError("relay is down"))
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+    target = TargetModelConfig(
+        provider="openai_compatible",
+        model="gpt-5.6-sol",
+        api_key="relay-key",
+        base_url="https://relay.example/v1",
+    )
+
+    result = llm.call_target_model(
+        "question",
+        target,
+        user_content="question",
+        failover=FailoverEndpoint(base_url="https://stable.example/v1", api_key="stable-key"),
+    )
+
+    assert result == "answer"
+    assert [llm.httpx.URL(url).host for url, _ in calls] == ["relay.example", "stable.example"]
+    assert calls[1][1]["model"] == "gpt-5.6-sol"
+
+
+def test_target_tool_call_fails_over_to_the_second_endpoint(monkeypatch) -> None:
+    post, calls = _endpoint_router("relay.example", llm.httpx.ConnectError("relay is down"))
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+    target = TargetModelConfig(
+        provider="openai_compatible",
+        model="tool-model",
+        api_key="relay-key",
+        base_url="https://relay.example/v1",
+    )
+    tool = ToolSpec(
+        name="lookup",
+        parameters=object_schema({"query": {"type": "string"}}, required=["query"]),
+    )
+
+    result = llm.call_target_model_with_tools(
+        [{"role": "user", "content": "Look up x."}],
+        target,
+        [tool],
+        failover=FailoverEndpoint(base_url="https://stable.example/v1", api_key="stable-key"),
+    )
+
+    assert result.content == "answer"
+    assert [llm.httpx.URL(url).host for url, _ in calls] == ["relay.example", "stable.example"]
+
+
+def test_orchestrator_tool_call_fails_over_to_the_second_endpoint(monkeypatch) -> None:
+    post, calls = _endpoint_router("relay.example", llm.httpx.ConnectError("relay is down"))
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", post)
+
+    response = llm.call_orchestrator_with_tools(
+        [{"role": "user", "content": "build one task"}],
+        model="gpt-5.6-sol",
+        provider="openai_compatible",
+        api_key="relay-key",
+        base_url="https://relay.example/v1",
+        tools=[],
+        failover=FailoverEndpoint(base_url="https://stable.example/v1", api_key="stable-key"),
+    )
+
+    assert response.content == "answer"
+    assert [llm.httpx.URL(url).host for url, _ in calls] == ["relay.example", "stable.example"]
+
+
+def test_target_anthropic_delegation_does_not_nest_failover(monkeypatch) -> None:
+    client = _FakeAnthropicClient()
+    requested_clients: list[tuple[str | None, str | None]] = []
+
+    def fake_client(api_key=None, base_url=None):
+        requested_clients.append((api_key, base_url))
+        if base_url == "https://relay-claude.example/v1":
+            raise llm.httpx.ConnectError("claude relay is down")
+        return client
+
+    monkeypatch.setattr(llm, "_get_anthropic_client", fake_client)
+    target = TargetModelConfig(
+        provider="anthropic",
+        model="claude-sonnet-4-6",
+        api_key="relay-key",
+        base_url="https://relay-claude.example/v1",
+    )
+
+    result = llm.call_target_model(
+        "question",
+        target,
+        failover=FailoverEndpoint(base_url="https://claude.example/v1", api_key="claude-key"),
+    )
+
+    assert result == "anthropic response"
+    assert requested_clients == [
+        ("relay-key", "https://relay-claude.example/v1"),
+        ("claude-key", "https://claude.example/v1"),
+    ]

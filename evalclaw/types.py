@@ -707,6 +707,20 @@ class ResearchBrief(BaseModel):
 SUPPORTED_HARNESSES: set[str] = {"openhands"}
 
 
+class FailoverEndpoint(BaseModel):
+    """The endpoint a call is retried against once the primary has given up.
+
+    Serves the same models under the same names, so only the connection
+    changes. ``provider`` is optional and inherits the caller's own provider.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    base_url: str
+    api_key: str
+    provider: Optional[str] = None
+
+
 class TargetModelConfig(BaseModel):
     id: str = ""
     provider: str
@@ -833,6 +847,7 @@ class BenchmarkPackage(BaseModel):
 class BenchmarkConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    failover_endpoint: Optional[FailoverEndpoint] = None
     planner_model: Optional[str] = None
     planner_provider: Optional[str] = None
     planner_api_key: Optional[str] = None
