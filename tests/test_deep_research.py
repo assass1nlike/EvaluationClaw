@@ -320,3 +320,56 @@ def test_cli_task_config_carries_credentials(monkeypatch) -> None:
     assert models[0].api_key == "task-key"
     assert models[0].base_url == "https://task.example/v1"
     assert models[0].id == "tm1"
+
+
+def test_cli_failover_endpoint_carries_its_own_credentials(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_run_pipeline(goal, config, **kwargs):
+        captured["config"] = config
+        return _minimal_package(None)
+
+    monkeypatch.setattr("evalclaw.cli.run_pipeline", fake_run_pipeline)
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        [
+            "generate", "-g", "goal", "--no-interactive",
+            "--failover-base-url", "https://stable.example/v1",
+            "--failover-api-key", "stable-key",
+            "--failover-provider", "OpenAI",
+        ],
+    )
+
+    assert result.exit_code == 0
+    failover = captured["config"].failover_endpoint
+    assert failover.base_url == "https://stable.example/v1"
+    assert failover.api_key == "stable-key"
+    assert failover.provider == "openai"
+
+
+def test_cli_rejects_a_failover_endpoint_without_its_own_key() -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        [
+            "generate", "-g", "goal", "--no-interactive",
+            "--failover-base-url", "https://stable.example/v1",
+            "--target-api-key", "primary-key",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "requires --failover-api-key" in result.output
+
+
+def test_cli_rejects_a_failover_key_without_a_base_url() -> None:
+    result = CliRunner().invoke(
+        app,
+        ["generate", "-g", "goal", "--no-interactive", "--failover-api-key", "stable-key"],
+    )
+
+    assert result.exit_code == 1
+    assert "require --failover-base-url" in result.output

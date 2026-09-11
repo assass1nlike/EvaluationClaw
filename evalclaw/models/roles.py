@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from ..types import BenchmarkConfig, TargetModelConfig
+from ..types import BenchmarkConfig, FailoverEndpoint, TargetModelConfig
 
 ModelRole = Literal["planner", "task_builder", "qc", "research", "analyser"]
 
@@ -17,6 +17,7 @@ class RoleModelSettings:
     base_url: str | None
     reasoning_effort: str | None = None
     extra_body: dict[str, Any] = field(default_factory=dict)
+    failover: FailoverEndpoint | None = None
 
     @property
     def configured(self) -> bool:
@@ -32,6 +33,8 @@ class RoleModelSettings:
         }
         if self.reasoning_effort:
             kwargs["reasoning_effort"] = self.reasoning_effort
+        if self.failover is not None:
+            kwargs["failover"] = self.failover
         return kwargs
 
 
@@ -44,6 +47,7 @@ def role_model_settings(config: BenchmarkConfig, role: ModelRole) -> RoleModelSe
         base_url=getattr(config, f"{role}_base_url"),
         reasoning_effort=getattr(config, f"{role}_reasoning_effort"),
         extra_body=getattr(config, f"{role}_extra_body", {}),
+        failover=config.failover_endpoint,
     )
 
 

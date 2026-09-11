@@ -165,6 +165,7 @@ def _call_judge_json(
             provider=judge_config.provider,
             api_key=judge_config.api_key,
             base_url=judge_config.base_url,
+            failover=config.failover_endpoint,
             backend=config.llm_backend,
             max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
             trace_dir=trace_dir,
@@ -225,6 +226,7 @@ def _call_task_agent_json(
         api_key=model_config.api_key,
         base_url=model_config.base_url,
         provider=model_config.provider,
+        failover=config.failover_endpoint,
         backend=config.llm_backend,
         max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
         trace_dir=trace_dir,
@@ -397,6 +399,7 @@ def _multi_turn_followups(
         provider=judge_config.provider,
         api_key=judge_config.api_key,
         base_url=judge_config.base_url,
+        failover=config.failover_endpoint,
         backend=config.llm_backend,
         max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
         trace_dir=trace_dir,
@@ -474,6 +477,7 @@ def _run_multi_turn(
         initial_prompt,
         target,
         history=history,
+        failover=config.failover_endpoint,
         backend=config.llm_backend,
         user_content=initial_content,
         trace_dir=trace_dir,
@@ -490,6 +494,7 @@ def _run_multi_turn(
             backend=config.llm_backend,
             trace_dir=trace_dir,
             trace_name=f"target-turn-{turn_index:02d}",
+            failover=config.failover_endpoint,
         )
         history.extend([Message(role="user", content=followup), Message(role="assistant", content=answer)])
     if not scripted and get_task_agent_spec(item):
@@ -513,6 +518,7 @@ def _run_multi_turn(
                 backend=config.llm_backend,
                 trace_dir=trace_dir,
                 trace_name=f"target-turn-{len(history) // 2 + 1:02d}",
+                failover=config.failover_endpoint,
             )
             history.extend([Message(role="user", content=followup), Message(role="assistant", content=answer)])
     transcript = transcript_text(history)
@@ -582,6 +588,7 @@ def _run_item(
                 backend=config.llm_backend,
                 trace_dir=trace_dir,
                 trace_name="target",
+                failover=config.failover_endpoint,
             )
         else:
             response = call_target_model(
@@ -591,6 +598,7 @@ def _run_item(
                 user_content=user_content,
                 trace_dir=trace_dir,
                 trace_name="target",
+                failover=config.failover_endpoint,
             )
         latency_ms = round((time.monotonic() - start) * 1000)
         if item.task_type == TaskType.choice:
