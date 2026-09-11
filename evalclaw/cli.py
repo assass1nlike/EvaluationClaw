@@ -14,7 +14,7 @@ from rich.table import Table
 from .models.providers import normalize_provider, resolve_role_connection, target_from_model
 from .pipeline import run_pipeline
 from .planning.task_planner import _valid_effort_distribution
-from .types import BenchmarkConfig, BenchmarkPackage, ScaleBudget, TargetModelConfig
+from .types import BenchmarkConfig, BenchmarkPackage, FailoverEndpoint, ScaleBudget, TargetModelConfig
 
 app = typer.Typer(
     name="evalclaw",
@@ -278,6 +278,21 @@ def generate(
         None,
         "--base-url",
         help="Base URL for the primary target's inferred protocol.",
+    ),
+    failover_base_url: Optional[str] = typer.Option(
+        None,
+        "--failover-base-url",
+        help="Endpoint a failed LLM call is retried against once its own retries are exhausted.",
+    ),
+    failover_api_key: Optional[str] = typer.Option(
+        None,
+        "--failover-api-key",
+        help="API key for --failover-base-url. Required whenever the failover endpoint is set.",
+    ),
+    failover_provider: Optional[str] = typer.Option(
+        None,
+        "--failover-provider",
+        help="Protocol/provider for the failover endpoint. Defaults to each caller's own provider.",
     ),
     max_planner_iterations: int = typer.Option(5, "--max-planner-iterations", help="Planner self-critique iterations."),
     max_qc_iterations: int = typer.Option(5, "--max-qc-iterations", help="Reserved for future QC regeneration loops."),
@@ -655,12 +670,27 @@ def generate(
     except ValueError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(1) from exc
+    failover_config: dict[str, Any] = {}
+    if failover_base_url or failover_api_key or failover_provider:
+        if not failover_base_url:
+            console.print("[red]--failover-api-key/--failover-provider require --failover-base-url.[/red]")
+            raise typer.Exit(1)
+        if not failover_api_key:
+            console.print(f"[red]--failover-base-url requires --failover-api-key; it is never inherited "
+                          f"from the primary endpoint, which would send the primary key to {failover_base_url}.[/red]")
+            raise typer.Exit(1)
+        failover_config["failover_endpoint"] = FailoverEndpoint(
+            base_url=failover_base_url,
+            api_key=failover_api_key,
+            provider=normalize_provider(failover_provider) if failover_provider else None,
+        )
     resolved_live_url = live_url.rstrip("/") if live_url else None
     if live and resolved_live_url is None:
         resolved_live_url = f"http://127.0.0.1:{live_port}"
     config = BenchmarkConfig(
         **role_config,
         **image_config,
+        **failover_config,
         task_models=task_models,
         targets=targets,
         scale_budget=parsed_scale_budget,
