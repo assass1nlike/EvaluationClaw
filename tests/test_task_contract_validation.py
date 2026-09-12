@@ -1195,7 +1195,8 @@ def test_dataset_checks_duplicate_ids_unknown_dimensions_and_near_duplicates() -
     assert any(
         "unknown dimension" in issue.message
         for issue in _coverage_issues(
-            TaskSuite(spec=spec, objective=spec.objective, tasks=[unknown])
+            TaskSuite(spec=spec, objective=spec.objective, tasks=[unknown]),
+            1000,
         )
     )
 

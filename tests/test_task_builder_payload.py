@@ -22,7 +22,6 @@ from evalclaw.types import (
     ChoiceOption,
     EvalDimension,
     EvalSpec,
-    ScaleBudget,
     TaskDefinition,
     TaskType,
 )
@@ -147,7 +146,6 @@ def test_task_builder_payload_uses_resolved_scale_and_omits_target_subjects() ->
         subjects=["unknown_future_target"],
         task_types=[TaskType.fill_blank, TaskType.generation],
         dimensions=[dimension],
-        scale_budget=ScaleBudget.high,
         scale=37,
     )
     blueprint = make_blueprint(

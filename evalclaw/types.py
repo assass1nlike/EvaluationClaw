@@ -46,14 +46,6 @@ def safe_challenge_effort(value: object, fallback: ChallengeEffort = ChallengeEf
         return fallback
 
 
-class ScaleBudget(str, Enum):
-    low = "low"
-    mid = "mid"
-    high = "high"
-    large = "large"
-    xlarge = "xlarge"
-
-
 class SourceKind(str, Enum):
     self_generated = "self_generated"
     web = "web"
@@ -132,7 +124,6 @@ class EvalSpec(BaseModel):
     subjects: list[str] = Field(default_factory=list)
     task_types: list[TaskType] = Field(default_factory=lambda: [TaskType.generation])
     dimensions: list[EvalDimension] = Field(default_factory=list)
-    scale_budget: ScaleBudget = ScaleBudget.mid
     scale: int = 20
     constraints: list[str] = Field(default_factory=list)
     planner_notes: str = ""
@@ -352,7 +343,6 @@ class BenchmarkPlan(BaseModel):
     planner_notes: str = ""
     dimensions: list[BenchmarkPlanDimension] = Field(default_factory=list)
     subjects: list[str] = Field(default_factory=list, exclude=True)
-    scale_budget: ScaleBudget = Field(default=ScaleBudget.mid, exclude=True)
     audit: BenchmarkPlanAudit = Field(default_factory=BenchmarkPlanAudit, exclude=True)
 
     @property
@@ -433,7 +423,6 @@ class BenchmarkPlan(BaseModel):
             subjects=self.subjects,
             task_types=list(dict.fromkeys(all_task_types)),
             dimensions=dimensions,
-            scale_budget=self.scale_budget,
             scale=sum(design.task_count for dim in self.dimensions for design in dim.task_designs),
             constraints=self.constraints,
             planner_notes=self.planner_notes,
@@ -890,7 +879,8 @@ class BenchmarkConfig(BaseModel):
     analyser_reasoning_effort: Optional[str] = None
     analyser_extra_body: dict[str, Any] = Field(default_factory=dict)
     targets: list[TargetModelConfig] = Field(default_factory=list)
-    scale_budget: ScaleBudget = ScaleBudget.mid
+    item_count: Optional[int] = None
+    large_scale_item_threshold: int = 1000
     max_planner_iterations: int = 5
     max_qc_iterations: int = 5
     max_research_sources: int = 3

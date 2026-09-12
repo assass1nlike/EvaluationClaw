@@ -140,7 +140,6 @@ def _load_construction_resume(
                 plan = plan.model_copy(
                     update={
                         "subjects": suite.spec.subjects,
-                        "scale_budget": suite.spec.scale_budget,
                     }
                 )
             suite.plan = plan
@@ -169,7 +168,6 @@ def _load_construction_resume(
             plan = plan.model_copy(
                 update={
                     "subjects": suite.spec.subjects,
-                    "scale_budget": suite.spec.scale_budget,
                 }
             )
     qc_report = _load_model(construction_dir / "initial-qc.json", QcReport)
