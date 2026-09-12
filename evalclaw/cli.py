@@ -14,7 +14,7 @@ from rich.table import Table
 from .models.providers import normalize_provider, resolve_role_connection, target_from_model
 from .pipeline import run_pipeline
 from .planning.task_planner import _valid_effort_distribution
-from .types import BenchmarkConfig, BenchmarkPackage, FailoverEndpoint, ScaleBudget, TargetModelConfig
+from .types import BenchmarkConfig, BenchmarkPackage, FailoverEndpoint, TargetModelConfig
 
 app = typer.Typer(
     name="evalclaw",
@@ -145,7 +145,6 @@ def _print_summary(pkg: BenchmarkPackage) -> None:
     console.print(f"Goal: {pkg.goal}")
     console.print(f"Spec: {pkg.spec.id}")
     console.print(f"Dimensions: {len(pkg.spec.dimensions)}")
-    console.print(f"Scale budget: {pkg.spec.scale_budget.value}")
     console.print(f"Items: {len(pkg.suite.tasks)}")
     average_qc_issues = len(pkg.qc_report.issues) / max(1, len(pkg.suite.tasks))
     console.print(f"Average QC issues: {average_qc_issues:.2f}")
@@ -317,12 +316,17 @@ def generate(
     large_scale_qc_sample: int = typer.Option(
         120,
         "--large-scale-qc-sample",
-        help="Stratified item sample size for LLM QC under large/xlarge budgets.",
+        help="Stratified item sample size for LLM QC when the item count reaches --large-scale-item-threshold.",
     ),
-    scale_budget: str = typer.Option(
-        "mid",
-        "--scale-budget",
-        help="Relative eval budget: low, mid, high, large, or xlarge.",
+    large_scale_item_threshold: int = typer.Option(
+        1000,
+        "--large-scale-item-threshold",
+        help="Item count at which sampled QC and per-dimension generated caps engage.",
+    ),
+    item_count: Optional[int] = typer.Option(
+        None,
+        "--item-count",
+        help="Exact total number of items.",
     ),
     output_dir: str = typer.Option("./benchmark-output", "-o", "--output-dir", help="Output directory."),
     resume_run: Optional[str] = typer.Option(
@@ -524,16 +528,17 @@ def generate(
     if large_scale_qc_sample < 0:
         console.print("[red]--large-scale-qc-sample cannot be negative.[/red]")
         raise typer.Exit(1)
+    if large_scale_item_threshold < 1:
+        console.print("[red]--large-scale-item-threshold must be at least 1.[/red]")
+        raise typer.Exit(1)
     if gui_bridge_timeout < 1:
         console.print("[red]--gui-bridge-timeout must be at least 1 second.[/red]")
         raise typer.Exit(1)
     if vm_provider_timeout < 1:
         console.print("[red]--vm-provider-timeout must be at least 1 second.[/red]")
         raise typer.Exit(1)
-    try:
-        parsed_scale_budget = ScaleBudget(scale_budget.lower())
-    except ValueError:
-        console.print("[red]--scale-budget must be one of: low, mid, high, large, xlarge.[/red]")
+    if item_count is not None and item_count < 1:
+        console.print("[red]--item-count must be at least 1.[/red]")
         raise typer.Exit(1)
     if search_backend.lower() not in {"auto", "gemini", "ablation-keyless", "none"}:
         console.print("[red]--search-backend must be one of: gemini, ablation-keyless, auto, none.[/red]")
@@ -693,11 +698,12 @@ def generate(
         **failover_config,
         task_models=task_models,
         targets=targets,
-        scale_budget=parsed_scale_budget,
+        item_count=item_count,
         max_planner_iterations=max_planner_iterations,
         max_qc_iterations=max_qc_iterations,
         max_hf_records_per_dimension=max_hf_records,
         large_scale_generated_item_cap_per_dimension=large_scale_generated_cap,
+        large_scale_item_threshold=large_scale_item_threshold,
         source_backed_ratio=source_backed_ratio,
         challenge_effort_distribution=parsed_effort_distribution,
         large_scale_llm_qc_sample_size=large_scale_qc_sample,

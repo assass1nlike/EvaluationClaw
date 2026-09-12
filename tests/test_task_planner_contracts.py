@@ -6,7 +6,6 @@ import pytest
 
 from evalclaw.planning.task_planner import (
     _audit_plan,
-    _explicit_total_task_count,
     _valid_effort_distribution,
     plan_benchmark,
 )
@@ -63,13 +62,6 @@ def _plan(
             ],
         }
     )
-
-
-def test_explicit_total_task_count_is_conservative() -> None:
-    assert _explicit_total_task_count("Create exactly 50 scenario dialogue questions.") == 50
-    assert _explicit_total_task_count("Create a total of exactly 20 crystallography questions.") == 20
-    assert _explicit_total_task_count("总共出 20 道题，覆盖两种题型。") == 20
-    assert _explicit_total_task_count("Create exactly 10 questions in each of 5 domains.") is None
 
 
 def test_llm_planning_without_a_configured_model_fails_closed() -> None:
@@ -189,8 +181,8 @@ def test_planner_repairs_wrong_explicit_total(monkeypatch) -> None:
     monkeypatch.setattr("evalclaw.planning.task_planner._run_planner_tool_loop", fake_tool_loop)
 
     plan = plan_benchmark(
-        "Create exactly 50 evaluation questions.",
-        BenchmarkConfig(**dummy_config_kwargs(), max_planner_iterations=2),
+        "Create some evaluation questions.",
+        BenchmarkConfig(**dummy_config_kwargs(), item_count=50, max_planner_iterations=2),
     )
 
     assert sum(design.task_count for dim in plan.dimensions for design in dim.task_designs) == 50
@@ -210,9 +202,10 @@ def test_planner_debug_saves_each_raw_attempt(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr("evalclaw.planning.task_planner._run_planner_tool_loop", fake_tool_loop)
 
     plan_benchmark(
-        "Create exactly 1 benchmark task.",
+        "Create a benchmark task.",
         BenchmarkConfig(
             **dummy_config_kwargs(),
+            item_count=1,
             max_planner_iterations=2,
             planner_debug_dir=str(tmp_path / "planner-debug"),
         ),

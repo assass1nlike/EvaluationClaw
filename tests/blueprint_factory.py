@@ -118,6 +118,5 @@ def make_plan(spec: EvalSpec, blueprints: list[TaskBlueprint]) -> BenchmarkPlan:
         planner_notes=spec.planner_notes,
         dimensions=dimensions,
         subjects=spec.subjects,
-        scale_budget=spec.scale_budget,
         audit=BenchmarkPlanAudit(passed=True),
     )

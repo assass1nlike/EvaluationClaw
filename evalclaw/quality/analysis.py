@@ -487,7 +487,6 @@ def _probe_plan(
         planner_notes="Hypothesis-driven verification tasks designed by the Analyser.",
         dimensions=dimensions,
         subjects=list(suite.spec.subjects),
-        scale_budget=suite.spec.scale_budget,
     )
     issues = _audit_plan(plan)
     if issues:

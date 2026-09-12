@@ -782,11 +782,12 @@ class TargetToolModelResponse:
     raw_response: Any
 
 
-_REASONING_MODEL_MARKERS = ("gpt-5", "o1", "o3", "o4", "deepseek-reasoner")
+_REASONING_MODEL_MARKERS = ("gpt-5", "o1", "o3", "o4", "deepseek-reasoner", "deepseek-v4", "deepseek-flash")
 # Highest output budget each model accepts, so long reasoning is never cut off
 # by the framework. Models absent from this table keep the framework floor
 # instead of being asked for more than they advertise.
 _MODEL_MAX_OUTPUT_TOKENS: dict[str, int] = {
+    "deepseek-flash": 393_216,
     "deepseek-v4-flash": 393_216,
     "deepseek-v4-pro": 393_216,
 }
@@ -914,21 +915,13 @@ def _call_litellm(
     ):
         kwargs["response_format"] = {"type": "json_object"}
     if model.startswith("deepseek-v4") and expect_json:
-        # DeepSeek V4's thinking mode can consume the entire response window
-        # before emitting the JSON body. Match the direct OpenAI-compatible
-        # path for framework calls that explicitly require structured JSON.
-        extra["thinking"] = {"type": "disabled"}
+        # DeepSeek JSON recovery forces structured JSON even without a base URL.
         kwargs["response_format"] = {"type": "json_object"}
-    elif reduce_reasoning_effort:
-        if model.startswith("deepseek-v4"):
-            extra["thinking"] = {"type": "disabled"}
     if extra:
         kwargs["extra_body"] = extra
-    resolved_effort = None
-    if not (model.startswith("deepseek-v4") and expect_json):
-        resolved_effort = _resolve_reasoning_effort(
-            model, reasoning_effort, reduce_reasoning_effort
-        )
+    resolved_effort = _resolve_reasoning_effort(
+        model, reasoning_effort, reduce_reasoning_effort
+    )
     if resolved_effort:
         kwargs["reasoning_effort"] = resolved_effort
     if api_key:
@@ -1216,12 +1209,6 @@ def _call_llm_once(
                 body["reasoning_effort"] = resolved_effort
             if expect_json:
                 body["response_format"] = {"type": "json_object"}
-            if (
-                "api.deepseek.com" in base_url
-                and model_name.startswith("deepseek-v4")
-                and (expect_json or reduce_reasoning_effort)
-            ):
-                body["thinking"] = {"type": "disabled"}
             url = f"{base_url.rstrip('/')}/chat/completions"
             headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
             trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
@@ -1344,7 +1331,6 @@ def _call_openai_compatible_tools(
             body["tools"] = openai_tools(tools)
         elif model.startswith("deepseek-v4") and expect_json:
             body["response_format"] = {"type": "json_object"}
-            body["thinking"] = {"type": "disabled"}
         if reasoning_effort:
             body["reasoning_effort"] = reasoning_effort
         trace_path = _llm_trace_path(trace_dir, trace_name, attempt + 1)
@@ -1631,7 +1617,6 @@ def _call_orchestrator_with_tools_once(
             kwargs["tools"] = openai_tools(tool_specs)
         elif model_name.startswith("deepseek-v4") and expect_json:
             kwargs["response_format"] = {"type": "json_object"}
-            extra["thinking"] = {"type": "disabled"}
         if extra:
             kwargs["extra_body"] = extra
         if api_key:
@@ -1865,8 +1850,6 @@ def _call_target_model_with_tools_once(
     if not tools:
         body.pop("tools", None)
         body.pop("tool_choice", None)
-    if "api.deepseek.com" in base_url and target.model.startswith("deepseek-v4"):
-        body["thinking"] = {"type": "disabled"}
     if backend == "litellm":
         # LiteLLM can route tool calls for many providers, but the rest of the
         # runner needs the native assistant message. For now, keep this path

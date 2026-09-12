@@ -7,12 +7,13 @@ supplies its own launch command.
 """
 from __future__ import annotations
 
-import os
 import re
 import shlex
 import shutil
 import subprocess
 import tempfile
+import time
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
@@ -187,6 +188,59 @@ def score_docker_task(
     return score, reasoning
 
 
+def _docker(docker: str, args: list[str], *, check: bool = True) -> subprocess.CompletedProcess:
+    """Run a docker subcommand with Docker's credential env discoverable."""
+    return subprocess.run(
+        [docker, *args],
+        capture_output=True,
+        text=True,
+        check=check,
+        env=docker_subprocess_env("docker"),
+    )
+
+
+def _infer_model_base_url(model: str) -> str:
+    name = model.split("/", 1)[-1].lower()
+    if name.startswith("deepseek"):
+        return "https://api.deepseek.com"
+    if name.startswith(("gpt-", "o1", "o3", "o4")):
+        return "https://api.openai.com/v1"
+    return "https://api.openai.com/v1"
+
+
+def _start_model_gateway(docker: str, upstream: str) -> tuple[str, str, str]:
+    """Start a model API gateway on an internal network.
+
+    Returns ``(network, gateway_name, gateway_url)``. The gateway listens on the
+    internal network (where the harness will run) and is also bridged so it can
+    reach the model API; the harness container gets only the internal network.
+    """
+    tag = uuid.uuid4().hex[:8]
+    network = f"evalclaw-harness-{tag}"
+    gateway = f"evalclaw-gateway-{tag}"
+    _docker(docker, ["network", "create", "--internal", network])
+    try:
+        _docker(
+            docker,
+            [
+                "run", "-d", "--name", gateway, "--network", network,
+                "evalclaw-model-gateway:latest", "--upstream", upstream, "--port", "18080",
+            ],
+        )
+        _docker(docker, ["network", "connect", "bridge", gateway])
+    except Exception:
+        _docker(docker, ["rm", "-f", gateway], check=False)
+        _docker(docker, ["network", "rm", network], check=False)
+        raise
+    time.sleep(1.0)  # let the gateway bind its port before the harness connects
+    return network, gateway, f"http://{gateway}:18080"
+
+
+def _stop_model_gateway(docker: str, network: str, gateway: str) -> None:
+    _docker(docker, ["rm", "-f", gateway], check=False)
+    _docker(docker, ["network", "rm", network], check=False)
+
+
 @dataclass
 class ManifestHarness:
     name: str
@@ -194,6 +248,9 @@ class ManifestHarness:
     model_env: dict[str, str]  # env var name -> target field (model/api_key/base_url)
     config_args: tuple[str, ...] = ()  # argv fragments rendered at {config_args}
     timeout: int = 1800
+    harness_image: str | None = None  # image whose filesystem is mounted to provide the CLI
+    gateway: bool = False  # route the model API through an egress gateway (internal network)
+    gateway_provider: str | None = None  # provider whose baseUrl is repointed at the gateway
 
 
 class ManifestHarnessRunner:
@@ -214,7 +271,7 @@ class ManifestHarnessRunner:
         reject_tool_constraints(item)
         image, workdir = prepare_docker_task(item, config)
         try:
-            raw = self._launch(item, target, image, workdir)
+            raw = self._launch(item, target, config, image, workdir)
             score, reasoning = score_docker_task(item, config, image, workdir)
             if artifact_dir is not None:
                 artifact_dir.mkdir(parents=True, exist_ok=True)
@@ -224,11 +281,11 @@ class ManifestHarnessRunner:
         finally:
             shutil.rmtree(workdir, ignore_errors=True)
 
-    def _launch(self, item: BenchmarkItem, target: TargetModelConfig, image: str, workdir: Path) -> str:
+    def _launch(self, item: BenchmarkItem, target: TargetModelConfig, config: BenchmarkConfig, image: str, workdir: Path) -> str:
         values = {
             "task": item.prompt,
             "image": image,
-            "workdir": str(workdir),
+            "workdir": "/workspace",
             "model": target.model,
             "api_key": target.api_key or "",
             "base_url": target.base_url or "",
@@ -240,23 +297,58 @@ class ManifestHarnessRunner:
         command = shlex.split(
             self._manifest.run.format(**quoted, config_args=shlex.join(config_tokens))
         )
-        env = os.environ.copy()
+        resolved = resolve_docker_executable(config.docker_executable)
+        if not resolved:
+            raise RuntimeError(f"Docker executable {config.docker_executable!r} not found.")
+        run_args: list[str] = [
+            resolved, "run", "--rm",
+            "-v", f"{workdir}:/workspace",
+            "-w", "/workspace",
+        ]
+        if self._manifest.harness_image:
+            run_args += [
+                "--mount",
+                f"type=image,src={self._manifest.harness_image},dst=/opt/harness,readonly",
+            ]
+        gateway_network: str | None = None
+        gateway_name: str | None = None
+        if self._manifest.gateway:
+            upstream = target.base_url or _infer_model_base_url(target.model)
+            gateway_network, gateway_name, gateway_url = _start_model_gateway(resolved, upstream)
+            run_args += ["--network", gateway_network]
         for field, var_name in self._manifest.model_env.items():
             value = getattr(target, field, None)
+            if field == "base_url" and gateway_name is not None:
+                value = f"http://{gateway_name}:18080"
             if value:
-                env[var_name] = str(value)
+                run_args += ["-e", f"{var_name}={value}"]
+        shell_command = shlex.join(command)
+        prefix = ""
+        if self._manifest.harness_image:
+            prefix += (
+                "cp -a /opt/harness/root/.openclaw /root/ 2>/dev/null || true; "
+                "export PATH=/opt/harness/usr/local/bin:$PATH; "
+            )
+        if gateway_name is not None and self._manifest.gateway_provider:
+            prefix += (
+                f"openclaw config set models.providers.{self._manifest.gateway_provider}.baseUrl "
+                f"http://{gateway_name}:18080 2>/dev/null; "
+            )
+        run_args += [image, "sh", "-lc", prefix + shell_command]
         try:
             proc = subprocess.run(
-                command,
-                env=env,
-                cwd=str(workdir),
+                run_args,
                 stdin=subprocess.DEVNULL,
                 capture_output=True,
                 text=True,
                 timeout=self._manifest.timeout,
+                env=docker_subprocess_env(config.docker_executable),
             )
         except FileNotFoundError as exc:
             raise RuntimeError(f"Harness command not found for {self.name!r}.") from exc
+        finally:
+            if gateway_name is not None:
+                _stop_model_gateway(resolved, gateway_network or "", gateway_name)
         if proc.returncode != 0:
             raise RuntimeError(f"Harness {self.name!r} failed: {proc.stderr or proc.stdout}")
         return proc.stdout
@@ -275,6 +367,9 @@ def load_manifest_harness(path: str | Path) -> str:
         model_env={str(key): str(value) for key, value in (raw.get("model_env") or {}).items()},
         config_args=tuple(str(arg) for arg in (raw.get("config_args") or [])),
         timeout=max(1, int(raw.get("timeout") or 1800)),
+        harness_image=str(raw.get("harness_image") or "") or None,
+        gateway=bool(raw.get("gateway")),
+        gateway_provider=str(raw.get("gateway_provider") or "") or None,
     )
     if not manifest.name or not manifest.run:
         raise ValueError("Harness manifest requires name and run.")
@@ -337,8 +432,11 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
     ),
     ManifestHarness(
         name="openclaw",
-        run="openclaw agent exec --model {model} --cwd {workdir} {task}",
-        model_env={"api_key": "OPENAI_API_KEY"},
+        run="openclaw agent exec --timeout 1800 --model deepseek/{model} --cwd {workdir} {task}",
+        model_env={"api_key": "DEEPSEEK_API_KEY"},
+        harness_image="evalclaw-openclaw:latest",
+        gateway=True,
+        gateway_provider="deepseek",
     ),
 )
 

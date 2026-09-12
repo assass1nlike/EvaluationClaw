@@ -5,7 +5,7 @@ import difflib
 import re
 from collections import Counter
 
-from ..core.scaling import is_large_scale_budget
+from ..core.scaling import is_large_scale
 from ..types import (
     BenchmarkConfig,
     BenchmarkItem,
@@ -89,7 +89,7 @@ def _duplicate_issues(items: list[BenchmarkItem], *, near_duplicate_limit: int |
                 )
     return issues
 
-def _coverage_issues(suite: TaskSuite) -> list[QcIssue]:
+def _coverage_issues(suite: TaskSuite, large_scale_threshold: int) -> list[QcIssue]:
     issues: list[QcIssue] = []
     item_count = len(suite.tasks)
     dimension_ids = {dimension.id for dimension in suite.spec.dimensions}
@@ -118,18 +118,13 @@ def _coverage_issues(suite: TaskSuite) -> list[QcIssue]:
                 )
             )
             continue
-        if suite.spec.scale_budget.value in {"high", "large", "xlarge"} and len(dim_items) < 2:
-            budget_label = {
-                "high": "High",
-                "large": "Large",
-                "xlarge": "Xlarge",
-            }.get(suite.spec.scale_budget.value, suite.spec.scale_budget.value)
+        if is_large_scale(item_count, large_scale_threshold) and len(dim_items) < 2:
             issues.append(
                 _issue(
                     None,
                     QcSeverity.warning,
                     QcCategory.coverage,
-                    f"{budget_label}-budget dimension {dimension.id} has only {len(dim_items)} item(s).",
+                    f"Large-scale dimension {dimension.id} has only {len(dim_items)} item(s).",
                     "Add more targeted items before treating this as a deep evaluation.",
                 )
             )
@@ -161,8 +156,6 @@ def _coverage_issues(suite: TaskSuite) -> list[QcIssue]:
 
 
 def _near_duplicate_limit(suite: TaskSuite, config: BenchmarkConfig) -> int | None:
-    if suite.spec.scale_budget.value == "high":
-        return max(100, min(300, int(config.large_scale_llm_qc_sample_size) * 2))
-    if is_large_scale_budget(suite.spec.scale_budget):
+    if is_large_scale(len(suite.tasks), config.large_scale_item_threshold):
         return max(100, min(500, int(config.large_scale_llm_qc_sample_size) * 3))
     return None
