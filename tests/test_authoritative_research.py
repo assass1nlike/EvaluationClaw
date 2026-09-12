@@ -78,7 +78,7 @@ def test_planner_tool_list_selects_research_mode() -> None:
     assert [tool.name for tool in authoritative] == ["search_sources", "load_source", "read_plan", "update_plan"]
 
     web = tp._planner_tool_list(
-        BenchmarkConfig(use_web_research=True, search_backend="keyless"),
+        BenchmarkConfig(use_web_research=True, search_backend="ablation-keyless"),
         read_tool=read_tool,
         write_tool=write_tool,
     )

@@ -4,8 +4,9 @@ Backends all return the same :class:`SearchResult` shape so callers can swap
 between them transparently:
 
   - ``gemini``  : Gemini Google-Search grounding (requires GEMINI_API_KEY).
-  - ``keyless`` : combined free sources (arXiv API + Wikipedia API + DuckDuckGo
-                  HTML), no API key required.
+  - ``ablation-keyless`` : combined free sources (arXiv API + Wikipedia API +
+                  DuckDuckGo HTML), no API key required. This is the ablation
+                  baseline, not a first-class backend.
   - ``none``    : disabled, always returns ``None``.
 
 The historical helpers ``web_search``, ``fetch_url_text`` and
@@ -30,8 +31,13 @@ from urllib.parse import parse_qs, quote_plus, unquote, urlsplit
 
 import httpx
 
-GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
+GEMINI_API_BASE = os.environ.get(
+    "GEMINI_API_BASE", "https://generativelanguage.googleapis.com/v1beta"
+)
 DEFAULT_SEARCH_MODEL = "gemini-2.5-flash-lite"
+
+_GEMINI_SEARCH_RETRIES = 3
+_GEMINI_TRANSIENT_STATUS = {429, 500, 502, 503, 504}
 
 ARXIV_API = "https://export.arxiv.org/api/query"
 WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
@@ -308,19 +314,38 @@ class GeminiBackend(SearchBackend):
             "tools": [{"google_search": {}}],
         }
 
-        try:
-            resp = httpx.post(
-                endpoint,
-                headers={"Content-Type": "application/json", "x-goog-api-key": key},
-                json=payload,
-                timeout=30.0,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-        except httpx.TimeoutException as exc:
-            raise SearchTimeoutError("Gemini search timed out.") from exc
-        except Exception as exc:
-            raise SearchBackendError(f"Gemini search failed: {exc}") from exc
+        last_error: Exception | None = None
+        for attempt in range(_GEMINI_SEARCH_RETRIES):
+            try:
+                resp = httpx.post(
+                    endpoint,
+                    headers={"Content-Type": "application/json", "x-goog-api-key": key},
+                    json=payload,
+                    timeout=30.0,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                break
+            except httpx.TimeoutException as exc:
+                last_error = exc
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code not in _GEMINI_TRANSIENT_STATUS:
+                    raise SearchBackendError(f"Gemini search failed: {exc}") from exc
+                last_error = exc
+            except httpx.TransportError as exc:
+                last_error = exc
+            except Exception as exc:
+                raise SearchBackendError(f"Gemini search failed: {exc}") from exc
+            if attempt + 1 < _GEMINI_SEARCH_RETRIES:
+                print(
+                    f"  [search] Gemini attempt {attempt + 1}/{_GEMINI_SEARCH_RETRIES} "
+                    f"failed ({type(last_error).__name__}); retrying."
+                )
+                time.sleep(2**attempt)
+        else:
+            if isinstance(last_error, httpx.TimeoutException):
+                raise SearchTimeoutError("Gemini search timed out.") from last_error
+            raise SearchBackendError(f"Gemini search failed: {last_error}") from last_error
 
         if "error" in data:
             message = data["error"].get("message", data["error"])
@@ -367,7 +392,7 @@ class KeylessBackend(SearchBackend):
     snippets; citations are ``[{"title", "url"}]``.
     """
 
-    name = "keyless"
+    name = "ablation-keyless"
 
     def __init__(
         self,
@@ -648,7 +673,7 @@ class KeylessBackend(SearchBackend):
 # ---------------------------------------------------------------------------
 # Selection helpers
 # ---------------------------------------------------------------------------
-_VALID_BACKENDS = {"auto", "gemini", "keyless", "none"}
+_VALID_BACKENDS = {"auto", "gemini", "ablation-keyless", "none"}
 _KEYLESS_BACKEND = KeylessBackend()
 _NONE_BACKEND = NoneBackend()
 
@@ -656,20 +681,21 @@ _NONE_BACKEND = NoneBackend()
 def resolve_backend_name(setting: str | None, *, gemini_key: str | None = None) -> str:
     """Resolve an effective backend name.
 
-    Precedence: explicit setting (not ``auto``) > gemini if a Gemini key is
-    available > keyless otherwise.
+    Precedence: explicit setting (not ``auto``) > gemini (the default) >
+    ``ablation-keyless``. An explicit ``auto`` still means "gemini if a Gemini
+    key is available, ablation-keyless otherwise".
     """
-    name = (setting or "auto").lower()
+    name = (setting or "gemini").lower()
     if name not in _VALID_BACKENDS:
-        name = "auto"
+        name = "gemini"
     if name != "auto":
         return name
     key = gemini_key or os.environ.get("GEMINI_API_KEY", "")
-    return "gemini" if key else "keyless"
+    return "gemini" if key else "ablation-keyless"
 
 
 def get_backend(
-    setting: str | None = "auto",
+    setting: str | None = "gemini",
     *,
     gemini_api_key: str | None = None,
     gemini_model: str = DEFAULT_SEARCH_MODEL,
@@ -679,7 +705,7 @@ def get_backend(
     name = resolve_backend_name(setting, gemini_key=gemini_api_key)
     if name == "none":
         return _NONE_BACKEND
-    if name == "keyless":
+    if name == "ablation-keyless":
         return _KEYLESS_BACKEND
     return GeminiBackend(
         api_key=gemini_api_key,
@@ -694,13 +720,13 @@ def web_search(
     api_key: str | None = None,
     model: str = DEFAULT_SEARCH_MODEL,
     resolve_redirects: bool = True,
-    backend: str | None = "auto",
+    backend: str | None = "gemini",
     raise_on_error: bool = False,
 ) -> SearchResult | None:
     """Run a web search using the selected backend.
 
     Backend selection (see :func:`resolve_backend_name`): explicit ``backend``
-    setting > gemini if GEMINI_API_KEY available > keyless otherwise.
+    setting > gemini (the default) > ablation-keyless.
 
     ``api_key``/``model`` retain their historical meaning for the Gemini
     backend. They are only forwarded to Gemini when they look Gemini-shaped so

@@ -26,7 +26,7 @@ from .execution.environment_claw import (
     run_environment_claw,
 )
 from .execution.lm_eval import run_lm_eval
-from .execution.plan import build_execution_plan
+from .execution.plan import build_execution_plan, exclude_blocked_items
 from .execution.runner import run_eval
 from .models.roles import role_model_settings
 from .planning.loop import apply_human_review_feedback, format_human_review_overview
@@ -114,6 +114,7 @@ def _report_from_dict(payload: object) -> EnvironmentClawReport | None:
             probes=probes,
             actions=actions,
             blocking_errors=[str(value) for value in payload.get("blocking_errors", [])],
+            blocked_item_ids=[str(value) for value in payload.get("blocked_item_ids", [])],
         )
     except (TypeError, ValueError):
         return None
@@ -649,8 +650,15 @@ def _run_pipeline(
             )
     for line in format_environment_claw_report(environment_claw_report):
         log(line)
-    if direct_config.run_targets and environment_claw_report.blocking_errors:
+    blocked_ids = set(environment_claw_report.blocked_item_ids)
+    if direct_config.run_targets and blocked_ids and set(execution_plan.accepted_item_ids) <= blocked_ids:
         raise RuntimeError("\n\n".join(environment_claw_report.blocking_errors))
+    run_qc_report = exclude_blocked_items(qc_report, blocked_ids)
+    if blocked_ids:
+        log(
+            f"  Environment Claw: blocked {len(blocked_ids)} item(s); "
+            f"running the remaining {len(run_qc_report.passed_item_ids)}."
+        )
     log("\n[Runner] Executing accepted items against target models...")
     if not run_direct and config.runner == "lm-eval":
         log("  Direct runner skipped because --runner=lm-eval.")
@@ -668,7 +676,7 @@ def _run_pipeline(
     if run is None:
         run = run_eval(
             suite,
-            qc_report,
+            run_qc_report,
             direct_config,
             on_progress=_on_progress,
             trace_dir=debug_run_dir / "runner" if debug_run_dir is not None else None,

@@ -48,6 +48,7 @@ class EnvironmentClawReport:
     probes: list[EnvironmentProbe] = field(default_factory=list)
     actions: list[EnvironmentAction] = field(default_factory=list)
     blocking_errors: list[str] = field(default_factory=list)
+    blocked_item_ids: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -55,6 +56,7 @@ class EnvironmentClawReport:
             "probes": [asdict(probe) for probe in self.probes],
             "actions": [asdict(action) for action in self.actions],
             "blocking_errors": list(self.blocking_errors),
+            "blocked_item_ids": list(self.blocked_item_ids),
         }
 
 
@@ -270,6 +272,7 @@ def _materialize_vm_tasks(report: EnvironmentClawReport, items: list[BenchmarkIt
                 )
             )
             report.blocking_errors.append(str(exc))
+            report.blocked_item_ids.append(item.id)
             continue
         if result.applied:
             command_count = int(result.provisioning.get("command_count") or 0)
@@ -328,6 +331,7 @@ def _resolve_vm_task_images(
             )
         except RuntimeError as exc:
             report.blocking_errors.append(f"Task {item.id} VM image resolution failed: {exc}")
+            report.blocked_item_ids.append(item.id)
             report.actions.append(
                 EnvironmentAction(
                     action="resolve VM image",
@@ -409,6 +413,7 @@ def _preflight_executable_items(
                 )
             )
             report.blocking_errors.append(detail)
+            report.blocked_item_ids.append(item.id)
         finally:
             if trace_dir is not None and environment is not None:
                 item_dir = trace_dir / safe_name(item.id)
@@ -467,6 +472,7 @@ def run_environment_claw(
         )
         if not status.available:
             report.blocking_errors.append(vm_provider_setup_message())
+            report.blocked_item_ids.extend(item.id for item in items if _item_requires_vm(item))
         else:
             _resolve_vm_task_images(report, items, status)
 
@@ -487,6 +493,11 @@ def run_environment_claw(
         )
         if not status.available:
             report.blocking_errors.append(desktop_bridge_setup_message())
+            report.blocked_item_ids.extend(
+                item.id
+                for item in items
+                if _agent_env_type(item) == "vm" and not _item_requires_vm(item)
+            )
 
     if config.runner in {"lm-eval", "auto"}:
         _probe_lm_eval(report)
@@ -494,6 +505,7 @@ def run_environment_claw(
     if config.environment_preflight and config.run_targets and has_docker_workspace:
         _preflight_executable_items(report, items, config, trace_dir=trace_dir)
 
+    report.blocked_item_ids = list(dict.fromkeys(report.blocked_item_ids))
     if trace_dir is not None:
         write_json(trace_dir / "report.json", report.as_dict())
     return config, report
