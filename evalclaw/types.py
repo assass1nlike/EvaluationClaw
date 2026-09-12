@@ -914,7 +914,7 @@ class BenchmarkConfig(BaseModel):
     task_builder_debug_dir: Optional[str] = None
     run_targets: bool = True
     use_web_research: bool = True
-    search_backend: str = "auto"  # auto | gemini | keyless | none
+    search_backend: str = "gemini"  # gemini | ablation-keyless | auto | none
     research_brief: Optional[ResearchBrief] = None
     task_builder_max_workers: int = 4
     task_builder_repair_attempts: int = 4

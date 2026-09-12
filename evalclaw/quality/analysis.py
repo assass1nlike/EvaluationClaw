@@ -9,7 +9,7 @@ from typing import Any, Callable
 from ..benchmark import build_benchmark_suite_with_qc_loop, build_suite_from_spec_with_qc_loop
 from ..diagnostics import new_debug_dir, write_json
 from ..execution.environment_claw import run_environment_claw
-from ..execution.plan import build_execution_plan
+from ..execution.plan import build_execution_plan, exclude_blocked_items
 from ..execution.runner import run_eval
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
@@ -611,8 +611,10 @@ def _build_and_run_probes(
         execution_plan.suite.tasks,
         environment_config,
     )
-    if environment_report.blocking_errors:
+    blocked_ids = set(environment_report.blocked_item_ids)
+    if blocked_ids and set(execution_plan.accepted_item_ids) <= blocked_ids:
         raise RuntimeError("\n\n".join(environment_report.blocking_errors))
+    probe_qc = exclude_blocked_items(probe_qc, blocked_ids)
     if trace_dir is not None:
         write_json(trace_dir / "environment.json", environment_report.as_dict())
     probe_run = run_eval(

@@ -302,7 +302,7 @@ def test_call_litellm_custom_openai_endpoint_uses_json_mode(monkeypatch) -> None
 # ---------------------------------------------------------------------------
 def test_resolve_backend_name_explicit_wins(monkeypatch) -> None:
     monkeypatch.setenv("GEMINI_API_KEY", "gk")
-    assert resolve_backend_name("keyless") == "keyless"
+    assert resolve_backend_name("ablation-keyless") == "ablation-keyless"
     assert resolve_backend_name("none") == "none"
     assert resolve_backend_name("gemini") == "gemini"
 
@@ -312,23 +312,27 @@ def test_resolve_backend_name_auto_prefers_gemini_when_key(monkeypatch) -> None:
     assert resolve_backend_name("auto") == "gemini"
 
 
-def test_resolve_backend_name_auto_keyless_without_key(monkeypatch) -> None:
+def test_resolve_backend_name_defaults_to_gemini_without_key(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-    assert resolve_backend_name("auto") == "keyless"
-    assert resolve_backend_name(None) == "keyless"
+    assert resolve_backend_name(None) == "gemini"
 
 
-def test_resolve_backend_name_invalid_falls_back_to_auto(monkeypatch) -> None:
+def test_resolve_backend_name_auto_falls_back_to_ablation_keyless_without_key(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-    assert resolve_backend_name("bogus") == "keyless"
+    assert resolve_backend_name("auto") == "ablation-keyless"
+
+
+def test_resolve_backend_name_invalid_falls_back_to_default(monkeypatch) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    assert resolve_backend_name("bogus") == "gemini"
 
 
 def test_get_backend_types(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     assert isinstance(get_backend("none"), NoneBackend)
-    assert isinstance(get_backend("keyless"), KeylessBackend)
+    assert isinstance(get_backend("ablation-keyless"), KeylessBackend)
     assert isinstance(get_backend("gemini"), GeminiBackend)
-    assert isinstance(get_backend("auto"), KeylessBackend)  # no key -> keyless
+    assert isinstance(get_backend("auto"), KeylessBackend)  # no key -> ablation-keyless
 
 
 def test_none_backend_returns_none() -> None:
@@ -552,8 +556,8 @@ def test_process_keyless_backend_shares_query_cache(monkeypatch) -> None:
 
     monkeypatch.setattr(backends.httpx, "get", counted_get)
 
-    assert backends.web_search("shared query", backend="keyless") is not None
-    assert backends.web_search("shared query", backend="keyless") is not None
+    assert backends.web_search("shared query", backend="ablation-keyless") is not None
+    assert backends.web_search("shared query", backend="ablation-keyless") is not None
     assert len(calls) == 3
 
 
@@ -575,10 +579,10 @@ def test_reset_network_state_reenables_source_for_next_run(monkeypatch) -> None:
 
     monkeypatch.setattr(backends.httpx, "get", toggle_wikipedia)
 
-    assert backends.web_search("first run", backend="keyless") is not None
+    assert backends.web_search("first run", backend="ablation-keyless") is not None
     wikipedia_blocked = False
     backends.reset_network_state()
-    second = backends.web_search("second run", backend="keyless")
+    second = backends.web_search("second run", backend="ablation-keyless")
 
     assert second is not None
     assert wikipedia_calls == 2
@@ -726,7 +730,7 @@ def test_web_search_none_backend_returns_none() -> None:
 def test_web_search_keyless_routing(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.setattr(backends.httpx, "get", _fake_get_factory())
-    # auto with no gemini key -> keyless
+    # auto with no gemini key -> ablation-keyless
     result = backends.web_search("tax law", backend="auto")
     assert result is not None
     assert any("arxiv.org" in c["url"] for c in result.citations)
@@ -776,6 +780,122 @@ def test_web_search_forwards_gemini_key_for_gemini_model(monkeypatch) -> None:
 def test_gemini_backend_no_key_returns_none(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     assert GeminiBackend(api_key=None).search("q") is None
+
+
+def test_gemini_backend_uses_configured_base_url(monkeypatch) -> None:
+    captured: dict = {}
+    monkeypatch.setattr(backends, "GEMINI_API_BASE", "http://relay.local/v1beta")
+
+    class FakeResponse:
+        @staticmethod
+        def raise_for_status():
+            return None
+
+        @staticmethod
+        def json():
+            return {"candidates": [{"content": {"parts": [{"text": "answer"}]}}]}
+
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        return FakeResponse()
+
+    monkeypatch.setattr(backends.httpx, "post", fake_post)
+
+    result = GeminiBackend(api_key="k").search_or_raise("q")
+
+    assert captured["url"] == (
+        f"http://relay.local/v1beta/models/{backends.DEFAULT_SEARCH_MODEL}:generateContent"
+    )
+    assert result.content == "answer"
+
+
+def _http_error(status: int) -> Exception:
+    request = backends.httpx.Request("POST", "https://generativelanguage.googleapis.com")
+    response = backends.httpx.Response(status, request=request)
+    return backends.httpx.HTTPStatusError(f"status {status}", request=request, response=response)
+
+
+def _success_response() -> object:
+    class Response:
+        @staticmethod
+        def raise_for_status():
+            return None
+
+        @staticmethod
+        def json():
+            return {"candidates": [{"content": {"parts": [{"text": "answer"}]}}]}
+
+    return Response()
+
+
+def test_gemini_search_retries_transient_timeout(monkeypatch) -> None:
+    monkeypatch.setattr(backends.time, "sleep", lambda *_: None)
+    calls = 0
+
+    def fake_post(url, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise backends.httpx.TimeoutException("timeout")
+        return _success_response()
+
+    monkeypatch.setattr(backends.httpx, "post", fake_post)
+
+    result = backends.GeminiBackend(api_key="k").search_or_raise("q")
+
+    assert result.content == "answer"
+    assert calls == 2
+
+
+def test_gemini_search_retries_429_then_succeeds(monkeypatch) -> None:
+    monkeypatch.setattr(backends.time, "sleep", lambda *_: None)
+    calls = 0
+
+    def fake_post(url, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise _http_error(429)
+        return _success_response()
+
+    monkeypatch.setattr(backends.httpx, "post", fake_post)
+
+    result = backends.GeminiBackend(api_key="k").search_or_raise("q")
+
+    assert result.content == "answer"
+    assert calls == 2
+
+
+def test_gemini_search_does_not_retry_permanent_error(monkeypatch) -> None:
+    monkeypatch.setattr(backends.time, "sleep", lambda *_: None)
+    calls = 0
+
+    def fake_post(url, **kwargs):
+        nonlocal calls
+        calls += 1
+        raise _http_error(400)
+
+    monkeypatch.setattr(backends.httpx, "post", fake_post)
+
+    with pytest.raises(SearchBackendError, match="400"):
+        backends.GeminiBackend(api_key="k").search_or_raise("q")
+    assert calls == 1
+
+
+def test_gemini_search_gives_up_after_retries(monkeypatch) -> None:
+    monkeypatch.setattr(backends.time, "sleep", lambda *_: None)
+    calls = 0
+
+    def fake_post(url, **kwargs):
+        nonlocal calls
+        calls += 1
+        raise _http_error(429)
+
+    monkeypatch.setattr(backends.httpx, "post", fake_post)
+
+    with pytest.raises(SearchBackendError):
+        backends.GeminiBackend(api_key="k").search_or_raise("q")
+    assert calls == 3
 
 
 def test_web_search_graceful_without_any_key(monkeypatch) -> None:

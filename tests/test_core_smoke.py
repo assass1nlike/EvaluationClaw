@@ -2003,6 +2003,42 @@ def test_environment_claw_blocks_missing_vm_provider(monkeypatch) -> None:
     assert any(probe.name == "vm_provider" and not probe.ok for probe in report.probes)
     assert not any(probe.name == "gui_bridge" for probe in report.probes)
     assert report.blocking_errors
+    assert report.blocked_item_ids == ["gui_vm_item"]
+
+
+def test_environment_claw_blocks_only_the_items_whose_environment_is_missing(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.probe_vm_provider",
+        lambda *args, **kwargs: VmProviderStatus(False, detail="vm provider missing"),
+    )
+    vm_item = BenchmarkItem(
+        id="gui_vm_item",
+        dimension_id="vm",
+        task_type=TaskType.agent,
+        prompt="Operate the VM GUI.",
+        metadata={
+            "agent_env": {
+                "type": "vm",
+                "requires_vm": True,
+                "vm": {"image": "evalclaw-gui"},
+                "session": {"application": "browser"},
+                "evaluation": {"method": "bridge_state_check"},
+            }
+        },
+    )
+    plain_item = BenchmarkItem(
+        id="plain_item",
+        dimension_id="core",
+        task_type=TaskType.choice,
+        prompt="Choose A.",
+        choices=[{"id": "A", "text": "A"}, {"id": "B", "text": "B"}],
+        correct_choice_ids=["A"],
+    )
+
+    _, report = run_environment_claw([vm_item, plain_item], BenchmarkConfig())
+
+    assert report.blocking_errors
+    assert report.blocked_item_ids == ["gui_vm_item"]
 
 
 def test_environment_claw_defaults_vm_provider_probe_to_local_auto(monkeypatch) -> None:

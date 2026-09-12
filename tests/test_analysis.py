@@ -287,7 +287,7 @@ def test_build_and_run_probes_reviews_until_accepted(monkeypatch) -> None:
         "run_environment_claw",
         lambda tasks, config: (
             config,
-            type("R", (), {"blocking_errors": [], "as_dict": lambda self: {}})(),
+            type("R", (), {"blocking_errors": [], "blocked_item_ids": [], "as_dict": lambda self: {}})(),
         ),
     )
     monkeypatch.setattr(

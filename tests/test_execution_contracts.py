@@ -3,7 +3,7 @@ import json
 import pytest
 
 from evalclaw.execution.evaluation import parse_evaluator_result
-from evalclaw.execution.plan import build_execution_plan
+from evalclaw.execution.plan import build_execution_plan, exclude_blocked_items
 from evalclaw.execution.runner import run_eval
 from evalclaw.planning.loop import format_human_review_overview
 from evalclaw.reporting.artifacts import write_lm_eval_artifacts
@@ -148,6 +148,26 @@ def test_evaluator_result_ignores_stdout_score_unless_explicitly_enabled() -> No
 def test_execution_plan_rejects_ambiguous_qc_ids(qc_report: QcReport, message: str) -> None:
     with pytest.raises(ValueError, match=message):
         build_execution_plan(_suite(), qc_report)
+
+
+def test_exclude_blocked_items_moves_blocked_from_passed_to_rejected() -> None:
+    qc_report = QcReport(
+        passed_item_ids=["mc", "short", "agent"],
+        rejected_item_ids=["rejected"],
+    )
+
+    filtered = exclude_blocked_items(qc_report, {"agent"})
+
+    assert filtered.passed_item_ids == ["mc", "short"]
+    assert filtered.rejected_item_ids == ["rejected", "agent"]
+    # The original report is untouched.
+    assert qc_report.passed_item_ids == ["mc", "short", "agent"]
+
+
+def test_exclude_blocked_items_is_a_noop_when_nothing_is_blocked() -> None:
+    qc_report = QcReport(passed_item_ids=["mc", "short"], rejected_item_ids=["rejected"])
+
+    assert exclude_blocked_items(qc_report, set()) is qc_report
 
 
 def test_direct_runner_and_lm_eval_share_the_accepted_item_view(monkeypatch, tmp_path) -> None:
