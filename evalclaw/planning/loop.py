@@ -237,7 +237,6 @@ def _planner_review(
         )
     payload = {
         "objective": suite.spec.objective,
-        "scale_budget": suite.spec.scale_budget.value,
         "human_feedback": human_feedback,
         "dimensions": [dimension.model_dump(mode="json") for dimension in suite.spec.dimensions],
         "dimension_dataset_summaries": _dimension_suite_summaries(suite, config),

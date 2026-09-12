@@ -12,7 +12,6 @@ from evalclaw.construction import build_task_suite
 from evalclaw.construction.packaging import pack_task_item
 from evalclaw.construction.research import TaskBuilderCallError
 from evalclaw.construction.validation import task_structure_issues
-from evalclaw.core.scaling import scale_budget_target_items
 from evalclaw.core.task_summary import TASK_CONTENT_SUMMARY_METADATA_KEY
 from evalclaw.execution.agent_envs import build_agent_environment
 from evalclaw.execution.desktop_agent_env import DesktopBridgeAgentEnvironment, DesktopBridgeStatus
@@ -77,7 +76,6 @@ from evalclaw.types import (
     QcIssue,
     QcReport,
     QcSeverity,
-    ScaleBudget,
     SourceKind,
     TargetModelConfig,
     TaskDefinition,
@@ -129,14 +127,6 @@ def test_core_models_fill_defaults() -> None:
     assert target.id == "deepseek-v4-flash"
     assert config.targets[0].provider == "deepseek"
     assert dimension.weight == 1.0
-
-
-def test_scale_budget_targets_are_raw_item_counts() -> None:
-    assert scale_budget_target_items(ScaleBudget.low) == 100
-    assert scale_budget_target_items(ScaleBudget.mid) == 500
-    assert scale_budget_target_items(ScaleBudget.high) == 1000
-    assert scale_budget_target_items(ScaleBudget.large) == 5000
-    assert scale_budget_target_items(ScaleBudget.xlarge) == 20000
 
 
 def test_docker_image_selector_prefers_common_runtime_images() -> None:
@@ -2596,7 +2586,7 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
     monkeypatch.setattr("evalclaw.quality.llm_checks.call_llm", fake_call_llm)
     dim_a = EvalDimension(id="a", name="A", description="A", approach="A")
     dim_b = EvalDimension(id="b", name="B", description="B", approach="B")
-    spec = EvalSpec(objective="Large eval", dimensions=[dim_a, dim_b], scale_budget=ScaleBudget.large)
+    spec = EvalSpec(objective="Large eval", dimensions=[dim_a, dim_b])
     items = [
         BenchmarkItem(
             id=f"a_{index}",
@@ -2628,7 +2618,7 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_llm_qc=True,
-            scale_budget=ScaleBudget.large,
+            large_scale_item_threshold=60,
             large_scale_llm_qc_sample_size=10,
         ),
     )
@@ -2642,11 +2632,11 @@ def test_large_scale_llm_qc_uses_stratified_sample(monkeypatch) -> None:
 def test_planner_instruction_resource_contains_design_constraints() -> None:
     instruction = _instruction_resource(
         "Evaluate visual scientific reasoning from images.",
-        BenchmarkConfig(scale_budget=ScaleBudget.high),
+        BenchmarkConfig(item_count=50),
     )
 
     assert "Evaluate visual scientific reasoning from images." in instruction
-    assert '"scale_budget": "high"' in instruction
+    assert '"explicit_total_task_count": 50' in instruction
     assert '"available_task_types"' in instruction
     assert '"available_environment_types"' in instruction
     assert '"target_models"' not in instruction
@@ -2658,7 +2648,7 @@ def test_planner_instruction_resource_contains_design_constraints() -> None:
 def test_planner_instruction_resource_omits_irrelevant_domain_policies() -> None:
     instruction = _instruction_resource(
         "Evaluate text-only instruction following.",
-        BenchmarkConfig(scale_budget=ScaleBudget.low),
+        BenchmarkConfig(),
     )
 
     assert '"target_models"' not in instruction
@@ -3019,7 +3009,6 @@ def test_static_qc_treats_challenge_effort_as_builder_guidance() -> None:
     spec = EvalSpec(
         objective="Evaluate expert reasoning",
         dimensions=[dimension],
-        scale_budget=ScaleBudget.high,
         task_types=[TaskType.generation],
     )
     item = BenchmarkItem(
@@ -3031,10 +3020,13 @@ def test_static_qc_treats_challenge_effort_as_builder_guidance() -> None:
         challenge_effort=ChallengeEffort.E2,
     )
 
-    qc = run_qc_gate(TaskSuite(spec=spec, objective=spec.objective, tasks=[item]), BenchmarkConfig())
+    qc = run_qc_gate(
+        TaskSuite(spec=spec, objective=spec.objective, tasks=[item]),
+        BenchmarkConfig(large_scale_item_threshold=1),
+    )
 
     assert not any(issue.category == QcCategory.challenge_effort for issue in qc.issues)
-    assert any("High-budget dimension" in issue.message for issue in qc.issues)
+    assert any("Large-scale dimension" in issue.message for issue in qc.issues)
 
 
 def test_static_qc_rejects_exact_duplicate_prompts() -> None:

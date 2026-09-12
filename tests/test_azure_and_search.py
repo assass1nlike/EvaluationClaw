@@ -98,6 +98,9 @@ def test_is_reasoning_model() -> None:
     assert llm._is_reasoning_model("gpt-5.5")
     assert llm._is_reasoning_model("o3-mini")
     assert llm._is_reasoning_model("deepseek-reasoner")
+    assert llm._is_reasoning_model("deepseek-v4-pro")
+    assert llm._is_reasoning_model("deepseek-flash")
+    assert not llm._is_reasoning_model("deepseek-chat")
     assert not llm._is_reasoning_model("azure/gpt-4o")
     assert not llm._is_reasoning_model("gpt-4o-mini")
     assert not llm._is_reasoning_model("claude-opus-4-6")
@@ -110,6 +113,7 @@ def test_effective_max_tokens_applies_uniform_floor() -> None:
 
 
 def test_effective_max_tokens_uses_model_advertised_maximum() -> None:
+    assert llm._effective_max_tokens("deepseek-flash", 4096) == 393_216
     assert llm._effective_max_tokens("deepseek-v4-flash", 4096) == 393_216
     assert llm._effective_max_tokens("deepseek-v4-pro", 4096) == 393_216
     # A caller asking for more than the model accepts is clamped to its maximum.
@@ -180,7 +184,7 @@ def test_call_litellm_raises_when_still_truncated(monkeypatch) -> None:
         )
 
 
-def test_call_litellm_reduced_effort_disables_deepseek_thinking(monkeypatch) -> None:
+def test_call_litellm_does_not_disable_thinking_for_reduced_effort(monkeypatch) -> None:
     import litellm as _litellm
 
     requests: list[dict] = []
@@ -199,7 +203,7 @@ def test_call_litellm_reduced_effort_disables_deepseek_thinking(monkeypatch) -> 
     )
 
     assert result == "complete task"
-    assert requests[0]["extra_body"] == {"thinking": {"type": "disabled"}}
+    assert "thinking" not in requests[0].get("extra_body", {})
     assert requests[0]["stream"] is True
 
 
@@ -222,7 +226,7 @@ def test_call_litellm_deepseek_json_matches_direct_structured_mode(monkeypatch) 
     )
 
     assert result == '{"plan": {}}'
-    assert requests[0]["extra_body"] == {"thinking": {"type": "disabled"}}
+    assert "thinking" not in requests[0].get("extra_body", {})
     assert requests[0]["response_format"] == {"type": "json_object"}
     assert requests[0]["stream"] is True
 

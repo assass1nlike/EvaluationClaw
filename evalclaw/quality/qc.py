@@ -83,7 +83,7 @@ def run_qc_gate(
     for item in suite.tasks:
         issues.extend(_static_item_issues(item))
     issues.extend(_duplicate_issues(suite.tasks, near_duplicate_limit=_near_duplicate_limit(suite, config)))
-    issues.extend(_coverage_issues(suite))
+    issues.extend(_coverage_issues(suite, config.large_scale_item_threshold))
     llm_trace: dict[str, object] = {}
     try:
         issues.extend(_llm_qc(suite, config, trace=llm_trace, trace_dir=trace_dir))

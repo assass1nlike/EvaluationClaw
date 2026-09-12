@@ -532,7 +532,7 @@ def test_orchestrator_deepseek_json_recovery_disables_thinking(monkeypatch) -> N
 
     assert response.content == '{"tasks": []}'
     assert captured["body"]["response_format"] == {"type": "json_object"}
-    assert captured["body"]["thinking"] == {"type": "disabled"}
+    assert "thinking" not in captured["body"]
 
 
 def test_call_llm_propagates_litellm_adapter_failure(monkeypatch) -> None:
@@ -903,7 +903,7 @@ def test_deepseek_streaming_preserves_thinking_until_json_recovery(monkeypatch) 
     )
 
     assert "thinking" not in bodies[0]
-    assert bodies[1]["thinking"] == {"type": "disabled"}
+    assert "thinking" not in bodies[1]
     assert bodies[1]["response_format"] == {"type": "json_object"}
 
 

@@ -57,7 +57,6 @@ def build_report(
         "",
         f"- Subjects: {', '.join(suite.spec.subjects)}",
         f"- Task types: {', '.join(t.value for t in suite.spec.task_types)}",
-        f"- Scale budget: {suite.spec.scale_budget.value}",
         f"- Planned item count: {suite.spec.scale:g}",
         f"- Planner critique score: {suite.spec.critique.score:.1f}/5",
         "",

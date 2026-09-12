@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ..core.scaling import is_large_scale_budget
+from ..core.scaling import is_large_scale
 from ..models.llm import DEFAULT_MAX_OUTPUT_TOKENS, call_llm, extract_json
 from ..models.roles import role_model_settings
 from ..prompts.qc import QC_SYSTEM_PROMPT
@@ -353,7 +353,7 @@ def _llm_qc(
             trace["status"] = "disabled"
         return []
     limit = 50
-    if is_large_scale_budget(suite.spec.scale_budget):
+    if is_large_scale(len(suite.tasks), config.large_scale_item_threshold):
         limit = max(1, int(config.large_scale_llm_qc_sample_size))
     sampled_items, sampling = _llm_qc_sample(suite, limit)
     task_design_by_id = {
@@ -396,7 +396,7 @@ def _llm_qc(
     ]
     request = {
         "objective": suite.spec.objective,
-        "scale_budget": suite.spec.scale_budget.value,
+        "item_count": len(suite.tasks),
         "constraints": suite.spec.constraints,
         "planner_notes": suite.spec.planner_notes,
         "dimensions": [d.model_dump(mode="json") for d in suite.spec.dimensions],

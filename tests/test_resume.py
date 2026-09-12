@@ -16,7 +16,6 @@ from evalclaw.types import (
     EvalSpec,
     ItemResult,
     QcReport,
-    ScaleBudget,
     TargetModelConfig,
     TaskDefinition,
     TaskSuite,
@@ -144,12 +143,10 @@ def test_construction_resume_restores_builder_source_definitions(tmp_path) -> No
         objective="Evaluate the capability.",
         subjects=["target"],
         dimensions=[dimension],
-        scale_budget=ScaleBudget.high,
     )
     plan = BenchmarkPlan(
         objective=spec.objective,
         subjects=spec.subjects,
-        scale_budget=spec.scale_budget,
     )
     source = TaskDefinition(
         id="item",
@@ -189,7 +186,6 @@ def test_construction_resume_restores_builder_source_definitions(tmp_path) -> No
 
     assert resumed_plan is not None
     assert resumed_plan.subjects == ["target"]
-    assert resumed_plan.scale_budget == ScaleBudget.high
     assert resumed_suite is not None
     assert resumed_suite.tasks[0].source_definition == source
 

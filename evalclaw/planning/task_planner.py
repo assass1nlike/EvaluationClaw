@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import re
 import tempfile
 import uuid
 from collections.abc import Callable
@@ -46,7 +45,6 @@ from ..types import (
     TaskType,
     environment_category,
 )
-from .planner import _safe_scale_budget, _scale_budget_guidance
 from .skill_loader import benchmark_planner_system_prompt
 
 
@@ -54,39 +52,6 @@ def _unique_strings(values: object) -> list[str]:
     if not isinstance(values, list):
         return []
     return list(dict.fromkeys(str(value).strip() for value in values if str(value).strip()))
-
-
-_TASK_COUNT_NOUNS = r"(?:tasks?|questions?|items?|problems?|prompts?|dialogues?|scenarios?|test cases?)"
-_TOTAL_TASK_COUNT_RE = re.compile(
-    rf"\b(?:a\s+)?total\s+(?:of\s+)?(?:exactly\s+)?(?P<count>\d+)"
-    rf"(?:\s+[\w-]+){{0,5}}\s+{_TASK_COUNT_NOUNS}\b",
-    re.IGNORECASE,
-)
-_EXACT_TASK_COUNT_RE = re.compile(
-    rf"\bexactly\s+(?P<count>\d+)(?:\s+[\w-]+){{0,5}}\s+{_TASK_COUNT_NOUNS}\b",
-    re.IGNORECASE,
-)
-_CJK_TOTAL_TASK_COUNT_RE = re.compile(
-    r"(?:总共|总计|共)[^\d]{0,8}(?P<count>\d+)\s*(?:道|个|项|份)?(?:题目?|问题|任务|对话|案例)"
-)
-
-
-def _explicit_total_task_count(instruction: str) -> int | None:
-    """Return an unambiguous user-specified total task count, if present."""
-    for pattern in (_TOTAL_TASK_COUNT_RE, _CJK_TOTAL_TASK_COUNT_RE):
-        match = pattern.search(instruction)
-        if match:
-            return int(match.group("count"))
-    candidates = {
-        int(match.group("count"))
-        for match in _EXACT_TASK_COUNT_RE.finditer(instruction)
-        if not re.match(
-            r"\s+(?:per|for\s+each|in\s+each)\b",
-            instruction[match.end() : match.end() + 32],
-            re.IGNORECASE,
-        )
-    }
-    return next(iter(candidates)) if len(candidates) == 1 else None
 
 
 def _valid_effort_distribution(
@@ -145,25 +110,18 @@ def _instruction_resource(
     feedback: str | None = None,
     previous_plan: BenchmarkPlan | None = None,
 ) -> str:
-    explicit_task_count = _explicit_total_task_count(goal)
+    explicit_task_count = config.item_count
     constraints: dict[str, object] = {
         "available_task_types": [task_type.value for task_type in TaskType],
         "available_environment_types": [environment.value for environment in AgentEnvironmentType],
     }
 
     if explicit_task_count is not None:
-        print(f"[Planner] User specified explicit task count: {explicit_task_count}. Not passing scale_budget.")
+        print(f"[Planner] User specified explicit task count: {explicit_task_count}.")
         constraints["explicit_total_task_count"] = explicit_task_count
         constraints["count_policy"] = (
             "The user explicitly requested exactly this many tasks. "
             "All TaskDesign.task_count values must sum to this total."
-        )
-    else:
-        scale_budget = _safe_scale_budget(config.scale_budget)
-        constraints["scale_budget"] = scale_budget.value
-        constraints["scale_budget_guidance"] = _scale_budget_guidance(scale_budget)
-        constraints["count_policy"] = (
-            "Use scale_budget as guidance for the total number of tasks."
         )
 
     if config.source_backed_ratio is not None:
@@ -909,7 +867,6 @@ def _parse_plan_response(
     plan = BenchmarkPlan.model_validate(raw_plan).model_copy(
         update={
             "subjects": [target.id for target in config.targets],
-            "scale_budget": _safe_scale_budget(config.scale_budget),
         }
     )
     issues = _audit_plan(
@@ -1126,7 +1083,7 @@ def plan_benchmark(
             instruction,
             config,
             log=log,
-            expected_task_count=_explicit_total_task_count(goal),
+            expected_task_count=config.item_count,
         )
         if materials:
             config.research_brief = ResearchBrief(source_materials=materials)

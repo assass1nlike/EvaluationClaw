@@ -1,26 +1,12 @@
-"""Scale-budget helpers based on explicit raw item counts."""
+"""Item-count helpers for large-scale benchmarks."""
 from __future__ import annotations
 
-from ..types import BenchmarkConfig, EvalDimension, ScaleBudget
-
-SCALE_BUDGET_ITEM_COUNTS: dict[ScaleBudget, int] = {
-    ScaleBudget.low: 100,
-    ScaleBudget.mid: 500,
-    ScaleBudget.high: 1000,
-    ScaleBudget.large: 5000,
-    ScaleBudget.xlarge: 20000,
-}
-
-LARGE_SCALE_BUDGETS = {ScaleBudget.large, ScaleBudget.xlarge}
+from ..types import BenchmarkConfig, EvalDimension
 
 
-def scale_budget_target_items(scale_budget: ScaleBudget) -> int:
-    """Return the planned raw item count for a scale budget."""
-    return SCALE_BUDGET_ITEM_COUNTS.get(scale_budget, SCALE_BUDGET_ITEM_COUNTS[ScaleBudget.mid])
-
-
-def is_large_scale_budget(scale_budget: ScaleBudget) -> bool:
-    return scale_budget in LARGE_SCALE_BUDGETS
+def is_large_scale(item_count: int, threshold: int) -> bool:
+    """Return True when the benchmark is large enough to need sampled QC and caps."""
+    return item_count >= threshold
 
 
 def target_count_for_dimension(
@@ -28,7 +14,7 @@ def target_count_for_dimension(
     config: BenchmarkConfig,
 ) -> int:
     planned = max(1, int(dimension.target_item_count or 1))
-    if not is_large_scale_budget(config.scale_budget):
+    if not is_large_scale(config.item_count or 0, config.large_scale_item_threshold):
         return planned
     if dimension.target_source_backed_count > 0:
         source_target = min(planned, dimension.target_source_backed_count)
