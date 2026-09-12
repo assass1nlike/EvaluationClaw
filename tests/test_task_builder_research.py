@@ -560,7 +560,7 @@ def test_required_source_search_rejects_missing_research_role_key() -> None:
         _select_blueprint_sources(
             dimension,
             blueprint,
-            BenchmarkConfig(use_web_research=True, search_backend="keyless"),
+            BenchmarkConfig(use_web_research=True, search_backend="ablation-keyless"),
         )
 
 
@@ -601,7 +601,7 @@ def test_source_search_retries_timeout_without_dimension_fallback(monkeypatch) -
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=True,
-            search_backend="keyless",
+            search_backend="ablation-keyless",
         ),
     )
 
@@ -626,7 +626,7 @@ def test_source_search_raises_after_timeout_retry_limit(monkeypatch) -> None:
             BenchmarkConfig(
                 **dummy_config_kwargs(),
                 use_web_research=True,
-                search_backend="keyless",
+                search_backend="ablation-keyless",
             ),
         )
 
@@ -650,7 +650,7 @@ def test_source_search_surfaces_api_error_without_fallback(monkeypatch) -> None:
             BenchmarkConfig(
                 **dummy_config_kwargs(),
                 use_web_research=True,
-                search_backend="keyless",
+                search_backend="ablation-keyless",
             ),
         )
 
@@ -698,7 +698,7 @@ def test_task_builder_tools_execute_search_and_return_final_json(monkeypatch, tm
             task_builder_model="gpt-5",
             task_builder_api_key="test-key",
             use_web_research=True,
-            search_backend="keyless",
+            search_backend="ablation-keyless",
             task_builder_tool_max_calls=2,
         ),
         include_source_tools=True,
@@ -1431,7 +1431,7 @@ def test_task_builder_tools_recover_missing_final_content(monkeypatch) -> None:
             task_builder_api_key="test-key",
             task_builder_base_url="https://api.deepseek.com",
             use_web_research=True,
-            search_backend="keyless",
+            search_backend="ablation-keyless",
         ),
         include_source_tools=True,
     )
@@ -1486,7 +1486,7 @@ def test_task_builder_tools_use_anthropic_tool_result_blocks(monkeypatch) -> Non
             task_builder_model="claude-opus-4-6",
             task_builder_api_key="test-key",
             use_web_research=True,
-            search_backend="keyless",
+            search_backend="ablation-keyless",
             task_builder_tool_max_calls=2,
         ),
         include_source_tools=True,
@@ -1658,7 +1658,7 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=True,
-            search_backend="keyless",
+            search_backend="ablation-keyless",
             research_brief=ResearchBrief(
                 source_materials=[
                     ResearchSourceMaterial(
@@ -2019,7 +2019,7 @@ def test_qc_repair_edits_file_with_tools_and_preserves_best_copy(monkeypatch, tm
         BenchmarkConfig(
             **dummy_config_kwargs(),
             use_web_research=True,
-            search_backend="keyless",
+            search_backend="ablation-keyless",
             task_builder_max_workers=1,
             output_dir=str(tmp_path),
         ),

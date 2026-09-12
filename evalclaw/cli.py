@@ -353,9 +353,9 @@ def generate(
         help="Enable automatic source search and TaskBuilder web research during generation.",
     ),
     search_backend: str = typer.Option(
-        "auto",
+        "gemini",
         "--search-backend",
-        help="Web search backend: auto (gemini if GEMINI_API_KEY else keyless), gemini, keyless, or none.",
+        help="Web search backend: gemini (default), ablation-keyless, auto, or none.",
     ),
     task_builder_max_workers: int = typer.Option(
         4,
@@ -535,8 +535,8 @@ def generate(
     except ValueError:
         console.print("[red]--scale-budget must be one of: low, mid, high, large, xlarge.[/red]")
         raise typer.Exit(1)
-    if search_backend.lower() not in {"auto", "gemini", "keyless", "none"}:
-        console.print("[red]--search-backend must be one of: auto, gemini, keyless, none.[/red]")
+    if search_backend.lower() not in {"auto", "gemini", "ablation-keyless", "none"}:
+        console.print("[red]--search-backend must be one of: gemini, ablation-keyless, auto, none.[/red]")
         raise typer.Exit(1)
     if task_builder_max_workers < 1:
         console.print("[red]--task-builder-workers must be at least 1.[/red]")

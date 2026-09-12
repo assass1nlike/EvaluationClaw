@@ -253,6 +253,9 @@ def _post_streaming_openai_compatible(
 ) -> dict[str, Any]:
     """Read and assemble an OpenAI-compatible streaming chat response."""
     stream_body = {**body, "stream": True}
+    # Ask for the token counts on the final chunk; without this a streaming
+    # endpoint reports no usage at all, and the trace records none.
+    stream_body.setdefault("stream_options", {"include_usage": True})
     delay = 5.0
     started = time.monotonic()
     endpoint = httpx.URL(url).host or "model endpoint"
@@ -837,6 +840,9 @@ def _stream_litellm_response(
     on_token: Optional[Any] = None,
 ) -> tuple[dict[str, Any], list[Any]]:
     kwargs["stream"] = True
+    # Ask the endpoint to report token usage on the final chunk; without this a
+    # streaming provider returns no usage and the trace records none.
+    kwargs["stream_options"] = {"include_usage": True}
     chunks: list[Any] = []
     for chunk in litellm.completion(**kwargs):
         chunks.append(chunk)

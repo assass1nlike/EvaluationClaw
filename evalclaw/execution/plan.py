@@ -43,3 +43,20 @@ def build_execution_plan(suite: TaskSuite, qc_report: QcReport) -> ExecutionPlan
         accepted_item_ids=accepted_ids,
         rejected_item_ids=rejected_ids,
     )
+
+
+def exclude_blocked_items(qc_report: QcReport, blocked_item_ids: set[str]) -> QcReport:
+    """Move environment-blocked items from passed to rejected so the runner skips them.
+
+    The environment claw probes every accepted item and records the subset whose
+    environment could not be provisioned. Those items should be skipped rather
+    than aborting the whole run, so they are demoted to ``rejected`` here.
+    """
+    if not blocked_item_ids:
+        return qc_report
+    return qc_report.model_copy(
+        update={
+            "passed_item_ids": [item_id for item_id in qc_report.passed_item_ids if item_id not in blocked_item_ids],
+            "rejected_item_ids": list(dict.fromkeys([*qc_report.rejected_item_ids, *sorted(blocked_item_ids)])),
+        }
+    )
