@@ -263,7 +263,7 @@ def score_docker_task(
         for path, content in hidden.items():
             target = workdir / str(path)
             target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(str(content), encoding="utf-8")
+            target.write_text(str(content), encoding="utf-8")
     runtime = env.get("runtime_files")
     if isinstance(runtime, dict):
         for path, content in runtime.items():
@@ -393,6 +393,7 @@ class ManifestHarness:
     config_args: tuple[str, ...] = ()  # argv fragments rendered at {config_args}
     timeout: int = 1800
     harness_image: str | None = None  # image whose filesystem is mounted to provide the CLI
+    runtime_image: str | None = None  # image used as the harness container itself
     setup: tuple[str, ...] = ()  # runtime setup commands, executed in the task environment
     path: str = "/opt/harness/usr/local/bin"  # runtime executable path inside the mounted image
     home: str = "root/.openclaw"  # legacy default; manifests should declare their runtime home
@@ -480,7 +481,10 @@ class ManifestHarnessRunner:
             "-w", "/workspace",
         ]
         env = agent_env(item)
-        run_args += _task_container_options(env)
+        # Gateway mode supplies the only network attachment for the harness;
+        # adding the task's network mode would make Docker reject the launch.
+        if not self._manifest.gateway:
+            run_args += _task_container_options(env)
         if self._manifest.harness_image:
             run_args += [
                 "--mount",
@@ -525,7 +529,7 @@ class ManifestHarnessRunner:
                 f"openclaw config set models.providers.{self._manifest.gateway_provider}.baseUrl "
                 f"http://{gateway_name}:18080 2>/dev/null; "
             )
-        run_args += [image, "sh", "-lc", prefix + shell_command]
+        run_args += [self._manifest.runtime_image or image, "sh", "-lc", prefix + shell_command]
         try:
             proc = subprocess.run(
                 run_args,
@@ -597,6 +601,7 @@ def load_manifest_harness(path: str | Path) -> str:
         config_args=tuple(str(arg) for arg in (raw.get("config_args") or [])),
         timeout=max(1, int(raw.get("timeout") or 1800)),
         harness_image=str(raw.get("harness_image") or "") or None,
+        runtime_image=str(raw.get("runtime_image") or "") or None,
         setup=tuple(str(command) for command in (raw.get("setup") or [])),
         path=str(raw.get("path") or "/opt/harness/usr/local/bin"),
         home=str(raw.get("home") or ""),
@@ -633,11 +638,13 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
             "-c model_providers.evalclaw.wire_api=responses",
             "-c model_providers.evalclaw.env_key=OPENAI_API_KEY",
         ),
+        runtime_image="evalclaw-harness-runtime:latest",
     ),
     ManifestHarness(
         name="claude-code",
         run="claude -p --model {model} --permission-mode bypassPermissions {task}",
         model_env={"api_key": "ANTHROPIC_API_KEY", "base_url": "ANTHROPIC_BASE_URL"},
+        runtime_image="evalclaw-harness-runtime:latest",
     ),
     ManifestHarness(
         name="cursor",
@@ -668,12 +675,15 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
     ManifestHarness(
         name="openclaw",
         run="openclaw agent exec --timeout 1800 --model {provider}/{model} --cwd {workdir} {task}",
-        model_env={"api_key": "DEEPSEEK_API_KEY"},
+        model_env={"api_key": "OPENCLAW_API_KEY"},
         harness_image="evalclaw-openclaw:latest",
+        runtime_image="evalclaw-harness-runtime:latest",
         home=".openclaw",
         gateway=True,
-        gateway_provider="deepseek",
-        gateway_setup="openclaw config set models.providers.{provider}.baseUrl {gateway_url} 2>/dev/null",
+        gateway_setup=(
+            "openclaw config set models.providers.{provider}.baseUrl {gateway_url} 2>/dev/null; "
+            "openclaw config set models.providers.{provider}.apiKey $OPENCLAW_API_KEY 2>/dev/null"
+        ),
     ),
 )
 
