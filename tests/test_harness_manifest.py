@@ -234,7 +234,18 @@ def test_manifest_timeout_does_not_expose_command_or_credentials(monkeypatch) ->
     assert calls["cleanup"] == ["docker", "rm", "-f", name]
 
 
-def test_timeout_output_is_saved_and_redacted(monkeypatch, tmp_path) -> None:
+@pytest.mark.parametrize(
+    "error",
+    [
+        harness_module.HarnessTimeoutError(
+            "x", 60, "partial secret-key", "warning secret-key"
+        ),
+        harness_module.HarnessExecutionError(
+            "Harness 'x' failed", "partial secret-key", "warning secret-key"
+        ),
+    ],
+)
+def test_failed_output_is_saved_and_redacted(monkeypatch, tmp_path, error) -> None:
     workdir = tmp_path / "work"
     workdir.mkdir()
     monkeypatch.setattr(harness_module, "prepare_docker_task", lambda *args: ("img", workdir))
@@ -246,11 +257,7 @@ def test_timeout_output_is_saved_and_redacted(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr(
         harness_module.ManifestHarnessRunner,
         "_launch",
-        lambda *args: (_ for _ in ()).throw(
-            harness_module.HarnessTimeoutError(
-                "x", 60, "partial secret-key", "warning secret-key"
-            )
-        ),
+        lambda *args: (_ for _ in ()).throw(error),
     )
     monkeypatch.setattr(
         harness_module.ManifestHarnessRunner,
@@ -263,7 +270,7 @@ def test_timeout_output_is_saved_and_redacted(monkeypatch, tmp_path) -> None:
     )
     target = _target().model_copy(update={"api_key": "secret-key"})
 
-    with pytest.raises(harness_module.HarnessTimeoutError):
+    with pytest.raises(type(error)):
         runner.run(_item(), target, BenchmarkConfig(), artifact_dir=artifact_dir)
 
     assert (artifact_dir / "x-output.txt").read_text() == "partial [REDACTED]"
@@ -328,6 +335,9 @@ def test_builtin_harnesses_registered() -> None:
         assert harness_module.get_harness(name).name == name
     manifests = {manifest.name: manifest for manifest in harness_module._BUILTIN_MANIFESTS}
     assert all(manifests[name].gateway for name in ("codex", "claude-code", "openclaw"))
+    assert "--name evalclaw" in manifests["claude-code"].run
+    assert "--no-session-persistence" in manifests["claude-code"].run
+    assert "--prompt-suggestions false" in manifests["claude-code"].run
 
 
 def test_config_args_rendered_into_command(monkeypatch) -> None:
