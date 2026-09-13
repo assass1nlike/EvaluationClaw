@@ -37,13 +37,22 @@ _MODEL_GATEWAY_IMAGE = "evalclaw-model-gateway:latest"
 _OUTPUT_LIMIT_BYTES = 8 * 1024 * 1024
 
 
-class HarnessTimeoutError(RuntimeError):
+class HarnessExecutionError(RuntimeError):
+    """A harness failure with its captured process output."""
+
+    def __init__(self, message: str, stdout: str, stderr: str):
+        super().__init__(message)
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+class HarnessTimeoutError(HarnessExecutionError):
     """A harness timeout with the output captured before termination."""
 
     def __init__(self, name: str, timeout: int, stdout: str, stderr: str):
-        super().__init__(f"Harness {name!r} timed out after {timeout} seconds.")
-        self.stdout = stdout
-        self.stderr = stderr
+        super().__init__(
+            f"Harness {name!r} timed out after {timeout} seconds.", stdout, stderr
+        )
 
 
 def _redact_secret(text: str, secret: str | None) -> str:
@@ -778,7 +787,7 @@ class ManifestHarnessRunner:
             if artifact_dir is not None:
                 finished_at = datetime.now(timezone.utc)
                 artifact_dir.mkdir(parents=True, exist_ok=True)
-                if isinstance(exc, HarnessTimeoutError):
+                if isinstance(exc, HarnessExecutionError):
                     (artifact_dir / f"{self.name}-output.txt").write_text(
                         _redact_secret(exc.stdout, target.api_key), encoding="utf-8"
                     )
@@ -1027,12 +1036,18 @@ class ManifestHarnessRunner:
             )
             if proc.returncode != 0 and not cleanup_only_failure:
                 details = _redact_secret(proc.stderr or proc.stdout, target.api_key)
-                raise RuntimeError(f"Harness {self.name!r} failed: {details}")
+                raise HarnessExecutionError(
+                    f"Harness {self.name!r} failed: {details}",
+                    proc.stdout,
+                    proc.stderr,
+                )
             for marker in self._manifest.failure_markers:
                 if marker in proc.stdout or marker in proc.stderr:
                     details = _redact_secret(proc.stderr or proc.stdout, target.api_key)
-                    raise RuntimeError(
-                        f"Harness {self.name!r} reported an execution error: {details}"
+                    raise HarnessExecutionError(
+                        f"Harness {self.name!r} reported an execution error: {details}",
+                        proc.stdout,
+                        proc.stderr,
                     )
             return proc.stdout
         finally:
@@ -1174,7 +1189,8 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
         name="claude-code",
         run=(
             "claude -p --model {model} --permission-mode bypassPermissions "
-            "--max-turns {max_steps} --output-format stream-json --verbose {task}"
+            "--max-turns {max_steps} --name evalclaw --no-session-persistence "
+            "--prompt-suggestions false --output-format stream-json --verbose {task}"
         ),
         model_env={"api_key": "ANTHROPIC_API_KEY", "base_url": "ANTHROPIC_BASE_URL"},
         harness_image="evalclaw-harness-runtime:latest",
