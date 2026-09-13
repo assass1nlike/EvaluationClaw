@@ -7,7 +7,6 @@ workspace setup, and scoring are shared via ``harness``.
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -71,17 +70,18 @@ class OpenHandsRunner:
         artifact_dir: Path | None = None,
     ) -> tuple[str, float, str]:
         harness.reject_tool_constraints(item)
-        image, workdir = harness.prepare_docker_task(item, config)
+        backend = harness.environment_backend(item, config)
+        image, workdir = backend.prepare()
         try:
             raw = _run_openhands_cli(item, target, image, workdir)
-            score, reasoning = harness.score_docker_task(item, config, image, workdir)
+            score, reasoning = backend.evaluate(image, workdir)
             if artifact_dir is not None:
                 artifact_dir.mkdir(parents=True, exist_ok=True)
                 (artifact_dir / "openhands-output.jsonl").write_text(raw, encoding="utf-8")
                 (artifact_dir / "openhands-reasoning.txt").write_text(reasoning, encoding="utf-8")
             return raw, score, reasoning
         finally:
-            shutil.rmtree(workdir, ignore_errors=True)
+            backend.cleanup(workdir)
 
 
 harness.register_harness(OpenHandsRunner())
