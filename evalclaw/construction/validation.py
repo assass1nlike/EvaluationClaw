@@ -1062,6 +1062,13 @@ def task_structure_issues(
         )
         if env.actors and task.workflow is not None:
             issues.append("Environment actors cannot be combined with workflow stages.")
+        if env.actors and env.runtime_files:
+            issues.append(
+                "Environment actor tasks run through the OpenClaw harness and cannot use "
+                "runner-private runtime_files. Express actor behavior in each system_prompt, "
+                "use shared visible files for interaction state, and keep evaluator-only "
+                "material in hidden_files."
+            )
         if env.actors and task_design is not None and not planned_actors:
             issues.append(
                 "Builder added environment actors that were not requested by the TaskDesign."

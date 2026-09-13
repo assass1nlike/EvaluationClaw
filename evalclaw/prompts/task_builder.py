@@ -281,7 +281,8 @@ def build_task_builder_prompt(
             "image-build or VM-image results in the corresponding environment fields. For agent tasks, "
             "put public initial scenario or state in the target-visible environment fields; keep setup "
             "and evaluator material private. If the TaskDesign requests environment actors, implement "
-            "their public ids, role system prompts, and reusable actor toolsets in the environment."
+            "their public ids, role system prompts, and reusable actor toolsets in the environment; "
+            "do not duplicate them with a scripted-agent service or use runtime_files."
         )
     scoring_guidance = (
         "\nWhen scoring is present, set allows_partial_credit only for a real middle band and describe "

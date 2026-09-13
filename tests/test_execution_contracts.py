@@ -134,6 +134,20 @@ def test_evaluator_result_ignores_stdout_score_unless_explicitly_enabled() -> No
     assert opted_in_result.source == "stdout"
 
 
+def test_evaluator_result_accepts_configured_stdout_score_field() -> None:
+    result = parse_evaluator_result(
+        returncode=0,
+        stdout='diagnostic\n{"composite": 0.35, "attribution_score": 0.0}',
+        stderr="",
+        allow_stdout_score=True,
+        score_field="composite",
+    )
+
+    assert result.score == pytest.approx(0.35)
+    assert result.passed is False
+    assert result.source == "stdout"
+
+
 @pytest.mark.parametrize(
     ("qc_report", "message"),
     [

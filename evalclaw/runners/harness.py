@@ -577,7 +577,11 @@ def score_docker_task(
         stderr=proc.stderr,
         result_json=result_json,
         score_text=score_text,
-        allow_stdout_score=bool(evaluation.get("allow_stdout_score", False)),
+        allow_stdout_score=(
+            bool(evaluation.get("allow_stdout_score", False))
+            or evaluation.get("result_format") == "json_on_stdout"
+        ),
+        score_field=str(evaluation.get("score_field") or "score"),
     )
     score = evaluator.score
     reasoning = evaluator.details or "\n".join(part for part in (proc.stdout, proc.stderr) if part).strip()

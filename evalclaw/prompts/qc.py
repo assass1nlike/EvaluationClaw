@@ -104,7 +104,8 @@ For task_type=agent with metadata.agent_env.type=docker_workspace:
   by the TaskDesign, have a clear system prompt, and reference an existing
   actor_toolsets entry when it needs tools. Check that its objective tool and
   path permissions fit the role. The system prompt defines role behavior; do
-  not impose a generic rule against helping the target complete work.
+  not impose a generic rule against helping the target complete work. Reject
+  actor tasks that also implement scripted actors or depend on runtime_files.
 - Check that setup_commands are feasible under the declared image and network
   policy, start required local services before the target begins, use paths
   consistent with the container workdir, and leave the evaluator runtime
