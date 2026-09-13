@@ -142,6 +142,59 @@ class AgentEnvironmentType(str, Enum):
     vm = "vm"
 
 
+class ActorToolsetSpec(BaseModel):
+    """Reusable capabilities granted to one or more environment actors."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    tools: list[Literal["list_files", "read_file", "write_file", "run_command"]] = Field(
+        default_factory=list
+    )
+    read_paths: list[StrictStr] = Field(default_factory=lambda: ["."])
+    write_paths: list[StrictStr] = Field(default_factory=lambda: ["."])
+    network: Literal["none", "internet"] = "none"
+
+    @model_validator(mode="after")
+    def validate_paths(self) -> "ActorToolsetSpec":
+        for field_name, paths in (
+            ("read_paths", self.read_paths),
+            ("write_paths", self.write_paths),
+        ):
+            for raw_path in paths:
+                path = raw_path.replace("\\", "/").strip()
+                parts = path.split("/")
+                if not path or path.startswith("/") or ".." in parts:
+                    raise ValueError(
+                        f"Actor toolset {field_name} entries must stay inside the workspace: "
+                        f"{raw_path!r}."
+                    )
+        if "run_command" in self.tools and (
+            self.read_paths != ["."] or self.write_paths != ["."]
+        ):
+            raise ValueError(
+                "run_command grants access to the complete workspace; its toolset must use "
+                "read_paths=['.'] and write_paths=['.']."
+            )
+        return self
+
+
+class EnvironmentActorSpec(BaseModel):
+    """A Builder-authored role backed by the evaluator's actor model."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: StrictStr = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.@-]*$")
+    description: StrictStr = ""
+    system_prompt: StrictStr
+    toolset: StrictStr = ""
+
+    @model_validator(mode="after")
+    def validate_prompt(self) -> "EnvironmentActorSpec":
+        if not self.system_prompt.strip():
+            raise ValueError("Actor system_prompt must not be empty.")
+        return self
+
+
 def environment_category(design: "TaskDesign") -> Optional[AgentEnvironmentType]:
     """Resolve a TaskDesign's declared environment category.
 
@@ -460,7 +513,30 @@ class AgentEnvironmentSpec(BaseModel):
     vm_provisioning: dict[str, Any] = Field(default_factory=dict)
     session: dict[str, Any] = Field(default_factory=dict)
     evaluation: dict[str, Any] = Field(default_factory=dict)
+    actor_toolsets: dict[StrictStr, ActorToolsetSpec] = Field(default_factory=dict)
+    actors: list[EnvironmentActorSpec] = Field(default_factory=list)
     notes: StrictStr = ""
+
+    @model_validator(mode="after")
+    def validate_actors(self) -> "AgentEnvironmentSpec":
+        if self.actors and self.type != AgentEnvironmentType.docker_workspace:
+            raise ValueError("Environment actors currently require type=docker_workspace.")
+        actor_ids = [actor.id for actor in self.actors]
+        if len(actor_ids) != len(set(actor_ids)):
+            raise ValueError("Environment actor ids must be unique.")
+        for name in self.actor_toolsets:
+            if (
+                not name
+                or not name[0].isalnum()
+                or any(not (char.isalnum() or char in "_-") for char in name)
+            ):
+                raise ValueError(f"Invalid actor toolset name: {name!r}.")
+        for actor in self.actors:
+            if actor.toolset and actor.toolset not in self.actor_toolsets:
+                raise ValueError(
+                    f"Actor {actor.id!r} references unknown toolset {actor.toolset!r}."
+                )
+        return self
 
 
 class StageInput(BaseModel):
@@ -890,6 +966,15 @@ class BenchmarkConfig(BaseModel):
     analyser_base_url: Optional[str] = None
     analyser_reasoning_effort: Optional[str] = None
     analyser_extra_body: dict[str, Any] = Field(default_factory=dict)
+    actor_model: Optional[str] = None
+    actor_provider: Optional[str] = None
+    actor_api_key: Optional[str] = None
+    actor_base_url: Optional[str] = None
+    actor_extra_body: dict[str, Any] = Field(default_factory=dict)
+    actor_max_turns: int = Field(default=10, ge=1)
+    actor_max_tool_calls: int = Field(default=20, ge=0)
+    actor_max_tokens: int = Field(default=32768, ge=1)
+    actor_timeout_s: int = Field(default=300, ge=1)
     targets: list[TargetModelConfig] = Field(default_factory=list)
     item_count: Optional[int] = None
     large_scale_item_threshold: int = 1000

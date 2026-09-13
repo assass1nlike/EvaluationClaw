@@ -21,7 +21,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path, PurePosixPath
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from ..execution.docker import docker_subprocess_env, resolve_docker_executable
 from ..execution.docker_images import (
@@ -32,6 +32,9 @@ from ..execution.evaluation import parse_evaluator_result
 from ..protocols.assets import environment_asset_sources
 from ..protocols.task_agent import task_agent_initial_content_text, task_agent_system_prompt
 from ..types import SUPPORTED_HARNESSES, BenchmarkConfig, BenchmarkItem, TargetModelConfig
+
+if TYPE_CHECKING:
+    from .environment_actors import ActorSession
 
 _MODEL_GATEWAY_IMAGE = "evalclaw-model-gateway:latest"
 _OUTPUT_LIMIT_BYTES = 8 * 1024 * 1024
@@ -728,16 +731,49 @@ class ManifestHarnessRunner:
         started_at = datetime.now(timezone.utc)
         started = time.monotonic()
         reject_tool_constraints(item)
+        raw_actors = agent_env(item).get("actors")
+        actors = []
+        toolsets: dict[str, dict[str, Any]] = {}
+        if raw_actors:
+            from .environment_actors import ActorSession, actor_configuration
+
+            actors, toolsets = actor_configuration(agent_env(item))
+        if actors and self.name != "openclaw":
+            raise RuntimeError(
+                "Environment actors currently require the OpenClaw harness."
+            )
         self._validate_target(target)
         backend = environment_backend(item, config)
         image, workdir = backend.prepare()
         context = HarnessContext(item, target, config, image, workdir)
         preflight: list[str] = []
+        actor_session: ActorSession | None = None
         try:
             preflight = self._preflight(context)
-            raw = self._launch(
-                context.item, context.target, context.config, context.image, context.workdir
-            )
+            if actors:
+                actor_session = ActorSession(
+                    actors=actors,
+                    toolsets=toolsets,
+                    workdir=workdir,
+                    image=image,
+                    environment=agent_env(item),
+                    config=config,
+                    artifact_dir=artifact_dir,
+                )
+            try:
+                raw = self._launch(
+                    context.item,
+                    context.target,
+                    context.config,
+                    context.image,
+                    context.workdir,
+                    **({"actor_session": actor_session} if actor_session else {}),
+                )
+            finally:
+                if actor_session is not None:
+                    actor_session.close()
+            if actor_session is not None:
+                actor_session.raise_if_failed()
             score, reasoning = backend.evaluate(context.image, context.workdir)
             raw = _redact_secret(raw, target.api_key)
             reasoning = _redact_secret(reasoning, target.api_key)
@@ -763,7 +799,7 @@ class ManifestHarnessRunner:
                             "finished_at": finished_at.isoformat(),
                             "duration_ms": round((time.monotonic() - started) * 1000),
                             "timeouts": {
-                                "harness_seconds": self._episode_timeout(item),
+                                "harness_seconds": self._episode_timeout(item, config),
                                 "evaluator_seconds": _evaluation_timeout(item),
                             },
                             "task_image": self._image_identity(config, context.image),
@@ -775,6 +811,7 @@ class ManifestHarnessRunner:
                             ) if self._manifest.gateway else None,
                             "manifest": asdict(self._manifest),
                             "preflight": preflight,
+                            "actors": actor_session.runtime.summary() if actor_session else None,
                         },
                         ensure_ascii=False,
                         indent=2,
@@ -807,13 +844,16 @@ class ManifestHarnessRunner:
                             "provider": target.provider,
                             "status": "failed",
                             "error": _redact_secret(
-                                f"{type(exc).__name__}: {exc}", target.api_key
+                                _redact_secret(
+                                    f"{type(exc).__name__}: {exc}", target.api_key
+                                ),
+                                config.actor_api_key,
                             ),
                             "started_at": started_at.isoformat(),
                             "finished_at": finished_at.isoformat(),
                             "duration_ms": round((time.monotonic() - started) * 1000),
                             "timeouts": {
-                                "harness_seconds": self._episode_timeout(item),
+                                "harness_seconds": self._episode_timeout(item, config),
                                 "evaluator_seconds": _evaluation_timeout(item),
                             },
                             "task_image": self._image_identity(config, context.image),
@@ -825,6 +865,7 @@ class ManifestHarnessRunner:
                             ) if self._manifest.gateway else None,
                             "manifest": asdict(self._manifest),
                             "preflight": preflight,
+                            "actors": actor_session.runtime.summary() if actor_session else None,
                         },
                         ensure_ascii=False,
                         indent=2,
@@ -839,10 +880,14 @@ class ManifestHarnessRunner:
     def _tool_image(self) -> str | None:
         return self._manifest.harness_image or self._manifest.runtime_image
 
-    def _episode_timeout(self, item: BenchmarkItem) -> int:
+    def _episode_timeout(
+        self, item: BenchmarkItem, config: BenchmarkConfig | None = None
+    ) -> int:
         env = agent_env(item)
         max_steps = max(1, int(env.get("max_steps") or 8))
         step_timeout = max(1, int(env.get("timeout") or 20))
+        if env.get("actors"):
+            step_timeout = max(step_timeout, config.actor_timeout_s if config else 300)
         return min(self._manifest.timeout, max_steps * step_timeout)
 
     def _validate_target(self, target: TargetModelConfig) -> None:
@@ -902,11 +947,20 @@ class ManifestHarnessRunner:
             prefix += f"export PATH={shlex.quote(self._manifest.path)}:$PATH; "
         return prefix + "export EVALCLAW_HARNESS=1; "
 
-    def _launch(self, item: BenchmarkItem, target: TargetModelConfig, config: BenchmarkConfig, image: str, workdir: Path) -> str:
+    def _launch(
+        self,
+        item: BenchmarkItem,
+        target: TargetModelConfig,
+        config: BenchmarkConfig,
+        image: str,
+        workdir: Path,
+        *,
+        actor_session: "ActorSession | None" = None,
+    ) -> str:
         env = agent_env(item)
         max_steps = max(1, int(env.get("max_steps") or 8))
         step_timeout = max(1, int(env.get("timeout") or 20))
-        episode_timeout = self._episode_timeout(item)
+        episode_timeout = self._episode_timeout(item, config)
         provider = _harness_provider(target)
         model = _harness_model(target, provider)
         needs_base_url = self._manifest.gateway or "base_url" in self._manifest.model_env or any(
@@ -969,6 +1023,8 @@ class ManifestHarnessRunner:
                 *_task_container_options(env, include_network=not self._manifest.gateway),
             ]
             self._mount_tool_image(run_args)
+            if actor_session is not None:
+                run_args += ["-v", actor_session.mount]
             if gateway_network is not None:
                 run_args += ["--network", gateway_network]
             connection = {
@@ -1003,6 +1059,8 @@ class ManifestHarnessRunner:
                     f"openclaw config set models.providers.{self._manifest.gateway_provider}.baseUrl "
                     f"{base_url} 2>/dev/null; "
                 )
+            if actor_session is not None:
+                prefix += actor_session.setup_command + " && "
             run_args += [image, "sh", "-lc", prefix + shell_command]
             proc: subprocess.CompletedProcess[str] | None = None
             try:
