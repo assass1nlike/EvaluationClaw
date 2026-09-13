@@ -105,8 +105,10 @@ requirements, and provenance. Evaluators should write
 evaluation.result_path. Numeric score files are valid for simple evaluators.
 Target-controlled stdout is not a trusted score source and is ignored by
 default; enable evaluation.allow_stdout_score=true only when the evaluator's
-stdout cannot be influenced by the target. Define explicit partial-credit
-behavior and keep all scores within [0, 1].
+stdout cannot be influenced by the target. Equivalently, set
+evaluation.result_format="json_on_stdout"; evaluation.score_field may name the
+JSON score field when it is not "score". Define explicit partial-credit behavior
+and keep all scores within [0, 1].
 """
 
 

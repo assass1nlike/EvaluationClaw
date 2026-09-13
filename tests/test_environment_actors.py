@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from evalclaw.construction.validation import task_structure_issues
 from evalclaw.models.llm import TargetToolModelResponse
 from evalclaw.runners import environment_actors as actor_module
 from evalclaw.runners.environment_actors import (
@@ -23,6 +24,7 @@ from evalclaw.types import (
     BenchmarkItem,
     EnvironmentActorSpec,
     TargetModelConfig,
+    TaskDefinition,
     TaskType,
 )
 
@@ -98,6 +100,23 @@ def test_actor_schema_rejects_unknown_toolset_and_false_shell_path_boundary() ->
                 }
             }
         )
+
+
+def test_actor_task_rejects_runner_private_runtime_files() -> None:
+    task = TaskDefinition(
+        id="actor-task",
+        dimension_id="dimension-1",
+        task_type=TaskType.agent,
+        title="Coordinate Alice",
+        prompt="Ask Alice to complete the shared work.",
+        environment=AgentEnvironmentSpec(
+            actors=[EnvironmentActorSpec(id="alice", system_prompt="You are Alice.")],
+            runtime_files={"actor.py": "print('scripted actor')"},
+            test_command="true",
+        ),
+    )
+
+    assert any("cannot use runner-private runtime_files" in issue for issue in task_structure_issues(task))
 
 
 def test_actor_file_tools_enforce_read_and_write_roots(tmp_path: Path) -> None:
