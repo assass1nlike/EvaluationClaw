@@ -84,6 +84,8 @@ The higher the `challenge_effort`, the less you should constrain the task conten
 
 Use `environment_requirements` only for `agent` tasks, choosing the environment category that provides the required tools or state. `multi_turn` tasks express their dialogue behavior through `interaction_requirements` and do not use an execution environment. Leave `environment_requirements` empty for `choice`, `fill_blank`, `generation`, and `multi_turn`; if executable interaction is essential, design an `agent` task instead.
 
+When an agent task requires people, delegated workers, adversaries, or other interactive roles in the environment, declare each required role and its purpose in `environment_requirements.actors`. State what the role knows, how it should behave, and what environment capabilities it objectively needs. Do not choose the actor model; the evaluator supplies one model configuration for all actors at runtime.
+
 For non-agent task types, convey task information in text and use file assets only for images. Refer to those images with stable `Image N` labels in target-visible text; the framework attaches them in assets-list order as multimodal inputs, so do not expose host paths. Do not plan a non-image asset for `choice`, `fill_blank`, `generation`, or `multi_turn`. If a non-image file is essential to the task, choose `agent` and declare an environment that can expose and process it.
 
 Although `reference/universal_format.json` lists the complete field set, for these non-agent task types return exactly `{}` for `environment_requirements`; do not expand its inner fields with null, empty-string, or empty-list values.

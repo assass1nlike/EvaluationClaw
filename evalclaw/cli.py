@@ -255,6 +255,33 @@ def generate(
         help="Per-task-model JSON with model/provider/api_key/api_key_env/base_url/id; "
         "may be repeated. Supplements or replaces --task-model entries.",
     ),
+    actor_model: Optional[str] = typer.Option(
+        None, "--actor-model", help="Model used for every environment actor in this run."
+    ),
+    actor_provider: Optional[str] = typer.Option(
+        None, "--actor-provider", help="Protocol/provider for --actor-model."
+    ),
+    actor_api_key: Optional[str] = typer.Option(
+        None, "--actor-api-key", help="API key for environment actors."
+    ),
+    actor_base_url: Optional[str] = typer.Option(
+        None, "--actor-base-url", help="Base URL for the environment actor model."
+    ),
+    actor_extra_body: Optional[str] = typer.Option(
+        None, "--actor-extra-body", help="JSON extra request body for the actor model."
+    ),
+    actor_max_turns: int = typer.Option(
+        10, "--actor-max-turns", help="Maximum model turns in one actor interaction."
+    ),
+    actor_max_tool_calls: int = typer.Option(
+        20, "--actor-max-tool-calls", help="Maximum tool calls in one actor interaction."
+    ),
+    actor_max_tokens: int = typer.Option(
+        32768, "--actor-max-tokens", help="Maximum output tokens for each actor model call."
+    ),
+    actor_timeout: int = typer.Option(
+        300, "--actor-timeout", help="Wall-clock timeout for one actor interaction."
+    ),
     research_model: Optional[str] = typer.Option(None, "--research-model", help="Optional Deep Research model override."),
     research_provider: Optional[str] = typer.Option(None, "--research-provider", help="Protocol/provider for --research-model."),
     research_api_key: Optional[str] = typer.Option(None, "--research-api-key", help="API key for the research role."),
@@ -541,6 +568,11 @@ def generate(
     if vm_provider_timeout < 1:
         console.print("[red]--vm-provider-timeout must be at least 1 second.[/red]")
         raise typer.Exit(1)
+    if actor_max_turns < 1 or actor_max_tool_calls < 0 or actor_max_tokens < 1 or actor_timeout < 1:
+        console.print(
+            "[red]Actor limits require max turns/tokens/timeout >= 1 and max tool calls >= 0.[/red]"
+        )
+        raise typer.Exit(1)
     if item_count is not None and item_count < 1:
         console.print("[red]--item-count must be at least 1.[/red]")
         raise typer.Exit(1)
@@ -586,6 +618,14 @@ def generate(
             analyser_reasoning_effort,
             analyser_extra_body,
         ),
+        "actor": (
+            actor_model,
+            actor_provider,
+            actor_api_key,
+            actor_base_url,
+            None,
+            actor_extra_body,
+        ),
     }
     role_config: dict[str, Any] = {}
     for role, (role_model, role_provider, role_key, role_base, role_effort, role_extra_body) in role_options.items():
@@ -620,10 +660,11 @@ def generate(
                 f"{role}_provider": normalize_provider(role_provider) if role_provider else None,
                 f"{role}_api_key": resolved_key,
                 f"{role}_base_url": resolved_base,
-                f"{role}_reasoning_effort": role_effort,
                 f"{role}_extra_body": extra_body,
             }
         )
+        if role_effort is not None:
+            role_config[f"{role}_reasoning_effort"] = role_effort
     image_config: dict[str, Optional[str]] = {}
     if any((image_generation_model, image_generation_api_key, image_generation_base_url)):
         if not image_generation_model or not image_generation_base_url:
@@ -701,6 +742,10 @@ def generate(
         **image_config,
         **failover_config,
         task_models=task_models,
+        actor_max_turns=actor_max_turns,
+        actor_max_tool_calls=actor_max_tool_calls,
+        actor_max_tokens=actor_max_tokens,
+        actor_timeout_s=actor_timeout,
         targets=targets,
         item_count=item_count,
         max_planner_iterations=max_planner_iterations,
