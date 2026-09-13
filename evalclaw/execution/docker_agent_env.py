@@ -545,7 +545,11 @@ class DockerWorkspaceAgentEnvironment:
             stderr=proc.stderr,
             result_json=result_proc.stdout if result_proc.returncode == 0 else "",
             score_text=score_proc.stdout if score_proc.returncode == 0 else "",
-            allow_stdout_score=bool(self.evaluation.get("allow_stdout_score", False)),
+            allow_stdout_score=(
+                bool(self.evaluation.get("allow_stdout_score", False))
+                or self.evaluation.get("result_format") == "json_on_stdout"
+            ),
+            score_field=str(self.evaluation.get("score_field") or "score"),
         )
         self.evaluator_runs.append(
             {

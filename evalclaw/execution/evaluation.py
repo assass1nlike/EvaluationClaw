@@ -29,7 +29,11 @@ def _bounded_score(value: object) -> float | None:
     return max(0.0, min(1.0, score))
 
 
-def _parse_payload(value: str) -> tuple[float, bool | None, str] | None:
+def _parse_payload(
+    value: str,
+    *,
+    score_field: str = "score",
+) -> tuple[float, bool | None, str] | None:
     text = value.strip()
     if not text:
         return None
@@ -43,7 +47,7 @@ def _parse_payload(value: str) -> tuple[float, bool | None, str] | None:
         return (score, None, "") if score is not None else None
     if not isinstance(payload, dict):
         return None
-    score = _bounded_score(payload.get("score"))
+    score = _bounded_score(payload.get(score_field))
     if score is None:
         return None
     passed = payload.get("passed") if isinstance(payload.get("passed"), bool) else None
@@ -59,6 +63,7 @@ def parse_evaluator_result(
     result_json: str = "",
     score_text: str = "",
     allow_stdout_score: bool = False,
+    score_field: str = "score",
 ) -> EvaluatorResult:
     """Parse a score without conflating process success with evaluation success.
 
@@ -76,7 +81,7 @@ def parse_evaluator_result(
             if line.strip():
                 candidates.append(("stdout", line))
     for source, value in candidates:
-        parsed = _parse_payload(value)
+        parsed = _parse_payload(value, score_field=score_field)
         if parsed is None:
             continue
         score, explicit_passed, details = parsed
