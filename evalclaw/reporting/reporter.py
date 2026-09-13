@@ -150,10 +150,12 @@ def build_report(
     lines.extend(_qc_summary_lines(qc))
 
     lines.extend(["## Results", ""])
+    has_harness = any(summary.harness for summary in run.summaries)
     summary_rows = [
         [
             summary.target_id,
             summary.model,
+            *([summary.harness or "native"] if has_harness else []),
             _pct(summary.average_score),
             str(summary.total_items),
             str(summary.errors),
@@ -161,7 +163,10 @@ def build_report(
         for summary in run.summaries
     ]
     if summary_rows:
-        lines.append(_markdown_table(["Target", "Model", "Average", "Items", "Errors"], summary_rows))
+        headers = ["Target", "Model"]
+        if has_harness:
+            headers.append("Harness")
+        lines.append(_markdown_table(headers + ["Average", "Items", "Errors"], summary_rows))
         lines.append("")
     else:
         lines.append("No target results were executed.")

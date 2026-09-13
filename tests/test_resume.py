@@ -126,7 +126,7 @@ def test_runner_reuses_successful_items_but_retries_failed_items(monkeypatch, tm
     trace_dir = tmp_path / "runner"
 
     run_eval(suite, QcReport(passed_item_ids=["first", "second"]), config, trace_dir=trace_dir)
-    assert calls == ["first", "second"]
+    assert sorted(calls) == ["first", "second"]
     calls.clear()
     run_eval(suite, QcReport(passed_item_ids=["first", "second"]), config, trace_dir=trace_dir)
     assert calls == []

@@ -151,8 +151,11 @@ def _print_summary(pkg: BenchmarkPackage) -> None:
 
     if pkg.report.summaries:
         table = Table(title="Target Results")
+        has_harness = any(summary.harness for summary in pkg.report.summaries)
         table.add_column("Target")
         table.add_column("Model")
+        if has_harness:
+            table.add_column("Harness")
         table.add_column("Average", justify="right")
         table.add_column("Items", justify="right")
         table.add_column("Errors", justify="right")
@@ -160,6 +163,7 @@ def _print_summary(pkg: BenchmarkPackage) -> None:
             table.add_row(
                 summary.target_id,
                 summary.model,
+                *([summary.harness or "native"] if has_harness else []),
                 f"{summary.average_score * 100:.1f}%",
                 str(summary.total_items),
                 str(summary.errors),

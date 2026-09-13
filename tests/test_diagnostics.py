@@ -222,12 +222,8 @@ def test_environment_preflight_report_survives_blocking_failure(monkeypatch, tmp
 
 
 def test_runner_persists_each_completed_item(monkeypatch, tmp_path) -> None:
-    calls = 0
-
     def fake_run_item(item, config, target_id, **kwargs):
-        nonlocal calls
-        calls += 1
-        if calls == 2:
+        if item.id == "second":
             raise KeyboardInterrupt
         return ItemResult(item_id=item.id, target_id=target_id, raw_response="ok", score=1.0)
 

@@ -1022,6 +1022,20 @@ def task_structure_issues(
     visible_paths = set(env.visible_files)
     runtime_paths = set(env.runtime_files)
     hidden_paths = set(env.hidden_files)
+    invalid_paths = [
+        path
+        for path in visible_paths | runtime_paths | hidden_paths
+        if (
+            not str(path).strip()
+            or PurePosixPath(str(path).replace("\\", "/")).is_absolute()
+            or ".." in PurePosixPath(str(path).replace("\\", "/")).parts
+        )
+    ]
+    if invalid_paths:
+        issues.append(
+            "Environment file paths must be relative to workdir and cannot contain '..': "
+            + ", ".join(sorted(invalid_paths))
+        )
     collisions = (visible_paths & runtime_paths) | (visible_paths & hidden_paths) | (runtime_paths & hidden_paths)
     if collisions:
         issues.append(

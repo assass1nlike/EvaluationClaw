@@ -13,8 +13,7 @@ import json
 import os
 import sys
 from pathlib import Path
-
-import httpx
+from urllib.request import Request, urlopen
 
 
 def _llm_call(prompt: str) -> str:
@@ -23,17 +22,19 @@ def _llm_call(prompt: str) -> str:
     base_url = os.environ.get("LLM_BASE_URL", "")
     if not model or not api_key:
         raise RuntimeError("LLM_MODEL and LLM_API_KEY must be set.")
-    response = httpx.post(
-        f"{base_url.rstrip('/')}/chat/completions",
-        headers={"Authorization": f"Bearer {api_key}"},
-        json={
+    body = json.dumps(
+        {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
-        },
-        timeout=180,
+        }
+    ).encode("utf-8")
+    request = Request(
+        f"{base_url.rstrip('/')}/chat/completions",
+        data=body,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
     )
-    response.raise_for_status()
-    data = response.json()
+    with urlopen(request, timeout=180) as response:
+        data = json.loads(response.read())
     return data["choices"][0]["message"]["content"]
 
 

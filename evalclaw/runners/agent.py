@@ -404,6 +404,11 @@ def run_agent_interaction(
     artifact_dir: str | Path | None = None,
 ) -> tuple[str, float, str]:
     artifact_path = Path(artifact_dir) if artifact_dir is not None else None
+    if item.workflow is not None and target.harness:
+        raise RuntimeError(
+            "External harnesses do not implement the task's multi-stage workflow contract. "
+            "Use the native agent runner or a task without workflow stages."
+        )
     if item.workflow is not None:
         from .workflow import run_workflow
 
