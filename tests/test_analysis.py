@@ -138,6 +138,28 @@ def test_analysis_without_probes_returns_supported_conclusion(monkeypatch, tmp_p
     assert captured[0]["remaining_probe_iterations"] == 0
 
 
+def test_analysis_agent_context_describes_contract_without_hidden_payload() -> None:
+    suite, run = _suite_and_run()
+    item = suite.tasks[0].model_copy(
+        update={
+            "task_type": TaskType.agent,
+            "metadata": {
+                "agent_env": {
+                    "type": "docker_workspace",
+                    "image": "python:3.11",
+                    "visible_files": {"README.md": "task instructions"},
+                    "hidden_files": {"tests/test_secret.py": "expected = 42"},
+                    "test_command": "pytest -q",
+                }
+            },
+        }
+    )
+    context = analysis_module._task_context(suite.model_copy(update={"tasks": [item]}))[0]
+    assert context["agent_environment"]["type"] == "docker_workspace"
+    assert context["agent_task_contract"]["visible_file_paths"] == ["README.md"]
+    assert "expected = 42" not in str(context)
+
+
 def test_analysis_round_trips_in_package_and_is_rendered_in_viewer() -> None:
     suite, run = _suite_and_run()
     package = BenchmarkPackage(
