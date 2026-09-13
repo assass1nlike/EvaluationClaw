@@ -11,8 +11,23 @@ from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkItem,
     TargetModelConfig,
+    TaskAsset,
     TaskType,
 )
+
+
+@pytest.fixture(autouse=True)
+def _mockable_bounded_runner(monkeypatch):
+    def run(command, **kwargs):
+        kwargs.pop("failure_markers", None)
+        return harness_module.subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            **kwargs,
+        )
+
+    monkeypatch.setattr(harness_module, "_run_bounded", run)
 
 
 def _item() -> BenchmarkItem:
@@ -68,18 +83,26 @@ def test_manifest_runner_launches_and_scores(monkeypatch) -> None:
 
     def fake_run(command, **kwargs):
         calls["command"] = command
+        calls["env"] = kwargs.get("env")
         return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
+
+    def fake_start(docker, upstream, **kwargs):
+        calls["gateway"] = kwargs
+        return "evalclaw-net", "evalclaw-gw", "http://evalclaw-gw:18080"
 
     monkeypatch.setattr(harness_module, "prepare_docker_task", fake_prepare)
     monkeypatch.setattr(harness_module, "score_docker_task", fake_score)
     monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
     monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(harness_module, "_start_model_gateway", fake_start)
+    monkeypatch.setattr(harness_module, "_stop_model_gateway", lambda *args: None)
 
     manifest = harness_module.ManifestHarness(
         name="my-harness",
-        run="my-agent --task {task} --image {image} --workdir {workdir}",
+        run="my-agent --key {api_key} --task {task} --image {image} --workdir {workdir}",
         model_env={"model": "MY_AGENT_MODEL", "api_key": "MY_AGENT_KEY"},
         timeout=60,
+        gateway=True,
     )
     raw, score, reasoning = harness_module.ManifestHarnessRunner(manifest).run(
         _item(), _target(), BenchmarkConfig()
@@ -90,18 +113,183 @@ def test_manifest_runner_launches_and_scores(monkeypatch) -> None:
     assert command[:3] == ["docker", "run", "--rm"]
     assert "/tmp/work:/workspace" in command
     assert command[command.index("-w") + 1] == "/workspace"
-    assert "MY_AGENT_MODEL=gpt-5" in command
-    assert "MY_AGENT_KEY=k" in command
+    assert "MY_AGENT_MODEL" in command
+    assert "MY_AGENT_KEY" in command
+    assert all("=gpt-5" not in arg and "=k" not in arg for arg in command)
+    assert calls["env"]["MY_AGENT_MODEL"] == "gpt-5"
+    assert calls["env"]["MY_AGENT_KEY"] == "evalclaw-gateway"
+    assert calls["gateway"]["api_key"] == "k"
     assert command[-2] == "-lc"
     assert shlex.split(command[-1]) == [
-        "my-agent", "--task", "Write a function.", "--image", "img", "--workdir", "/workspace",
+        "my-agent", "--key", "evalclaw-gateway", "--task", "Write a function.",
+        "--image", "img", "--workdir", "/workspace",
     ]
+
+
+def test_manifest_formats_model_environment_value(monkeypatch) -> None:
+    calls: dict = {}
+
+    def fake_run(command, **kwargs):
+        calls["command"] = command
+        calls["env"] = kwargs.get("env")
+        return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
+
+    monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    manifest = harness_module.ManifestHarness(
+        name="x",
+        run="my-agent {task}",
+        model_env={"model": "LLM_MODEL"},
+        model_template="{provider}/{model}",
+    )
+
+    harness_module.ManifestHarnessRunner(manifest)._launch(
+        _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
+    )
+
+    assert "LLM_MODEL" in calls["command"]
+    assert calls["env"]["LLM_MODEL"] == "openai/gpt-5"
+
+
+def test_gateway_keeps_upstream_key_out_of_docker_argv(monkeypatch) -> None:
+    calls: list[tuple[list[str], dict]] = []
+
+    def fake_docker(docker, args, **kwargs):
+        calls.append((args, kwargs))
+        return type("Proc", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+
+    monkeypatch.setattr(harness_module, "_docker", fake_docker)
+    monkeypatch.setattr(harness_module.time, "sleep", lambda _: None)
+
+    harness_module._start_model_gateway(
+        "docker",
+        "https://api.example.test",
+        api_key="secret-key",
+        provider="anthropic",
+        model="claude-test",
+    )
+
+    launch_args, launch_kwargs = next(call for call in calls if call[0][0] == "run")
+    assert all("secret-key" not in arg for arg in launch_args)
+    assert launch_kwargs["extra_env"]["EVALCLAW_UPSTREAM_API_KEY"] == "secret-key"
+    assert launch_args[launch_args.index("--provider") + 1] == "anthropic"
+    assert launch_args[launch_args.index("--model") + 1] == "claude-test"
+
+
+def test_manifest_rejects_credential_without_gateway() -> None:
+    manifest = harness_module.ManifestHarness(
+        name="x", run="agent {task}", model_env={"api_key": "API_KEY"}
+    )
+
+    with pytest.raises(RuntimeError, match="must use an API gateway"):
+        harness_module.ManifestHarnessRunner(manifest)._validate_target(_target())
+
+
+def test_manifest_rejects_failure_marker_despite_zero_exit(monkeypatch) -> None:
+    monkeypatch.setattr(
+        harness_module.subprocess,
+        "run",
+        lambda *args, **kwargs: type(
+            "Proc", (), {"returncode": 0, "stdout": "ConversationErrorEvent", "stderr": ""}
+        )(),
+    )
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    manifest = harness_module.ManifestHarness(
+        name="x", run="my-agent {task}", model_env={},
+        failure_markers=("ConversationErrorEvent",),
+    )
+
+    with pytest.raises(RuntimeError, match="reported an execution error"):
+        harness_module.ManifestHarnessRunner(manifest)._launch(
+            _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
+        )
+
+
+def test_manifest_timeout_does_not_expose_command_or_credentials(monkeypatch) -> None:
+    calls: dict = {}
+
+    def fake_run(command, **kwargs):
+        if command[1] == "run":
+            calls["run"] = command
+            raise harness_module.subprocess.TimeoutExpired(command, 60)
+        calls["cleanup"] = command
+        return type("Proc", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+
+    monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    manifest = harness_module.ManifestHarness(
+        name="x", run="my-agent {task}", model_env={"api_key": "API_KEY"}, timeout=60
+    )
+
+    with pytest.raises(RuntimeError, match="timed out after 60 seconds") as caught:
+        harness_module.ManifestHarnessRunner(manifest)._launch(
+            _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
+        )
+
+    assert "API_KEY" not in str(caught.value)
+    assert "k" not in str(caught.value)
+    name = calls["run"][calls["run"].index("--name") + 1]
+    assert calls["cleanup"] == ["docker", "rm", "-f", name]
+
+
+def test_manifest_failure_redacts_credentials(monkeypatch) -> None:
+    monkeypatch.setattr(
+        harness_module.subprocess,
+        "run",
+        lambda *args, **kwargs: type(
+            "Proc", (), {"returncode": 1, "stdout": "", "stderr": "failure: secret-key"}
+        )(),
+    )
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    manifest = harness_module.ManifestHarness(
+        name="x", run="my-agent {task}", model_env={"api_key": "API_KEY"}
+    )
+    target = _target().model_copy(update={"api_key": "secret-key"})
+
+    with pytest.raises(RuntimeError) as caught:
+        harness_module.ManifestHarnessRunner(manifest)._launch(
+            _item(), target, BenchmarkConfig(), "img", Path("/tmp/work")
+        )
+
+    assert "secret-key" not in str(caught.value)
+    assert "[REDACTED]" in str(caught.value)
+
+
+def test_openclaw_accepts_cleanup_error_after_successful_stop(monkeypatch) -> None:
+    monkeypatch.setattr(
+        harness_module.subprocess,
+        "run",
+        lambda *args, **kwargs: type(
+            "Proc",
+            (),
+            {
+                "returncode": 1,
+                "stdout": '{"status":"ok"}',
+                "stderr": (
+                    "run ended with stopReason=stop\n"
+                    "Agent runtime cleanup did not settle"
+                ),
+            },
+        )(),
+    )
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    manifest = harness_module.ManifestHarness(
+        name="openclaw", run="openclaw agent exec {task}", model_env={}
+    )
+
+    output = harness_module.ManifestHarnessRunner(manifest)._launch(
+        _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
+    )
+
+    assert output == '{"status":"ok"}'
 
 
 def test_builtin_harnesses_registered() -> None:
     expected = {"openhands", "miniswe", "codex", "claude-code", "cursor", "grok", "opencode", "aider", "goose", "openclaw"}
     for name in expected:
         assert harness_module.get_harness(name).name == name
+    manifests = {manifest.name: manifest for manifest in harness_module._BUILTIN_MANIFESTS}
+    assert all(manifests[name].gateway for name in ("codex", "claude-code", "openclaw"))
 
 
 def test_config_args_rendered_into_command(monkeypatch) -> None:
@@ -181,6 +369,7 @@ def test_manifest_launch_mounts_harness_image(monkeypatch) -> None:
     manifest = harness_module.ManifestHarness(
         name="x", run="my-agent {task}", model_env={}, timeout=60,
         harness_image="evalclaw-openclaw:latest",
+        home="root/.openclaw",
     )
     harness_module.ManifestHarnessRunner(manifest)._launch(
         _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
@@ -189,7 +378,7 @@ def test_manifest_launch_mounts_harness_image(monkeypatch) -> None:
     command = calls["command"]
     assert "--mount" in command
     assert "type=image,src=evalclaw-openclaw:latest,dst=/opt/harness,readonly" in command
-    assert command[-1].startswith("cp -a /opt/harness/root/.openclaw /root/")
+    assert command[-1].startswith('cp -a /opt/harness/root/.openclaw "$HOME/"')
     assert "export PATH=/opt/harness/usr/local/bin:$PATH;" in command[-1]
 
 
@@ -198,9 +387,10 @@ def test_manifest_launch_routes_model_through_gateway(monkeypatch) -> None:
 
     def fake_run(command, **kwargs):
         calls["command"] = command
+        calls["env"] = kwargs.get("env")
         return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
 
-    def fake_start(docker, upstream):
+    def fake_start(docker, upstream, **kwargs):
         return "evalclaw-net", "evalclaw-gw", "http://evalclaw-gw:18080"
 
     def fake_stop(docker, network, gateway):
@@ -224,8 +414,72 @@ def test_manifest_launch_routes_model_through_gateway(monkeypatch) -> None:
 
     command = calls["command"]
     assert "--network" in command and "evalclaw-net" in command
-    assert "OPENAI_BASE_URL=http://evalclaw-gw:18080" in command
+    assert "OPENAI_BASE_URL" in command
+    assert calls["env"]["OPENAI_BASE_URL"] == "http://evalclaw-gw:18080"
     assert calls["stopped"] == ("evalclaw-net", "evalclaw-gw")
+
+
+def test_gateway_url_is_rendered_into_harness_arguments(monkeypatch) -> None:
+    calls: dict = {}
+
+    def fake_run(command, **kwargs):
+        calls["command"] = command
+        return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
+
+    monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    monkeypatch.setattr(
+        harness_module,
+        "_start_model_gateway",
+        lambda docker, upstream, **kwargs: (
+            "evalclaw-net", "evalclaw-gw", "http://evalclaw-gw:18080"
+        ),
+    )
+    monkeypatch.setattr(harness_module, "_stop_model_gateway", lambda *args: None)
+    manifest = harness_module.ManifestHarness(
+        name="x",
+        run="my-agent {config_args} {task}",
+        model_env={},
+        config_args=("--base-url={base_url}",),
+        gateway=True,
+    )
+
+    harness_module.ManifestHarnessRunner(manifest)._launch(
+        _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
+    )
+
+    assert "--base-url=http://evalclaw-gw:18080" in shlex.split(calls["command"][-1])
+
+
+def test_gateway_preserves_declared_internet_access(monkeypatch) -> None:
+    calls: dict = {}
+
+    def fake_start(docker, upstream, *, internal=True, **kwargs):
+        calls["internal"] = internal
+        return "evalclaw-net", "evalclaw-gw", "http://evalclaw-gw:18080"
+
+    monkeypatch.setattr(
+        harness_module.subprocess,
+        "run",
+        lambda *args, **kwargs: type(
+            "Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""}
+        )(),
+    )
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    monkeypatch.setattr(harness_module, "_start_model_gateway", fake_start)
+    monkeypatch.setattr(harness_module, "_stop_model_gateway", lambda *args: None)
+    item = _item().model_copy(
+        update={"metadata": {"agent_env": {"type": "docker_workspace", "network": "internet"}}}
+    )
+    manifest = harness_module.ManifestHarness(
+        name="x", run="my-agent {task}", model_env={}, gateway=True
+    )
+
+    harness_module.ManifestHarnessRunner(manifest)._launch(
+        item, _target(), BenchmarkConfig(), "img", Path("/tmp/work")
+    )
+
+    assert calls["internal"] is False
 
 
 def test_manifest_launch_overrides_provider_baseurl_via_config(monkeypatch) -> None:
@@ -235,7 +489,7 @@ def test_manifest_launch_overrides_provider_baseurl_via_config(monkeypatch) -> N
         calls["command"] = command
         return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
 
-    def fake_start(docker, upstream):
+    def fake_start(docker, upstream, **kwargs):
         return "evalclaw-net", "evalclaw-gw", "http://evalclaw-gw:18080"
 
     def fake_stop(docker, network, gateway):
@@ -258,3 +512,178 @@ def test_manifest_launch_overrides_provider_baseurl_via_config(monkeypatch) -> N
     shell = calls["command"][-1]
     assert "openclaw config set models.providers.deepseek.baseUrl http://evalclaw-gw:18080" in shell
     assert calls["stopped"] == ("evalclaw-net", "evalclaw-gw")
+
+
+def test_hidden_file_write_rejects_agent_symlink_escape(monkeypatch, tmp_path) -> None:
+    workdir = tmp_path / "work"
+    outside = tmp_path / "outside"
+    workdir.mkdir()
+    outside.mkdir()
+    (workdir / "tests").symlink_to(outside, target_is_directory=True)
+    item = _item().model_copy(
+        update={
+            "metadata": {
+                "agent_env": {
+                    "type": "docker_workspace",
+                    "hidden_files": {"tests/hidden.py": "private"},
+                }
+            }
+        }
+    )
+
+    with pytest.raises(ValueError, match="symbolic link"):
+        harness_module.score_docker_task(item, BenchmarkConfig(), "img", workdir)
+    assert not (outside / "hidden.py").exists()
+
+
+def test_prepare_copies_public_assets_and_rejects_path_escape(monkeypatch, tmp_path) -> None:
+    asset = tmp_path / "input.txt"
+    asset.write_text("asset", encoding="utf-8")
+    monkeypatch.setattr(
+        harness_module,
+        "apply_docker_image_selection",
+        lambda env, **kwargs: (env, {}),
+    )
+    monkeypatch.setattr(
+        harness_module,
+        "build_docker_image_if_requested",
+        lambda env, **kwargs: (env, {}),
+    )
+    item = _item().model_copy(update={"assets": [TaskAsset(path=str(asset))]})
+
+    _, workdir = harness_module.prepare_docker_task(item, BenchmarkConfig())
+    try:
+        assert (workdir / "input.txt").read_text(encoding="utf-8") == "asset"
+    finally:
+        harness_module.shutil.rmtree(workdir)
+
+    escaped = _item().model_copy(
+        update={"metadata": {"agent_env": {"visible_files": {"../outside": "x"}}}}
+    )
+    with pytest.raises(ValueError, match="relative"):
+        harness_module.prepare_docker_task(escaped, BenchmarkConfig())
+
+
+def test_harness_rejects_private_runtime_files() -> None:
+    item = _item().model_copy(
+        update={"metadata": {"agent_env": {"runtime_files": {"server.py": "private"}}}}
+    )
+    with pytest.raises(RuntimeError, match="runtime_files"):
+        harness_module.reject_tool_constraints(item)
+
+
+def test_tool_image_is_mounted_but_task_image_runs(monkeypatch) -> None:
+    calls: dict = {}
+
+    def fake_run(command, **kwargs):
+        calls["command"] = command
+        return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
+
+    monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    manifest = harness_module.ManifestHarness(
+        name="x",
+        run="agent {task}",
+        model_env={},
+        runtime_image="agent-tools:1",
+    )
+    harness_module.ManifestHarnessRunner(manifest)._launch(
+        _item(), _target(), BenchmarkConfig(), "task-image:1", Path("/tmp/work")
+    )
+
+    command = calls["command"]
+    assert "type=image,src=agent-tools:1,dst=/opt/harness,readonly" in command
+    assert command[-4] == "task-image:1"
+
+
+def test_gateway_keeps_task_resource_limits(monkeypatch) -> None:
+    calls: dict = {}
+
+    def fake_run(command, **kwargs):
+        calls["command"] = command
+        return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
+
+    monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    monkeypatch.setattr(
+        harness_module,
+        "_start_model_gateway",
+        lambda docker, upstream, **kwargs: ("network", "gateway", "http://gateway:18080"),
+    )
+    monkeypatch.setattr(harness_module, "_stop_model_gateway", lambda *args: None)
+    item = _item().model_copy(
+        update={
+            "metadata": {
+                "agent_env": {
+                    "type": "docker_workspace",
+                    "resource_limits": {"memory": "128m", "cpus": "1"},
+                }
+            }
+        }
+    )
+    manifest = harness_module.ManifestHarness(
+        name="x", run="agent {task}", model_env={}, gateway=True
+    )
+    harness_module.ManifestHarnessRunner(manifest)._launch(
+        item, _target(), BenchmarkConfig(), "task-image:1", Path("/tmp/work")
+    )
+
+    command = calls["command"]
+    assert command[command.index("--memory") + 1] == "128m"
+    assert command[command.index("--cpus") + 1] == "1"
+    assert command[command.index("--network") + 1] == "network"
+
+
+def test_trajectory_collection_skips_nested_symlinks(tmp_path) -> None:
+    workdir = tmp_path / "work"
+    logs = workdir / "logs"
+    logs.mkdir(parents=True)
+    (logs / "trace.json").write_text("{}", encoding="utf-8")
+    secret = tmp_path / "secret.txt"
+    secret.write_text("private", encoding="utf-8")
+    (logs / "leak.txt").symlink_to(secret)
+    artifact_dir = tmp_path / "artifacts"
+    manifest = harness_module.ManifestHarness(
+        name="x", run="agent {task}", model_env={}, trajectory_paths=("logs",)
+    )
+
+    harness_module.ManifestHarnessRunner(manifest)._collect_trajectory(workdir, artifact_dir)
+
+    copied = artifact_dir / "trajectory" / "logs"
+    assert (copied / "trace.json").read_text(encoding="utf-8") == "{}"
+    assert not (copied / "leak.txt").exists()
+
+
+def test_episode_records_identity_and_timing(monkeypatch, tmp_path) -> None:
+    workdir = tmp_path / "work"
+    workdir.mkdir()
+    monkeypatch.setattr(harness_module, "prepare_docker_task", lambda *args: ("img", workdir))
+    monkeypatch.setattr(harness_module, "score_docker_task", lambda *args: (1.0, "pass"))
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    monkeypatch.setattr(
+        harness_module.subprocess,
+        "run",
+        lambda *args, **kwargs: type(
+            "Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""}
+        )(),
+    )
+    monkeypatch.setattr(
+        harness_module.ManifestHarnessRunner,
+        "_image_identity",
+        lambda self, config, image: {"name": image} if image else None,
+    )
+    artifact_dir = tmp_path / "episode"
+    target = _target().model_copy(update={"api_key": None})
+    runner = harness_module.ManifestHarnessRunner(
+        harness_module.ManifestHarness(name="x", run="agent {task}", model_env={})
+    )
+
+    runner.run(_item(), target, BenchmarkConfig(), artifact_dir=artifact_dir)
+
+    episode = harness_module.json.loads((artifact_dir / "episode.json").read_text())
+    assert episode["item_id"] == "task_1"
+    assert episode["target_id"] == target.id
+    assert len(episode["task_sha256"]) == 64
+    assert episode["duration_ms"] >= 0
+    assert episode["started_at"] <= episode["finished_at"]
+    assert episode["timeouts"] == {"harness_seconds": 160, "evaluator_seconds": 600}

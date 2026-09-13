@@ -200,6 +200,38 @@ Use `provider: "openai_compatible"` explicitly when a Claude-named model is
 served by an OpenAI-compatible relay. Without that override, `claude*` models
 with a custom base URL use the native Anthropic protocol.
 
+### External agent harnesses
+
+For an agent target, `harness` is part of the evaluated system, not an
+implementation detail. Compare models with the same harness and tool-image
+version when the goal is model comparison; different harnesses measure
+different model-agent systems and are reported separately.
+
+```bash
+docker build -f docker/harness-runtime/Dockerfile -t evalclaw-harness-runtime:latest .
+docker build -f docker/openclaw/Dockerfile -t evalclaw-openclaw:latest .
+docker build -f docker/openhands/Dockerfile -t evalclaw-openhands:latest .
+docker build -f docker/model-gateway/Dockerfile -t evalclaw-model-gateway:latest .
+
+evalclaw generate \
+  --target-config '{"id":"codex-gpt5","model":"gpt-5","provider":"openai","harness":"codex"}'
+```
+
+Manifest harnesses execute inside the task image; a separate `harness_image`
+is mounted read-only only to provide the agent CLI. The runner records the
+task, harness, and model-gateway image identities plus the harness manifest.
+The model credential stays in the restricted egress gateway; the agent receives
+only a gateway placeholder. Hidden evaluator files are injected only after the
+agent exits, and scoring runs in a fresh container from the same task image.
+Only `/workspace` changes persist from the agent into scoring, so setup commands
+must be idempotent and container-local package or service changes are not part of
+the task contract.
+Unsupported contracts fail closed: external harnesses currently accept only
+`docker_workspace` tasks rooted at `/workspace`, without browser/tool
+restrictions, private `runtime_files`, or multi-stage workflows.
+OpenHands is supplied through its dedicated tool image; invoking a host-installed
+OpenHands CLI is intentionally unsupported because it cannot enforce task-image isolation.
+
 ## Experiments
 
 `experiments/` contains a self-contained harness that validates the pipeline on real APIs:

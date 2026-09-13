@@ -679,6 +679,7 @@ def _summarize(
             TargetSummary(
                 target_id=target.id,
                 model=target.model,
+                harness=target.harness,
                 average_score=avg,
                 score_by_dimension=by_dimension,
                 score_by_task_type=by_type,

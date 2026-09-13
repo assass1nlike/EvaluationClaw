@@ -8,15 +8,19 @@ supplies its own launch command.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shlex
 import shutil
 import subprocess
 import tempfile
+import threading
 import time
 import uuid
-from dataclasses import dataclass
-from pathlib import Path
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from hashlib import sha256
+from pathlib import Path, PurePosixPath
 from typing import Any, Protocol
 
 from ..execution.docker import docker_subprocess_env, resolve_docker_executable
@@ -25,7 +29,109 @@ from ..execution.docker_images import (
     build_docker_image_if_requested,
 )
 from ..execution.evaluation import parse_evaluator_result
+from ..protocols.assets import environment_asset_sources
+from ..protocols.task_agent import task_agent_initial_content_text, task_agent_system_prompt
 from ..types import SUPPORTED_HARNESSES, BenchmarkConfig, BenchmarkItem, TargetModelConfig
+
+_MODEL_GATEWAY_IMAGE = "evalclaw-model-gateway:latest"
+_OUTPUT_LIMIT_BYTES = 8 * 1024 * 1024
+
+
+def _redact_secret(text: str, secret: str | None) -> str:
+    """Remove the exact configured credential without matching ordinary text."""
+    return text.replace(secret, "[REDACTED]") if secret else text
+
+
+def _task_digest(item: BenchmarkItem) -> str:
+    payload = json.dumps(
+        item.model_dump(mode="json"), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    return sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _evaluation_timeout(item: BenchmarkItem) -> int:
+    env = agent_env(item)
+    evaluation = env.get("evaluation") if isinstance(env.get("evaluation"), dict) else {}
+    return max(1, int(evaluation.get("timeout") or env.get("timeout") or 600))
+
+
+def _run_bounded(
+    command: list[str],
+    *,
+    timeout: int,
+    env: dict[str, str],
+    stdin: int | None = subprocess.DEVNULL,
+    failure_markers: tuple[str, ...] = (),
+) -> subprocess.CompletedProcess[str]:
+    """Run a process while draining stdout and stderr into bounded buffers."""
+    process = subprocess.Popen(
+        command,
+        stdin=stdin,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+    )
+    captured: dict[str, tuple[bytes, bool]] = {}
+    encoded_markers = {marker: marker.encode("utf-8") for marker in failure_markers}
+    max_marker_length = max((len(marker) for marker in encoded_markers.values()), default=1)
+    found_markers: set[str] = set()
+
+    def drain(name: str, stream: Any) -> None:
+        head = bytearray()
+        tail = bytearray()
+        half = _OUTPUT_LIMIT_BYTES // 2
+        total = 0
+        carry = b""
+        while chunk := stream.read(64 * 1024):
+            total += len(chunk)
+            searchable = carry + chunk
+            for marker, encoded in encoded_markers.items():
+                if encoded in searchable:
+                    found_markers.add(marker)
+            carry = searchable[-(max_marker_length - 1):] if max_marker_length > 1 else b""
+            remaining = half - len(head)
+            if remaining > 0:
+                head.extend(chunk[:remaining])
+                chunk = chunk[remaining:]
+            if chunk:
+                tail.extend(chunk)
+                if len(tail) > half:
+                    del tail[:-half]
+        if total > _OUTPUT_LIMIT_BYTES:
+            value = bytes(head) + b"\n[output truncated]\n" + bytes(tail)
+        else:
+            value = bytes(head) + bytes(tail)
+        captured[name] = (value, total > _OUTPUT_LIMIT_BYTES)
+
+    threads = [
+        threading.Thread(target=drain, args=("stdout", process.stdout), daemon=True),
+        threading.Thread(target=drain, args=("stderr", process.stderr), daemon=True),
+    ]
+    for thread in threads:
+        thread.start()
+    try:
+        returncode = process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+        raise subprocess.TimeoutExpired(command, timeout) from None
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+        for thread in threads:
+            thread.join()
+    stdout = captured["stdout"][0].decode("utf-8", errors="replace")
+    stderr = captured["stderr"][0].decode("utf-8", errors="replace")
+    for marker in found_markers:
+        if marker not in stdout and marker not in stderr:
+            stderr += f"\n[detected failure marker] {marker}"
+    return subprocess.CompletedProcess(
+        command,
+        returncode,
+        stdout,
+        stderr,
+    )
 
 
 class HarnessRunner(Protocol):
@@ -140,13 +246,11 @@ def register_harness(runner: HarnessRunner) -> None:
 
 
 def ensure_builtins_registered() -> None:
-    """Register the built-in harnesses (OpenHands + the built-in manifests)."""
+    """Register the built-in manifest harnesses."""
     global _builtins_loaded
     if _builtins_loaded:
         return
     _builtins_loaded = True
-    from . import openhands  # noqa: F401  (registers the built-in harness)
-
     _register_builtin_manifests()
 
 
@@ -177,19 +281,93 @@ def reject_tool_constraints(item: BenchmarkItem) -> None:
             "Task declares tool constraints (workspace_tools/browser), which a third-party "
             "harness cannot enforce. Remove the harness or the tool constraints."
         )
+    if env.get("runtime_files"):
+        raise RuntimeError(
+            "Harness-backed tasks cannot expose runner-private runtime_files to a shell agent. "
+            "Bake runtime support into the task image or use the native agent runner."
+        )
+    if str(env.get("workdir") or "/workspace") != "/workspace":
+        raise RuntimeError(
+            "Harness-backed tasks currently require environment.workdir=/workspace."
+        )
 
 
-def _task_container_options(env: dict[str, Any]) -> list[str]:
-    options: list[str] = []
-    network = env.get("network")
-    if network:
-        options += ["--network", {"none": "none", "internet": "bridge", "restricted": "none"}.get(str(network).lower(), str(network))]
+def _task_container_options(
+    env: dict[str, Any],
+    *,
+    include_network: bool = True,
+) -> list[str]:
+    options = ["--cap-drop", "ALL", "--security-opt", "no-new-privileges"]
+    if hasattr(os, "getuid") and hasattr(os, "getgid"):
+        options += ["--user", f"{os.getuid()}:{os.getgid()}", "-e", "HOME=/tmp"]
+    network = str(env.get("network") or "none").strip().lower()
+    network_modes = {"none": "none", "internet": "bridge", "restricted": "none"}
+    if network not in network_modes:
+        raise ValueError("Harness network must be one of: none, restricted, internet.")
+    if include_network:
+        options += ["--network", network_modes[network]]
     limits = env.get("resource_limits") if isinstance(env.get("resource_limits"), dict) else {}
-    for key, flag in (("memory", "--memory"), ("cpus", "--cpus"), ("pids", "--pids-limit")):
+    for key, flag in (("memory", "--memory"), ("cpus", "--cpus")):
         value = limits.get(key)
         if value is not None and str(value).strip():
             options += [flag, str(value)]
+    options += ["--pids-limit", str(limits.get("pids") or 256)]
     return options
+
+
+def _workspace_path(workdir: Path, raw_path: object) -> Path:
+    """Resolve a declared workspace path without following links outside it."""
+    text = str(raw_path).replace("\\", "/").strip()
+    path = PurePosixPath(text)
+    if not text or path.is_absolute() or ".." in path.parts:
+        raise ValueError(f"Workspace paths must be relative and stay inside /workspace: {raw_path!r}.")
+    root = workdir.resolve()
+    candidate = root
+    for part in path.parts:
+        candidate /= part
+        if candidate.is_symlink():
+            raise ValueError(f"Workspace path contains a symbolic link: {raw_path!r}.")
+    candidate = candidate.resolve(strict=False)
+    if not candidate.is_relative_to(root):
+        raise ValueError(f"Workspace path escapes its root: {raw_path!r}.")
+    return candidate
+
+
+def _write_workspace_file(workdir: Path, path: object, content: object) -> None:
+    target = _workspace_path(workdir, path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    # Re-resolve after creating parents so a pre-existing directory symlink
+    # cannot redirect a runner-private write outside the workspace.
+    target = _workspace_path(workdir, path)
+    target.write_text(str(content), encoding="utf-8")
+
+
+def _copy_regular_tree(source: Path, destination: Path) -> None:
+    """Copy only regular files and directories from an untrusted workspace."""
+    if source.is_symlink():
+        return
+    if source.is_file():
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination, follow_symlinks=False)
+        return
+    if source.is_dir():
+        destination.mkdir(parents=True, exist_ok=True)
+        for child in source.iterdir():
+            _copy_regular_tree(child, destination / child.name)
+
+
+def _harness_prompt(item: BenchmarkItem) -> str:
+    system_prompt = task_agent_system_prompt(item, "")
+    initial_content = task_agent_initial_content_text(item)
+    if not system_prompt and not initial_content:
+        return item.prompt
+    parts: list[str] = []
+    if system_prompt:
+        parts.append(f"Task-specific instructions:\n{system_prompt}")
+    parts.append(f"Task:\n{item.prompt}")
+    if initial_content:
+        parts.append(f"Initial task content:\n{initial_content}")
+    return "\n\n".join(parts)
 
 
 def _resolve_image_context(
@@ -237,12 +415,22 @@ def prepare_docker_task(item: BenchmarkItem, config: BenchmarkConfig) -> tuple[s
     )
     image = str(env.get("image") or "python:3.11-slim")
     workdir = Path(tempfile.mkdtemp(prefix="evalclaw-harness-"))
-    visible = env.get("visible_files")
-    if isinstance(visible, dict):
-        for path, content in visible.items():
-            target = workdir / str(path)
+    try:
+        visible = env.get("visible_files")
+        if isinstance(visible, dict):
+            for path, content in visible.items():
+                _write_workspace_file(workdir, path, content)
+        for guest_path, source in environment_asset_sources(item.assets).items():
+            target = _workspace_path(workdir, guest_path)
+            if target.exists():
+                raise ValueError(f"Task asset conflicts with a visible workspace file: {guest_path!r}.")
+            if not source.is_file():
+                raise ValueError(f"Task asset does not exist or is not a file: {source}.")
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(str(content), encoding="utf-8")
+            shutil.copy2(source, target)
+    except Exception:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise
     return image, workdir
 
 
@@ -258,60 +446,97 @@ def score_docker_task(
     evaluation = env.get("evaluation") if isinstance(env.get("evaluation"), dict) else {}
     result_path = str(evaluation.get("result_path") or "/workspace/evalclaw_result.json")
     score_path = str(evaluation.get("score_path") or "/workspace/score.txt")
-    hidden = env.get("hidden_files")
-    if isinstance(hidden, dict):
-        for path, content in hidden.items():
-            target = workdir / str(path)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(str(content), encoding="utf-8")
-    runtime = env.get("runtime_files")
-    if isinstance(runtime, dict):
-        for path, content in runtime.items():
-            target = workdir / str(path)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(str(content), encoding="utf-8")
     resolved = resolve_docker_executable(config.docker_executable)
     if not resolved:
         raise RuntimeError(f"Docker executable {config.docker_executable!r} not found.")
-    setup = env.get("setup_commands") if isinstance(env.get("setup_commands"), list) else []
-    setup_script = "; ".join(
-        shlex.join(["sh", "-lc", str(command)]) for command in setup if str(command).strip()
-    )
-    evaluator_command = "; ".join(
-        part for part in (
-            setup_script,
-            "rm -f -- " + shlex.join([result_path, score_path]),
-            test_command,
-        ) if part
-    )
-    proc = subprocess.run(
-        [
+    container_name = f"evalclaw-score-{uuid.uuid4().hex[:12]}"
+    hidden = env.get("hidden_files")
+    hidden_dir: Path | None = None
+    hidden_paths: list[str] = []
+    if isinstance(hidden, dict):
+        hidden_dir = Path(tempfile.mkdtemp(prefix="evalclaw-harness-hidden-"))
+        try:
+            for path, content in hidden.items():
+                # Validate the target after the untrusted agent has exited. The
+                # bytes themselves are staged separately so host permissions and
+                # workspace links cannot redirect runner-private writes.
+                _workspace_path(workdir, path)
+                _write_workspace_file(hidden_dir, path, content)
+                hidden_paths.append(str(PurePosixPath(str(path).replace("\\", "/"))))
+        except Exception:
+            shutil.rmtree(hidden_dir, ignore_errors=True)
+            raise
+    try:
+        setup = env.get("setup_commands") if isinstance(env.get("setup_commands"), list) else []
+        setup_script = " && ".join(
+            shlex.join(["sh", "-lc", str(command)])
+            for command in setup
+            if str(command).strip()
+        )
+        inject_commands = []
+        for path in hidden_paths:
+            destination = PurePosixPath("/workspace") / PurePosixPath(path)
+            inject_commands.append(
+                "mkdir -p -- " + shlex.quote(str(destination.parent))
+                + " && cp -- "
+                + shlex.quote(str(PurePosixPath("/evalclaw-hidden") / path))
+                + " "
+                + shlex.quote(str(destination))
+            )
+        cleanup = "rm -f -- " + " ".join(
+            shlex.quote(str(PurePosixPath("/workspace") / path)) for path in hidden_paths
+        )
+        evaluator_parts = [*inject_commands]
+        if hidden_paths:
+            evaluator_parts.append(f"trap {shlex.quote(cleanup)} EXIT")
+        evaluator_parts.extend(
+            part
+            for part in (
+                setup_script,
+                "rm -f -- " + shlex.join([result_path, score_path]),
+                test_command,
+            )
+            if part
+        )
+        run_args = [
             resolved,
             "run",
             "--rm",
+            "--name",
+            container_name,
             "-v",
             f"{workdir}:/workspace",
             "-w",
             "/workspace",
             *_task_container_options(env),
-            image,
-            "sh",
-            "-lc",
-            evaluator_command,
-        ],
-        capture_output=True,
-        text=True,
-        timeout=600,
-        env=docker_subprocess_env(config.docker_executable),
-    )
+        ]
+        if hidden_dir is not None:
+            run_args += ["-v", f"{hidden_dir}:/evalclaw-hidden:ro"]
+        run_args += [image, "sh", "-lc", " && ".join(evaluator_parts)]
+        proc: subprocess.CompletedProcess[str] | None = None
+        evaluator_timeout = _evaluation_timeout(item)
+        try:
+            proc = _run_bounded(
+                run_args,
+                timeout=evaluator_timeout,
+                env=docker_subprocess_env(config.docker_executable),
+            )
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(
+                f"Harness evaluator timed out after {evaluator_timeout} seconds."
+            ) from None
+        finally:
+            if proc is None:
+                _remove_container(resolved, container_name)
+    finally:
+        if hidden_dir is not None:
+            shutil.rmtree(hidden_dir, ignore_errors=True)
     result_json = ""
     score_text = ""
     def workspace_file(path: str) -> Path:
-        relative = path.removeprefix("/workspace/").lstrip("/")
-        candidate = (workdir / relative).resolve()
-        if not candidate.is_relative_to(workdir.resolve()):
-            raise ValueError("Evaluator result paths must stay inside /workspace.")
-        return candidate
+        prefix = "/workspace/"
+        relative = path[len(prefix):] if path.startswith(prefix) else path
+        return _workspace_path(workdir, relative)
 
     result_file = workspace_file(result_path)
     score_file = workspace_file(score_path)
@@ -332,27 +557,70 @@ def score_docker_task(
     return score, reasoning
 
 
-def _docker(docker: str, args: list[str], *, check: bool = True) -> subprocess.CompletedProcess:
+def _docker(
+    docker: str,
+    args: list[str],
+    *,
+    check: bool = True,
+    extra_env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess:
     """Run a docker subcommand with Docker's credential env discoverable."""
+    env = docker_subprocess_env(docker)
+    if extra_env:
+        env.update(extra_env)
     return subprocess.run(
         [docker, *args],
         capture_output=True,
         text=True,
         check=check,
-        env=docker_subprocess_env("docker"),
+        env=env,
     )
 
 
-def _infer_model_base_url(model: str) -> str:
+def _remove_container(docker: str, name: str) -> None:
+    try:
+        _docker(docker, ["rm", "-f", name], check=False)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
+def _infer_model_base_url(model: str, provider: str = "") -> str:
     name = model.split("/", 1)[-1].lower()
     if name.startswith("deepseek"):
         return "https://api.deepseek.com"
-    if name.startswith(("gpt-", "o1", "o3", "o4")):
+    if provider == "anthropic" or name.startswith("claude"):
+        return "https://api.anthropic.com"
+    if provider == "openai" or name.startswith(("gpt-", "o1", "o3", "o4")):
         return "https://api.openai.com/v1"
-    return "https://api.openai.com/v1"
+    raise ValueError(
+        f"Harness target {model!r} requires an explicit base_url for provider {provider!r}."
+    )
 
 
-def _start_model_gateway(docker: str, upstream: str) -> tuple[str, str, str]:
+def _harness_provider(target: TargetModelConfig) -> str:
+    if target.provider == "openai_compatible":
+        name = target.model.split("/", 1)[-1].lower()
+        if name.startswith("deepseek"):
+            return "deepseek"
+        if name.startswith("gemini"):
+            return "google"
+    return target.provider
+
+
+def _harness_model(target: TargetModelConfig, provider: str) -> str:
+    prefix = provider + "/"
+    return target.model[len(prefix):] if target.model.startswith(prefix) else target.model
+
+
+def _start_model_gateway(
+    docker: str,
+    upstream: str,
+    *,
+    internal: bool = True,
+    api_key: str,
+    provider: str,
+    model: str,
+) -> tuple[str, str, str]:
     """Start a model API gateway on an internal network.
 
     Returns ``(network, gateway_name, gateway_url)``. The gateway listens on the
@@ -362,16 +630,27 @@ def _start_model_gateway(docker: str, upstream: str) -> tuple[str, str, str]:
     tag = uuid.uuid4().hex[:8]
     network = f"evalclaw-harness-{tag}"
     gateway = f"evalclaw-gateway-{tag}"
-    _docker(docker, ["network", "create", "--internal", network])
+    network_args = ["network", "create"]
+    if internal:
+        network_args.append("--internal")
+    network_args.append(network)
+    _docker(docker, network_args)
     try:
         _docker(
             docker,
             [
                 "run", "-d", "--name", gateway, "--network", network,
-                "evalclaw-model-gateway:latest", "--upstream", upstream, "--port", "18080",
+                "-e", "EVALCLAW_UPSTREAM_API_KEY",
+                _MODEL_GATEWAY_IMAGE,
+                "--upstream", upstream,
+                "--provider", provider,
+                "--model", model,
+                "--port", "18080",
             ],
+            extra_env={"EVALCLAW_UPSTREAM_API_KEY": api_key},
         )
-        _docker(docker, ["network", "connect", "bridge", gateway])
+        if internal:
+            _docker(docker, ["network", "connect", "bridge", gateway])
     except Exception:
         _docker(docker, ["rm", "-f", gateway], check=False)
         _docker(docker, ["network", "rm", network], check=False)
@@ -390,18 +669,21 @@ class ManifestHarness:
     name: str
     run: str  # command template with {task} {image} {workdir} placeholders
     model_env: dict[str, str]  # env var name -> target field (model/api_key/base_url)
+    model_template: str = "{model}"  # harness-specific model identifier
     config_args: tuple[str, ...] = ()  # argv fragments rendered at {config_args}
     timeout: int = 1800
     harness_image: str | None = None  # image whose filesystem is mounted to provide the CLI
-    runtime_image: str | None = None  # image used as the harness container itself
+    runtime_image: str | None = None  # legacy alias for harness_image
     setup: tuple[str, ...] = ()  # runtime setup commands, executed in the task environment
     path: str = "/opt/harness/usr/local/bin"  # runtime executable path inside the mounted image
-    home: str = "root/.openclaw"  # legacy default; manifests should declare their runtime home
+    home: str = ""  # optional harness home copied from the mounted tool image
     trajectory_paths: tuple[str, ...] = ()  # workspace-relative trace/artifact paths
     gateway: bool = False  # route the model API through an egress gateway (internal network)
     gateway_provider: str | None = None  # provider whose baseUrl is repointed at the gateway
     gateway_setup: str = ""  # optional command template used to configure the provider
     preflight: tuple[str, ...] = ()  # commands that verify the runtime before the episode
+    allowed_providers: tuple[str, ...] = ()
+    failure_markers: tuple[str, ...] = ()  # output that means failure despite exit code 0
 
 
 class ManifestHarnessRunner:
@@ -419,17 +701,24 @@ class ManifestHarnessRunner:
         *,
         artifact_dir: Path | None = None,
     ) -> tuple[str, float, str]:
+        started_at = datetime.now(timezone.utc)
+        started = time.monotonic()
         reject_tool_constraints(item)
+        self._validate_target(target)
         backend = environment_backend(item, config)
         image, workdir = backend.prepare()
         context = HarnessContext(item, target, config, image, workdir)
+        preflight: list[str] = []
         try:
-            self._preflight(context)
+            preflight = self._preflight(context)
             raw = self._launch(
                 context.item, context.target, context.config, context.image, context.workdir
             )
             score, reasoning = backend.evaluate(context.image, context.workdir)
+            raw = _redact_secret(raw, target.api_key)
+            reasoning = _redact_secret(reasoning, target.api_key)
             if artifact_dir is not None:
+                finished_at = datetime.now(timezone.utc)
                 artifact_dir.mkdir(parents=True, exist_ok=True)
                 (artifact_dir / f"{self.name}-output.txt").write_text(raw, encoding="utf-8")
                 (artifact_dir / f"{self.name}-reasoning.txt").write_text(reasoning, encoding="utf-8")
@@ -437,12 +726,31 @@ class ManifestHarnessRunner:
                 (artifact_dir / "episode.json").write_text(
                     json.dumps(
                         {
+                            "item_id": item.id,
+                            "task_sha256": _task_digest(item),
+                            "target_id": target.id,
                             "harness": self.name,
                             "environment": backend.kind,
                             "model": target.model,
                             "provider": target.provider,
                             "status": "completed",
                             "score": score,
+                            "started_at": started_at.isoformat(),
+                            "finished_at": finished_at.isoformat(),
+                            "duration_ms": round((time.monotonic() - started) * 1000),
+                            "timeouts": {
+                                "harness_seconds": self._episode_timeout(item),
+                                "evaluator_seconds": _evaluation_timeout(item),
+                            },
+                            "task_image": self._image_identity(config, context.image),
+                            "harness_image": self._image_identity(
+                                config, self._tool_image()
+                            ),
+                            "gateway_image": self._image_identity(
+                                config, _MODEL_GATEWAY_IMAGE
+                            ) if self._manifest.gateway else None,
+                            "manifest": asdict(self._manifest),
+                            "preflight": preflight,
                         },
                         ensure_ascii=False,
                         indent=2,
@@ -451,140 +759,320 @@ class ManifestHarnessRunner:
                     encoding="utf-8",
                 )
             return raw, score, reasoning
+        except BaseException as exc:
+            if artifact_dir is not None:
+                finished_at = datetime.now(timezone.utc)
+                artifact_dir.mkdir(parents=True, exist_ok=True)
+                self._collect_trajectory(workdir, artifact_dir)
+                (artifact_dir / "episode.json").write_text(
+                    json.dumps(
+                        {
+                            "item_id": item.id,
+                            "task_sha256": _task_digest(item),
+                            "target_id": target.id,
+                            "harness": self.name,
+                            "environment": backend.kind,
+                            "model": target.model,
+                            "provider": target.provider,
+                            "status": "failed",
+                            "error": _redact_secret(
+                                f"{type(exc).__name__}: {exc}", target.api_key
+                            ),
+                            "started_at": started_at.isoformat(),
+                            "finished_at": finished_at.isoformat(),
+                            "duration_ms": round((time.monotonic() - started) * 1000),
+                            "timeouts": {
+                                "harness_seconds": self._episode_timeout(item),
+                                "evaluator_seconds": _evaluation_timeout(item),
+                            },
+                            "task_image": self._image_identity(config, context.image),
+                            "harness_image": self._image_identity(
+                                config, self._tool_image()
+                            ),
+                            "gateway_image": self._image_identity(
+                                config, _MODEL_GATEWAY_IMAGE
+                            ) if self._manifest.gateway else None,
+                            "manifest": asdict(self._manifest),
+                            "preflight": preflight,
+                        },
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+            raise
         finally:
             backend.cleanup(workdir)
 
+    def _tool_image(self) -> str | None:
+        return self._manifest.harness_image or self._manifest.runtime_image
+
+    def _episode_timeout(self, item: BenchmarkItem) -> int:
+        env = agent_env(item)
+        max_steps = max(1, int(env.get("max_steps") or 8))
+        step_timeout = max(1, int(env.get("timeout") or 20))
+        return min(self._manifest.timeout, max_steps * step_timeout)
+
+    def _validate_target(self, target: TargetModelConfig) -> None:
+        if (
+            self._manifest.allowed_providers
+            and target.provider not in self._manifest.allowed_providers
+        ):
+            raise RuntimeError(
+                f"Harness {self.name!r} supports providers "
+                f"{list(self._manifest.allowed_providers)}, not {target.provider!r}."
+            )
+        if target.api_key and "api_key" in self._manifest.model_env and not self._manifest.gateway:
+            raise RuntimeError(
+                f"Harness {self.name!r} must use an API gateway so the task container "
+                "cannot access the upstream credential."
+            )
+
+    def _image_identity(self, config: BenchmarkConfig, image: str | None) -> dict[str, str] | None:
+        if not image:
+            return None
+        resolved = resolve_docker_executable(config.docker_executable)
+        if not resolved:
+            return {"name": image}
+        identity = {"name": image}
+        try:
+            proc = subprocess.run(
+                [resolved, "image", "inspect", image, "--format", "{{.Id}}"],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                env=docker_subprocess_env(config.docker_executable),
+            )
+            if proc.returncode == 0 and proc.stdout.strip():
+                identity["id"] = proc.stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            pass
+        return identity
+
+    def _mount_tool_image(self, run_args: list[str]) -> None:
+        tool_image = self._tool_image()
+        if tool_image:
+            run_args += [
+                "--mount",
+                f"type=image,src={tool_image},dst=/opt/harness,readonly",
+            ]
+
+    def _runtime_prefix(self) -> str:
+        if not self._tool_image():
+            return ""
+        prefix = ""
+        if self._manifest.home:
+            prefix += (
+                f"cp -a /opt/harness/{self._manifest.home} \"$HOME/\" "
+                "2>/dev/null || true; "
+            )
+        if self._manifest.path:
+            prefix += f"export PATH={shlex.quote(self._manifest.path)}:$PATH; "
+        return prefix + "export EVALCLAW_HARNESS=1; "
+
     def _launch(self, item: BenchmarkItem, target: TargetModelConfig, config: BenchmarkConfig, image: str, workdir: Path) -> str:
-        values = {
-            "task": item.prompt,
-            "image": image,
-            "workdir": "/workspace",
-            "provider": target.provider,
-            "model": target.model,
-            "api_key": target.api_key or "",
-            "base_url": target.base_url or "",
-            "extra_body": json.dumps(target.extra_body, ensure_ascii=False),
-        }
-        quoted = {key: shlex.quote(value) for key, value in values.items()}
-        config_tokens: list[str] = []
-        for template in self._manifest.config_args:
-            config_tokens.extend(shlex.split(template.format(**quoted)))
-        command = shlex.split(
-            self._manifest.run.format(**quoted, config_args=shlex.join(config_tokens))
+        env = agent_env(item)
+        max_steps = max(1, int(env.get("max_steps") or 8))
+        step_timeout = max(1, int(env.get("timeout") or 20))
+        episode_timeout = self._episode_timeout(item)
+        provider = _harness_provider(target)
+        model = _harness_model(target, provider)
+        needs_base_url = self._manifest.gateway or "base_url" in self._manifest.model_env or any(
+            "{base_url}" in template
+            for template in (self._manifest.run, *self._manifest.config_args)
+        )
+        base_url = target.base_url or (
+            _infer_model_base_url(target.model, target.provider) if needs_base_url else ""
         )
         resolved = resolve_docker_executable(config.docker_executable)
         if not resolved:
             raise RuntimeError(f"Docker executable {config.docker_executable!r} not found.")
-        run_args: list[str] = [
-            resolved, "run", "--rm",
-            "-v", f"{workdir}:/workspace",
-            "-w", "/workspace",
-        ]
-        env = agent_env(item)
-        # Gateway mode supplies the only network attachment for the harness;
-        # adding the task's network mode would make Docker reject the launch.
-        if not self._manifest.gateway:
-            run_args += _task_container_options(env)
-        if self._manifest.harness_image:
-            run_args += [
-                "--mount",
-                f"type=image,src={self._manifest.harness_image},dst=/opt/harness,readonly",
-            ]
         gateway_network: str | None = None
         gateway_name: str | None = None
-        if self._manifest.gateway:
-            upstream = target.base_url or _infer_model_base_url(target.model)
-            gateway_network, gateway_name, gateway_url = _start_model_gateway(resolved, upstream)
-            run_args += ["--network", gateway_network]
-        for field, var_name in self._manifest.model_env.items():
-            value = getattr(target, field, None)
-            if field == "base_url" and gateway_name is not None:
-                value = f"http://{gateway_name}:18080"
-            if value:
-                run_args += ["-e", f"{var_name}={value}"]
-        shell_command = shlex.join(command)
-        prefix = ""
-        if self._manifest.harness_image:
-            if self._manifest.home:
-                prefix += f"cp -a /opt/harness/{self._manifest.home} /root/ 2>/dev/null || true; "
-            if self._manifest.path:
-                prefix += f"export PATH={shlex.quote(self._manifest.path)}:$PATH; "
-            prefix += "export EVALCLAW_HARNESS=1; "
-        task_env = env
-        for setup in task_env.get("setup_commands", []):
-            if setup:
-                prefix += shlex.join(["sh", "-lc", str(setup)]) + "; "
-        for setup in self._manifest.setup:
-            prefix += shlex.join(["sh", "-lc", setup]) + "; "
-        if gateway_name is not None and self._manifest.gateway_setup:
-            prefix += self._manifest.gateway_setup.format(
-                gateway_url=f"http://{gateway_name}:18080",
-                provider=shlex.quote(target.provider),
-                model=shlex.quote(target.model),
-            ) + "; "
-        elif gateway_name is not None and self._manifest.name == "openclaw" and self._manifest.gateway_provider:
-            # Compatibility for callers constructing the old OpenClaw manifest
-            # directly. File manifests should use gateway_setup instead.
-            prefix += (
-                f"openclaw config set models.providers.{self._manifest.gateway_provider}.baseUrl "
-                f"http://{gateway_name}:18080 2>/dev/null; "
-            )
-        run_args += [self._manifest.runtime_image or image, "sh", "-lc", prefix + shell_command]
+        container_name = f"evalclaw-harness-{uuid.uuid4().hex[:12]}"
         try:
-            proc = subprocess.run(
-                run_args,
-                stdin=subprocess.DEVNULL,
-                capture_output=True,
-                text=True,
-                timeout=self._manifest.timeout,
-                env=docker_subprocess_env(config.docker_executable),
+            if self._manifest.gateway:
+                if str(env.get("network") or "none").strip().lower() == "internet":
+                    gateway_network, gateway_name, base_url = _start_model_gateway(
+                        resolved,
+                        base_url,
+                        internal=False,
+                        api_key=target.api_key or "",
+                        provider=provider,
+                        model=model,
+                    )
+                else:
+                    gateway_network, gateway_name, base_url = _start_model_gateway(
+                        resolved,
+                        base_url,
+                        api_key=target.api_key or "",
+                        provider=provider,
+                        model=model,
+                    )
+            values = {
+                "task": _harness_prompt(item),
+                "image": image,
+                "workdir": "/workspace",
+                "provider": provider,
+                "model": model,
+                "api_key": "evalclaw-gateway" if self._manifest.gateway else target.api_key or "",
+                "base_url": base_url,
+                "extra_body": json.dumps(target.extra_body, ensure_ascii=False),
+                "max_steps": str(max_steps),
+                "step_timeout": str(step_timeout),
+                "timeout": str(episode_timeout),
+            }
+            quoted = {key: shlex.quote(value) for key, value in values.items()}
+            config_tokens: list[str] = []
+            for template in self._manifest.config_args:
+                config_tokens.extend(shlex.split(template.format(**quoted)))
+            command = shlex.split(
+                self._manifest.run.format(**quoted, config_args=shlex.join(config_tokens))
             )
-        except FileNotFoundError as exc:
-            raise RuntimeError(f"Harness command not found for {self.name!r}.") from exc
+            run_args: list[str] = [
+                resolved, "run", "--rm",
+                "--name", container_name,
+                "-v", f"{workdir}:/workspace",
+                "-w", "/workspace",
+                *_task_container_options(env, include_network=not self._manifest.gateway),
+            ]
+            self._mount_tool_image(run_args)
+            if gateway_network is not None:
+                run_args += ["--network", gateway_network]
+            connection = {
+                "provider": provider,
+                "model": self._manifest.model_template.format(**values),
+                "api_key": values["api_key"],
+                "base_url": base_url,
+            }
+            docker_env = docker_subprocess_env(config.docker_executable)
+            for field, var_name in self._manifest.model_env.items():
+                value = connection.get(field, getattr(target, field, None))
+                if value:
+                    docker_env[var_name] = str(value)
+                    run_args += ["-e", var_name]
+            shell_command = shlex.join(command)
+            prefix = self._runtime_prefix()
+            for setup in env.get("setup_commands", []):
+                if setup:
+                    prefix += shlex.join(["sh", "-lc", str(setup)]) + " && "
+            for setup in self._manifest.setup:
+                prefix += shlex.join(["sh", "-lc", setup]) + " && "
+            if gateway_name is not None and self._manifest.gateway_setup:
+                prefix += self._manifest.gateway_setup.format(
+                    gateway_url=base_url,
+                    provider=shlex.quote(provider),
+                    model=shlex.quote(_harness_model(target, provider)),
+                ) + " && "
+            elif gateway_name is not None and self._manifest.name == "openclaw" and self._manifest.gateway_provider:
+                # Compatibility for callers constructing the old OpenClaw manifest
+                # directly. File manifests should use gateway_setup instead.
+                prefix += (
+                    f"openclaw config set models.providers.{self._manifest.gateway_provider}.baseUrl "
+                    f"{base_url} 2>/dev/null; "
+                )
+            run_args += [image, "sh", "-lc", prefix + shell_command]
+            proc: subprocess.CompletedProcess[str] | None = None
+            try:
+                proc = _run_bounded(
+                    run_args,
+                    stdin=subprocess.DEVNULL,
+                timeout=episode_timeout,
+                env=docker_env,
+                failure_markers=self._manifest.failure_markers,
+                )
+            except subprocess.TimeoutExpired:
+                raise RuntimeError(
+                    f"Harness {self.name!r} timed out after {episode_timeout} seconds."
+                ) from None
+            except FileNotFoundError as exc:
+                raise RuntimeError(f"Harness command not found for {self.name!r}.") from exc
+            finally:
+                if proc is None:
+                    _remove_container(resolved, container_name)
+            cleanup_only_failure = (
+                self.name == "openclaw"
+                and "ended with stopReason=stop" in proc.stderr
+                and "Agent runtime cleanup did not settle" in proc.stderr
+                and bool(proc.stdout.strip())
+            )
+            if proc.returncode != 0 and not cleanup_only_failure:
+                details = _redact_secret(proc.stderr or proc.stdout, target.api_key)
+                raise RuntimeError(f"Harness {self.name!r} failed: {details}")
+            for marker in self._manifest.failure_markers:
+                if marker in proc.stdout or marker in proc.stderr:
+                    details = _redact_secret(proc.stderr or proc.stdout, target.api_key)
+                    raise RuntimeError(
+                        f"Harness {self.name!r} reported an execution error: {details}"
+                    )
+            return proc.stdout
         finally:
             if gateway_name is not None:
                 _stop_model_gateway(resolved, gateway_network or "", gateway_name)
-        if proc.returncode != 0:
-            raise RuntimeError(f"Harness {self.name!r} failed: {proc.stderr or proc.stdout}")
-        return proc.stdout
 
-    def _preflight(self, context: HarnessContext) -> None:
+    def _preflight(self, context: HarnessContext) -> list[str]:
         if not self._manifest.preflight:
-            return
+            return []
+        resolved = resolve_docker_executable(context.config.docker_executable)
+        if not resolved:
+            raise RuntimeError(
+                f"Docker executable {context.config.docker_executable!r} not found."
+            )
+        outputs: list[str] = []
         for command in self._manifest.preflight:
+            container_name = f"evalclaw-preflight-{uuid.uuid4().hex[:12]}"
             rendered = command.format(
                 model=shlex.quote(context.target.model),
                 provider=shlex.quote(context.target.provider),
                 workdir="/workspace",
             )
-            probe = subprocess.run(
-                [
-                    resolve_docker_executable(context.config.docker_executable) or context.config.docker_executable,
-                    "run", "--rm", "-v", f"{context.workdir}:/workspace", "-w", "/workspace",
-                    context.image, "sh", "-lc", rendered,
-                ],
-                capture_output=True,
-                text=True,
-                timeout=min(self._manifest.timeout, 120),
-                env=docker_subprocess_env(context.config.docker_executable),
-            )
+            run_args = [
+                resolved,
+                "run",
+                "--rm",
+                "--name",
+                container_name,
+                "-v",
+                f"{context.workdir}:/workspace",
+                "-w",
+                "/workspace",
+                *_task_container_options(agent_env(context.item)),
+            ]
+            self._mount_tool_image(run_args)
+            run_args += [context.image, "sh", "-lc", self._runtime_prefix() + rendered]
+            probe: subprocess.CompletedProcess[str] | None = None
+            try:
+                probe = _run_bounded(
+                    run_args,
+                    timeout=min(self._manifest.timeout, 120),
+                    env=docker_subprocess_env(context.config.docker_executable),
+                )
+            except subprocess.TimeoutExpired:
+                raise RuntimeError(
+                    f"Harness {self.name!r} preflight timed out."
+                ) from None
+            finally:
+                if probe is None:
+                    _remove_container(resolved, container_name)
             if probe.returncode != 0:
                 raise RuntimeError(
                     f"Harness {self.name!r} preflight failed: {probe.stderr or probe.stdout}"
                 )
+            outputs.append((probe.stdout or probe.stderr).strip())
+        return outputs
 
     def _collect_trajectory(self, workdir: Path, artifact_dir: Path) -> None:
         """Copy declared harness traces before the task workspace is removed."""
         for relative in self._manifest.trajectory_paths:
-            source = (workdir / relative).resolve()
-            if not source.is_relative_to(workdir.resolve()) or not source.exists():
+            try:
+                source = _workspace_path(workdir, relative)
+                destination = _workspace_path(artifact_dir / "trajectory", relative)
+            except ValueError:
                 continue
-            destination = artifact_dir / "trajectory" / relative
-            if source.is_dir():
-                shutil.copytree(source, destination, dirs_exist_ok=True)
-            else:
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source, destination)
+            if not source.exists():
+                continue
+            _copy_regular_tree(source, destination)
 
 
 def load_manifest_harness(path: str | Path) -> str:
@@ -598,6 +1086,7 @@ def load_manifest_harness(path: str | Path) -> str:
         name=str(raw.get("name") or "").strip(),
         run=str(raw.get("run") or "").strip(),
         model_env={str(key): str(value) for key, value in (raw.get("model_env") or {}).items()},
+        model_template=str(raw.get("model_template") or "{model}"),
         config_args=tuple(str(arg) for arg in (raw.get("config_args") or [])),
         timeout=max(1, int(raw.get("timeout") or 1800)),
         harness_image=str(raw.get("harness_image") or "") or None,
@@ -610,6 +1099,10 @@ def load_manifest_harness(path: str | Path) -> str:
         gateway_provider=str(raw.get("gateway_provider") or "") or None,
         gateway_setup=str(raw.get("gateway_setup") or ""),
         preflight=tuple(str(command) for command in (raw.get("preflight") or [])),
+        allowed_providers=tuple(
+            str(provider) for provider in (raw.get("allowed_providers") or [])
+        ),
+        failure_markers=tuple(str(marker) for marker in (raw.get("failure_markers") or [])),
     )
     if not manifest.name or not manifest.run:
         raise ValueError("Harness manifest requires name and run.")
@@ -624,12 +1117,17 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
         name="miniswe",
         run="mini -m {model} -t {task} -y",
         model_env={"api_key": "DEEPSEEK_API_KEY"},
+        preflight=("mini --version",),
     ),
     # Family-bound (official harnesses). codex has no OPENAI_BASE_URL env var: its
     # base_url / wire_api / env_key live in config.toml, so it's driven by -c flags.
     ManifestHarness(
         name="codex",
-        run="codex exec {config_args} --sandbox workspace-write --skip-git-repo-check -m {model} {task}",
+        run=(
+            "codex exec {config_args} --json --ephemeral "
+            "--dangerously-bypass-approvals-and-sandbox "
+            "--skip-git-repo-check -m {model} {task}"
+        ),
         model_env={"api_key": "OPENAI_API_KEY"},
         config_args=(
             "-c model_provider=evalclaw",
@@ -638,52 +1136,89 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
             "-c model_providers.evalclaw.wire_api=responses",
             "-c model_providers.evalclaw.env_key=OPENAI_API_KEY",
         ),
-        runtime_image="evalclaw-harness-runtime:latest",
+        harness_image="evalclaw-harness-runtime:latest",
+        preflight=("codex --version",),
+        gateway=True,
+        allowed_providers=("openai", "openai_responses"),
+        failure_markers=("bwrap: No permissions to create a new namespace",),
     ),
     ManifestHarness(
         name="claude-code",
-        run="claude -p --model {model} --permission-mode bypassPermissions {task}",
+        run=(
+            "claude -p --model {model} --permission-mode bypassPermissions "
+            "--max-turns {max_steps} --output-format stream-json --verbose {task}"
+        ),
         model_env={"api_key": "ANTHROPIC_API_KEY", "base_url": "ANTHROPIC_BASE_URL"},
-        runtime_image="evalclaw-harness-runtime:latest",
+        harness_image="evalclaw-harness-runtime:latest",
+        preflight=("claude --version",),
+        gateway=True,
+        allowed_providers=("anthropic",),
     ),
     ManifestHarness(
         name="cursor",
         run="cursor-agent -p --trust --force --model {model} {task}",
         model_env={"api_key": "CURSOR_API_KEY", "base_url": "CURSOR_API_ENDPOINT"},
+        preflight=("cursor-agent --version",),
     ),
     ManifestHarness(
         name="grok",
         run="grok -p {task} -m {model} --permission-mode bypassPermissions --always-approve",
         model_env={"api_key": "XAI_API_KEY"},
+        preflight=("grok --version",),
     ),
     # Model-agnostic terminal agents.
     ManifestHarness(
         name="opencode",
         run="opencode run --dir {workdir} -m {model} --format json {task}",
         model_env={"api_key": "DEEPSEEK_API_KEY"},
+        preflight=("opencode --version",),
     ),
     ManifestHarness(
         name="aider",
         run="aider --model {model} --message {task} --yes --no-git",
         model_env={"api_key": "DEEPSEEK_API_KEY"},
+        preflight=("aider --version",),
     ),
     ManifestHarness(
         name="goose",
         run="goose run -t {task}",
         model_env={"model": "GOOSE_MODEL", "api_key": "OPENAI_API_KEY", "base_url": "OPENAI_BASE_URL"},
+        preflight=("goose --version",),
     ),
     ManifestHarness(
         name="openclaw",
-        run="openclaw agent exec --timeout 1800 --model {provider}/{model} --cwd {workdir} {task}",
+        run=(
+            "openclaw agent exec --json --timeout {timeout} "
+            "--model {provider}/{model} --cwd {workdir} {task}"
+        ),
         model_env={"api_key": "OPENCLAW_API_KEY"},
         harness_image="evalclaw-openclaw:latest",
-        runtime_image="evalclaw-harness-runtime:latest",
-        home=".openclaw",
+        home="root/.openclaw",
         gateway=True,
         gateway_setup=(
-            "openclaw config set models.providers.{provider}.baseUrl {gateway_url} 2>/dev/null; "
-            "openclaw config set models.providers.{provider}.apiKey $OPENCLAW_API_KEY 2>/dev/null"
+            "openclaw config set models.providers.{provider}.baseUrl {gateway_url} "
+            "&& openclaw config set models.providers.{provider}.apiKey $OPENCLAW_API_KEY"
         ),
+        preflight=("openclaw --version",),
+        allowed_providers=("openai", "anthropic", "openai_compatible"),
+    ),
+    ManifestHarness(
+        name="openhands",
+        run=(
+            "env OPENHANDS_SUPPRESS_BANNER=1 openhands-mounted --headless "
+            "--override-with-envs --json --exit-without-confirmation -t {task}"
+        ),
+        model_env={
+            "model": "LLM_MODEL",
+            "api_key": "LLM_API_KEY",
+            "base_url": "LLM_BASE_URL",
+        },
+        model_template="{provider}/{model}",
+        harness_image="evalclaw-openhands:latest",
+        preflight=("openhands-mounted --version",),
+        gateway=True,
+        allowed_providers=("openai", "anthropic", "openai_compatible"),
+        failure_markers=('"kind": "ConversationErrorEvent"',),
     ),
 )
 
