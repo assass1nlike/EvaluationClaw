@@ -92,6 +92,9 @@ explanation of failure. If those do not establish whether the model or the
 environment caused it, use the read-only tools to inspect the complete
 trajectory, evaluator output, and other saved artifacts. Do not infer a
 capability weakness from failed setup, evaluator errors, or ambiguous tasks.
+The default raw response is a bounded head-and-tail excerpt, so its final
+answer and closing actions remain visible; use read_item_evidence for the full
+response when intermediate actions matter.
 
 Return pure JSON only:
 {
@@ -289,7 +292,13 @@ _RAW_RESPONSE_LIMIT = 2000
 def _truncate(value: str, limit: int = _RAW_RESPONSE_LIMIT) -> str:
     if len(value) <= limit:
         return value
-    return value[:limit] + f"... [truncated {len(value) - limit} chars]"
+    # Agent traces often put the useful final answer and failure summary at the
+    # end. Keep both ends in the default context; the evidence tool exposes the
+    # complete response when the analyser needs it.
+    head = limit // 2
+    tail = limit - head
+    omitted = len(value) - limit
+    return value[:head] + f"... [truncated {omitted} chars] ..." + value[-tail:]
 
 
 def _task_context(suite: TaskSuite) -> list[dict[str, Any]]:
