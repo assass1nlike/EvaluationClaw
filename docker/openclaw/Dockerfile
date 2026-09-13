@@ -5,7 +5,7 @@
 # task image should be built FROM this image (or layer this CLI onto it).
 FROM node:24-slim
 
-RUN npm install -g --allow-scripts=openclaw,@google/genai,koffi,tree-sitter-bash,protobufjs openclaw@2026.9.3
+RUN npm install -g --allow-scripts=openclaw,@google/genai,koffi,tree-sitter-bash,protobufjs openclaw@2026.9.4
 
 # DeepSeek provider (OpenAI-compatible) so `deepseek/<model>` resolves.
 RUN openclaw plugins install @openclaw/deepseek-provider
@@ -14,4 +14,5 @@ RUN openclaw plugins install @openclaw/deepseek-provider
 # the old `deepseek-v4-flash` name) and pin the provider base URL.
 RUN printf '%s\n' \
     '{"models":{"providers":{"deepseek":{"baseUrl":"https://api.deepseek.com","models":[{"id":"deepseek-flash","name":"deepseek-flash"}]}}}}' \
-    | openclaw config patch --stdin
+    | openclaw config patch --stdin \
+    && chmod -R a+rX /root/.openclaw

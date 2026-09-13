@@ -1,7 +1,13 @@
 name: demo
-run: 'python /data1/zangyihe/EvaluationClaw/scripts/demo_harness.py --task {task} --workdir {workdir}'
+run: 'python /opt/harness/usr/local/bin/evalclaw-demo-harness.py --task {task} --workdir {workdir}'
 model_env:
   model: LLM_MODEL
   api_key: LLM_API_KEY
   base_url: LLM_BASE_URL
 timeout: 300
+harness_image: evalclaw-harness-runtime:latest
+preflight:
+  - python --version
+allowed_providers:
+  - openai
+  - openai_compatible

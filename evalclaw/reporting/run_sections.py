@@ -153,10 +153,12 @@ def _run_provenance_lines(run: EvalRun) -> list[str]:
     latencies = [result.latency_ms for result in results if result.latency_ms is not None]
     total_latency = sum(latencies) if latencies else None
     avg_latency = total_latency / len(latencies) if total_latency is not None and latencies else None
+    has_harness = any(summary.harness for summary in run.summaries)
     target_rows = [
         [
             summary.target_id,
             summary.model,
+            *([summary.harness or "native"] if has_harness else []),
             str(summary.total_items),
             str(summary.errors),
             _pct(summary.average_score),
@@ -176,7 +178,10 @@ def _run_provenance_lines(run: EvalRun) -> list[str]:
         "",
     ]
     if target_rows:
-        lines.append(_markdown_table(["Target", "Model", "Items", "Errors", "Average"], target_rows))
+        headers = ["Target", "Model"]
+        if has_harness:
+            headers.append("Harness")
+        lines.append(_markdown_table(headers + ["Items", "Errors", "Average"], target_rows))
         lines.append("")
     return lines
 

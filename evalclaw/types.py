@@ -693,7 +693,18 @@ class ResearchBrief(BaseModel):
     created_at: str = Field(default_factory=utc_now)
 
 
-SUPPORTED_HARNESSES: set[str] = {"openhands"}
+SUPPORTED_HARNESSES: set[str] = {
+    "aider",
+    "claude-code",
+    "codex",
+    "cursor",
+    "goose",
+    "grok",
+    "miniswe",
+    "openclaw",
+    "opencode",
+    "openhands",
+}
 
 
 class FailoverEndpoint(BaseModel):
@@ -747,6 +758,7 @@ class ItemResult(BaseModel):
 class TargetSummary(BaseModel):
     target_id: str
     model: str
+    harness: str = ""
     average_score: float = 0.0
     score_by_dimension: dict[str, float] = Field(default_factory=dict)
     score_by_task_type: dict[str, float] = Field(default_factory=dict)
