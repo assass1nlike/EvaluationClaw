@@ -100,6 +100,11 @@ For task_type=agent with metadata.agent_env.type=docker_workspace:
   must be true with runtime=playwright_python, start_url, allowed_origins, and a
   runtime that actually contains Playwright and a browser. Do not infer that a
   custom image lacks them solely because its image name does not say playwright.
+- When agent_env.actors is non-empty, each actor must implement a role requested
+  by the TaskDesign, have a clear system prompt, and reference an existing
+  actor_toolsets entry when it needs tools. Check that its objective tool and
+  path permissions fit the role. The system prompt defines role behavior; do
+  not impose a generic rule against helping the target complete work.
 - Check that setup_commands are feasible under the declared image and network
   policy, start required local services before the target begins, use paths
   consistent with the container workdir, and leave the evaluator runtime

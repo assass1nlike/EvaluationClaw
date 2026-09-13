@@ -172,6 +172,7 @@ def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
     if env_type == "vm":
         return ["screenshot", "mouse_move", "click", "key", "type", "read_file", "write_file", "run_command", "evaluate"]
     if env_type == "docker_workspace":
+        actor_tools = ["send_message"] if agent_env.get("actors") else []
         protected_material = bool(agent_env.get("runtime_files") or agent_env.get("hidden_files"))
         browser = agent_env.get("browser")
         if isinstance(browser, dict) and browser.get("enabled"):
@@ -186,11 +187,11 @@ def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
                 workspace_tools = ["list_files", "read_file", "write_file", "run_command"]
             if protected_material:
                 workspace_tools = [name for name in workspace_tools if name != "run_command"]
-            return [*browser_tools, *workspace_tools, "final"]
+            return [*browser_tools, *workspace_tools, *actor_tools, "final"]
         workspace_tools = ["list_files", "read_file", "write_file"]
         if not protected_material:
             workspace_tools.append("run_command")
-        return [*workspace_tools, "run_tests"]
+        return [*workspace_tools, *actor_tools, "run_tests"]
     return ["final"]
 
 

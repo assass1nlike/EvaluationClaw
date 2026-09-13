@@ -116,6 +116,16 @@ def _compact_metadata_for_qc(metadata: dict, *, string_limit: int = 1200) -> dic
                 )
                 if key in browser
             }
+        actors = env.get("actors")
+        if isinstance(actors, list):
+            env_summary["actors"] = [
+                _compact_qc_value(actor, string_limit=2400)
+                for actor in actors[:16]
+                if isinstance(actor, dict)
+            ]
+        actor_toolsets = env.get("actor_toolsets")
+        if isinstance(actor_toolsets, dict):
+            env_summary["actor_toolsets"] = _compact_qc_value(actor_toolsets)
         image_build = env.get("image_build")
         if isinstance(image_build, dict) and image_build.get("enabled"):
             env_summary["image_build"] = {

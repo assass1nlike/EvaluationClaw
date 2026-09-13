@@ -1725,6 +1725,7 @@ def call_target_model_with_tools(
     failover: Optional[FailoverEndpoint] = None,
     backend: str = "auto",
     max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
+    timeout_s: float | None = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "target-tools",
 ) -> TargetToolModelResponse:
@@ -1736,17 +1737,30 @@ def call_target_model_with_tools(
     appended without lossy conversion through EvalClaw's simple ``Message``
     model.
     """
-    return _with_endpoint_failover(
-        lambda connection, attempt_name: _call_target_model_with_tools_once(
+    started = time.monotonic()
+
+    def run(connection: EndpointConnection, attempt_name: str) -> TargetToolModelResponse:
+        remaining = None
+        if timeout_s is not None:
+            remaining = timeout_s - (time.monotonic() - started)
+            if remaining <= 0:
+                raise TimeoutError(
+                    f"Target tool-model call exceeded its {timeout_s:.0f}s deadline."
+                )
+        return _call_target_model_with_tools_once(
             messages,
             _target_on_connection(target, connection),
             tools,
             system_prompt=system_prompt,
             backend=backend,
             max_tokens=max_tokens,
+            timeout_s=remaining,
             trace_dir=trace_dir,
             trace_name=attempt_name,
-        ),
+        )
+
+    return _with_endpoint_failover(
+        run,
         primary=EndpointConnection(target.provider, target.base_url, target.api_key),
         failover=_endpoint_connection(failover),
         trace_name=trace_name,
@@ -1774,6 +1788,7 @@ def _call_target_model_with_tools_once(
     system_prompt: Optional[str] = None,
     backend: str = "auto",
     max_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
+    timeout_s: float | None = None,
     trace_dir: str | Path | None = None,
     trace_name: str = "target-tools",
 ) -> TargetToolModelResponse:
@@ -1800,6 +1815,7 @@ def _call_target_model_with_tools_once(
                 system=system_prompt or anthropic.NOT_GIVEN,  # type: ignore[arg-type]
                 messages=messages,
                 tools=request["tools"] or anthropic.NOT_GIVEN,
+                **({"timeout": timeout_s} if timeout_s is not None else {}),
             )
         except BaseException as exc:
             _write_llm_trace(trace_path, request=request, status="failed", error=exc)
@@ -1858,12 +1874,18 @@ def _call_target_model_with_tools_once(
     request = {"provider": "openai_compatible", "base_url": base_url, "body": body}
     trace_path = _llm_trace_path(trace_dir, trace_name, 1)
     try:
+        timeout_options = (
+            {"request_timeout_s": timeout_s, "total_timeout_s": timeout_s}
+            if timeout_s is not None
+            else {}
+        )
         data = _post_streaming_openai_compatible(
             f"{base_url.rstrip('/')}/chat/completions",
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             body=body,
             trace_dir=Path(trace_dir) / "http" if trace_dir is not None else None,
             trace_name=trace_name,
+            **timeout_options,
         )
     except BaseException as exc:
         _write_llm_trace(trace_path, request=request, status="failed", error=exc)

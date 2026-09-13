@@ -1055,6 +1055,21 @@ def task_structure_issues(
         )
 
     if env.type == AgentEnvironmentType.docker_workspace:
+        planned_actors = (
+            task_design.environment_requirements.get("actors")
+            if task_design is not None
+            else None
+        )
+        if env.actors and task.workflow is not None:
+            issues.append("Environment actors cannot be combined with workflow stages.")
+        if env.actors and task_design is not None and not planned_actors:
+            issues.append(
+                "Builder added environment actors that were not requested by the TaskDesign."
+            )
+        if planned_actors and not env.actors:
+            issues.append(
+                "TaskDesign requests environment actors, but the environment defines none."
+            )
         if not _has_text(env.test_command):
             issues.append("docker_workspace tasks must include a deterministic test_command.")
         task_text = f"{task.prompt} {' '.join(task.tags)}".lower()

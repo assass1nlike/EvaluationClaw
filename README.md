@@ -232,6 +232,18 @@ restrictions, private `runtime_files`, or multi-stage workflows.
 OpenHands is supplied through its dedicated tool image; invoking a host-installed
 OpenHands CLI is intentionally unsupported because it cannot enforce task-image isolation.
 
+Docker agent tasks may define environment roles under `environment.actors` and
+reusable capability groups under `environment.actor_toolsets`. The target sees
+one `send_message(actor_id, message)` tool and all public actor IDs. Each actor
+keeps an isolated conversation history, receives only its own public benchmark
+system prompt and incoming messages, and can modify the shared workspace through
+its configured tools. Actor tasks currently require the OpenClaw harness. Configure
+the single actor model used for a run with `--actor-model` and the corresponding
+`--actor-provider`, `--actor-base-url`, and `--actor-api-key` options; per-interaction
+limits use the `--actor-max-*` and `--actor-timeout` options. Actor definitions,
+messages, tool calls, usage, and failures are saved under each run's `actors/`
+artifacts, while credentials remain outside the task container.
+
 ## Experiments
 
 `experiments/` contains a self-contained harness that validates the pipeline on real APIs:

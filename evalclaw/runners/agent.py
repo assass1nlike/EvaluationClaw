@@ -404,6 +404,12 @@ def run_agent_interaction(
     artifact_dir: str | Path | None = None,
 ) -> tuple[str, float, str]:
     artifact_path = Path(artifact_dir) if artifact_dir is not None else None
+    env_metadata = item.metadata.get("agent_env") if isinstance(item.metadata, dict) else None
+    has_actors = isinstance(env_metadata, dict) and bool(env_metadata.get("actors"))
+    if has_actors and target.harness != "openclaw":
+        raise RuntimeError(
+            "Environment actors currently require a Docker task run with the OpenClaw harness."
+        )
     if item.workflow is not None and target.harness:
         raise RuntimeError(
             "External harnesses do not implement the task's multi-stage workflow contract. "

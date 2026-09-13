@@ -430,6 +430,40 @@ def test_manifest_launch_mounts_harness_image(monkeypatch) -> None:
     assert "export PATH=/opt/harness/usr/local/bin:$PATH;" in command[-1]
 
 
+def test_openclaw_launch_mounts_and_configures_actor_service(monkeypatch) -> None:
+    calls: dict = {}
+
+    def fake_run(command, **kwargs):
+        calls["command"] = command
+        return type("Proc", (), {"returncode": 0, "stdout": "done", "stderr": ""})()
+
+    class FakeActorSession:
+        mount = "/tmp/actors:/run/evalclaw-contacts"
+        setup_command = "openclaw mcp set evalclaw-contacts '{}'"
+
+    monkeypatch.setattr(harness_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(harness_module, "resolve_docker_executable", lambda _: "docker")
+    manifest = harness_module.ManifestHarness(
+        name="openclaw",
+        run="openclaw agent exec {task}",
+        model_env={},
+        harness_image="evalclaw-openclaw:latest",
+    )
+
+    harness_module.ManifestHarnessRunner(manifest)._launch(
+        _item(),
+        _target(),
+        BenchmarkConfig(),
+        "img",
+        Path("/tmp/work"),
+        actor_session=FakeActorSession(),
+    )
+
+    command = calls["command"]
+    assert "/tmp/actors:/run/evalclaw-contacts" in command
+    assert "openclaw mcp set evalclaw-contacts" in command[-1]
+
+
 def test_manifest_launch_routes_model_through_gateway(monkeypatch) -> None:
     calls: dict = {}
 
