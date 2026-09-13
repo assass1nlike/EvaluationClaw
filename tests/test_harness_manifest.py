@@ -221,7 +221,9 @@ def test_manifest_timeout_does_not_expose_command_or_credentials(monkeypatch) ->
         name="x", run="my-agent {task}", model_env={"api_key": "API_KEY"}, timeout=60
     )
 
-    with pytest.raises(RuntimeError, match="timed out after 60 seconds") as caught:
+    with pytest.raises(
+        harness_module.HarnessTimeoutError, match="timed out after 60 seconds"
+    ) as caught:
         harness_module.ManifestHarnessRunner(manifest)._launch(
             _item(), _target(), BenchmarkConfig(), "img", Path("/tmp/work")
         )
@@ -230,6 +232,42 @@ def test_manifest_timeout_does_not_expose_command_or_credentials(monkeypatch) ->
     assert "k" not in str(caught.value)
     name = calls["run"][calls["run"].index("--name") + 1]
     assert calls["cleanup"] == ["docker", "rm", "-f", name]
+
+
+def test_timeout_output_is_saved_and_redacted(monkeypatch, tmp_path) -> None:
+    workdir = tmp_path / "work"
+    workdir.mkdir()
+    monkeypatch.setattr(harness_module, "prepare_docker_task", lambda *args: ("img", workdir))
+    monkeypatch.setattr(
+        harness_module.ManifestHarnessRunner,
+        "_preflight",
+        lambda *args: [],
+    )
+    monkeypatch.setattr(
+        harness_module.ManifestHarnessRunner,
+        "_launch",
+        lambda *args: (_ for _ in ()).throw(
+            harness_module.HarnessTimeoutError(
+                "x", 60, "partial secret-key", "warning secret-key"
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        harness_module.ManifestHarnessRunner,
+        "_image_identity",
+        lambda self, config, image: {"name": image} if image else None,
+    )
+    artifact_dir = tmp_path / "episode"
+    runner = harness_module.ManifestHarnessRunner(
+        harness_module.ManifestHarness(name="x", run="agent {task}", model_env={})
+    )
+    target = _target().model_copy(update={"api_key": "secret-key"})
+
+    with pytest.raises(harness_module.HarnessTimeoutError):
+        runner.run(_item(), target, BenchmarkConfig(), artifact_dir=artifact_dir)
+
+    assert (artifact_dir / "x-output.txt").read_text() == "partial [REDACTED]"
+    assert (artifact_dir / "x-stderr.txt").read_text() == "warning [REDACTED]"
 
 
 def test_manifest_failure_redacts_credentials(monkeypatch) -> None:
