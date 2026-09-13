@@ -86,6 +86,13 @@ task or infrastructure rather than the evaluated model), and read_item_evidence
 reads one item's full raw response and judge reasoning. Use these only when the
 request payload is not enough.
 
+For agent tasks, the request includes the task prompt and an environment
+contract summary. Use the score, error, and judge reasoning as the initial
+explanation of failure. If those do not establish whether the model or the
+environment caused it, use the read-only tools to inspect the complete
+trajectory, evaluator output, and other saved artifacts. Do not infer a
+capability weakness from failed setup, evaluator errors, or ambiguous tasks.
+
 Return pure JSON only:
 {
   "analysis": "...",
@@ -286,10 +293,47 @@ def _truncate(value: str, limit: int = _RAW_RESPONSE_LIMIT) -> str:
 
 
 def _task_context(suite: TaskSuite) -> list[dict[str, Any]]:
+    def redact(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                str(key): "[redacted]"
+                if any(token in str(key).lower() for token in ("key", "token", "secret", "password", "credential"))
+                else redact(item)
+                for key, item in value.items()
+            }
+        if isinstance(value, list):
+            return [redact(item) for item in value]
+        return value
+
+    def agent_environment(item: Any) -> dict[str, Any] | None:
+        raw = item.metadata.get("agent_env")
+        if not isinstance(raw, dict):
+            return None
+        # Give the analyser the executable contract and file layout, while keeping
+        # hidden answers, credentials, and runtime payloads behind the evidence tool.
+        safe: dict[str, Any] = {}
+        for key in (
+            "type", "image", "network", "resource_limits", "test_command",
+            "setup_commands", "evaluation", "vm", "browser",
+        ):
+            value = raw.get(key)
+            if value is not None:
+                safe[key] = redact(value)
+        for key in ("visible_files", "hidden_files", "runtime_files"):
+            value = raw.get(key)
+            if isinstance(value, dict):
+                safe[key + "_paths"] = sorted(str(path) for path in value)
+        image_build = raw.get("image_build")
+        if isinstance(image_build, dict):
+                safe["image_build"] = redact({
+                    key: value for key, value in image_build.items()
+                    if key in {"image", "dockerfile", "context_dir", "build_args"}
+                })
+        return safe
+
     tasks: list[dict[str, Any]] = []
     for item in suite.tasks:
-        tasks.append(
-            {
+        context = {
                 "id": item.id,
                 "dimension_id": item.dimension_id,
                 "task_type": item.task_type.value,
@@ -300,7 +344,15 @@ def _task_context(suite: TaskSuite) -> list[dict[str, Any]]:
                 "expected_texts": list(item.expected_texts),
                 "rubric": item.rubric,
             }
-        )
+        environment = agent_environment(item)
+        if environment is not None:
+            context["agent_environment"] = environment
+            context["agent_task_contract"] = {
+                "environment_type": environment.get("type", "docker_workspace"),
+                "visible_file_paths": environment.get("visible_files_paths", []),
+                "evaluation": environment.get("evaluation", {}),
+            }
+        tasks.append(context)
     return tasks
 
 
@@ -314,6 +366,11 @@ def _run_context(run: EvalRun) -> dict[str, Any]:
                 "score": result.score,
                 "judge_reasoning": result.judge_reasoning,
                 "error": result.error,
+                "failure_evidence": {
+                    "failed": bool(result.error) or result.score < 1.0,
+                    "score": result.score,
+                    "reason": result.error or result.judge_reasoning,
+                },
                 "raw_response": _truncate(result.raw_response),
             }
             for result in run.results
