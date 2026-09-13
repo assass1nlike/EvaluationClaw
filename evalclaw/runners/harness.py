@@ -37,6 +37,15 @@ _MODEL_GATEWAY_IMAGE = "evalclaw-model-gateway:latest"
 _OUTPUT_LIMIT_BYTES = 8 * 1024 * 1024
 
 
+class HarnessTimeoutError(RuntimeError):
+    """A harness timeout with the output captured before termination."""
+
+    def __init__(self, name: str, timeout: int, stdout: str, stderr: str):
+        super().__init__(f"Harness {name!r} timed out after {timeout} seconds.")
+        self.stdout = stdout
+        self.stderr = stderr
+
+
 def _redact_secret(text: str, secret: str | None) -> str:
     """Remove the exact configured credential without matching ordinary text."""
     return text.replace(secret, "[REDACTED]") if secret else text
@@ -109,12 +118,14 @@ def _run_bounded(
     ]
     for thread in threads:
         thread.start()
+    timed_out = False
     try:
         returncode = process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         process.kill()
         process.wait()
-        raise subprocess.TimeoutExpired(command, timeout) from None
+        returncode = process.returncode
+        timed_out = True
     finally:
         if process.poll() is None:
             process.kill()
@@ -126,6 +137,10 @@ def _run_bounded(
     for marker in found_markers:
         if marker not in stdout and marker not in stderr:
             stderr += f"\n[detected failure marker] {marker}"
+    if timed_out:
+        raise subprocess.TimeoutExpired(
+            command, timeout, output=stdout, stderr=stderr
+        ) from None
     return subprocess.CompletedProcess(
         command,
         returncode,
@@ -671,7 +686,7 @@ class ManifestHarness:
     model_env: dict[str, str]  # env var name -> target field (model/api_key/base_url)
     model_template: str = "{model}"  # harness-specific model identifier
     config_args: tuple[str, ...] = ()  # argv fragments rendered at {config_args}
-    timeout: int = 1800
+    timeout: int = 3600
     harness_image: str | None = None  # image whose filesystem is mounted to provide the CLI
     runtime_image: str | None = None  # legacy alias for harness_image
     setup: tuple[str, ...] = ()  # runtime setup commands, executed in the task environment
@@ -763,6 +778,13 @@ class ManifestHarnessRunner:
             if artifact_dir is not None:
                 finished_at = datetime.now(timezone.utc)
                 artifact_dir.mkdir(parents=True, exist_ok=True)
+                if isinstance(exc, HarnessTimeoutError):
+                    (artifact_dir / f"{self.name}-output.txt").write_text(
+                        _redact_secret(exc.stdout, target.api_key), encoding="utf-8"
+                    )
+                    (artifact_dir / f"{self.name}-stderr.txt").write_text(
+                        _redact_secret(exc.stderr, target.api_key), encoding="utf-8"
+                    )
                 self._collect_trajectory(workdir, artifact_dir)
                 (artifact_dir / "episode.json").write_text(
                     json.dumps(
@@ -982,9 +1004,15 @@ class ManifestHarnessRunner:
                 env=docker_env,
                 failure_markers=self._manifest.failure_markers,
                 )
-            except subprocess.TimeoutExpired:
-                raise RuntimeError(
-                    f"Harness {self.name!r} timed out after {episode_timeout} seconds."
+            except subprocess.TimeoutExpired as exc:
+                stdout = exc.stdout.decode("utf-8", errors="replace") if isinstance(
+                    exc.stdout, bytes
+                ) else exc.stdout or ""
+                stderr = exc.stderr.decode("utf-8", errors="replace") if isinstance(
+                    exc.stderr, bytes
+                ) else exc.stderr or ""
+                raise HarnessTimeoutError(
+                    self.name, episode_timeout, stdout, stderr
                 ) from None
             except FileNotFoundError as exc:
                 raise RuntimeError(f"Harness command not found for {self.name!r}.") from exc
@@ -1088,7 +1116,7 @@ def load_manifest_harness(path: str | Path) -> str:
         model_env={str(key): str(value) for key, value in (raw.get("model_env") or {}).items()},
         model_template=str(raw.get("model_template") or "{model}"),
         config_args=tuple(str(arg) for arg in (raw.get("config_args") or [])),
-        timeout=max(1, int(raw.get("timeout") or 1800)),
+        timeout=max(1, int(raw.get("timeout") or 3600)),
         harness_image=str(raw.get("harness_image") or "") or None,
         runtime_image=str(raw.get("runtime_image") or "") or None,
         setup=tuple(str(command) for command in (raw.get("setup") or [])),

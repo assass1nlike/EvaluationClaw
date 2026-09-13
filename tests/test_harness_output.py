@@ -1,7 +1,10 @@
 """Bounded capture tests for untrusted harness subprocesses."""
 
 import os
+import subprocess
 import sys
+
+import pytest
 
 from evalclaw.runners import harness as harness_module
 
@@ -33,3 +36,22 @@ def test_failure_marker_survives_output_truncation(monkeypatch) -> None:
     )
 
     assert "FAIL-MARKER" in result.stderr
+
+
+def test_timeout_preserves_bounded_output(monkeypatch) -> None:
+    monkeypatch.setattr(harness_module, "_OUTPUT_LIMIT_BYTES", 64)
+
+    with pytest.raises(subprocess.TimeoutExpired) as caught:
+        harness_module._run_bounded(
+            [
+                sys.executable,
+                "-c",
+                "import sys,time; print('o' * 200, flush=True); "
+                "print('e' * 200, file=sys.stderr, flush=True); time.sleep(10)",
+            ],
+            timeout=1,
+            env=os.environ.copy(),
+        )
+
+    assert "[output truncated]" in caught.value.stdout
+    assert "[output truncated]" in caught.value.stderr
