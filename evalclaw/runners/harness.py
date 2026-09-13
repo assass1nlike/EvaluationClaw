@@ -7,6 +7,7 @@ supplies its own launch command.
 """
 from __future__ import annotations
 
+import json
 import re
 import shlex
 import shutil
@@ -23,6 +24,7 @@ from ..execution.docker_images import (
     apply_docker_image_selection,
     build_docker_image_if_requested,
 )
+from ..execution.evaluation import parse_evaluator_result
 from ..types import SUPPORTED_HARNESSES, BenchmarkConfig, BenchmarkItem, TargetModelConfig
 
 
@@ -37,6 +39,91 @@ class HarnessRunner(Protocol):
         *,
         artifact_dir: Path | None = None,
     ) -> tuple[str, float, str]: ...
+
+
+class EnvironmentBackend(Protocol):
+    """Lifecycle boundary between an agent runtime and its task environment."""
+
+    kind: str
+
+    def prepare(self) -> tuple[str, Path]: ...
+
+    def evaluate(self, image: str, workdir: Path) -> tuple[float, str]: ...
+
+    def cleanup(self, workdir: Path) -> None: ...
+
+
+@dataclass(frozen=True)
+class ModelConnection:
+    """Connection details passed to a harness without exposing framework config."""
+
+    provider: str
+    model: str
+    api_key: str = ""
+    base_url: str = ""
+    extra_body: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True)
+class HarnessContext:
+    item: BenchmarkItem
+    target: TargetModelConfig
+    config: BenchmarkConfig
+    image: str
+    workdir: Path
+
+    @property
+    def connection(self) -> ModelConnection:
+        return ModelConnection(
+            provider=self.target.provider,
+            model=self.target.model,
+            api_key=self.target.api_key or "",
+            base_url=self.target.base_url or "",
+            extra_body=self.target.extra_body,
+        )
+
+
+@dataclass(frozen=True)
+class DockerWorkspaceBackend:
+    """The Docker environment backend used by manifest-based CLI harnesses."""
+
+    item: BenchmarkItem
+    config: BenchmarkConfig
+    kind: str = "docker_workspace"
+
+    def prepare(self) -> tuple[str, Path]:
+        return prepare_docker_task(self.item, self.config)
+
+    def evaluate(self, image: str, workdir: Path) -> tuple[float, str]:
+        return score_docker_task(self.item, self.config, image, workdir)
+
+    def cleanup(self, workdir: Path) -> None:
+        shutil.rmtree(workdir, ignore_errors=True)
+
+
+def environment_backend(item: BenchmarkItem, config: BenchmarkConfig) -> EnvironmentBackend:
+    kind = str(agent_env(item).get("type") or "docker_workspace").strip().lower()
+    if kind != "docker_workspace":
+        raise RuntimeError(
+            f"Harness-backed agent tasks require a docker_workspace backend; got {kind!r}. "
+            "Use a harness adapter that explicitly supports this environment type."
+        )
+    return DockerWorkspaceBackend(item, config)
+
+
+@dataclass(frozen=True)
+class HarnessRunRecord:
+    """The runner-facing record for one external agent episode.
+
+    ``raw_output`` is diagnostic output from the harness.  The score is always
+    produced by EvaluationClaw's evaluator after the agent exits; a harness
+    cannot declare its own success.
+    """
+
+    raw_output: str
+    score: float
+    reasoning: str
+    trajectory_paths: tuple[str, ...] = ()
 
 
 _HARNESS_RUNNERS: dict[str, HarnessRunner] = {}
@@ -90,6 +177,19 @@ def reject_tool_constraints(item: BenchmarkItem) -> None:
             "Task declares tool constraints (workspace_tools/browser), which a third-party "
             "harness cannot enforce. Remove the harness or the tool constraints."
         )
+
+
+def _task_container_options(env: dict[str, Any]) -> list[str]:
+    options: list[str] = []
+    network = env.get("network")
+    if network:
+        options += ["--network", {"none": "none", "internet": "bridge", "restricted": "none"}.get(str(network).lower(), str(network))]
+    limits = env.get("resource_limits") if isinstance(env.get("resource_limits"), dict) else {}
+    for key, flag in (("memory", "--memory"), ("cpus", "--cpus"), ("pids", "--pids-limit")):
+        value = limits.get(key)
+        if value is not None and str(value).strip():
+            options += [flag, str(value)]
+    return options
 
 
 def _resolve_image_context(
@@ -155,15 +255,35 @@ def score_docker_task(
     """Score by injecting hidden files and running the task's test command."""
     env = agent_env(item)
     test_command = str(env.get("test_command") or "pytest -q")
+    evaluation = env.get("evaluation") if isinstance(env.get("evaluation"), dict) else {}
+    result_path = str(evaluation.get("result_path") or "/workspace/evalclaw_result.json")
+    score_path = str(evaluation.get("score_path") or "/workspace/score.txt")
     hidden = env.get("hidden_files")
     if isinstance(hidden, dict):
         for path, content in hidden.items():
+            target = workdir / str(path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(str(content), encoding="utf-8")
+    runtime = env.get("runtime_files")
+    if isinstance(runtime, dict):
+        for path, content in runtime.items():
             target = workdir / str(path)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(str(content), encoding="utf-8")
     resolved = resolve_docker_executable(config.docker_executable)
     if not resolved:
         raise RuntimeError(f"Docker executable {config.docker_executable!r} not found.")
+    setup = env.get("setup_commands") if isinstance(env.get("setup_commands"), list) else []
+    setup_script = "; ".join(
+        shlex.join(["sh", "-lc", str(command)]) for command in setup if str(command).strip()
+    )
+    evaluator_command = "; ".join(
+        part for part in (
+            setup_script,
+            "rm -f -- " + shlex.join([result_path, score_path]),
+            test_command,
+        ) if part
+    )
     proc = subprocess.run(
         [
             resolved,
@@ -173,18 +293,42 @@ def score_docker_task(
             f"{workdir}:/workspace",
             "-w",
             "/workspace",
+            *_task_container_options(env),
             image,
             "sh",
             "-lc",
-            test_command,
+            evaluator_command,
         ],
         capture_output=True,
         text=True,
         timeout=600,
         env=docker_subprocess_env(config.docker_executable),
     )
-    score = 1.0 if proc.returncode == 0 else 0.0
-    reasoning = "\n".join(part for part in (proc.stdout, proc.stderr) if part).strip()
+    result_json = ""
+    score_text = ""
+    def workspace_file(path: str) -> Path:
+        relative = path.removeprefix("/workspace/").lstrip("/")
+        candidate = (workdir / relative).resolve()
+        if not candidate.is_relative_to(workdir.resolve()):
+            raise ValueError("Evaluator result paths must stay inside /workspace.")
+        return candidate
+
+    result_file = workspace_file(result_path)
+    score_file = workspace_file(score_path)
+    if result_file.is_file():
+        result_json = result_file.read_text(encoding="utf-8", errors="replace")
+    if score_file.is_file():
+        score_text = score_file.read_text(encoding="utf-8", errors="replace")
+    evaluator = parse_evaluator_result(
+        returncode=proc.returncode,
+        stdout=proc.stdout,
+        stderr=proc.stderr,
+        result_json=result_json,
+        score_text=score_text,
+        allow_stdout_score=bool(evaluation.get("allow_stdout_score", False)),
+    )
+    score = evaluator.score
+    reasoning = evaluator.details or "\n".join(part for part in (proc.stdout, proc.stderr) if part).strip()
     return score, reasoning
 
 
@@ -249,8 +393,14 @@ class ManifestHarness:
     config_args: tuple[str, ...] = ()  # argv fragments rendered at {config_args}
     timeout: int = 1800
     harness_image: str | None = None  # image whose filesystem is mounted to provide the CLI
+    setup: tuple[str, ...] = ()  # runtime setup commands, executed in the task environment
+    path: str = "/opt/harness/usr/local/bin"  # runtime executable path inside the mounted image
+    home: str = "root/.openclaw"  # legacy default; manifests should declare their runtime home
+    trajectory_paths: tuple[str, ...] = ()  # workspace-relative trace/artifact paths
     gateway: bool = False  # route the model API through an egress gateway (internal network)
     gateway_provider: str | None = None  # provider whose baseUrl is repointed at the gateway
+    gateway_setup: str = ""  # optional command template used to configure the provider
+    preflight: tuple[str, ...] = ()  # commands that verify the runtime before the episode
 
 
 class ManifestHarnessRunner:
@@ -269,26 +419,50 @@ class ManifestHarnessRunner:
         artifact_dir: Path | None = None,
     ) -> tuple[str, float, str]:
         reject_tool_constraints(item)
-        image, workdir = prepare_docker_task(item, config)
+        backend = environment_backend(item, config)
+        image, workdir = backend.prepare()
+        context = HarnessContext(item, target, config, image, workdir)
         try:
-            raw = self._launch(item, target, config, image, workdir)
-            score, reasoning = score_docker_task(item, config, image, workdir)
+            self._preflight(context)
+            raw = self._launch(
+                context.item, context.target, context.config, context.image, context.workdir
+            )
+            score, reasoning = backend.evaluate(context.image, context.workdir)
             if artifact_dir is not None:
                 artifact_dir.mkdir(parents=True, exist_ok=True)
                 (artifact_dir / f"{self.name}-output.txt").write_text(raw, encoding="utf-8")
                 (artifact_dir / f"{self.name}-reasoning.txt").write_text(reasoning, encoding="utf-8")
+                self._collect_trajectory(workdir, artifact_dir)
+                (artifact_dir / "episode.json").write_text(
+                    json.dumps(
+                        {
+                            "harness": self.name,
+                            "environment": backend.kind,
+                            "model": target.model,
+                            "provider": target.provider,
+                            "status": "completed",
+                            "score": score,
+                        },
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
             return raw, score, reasoning
         finally:
-            shutil.rmtree(workdir, ignore_errors=True)
+            backend.cleanup(workdir)
 
     def _launch(self, item: BenchmarkItem, target: TargetModelConfig, config: BenchmarkConfig, image: str, workdir: Path) -> str:
         values = {
             "task": item.prompt,
             "image": image,
             "workdir": "/workspace",
+            "provider": target.provider,
             "model": target.model,
             "api_key": target.api_key or "",
             "base_url": target.base_url or "",
+            "extra_body": json.dumps(target.extra_body, ensure_ascii=False),
         }
         quoted = {key: shlex.quote(value) for key, value in values.items()}
         config_tokens: list[str] = []
@@ -305,6 +479,8 @@ class ManifestHarnessRunner:
             "-v", f"{workdir}:/workspace",
             "-w", "/workspace",
         ]
+        env = agent_env(item)
+        run_args += _task_container_options(env)
         if self._manifest.harness_image:
             run_args += [
                 "--mount",
@@ -325,11 +501,26 @@ class ManifestHarnessRunner:
         shell_command = shlex.join(command)
         prefix = ""
         if self._manifest.harness_image:
-            prefix += (
-                "cp -a /opt/harness/root/.openclaw /root/ 2>/dev/null || true; "
-                "export PATH=/opt/harness/usr/local/bin:$PATH; "
-            )
-        if gateway_name is not None and self._manifest.gateway_provider:
+            if self._manifest.home:
+                prefix += f"cp -a /opt/harness/{self._manifest.home} /root/ 2>/dev/null || true; "
+            if self._manifest.path:
+                prefix += f"export PATH={shlex.quote(self._manifest.path)}:$PATH; "
+            prefix += "export EVALCLAW_HARNESS=1; "
+        task_env = env
+        for setup in task_env.get("setup_commands", []):
+            if setup:
+                prefix += shlex.join(["sh", "-lc", str(setup)]) + "; "
+        for setup in self._manifest.setup:
+            prefix += shlex.join(["sh", "-lc", setup]) + "; "
+        if gateway_name is not None and self._manifest.gateway_setup:
+            prefix += self._manifest.gateway_setup.format(
+                gateway_url=f"http://{gateway_name}:18080",
+                provider=shlex.quote(target.provider),
+                model=shlex.quote(target.model),
+            ) + "; "
+        elif gateway_name is not None and self._manifest.name == "openclaw" and self._manifest.gateway_provider:
+            # Compatibility for callers constructing the old OpenClaw manifest
+            # directly. File manifests should use gateway_setup instead.
             prefix += (
                 f"openclaw config set models.providers.{self._manifest.gateway_provider}.baseUrl "
                 f"http://{gateway_name}:18080 2>/dev/null; "
@@ -353,6 +544,44 @@ class ManifestHarnessRunner:
             raise RuntimeError(f"Harness {self.name!r} failed: {proc.stderr or proc.stdout}")
         return proc.stdout
 
+    def _preflight(self, context: HarnessContext) -> None:
+        if not self._manifest.preflight:
+            return
+        for command in self._manifest.preflight:
+            rendered = command.format(
+                model=shlex.quote(context.target.model),
+                provider=shlex.quote(context.target.provider),
+                workdir="/workspace",
+            )
+            probe = subprocess.run(
+                [
+                    resolve_docker_executable(context.config.docker_executable) or context.config.docker_executable,
+                    "run", "--rm", "-v", f"{context.workdir}:/workspace", "-w", "/workspace",
+                    context.image, "sh", "-lc", rendered,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=min(self._manifest.timeout, 120),
+                env=docker_subprocess_env(context.config.docker_executable),
+            )
+            if probe.returncode != 0:
+                raise RuntimeError(
+                    f"Harness {self.name!r} preflight failed: {probe.stderr or probe.stdout}"
+                )
+
+    def _collect_trajectory(self, workdir: Path, artifact_dir: Path) -> None:
+        """Copy declared harness traces before the task workspace is removed."""
+        for relative in self._manifest.trajectory_paths:
+            source = (workdir / relative).resolve()
+            if not source.is_relative_to(workdir.resolve()) or not source.exists():
+                continue
+            destination = artifact_dir / "trajectory" / relative
+            if source.is_dir():
+                shutil.copytree(source, destination, dirs_exist_ok=True)
+            else:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, destination)
+
 
 def load_manifest_harness(path: str | Path) -> str:
     """Load a manifest file, register it as a harness, and return its name."""
@@ -368,8 +597,14 @@ def load_manifest_harness(path: str | Path) -> str:
         config_args=tuple(str(arg) for arg in (raw.get("config_args") or [])),
         timeout=max(1, int(raw.get("timeout") or 1800)),
         harness_image=str(raw.get("harness_image") or "") or None,
+        setup=tuple(str(command) for command in (raw.get("setup") or [])),
+        path=str(raw.get("path") or "/opt/harness/usr/local/bin"),
+        home=str(raw.get("home") or ""),
+        trajectory_paths=tuple(str(path) for path in (raw.get("trajectory_paths") or [])),
         gateway=bool(raw.get("gateway")),
         gateway_provider=str(raw.get("gateway_provider") or "") or None,
+        gateway_setup=str(raw.get("gateway_setup") or ""),
+        preflight=tuple(str(command) for command in (raw.get("preflight") or [])),
     )
     if not manifest.name or not manifest.run:
         raise ValueError("Harness manifest requires name and run.")
@@ -432,11 +667,13 @@ _BUILTIN_MANIFESTS: tuple[ManifestHarness, ...] = (
     ),
     ManifestHarness(
         name="openclaw",
-        run="openclaw agent exec --timeout 1800 --model deepseek/{model} --cwd {workdir} {task}",
+        run="openclaw agent exec --timeout 1800 --model {provider}/{model} --cwd {workdir} {task}",
         model_env={"api_key": "DEEPSEEK_API_KEY"},
         harness_image="evalclaw-openclaw:latest",
+        home=".openclaw",
         gateway=True,
         gateway_provider="deepseek",
+        gateway_setup="openclaw config set models.providers.{provider}.baseUrl {gateway_url} 2>/dev/null",
     ),
 )
 
