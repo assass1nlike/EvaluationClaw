@@ -160,6 +160,14 @@ def test_analysis_agent_context_describes_contract_without_hidden_payload() -> N
     assert "expected = 42" not in str(context)
 
 
+def test_analysis_raw_response_excerpt_keeps_response_tail() -> None:
+    value = "a" * 3000 + "FINAL FAILURE DETAILS"
+    excerpt = analysis_module._truncate(value, limit=2000)
+    assert excerpt.startswith("a")
+    assert "FINAL FAILURE DETAILS" in excerpt
+    assert "truncated" in excerpt
+
+
 def test_analysis_round_trips_in_package_and_is_rendered_in_viewer() -> None:
     suite, run = _suite_and_run()
     package = BenchmarkPackage(
