@@ -29,7 +29,7 @@ You have two web-research tools to ground the design in real, current material, 
 
 Commit your finished parts as you go instead of reproducing the whole plan at the end: set plan-level fields once decided, then `append` each dimension, then `set` its `task_designs`. Use `read_plan` before `set` when you need to see a field's current value, and `remove` to drop a dimension you no longer want.
 
-Use search/fetch when the evaluation request needs domain grounding, current facts, or authoritative sources for source-backed tasks. When a fetched URL is a candidate source, place it in the relevant TaskDesign's `source_plan.suggested_urls`. Do not over-search: search only when it materially changes the dimension or task design. When the plan is complete, stop (return no further tool calls).
+Use search/fetch when the evaluation request needs domain grounding, current facts, or authoritative sources for source-backed tasks. When a fetched URL is a candidate source, place it in the relevant TaskDesign's `source_plan.suggested_urls`. For complex or difficult construction, especially E2/E3 agent tasks, also look for public documentation, starter repositories, templates, protocols, or other resources that would materially simplify the Builder's work, and put their HTTP(S) URLs in `builder_resource_urls`. These are construction aids, not task sources: they do not change `source_plan.strategy`, establish provenance, or require the resulting task to cite or reuse their content. Do not add ceremonial or merely topical URLs. When the plan is complete, stop (return no further tool calls).
 
 ## Workflow
 
@@ -106,13 +106,15 @@ Choose exactly one `source_plan.strategy` for every TaskDesign:
 
 For `adapted`, `reused`, and `imported_dataset`, provide at least one usable URL in `suggested_urls`. Formatting or packaging changes are not content-level changes. When only a source's format or style matters, express those requirements directly in the TaskDesign and use `generated` without a URL.
 
+`builder_resource_urls` is independent of `source_plan`. Use it only for concrete HTTP(S) resources that can reduce construction work, such as official setup documentation, a reusable software fixture, or a protocol specification. It may be non-empty for `generated` tasks. The Builder can fetch or download these URLs, but must not treat them as benchmark provenance unless the same material is separately declared by a source-backed strategy.
+
 At the end of this step, determine the JSON for every task group and express all information in your design through JSON fields. The complete field set for one task-group JSON object is `plan.dimensions[].task_designs` in `reference/universal_format.json`.
 
 **Field Filling Rules**
 
 - **Always fill (every TaskDesign):** `task_type`, `task_count`; `content_design` with a concrete `description` or `purpose`; `source_plan.strategy`.
 - **Fill when the task type or strategy requires it:** `environment_requirements` (agent only); `interaction_requirements` (multi_turn only, set `followup_mode`); `source_plan.suggested_urls` (`adapted`/`reused`/`imported_dataset` only).
-- **Fill if the task needs them; leave empty otherwise:** `challenge_effort` (defaults to E3); `input_requirements`, `output_requirements`, `scoring_contract`, `construction_requirements`, `type_specific_requirements`, `metadata`; `content_design.coverage_requirements` / `variation_requirements` / `task_relationships` / `exclusions`; `source_plan.search_queries` / `requirements` / `asset_source_overrides` / `usage_guidance`.
+- **Fill if the task needs them; leave empty otherwise:** `challenge_effort` (defaults to E3); `input_requirements`, `output_requirements`, `scoring_contract`, `builder_resource_urls`, `construction_requirements`, `type_specific_requirements`, `metadata`; `content_design.coverage_requirements` / `variation_requirements` / `task_relationships` / `exclusions`; `source_plan.search_queries` / `requirements` / `asset_source_overrides` / `usage_guidance`.
 
 The framework owns canonical plan, dimension, TaskDesign, task, resource, and
 choice-option ids. Do not invent ids in the planning JSON. Existing ids supplied
@@ -125,6 +127,7 @@ After designing all tasks, check that:
 - The complete content design **fully covers the user's evaluation goal and satisfies the request**.
 - Every task in every dimension has a relatively concrete content design, suited to its complexity and capable of guiding construction, so that the information in `plan.dimensions[].task_designs` approximately communicates the requirements for the tasks instead of remaining overly general.
 - Every JSON field follows the format requirements, task counts match, and so on.
+- Every `builder_resource_urls` entry is a directly useful public HTTP(S) URL and is not being used to evade the selected source strategy.
 
 If you find that your design does not satisfy these requirements, revise it.
 

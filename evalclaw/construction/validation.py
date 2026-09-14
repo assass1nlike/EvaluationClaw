@@ -770,6 +770,7 @@ def task_structure_issues(
     blueprint: TaskBlueprint | None = None,
     task_design: TaskDesign | None = None,
     require_challenge_effort_self_assessment: bool = False,
+    require_builder_references: bool = False,
     builder_work_dir: Path | None = None,
 ) -> list[str]:
     """Return blocking structural issues that should be fixed before global QC.
@@ -906,6 +907,18 @@ def task_structure_issues(
     elif task.task_type == TaskType.fill_blank:
         if not task.expected_texts or any(not _has_text(value) for value in task.expected_texts):
             issues.append("fill_blank tasks must provide a non-empty expected_texts list with non-empty answers.")
+    if task.task_type == TaskType.generation:
+        if require_builder_references and not _has_text(task.reference_answer):
+            issues.append("generation tasks must provide a non-empty reference_answer.")
+    elif _has_text(task.reference_answer):
+        issues.append("reference_answer is only valid for generation tasks.")
+    if task.task_type == TaskType.agent:
+        if require_builder_references and not task.reference_trajectory:
+            issues.append("agent tasks must provide a non-empty reference_trajectory.")
+        if any(not _has_text(step.action) for step in task.reference_trajectory):
+            issues.append("Every reference_trajectory step must provide a non-empty action.")
+    elif task.reference_trajectory:
+        issues.append("reference_trajectory is only valid for agent tasks.")
     if task.task_type in {TaskType.generation, TaskType.multi_turn} and not _has_scoring_guidance(task):
         issues.append("generation and multi_turn tasks must provide a judge rubric or scoring guidance.")
 

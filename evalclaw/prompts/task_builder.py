@@ -27,7 +27,13 @@ _COMMON_FIELDS = {
 _TYPE_FIELDS = {
     TaskType.choice: {"choices": [{"text": ""}, {"text": ""}], "correct_choice_indices": [0]},
     TaskType.fill_blank: {"expected_texts": [""]},
-    TaskType.generation: {"rubric": "", "judge_tools": [], "output_contract": {}, "scoring": {}},
+    TaskType.generation: {
+        "reference_answer": "",
+        "rubric": "",
+        "judge_tools": [],
+        "output_contract": {},
+        "scoring": {},
+    },
     TaskType.multi_turn: {
         "system_prompt": "",
         "interaction": {"max_turns": 3, "user_turns": [""]},
@@ -41,6 +47,14 @@ _TYPE_FIELDS = {
         "environment": {},
         "workflow": None,
         "output_contract": {},
+        "reference_trajectory": [
+            {
+                "action": "Describe one concrete operation in a valid solution path.",
+                "tool": "",
+                "arguments": {},
+                "expected_observation": "",
+            }
+        ],
         "rubric": "",
         "judge_tools": [],
         "scoring": {},
@@ -58,8 +72,9 @@ _TYPE_RULES = {
         "prompt or enumerate every correct answer, and ensure no correct answer outside the list is possible."
     ),
     TaskType.generation: (
-        "Provide concrete scoring guidance. Use judge_tools or output_contract only when required by "
-        "the TaskDesign, and do not repeat the same scoring rule in multiple fields."
+        "Provide a correct, self-contained reference_answer and concrete scoring guidance. The reference "
+        "answer is evidence for the Judge, not text shown to the target. Use judge_tools or output_contract "
+        "only when required by the TaskDesign, and do not repeat the same scoring rule in multiple fields."
     ),
     TaskType.multi_turn: (
         "Provide interaction.max_turns from 1 to 5 and exactly one of interaction.user_turns or "
@@ -68,7 +83,10 @@ _TYPE_RULES = {
     ),
     TaskType.agent: (
         "Provide an executable environment, output contract, and deterministic checks or task-specific "
-        "scoring. Use workflow only for ordered multi-stage tasks."
+        "scoring. Also provide reference_trajectory as one ordered, feasible solution path. Each step must "
+        "state an action and may name an abstract or concrete tool, its arguments, and the expected observation. "
+        "The trajectory is evaluator evidence, not a unique path the target must reproduce. Use workflow only "
+        "for ordered multi-stage tasks."
     ),
 }
 
@@ -101,7 +119,13 @@ _ABLATION_COMMON_FIELDS = {
 _ABLATION_TYPE_FIELDS = {
     TaskType.choice: {"choices": [{"text": ""}, {"text": ""}], "correct_choice_indices": [0]},
     TaskType.fill_blank: {"expected_texts": [""]},
-    TaskType.generation: {"rubric": "", "judge_tools": [], "output_contract": {}, "scoring": {}},
+    TaskType.generation: {
+        "reference_answer": "",
+        "rubric": "",
+        "judge_tools": [],
+        "output_contract": {},
+        "scoring": {},
+    },
 }
 
 
@@ -353,6 +377,29 @@ required task is done, do not call any more tools — return only that confirmat
 tool calls is your completion signal."""
 
 
+def build_task_builder_direct_prompt(task_type: TaskType, challenge_effort: str) -> str:
+    """Prompt the no-Harness ablation to fill the universal representation directly."""
+    task_type = TaskType(task_type)
+    return f"""You are the EvaluationClaw Task Builder running without the EvalClaw Harness.
+Directly construct the complete JSON response from the supplied TaskDesign and schemas. You have
+no construction tools, file-editing loop, component Skills, or structural repair feedback.
+
+Return one JSON object with exactly these top-level fields:
+{{"construction_notes": "...", "resources": [], "tasks": []}}
+
+Return exactly the task count and type counts in task_builder_contract. Every task must contain
+all builder-owned TaskDefinition fields required by task_definition_schema and the task type
+{task_type.value}. Every resource must match task_resource_schema. The framework owns task,
+dimension, TaskDesign, resource, and choice-option ids; omit those ids where the contract says they
+are framework-injected. Use English unless the evaluation explicitly tests another language.
+Generation tasks must include reference_answer. Agent tasks must include reference_trajectory as one
+ordered feasible solution path. Choice, fill_blank, and multi_turn tasks must not include either field.
+
+{_EFFORT_GUIDANCE.get(challenge_effort, "")}
+{_TYPE_RULES[task_type]}
+Return pure JSON only."""
+
+
 # Compatibility value for callers that imported the former module-level prompt.
 # Construction uses the scoped builder above for every real job.
 TASK_BUILDER_PROMPT = build_task_builder_prompt(TaskType.generation)
@@ -362,6 +409,7 @@ def build_task_builder_tool_prompt(
     task_type: TaskType,
     *,
     source_backed: bool,
+    has_builder_resources: bool = False,
     include_image_tools: bool = False,
     include_vm_image_tools: bool = False,
 ) -> str:
@@ -390,6 +438,13 @@ def build_task_builder_tool_prompt(
         parts.append(
             "Use read_research_source, search_web, fetch_url, or download_files to inspect source "
             "material. Do not claim source grounding from a title or URL alone."
+        )
+    if has_builder_resources:
+        parts.append(
+            "Use fetch_url or download_files to inspect the optional URLs in "
+            "resources.builder_assistance when they simplify construction. These URLs are construction "
+            "aids, not task sources: do not cite them, emit them as resources, or add resource_ids unless "
+            "the TaskDesign's source strategy separately requires source grounding."
         )
     if include_image_tools:
         parts.append(
@@ -420,6 +475,7 @@ Do not continue the task or emit final task JSON; return only the summary text.
 __all__ = [
     "TASK_BUILDER_PROMPT",
     "TASK_BUILDER_TRUNCATION_SUMMARY_PROMPT",
+    "build_task_builder_direct_prompt",
     "build_task_builder_prompt",
     "build_task_builder_tool_prompt",
     "project_task_builder_document",

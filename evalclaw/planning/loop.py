@@ -147,6 +147,10 @@ def _item_excerpt(item: BenchmarkItem, *, truncate: bool = True) -> dict[str, ob
         "choices": [choice.model_dump(mode="json") for choice in item.choices],
         "correct_choice_ids": item.correct_choice_ids,
         "expected_texts": item.expected_texts,
+        "reference_answer": item.reference_answer,
+        "reference_trajectory": [
+            step.model_dump(mode="json") for step in item.reference_trajectory
+        ],
         "rubric": (item.rubric or "")[:500] if truncate else (item.rubric or ""),
         "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
         "output_contract": item.output_contract,
@@ -160,6 +164,10 @@ def _item_excerpt(item: BenchmarkItem, *, truncate: bool = True) -> dict[str, ob
             "title": definition.title,
             "content_summary": definition.content_summary,
             "description": definition.description,
+            "reference_answer": definition.reference_answer,
+            "reference_trajectory": [
+                step.model_dump(mode="json") for step in definition.reference_trajectory
+            ],
             "system_prompt": definition.system_prompt,
             "resource_ids": definition.resource_ids,
             "interaction": definition.interaction,

@@ -244,7 +244,7 @@ def test_pipeline_reuses_completed_run_checkpoint(monkeypatch, tmp_path) -> None
     )
     monkeypatch.setattr(
         "evalclaw.pipeline.build_report",
-        lambda run, research_brief=None, analysis=None: EvalReport(
+        lambda run, research_brief=None, analysis=None, laaj=None: EvalReport(
             title="Report", markdown="", summaries=[]
         ),
     )

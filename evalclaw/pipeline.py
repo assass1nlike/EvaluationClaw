@@ -32,6 +32,7 @@ from .models.roles import role_model_settings
 from .planning.loop import apply_human_review_feedback, format_human_review_overview
 from .planning.planner import translate_goal_to_english, translate_report_markdown
 from .quality.analysis import run_analysis
+from .quality.laaj import evaluate_with_laaj
 from .reporting.artifacts import write_artifact_manifest, write_lm_eval_artifacts
 from .reporting.reporter import artifact_index_markdown, build_report
 from .reporting.task_viewer import build_task_viewer_html
@@ -44,6 +45,7 @@ from .types import (
     BenchmarkPlan,
     EvalRun,
     EvalSpec,
+    LaajReport,
     QcReport,
     TaskDefinition,
     TaskSuite,
@@ -702,9 +704,9 @@ def _run_pipeline(
     analysis = None
     mark_stage("analysis")
     analyser_configured = role_model_settings(config, "analyser").configured
-    if config.analysis_iterations > 0 and not analyser_configured:
+    if config.ablation_analyser != "none" and not analyser_configured:
         raise RuntimeError(
-            "analysis_iterations requires a configured Analyser model."
+            "--ablation-analyser requires a configured Analyser model."
         )
     if analyser_configured and run.results:
         log("\n[Analysis] Analysing target-model performance...")
@@ -722,12 +724,33 @@ def _run_pipeline(
         log("\n[Analysis] Skipped because the main benchmark produced no target-model results.")
     mark_stage("analysis", "done")
 
+    laaj = None
+    mark_stage("laaj")
+    laaj_configured = role_model_settings(config, "laaj").configured
+    if resuming and debug_run_dir is not None:
+        laaj = _load_model(debug_run_dir / "laaj.json", LaajReport)
+    if laaj_configured and laaj is None:
+        log("\n[LaaJ] Evaluating benchmark quality...")
+        laaj = evaluate_with_laaj(
+            goal,
+            suite,
+            analysis,
+            config,
+            trace_dir=debug_run_dir / "laaj" if debug_run_dir is not None else None,
+        )
+        if debug_run_dir is not None:
+            write_json(debug_run_dir / "laaj.json", laaj.model_dump(mode="json"))
+    elif laaj is not None:
+        _live_emit("  LaaJ: resumed completed benchmark-quality evaluation.")
+    mark_stage("laaj", "done")
+
     mark_stage("reporting")
     log("\n[Reporter] Building Markdown report...")
     report = build_report(
         run,
         research_brief=config.research_brief,
         analysis=analysis,
+        laaj=laaj,
     )
 
     pkg = BenchmarkPackage(
@@ -738,6 +761,7 @@ def _run_pipeline(
         qc_report=qc_report,
         run=run,
         analysis=analysis,
+        laaj=laaj,
         report=report,
         research_brief=config.research_brief,
     )

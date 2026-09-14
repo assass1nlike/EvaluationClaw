@@ -38,7 +38,7 @@ from evalclaw.types import (
     ResearchSourceMaterial,
     TaskType,
 )
-from tests.blueprint_factory import make_blueprint
+from tests.blueprint_factory import make_blueprint, make_task_design
 from tests.config_helpers import dummy_config_kwargs, save_task_builder_response
 
 
@@ -1532,6 +1532,9 @@ def test_reused_task_builder_enables_tools_when_web_search_is_disabled(monkeypat
                             "challenge_effort": "E2",
                             "title": "Research task",
                             "prompt": "Inspect the workspace and produce the requested result.",
+                            "reference_trajectory": [
+                                {"action": "Inspect the workspace and produce the result."}
+                            ],
                             "resource_ids": ["resource_1"],
                             "environment": {
                                 "type": "docker_workspace",
@@ -1685,6 +1688,70 @@ def test_generated_task_builder_receives_only_general_tools(monkeypatch) -> None
     assert "environment" not in initial_task
 
 
+def test_generated_builder_with_assistance_urls_can_fetch_them(monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_tools(payload, *, system_prompt, config, include_source_tools, stop_event):
+        captured["payload"] = payload
+        captured["system_prompt"] = system_prompt
+        captured["include_source_tools"] = include_source_tools
+        response = json.dumps(
+            {
+                "resources": [],
+                "tasks": [
+                    {
+                        "task_type": "fill_blank",
+                        "title": "Generated task",
+                        "prompt": "Provide the exact answer requested by this generated task.",
+                        "expected_texts": ["answer"],
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": "E3",
+                                "meets_requested_effort": True,
+                                "rationale": "The task exercises the requested capability.",
+                            }
+                        },
+                    }
+                ],
+            }
+        )
+        return save_task_builder_response(payload, response), []
+
+    monkeypatch.setattr("evalclaw.construction.suite.run_task_builder_tools", fake_tools)
+    dimension = EvalDimension(
+        id="generated",
+        name="Generated",
+        description="Evaluate generated material.",
+        approach="Construct one task.",
+        task_types=[TaskType.fill_blank],
+    )
+    design = make_task_design("generated_design", TaskType.fill_blank).model_copy(
+        update={"builder_resource_urls": ["https://docs.example/tooling"]}
+    )
+    blueprint = make_blueprint(
+        "generated_blueprint",
+        dimension.id,
+        "Generated task",
+        task_designs=[design],
+    )
+
+    build_task_suite(
+        EvalSpec(
+            objective="Evaluate generated material.",
+            dimensions=[dimension],
+            task_types=[TaskType.fill_blank],
+        ),
+        [blueprint],
+        BenchmarkConfig(**dummy_config_kwargs()),
+    )
+
+    assert captured["include_source_tools"] is True
+    assert captured["payload"]["resources"]["builder_assistance"]["urls"] == [
+        "https://docs.example/tooling"
+    ]
+    assert "construction aids, not task sources" in captured["system_prompt"]
+
+
 def test_gui_task_builder_receives_vm_image_tools(monkeypatch) -> None:
     captured: dict = {}
 
@@ -1741,6 +1808,9 @@ def test_environment_preflight_failure_enters_task_builder_repair(monkeypatch) -
                 "task_type": "agent",
                 "title": title,
                 "prompt": f"Create {title.lower().replace(' ', '_')}.py and run the evaluator.",
+                "reference_trajectory": [
+                    {"action": "Create the requested file and run the evaluator."}
+                ],
                 "scoring": {
                     "method": "executable_test",
                     "pass_criteria": "The evaluator exits successfully.",
@@ -1855,6 +1925,9 @@ def test_builder_host_path_in_container_prompt_enters_repair(monkeypatch, tmp_pa
                         "task_type": "agent",
                         "title": "Executable task",
                         "prompt": f"Read {prompt_path} and implement the requested program.",
+                        "reference_trajectory": [
+                            {"action": "Read TASK.md and implement the requested program."}
+                        ],
                         "assets": [{"path": str(asset_path)}],
                         "environment": {
                             "type": "docker_workspace",
@@ -1929,6 +2002,9 @@ def test_qc_repair_edits_file_with_tools_and_preserves_best_copy(monkeypatch, tm
             "challenge_effort": "E3",
             "title": f"Task {task_index}",
             "prompt": prompt,
+            "reference_trajectory": [
+                {"action": "Inspect the workspace and complete the task."}
+            ],
             "environment": {
                 "type": "docker_workspace",
                 "test_command": "python3 -c \"assert True\"",

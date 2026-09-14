@@ -503,6 +503,8 @@ def pack_task_item(
         choices=task.choices,
         correct_choice_ids=task.correct_choice_ids,
         expected_texts=task.expected_texts,
+        reference_answer=task.reference_answer,
+        reference_trajectory=task.reference_trajectory,
         rubric=task.rubric or task.scoring.instructions or (
             f"{task.scoring.pass_criteria} {task.scoring.partial_criteria} {task.scoring.fail_criteria}".strip()
             or None

@@ -121,6 +121,12 @@ def _result_records(pkg: BenchmarkPackage) -> list[dict[str, Any]]:
                 "choices": [choice.model_dump(mode="json") for choice in item.choices] if item else [],
                 "correct_choice_ids": item.correct_choice_ids if item else [],
                 "expected_texts": item.expected_texts if item else [],
+                "reference_answer": item.reference_answer if item else "",
+                "reference_trajectory": (
+                    [step.model_dump(mode="json") for step in item.reference_trajectory]
+                    if item
+                    else []
+                ),
                 "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools] if item else [],
                 "output_contract": item.output_contract if item else {},
                 "tags": item.tags if item else [],

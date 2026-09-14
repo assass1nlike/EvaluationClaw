@@ -6,7 +6,7 @@ from typing import Any, Literal
 
 from ..types import BenchmarkConfig, FailoverEndpoint, TargetModelConfig
 
-ModelRole = Literal["planner", "task_builder", "qc", "research", "analyser"]
+ModelRole = Literal["planner", "task_builder", "qc", "laaj", "research", "analyser"]
 
 
 @dataclass(frozen=True)

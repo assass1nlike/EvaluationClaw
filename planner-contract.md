@@ -65,6 +65,7 @@ plan
 | `output_requirements` | `dict` | 否 | 输出要求（§4.6） |
 | `scoring_contract` | `dict` | 否 | 评分契约（§4.7） |
 | `source_plan` | `dict` | 是（`strategy`） | 素材来源计划（§4.8） |
+| `builder_resource_urls` | `list[str]` | 否 | 可显著简化构题的公开 HTTP(S) 文档、模板、仓库或协议；仅供 Builder 使用，不改变题目来源 |
 | `construction_requirements` | `list[str]` | 否 | 构建任务时的额外要求 |
 | `type_specific_requirements` | `dict` | 否 | 类型专属扩展（§4.9） |
 | `metadata` | `dict` | 否 | 附加元数据 |
@@ -149,6 +150,8 @@ plan
 | `asset_source_overrides` | 否 | 每项 `asset_ref` + `strategy` |
 | `usage_guidance` | 否 | 所选策略如何使用素材 |
 
+`builder_resource_urls` 与 `source_plan` 独立：生成型任务也可使用。Builder 可以获取这些资源辅助环境或任务构建，但不能因此把它们记作题目来源或写入 `resource_ids`。
+
 ### 4.9 `type_specific_requirements`
 
 | key | 必填 | 说明 |
@@ -171,7 +174,8 @@ plan
 - `challenge_effort` 只有三档。
 - **环境仅 agent**：`choice`/`fill_blank`/`generation`/`multi_turn` 的 `environment_requirements` 必须返回 `{}`（不要展开内部字段为 null/空串/空列表）；要可执行交互就改成 `agent`。`multi_turn` 的对话行为走 `interaction_requirements`，不用执行环境。
 - **多轮必设**：`interaction_requirements.followup_mode` 必须 `adaptive` 或 `scripted`。
-- **source_plan.strategy 恰好一个**：`generated` 留空 URL；`adapted`/`reused`/`imported_dataset` 至少给一个 `suggested_urls`。
+- **source_plan.strategy 恰好一个**：`generated` 留空 `source_plan.suggested_urls`；`adapted`/`reused`/`imported_dataset` 至少给一个 `suggested_urls`。
+- **复杂构题资源**：对确实能从公开文档、模板、仓库或协议获益的复杂题，尤其 E2/E3 agent 题，提供直接有用的 `builder_resource_urls`；不要添加仅相关但无实际构题用途的 URL。
 - **非 agent 不用文件资产**（除图片）：非 agent 任务用文本 + 图片（以 `Image N` 引用，框架按 assets 顺序附加）；非图片文件需求 → 改 `agent`。
 
 ### 全局审计

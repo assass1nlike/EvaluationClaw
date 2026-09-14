@@ -232,10 +232,13 @@ def test_one_task_builder_constructs_static_and_interactive_tasks_together(monke
             }
             if blueprint_id == "mixed_mcq"
             else {
-                "task_type": "agent",
-                "title": "Mixed interaction",
-                "prompt": "Move the blue notebook from the office to the mailroom.",
-                "environment": {
+                    "task_type": "agent",
+                    "title": "Mixed interaction",
+                    "prompt": "Move the blue notebook from the office to the mailroom.",
+                    "reference_trajectory": [
+                        {"action": "Move the blue notebook to the mailroom."}
+                    ],
+                    "environment": {
                     "type": "docker_workspace",
                     "test_command": "python3 -c \"assert True\"",
                 },

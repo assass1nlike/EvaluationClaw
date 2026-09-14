@@ -110,6 +110,40 @@ def _probe_design(**updates) -> dict:
     return design
 
 
+def test_similar_tasks_ablation_replaces_hypothesis_method() -> None:
+    prompt = analysis_module._analyser_system_prompt("goal", "similar_tasks")
+    task_design_prompt = analysis_module._analyser_system_prompt(
+        "task_design", "similar_tasks"
+    )
+
+    assert "maximizes the target model's error rate by creating tasks" in prompt
+    assert "Similarity may involve subject matter" in prompt
+    assert "Do not infer a latent capability weakness" in prompt
+    assert "Group failed tasks" not in prompt
+    assert "serves as an instruction for the Planner" in prompt
+    assert "maximizes the target model's error rate by creating tasks" in task_design_prompt
+    assert "Return TaskDesigns" in task_design_prompt
+
+
+def test_removed_analyser_ablation_is_rejected() -> None:
+    with pytest.raises(ValueError, match="ablation_analyser"):
+        _config(ablation_analyser="error_commonality")
+
+
+def test_default_analyser_strategy_keeps_hypothesis_prompt() -> None:
+    assert analysis_module._analyser_system_prompt("goal") == analysis_module.ANALYSER_SYSTEM_PROMPT
+
+
+def test_analyser_ablation_does_not_use_hypothesis_probe_review() -> None:
+    assert analysis_module._probe_review_iterations(_config()) == 3
+    assert (
+        analysis_module._probe_review_iterations(
+            _config(ablation_analyser="similar_tasks")
+        )
+        == 0
+    )
+
+
 def test_analysis_without_probes_returns_supported_conclusion(monkeypatch, tmp_path) -> None:
     suite, run = _suite_and_run()
     captured: list[dict] = []
@@ -166,6 +200,56 @@ def test_analysis_raw_response_excerpt_keeps_response_tail() -> None:
     assert excerpt.startswith("a")
     assert "FINAL FAILURE DETAILS" in excerpt
     assert "truncated" in excerpt
+
+
+def test_analysis_context_prioritizes_failures_and_includes_latency() -> None:
+    suite, run = _suite_and_run()
+    run.results = [
+        ItemResult(
+            item_id="passed",
+            target_id="target",
+            raw_response="ok",
+            score=1.0,
+            latency_ms=10,
+        ),
+        ItemResult(
+            item_id="low-score",
+            target_id="target",
+            raw_response="wrong",
+            score=0.25,
+            latency_ms=20,
+        ),
+        ItemResult(
+            item_id="harness-error",
+            target_id="target",
+            error="runner failed",
+            latency_ms=30,
+        ),
+    ]
+
+    context = analysis_module._run_context(run)
+
+    assert [item["item_id"] for item in context["results"]] == [
+        "harness-error",
+        "low-score",
+        "passed",
+    ]
+    assert context["results"][0]["latency_ms"] == 30
+
+
+def test_analysis_payload_advertises_artifact_discovery(tmp_path) -> None:
+    suite, run = _suite_and_run()
+
+    payload = analysis_module._analysis_payload(
+        suite,
+        run,
+        [],
+        _config(),
+        artifact_dir=tmp_path,
+    )
+
+    assert payload["available_artifacts"]["index_tool"] == "list_run_artifacts"
+    assert "probe_item_evidence" in payload["available_artifacts"]
 
 
 def test_analysis_round_trips_in_package_and_is_rendered_in_viewer() -> None:

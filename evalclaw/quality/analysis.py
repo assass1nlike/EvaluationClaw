@@ -39,8 +39,10 @@ from ..types import (
     TaskSuite,
 )
 from .analysis_tools import (
+    ANALYSER_ARTIFACT_LIST_TOOL,
     ANALYSER_ARTIFACT_TOOL,
     ANALYSER_ITEM_EVIDENCE_TOOL,
+    list_run_artifacts,
     read_item_evidence,
     read_run_artifact,
 )
@@ -79,12 +81,12 @@ already passed one run showing it is itself correct — the model's poor
 performance is not caused by flawed, imprecise, or ambiguous tasks. Then leave
 "goal" empty. Otherwise set "done": false and give a goal.
 
-QC is not part of the default analysis context. Two read-only tools may be
-available: read_run_artifact reads a named run artifact (read the QC artifact
+QC is not part of the default analysis context. Three read-only tools may be
+available: list_run_artifacts discovers saved evidence, read_run_artifact reads a named artifact (read the QC artifact
 only when you need to determine whether an observed result was caused by the
 task or infrastructure rather than the evaluated model), and read_item_evidence
-reads one item's full raw response and judge reasoning. Use these only when the
-request payload is not enough.
+reads one main-run or probe item's task, QC, full raw response, and judge reasoning.
+Use these only when the request payload is not enough.
 
 For agent tasks, the request includes the task prompt and an environment
 contract summary. Use the score, error, and judge reasoning as the initial
@@ -143,6 +145,11 @@ already passed one run showing it is itself correct — the model's poor
 performance is not caused by flawed, imprecise, or ambiguous tasks. Then leave
 "task_designs" empty. Otherwise set "done": false and give task_designs.
 
+The supplied responses may be bounded excerpts. When necessary, use read_item_evidence to inspect
+a main-run or probe item, list_run_artifacts to discover saved execution evidence, and
+read_run_artifact to inspect it. Do not infer model weakness from invalid tasks, failed setup,
+evaluator errors, harness errors, or infrastructure-caused timeouts.
+
 Return pure JSON only:
 {
   "analysis": "...",
@@ -156,7 +163,61 @@ your conclusion in analysis.
 """
 
 
-def _analyser_system_prompt(mode: str) -> str:
+SIMILAR_TASKS_ABLATION_PROMPT = """\
+You are the EvaluationClaw Analyser that maximizes the target model's error rate by creating tasks
+similar to existing failed tasks.
+
+Use all target-model results observed so far, including the initial benchmark and every completed
+iteration. Identify the tasks on which the target model performed poorly.
+
+Request new tasks that are similar to the failed tasks. Similarity may involve subject matter, task
+format, required operations, tool-interaction patterns, or core difficulty. The new tasks should be
+distinct, independently valid instances rather than simple copies, paraphrases, or answer-preserving
+rewrites of the originals.
+
+Expand the tasks based on observed existing failures. Do not infer a latent capability weakness or
+propose tasks based on hypothetical, unobserved failures.
+
+Do not treat benchmark defects, evaluator failures, harness errors, infrastructure-caused timeouts,
+or invalid tasks as evidence of poor model capability.
+
+The supplied responses may be bounded excerpts. When necessary, use read_item_evidence to inspect
+a main-run or probe item, list_run_artifacts to discover saved execution evidence, and
+read_run_artifact to inspect it.
+
+Continue until the budget is exhausted or no useful new tasks can be generated from existing failed
+tasks. Then set done=true and request no additional tasks.
+"""
+
+
+def _similar_tasks_analyser_prompt(mode: str) -> str:
+    if mode == "task_design":
+        output_instruction = """\
+Return TaskDesigns for the existing TaskBuilder to materialize. Use only dimension ids listed
+in the request. The framework assigns ids, so do not return an id. Each task_designs entry
+contains dimension_id plus: task_type, task_count, challenge_effort, content_design,
+input_requirements, interaction_requirements, environment_requirements, output_requirements,
+scoring_contract, source_plan, construction_requirements, type_specific_requirements, and
+metadata. The total task_count must not exceed max_probe_tasks.
+
+Return pure JSON only:
+{"analysis": "...", "task_designs": [], "done": false}"""
+    else:
+        output_instruction = """\
+When more tasks are needed, return a focused evaluation goal describing the benchmark to construct.
+This goal serves as an instruction for the Planner to create tasks similar to the identified failed
+tasks. State the observable properties that should be preserved and those that should vary. The goal
+may specify task type, count, and E1/E2/E3 challenge effort. Its total task count must not exceed
+max_probe_tasks.
+
+Return pure JSON only:
+{"analysis": "...", "goal": "...", "done": false}"""
+    return f"{SIMILAR_TASKS_ABLATION_PROMPT}\n{output_instruction}\n"
+
+
+def _analyser_system_prompt(mode: str, ablation: str = "none") -> str:
+    if ablation == "similar_tasks":
+        return _similar_tasks_analyser_prompt(mode)
     return ANALYSER_TASK_DESIGN_PROMPT if mode == "task_design" else ANALYSER_SYSTEM_PROMPT
 
 
@@ -219,7 +280,11 @@ def _run_analyser_tool_loop(
     calls_used = 0
     while True:
         tools = (
-            [ANALYSER_ARTIFACT_TOOL, ANALYSER_ITEM_EVIDENCE_TOOL]
+            [
+                ANALYSER_ARTIFACT_TOOL,
+                ANALYSER_ARTIFACT_LIST_TOOL,
+                ANALYSER_ITEM_EVIDENCE_TOOL,
+            ]
             if artifact_dir is not None and calls_used < _MAX_ARTIFACT_CALLS
             else []
         )
@@ -251,10 +316,20 @@ def _run_analyser_tool_loop(
                 }
             )
             continue
+        handlers = {
+            ANALYSER_ARTIFACT_TOOL.name: read_run_artifact,
+            ANALYSER_ARTIFACT_LIST_TOOL.name: list_run_artifacts,
+            ANALYSER_ITEM_EVIDENCE_TOOL.name: read_item_evidence,
+        }
         results = [
-            read_item_evidence(call, artifact_dir)
-            if call.name == ANALYSER_ITEM_EVIDENCE_TOOL.name
-            else read_run_artifact(call, artifact_dir)
+            handlers[call.name](call, artifact_dir)
+            if call.name in handlers
+            else ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=f"Unknown analyser tool: {call.name}",
+                error="unknown_tool",
+            )
             for call in selected
         ]
         calls_used += len(selected)
@@ -281,7 +356,8 @@ def _call_analyser_json(
         trace_dir=trace_dir,
         artifact_dir=artifact_dir,
         system_prompt=_analyser_system_prompt(
-            str(getattr(config, "analysis_probe_mode", "goal"))
+            str(getattr(config, "analysis_probe_mode", "goal")),
+            config.ablation_analyser,
         ),
     )
 
@@ -351,6 +427,10 @@ def _task_context(suite: TaskSuite) -> list[dict[str, Any]]:
                 "choices": [choice.model_dump(mode="json") for choice in item.choices],
                 "correct_choice_ids": list(item.correct_choice_ids),
                 "expected_texts": list(item.expected_texts),
+                "reference_answer": item.reference_answer,
+                "reference_trajectory": [
+                    step.model_dump(mode="json") for step in item.reference_trajectory
+                ],
                 "rubric": item.rubric,
             }
         environment = agent_environment(item)
@@ -366,6 +446,15 @@ def _task_context(suite: TaskSuite) -> list[dict[str, Any]]:
 
 
 def _run_context(run: EvalRun) -> dict[str, Any]:
+    def priority(result: Any) -> tuple[int, float, str, str]:
+        if result.error:
+            group = 0
+        elif result.score < 1.0:
+            group = 1
+        else:
+            group = 2
+        return group, result.score, result.target_id, result.item_id
+
     return {
         "summaries": [summary.model_dump(mode="json") for summary in run.summaries],
         "results": [
@@ -375,6 +464,7 @@ def _run_context(run: EvalRun) -> dict[str, Any]:
                 "score": result.score,
                 "judge_reasoning": result.judge_reasoning,
                 "error": result.error,
+                "latency_ms": result.latency_ms,
                 "failure_evidence": {
                     "failed": bool(result.error) or result.score < 1.0,
                     "score": result.score,
@@ -382,7 +472,7 @@ def _run_context(run: EvalRun) -> dict[str, Any]:
                 },
                 "raw_response": _truncate(result.raw_response),
             }
-            for result in run.results
+            for result in sorted(run.results, key=priority)
         ],
     }
 
@@ -451,9 +541,12 @@ def _analysis_payload(
     }
     if artifact_dir is not None:
         payload["available_artifacts"] = {
+            "index_tool": "list_run_artifacts",
             "qc_report": "qc_report.json",
             "target_run": "run.json",
             "construction": "construction.json",
+            "main_item_evidence": "runner/<target_id>/<item_id>/",
+            "probe_item_evidence": "analysis/iteration-<NN>/runner/<target_id>/<item_id>/",
             "analysis": "analysis/",
         }
     return payload
@@ -586,6 +679,12 @@ def _review_probes(
     return data
 
 
+def _probe_review_iterations(config: BenchmarkConfig) -> int:
+    if config.ablation_analyser != "none":
+        return 0
+    return max(0, int(config.analysis_review_max_iterations or 0))
+
+
 def _build_and_run_probes(
     main_suite: TaskSuite,
     config: BenchmarkConfig,
@@ -649,9 +748,7 @@ def _build_and_run_probes(
             trace_dir=trace_dir / "construction" if trace_dir is not None else None,
         )
         probe_suite.plan = plan
-    for review_index in range(
-        max(0, int(getattr(config, "analysis_review_max_iterations", 3) or 0))
-    ):
+    for review_index in range(_probe_review_iterations(config)):
         review_trace = (
             trace_dir / f"review-{review_index + 1:02d}" if trace_dir is not None else None
         )
@@ -764,6 +861,11 @@ def run_analysis(
         )
         if done:
             report = AnalysisReport(
+                strategy=(
+                    "hypothesis_driven"
+                    if config.ablation_analyser == "none"
+                    else config.ablation_analyser
+                ),
                 analysis=analysis,
                 iterations=iterations,
             )
@@ -772,13 +874,18 @@ def run_analysis(
             return report
 
         iteration_dir = root / f"iteration-{next_iteration:02d}" if root is not None else None
+        strategy_label = (
+            config.ablation_analyser.replace("_", "-")
+            if config.ablation_analyser != "none"
+            else "hypothesis-driven"
+        )
         if task_designs:
             probe_desc = (
                 f"{sum(item.task_design.task_count for item in task_designs)} "
-                "hypothesis-driven probe task(s)"
+                f"{strategy_label} probe task(s)"
             )
         else:
-            probe_desc = "a goal-driven probe"
+            probe_desc = f"a {strategy_label} goal probe"
         log(f"  [Analysis] Building {probe_desc}.")
         probe_suite, probe_qc, probe_run = _build_and_run_probes(
             suite,

@@ -19,12 +19,15 @@ from ..diagnostics import _io_path, error_record, write_json
 from ..execution.agent_envs import build_agent_environment
 from ..execution.docker import require_docker_available
 from ..models.llm import (
+    DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
     LLMOutputTruncatedError,
+    call_llm,
     extract_json,
 )
 from ..models.roles import role_model_settings
 from ..prompts.task_builder import (
+    build_task_builder_direct_prompt,
     build_task_builder_prompt,
     build_task_builder_tool_prompt,
     project_task_builder_document,
@@ -38,6 +41,7 @@ from ..types import (
     ChallengeEffort,
     EvalDimension,
     EvalSpec,
+    Message,
     TaskBlueprint,
     TaskDefinition,
     TaskResource,
@@ -331,6 +335,7 @@ def _task_builder_payload(
         "required_return_task_count": required_return_count,
     }
     simplified = bool(config is not None and config.ablation_simplified_contract)
+    direct = bool(config is not None and config.ablation_no_builder_harness)
     optional_fields = [] if simplified else ["content_summary", "description", "assets", "tags"]
     if blueprint.source_strategy in {"adapted", "reused", "imported_dataset"}:
         optional_fields.append("resource_ids")
@@ -373,10 +378,13 @@ def _task_builder_payload(
             "outside the list is possible."
         ]
     if TaskType.generation in task_types:
-        optional_fields.extend(["rubric", "judge_tools", "output_contract", "scoring"])
+        optional_fields.extend(
+            ["reference_answer", "rubric", "judge_tools", "output_contract", "scoring"]
+        )
         type_requirements[TaskType.generation.value] = [
-            "Provide a concrete rubric. Optional judge_tools may request registered external verification "
-            "using python_tests. The Judge uses tool results as evidence; "
+            "Provide a correct, self-contained reference_answer and a concrete rubric. The reference "
+            "answer is Judge evidence and is not shown to the target. Optional judge_tools may request "
+            "registered external verification using python_tests. The Judge uses tool results as evidence; "
             "the tools do not directly assign the final score."
         ]
     if TaskType.multi_turn in task_types:
@@ -431,6 +439,7 @@ def _task_builder_payload(
                 "environment",
                 "workflow",
                 "output_contract",
+                "reference_trajectory",
                 "rubric",
                 "judge_tools",
                 "scoring",
@@ -439,6 +448,9 @@ def _task_builder_payload(
         type_requirements[TaskType.agent.value] = [
             "Provide the executable environment, output contract, and deterministic checks or a "
             "task-specific rubric for the resulting state, artifacts, answer, or trajectory. "
+            "Provide reference_trajectory as one ordered feasible solution path; each step needs an "
+            "action and may include tool, arguments, and expected_observation. It is reference evidence, "
+            "not the only acceptable target trajectory. "
             "For one task with ordered phases, provide workflow.stages with explicit stage ids, "
             "kind, prompts, context, environment lifecycle, file handoffs, and evaluation stages; "
             "reference only preceding stage outputs and define workflow.score_stage and metrics."
@@ -459,6 +471,9 @@ def _task_builder_payload(
     contract: dict[str, object] = {
         "task_schema": task_schema,
         "response_format": (
+            "Return one complete JSON object with construction_notes, resources, and tasks."
+            if direct
+            else
             "Edit the complete JSON object at revision.path in place, then return a compact JSON "
             "confirmation."
             if revision_context
@@ -472,7 +487,8 @@ def _task_builder_payload(
     }
     if blueprint.requires_environment:
         optional_fields.extend(["environment", "system_prompt", "interaction"])
-        contract["environment_skill"] = environment_skill_payload(blueprint)
+        if not direct:
+            contract["environment_skill"] = environment_skill_payload(blueprint)
 
     payload: dict[str, object] = {
         "benchmark_context": {
@@ -490,6 +506,14 @@ def _task_builder_payload(
         },
         "resources": {
             "context": resource_context,
+            "builder_assistance": {
+                "urls": list(task_design.builder_resource_urls),
+                "usage": (
+                    "Optional construction aids only. They do not change source_plan.strategy and must "
+                    "not be emitted as task resources or resource_ids unless source_plan independently "
+                    "requires source grounding."
+                ),
+            },
             "selection": {
                 "queries": list(blueprint.source_plan.search_queries),
                 "suggested_urls": list(blueprint.source_plan.suggested_urls),
@@ -499,6 +523,9 @@ def _task_builder_payload(
         },
         "task_builder_contract": contract,
     }
+    if direct:
+        payload["task_definition_schema"] = TaskDefinition.model_json_schema()
+        payload["task_resource_schema"] = TaskResource.model_json_schema()
     if config is not None and config.task_models:
         payload["available_models"] = {
             "models": [
@@ -506,13 +533,19 @@ def _task_builder_payload(
                 for model in config.task_models
             ],
         }
-    if revision_context:
+    if revision_context and direct:
+        payload["revision"] = {
+            key: revision_context[key]
+            for key in ("qc_issues", "instruction", "previous_tasks", "previous_resources")
+            if key in revision_context
+        }
+    elif revision_context:
         payload["revision"] = {
             key: revision_context[key]
             for key in ("path", "qc_issues", "instruction")
             if key in revision_context
         }
-    elif task_file_path is not None:
+    elif task_file_path is not None and not direct:
         payload["task_file"] = {"path": str(task_file_path.resolve())}
     return payload
 
@@ -1001,6 +1034,28 @@ def build_task_suite(
             call_payload: dict[str, object],
         ) -> str:
             task_type = blueprint.task_designs[0].task_type
+            if config.ablation_no_builder_harness:
+                try:
+                    return call_llm(
+                        [
+                            Message(
+                                role="user",
+                                content=json.dumps(call_payload, ensure_ascii=False, indent=2),
+                            )
+                        ],
+                        system=build_task_builder_direct_prompt(
+                            task_type,
+                            blueprint.task_designs[0].challenge_effort.value,
+                        ),
+                        **builder_settings.call_kwargs(),
+                        backend=config.llm_backend,
+                        max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+                        expect_json=True,
+                        trace_dir=debug_job_dir / "llm" if debug_job_dir is not None else None,
+                        trace_name="task-builder-direct",
+                    )
+                except Exception as exc:
+                    raise TaskBuilderCallError(str(exc)) from exc
             system_prompt = build_task_builder_prompt(
                 task_type,
                 source_strategy=blueprint.source_strategy,
@@ -1013,6 +1068,9 @@ def build_task_suite(
             system_prompt += "\n\n" + build_task_builder_tool_prompt(
                 task_type,
                 source_backed=blueprint.source_strategy != "generated",
+                has_builder_resources=bool(
+                    blueprint.task_designs[0].builder_resource_urls
+                ),
                 include_image_tools=(
                     blueprint.environment_type == AgentEnvironmentType.docker_workspace
                 ),
@@ -1026,7 +1084,10 @@ def build_task_suite(
                 else {}
             )
             tool_kwargs = {
-                "include_source_tools": blueprint.source_strategy != "generated",
+                "include_source_tools": (
+                    blueprint.source_strategy != "generated"
+                    or bool(blueprint.task_designs[0].builder_resource_urls)
+                ),
                 "stop_event": stop_event,
                 **debug_kwargs,
             }
@@ -1225,6 +1286,7 @@ def build_task_suite(
                         blueprint=validation_blueprint,
                         task_design=task_design,
                         require_challenge_effort_self_assessment=not simplified,
+                        require_builder_references=True,
                         builder_work_dir=builder_work_dir,
                     )
                 )
@@ -1301,7 +1363,11 @@ def build_task_suite(
 
         parsed: object | None = None
         raw = ""
-        repair_attempts = max(0, int(getattr(config, "task_builder_repair_attempts", 2) or 0))
+        repair_attempts = (
+            0
+            if config.ablation_no_builder_harness
+            else max(0, int(getattr(config, "task_builder_repair_attempts", 2) or 0))
+        )
         last_validation_issues: list[str] = []
         last_failure_is_output = False
         last_failure_is_call_error = False

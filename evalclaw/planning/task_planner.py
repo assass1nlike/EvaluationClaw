@@ -9,6 +9,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ..diagnostics import (
+    document_append,
+    document_get,
+    document_remove,
+    document_set,
+)
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
@@ -17,12 +23,6 @@ from ..models.llm import (
     extract_json,
 )
 from ..models.roles import RoleModelSettings, role_model_settings
-from ..diagnostics import (
-    document_append,
-    document_get,
-    document_remove,
-    document_set,
-)
 from ..prompts.planner import BENCHMARK_PLANNER_SYSTEM_PROMPT
 from ..protocols.tool import ToolCall, ToolResult, ToolSpec
 from ..protocols.tool_adapters import (
@@ -780,6 +780,11 @@ def _audit_plan(
                         or lowered.startswith("hf://datasets/")
                     ):
                         issues.append(f"{design_prefix}: suggested URL is invalid: {url!r}.")
+                for url in _unique_strings(design.builder_resource_urls):
+                    if not url.lower().startswith(("https://", "http://")):
+                        issues.append(
+                            f"{design_prefix}: Builder resource URL must use HTTP(S): {url!r}."
+                        )
 
 
     planned_task_count = sum(

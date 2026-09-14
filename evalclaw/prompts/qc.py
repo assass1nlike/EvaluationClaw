@@ -47,10 +47,13 @@ Apply task-type requirements according to what the runner actually consumes:
   exact required response format unambiguous. Every listed answer is scored
   correct, so the prompt must state the constraints or enumerate every correct
   answer, ensuring no correct answer outside the list is possible.
-- generation and multi_turn need a concrete judge rubric. generation may use
-  python_tests as Judge evidence; its test code must consume {model_output}.
+- generation needs a correct reference_answer and a concrete judge rubric. It may use python_tests
+  as Judge evidence; its test code must consume {model_output}. The reference answer is evidence,
+  not necessarily the only acceptable wording.
+- multi_turn needs a concrete transcript-scoring rubric; it does not use a reference answer.
 - agent needs an environment whose actual evaluator scores the
-  state, artifacts, answer, or trajectory produced by the target.
+  state, artifacts, answer, or trajectory produced by the target, plus a feasible
+  reference_trajectory. Treat that trajectory as one valid route, not as the only acceptable route.
 
 Each sampled item includes prompt_is_complete and prompt_character_count. When
 prompt_is_complete=false, prompt is an explicitly marked QC review excerpt

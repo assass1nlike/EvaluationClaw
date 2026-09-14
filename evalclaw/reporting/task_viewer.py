@@ -84,6 +84,10 @@ def _task_payload(pkg: BenchmarkPackage) -> dict[str, Any]:
                 "choices": choices,
                 "correct_choice_ids": list(item.correct_choice_ids),
                 "expected_texts": list(item.expected_texts),
+                "reference_answer": item.reference_answer,
+                "reference_trajectory": [
+                    step.model_dump(mode="json") for step in item.reference_trajectory
+                ],
                 "rubric": item.rubric,
                 "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
                 "output_contract": item.output_contract,

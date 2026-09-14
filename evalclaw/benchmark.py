@@ -184,6 +184,12 @@ def _item_blocking_error_counts(report: QcReport) -> Counter[str]:
     )
 
 
+def _qc_repair_limit(config: BenchmarkConfig) -> int:
+    if config.ablation_no_builder_harness:
+        return 0
+    return max(0, int(config.max_qc_iterations))
+
+
 def _filter_incomplete_suite(
     suite: TaskSuite,
     qc_report: QcReport,
@@ -340,7 +346,7 @@ def build_suite_from_spec_with_qc_loop(
             write_json(trace_root / "initial-qc.json", qc_report.model_dump(mode="json"))
     log(f"  QC: reviewing {len(suite.tasks)} constructed task(s). {qc_report.summary}")
 
-    max_repairs = max(0, int(config.max_qc_iterations))
+    max_repairs = _qc_repair_limit(config)
     for repair_round in range(max(1, resume_repair_round + 1), max_repairs + 1):
         affected_ids = _affected_builder_job_ids(suite, qc_report)
         if not affected_ids:
