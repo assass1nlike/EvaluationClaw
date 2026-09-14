@@ -1,0 +1,340 @@
+% ==========================================================================
+% EvalClaw pipeline overview.
+% A compact, publication-oriented three-stage layout.
+% The surrounding figure environment and caption live in main.tex.
+% ==========================================================================
+
+% --- restrained conference-figure palette ---------------------------------
+\definecolor{PipeInk}{HTML}{28323C}
+\definecolor{PipeMuted}{HTML}{66717E}
+\definecolor{PipeLine}{HTML}{D6DEE7}
+\definecolor{PipeArrow}{HTML}{536170}
+
+\definecolor{Planner}{HTML}{3F72AF}
+\definecolor{PlannerDark}{HTML}{28598E}
+\definecolor{PlannerPanel}{HTML}{F6F9FD}
+\definecolor{PlannerSoft}{HTML}{EAF2FB}
+
+\definecolor{Harness}{HTML}{258477}
+\definecolor{HarnessDark}{HTML}{17685F}
+\definecolor{HarnessPanel}{HTML}{F4FAF8}
+\definecolor{HarnessSoft}{HTML}{E7F4F1}
+
+\definecolor{Analyzer}{HTML}{7453B6}
+\definecolor{AnalyzerDark}{HTML}{593B96}
+\definecolor{AnalyzerPanel}{HTML}{F8F6FC}
+\definecolor{AnalyzerSoft}{HTML}{EFEAF8}
+
+\definecolor{Quality}{HTML}{C65D4B}
+\definecolor{QualityDark}{HTML}{994235}
+\definecolor{QualitySoft}{HTML}{FBEDEA}
+
+\tikzset{
+  stagepanel/.style={
+    draw=PipeLine, line width=0.7pt, rounded corners=7pt,
+    minimum height=5.00cm, inner sep=0pt
+  },
+  stageindex/.style={
+    circle, minimum size=0.40cm, inner sep=0pt,
+    font=\sffamily\scriptsize\bfseries, text=white
+  },
+  stagetitle/.style={
+    anchor=west, font=\sffamily\footnotesize\bfseries, text=PipeInk
+  },
+  basebox/.style={
+    draw=PipeLine, fill=white, line width=0.75pt, rounded corners=3pt,
+    minimum height=0.58cm, inner xsep=7pt, inner ysep=4pt,
+    align=center, font=\sffamily\footnotesize, text=PipeInk
+  },
+  plannerbox/.style={
+    basebox, draw=Planner!72, fill=PlannerSoft, text=PlannerDark
+  },
+  harnessbox/.style={
+    basebox, draw=Harness!72, fill=HarnessSoft, text=HarnessDark
+  },
+  analyzerbox/.style={
+    basebox, draw=Analyzer!72, fill=AnalyzerSoft, text=AnalyzerDark
+  },
+  qualitybox/.style={
+    basebox, draw=Quality!82, fill=QualitySoft, text=QualityDark
+  },
+  modulecard/.style={
+    draw=Harness!42, fill=white, line width=0.75pt, rounded corners=4pt,
+    minimum width=5.45cm, minimum height=2.65cm, inner sep=0pt
+  },
+  tooltext/.style={
+    anchor=north, align=center, inner sep=0pt,
+    font=\sffamily\scriptsize, text=HarnessDark
+  },
+  decision/.style={
+    diamond, aspect=2.25, draw=Analyzer!75, fill=AnalyzerSoft,
+    line width=0.75pt, minimum width=1.55cm, minimum height=0.62cm,
+    inner sep=1pt, align=center, font=\sffamily\scriptsize\bfseries,
+    text=AnalyzerDark
+  },
+  flow/.style={
+    -{Latex[length=4.5pt,width=3.5pt]}, draw=PipeArrow,
+    line width=0.85pt, line cap=round, line join=round
+  },
+  internal/.style={
+    -{Latex[length=3.8pt,width=3.0pt]}, draw=PipeArrow!82,
+    line width=0.70pt, line cap=round, line join=round
+  },
+  resourceflow/.style={
+    -{Latex[length=4pt,width=3.1pt]}, draw=Harness,
+    line width=0.75pt, dashed, dash pattern=on 3pt off 2pt,
+    line cap=round, line join=round
+  },
+  feedback/.style={
+    -{Latex[length=4.5pt,width=3.5pt]}, draw=Analyzer,
+    line width=0.90pt, dashed, dash pattern=on 4pt off 2.5pt,
+    line cap=round, line join=round
+  },
+  qcflow/.style={
+    -{Latex[length=3.8pt,width=3.0pt]}, draw=Quality,
+    line width=0.70pt, dashed, dash pattern=on 2.5pt off 1.8pt,
+    line cap=round, line join=round
+  }
+}
+
+% --- small vector icons for the borderless construction tools -------------
+% Each macro receives a TikZ coordinate, e.g. \tooldoc{(5.8,-2.0)}.
+\def\tooldoc#1{%
+  \begin{scope}[shift={#1}]
+    \draw[draw=HarnessDark, line width=0.55pt, fill=white, rounded corners=0.5pt]
+      (-0.10,-0.13) rectangle (0.10,0.13);
+    \draw[draw=HarnessDark, line width=0.55pt]
+      (0.035,0.13) -- (0.10,0.065) -- (0.035,0.065) -- cycle;
+    \draw[draw=HarnessDark!70, line width=0.45pt]
+      (-0.055,0.025) -- (0.045,0.025)
+      (-0.055,-0.025) -- (0.055,-0.025)
+      (-0.055,-0.075) -- (0.040,-0.075);
+  \end{scope}}
+
+\def\toolzip#1{%
+  \begin{scope}[shift={#1}]
+    \draw[draw=HarnessDark, line width=0.55pt, fill=white, rounded corners=0.8pt]
+      (-0.10,-0.13) rectangle (0.10,0.13);
+    \draw[draw=HarnessDark, line width=0.55pt]
+      (0.035,0.13) -- (0.10,0.065) -- (0.035,0.065) -- cycle;
+    \draw[draw=HarnessDark!75, line width=0.45pt] (0,0.13) -- (0,-0.025);
+    \draw[draw=HarnessDark, line width=0.65pt]
+      (-0.022,0.090) -- (0.022,0.090)
+      (-0.022,0.052) -- (0.022,0.052)
+      (-0.022,0.014) -- (0.022,0.014);
+    \draw[draw=HarnessDark, fill=HarnessSoft, line width=0.5pt, rounded corners=0.4pt]
+      (-0.035,-0.025) rectangle (0.035,-0.095);
+  \end{scope}}
+
+\def\toollink#1{%
+  \begin{scope}[shift={#1}, rotate=32]
+    \draw[draw=HarnessDark, line width=0.65pt, rounded corners=2pt]
+      (-0.16,-0.055) rectangle (0.015,0.055);
+    \draw[draw=HarnessDark, line width=0.65pt, rounded corners=2pt]
+      (-0.015,-0.055) rectangle (0.16,0.055);
+    \draw[draw=white, line width=1.5pt] (-0.025,0) -- (0.025,0);
+    \draw[draw=HarnessDark, line width=0.65pt] (-0.055,0) -- (0.055,0);
+  \end{scope}}
+
+% Evaluator: a compact score sheet with an explicit check mark.
+\def\toolscore#1{%
+  \begin{scope}[shift={#1}]
+    \draw[draw=HarnessDark, line width=0.55pt, fill=white, rounded corners=0.7pt]
+      (-0.11,-0.13) rectangle (0.11,0.11);
+    \draw[draw=HarnessDark, fill=HarnessSoft, line width=0.5pt, rounded corners=0.5pt]
+      (-0.045,0.08) rectangle (0.045,0.14);
+    \draw[draw=HarnessDark, line width=0.65pt, line cap=round]
+      (-0.065,-0.025) -- (-0.025,-0.070) -- (0.060,0.025);
+  \end{scope}}
+
+\def\toolterminal#1{%
+  \begin{scope}[shift={#1}]
+    \draw[draw=HarnessDark, line width=0.55pt, fill=white, rounded corners=0.8pt]
+      (-0.14,-0.105) rectangle (0.14,0.105);
+    \draw[draw=HarnessDark!55, line width=0.45pt]
+      (-0.14,0.055) -- (0.14,0.055);
+    \draw[draw=HarnessDark, line width=0.60pt, line cap=round]
+      (-0.085,0.010) -- (-0.045,-0.025) -- (-0.085,-0.060);
+    \draw[draw=HarnessDark, line width=0.75pt]
+      (-0.015,-0.060) -- (0.080,-0.060);
+  \end{scope}}
+
+\def\toolrobot#1{%
+  \begin{scope}[shift={#1}]
+    \draw[draw=HarnessDark, line width=0.55pt] (0,0.13) -- (0,0.085);
+    \fill[HarnessDark] (0,0.145) circle (0.018cm);
+    \draw[draw=HarnessDark, line width=0.55pt, fill=white, rounded corners=1.8pt]
+      (-0.13,-0.10) rectangle (0.13,0.08);
+    \fill[HarnessDark] (-0.050,0.005) circle (0.017cm);
+    \fill[HarnessDark] (0.050,0.005) circle (0.017cm);
+    \draw[draw=HarnessDark!75, line width=0.45pt]
+      (-0.045,-0.055) -- (0.045,-0.055);
+  \end{scope}}
+
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}
+
+% --- stage surfaces --------------------------------------------------------
+\begin{scope}[on background layer]
+  \node[stagepanel, fill=PlannerPanel, minimum width=3.45cm]
+    (planner-panel) at (1.75,-2.55) {};
+  \node[stagepanel, fill=HarnessPanel, minimum width=8.80cm]
+    (harness-panel) at (8.125,-2.55) {};
+  \node[stagepanel, fill=AnalyzerPanel, minimum width=5.35cm]
+    (analyzer-panel) at (15.40,-2.55) {};
+\end{scope}
+
+% Thin top accents organize the three stages without heavy region borders.
+\draw[Planner, line width=2.0pt, line cap=round]
+  (0.18,-0.09) -- (3.32,-0.09);
+\draw[Harness, line width=2.0pt, line cap=round]
+  (3.91,-0.09) -- (12.34,-0.09);
+\draw[Analyzer, line width=2.0pt, line cap=round]
+  (12.92,-0.09) -- (17.88,-0.09);
+
+% --- stage headers ---------------------------------------------------------
+\node[stageindex, fill=Planner] (stage-1) at (0.43,-0.49) {1};
+\node[stagetitle, align=left] at (0.72,-0.49)
+  {Research-assisted\\[-1pt]Planner};
+
+\node[stageindex, fill=Harness] (stage-2) at (4.15,-0.49) {2};
+\node[stagetitle] at (4.44,-0.49) {EvalClaw Harness};
+
+\node[stageindex, fill=Analyzer] (stage-3) at (13.16,-0.49) {3};
+\node[stagetitle] at (13.45,-0.49) {Hypothesis-driven Analyzer};
+
+\draw[PipeLine, line width=0.55pt] (0.20,-0.82) -- (3.30,-0.82);
+\draw[PipeLine, line width=0.55pt] (3.93,-0.82) -- (12.32,-0.82);
+\draw[PipeLine, line width=0.55pt] (12.94,-0.82) -- (17.86,-0.82);
+
+% --- stage 1: research-assisted planning ----------------------------------
+\node[basebox, minimum width=2.70cm] (capspec) at (1.75,-1.30)
+  {User input + config};
+
+\node[plannerbox, minimum width=2.20cm, font=\sffamily\footnotesize\bfseries]
+  (planner) at (1.75,-2.15) {Planner};
+
+\node[plannerbox, minimum width=2.70cm] (retrieval) at (1.75,-3.08)
+  {Retrieval backend};
+
+\node[basebox, minimum width=2.25cm] (itemplan) at (1.75,-4.18)
+  {Item plan};
+
+\draw[internal] (capspec) -- (planner);
+\draw[internal, draw=Planner]
+  (planner.east) to[out=14,in=14,looseness=1.22] (retrieval.east);
+\draw[internal, draw=Planner]
+  (retrieval.west) to[out=166,in=166,looseness=1.22] (planner.west);
+\node[fill=PlannerPanel, inner xsep=2pt, inner ysep=0pt,
+  font=\sffamily\scriptsize\itshape, text=PlannerDark]
+  at (1.75,-2.62) {research loop};
+\draw[internal] (retrieval) -- (itemplan);
+
+% --- stage 2: construction and quality control ----------------------------
+\node[harnessbox, minimum width=1.18cm,
+  font=\sffamily\footnotesize\bfseries] (builder) at (4.55,-2.45)
+  {Builder};
+
+\node[modulecard] (modules) at (7.95,-2.45) {};
+\node[anchor=west, font=\sffamily\scriptsize\bfseries, text=HarnessDark]
+  at (5.48,-1.39) {Task construction tools};
+\draw[Harness!24, line width=0.5pt] (5.44,-1.63) -- (10.46,-1.63);
+
+% Borderless icon-label tools. The icon is the visual anchor for each item.
+\coordinate (prompt-icon) at (6.20,-1.98);
+\tooldoc{(prompt-icon)}
+\node[tooltext] at (6.20,-2.20) {Prompt};
+
+\coordinate (synthesis-icon) at (7.95,-1.98);
+\toolzip{(synthesis-icon)}
+\node[tooltext] at (7.95,-2.20) {Data synth};
+
+\coordinate (agent-icon) at (9.70,-1.98);
+\toolrobot{(agent-icon)}
+\node[tooltext] at (9.70,-2.20) {Agent};
+
+\coordinate (evaluator-icon) at (6.20,-2.78);
+\toolscore{(evaluator-icon)}
+\node[tooltext] at (6.20,-3.00) {Evaluator};
+
+\coordinate (env-icon) at (7.95,-2.78);
+\toolterminal{(env-icon)}
+\node[tooltext] at (7.95,-3.00) {Env. setup};
+
+\coordinate (resources-icon) at (9.70,-2.78);
+\toollink{(resources-icon)}
+\node[tooltext] at (9.70,-3.00) {Resources};
+\coordinate (resources-in) at (9.70,-3.28);
+
+% QC is a side check over the complete tool set, not an in-line gate.
+\node[qualitybox, minimum width=2.46cm, minimum height=0.62cm,
+  font=\sffamily\scriptsize, inner xsep=5pt]
+  (qc) at (7.95,-4.31)
+  {\textbf{QC gate}\; $\cdot$ \;schema check\; $\cdot$ \;review};
+
+\node[basebox, minimum width=1.38cm, minimum height=0.78cm,
+  font=\sffamily\scriptsize, inner xsep=3pt]
+  (taskdef) at (11.68,-2.45)
+  {TaskDefinition\\[-1pt]\tiny JSON};
+
+% Main construction spine: QC checks the tools without blocking this path.
+\draw[flow] (itemplan.east) -- ++(0.70,0) |- (builder.west);
+\draw[flow] (builder) -- (modules.west);
+\draw[flow] (modules.east) -- (taskdef.west);
+\draw[qcflow] (modules.south) -- (qc.north);
+
+% Evidence is an auxiliary input to the resource module, not another spine.
+\draw[resourceflow]
+  (retrieval.east) -- ++(0.28,0) |- (3.45,-4.82)
+  -- (10.45,-4.82) -- (10.45,-3.86)
+  -- (9.70,-3.86) -- (resources-in);
+\node[fill=HarnessPanel, inner xsep=3pt, inner ysep=1pt,
+  font=\sffamily\scriptsize, text=HarnessDark]
+  at (5.18,-4.82) {resource suggestions};
+
+% --- stage 3: evaluation and hypothesis refinement ------------------------
+\node[basebox, minimum width=2.20cm] (modelrun) at (14.47,-1.32)
+  {Model evaluation};
+
+\node[analyzerbox, minimum width=2.00cm,
+  font=\sffamily\footnotesize\bfseries] (analyzer) at (14.47,-2.16)
+  {Analyzer};
+
+\node[analyzerbox, minimum width=2.45cm] (hypothesis) at (14.47,-3.03)
+  {Capability hypothesis};
+
+\node[decision] (verified) at (14.47,-4.08)
+  {verified?};
+
+\node[basebox, minimum width=1.78cm, minimum height=0.70cm]
+  (report) at (16.65,-4.08) {Diagnostic report};
+
+\draw[flow] (taskdef.east) -- ++(0.28,0) |- (modelrun.west);
+\draw[internal] (modelrun) -- (analyzer);
+\draw[internal] (analyzer) -- (hypothesis);
+\draw[internal] (hypothesis) -- (verified);
+\draw[flow] (verified.east) -- (report.west)
+  node[midway, above=2pt, font=\sffamily\scriptsize, text=PipeMuted] {yes};
+
+% Local refinement remains inside the analysis stage.
+\draw[feedback, line width=0.75pt]
+  (verified.west) -- ++(-0.42,0) |- (analyzer.west);
+\node[fill=AnalyzerPanel, inner xsep=2pt, inner ysep=0pt,
+  font=\sffamily\scriptsize\itshape, text=AnalyzerDark, anchor=east]
+  at ($(verified.west)+(-0.06,0.24)$) {no: refine};
+
+% The Analyzer controls both construction and its upstream input/config.
+% A shared bus makes the two feedback targets explicit without crossing text.
+\draw[feedback, -]
+  (analyzer.east) -- (18.05,-2.16)
+  -- (18.05,-5.48) -- (-0.16,-5.48) -- (-0.16,-1.30);
+\draw[feedback, preaction={draw=HarnessPanel, line width=2.4pt, solid, -}]
+  (4.55,-5.48) -- (builder.south);
+\draw[feedback, preaction={draw=PlannerPanel, line width=2.4pt, solid, -}]
+  (-0.16,-1.30) -- (capspec.west);
+\node[fill=white, rounded corners=2pt, inner xsep=5pt, inner ysep=1.5pt,
+  font=\sffamily\scriptsize\bfseries, text=AnalyzerDark]
+  at (9.05,-5.48) {invoke construction pipeline};
+
+\end{tikzpicture}%
+}

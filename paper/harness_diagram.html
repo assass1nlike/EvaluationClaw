@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EvalClaw-Harness</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg:        #f7f7f5;
+  --surface:   #ffffff;
+  --border:    #d8d5ce;
+  --text:      #1a1917;
+  --muted:     #6b6760;
+  --accent:    #2563eb;
+  --accent-lt: #dbeafe;
+  --qc:        #7c3aed;
+  --qc-lt:     #ede9fe;
+  --run:       #059669;
+  --run-lt:    #d1fae5;
+  --warn:      #b45309;
+  --warn-lt:   #fef3c7;
+  --harness:   #1a1917;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --mono: 'IBM Plex Mono', 'Menlo', monospace;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #111110;
+    --surface:   #1c1b1a;
+    --border:    #3a3835;
+    --text:      #f0ede8;
+    --muted:     #8a8680;
+    --accent:    #3b82f6;
+    --accent-lt: #1e3a5f;
+    --qc:        #a78bfa;
+    --qc-lt:     #2e1f5e;
+    --run:       #34d399;
+    --run-lt:    #064e3b;
+    --warn:      #fbbf24;
+    --warn-lt:   #451a03;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #111110;
+  --surface:   #1c1b1a;
+  --border:    #3a3835;
+  --text:      #f0ede8;
+  --muted:     #8a8680;
+  --accent:    #3b82f6;
+  --accent-lt: #1e3a5f;
+  --qc:        #a78bfa;
+  --qc-lt:     #2e1f5e;
+  --run:       #34d399;
+  --run-lt:    #064e3b;
+  --warn:      #fbbf24;
+  --warn-lt:   #451a03;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  padding: 32px 24px;
+  min-height: 100vh;
+}
+
+.diagram-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.diagram-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.harness-frame {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px 24px 20px;
+  position: relative;
+}
+
+.harness-tag {
+  position: absolute;
+  top: -11px;
+  left: 16px;
+  background: var(--bg);
+  padding: 0 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.builder-tag {
+  position: absolute;
+  top: -11px;
+  right: 16px;
+  background: var(--bg);
+  padding: 0 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+/* Main layout: plan → branches → QC → run */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+}
+
+/* The node boxes */
+.node {
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  position: relative;
+  border: 1.5px solid;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.node-plan {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.node-qc {
+  border-color: var(--qc);
+  color: var(--qc);
+  background: var(--qc-lt);
+}
+.node-run {
+  border-color: var(--run);
+  color: var(--run);
+  background: var(--run-lt);
+}
+
+/* The branches column */
+.branches-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  margin: 0 4px;
+  position: relative;
+}
+
+/* Horizontal connector segments */
+.connector {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.arrow-line {
+  height: 2px;
+  background: var(--border);
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.arrowhead {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* The fork/join vertical lines */
+.fork-join {
+  width: 20px;
+  flex-shrink: 0;
+  align-self: stretch;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Branch row */
+.branch-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.branch-stem {
+  width: 20px;
+  height: 2px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.branch-node {
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tool-badge {
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 500;
+  background: var(--accent-lt);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.warn-badge {
+  background: var(--warn-lt);
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+/* SVG lines for fork/join */
+.fork-svg, .join-svg {
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+/* QC sub-items */
+.qc-detail {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--qc);
+  opacity: 0.8;
+  margin-top: 3px;
+}
+
+.run-detail {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--run);
+  opacity: 0.8;
+  margin-top: 3px;
+}
+
+.plan-detail {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--accent);
+  opacity: 0.8;
+  margin-top: 3px;
+}
+
+/* Legend */
+.legend {
+  margin-top: 20px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+</style>
+</head>
+<body>
+<div class="diagram-wrapper">
+  <div class="diagram-label">EvalClaw — Benchmark Construction Flow</div>
+
+  <div class="harness-frame">
+    <span class="harness-tag">EvalClaw-Harness</span>
+    <span class="builder-tag">operated by Builder</span>
+
+    <svg id="lines" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;" aria-hidden="true"></svg>
+
+    <div class="flow" id="flow">
+
+      <!-- PLAN node -->
+      <div class="node node-plan" id="n-plan" style="text-align:center;">
+        Plan
+        <div class="plan-detail">from Planner</div>
+      </div>
+
+      <!-- Arrow plan → branches -->
+      <div class="connector">
+        <div class="arrow-line"></div>
+        <div class="arrowhead"></div>
+      </div>
+
+      <!-- Branches column -->
+      <div class="branches-col" id="branches">
+
+        <div class="branch-row" id="br-env">
+          <div class="branch-node">Environment Setup</div>
+          <span class="tool-badge">docker_tools</span>
+          <span class="tool-badge">fs_tools</span>
+        </div>
+
+        <div class="branch-row" id="br-agent">
+          <div class="branch-node">Role Agent Config</div>
+          <span class="tool-badge">agent_scaffold</span>
+          <span class="tool-badge">policy_loader</span>
+        </div>
+
+        <div class="branch-row" id="br-data">
+          <div class="branch-node">Data Synthesis</div>
+          <span class="tool-badge">resource_fetcher</span>
+          <span class="tool-badge">schema_builder</span>
+        </div>
+
+        <div class="branch-row" id="br-eval">
+          <div class="branch-node">Evaluator Definition</div>
+          <span class="tool-badge">eval_writer</span>
+          <span class="tool-badge warn-badge">exec_check</span>
+        </div>
+
+        <div class="branch-row" id="br-task">
+          <div class="branch-node">Task Spec (JSON)</div>
+          <span class="tool-badge">task_schema_validator</span>
+        </div>
+
+      </div>
+
+      <!-- Arrow branches → QC -->
+      <div class="connector">
+        <div class="arrow-line"></div>
+        <div class="arrowhead"></div>
+      </div>
+
+      <!-- QC node -->
+      <div class="node node-qc" id="n-qc" style="text-align:center;">
+        Quality Check
+        <div class="qc-detail">① schema check</div>
+        <div class="qc-detail">② subagent review</div>
+      </div>
+
+      <!-- Arrow QC → Run -->
+      <div class="connector">
+        <div class="arrow-line"></div>
+        <div class="arrowhead"></div>
+      </div>
+
+      <!-- Run node -->
+      <div class="node node-run" id="n-run" style="text-align:center;">
+        Run
+        <div class="run-detail">EvalTask ready</div>
+      </div>
+
+    </div><!-- /.flow -->
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--accent-lt);border:1px solid var(--accent);"></div>
+        tool
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--warn-lt);border:1px solid var(--warn);"></div>
+        execution-check tool
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--qc-lt);border:1px solid var(--qc);"></div>
+        QC gate
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--run-lt);border:1px solid var(--run);"></div>
+        downstream run
+      </div>
+      <div class="legend-item" style="margin-left:auto;font-size:10px;opacity:0.6;">
+        EvalClaw-TaskDefinition (JSON) passes through all branches
+      </div>
+    </div>
+
+  </div><!-- /.harness-frame -->
+</div>
+
+<script>
+// Draw fork lines from plan-output midpoint to each branch row midpoint,
+// and join lines from each branch row to QC-input midpoint.
+// All positions computed after layout.
+
+function midY(el, container) {
+  const er = el.getBoundingClientRect();
+  const cr = container.getBoundingClientRect();
+  return er.top + er.height / 2 - cr.top;
+}
+function midX(el, container) {
+  const er = el.getBoundingClientRect();
+  const cr = container.getBoundingClientRect();
+  return er.left + er.width / 2 - cr.left;
+}
+function rightX(el, container) {
+  const er = el.getBoundingClientRect();
+  const cr = container.getBoundingClientRect();
+  return er.right - cr.left;
+}
+function leftX(el, container) {
+  const er = el.getBoundingClientRect();
+  const cr = container.getBoundingClientRect();
+  return er.left - cr.left;
+}
+
+function draw() {
+  const svg = document.getElementById('lines');
+  const container = svg.parentElement;
+  svg.innerHTML = '';
+
+  const color = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+
+  const branchIds = ['br-env','br-agent','br-data','br-eval','br-task'];
+
+  const planNode = document.getElementById('n-plan');
+  const qcNode   = document.getElementById('n-qc');
+  const branchesCol = document.getElementById('branches');
+
+  // fork: from right edge of plan → left edge of each branch row's first child
+  const forkX = rightX(planNode, container) + 22; // after the arrow
+  const joinX = leftX(qcNode, container)    - 22; // before the QC arrow
+
+  branchIds.forEach(id => {
+    const row = document.getElementById(id);
+    const branchNode = row.querySelector('.branch-node');
+    const by = midY(branchNode, container);
+    const bxLeft  = leftX(branchNode, container);
+    const bxRight = rightX(branchNode, container) + /* badges */
+      Array.from(row.querySelectorAll('.tool-badge')).reduce((s, b) => s + b.getBoundingClientRect().width + 6, 0);
+
+    // Fork line: vertical from forkX at plan-mid down to by, then horizontal to branch left
+    const py = midY(planNode, container);
+
+    // Draw fork elbow
+    const path1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path1.setAttribute('d', `M ${forkX} ${py} L ${forkX} ${by} L ${bxLeft} ${by}`);
+    path1.setAttribute('stroke', color);
+    path1.setAttribute('stroke-width', '1.5');
+    path1.setAttribute('fill', 'none');
+    svg.appendChild(path1);
+
+    // Join line: horizontal from branch right (past badges) to joinX, then vertical up to QC mid
+    const qy = midY(qcNode, container);
+    // just draw horizontal to joinX; the vertical is one shared line
+    const rowRight = rightX(row, container);
+    const path2 = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path2.setAttribute('d', `M ${rowRight} ${by} L ${joinX} ${by}`);
+    path2.setAttribute('stroke', color);
+    path2.setAttribute('stroke-width', '1.5');
+    path2.setAttribute('fill', 'none');
+    svg.appendChild(path2);
+  });
+
+  // Draw the shared vertical join line at joinX
+  const rows = branchIds.map(id => document.getElementById(id));
+  const topBranch    = rows[0].querySelector('.branch-node');
+  const bottomBranch = rows[rows.length-1].querySelector('.branch-node');
+  const topY    = midY(topBranch, container);
+  const bottomY = midY(bottomBranch, container);
+  const qy = midY(qcNode, container);
+
+  const joinLine = document.createElementNS('http://www.w3.org/2000/svg','line');
+  joinLine.setAttribute('x1', joinX); joinLine.setAttribute('y1', topY);
+  joinLine.setAttribute('x2', joinX); joinLine.setAttribute('y2', bottomY);
+  joinLine.setAttribute('stroke', color);
+  joinLine.setAttribute('stroke-width','1.5');
+  svg.appendChild(joinLine);
+
+  // Final horizontal from joinX to QC left (overrides the connector arrow, so just a connecting dot)
+  // The connector arrow already has its own HTML element, so just draw the join → QC left
+  const joinToQC = document.createElementNS('http://www.w3.org/2000/svg','line');
+  joinToQC.setAttribute('x1', joinX); joinToQC.setAttribute('y1', qy);
+  joinToQC.setAttribute('x2', leftX(qcNode,container)); joinToQC.setAttribute('y2', qy);
+  joinToQC.setAttribute('stroke', color);
+  joinToQC.setAttribute('stroke-width','1.5');
+  svg.appendChild(joinToQC);
+
+  // Small fork dot at plan
+  const dot1 = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot1.setAttribute('cx', forkX); dot1.setAttribute('cy', midY(planNode, container));
+  dot1.setAttribute('r','3.5'); dot1.setAttribute('fill', color);
+  svg.appendChild(dot1);
+
+  // Small join dot at joinX
+  const dot2 = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot2.setAttribute('cx', joinX); dot2.setAttribute('cy', qy);
+  dot2.setAttribute('r','3.5'); dot2.setAttribute('fill', color);
+  svg.appendChild(dot2);
+}
+
+// Hide the HTML connector arrows that are between plan and branches and branches and QC
+// since we're drawing them with SVG (the branch-level horizontal stems are still from HTML for simplicity)
+document.querySelectorAll('.connector').forEach(c => {
+  c.style.visibility = 'hidden';
+  c.style.width = '24px';
+});
+
+// Draw branch stems hidden too (handled by SVG)
+document.querySelectorAll('.branch-stem').forEach(s => s.style.display = 'none');
+
+requestAnimationFrame(() => {
+  requestAnimationFrame(draw);
+});
+window.addEventListener('resize', draw);
+</script>
+</body>
+</html>
