@@ -64,6 +64,12 @@ def _task_from_raw(
             for value in raw.get("expected_texts", [])
             if value is not None and str(value).strip()
         ],
+        reference_answer=str(raw.get("reference_answer") or ""),
+        reference_trajectory=(
+            [value for value in raw.get("reference_trajectory", []) if isinstance(value, dict)]
+            if isinstance(raw.get("reference_trajectory"), list)
+            else []
+        ),
         rubric=str(raw["rubric"]) if raw.get("rubric") is not None else None,
         judge_tools=[
             value for value in raw.get("judge_tools", []) if isinstance(value, dict)

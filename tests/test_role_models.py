@@ -73,7 +73,7 @@ def _suite() -> TaskSuite:
     )
 
 
-@pytest.mark.parametrize("role", ["planner", "task_builder", "qc", "research", "analyser"])
+@pytest.mark.parametrize("role", ["planner", "task_builder", "qc", "laaj", "research", "analyser"])
 def test_role_settings_use_role_fields(role: str) -> None:
     settings = role_model_settings(_config_for(role), role)  # type: ignore[arg-type]
 

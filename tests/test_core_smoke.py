@@ -372,8 +372,11 @@ def test_task_builder_calls_llm_once_per_task_design(monkeypatch) -> None:
                         "id": f"task_{task_index}",
                         "dimension_id": "agent_capability",
                         "challenge_effort": challenge_effort,
-                        "title": f"Task {task_index}",
-                        "prompt": f"Complete distinct task {task_index}.",
+                            "title": f"Task {task_index}",
+                            "prompt": f"Complete distinct task {task_index}.",
+                            "reference_trajectory": [
+                                {"action": f"Complete distinct task {task_index}."}
+                            ],
                         "environment": {
                             "type": "docker_workspace",
                             "test_command": "python3 -c \"assert True\"",
@@ -751,6 +754,9 @@ def test_task_builder_uses_challenge_effort(monkeypatch) -> None:
                         "dimension_id": "agent_capability",
                         "title": "Hard task",
                         "prompt": "Complete a realistic multi-file repair task.",
+                        "reference_trajectory": [
+                            {"action": "Inspect and repair the affected workspace files."}
+                        ],
                         "challenge_effort": "E3",
                         "environment": {
                             "type": "docker_workspace",
@@ -822,8 +828,11 @@ def test_task_builder_recovers_truncation_in_preserved_conversation(monkeypatch)
                         "id": "recovered_task",
                         "dimension_id": "agent_capability",
                         "challenge_effort": "E3",
-                        "title": "Recovered task",
-                        "prompt": "Inspect the workspace and place the brief in the outgoing bin.",
+                            "title": "Recovered task",
+                            "prompt": "Inspect the workspace and place the brief in the outgoing bin.",
+                            "reference_trajectory": [
+                                {"action": "Inspect the workspace and move the brief."}
+                            ],
                         "environment": {
                             "type": "docker_workspace",
                             "test_command": "python3 -c \"assert True\"",
@@ -1085,8 +1094,11 @@ def test_task_builder_parallelizes_llm_calls_and_preserves_order(monkeypatch) ->
                             "id": f"{blueprint_id}_task",
                             "dimension_id": dimension_id,
                             "challenge_effort": challenge_effort,
-                            "title": f"{blueprint_id} task",
-                            "prompt": f"Complete the task for {blueprint_id}.",
+                                "title": f"{blueprint_id} task",
+                                "prompt": f"Complete the task for {blueprint_id}.",
+                                "reference_trajectory": [
+                                    {"action": f"Complete the task for {blueprint_id}."}
+                                ],
                             "environment": {
                                 "type": "docker_workspace",
                                 "test_command": "python3 -c \"assert True\"",
@@ -1178,8 +1190,11 @@ def test_parallel_task_builder_failure_abandons_only_failed_job(monkeypatch) -> 
                             "id": "slow_task",
                             "dimension_id": dimension_id,
                             "challenge_effort": challenge_effort,
-                            "title": "Slow task",
-                            "prompt": "Complete the slow task.",
+                                "title": "Slow task",
+                                "prompt": "Complete the slow task.",
+                                "reference_trajectory": [
+                                    {"action": "Complete the slow task."}
+                                ],
                             "environment": {
                                 "type": "docker_workspace",
                                 "test_command": "python3 -c \"assert True\"",
@@ -1261,8 +1276,11 @@ def test_task_builder_repairs_structural_validation_errors(monkeypatch, tmp_path
                             "id": "gui_task",
                             "dimension_id": "desktop_agent",
                             "challenge_effort": challenge_effort,
-                            "title": "GUI task",
-                            "prompt": "Complete the desktop workflow and save the requested artifact.",
+                                "title": "GUI task",
+                                "prompt": "Complete the desktop workflow and save the requested artifact.",
+                                "reference_trajectory": [
+                                    {"action": "Complete the workflow and save the artifact."}
+                                ],
                             "environment": {"type": "vm"},
                             "scoring": {"pass_criteria": "The artifact is produced."},
                         }
@@ -1440,8 +1458,11 @@ def test_task_builder_repairs_non_object_top_level_response(monkeypatch) -> None
                         "id": "repaired_workspace_task",
                         "dimension_id": "tool_use",
                         "challenge_effort": "E2",
-                        "title": "Repair response shape",
-                        "prompt": "Inspect the workspace and produce the requested result.",
+                            "title": "Repair response shape",
+                            "prompt": "Inspect the workspace and produce the requested result.",
+                            "reference_trajectory": [
+                                {"action": "Inspect the workspace and produce the result."}
+                            ],
                         "environment": {
                             "type": "docker_workspace",
                             "test_command": "python3 -c \"assert True\"",
@@ -1508,9 +1529,10 @@ def test_task_builder_reports_per_task_normalization_errors_to_repair(monkeypatc
     def task_payload(index: int) -> dict[str, object]:
         return {
             "task_type": "generation",
-            "title": f"Proof task {index}",
-            "prompt": f"Prove statement {index}.",
-            "rubric": "Award credit for a complete proof.",
+                "title": f"Proof task {index}",
+                "prompt": f"Prove statement {index}.",
+                "reference_answer": f"A complete proof of statement {index}.",
+                "rubric": "Award credit for a complete proof.",
             "metadata": {
                 "challenge_effort_self_assessment": {
                     "requested_effort": "E3",

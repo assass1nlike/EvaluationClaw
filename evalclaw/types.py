@@ -251,6 +251,7 @@ class TaskDesign(BaseModel):
     output_requirements: dict[str, Any] = Field(default_factory=dict)
     scoring_contract: dict[str, Any] = Field(default_factory=dict)
     source_plan: dict[str, Any] = Field(default_factory=dict)
+    builder_resource_urls: list[str] = Field(default_factory=list)
     construction_requirements: list[str] = Field(default_factory=list)
     type_specific_requirements: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -643,6 +644,17 @@ class TaskAsset(BaseModel):
     path: str
 
 
+class ReferenceTrajectoryStep(BaseModel):
+    """One harness-independent step in a valid agent solution path."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    action: str
+    tool: str = ""
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    expected_observation: str = ""
+
+
 class TaskDefinition(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -657,6 +669,8 @@ class TaskDefinition(BaseModel):
     choices: list[ChoiceOption] = Field(default_factory=list)
     correct_choice_ids: list[str] = Field(default_factory=list)
     expected_texts: list[str] = Field(default_factory=list)
+    reference_answer: str = ""
+    reference_trajectory: list[ReferenceTrajectoryStep] = Field(default_factory=list)
     rubric: Optional[str] = None
     judge_tools: list[JudgeToolRef] = Field(default_factory=list)
     output_contract: dict[str, Any] = Field(default_factory=dict)
@@ -684,6 +698,8 @@ class BenchmarkItem(BaseModel):
     choices: list[ChoiceOption] = Field(default_factory=list)
     correct_choice_ids: list[str] = Field(default_factory=list)
     expected_texts: list[str] = Field(default_factory=list)
+    reference_answer: str = ""
+    reference_trajectory: list[ReferenceTrajectoryStep] = Field(default_factory=list)
     rubric: Optional[str] = None
     judge_tools: list[JudgeToolRef] = Field(default_factory=list)
     output_contract: dict[str, Any] = Field(default_factory=dict)
@@ -884,8 +900,27 @@ class AnalysisIteration(BaseModel):
 
 
 class AnalysisReport(BaseModel):
+    strategy: Literal["hypothesis_driven", "similar_tasks"] = "hypothesis_driven"
     analysis: str = ""
     iterations: list[AnalysisIteration] = Field(default_factory=list)
+
+
+class LaajMetric(BaseModel):
+    score: float = Field(ge=1.0, le=5.0)
+    reasoning: str = Field(min_length=1)
+
+
+class LaajReport(BaseModel):
+    model: str
+    clarity: LaajMetric
+    correctness: LaajMetric
+    faithfulness: LaajMetric
+    diversity: LaajMetric
+    systematicness: Optional[LaajMetric] = None
+    credibility: Optional[LaajMetric] = None
+    evaluated_item_ids: list[str] = Field(default_factory=list)
+    total_item_count: int = 0
+    created_at: str = Field(default_factory=utc_now)
 
 
 class EvalReport(BaseModel):
@@ -903,6 +938,7 @@ class BenchmarkPackage(BaseModel):
     qc_report: QcReport
     run: EvalRun
     analysis: Optional[AnalysisReport] = None
+    laaj: Optional[LaajReport] = None
     report: EvalReport
     research_brief: Optional[ResearchBrief] = None
     created_at: str = Field(default_factory=utc_now)
@@ -946,6 +982,13 @@ class BenchmarkConfig(BaseModel):
     qc_base_url: Optional[str] = None
     qc_reasoning_effort: Optional[str] = None
     qc_extra_body: dict[str, Any] = Field(default_factory=dict)
+    laaj_model: Optional[str] = None
+    laaj_provider: Optional[str] = None
+    laaj_api_key: Optional[str] = None
+    laaj_base_url: Optional[str] = None
+    laaj_reasoning_effort: Optional[str] = None
+    laaj_extra_body: dict[str, Any] = Field(default_factory=dict)
+    laaj_sample_size: int = Field(default=50, ge=1)
     task_models: list[TargetModelConfig] = Field(
         default_factory=list,
         description=(
@@ -995,6 +1038,7 @@ class BenchmarkConfig(BaseModel):
     use_llm_qc: bool = False
     ablation_simplified_contract: bool = False
     ablation_authoritative_research: bool = False
+    ablation_no_builder_harness: bool = False
     output_dir: str = "./benchmark-output"
     live_url: Optional[str] = None
     planner_debug_dir: Optional[str] = None
@@ -1023,6 +1067,7 @@ class BenchmarkConfig(BaseModel):
     analysis_max_tasks: int | None = None
     analysis_review_max_iterations: int = 3
     analysis_probe_mode: str = "goal"  # "goal" | "task_design"
+    ablation_analyser: Literal["none", "similar_tasks"] = "none"
     docker_auto_select_image: bool = True
     docker_pull_timeout_s: int = 300
     docker_executable: str = "docker"
@@ -1042,10 +1087,15 @@ class BenchmarkConfig(BaseModel):
     vm_provider_destroy_on_cleanup: bool = True
     model_config = ConfigDict(extra="forbid")
 
-    model_config = ConfigDict(extra="forbid")
-
-    model_config = ConfigDict(extra="forbid")
-
-    model_config = ConfigDict(extra="forbid")
-
-    model_config = ConfigDict(extra="forbid")
+    @model_validator(mode="after")
+    def validate_ablation_modes(self) -> "BenchmarkConfig":
+        if self.ablation_simplified_contract and self.ablation_no_builder_harness:
+            raise ValueError(
+                "ablation_simplified_contract and ablation_no_builder_harness are mutually exclusive."
+            )
+        if self.ablation_authoritative_research and not self.use_web_research:
+            raise ValueError(
+                "ablation_authoritative_research requires use_web_research=true; use_web_research=false "
+                "is the separate no-research ablation."
+            )
+        return self

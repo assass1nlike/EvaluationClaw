@@ -11,10 +11,10 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 ├── resource_ids                                                # 仅 source-backed
 ├── [choice]     choices / correct_choice_indices
 ├── [fill_blank] expected_texts
-├── [generation] rubric / judge_tools / output_contract / scoring
+├── [generation] reference_answer / rubric / judge_tools / output_contract / scoring
 ├── [multi_turn] system_prompt / interaction / rubric / judge_tools / scoring
 └── [agent]      system_prompt / interaction / environment / workflow
-                 / output_contract / rubric / judge_tools / scoring
+                 / output_contract / reference_trajectory / rubric / judge_tools / scoring
 ```
 
 `[type]` 标记该组字段只属于对应任务类型；`resource_ids` 仅 `adapted`/`reused`/`imported_dataset` 任务。`choices`、`judge_tools`、`scoring`、`environment`、`workflow` 内部还有子结构（见 §4）。
@@ -70,6 +70,7 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 
 | 字段 | 类型 | 必填 | 语义 |
 |---|---|---|---|
+| `reference_answer` | `str` | 是 | 一份正确、自包含的参考答案；供 Judge 和审计使用，不展示给被测模型，也不限定唯一措辞 |
 | `rubric` | `str` | 是 | 具体评分标准 |
 | `judge_tools` | `list[JudgeToolRef]` | 否 | 可请求的外部验证（如 `python_tests`），结果作为证据，不直接给分 |
 | `output_contract` | `dict` | 否 | 声明期望的输出结构 |
@@ -94,6 +95,7 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 | `environment` | `AgentEnvironmentSpec` | 是 | 可执行环境定义（见 §4.4） |
 | `workflow` | `AgentWorkflow` | 否（仅多阶段） | 多阶段工作流（见 §4.5） |
 | `system_prompt` / `interaction` | — | 否 | 同多轮 |
+| `reference_trajectory` | `list[ReferenceTrajectoryStep]` | 是 | 一条按顺序排列、确实可行的参考操作路径；每步含 `action`，可含 `tool`、`arguments`、`expected_observation`；不要求被测模型逐步复现 |
 | `output_contract` / `rubric` / `judge_tools` / `scoring` | — | 否 | 同生成题 |
 
 ## 4. 子结构
@@ -198,9 +200,9 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 |---|---|
 | `choice` | `choices`、`correct_choice_indices` |
 | `fill_blank` | `expected_texts` |
-| `generation` | `rubric`、`judge_tools`、`output_contract`、`scoring` |
+| `generation` | `reference_answer`、`rubric`、`judge_tools`、`output_contract`、`scoring` |
 | `multi_turn` | `system_prompt`、`interaction`、`rubric`、`judge_tools`、`scoring` |
-| `agent` | `system_prompt`、`interaction`、`environment`、`workflow`、`output_contract`、`rubric`、`judge_tools`、`scoring` |
+| `agent` | `system_prompt`、`interaction`、`environment`、`workflow`、`output_contract`、`reference_trajectory`、`rubric`、`judge_tools`、`scoring` |
 
 - **source-backed 任务另有 `resource_ids`**：`adapted`/`reused`/`imported_dataset` 任务绑定所用素材 id（对应工作文件 `resources` 里的 id）。
 - **框架注入（Builder 不写）**：`id`、`dimension_id`、`metadata.task_design_id`。
@@ -209,6 +211,6 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 
 - **choice**：`choices` 至少两个，每项仅 `text`；`correct_choice_indices` 非空，用零基位置；不要把多部分答案对象塞进选择题；选项只放 `choices`，prompt 里不要重复选项文本。
 - **fill_blank**：`expected_texts` 为可接受答案列表，任一命中即正确；评分用精确匹配（忽略首尾空白）。prompt 里说清楚限制或枚举所有正确答案，确保列表之外不可能有正确答案。
-- **generation**：提供具体 `rubric`；可选 `judge_tools` 请求 `python_tests` 做外部验证，Judge 把工具结果当证据，不直接给分。
+- **generation**：提供正确、自包含的 `reference_answer` 和具体 `rubric`；可选 `judge_tools` 请求 `python_tests` 做外部验证，Judge 把工具结果当证据，不直接给分。
 - **multi_turn**：顶层 `interaction` 对象，`interaction.max_turns` 在 1–5；scripted 用 `interaction.user_turns`（1–5 个非空字符串）、adaptive 用 `interaction.followup_instruction`（别名如 `scripted_user_turns`/`turns`/`follow_up_policy` 非法）；提供针对性的转写评分标准；`prompt` 是发给目标的第一段完整内容，`system_prompt` 单独作为对话模拟器 prompt。
-- **agent**：提供可执行环境、输出契约、确定性检查或针对结果的 rubric；单任务多阶段时提供 `workflow.stages`（显式 stage id、kind、prompts、context、环境生命周期、文件交接、evaluation 阶段），只引用前置阶段的输出，并定义 `workflow.score_stage` 和 `metrics`。
+- **agent**：提供可执行环境、输出契约、确定性检查或针对结果的 rubric，并给出一条可行但非唯一的 `reference_trajectory`；单任务多阶段时提供 `workflow.stages`（显式 stage id、kind、prompts、context、环境生命周期、文件交接、evaluation 阶段），只引用前置阶段的输出，并定义 `workflow.score_stage` 和 `metrics`。

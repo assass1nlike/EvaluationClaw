@@ -7,6 +7,7 @@ import pytest
 from evalclaw.construction.packaging import (
     _agent_task_package_for_task,
     _task_agent_metadata_for_task,
+    pack_task_item,
 )
 from evalclaw.construction.parsing import _task_from_raw
 from evalclaw.construction.suite import (
@@ -35,6 +36,7 @@ from evalclaw.types import (
     QcIssue,
     QcReport,
     QcSeverity,
+    ReferenceTrajectoryStep,
     TaskDefinition,
     TaskDesign,
     TaskSuite,
@@ -91,6 +93,59 @@ def test_python_tests_judge_tool_must_consume_model_output() -> None:
     assert task_structure_issues(rubric_only) == []
     assert any("consume {model_output}" in issue for issue in task_structure_issues(unrelated))
     assert task_structure_issues(valid) == []
+
+
+def test_builder_reference_outputs_are_required_only_for_generation_and_agent() -> None:
+    generation = _task(TaskType.generation, rubric="Score correctness.")
+    generation_with_reference = generation.model_copy(
+        update={"reference_answer": "A complete correct response."}
+    )
+    agent = _task(
+        TaskType.agent,
+        environment=AgentEnvironmentSpec(
+            type=AgentEnvironmentType.docker_workspace,
+            test_command="python3 verify.py",
+        ),
+    )
+    agent_with_reference = agent.model_copy(
+        update={
+            "reference_trajectory": [
+                ReferenceTrajectoryStep(
+                    action="Inspect the workspace.",
+                    tool="list_files",
+                    arguments={"path": "."},
+                    expected_observation="The task files are listed.",
+                )
+            ]
+        }
+    )
+
+    assert any(
+        "reference_answer" in issue
+        for issue in task_structure_issues(
+            generation,
+            require_builder_references=True,
+        )
+    )
+    assert task_structure_issues(
+        generation_with_reference,
+        require_builder_references=True,
+    ) == []
+    assert any(
+        "reference_trajectory" in issue
+        for issue in task_structure_issues(agent, require_builder_references=True)
+    )
+    assert task_structure_issues(
+        agent_with_reference,
+        require_builder_references=True,
+    ) == []
+    choice_with_reference = _task(TaskType.choice).model_copy(
+        update={"reference_answer": "Not applicable."}
+    )
+    assert any(
+        "only valid for generation" in issue
+        for issue in task_structure_issues(choice_with_reference)
+    )
 
 
 def test_empty_docker_workspace_is_valid_when_the_agent_creates_files() -> None:
@@ -176,6 +231,31 @@ def test_task_builder_environment_rejects_invalid_shape(
 
     with pytest.raises(ValueError, match=message):
         _task_from_raw(raw, "task_1", default_dimension_id="dimension_1")
+
+
+def test_reference_outputs_survive_parsing_and_packaging() -> None:
+    task = _task_from_raw(
+        {
+            "task_type": "generation",
+            "title": "Worked answer",
+            "prompt": "Explain why the requested conclusion follows.",
+            "reference_answer": "The conclusion follows by the stated invariant.",
+            "rubric": "Score the validity of the explanation.",
+        },
+        "task_1",
+        default_dimension_id="dimension_1",
+    )
+    dimension = EvalDimension(
+        id="dimension_1",
+        name="Reasoning",
+        description="Evaluate reasoning.",
+        approach="Use a generation task.",
+    )
+
+    item = pack_task_item(task, dimension, resource_by_id={})
+
+    assert item.reference_answer == "The conclusion follows by the stated invariant."
+    assert item.source_definition is task
 
 
 def test_container_asset_filenames_must_be_unique(tmp_path) -> None:

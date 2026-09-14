@@ -314,9 +314,9 @@ def _stabilize_llm_issue(issue: QcIssue, item_by_id: dict[str, BenchmarkItem]) -
 def _llm_qc_sample(suite: TaskSuite, limit: int) -> tuple[list[BenchmarkItem], dict[str, object]]:
     if limit <= 0:
         return [], {"strategy": "disabled", "sample_size": 0}
-    groups: dict[str, list[BenchmarkItem]] = {}
+    groups: dict[tuple[str, TaskType], list[BenchmarkItem]] = {}
     for item in suite.tasks:
-        groups.setdefault(item.dimension_id, []).append(item)
+        groups.setdefault((item.dimension_id, item.task_type), []).append(item)
     for group in groups.values():
         group.sort(key=lambda item: item.id)
     ordered_keys = sorted(groups)
@@ -392,6 +392,10 @@ def _llm_qc(
             "choices": [choice.model_dump(mode="json") for choice in item.choices],
             "correct_choice_ids": item.correct_choice_ids,
             "expected_texts": item.expected_texts,
+            "reference_answer": item.reference_answer,
+            "reference_trajectory": [
+                step.model_dump(mode="json") for step in item.reference_trajectory
+            ],
             "rubric": None if item.task_type == TaskType.choice else item.rubric,
             "judge_tools": [tool.model_dump(mode="json") for tool in item.judge_tools],
             "output_contract": item.output_contract,

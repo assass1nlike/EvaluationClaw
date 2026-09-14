@@ -151,9 +151,11 @@ and still runs its Benchmark Design Research search stage.
 ### Custom endpoints and multiple targets
 
 Each model role has its own connection options. Planner and TaskBuilder roles
-are required for the main pipeline; QC, Research, and the Analyser are optional.
+are required for the main pipeline; QC, LaaJ, Research, and the Analyser are optional.
 Use `--planner-*`, `--task-builder-*`, `--qc-*`, `--research-*`, and
-`--analyser-*` to configure them independently. Task-specific judges and dialogue
+`--analyser-*` to configure them independently. Configure `--laaj-*` to score
+benchmark clarity, correctness, faithfulness, and diversity on a 1–5 scale; when
+Analysis runs, it also scores systematicness and credibility. Task-specific judges and dialogue
 simulators are selected with repeated `--task-model` or `--task-config` options.
 For example:
 
@@ -162,11 +164,19 @@ evalclaw generate \
   --planner-model claude-opus-4-6 \
   --task-builder-model claude-sonnet-4-6 \
   --qc-model gpt-5-mini \
+  --laaj-model gpt-5 \
   --task-model gpt-5 \
   --research-model gemini-2.5-pro \
   --analyser-model claude-sonnet-4-6 \
   --analysis-iterations 1
 ```
+
+Paper ablations use `--ablation-authoritative-research` for fixed-source
+research, `--no-web-research` for no research, and
+`--ablation-no-builder-harness` for direct construction of the complete task
+representation without Builder tools or repair feedback.
+The similarity-based Analyzer baseline is selected with
+`--ablation-analyser similar-tasks`; the default `none` is hypothesis-driven.
 
 When a role uses a different provider or endpoint, configure that role's
 `--*-provider`, `--*-api-key`, and `--*-base-url` explicitly.
@@ -268,6 +278,8 @@ Each run writes:
 - `research_brief.json` / `research_brief.md` - the deep-research brief (when `--deep-research`).
 - `debug/runs/<run-id>/analysis/` - analysis conclusions and any independently
   constructed verification suites and runs (when an Analyser is configured).
+- `debug/runs/<run-id>/laaj.json` - benchmark and Analyser quality scores (when
+  a LaaJ model is configured).
 - `manifest.json` - machine-readable artifact index.
 - `lm-eval/<task>.jsonl` - lm-eval dataset export.
 - `lm-eval/<task>.yaml` - lm-eval task export.

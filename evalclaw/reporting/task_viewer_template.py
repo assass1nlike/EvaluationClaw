@@ -191,6 +191,8 @@ HTML_TEMPLATE = r'''<!doctype html>
         textSection(body, "Correct choice IDs", item.correct_choice_ids.join(", "), "reference");
       }
       textSection(body, "Expected answer", (item.expected_texts || []).join("\n"), "reference");
+      textSection(body, "Reference answer", item.reference_answer, "reference");
+      objectSection(body, "Reference trajectory", item.reference_trajectory);
       textSection(body, "Rubric", item.rubric, "reference");
       objectSection(body, "Scoring", item.scoring);
       objectSection(body, "Output contract", item.output_contract);

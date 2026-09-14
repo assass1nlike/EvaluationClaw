@@ -8,11 +8,12 @@ from ..types import (
     EvalReport,
     EvalRun,
     ItemResult,
+    LaajReport,
     QcReport,
     ResearchBrief,
     SourceKind,
 )
-from .markdown import _markdown_table, _pct
+from .markdown import _escape_cell, _markdown_table, _pct
 from .run_sections import (
     _dedupe_sources,
     _detailed_item_lines,
@@ -42,6 +43,7 @@ def build_report(
     *,
     research_brief: ResearchBrief | None = None,
     analysis: AnalysisReport | None = None,
+    laaj: LaajReport | None = None,
 ) -> EvalReport:
     """Build a Markdown report from an eval run."""
     suite = run.suite
@@ -249,8 +251,38 @@ def build_report(
                 "",
                 analysis.analysis,
                 "",
+                f"- Strategy: `{analysis.strategy}`",
                 f"- Verification iterations: {len(analysis.iterations)}",
                 f"- Verification tasks: {sum(len(item.suite.tasks) for item in analysis.iterations if item.suite is not None)}",
+                "",
+            ]
+        )
+
+    if laaj is not None:
+        metrics = [
+            ("Clarity", laaj.clarity),
+            ("Correctness", laaj.correctness),
+            ("Faithfulness", laaj.faithfulness),
+            ("Diversity", laaj.diversity),
+        ]
+        if laaj.systematicness is not None:
+            metrics.append(("Analyser systematicness", laaj.systematicness))
+        if laaj.credibility is not None:
+            metrics.append(("Analyser credibility", laaj.credibility))
+        lines.extend(
+            [
+                "## LLM-as-a-Judge Quality Evaluation",
+                "",
+                f"- Judge model: `{laaj.model}`",
+                f"- Evaluated items: {len(laaj.evaluated_item_ids)}/{laaj.total_item_count}",
+                "",
+                _markdown_table(
+                    ["Criterion", "Score (1-5)", "Reasoning"],
+                    [
+                        [label, f"{metric.score:.1f}", _escape_cell(metric.reasoning, 320)]
+                        for label, metric in metrics
+                    ],
+                ),
                 "",
             ]
         )

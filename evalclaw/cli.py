@@ -172,6 +172,19 @@ def _print_summary(pkg: BenchmarkPackage) -> None:
     else:
         console.print("[yellow]No target results were run.[/yellow]")
 
+    if pkg.laaj is not None:
+        scores = {
+            "clarity": pkg.laaj.clarity.score,
+            "correctness": pkg.laaj.correctness.score,
+            "faithfulness": pkg.laaj.faithfulness.score,
+            "diversity": pkg.laaj.diversity.score,
+        }
+        if pkg.laaj.systematicness is not None:
+            scores["systematicness"] = pkg.laaj.systematicness.score
+        if pkg.laaj.credibility is not None:
+            scores["credibility"] = pkg.laaj.credibility.score
+        console.print("LaaJ: " + ", ".join(f"{name}={score:.1f}" for name, score in scores.items()))
+
     if pkg.report.recommendations:
         console.print()
         console.print("[bold]Recommendations[/bold]")
@@ -233,6 +246,13 @@ def generate(
     qc_base_url: Optional[str] = typer.Option(None, "--qc-base-url", help="Base URL for the LLM QC role."),
     qc_reasoning_effort: Optional[str] = typer.Option(None, "--qc-reasoning-effort", help="Reasoning effort passed to the QC model."),
     qc_extra_body: Optional[str] = typer.Option(None, "--qc-extra-body", help="JSON extra request body for the QC model."),
+    laaj_model: Optional[str] = typer.Option(None, "--laaj-model", help="Model used to evaluate benchmark and Analyser quality."),
+    laaj_provider: Optional[str] = typer.Option(None, "--laaj-provider", help="Protocol/provider for --laaj-model."),
+    laaj_api_key: Optional[str] = typer.Option(None, "--laaj-api-key", help="API key for the LaaJ model."),
+    laaj_base_url: Optional[str] = typer.Option(None, "--laaj-base-url", help="Base URL for the LaaJ model."),
+    laaj_reasoning_effort: Optional[str] = typer.Option(None, "--laaj-reasoning-effort", help="Reasoning effort passed to the LaaJ model."),
+    laaj_extra_body: Optional[str] = typer.Option(None, "--laaj-extra-body", help="JSON extra request body for the LaaJ model."),
+    laaj_sample_size: int = typer.Option(50, "--laaj-sample-size", help="Maximum number of stratified benchmark items evaluated by LaaJ."),
     use_llm_qc: bool = typer.Option(False, "--use-llm-qc/--no-llm-qc", help="Enable LLM-based QC review (off by default)."),
     ablation_simplified_contract: bool = typer.Option(
         False,
@@ -243,6 +263,11 @@ def generate(
         False,
         "--ablation-authoritative-research/--no-ablation-authoritative-research",
         help="Restrict Planner research to fixed authoritative sources with raw content (ablation).",
+    ),
+    ablation_no_builder_harness: bool = typer.Option(
+        False,
+        "--ablation-no-builder-harness/--no-ablation-no-builder-harness",
+        help="Make Builder return the complete task representation directly without Harness tools or repair feedback.",
     ),
     task_model: list[str] = typer.Option(
         [],
@@ -445,8 +470,13 @@ def generate(
         "--human-review",
         help="Review the Planner output before construction and the completed tasks before target execution.",
     ),
-    analysis_iterations: int = typer.Option(3, "--analysis-iterations", help="Maximum hypothesis-driven probe iterations after the main run."),
+    analysis_iterations: int = typer.Option(3, "--analysis-iterations", help="Maximum Analyser probe iterations after the main run."),
     analysis_max_tasks: Optional[int] = typer.Option(None, "--analysis-max-tasks", help="Maximum probe tasks requested in one analysis iteration (default: half the successful task count, floored)."),
+    ablation_analyser: str = typer.Option(
+        "none",
+        "--ablation-analyser",
+        help="Analyser strategy: none or similar-tasks.",
+    ),
     docker_executable: str = typer.Option(
         "docker",
         "--docker-executable",
@@ -526,6 +556,12 @@ def generate(
     if analysis_max_tasks is not None and analysis_max_tasks < 0:
         console.print("[red]--analysis-max-tasks cannot be negative.[/red]")
         raise typer.Exit(1)
+    normalized_ablation_analyser = ablation_analyser.strip().lower().replace("-", "_")
+    if normalized_ablation_analyser not in {"none", "similar_tasks"}:
+        console.print(
+            "[red]--ablation-analyser must be one of: none, similar-tasks.[/red]"
+        )
+        raise typer.Exit(1)
     if max_hf_records < 0:
         console.print("[red]--max-hf-records cannot be negative.[/red]")
         raise typer.Exit(1)
@@ -558,6 +594,9 @@ def generate(
             raise typer.Exit(1)
     if large_scale_qc_sample < 0:
         console.print("[red]--large-scale-qc-sample cannot be negative.[/red]")
+        raise typer.Exit(1)
+    if laaj_sample_size < 1:
+        console.print("[red]--laaj-sample-size must be at least 1.[/red]")
         raise typer.Exit(1)
     if large_scale_item_threshold < 1:
         console.print("[red]--large-scale-item-threshold must be at least 1.[/red]")
@@ -609,6 +648,7 @@ def generate(
             task_builder_extra_body,
         ),
         "qc": (qc_model, qc_provider, qc_api_key, qc_base_url, qc_reasoning_effort, qc_extra_body),
+        "laaj": (laaj_model, laaj_provider, laaj_api_key, laaj_base_url, laaj_reasoning_effort, laaj_extra_body),
         "research": (research_model, research_provider, research_api_key, research_base_url, research_reasoning_effort, research_extra_body),
         "analyser": (
             analyser_model,
@@ -742,6 +782,7 @@ def generate(
         **image_config,
         **failover_config,
         task_models=task_models,
+        laaj_sample_size=laaj_sample_size,
         actor_max_turns=actor_max_turns,
         actor_max_tool_calls=actor_max_tool_calls,
         actor_max_tokens=actor_max_tokens,
@@ -776,6 +817,7 @@ def generate(
         human_review=human_review,
         analysis_iterations=analysis_iterations,
         analysis_max_tasks=analysis_max_tasks,
+        ablation_analyser=normalized_ablation_analyser,
         docker_executable=docker_executable,
         container_sandbox_image=container_sandbox_image,
         environment_preflight=not no_environment_preflight,
@@ -784,6 +826,7 @@ def generate(
         use_llm_qc=use_llm_qc,
         ablation_simplified_contract=ablation_simplified_contract,
         ablation_authoritative_research=ablation_authoritative_research,
+        ablation_no_builder_harness=ablation_no_builder_harness,
         report_language=report_language.strip() if report_language and report_language.strip() else None,
         gui_bridge_url=gui_bridge_url,
         gui_bridge_api_key=gui_bridge_api_key,
