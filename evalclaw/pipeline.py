@@ -736,6 +736,9 @@ def _run_pipeline(
             suite,
             analysis,
             config,
+            run=run,
+            qc_report=qc_report,
+            artifact_dir=debug_run_dir,
             trace_dir=debug_run_dir / "laaj" if debug_run_dir is not None else None,
         )
         if debug_run_dir is not None:
