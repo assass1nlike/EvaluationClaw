@@ -454,6 +454,7 @@ HTML_TEMPLATE = """<!doctype html>
         <a href="#overview">Overview</a>
         <a href="#capability">Capability Profile</a>
         <a href="#diagnostics">Diagnostics</a>
+        <a href="#laaj">LaaJ</a>
         <a href="#explorer">Item Explorer</a>
         <a href="#qc">Task Composition and QC</a>
       </nav>
@@ -463,6 +464,7 @@ HTML_TEMPLATE = """<!doctype html>
       <section id="capability"></section>
       <section id="diagnostics"></section>
       <section id="analysis"></section>
+      <section id="laaj"></section>
       <section id="explorer"></section>
       <section id="qc"></section>
     </main>
@@ -1261,6 +1263,8 @@ HTML_TEMPLATE = """<!doctype html>
       const referenceAnswer = objectWithValues([
         ["expected_texts", item.expected_texts],
         ["choices", item.choices],
+        ["reference_answer", item.reference_answer],
+        ["reference_trajectory", item.reference_trajectory],
         ["reference_metadata", referenceMetadata(metadata)],
         ["reference_artifacts", hiddenRefs.reference_artifacts],
         ["reference_files", referenceFiles],
@@ -1411,6 +1415,7 @@ HTML_TEMPLATE = """<!doctype html>
       section.append(renderTaskSection("Analysis", "Analyser's narrative analysis.", [
         markdownNode(analysis.analysis || "-")
       ]));
+      section.append(node("p", {class: "small"}, `Strategy: ${humanLabel(analysis.strategy || "hypothesis_driven")}`));
       const iterations = analysis.iterations || [];
       if (iterations.length) {
         section.append(node("h3", {}, "Verification Iterations"));
@@ -1423,6 +1428,24 @@ HTML_TEMPLATE = """<!doctype html>
           ])
         ));
       }
+    }
+    function renderLaaj() {
+      const section = qs("laaj");
+      section.innerHTML = "<h2>LLM-as-a-Judge Quality Evaluation</h2>";
+      const report = pkg.laaj;
+      if (!report) {
+        section.append(node("p", {class: "empty"}, "No LaaJ evaluation configured."));
+        return;
+      }
+      section.append(node("p", {class: "small"},
+        `Judge: ${report.model}; evaluated items: ${(report.evaluated_item_ids || []).length}/${report.total_item_count}`));
+      const names = ["clarity", "correctness", "faithfulness", "diversity", "systematicness", "credibility"];
+      const rows = names.filter(name => report[name]).map(name => [
+        humanLabel(name),
+        Number(report[name].score).toFixed(1),
+        markdownNode(report[name].reasoning || "-"),
+      ]);
+      section.append(table(["Criterion", "Score (1-5)", "Reasoning"], rows));
     }
     function fillSelect(id, values, labelFn = humanLabel) {
       const sel = qs(id);
@@ -1677,6 +1700,7 @@ HTML_TEMPLATE = """<!doctype html>
     renderCapability();
     renderDiagnostics();
     renderAnalysis();
+    renderLaaj();
     renderExplorer();
     renderQc();
   </script>

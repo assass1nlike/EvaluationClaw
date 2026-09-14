@@ -22,6 +22,7 @@ def _plan(
     source_strategy: str = "generated",
     suggested_urls: list[str] | None = None,
     search_queries: list[str] | None = None,
+    builder_resource_urls: list[str] | None = None,
 ) -> BenchmarkPlan:
     environment = (
         {"category": environment_category, "purpose": "Run the interaction."}
@@ -56,6 +57,7 @@ def _plan(
                                 "suggested_urls": suggested_urls or [],
                                 "search_queries": search_queries or [],
                             },
+                            "builder_resource_urls": builder_resource_urls or [],
                         }
                     ],
                 }
@@ -132,6 +134,20 @@ def test_plan_audit_rejects_unsupported_url_scheme() -> None:
         )
     )
     assert any("suggested URL is invalid" in issue for issue in issues)
+
+
+def test_plan_audit_accepts_builder_resources_for_generated_tasks() -> None:
+    assert _audit_plan(
+        _plan(builder_resource_urls=["https://docs.example/tooling"])
+    ) == []
+
+
+def test_plan_audit_rejects_non_http_builder_resource_url() -> None:
+    issues = _audit_plan(
+        _plan(builder_resource_urls=["hf://datasets/example/tooling"])
+    )
+
+    assert any("Builder resource URL must use HTTP(S)" in issue for issue in issues)
 
 
 @pytest.mark.parametrize(

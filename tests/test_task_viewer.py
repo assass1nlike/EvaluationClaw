@@ -56,6 +56,7 @@ def _package_with_all_task_types() -> BenchmarkPackage:
             task_type=TaskType.generation,
             title="Generation task",
             prompt="Explain the result.",
+            reference_answer="A correct worked explanation.",
             rubric="The explanation is correct.",
         ),
         TaskDefinition(
@@ -72,6 +73,13 @@ def _package_with_all_task_types() -> BenchmarkPackage:
             task_type=TaskType.agent,
             title="Agent task",
             prompt="Inspect the workspace and finish the task.",
+            reference_trajectory=[
+                {
+                    "action": "Inspect the input file.",
+                    "tool": "read_file",
+                    "arguments": {"path": "input.txt"},
+                }
+            ],
             system_prompt="Act as a careful coding agent.",
             environment=AgentEnvironmentSpec(
                 type=AgentEnvironmentType.docker_workspace,
@@ -89,6 +97,8 @@ def _package_with_all_task_types() -> BenchmarkPackage:
             choices=definition.choices,
             correct_choice_ids=definition.correct_choice_ids,
             expected_texts=definition.expected_texts,
+            reference_answer=definition.reference_answer,
+            reference_trajectory=definition.reference_trajectory,
             rubric=definition.rubric,
             source=BenchmarkSource(kind=SourceKind.self_generated, title=definition.title),
             source_definition=definition,
@@ -129,6 +139,8 @@ def test_task_viewer_renders_all_task_types_and_task_fields() -> None:
         "First option",
         "Correct choice IDs",
         "x = 1",
+        "A correct worked explanation.",
+        "Inspect the input file.",
         "Act as a careful coding agent.",
         "Execution environment",
         "python tests.py",

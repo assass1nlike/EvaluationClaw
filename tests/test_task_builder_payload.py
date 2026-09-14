@@ -1,5 +1,9 @@
 import json
 
+import pytest
+
+from evalclaw.benchmark import _qc_repair_limit
+from evalclaw.construction import suite as suite_module
 from evalclaw.construction.skill_loader import (
     environment_skill_payload,
     environment_skill_system_prompt,
@@ -9,8 +13,10 @@ from evalclaw.construction.suite import (
     _ensure_unique_task_ids,
     _task_builder_payload,
     _task_duplicate_key,
+    build_task_suite,
 )
 from evalclaw.prompts.task_builder import (
+    build_task_builder_direct_prompt,
     build_task_builder_prompt,
     project_task_builder_document,
     task_builder_document_template,
@@ -369,6 +375,8 @@ def test_task_builder_contract_matches_fill_blank_and_generation_runners() -> No
     assert {"rubric", "judge_tools", "output_contract"}.issubset(
         schemas["code"]["optional"]
     )
+    assert "reference_answer" in schemas["code"]["optional"]
+    assert "reference_answer" not in schemas["short"]["optional"]
 
 
 def test_multi_turn_builder_contract_exposes_runtime_fields() -> None:
@@ -475,6 +483,10 @@ def test_task_builder_field_sets_keep_type_specific_fields_disjoint() -> None:
     )
     assert "resource_ids" not in task_builder_fields(TaskType.generation)
     assert "resource_ids" in task_builder_fields(TaskType.generation, source_backed=True)
+    assert "reference_answer" in task_builder_fields(TaskType.generation)
+    assert "reference_trajectory" in task_builder_fields(TaskType.agent)
+    assert "reference_answer" not in task_builder_fields(TaskType.choice)
+    assert "reference_trajectory" not in task_builder_fields(TaskType.multi_turn)
 
 
 def test_task_builder_document_template_is_scoped_and_independent() -> None:
@@ -542,6 +554,7 @@ def test_ablation_builder_fields_drop_framework_owned_common_fields() -> None:
         "title",
         "prompt",
         "resource_ids",
+        "reference_answer",
         "rubric",
         "judge_tools",
         "output_contract",
@@ -599,6 +612,42 @@ def test_ablation_builder_payload_inherits_task_type_and_challenge_effort() -> N
     assert "content_summary" not in schema["optional"]
 
 
+def test_builder_assistance_urls_are_separate_from_task_sources() -> None:
+    dimension = EvalDimension(
+        id="agent_skill",
+        name="Agent skill",
+        description="Evaluate an agent skill.",
+        approach="Use an executable task.",
+        task_types=[TaskType.agent],
+    )
+    spec = EvalSpec(
+        objective="Evaluate an agent skill.",
+        task_types=[TaskType.agent],
+        dimensions=[dimension],
+    )
+    design = make_task_design(
+        "agent_design",
+        TaskType.agent,
+        environment_type=AgentEnvironmentType.docker_workspace,
+    ).model_copy(
+        update={"builder_resource_urls": ["https://docs.example/tooling"]}
+    )
+    blueprint = make_blueprint(
+        "agent_tasks",
+        dimension.id,
+        "Agent task",
+        task_designs=[design],
+    )
+
+    payload = _task_builder_payload(spec, dimension, blueprint, "No external sources.")
+
+    assert payload["resources"]["builder_assistance"]["urls"] == [
+        "https://docs.example/tooling"
+    ]
+    assert payload["resources"]["selection"]["strategy"] == "generated"
+    assert payload["resources"]["selection"]["suggested_urls"] == []
+
+
 def test_ablation_builder_prompt_omits_removed_field_keys() -> None:
     prompt = build_task_builder_prompt(TaskType.generation, simplified=True)
     assert '"task_type"' not in prompt
@@ -607,3 +656,139 @@ def test_ablation_builder_prompt_omits_removed_field_keys() -> None:
     assert '"content_summary"' not in prompt
     assert '"description"' not in prompt
     assert '"assets"' not in prompt
+
+
+def test_no_builder_harness_payload_exposes_full_schema_without_working_file(tmp_path) -> None:
+    dimension = EvalDimension(
+        id="agent_skill",
+        name="Agent skill",
+        description="Evaluate an agent skill.",
+        approach="Use an agent task.",
+        task_types=[TaskType.agent],
+    )
+    spec = EvalSpec(
+        objective="Evaluate an agent skill.",
+        task_types=[TaskType.agent],
+        dimensions=[dimension],
+    )
+    blueprint = make_blueprint(
+        "agent_tasks",
+        dimension.id,
+        "Agent task",
+        task_type=TaskType.agent,
+        content="One complete agent task.",
+        environment_type=AgentEnvironmentType.docker_workspace,
+    )
+
+    payload = _task_builder_payload(
+        spec,
+        dimension,
+        blueprint,
+        "No external sources.",
+        task_file_path=tmp_path / "candidate.json",
+        config=BenchmarkConfig(ablation_no_builder_harness=True),
+    )
+
+    assert "task_file" not in payload
+    assert "task_definition_schema" in payload
+    assert "environment_skill" not in payload["task_builder_contract"]
+    assert "environment" in payload["task_builder_contract"]["task_schema"]["optional"]
+    assert "no construction tools" in build_task_builder_direct_prompt(TaskType.agent, "E2")
+
+
+def test_no_builder_harness_calls_model_directly_once(monkeypatch, tmp_path) -> None:
+    dimension = EvalDimension(
+        id="knowledge",
+        name="Knowledge",
+        description="Evaluate knowledge.",
+        approach="Use one exact-answer task.",
+        task_types=[TaskType.fill_blank],
+    )
+    spec = EvalSpec(
+        objective="Evaluate knowledge.",
+        task_types=[TaskType.fill_blank],
+        dimensions=[dimension],
+    )
+    blueprint = make_blueprint(
+        "knowledge_tasks",
+        dimension.id,
+        "Knowledge task",
+        task_type=TaskType.fill_blank,
+    )
+    calls: list[dict] = []
+
+    def fake_call(messages, **kwargs):
+        calls.append(json.loads(messages[0].content))
+        return json.dumps(
+            {
+                "construction_notes": "",
+                "resources": [],
+                "tasks": [
+                    {
+                        "task_type": "fill_blank",
+                        "title": "Answer",
+                        "content_summary": "Exact answer task.",
+                        "description": "Return the requested value.",
+                        "prompt": "Return 42.",
+                        "expected_texts": ["42"],
+                        "challenge_effort": "E3",
+                        "metadata": {
+                            "challenge_effort_self_assessment": {
+                                "requested_effort": "E3",
+                                "meets_requested_effort": True,
+                                "rationale": "Requires the intended capability.",
+                            }
+                        },
+                    }
+                ],
+            }
+        )
+
+    monkeypatch.setattr(suite_module, "call_llm", fake_call)
+    monkeypatch.setattr(
+        suite_module,
+        "run_task_builder_tools",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("Builder Harness must not run")
+        ),
+    )
+
+    suite = build_task_suite(
+        spec,
+        [blueprint],
+        BenchmarkConfig(
+            task_builder_model="builder",
+            task_builder_api_key="key",
+            output_dir=str(tmp_path),
+            task_builder_repair_attempts=4,
+            task_builder_max_workers=1,
+            ablation_no_builder_harness=True,
+        ),
+    )
+
+    assert len(calls) == 1
+    assert "task_definition_schema" in calls[0]
+    assert suite.tasks[0].expected_texts == ["42"]
+
+
+def test_ablation_modes_reject_conflicting_builder_and_research_variants() -> None:
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        BenchmarkConfig(
+            ablation_simplified_contract=True,
+            ablation_no_builder_harness=True,
+        )
+    with pytest.raises(ValueError, match="separate no-research ablation"):
+        BenchmarkConfig(
+            ablation_authoritative_research=True,
+            use_web_research=False,
+        )
+
+
+def test_no_builder_harness_disables_qc_feedback() -> None:
+    assert _qc_repair_limit(BenchmarkConfig(max_qc_iterations=4)) == 4
+    assert (
+        _qc_repair_limit(
+            BenchmarkConfig(max_qc_iterations=4, ablation_no_builder_harness=True)
+        )
+        == 0
+    )

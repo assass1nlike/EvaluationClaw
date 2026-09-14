@@ -10,6 +10,7 @@ from evalclaw.runners import harness as harness_module
 from evalclaw.types import (
     BenchmarkConfig,
     BenchmarkItem,
+    ReferenceTrajectoryStep,
     TargetModelConfig,
     TaskAsset,
     TaskType,
@@ -42,6 +43,25 @@ def _item() -> BenchmarkItem:
 
 def _target() -> TargetModelConfig:
     return TargetModelConfig(provider="openai", model="gpt-5", api_key="k")
+
+
+def test_harness_prompt_does_not_expose_reference_trajectory() -> None:
+    item = _item().model_copy(
+        update={
+            "reference_trajectory": [
+                ReferenceTrajectoryStep(
+                    action="Read the hidden solution.",
+                    tool="read_file",
+                    arguments={"path": "solution.txt"},
+                )
+            ]
+        }
+    )
+
+    prompt = harness_module._harness_prompt(item)
+
+    assert prompt == "Write a function."
+    assert "hidden solution" not in prompt
 
 
 def _write_manifest(tmp_path, name: str = "my-harness") -> Path:
