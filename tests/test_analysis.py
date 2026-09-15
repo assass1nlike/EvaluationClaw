@@ -377,7 +377,7 @@ def test_build_and_run_probes_reviews_until_accepted(monkeypatch) -> None:
         review_calls.append(review)
         return review
 
-    def fake_apply(suite_arg, review, qc, config, *, log=None, trace_dir=None):
+    def fake_apply(suite_arg, review, qc, config, *, log=None, trace_dir=None, max_task_count=None):
         apply_calls.append(review)
         return suite_arg.spec, suite_arg, qc
 
@@ -462,7 +462,7 @@ def test_analysis_defaults_to_goal_probe(monkeypatch, tmp_path) -> None:
     report = analysis_module.run_analysis(
         suite,
         run,
-        _config(analysis_iterations=1),
+        _config(analysis_iterations=1, analysis_max_tasks=1),
         artifact_dir=tmp_path,
         log=lambda _message: None,
     )
@@ -525,3 +525,72 @@ def test_parse_response_converges_on_budget_exhaustion() -> None:
     assert goal == ""
     assert designs == []
     assert analysis == "More evidence is needed."
+
+
+@pytest.mark.parametrize("mode", ["goal", "task_design"])
+@pytest.mark.parametrize("remaining,max_tasks", [(0, 3), (2, 0)])
+def test_exhausted_budget_does_not_require_a_new_probe(mode, remaining, max_tasks) -> None:
+    suite, _ = _suite_and_run()
+    parsed = analysis_module._parse_response(
+        {"analysis": "Evidence is limited.", "done": False},
+        suite, _config(analysis_probe_mode=mode, analysis_max_tasks=max_tasks),
+        iteration=3, remaining_probe_iterations=remaining,
+    )
+    assert parsed == ("Evidence is limited.", "", True, [])
+
+
+def test_analysis_failure_preserves_completed_iterations_and_can_resume(monkeypatch, tmp_path) -> None:
+    suite, run = _suite_and_run()
+    iteration = analysis_module.AnalysisIteration(iteration=1, suite=suite, run=run, qc_report=run.qc_report)
+    analysis_module.write_json(tmp_path / "analysis/iteration-01.json", iteration.model_dump(mode="json"))
+
+    def fail(*args, **kwargs):
+        raise ValueError("Invalid analyser output")
+
+    monkeypatch.setattr(analysis_module, "_call_analyser_json", fail)
+    report = analysis_module.run_analysis(suite, run, _config(), artifact_dir=tmp_path, log=lambda _: None)
+    assert report.status == "failed"
+    assert len(report.iterations) == 1
+    assert report.analysis == ""
+    assert (tmp_path / "analysis/failed-report.json").is_file()
+    from evalclaw.reporting.reporter import build_report
+
+    markdown = build_report(run, analysis=report).markdown
+    assert "Invalid analyser output" in markdown
+    assert "Analysis status: failed" in markdown
+    monkeypatch.setattr(analysis_module, "_call_analyser_json", lambda *a, **k: {"analysis": "Concluded.", "done": True})
+    resumed = analysis_module.run_analysis(suite, run, _config(), artifact_dir=tmp_path, log=lambda _: None)
+    assert resumed.status == "completed"
+    assert resumed.analysis == "Concluded."
+
+
+def test_goal_probe_planning_receives_its_own_budget(monkeypatch) -> None:
+    suite, _ = _suite_and_run()
+    config = _config(item_count=20, analysis_max_tasks=3, challenge_effort_distribution={"E2": 0.8, "E3": 0.2})
+
+    class ReachedPlanner(Exception):
+        pass
+
+    def build(goal, scoped, **kwargs):
+        assert scoped.item_count is None
+        assert scoped.challenge_effort_distribution == {}
+        assert kwargs["max_task_count"] == 3
+        assert scoped.analysis_max_tasks == 3
+        raise ReachedPlanner
+
+    monkeypatch.setattr(analysis_module, "build_benchmark_suite_with_qc_loop", build)
+    with pytest.raises(ReachedPlanner):
+        analysis_module._build_and_run_probes(suite, config, "Hypothesis", "Make one E1 task", [], iteration=1, trace_dir=None, log=lambda _: None)
+    assert config.item_count == 20
+    assert config.challenge_effort_distribution
+
+
+def test_probe_review_rejects_budget_expansion_before_construction(monkeypatch) -> None:
+    suite, _ = _suite_and_run()
+
+    def loop(payload, config, **kwargs):
+        kwargs["validate"]({"done": False, "needs_more_items": [{"dimension_id": "reasoning", "count": 4}]})
+
+    monkeypatch.setattr(analysis_module, "_run_analyser_tool_loop", loop)
+    with pytest.raises(ValueError, match="exceed"):
+        analysis_module._review_probes(suite, "Hypothesis", _config(analysis_max_tasks=2), trace_dir=None)

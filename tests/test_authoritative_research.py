@@ -104,4 +104,11 @@ def test_system_prompt_appends_authoritative_note() -> None:
     assert "search_sources" in prompt
     assert "load_source" in prompt
     assert "imported_dataset" in prompt
+    assert "primarily as support for agent-task construction" in prompt
+    assert "For non-agent TaskDesigns, normally leave" in prompt
+    assert "concrete reason to expect that inspecting it may" in prompt
+    assert "content you do not understand well enough" in prompt
+    assert "requested number of tasks is large enough" in prompt
+    assert "directly leads to, a download link for the original content" in prompt
+    assert "inconvenient for the Builder to obtain useful content" in prompt
     assert benchmark_planner_system_prompt("BASE", authoritative_research=False).count("RESEARCH_MODE") == 0

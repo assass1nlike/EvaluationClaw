@@ -118,8 +118,12 @@ def deep_merge(base: dict[str, Any], partial: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-def _split_document_path(path: str) -> list[str | int]:
+def _split_document_path(path: str | list[str | int]) -> list[str | int]:
     """Split a dot path like ``dimensions.0.name`` into ``["dimensions", 0, "name"]``."""
+    if isinstance(path, list):
+        if any(type(part) not in (str, int) or (isinstance(part, int) and part < 0) for part in path):
+            raise ValueError("Path segments must be strings or non-negative integer indices.")
+        return path
     parts: list[str | int] = []
     for segment in str(path).split("."):
         segment = segment.strip()
@@ -128,7 +132,7 @@ def _split_document_path(path: str) -> list[str | int]:
     return parts
 
 
-def document_get(document: Any, path: str) -> Any:
+def document_get(document: Any, path: str | list[str | int]) -> Any:
     node: Any = document
     for part in _split_document_path(path):
         if isinstance(node, list):
@@ -144,7 +148,7 @@ def document_get(document: Any, path: str) -> Any:
     return node
 
 
-def document_set(document: dict, path: str, value: Any) -> None:
+def document_set(document: dict, path: str | list[str | int], value: Any) -> None:
     """Set a value at a dot path, creating intermediate dicts/lists as needed."""
     parts = _split_document_path(path)
     if not parts:
@@ -169,7 +173,7 @@ def document_set(document: dict, path: str, value: Any) -> None:
         node[last] = value
 
 
-def document_remove(document: dict, path: str) -> None:
+def document_remove(document: dict, path: str | list[str | int]) -> None:
     parts = _split_document_path(path)
     if not parts:
         raise ValueError("empty document path")
@@ -192,7 +196,7 @@ def document_remove(document: dict, path: str) -> None:
         raise KeyError(f"cannot remove {last!r} from {node!r}")
 
 
-def document_append(document: dict, path: str, value: Any) -> None:
+def document_append(document: dict, path: str | list[str | int], value: Any) -> None:
     node: Any = document
     for part in _split_document_path(path):
         if isinstance(node, list):

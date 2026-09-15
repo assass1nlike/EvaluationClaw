@@ -277,6 +277,8 @@ def _post_streaming_openai_compatible(
                 json=stream_body,
                 timeout=min(request_timeout_s, remaining),
             ) as response:
+                if response.is_error:
+                    response.read()
                 response.raise_for_status()
                 for line in response.iter_lines():
                     if not line:
@@ -314,7 +316,11 @@ def _post_streaming_openai_compatible(
                 trace_path,
                 request=request,
                 status="failed",
-                response=attempt_events,
+                response=(
+                    {"status_code": exc.response.status_code, "body": exc.response.text}
+                    if isinstance(exc, httpx.HTTPStatusError)
+                    else attempt_events
+                ),
                 error=exc,
             )
             if attempt == max_retries - 1 or not _is_transient_streaming_error(exc):
@@ -1399,7 +1405,7 @@ def _call_openai_compatible_tools(
                     finish_reason=finish_reason,
                     error=exc,
                 )
-                raise LLMProtocolAdapterError(
+                raise LLMFinalContentMissingError(
                     f"OpenAI-compatible stream returned no final content for model {model}."
                 ) from exc
         _write_llm_trace(

@@ -277,3 +277,44 @@ def test_analyser_tool_round_preserves_artifact_context(monkeypatch, tmp_path) -
     }
     assert calls[1]["messages"][-1]["role"] == "tool"
     assert "issues" in calls[1]["messages"][-1]["content"]
+
+
+def test_analyser_answers_every_call_when_a_batch_exceeds_budget(monkeypatch, tmp_path) -> None:
+    (tmp_path / "qc_report.json").write_text('{"issues": []}', encoding="utf-8")
+    monkeypatch.setattr(analysis, "_MAX_ARTIFACT_CALLS", 1)
+    calls = [ToolCall(id=f"call-{i}", name="read_run_artifact", arguments={"path": "qc_report.json"}) for i in range(3)]
+    turns = 0
+
+    def model(messages, **kwargs):
+        nonlocal turns
+        turns += 1
+        if turns == 1:
+            return TargetToolModelResponse(adapter="openai_compatible", content="", tool_calls=calls,
+                assistant_message={"role": "assistant", "tool_calls": [{"id": c.id} for c in calls]}, raw_response={})
+        results = [m for m in messages if m.get("role") == "tool"]
+        assert [m["tool_call_id"] for m in results] == [c.id for c in calls]
+        assert "issues" in results[0]["content"]
+        assert all("exhausted" in m["content"] for m in results[1:])
+        assert kwargs["tools"] == []
+        return TargetToolModelResponse(adapter="openai_compatible", content='{"analysis":"Done","done":true}',
+            tool_calls=[], assistant_message={"role": "assistant"}, raw_response={})
+
+    monkeypatch.setattr(analysis, "call_orchestrator_with_tools", model)
+    assert analysis._run_analyser_tool_loop({}, _config(), trace_dir=None, artifact_dir=tmp_path)["done"] is True
+
+
+def test_analyser_retries_missing_content_without_using_reasoning_as_answer(monkeypatch) -> None:
+    attempts = 0
+
+    def model(messages, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise analysis.LLMFinalContentMissingError("No final content")
+        return TargetToolModelResponse(adapter="openai_compatible", content='{"analysis":"Insufficient evidence","done":true}',
+            tool_calls=[], assistant_message={"role": "assistant"}, raw_response={})
+
+    monkeypatch.setattr(analysis, "call_orchestrator_with_tools", model)
+    result = analysis._run_analyser_tool_loop({}, _config(), trace_dir=None, artifact_dir=None)
+    assert attempts == 2
+    assert result["analysis"] == "Insufficient evidence"

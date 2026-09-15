@@ -15,6 +15,7 @@ from ..diagnostics import (
     document_remove,
     document_set,
 )
+from ..execution.harness_compatibility import external_harness_issues
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
     LLMFinalContentMissingError,
@@ -109,12 +110,28 @@ def _instruction_resource(
     *,
     feedback: str | None = None,
     previous_plan: BenchmarkPlan | None = None,
+    max_task_count: int | None = None,
 ) -> str:
     explicit_task_count = config.item_count
+    harnesses = [target.harness for target in config.targets if target.harness]
     constraints: dict[str, object] = {
         "available_task_types": [task_type.value for task_type in TaskType],
-        "available_environment_types": [environment.value for environment in AgentEnvironmentType],
+        "available_environment_types": [
+            environment.value for environment in AgentEnvironmentType
+            if not external_harness_issues({"type": environment}, harnesses)
+        ],
     }
+    if harnesses:
+        constraints["selected_external_harnesses"] = sorted(set(harnesses))
+        constraints["environment_policy"] = (
+            "Design agent environments using only the available environment types. "
+            "Environment actors require all selected external harnesses to be OpenClaw."
+        )
+    if max_task_count is not None:
+        constraints["max_total_task_count"] = max_task_count
+        constraints["maximum_count_policy"] = (
+            "Choose a task count appropriate to the request, at most this total."
+        )
 
     if explicit_task_count is not None:
         print(f"[Planner] User specified explicit task count: {explicit_task_count}.")
@@ -669,6 +686,7 @@ def _audit_plan(
     plan: BenchmarkPlan,
     *,
     expected_task_count: int | None = None,
+    max_task_count: int | None = None,
     expected_effort_distribution: dict[ChallengeEffort, float] | None = None,
     simplified: bool = False,
 ) -> list[str]:
@@ -792,6 +810,10 @@ def _audit_plan(
     )
     if not planned_task_count:
         issues.append("The complete plan must contain at least one task.")
+    if max_task_count is not None and planned_task_count > max_task_count:
+        issues.append(
+            f"The plan contains {planned_task_count} tasks, exceeding the maximum of {max_task_count}."
+        )
     if expected_task_count is not None and planned_task_count != expected_task_count:
         issues.append(
             f"The user explicitly requested exactly {expected_task_count} tasks, but the plan contains "
@@ -827,6 +849,7 @@ def _parse_plan_response(
     config: BenchmarkConfig,
     *,
     expected_task_count: int | None = None,
+    max_task_count: int | None = None,
     framework_dimension_ids: list[str] | None = None,
 ) -> tuple[BenchmarkPlan, list[str]]:
     if not isinstance(data, dict) or not isinstance(data.get("plan"), dict):
@@ -877,11 +900,23 @@ def _parse_plan_response(
     issues = _audit_plan(
         plan,
         expected_task_count=expected_task_count,
+        max_task_count=max_task_count,
         expected_effort_distribution=_valid_effort_distribution(
             config.challenge_effort_distribution
         ),
         simplified=simplified,
     )
+    for dimension in plan.dimensions:
+        for design in dimension.task_designs:
+            if design.task_type == TaskType.agent:
+                issues.extend(
+                    f"{design.id}: {issue}"
+                    for issue in external_harness_issues(
+                        {"type": design.environment_requirements.get("category"),
+                         "actors": design.environment_requirements.get("actors")},
+                        [target.harness for target in config.targets if target.harness],
+                    )
+                )
     if framework_dimension_ids is not None and len(plan.dimensions) != len(framework_dimension_ids):
         issues.append(
             "Planner must return exactly one dimension for each dimension in the existing EvalSpec: "
@@ -896,6 +931,7 @@ def _run_planner(
     *,
     log: Callable[[str], None] | None,
     expected_task_count: int | None = None,
+    max_task_count: int | None = None,
     framework_dimension_ids: list[str] | None = None,
 ) -> tuple[BenchmarkPlan, list[ResearchSourceMaterial]]:
     settings = role_model_settings(config, "planner")
@@ -1021,6 +1057,7 @@ def _run_planner(
                 {"plan": parsed_response},
                 config,
                 expected_task_count=expected_task_count,
+                max_task_count=max_task_count,
                 framework_dimension_ids=framework_dimension_ids,
             )
         except Exception as exc:
@@ -1074,6 +1111,7 @@ def plan_benchmark(
     *,
     feedback: str | None = None,
     previous_plan: BenchmarkPlan | None = None,
+    max_task_count: int | None = None,
     log: Callable[[str], None] | None = None,
 ) -> BenchmarkPlan:
     """Turn one natural-language request into a complete set of TaskDesigns."""
@@ -1082,6 +1120,7 @@ def plan_benchmark(
         config,
         feedback=feedback,
         previous_plan=previous_plan,
+        max_task_count=max_task_count,
     )
     if role_model_settings(config, "planner").configured:
         plan, materials = _run_planner(
@@ -1089,6 +1128,7 @@ def plan_benchmark(
             config,
             log=log,
             expected_task_count=config.item_count,
+            max_task_count=max_task_count,
         )
         if materials:
             config.research_brief = ResearchBrief(source_materials=materials)
@@ -1113,7 +1153,11 @@ def plan_from_spec(
     instruction = (
         "Design the complete benchmark plan represented by the following existing outline. "
         "Preserve its objective, dimensions, task counts, task types, scoring contracts, and constraints, "
-        "while supplying the complete TaskDesign detail required by the Planner Skill.\n\n"
+        "while supplying the complete TaskDesign detail required by the Planner Skill. "
+        "This is a scoped construction request: the supplied dimension target_item_count values "
+        "and framework total determine how many tasks to build in this call. Parent-benchmark "
+        "counts mentioned in the outline's objective or constraints are context, not additional "
+        "tasks to generate.\n\n"
         + json.dumps(spec.model_dump(mode="json"), ensure_ascii=False, indent=2)
     )
     expected_task_count = (
@@ -1123,7 +1167,7 @@ def plan_from_spec(
         else None
     )
     plan, materials = _run_planner(
-        _instruction_resource(instruction, config),
+        _instruction_resource(instruction, config.model_copy(update={"item_count": expected_task_count})),
         config,
         log=log,
         expected_task_count=expected_task_count,

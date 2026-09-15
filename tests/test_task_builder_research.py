@@ -9,6 +9,7 @@ from threading import Event
 import pytest
 
 from evalclaw.construction.research import (
+    TASK_BUILDER_SOURCE_TOOLS,
     TaskBuilderCallError,
     _append_tool_results,
     _execute_task_builder_tool,
@@ -796,6 +797,32 @@ def test_task_builder_can_read_retained_planner_source() -> None:
     assert "Full retained evidence for task construction." in result.content
 
 
+def test_task_builder_can_list_links_from_a_landing_page(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "evalclaw.construction.research.fetch_url_links",
+        lambda url, **kwargs: {
+            "url": url,
+            "resolved_url": url,
+            "links": [{"text": "Archive", "url": "https://cdn.example/archive.zip"}],
+        },
+    )
+
+    result = _execute_task_builder_tool(
+        ToolCall(
+            id="links_1",
+            name="list_url_links",
+            arguments={"url": "https://project.example/releases"},
+        ),
+        BenchmarkConfig(),
+        max_chars=50_000,
+    )
+
+    assert result.error is None
+    assert json.loads(result.content)["links"] == [
+        {"text": "Archive", "url": "https://cdn.example/archive.zip"}
+    ]
+
+
 def test_task_builder_update_candidate_edits_document(tmp_path) -> None:
     document = tmp_path / "candidate.json"
     document.write_text(
@@ -839,6 +866,25 @@ def test_task_builder_read_candidate_reads_document(tmp_path) -> None:
     )
     assert result.error is None
     assert "T" in result.content
+
+
+def test_builder_can_edit_and_read_literal_file_keys(tmp_path) -> None:
+    document = tmp_path / "candidate.json"
+    document.write_text('{"tasks":[{"environment":{"visible_files":{}}}]}')
+    path = ["tasks", 0, "environment", "visible_files", "src/main.py"]
+    result = _execute_task_builder_tool(
+        ToolCall(id="write", name="update_candidate", arguments={"operations": [
+            {"op": "set", "path": path, "value": "print(1)"},
+        ]}), BenchmarkConfig(), max_chars=50000, document_path=str(document),
+    )
+    assert result.error is None
+    assert json.loads(document.read_text())["tasks"][0]["environment"]["visible_files"] == {"src/main.py": "print(1)"}
+    result = _execute_task_builder_tool(
+        ToolCall(id="read", name="read_candidate", arguments={"path": path}),
+        BenchmarkConfig(), max_chars=50000, document_path=str(document),
+    )
+    assert result.error is None
+    assert "print(1)" in result.content
 
 
 def test_task_builder_can_download_multiple_file_types(monkeypatch, tmp_path) -> None:
@@ -885,7 +931,14 @@ def test_task_builder_can_download_multiple_file_types(monkeypatch, tmp_path) ->
         "https://example.com/data.zip",
         "https://example.com/missing.csv",
     ]
+    assert calls[0][2] == 1024 * 1024 * 1024
     assert calls[1][2] == calls[0][2] - 4
+
+
+def test_task_builder_download_tool_accepts_up_to_64_files() -> None:
+    tool = next(tool for tool in TASK_BUILDER_SOURCE_TOOLS if tool.name == "download_files")
+
+    assert tool.parameters["properties"]["urls"]["maxItems"] == 64
 
 
 def test_task_builder_can_run_python_and_create_assets(tmp_path) -> None:
@@ -1750,6 +1803,14 @@ def test_generated_builder_with_assistance_urls_can_fetch_them(monkeypatch) -> N
         "https://docs.example/tooling"
     ]
     assert "construction aids, not task sources" in captured["system_prompt"]
+    assert "intended primarily for agent tasks" in captured["system_prompt"]
+    assert "concrete reason to expect that it may materially improve" in captured["system_prompt"]
+    assert "after inspection, rely on it only if it actually helps" in captured["system_prompt"]
+    assert "use list_url_links to inspect and follow its links" in captured["system_prompt"]
+    assert (
+        "intended primarily for agent tasks"
+        in captured["payload"]["resources"]["builder_assistance"]["usage"]
+    )
 
 
 def test_gui_task_builder_receives_vm_image_tools(monkeypatch) -> None:

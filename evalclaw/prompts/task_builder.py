@@ -436,15 +436,21 @@ def build_task_builder_tool_prompt(
         )
     if source_backed:
         parts.append(
-            "Use read_research_source, search_web, fetch_url, or download_files to inspect source "
+            "Use read_research_source, search_web, fetch_url, list_url_links, or download_files to inspect source "
             "material. Do not claim source grounding from a title or URL alone."
         )
     if has_builder_resources:
         parts.append(
-            "Use fetch_url or download_files to inspect the optional URLs in "
+            "Use fetch_url, list_url_links, or download_files to inspect the optional URLs in "
             "resources.builder_assistance when they simplify construction. These URLs are construction "
             "aids, not task sources: do not cite them, emit them as resources, or add resource_ids unless "
-            "the TaskDesign's source strategy separately requires source grounding."
+            "the TaskDesign's source strategy separately requires source grounding. Builder-assistance "
+            "URLs are intended primarily for agent tasks. For a non-agent task, inspect one only when the "
+            "TaskDesign and the resource give a concrete reason to expect that it may materially improve "
+            "construction efficiency or attainable task difficulty. Inspection may determine whether it is "
+            "useful; after inspection, rely on it only if it actually helps. Do not fetch a URL merely "
+            "because it is present or topically relevant. If a useful URL is a landing page rather than "
+            "a direct file, use list_url_links to inspect and follow its links before downloading the file."
         )
     if include_image_tools:
         parts.append(

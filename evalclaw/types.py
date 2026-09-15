@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Literal, Optional
+from typing import Annotated, Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, model_validator
 
@@ -193,6 +193,63 @@ class EnvironmentActorSpec(BaseModel):
         if not self.system_prompt.strip():
             raise ValueError("Actor system_prompt must not be empty.")
         return self
+
+
+class ElapsedTimeInterventionTrigger(BaseModel):
+    """Episode-relative time event."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["elapsed_time"]
+    after_seconds: float = Field(gt=0)
+
+
+class ConditionInterventionTrigger(BaseModel):
+    """Environment predicate observed by the runner."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["condition"]
+    command: StrictStr
+    poll_interval_seconds: float = Field(default=1, gt=0)
+
+    @model_validator(mode="after")
+    def validate_command(self) -> "ConditionInterventionTrigger":
+        if not self.command.strip():
+            raise ValueError("A condition intervention trigger requires command.")
+        return self
+
+
+EnvironmentInterventionTrigger = Annotated[
+    ElapsedTimeInterventionTrigger | ConditionInterventionTrigger,
+    Field(discriminator="type"),
+]
+
+
+class EnvironmentInterventionAction(BaseModel):
+    """Operation performed by the runner's control principal."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["run_command"] = "run_command"
+    command: StrictStr
+    timeout_seconds: StrictInt = Field(default=20, ge=1)
+
+    @model_validator(mode="after")
+    def validate_command(self) -> "EnvironmentInterventionAction":
+        if not self.command.strip():
+            raise ValueError("An intervention action requires command.")
+        return self
+
+
+class EnvironmentInterventionSpec(BaseModel):
+    """Builder-authored runner-side event and action."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: StrictStr = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+    trigger: EnvironmentInterventionTrigger
+    action: EnvironmentInterventionAction
 
 
 def environment_category(design: "TaskDesign") -> Optional[AgentEnvironmentType]:
@@ -516,15 +573,21 @@ class AgentEnvironmentSpec(BaseModel):
     evaluation: dict[str, Any] = Field(default_factory=dict)
     actor_toolsets: dict[StrictStr, ActorToolsetSpec] = Field(default_factory=dict)
     actors: list[EnvironmentActorSpec] = Field(default_factory=list)
+    interventions: list[EnvironmentInterventionSpec] = Field(default_factory=list)
     notes: StrictStr = ""
 
     @model_validator(mode="after")
     def validate_actors(self) -> "AgentEnvironmentSpec":
         if self.actors and self.type != AgentEnvironmentType.docker_workspace:
             raise ValueError("Environment actors currently require type=docker_workspace.")
+        if self.interventions and self.type != AgentEnvironmentType.docker_workspace:
+            raise ValueError("Environment interventions currently require type=docker_workspace.")
         actor_ids = [actor.id for actor in self.actors]
         if len(actor_ids) != len(set(actor_ids)):
             raise ValueError("Environment actor ids must be unique.")
+        intervention_ids = [intervention.id for intervention in self.interventions]
+        if len(intervention_ids) != len(set(intervention_ids)):
+            raise ValueError("Environment intervention ids must be unique.")
         for name in self.actor_toolsets:
             if (
                 not name
@@ -901,6 +964,8 @@ class AnalysisIteration(BaseModel):
 
 class AnalysisReport(BaseModel):
     strategy: Literal["hypothesis_driven", "similar_tasks"] = "hypothesis_driven"
+    status: Literal["completed", "failed"] = "completed"
+    error: str | None = None
     analysis: str = ""
     iterations: list[AnalysisIteration] = Field(default_factory=list)
 

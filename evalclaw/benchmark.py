@@ -242,9 +242,11 @@ def build_benchmark_suite_with_qc_loop(
     resume_suite: TaskSuite | None = None,
     resume_qc_report: QcReport | None = None,
     resume_repair_round: int = 0,
+    max_task_count: int | None = None,
 ) -> tuple[EvalSpec, TaskSuite, QcReport]:
     """Plan TaskDesigns and build each through one independent Builder call."""
-    plan = resume_plan or plan_benchmark(goal, config, log=log)
+    planning_limits = {"max_task_count": max_task_count} if max_task_count is not None else {}
+    plan = resume_plan or plan_benchmark(goal, config, log=log, **planning_limits)
     if ask_user is not None and resume_plan is None:
         plan = _review_plan(goal, plan, config, ask_user=ask_user, log=log)
     spec = plan.to_eval_spec()

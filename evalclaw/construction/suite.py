@@ -485,6 +485,22 @@ def _task_builder_payload(
             )
         ),
     }
+    selected_harnesses = sorted(
+        {target.harness for target in (config.targets if config is not None else []) if target.harness}
+    )
+    if selected_harnesses:
+        contract["external_harness_compatibility"] = {
+            "selected_harnesses": selected_harnesses,
+            "requirements": [
+                "Use environment.workdir=/workspace.",
+                "Do not use runtime_files; bake setup-only support into image_build and put "
+                "target-visible initial state in visible_files.",
+                "Do not require native workspace_tools or browser tools that an external shell "
+                "harness cannot enforce.",
+                "Do not use workflow stages.",
+                "Environment actors are compatible only when every selected external harness is openclaw.",
+            ],
+        }
     if blueprint.requires_environment:
         optional_fields.extend(["environment", "system_prompt", "interaction"])
         if not direct:
@@ -511,7 +527,10 @@ def _task_builder_payload(
                 "usage": (
                     "Optional construction aids only. They do not change source_plan.strategy and must "
                     "not be emitted as task resources or resource_ids unless source_plan independently "
-                    "requires source grounding."
+                    "requires source grounding. They are intended primarily for agent tasks. For a "
+                    "non-agent task, inspect one only when the TaskDesign and the resource give a concrete "
+                    "reason to expect that it may materially improve construction efficiency or attainable "
+                    "task difficulty; after inspection, rely on it only if it actually helps."
                 ),
             },
             "selection": {
@@ -1288,6 +1307,9 @@ def build_task_suite(
                         require_challenge_effort_self_assessment=not simplified,
                         require_builder_references=True,
                         builder_work_dir=builder_work_dir,
+                        target_harnesses=(
+                            target.harness for target in config.targets if target.harness
+                        ),
                     )
                 )
                 if not task_design_id:

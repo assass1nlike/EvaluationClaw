@@ -6,8 +6,10 @@ import json
 import re
 import shutil
 import subprocess
+from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 
+from ..execution.harness_compatibility import external_harness_issues
 from ..protocols.agent_task_package import AGENT_TASK_PACKAGE_METADATA_KEY
 from ..protocols.assets import asset_label, environment_asset_guest_path, is_image_asset_path
 from ..types import (
@@ -772,6 +774,7 @@ def task_structure_issues(
     require_challenge_effort_self_assessment: bool = False,
     require_builder_references: bool = False,
     builder_work_dir: Path | None = None,
+    target_harnesses: Iterable[str] = (),
 ) -> list[str]:
     """Return blocking structural issues that should be fixed before global QC.
 
@@ -829,7 +832,7 @@ def task_structure_issues(
             if task.task_type == TaskType.agent
             else asset_label(index)
         )
-        if prompt_reference not in task.prompt and not any(
+        if task.task_type != TaskType.agent and prompt_reference not in task.prompt and not any(
             prompt_reference in choice.text for choice in task.choices
         ):
             issues.append(
@@ -1002,6 +1005,13 @@ def task_structure_issues(
         expected_environment = task.environment.type
 
     env = task.environment
+    issues.extend(
+        external_harness_issues(
+            env.model_dump(mode="json"),
+            target_harnesses,
+            has_workflow=task.workflow is not None,
+        )
+    )
     if env.type != expected_environment:
         issues.append(
             f"Task environment.type must match the TaskDesign requirement {expected_environment.value}."

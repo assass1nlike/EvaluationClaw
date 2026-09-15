@@ -3,11 +3,15 @@ from __future__ import annotations
 
 import json
 import re
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from ..diagnostics import error_record, write_json
 from ..execution.agent_envs import build_agent_environment
+from ..execution.evidence import EVALUATOR_EVIDENCE_SCHEMA, redact_evidence
+from ..execution.interventions import InterventionController
 from ..models.llm import (
     TargetToolModelResponse,
     call_target_model,
@@ -29,6 +33,99 @@ from ..protocols.tool_adapters import (
     tool_adapter_for_target,
 )
 from ..types import BenchmarkConfig, BenchmarkItem, Message, TargetModelConfig
+
+
+def _start_interventions(env: Any) -> InterventionController | None:
+    specs = getattr(env, "interventions", [])
+    if not specs:
+        return None
+    run_command = getattr(env, "run_external_command", None)
+    if not callable(run_command):
+        raise RuntimeError("Environment interventions require a Docker-backed agent environment.")
+    controller = InterventionController(specs, run_command)
+    controller.start()
+    return controller
+
+
+def _native_evaluator_evidence(
+    *,
+    item: BenchmarkItem,
+    target: TargetModelConfig,
+    config: BenchmarkConfig,
+    env: Any,
+    raw: dict[str, Any],
+    controller: InterventionController | None,
+    started_at: datetime,
+    started: float,
+) -> dict[str, Any]:
+    evidence = {
+        "schema_version": EVALUATOR_EVIDENCE_SCHEMA,
+        "target": {
+            "id": target.id,
+            "model": target.model,
+            "provider": target.provider,
+            "harness": "native",
+        },
+        "target_execution": {
+            "final_response": str(getattr(env, "final_answer", "") or ""),
+            "raw_output": raw,
+            "stderr": "",
+            "trace": raw.get("trace", []),
+            "history": raw.get("history", []),
+            "model_responses": raw.get("model_responses", []),
+            "final_state": raw.get("final_state", {}),
+            "tool_call_count": sum(
+                1 for turn in raw.get("trace", []) if turn.get("tool_call") is not None
+            ),
+        },
+        "actors": {"summary": {}, "interactions": []},
+        "interventions": list(controller.records) if controller else [],
+        "timing": {
+            "started_at": started_at.isoformat(),
+            "finished_at": datetime.now(timezone.utc).isoformat(),
+            "duration_ms": round((time.monotonic() - started) * 1000),
+        },
+        "termination": {
+            "done": bool(getattr(env, "done", False)),
+            "steps": int(getattr(env, "steps", 0)),
+            "max_steps": int(getattr(env, "max_steps", 0)),
+        },
+        "item_id": item.id,
+    }
+    return redact_evidence(evidence, [target.api_key, config.actor_api_key])
+
+
+def _run_final_native_evaluation(
+    *,
+    item: BenchmarkItem,
+    target: TargetModelConfig,
+    config: BenchmarkConfig,
+    env: Any,
+    raw: dict[str, Any],
+    controller: InterventionController | None,
+    artifact_dir: Path | None,
+    started_at: datetime,
+    started: float,
+) -> None:
+    if controller is not None:
+        controller.stop()
+        controller.raise_if_failed()
+    evaluate = getattr(env, "evaluate_with_evidence", None)
+    if not callable(evaluate):
+        return
+    evidence = _native_evaluator_evidence(
+        item=item,
+        target=target,
+        config=config,
+        env=env,
+        raw=raw,
+        controller=controller,
+        started_at=started_at,
+        started=started,
+    )
+    if artifact_dir is not None:
+        write_json(artifact_dir / "evaluator-evidence.json", evidence)
+    evaluate(evidence)
 
 
 def parse_agent_action(response: str) -> tuple[dict[str, Any] | None, str | None]:
@@ -205,6 +302,9 @@ def _run_agent_interaction_native_tools(
     max_tokens: int = 32768,
 ) -> tuple[str, float, str]:
     env = environment if environment is not None else build_agent_environment(item, config)
+    started_at = datetime.now(timezone.utc)
+    started = time.monotonic()
+    controller = _start_interventions(env)
     try:
         system_prompt = task_agent_system_prompt(
             item,
@@ -219,6 +319,7 @@ def _run_agent_interaction_native_tools(
             {"role": "user", "content": _initial_user_prompt(item, env, include_action_schema=False)}
         )
         trace: list[dict[str, Any]] = []
+        model_responses: list[Any] = []
         tool_specs = env.tool_specs() if hasattr(env, "tool_specs") else []
 
         while env.steps < env.max_steps and not env.done:
@@ -234,6 +335,7 @@ def _run_agent_interaction_native_tools(
                 failover=config.failover_endpoint,
             )
             native_messages.append(response.assistant_message)
+            model_responses.append(response.raw_response)
             if not response.tool_calls:
                 env.invalid_actions += 1
                 env.steps += 1
@@ -296,9 +398,25 @@ def _run_agent_interaction_native_tools(
             "trace": trace,
             "final_state": env.state(),
             "history": native_messages,
+            "model_responses": model_responses,
         }
+        _run_final_native_evaluation(
+            item=item,
+            target=target,
+            config=config,
+            env=env,
+            raw=raw,
+            controller=controller,
+            artifact_dir=artifact_dir,
+            started_at=started_at,
+            started=started,
+        )
         return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
     finally:
+        if controller is not None:
+            controller.stop()
+            if artifact_dir is not None:
+                write_json(artifact_dir / "interventions.json", controller.records)
         _save_environment_artifacts(env, artifact_dir)
         cleanup = getattr(env, "cleanup", None)
         if environment is None and callable(cleanup):
@@ -316,6 +434,9 @@ def _run_agent_interaction_json_actions(
     max_tokens: int = 32768,
 ) -> tuple[str, float, str]:
     env = environment if environment is not None else build_agent_environment(item, config)
+    started_at = datetime.now(timezone.utc)
+    started = time.monotonic()
+    controller = _start_interventions(env)
     try:
         system_prompt = task_agent_system_prompt(
             item,
@@ -387,9 +508,25 @@ def _run_agent_interaction_json_actions(
             "trace": trace,
             "final_state": env.state(),
             "history": [message.model_dump() for message in history],
+            "model_responses": [],
         }
+        _run_final_native_evaluation(
+            item=item,
+            target=target,
+            config=config,
+            env=env,
+            raw=raw,
+            controller=controller,
+            artifact_dir=artifact_dir,
+            started_at=started_at,
+            started=started,
+        )
         return json.dumps(raw, ensure_ascii=False), env.score(), env.summary()
     finally:
+        if controller is not None:
+            controller.stop()
+            if artifact_dir is not None:
+                write_json(artifact_dir / "interventions.json", controller.records)
         _save_environment_artifacts(env, artifact_dir)
         cleanup = getattr(env, "cleanup", None)
         if environment is None and callable(cleanup):

@@ -1,5 +1,6 @@
 import concurrent.futures
 import json
+from contextlib import contextmanager
 from types import SimpleNamespace
 
 import pytest
@@ -36,6 +37,13 @@ class _FakeHTTPStream:
     def raise_for_status(self):
         self.response.raise_for_status()
 
+    @property
+    def is_error(self):
+        return self.response.is_error
+
+    def read(self):
+        return self.response.read()
+
     def iter_lines(self):
         return iter(self.lines)
 
@@ -54,6 +62,40 @@ def _chat_stream(text: str, finish_reason: str = "stop"):
             }
         ]
     )
+
+
+def test_streaming_http_error_retains_response_body(monkeypatch, tmp_path) -> None:
+    @contextmanager
+    def stream(*args, **kwargs):
+        response = llm.httpx.Response(
+            400,
+            stream=llm.httpx.ByteStream(b'{"error":"missing tool result"}'),
+            request=llm.httpx.Request("POST", "https://model.example/v1"),
+        )
+        try:
+            yield response
+        finally:
+            response.close()
+
+    monkeypatch.setattr(llm.httpx, "stream", stream)
+    with pytest.raises(llm.httpx.HTTPStatusError):
+        llm._post_streaming_openai_compatible("https://model.example/v1", {}, {}, trace_dir=tmp_path)
+    traces = list(tmp_path.glob("*.json"))
+    assert len(traces) == 1
+    trace = json.loads(traces[0].read_text())
+    assert trace["response"] == {"status_code": 400, "body": '{"error":"missing tool result"}'}
+
+
+def test_tool_response_without_final_content_is_not_an_adapter_error(monkeypatch) -> None:
+    monkeypatch.setattr(llm, "_post_streaming_openai_compatible", lambda *a, **k: {
+        "choices": [{"message": {"role": "assistant", "content": None, "reasoning_content": "thinking"}, "finish_reason": "stop"}],
+    })
+    with pytest.raises(llm.LLMFinalContentMissingError):
+        llm.call_orchestrator_with_tools(
+            [{"role": "user", "content": "Evaluate"}], system_prompt="Evaluate",
+            model="test-model", provider="openai_compatible", base_url="https://model.example/v1",
+            api_key="test", tools=[],
+        )
 
 
 def test_streaming_post_bounds_transport_failures(monkeypatch) -> None:
@@ -623,6 +665,8 @@ def test_responses_stream_returns_completed_response(monkeypatch) -> None:
     ]
 
     class FakeStream:
+        is_error = False
+
         def __enter__(self):
             return self
 
@@ -716,6 +760,8 @@ def test_openai_compatible_streaming_path_collects_chunks(monkeypatch) -> None:
     ]
 
     class FakeStream:
+        is_error = False
+
         def __enter__(self):
             return self
 
@@ -912,6 +958,8 @@ def test_openai_compatible_streaming_retries_upstream_error(monkeypatch) -> None
     waits: list[float] = []
 
     class FakeStream:
+        is_error = False
+
         def __init__(self, lines):
             self.lines = lines
 
