@@ -59,7 +59,7 @@ def test_qc_trace_persists_model_exchange_and_complete_report(tmp_path, monkeypa
 
     report = run_qc_gate(
         suite,
-        BenchmarkConfig(**dummy_config_kwargs(), use_llm_qc=True),
+        BenchmarkConfig(**dummy_config_kwargs()),
         trace_dir=trace_dir,
     )
 

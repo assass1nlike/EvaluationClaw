@@ -1420,6 +1420,21 @@ HTML_TEMPLATE = """<!doctype html>
       if (analysis.error) {
         section.append(node("p", {}, `Analysis status: ${analysis.status}. ${analysis.error}`));
       }
+      if (Array.isArray(analysis.benchmark)) {
+        section.append(node("h3", {}, "Benchmark by Model Weakness"));
+        if (!analysis.benchmark.length) {
+          section.append(node("p", {}, "No supported, in-scope weakness tasks selected."));
+        }
+        analysis.benchmark.forEach(group => {
+          section.append(node("h4", {}, group.name));
+          section.append(node("p", {}, group.description));
+          section.append(table(["Source", "Task ID", "Target"], group.items.map(item => [
+            item.iteration === 0 ? "Main run" : `Iteration ${item.iteration}`,
+            item.item_id,
+            item.target_id,
+          ])));
+        });
+      }
       if (iterations.length) {
         section.append(node("h3", {}, "Verification Iterations"));
         section.append(table(
@@ -1449,6 +1464,27 @@ HTML_TEMPLATE = """<!doctype html>
         markdownNode(report[name].reasoning || "-"),
       ]);
       section.append(table(["Criterion", "Score (1-5)", "Reasoning"], rows));
+      const contamination = report.contamination;
+      if (contamination) {
+        section.append(node("h3", {}, "Contamination Resistance"));
+        const items = contamination.items || [];
+        const matched = items.filter(item => (item.matches || []).length).length;
+        const scored = items.filter(item => item.contamination).length;
+        const score = contamination.conditional_score;
+        section.append(node("p", {},
+          `Assessed ${items.length}/${contamination.total_item_count} items; confirmed overlap ${matched}/${items.length}; ` +
+          `conditional score: ${score == null ? "not assigned" : Number(score).toFixed(2) + "/5"} (${scored} scored items).`));
+        section.append(node("p", {},
+          `Failed assessments: ${items.filter(item => item.status === "failed").length}; ` +
+          `not searchable as text: ${items.filter(item => item.status === "not_searchable").length}.`));
+        section.append(node("p", {}, "No confirmed match does not establish absence of contamination or training-data membership."));
+        section.append(table(["Task", "Status", "Score (1-5)", "Evidence", "Limitations"], items.map(item => [
+          item.item_id, item.status,
+          item.contamination ? item.contamination.score : "Not assigned",
+          markdownNode((item.contamination ? item.contamination.reasoning + "\\n\\n" : "") + (item.checked_urls || []).join("\\n\\n")),
+          [item.research_summary || "", item.stop_reason || "", ...(item.limitations || []), ...(item.unresolved_urls || [])].join(" "),
+        ])));
+      }
     }
     function fillSelect(id, values, labelFn = humanLabel) {
       const sel = qs(id);
