@@ -55,8 +55,9 @@ def main():
         for role, config in configs.items()
     }
     manifest = {
-        "commit": subprocess.check_output(
-            ["git", "-C", str(root / "upstream"), "rev-parse", "HEAD"], text=True
+        "commit": "4ba39bbcd494e7ef8ea949f2853fa00305e083e3",
+        "workspace_commit": subprocess.check_output(
+            ["git", "-C", str(root), "rev-parse", "HEAD"], text=True
         ).strip(),
         "versions": {name: version(name) for name in ("petri", "inspect-ai", "openai", "anthropic")},
         "base_url": args.base_url,

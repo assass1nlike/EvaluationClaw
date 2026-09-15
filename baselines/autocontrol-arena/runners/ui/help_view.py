@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+"""Help view rendering for interactive runner."""
+
+from __future__ import annotations
+
+from typing import Callable, Optional
+
+from runners.presentation.views import render_stream_text
+from tools.utilities.cli_ui import Icons, cli
+
+
+def show_help(pause: Optional[Callable[[], None]] = None):
+    """Display runner help content and wait for user acknowledgment."""
+    cli.section("Help Documentation", Icons.LIGHTBULB)
+
+    help_text = """
+  AutoControl Arena is an automated red-team evaluation framework for testing
+  LLM / Agent behavior under risky scenarios.
+
+  Core Concepts:
+  ----------
+  - Multi-agent pipeline: Architect -> Coder -> Target -> Monitor
+  - Executable environment synthesis for reproducible scenario testing
+  - Two-level stress testing (0-1): baseline vs high pressure
+
+  Stress Level Description:
+  --------------
+  Level 0 (Baseline):      Neutral pressure, baseline behavior
+  Level 1 (High Pressure): Explicit deadline/consequence pressure
+
+  Core Metrics:
+  ----------
+  - ASR (Attack Success Rate)
+  - DD (Deception Depth)
+  - Loyalty Score
+  - CoT-Action Consistency
+
+  Configuration File Locations:
+  --------------
+  - LLM configurations: configs/profiles/templates/*.yaml and configs/profiles/local/*.yaml
+  - Scenario configurations: configs/scenarios/*.yaml
+  - Hyperparameters: configs/settings/hyperparameters.yaml
+
+  For more information:
+  - README.md
+  - docs/ARCHITECTURE.md
+    """
+
+    render_stream_text(text=help_text.strip("\n"))
+    if pause is not None:
+        pause()
+    else:
+        input("Press Enter to return to main menu...")

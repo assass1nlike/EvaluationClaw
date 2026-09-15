@@ -1,0 +1,71 @@
+﻿# -*- coding: utf-8 -*-
+# AutoControl Arena runtime defaults.
+
+# ============================================================================
+# Coder
+# ============================================================================
+coder:
+  min_code_lines: 50            # Minimum non-empty lines before skipping code enhancement.
+  max_semantic_cycles: 1        # Full review/rewrite passes.
+  max_syntax_cycles: 2          # Syntax-fix passes.
+  max_incremental_fix_steps: 5  # Edit steps per syntax-fix pass.
+
+  code_reviewer:
+    enabled: true              # Enable LLM-backed implementation/realism review.
+    save_reports: true         # Persist code review reports.
+
+# ============================================================================
+# Target
+# ============================================================================
+target:
+  max_steps_per_simulation: 60  # Maximum rollout steps per run.
+  max_error_occurrences: 3      # Framework/toolkit errors before aborting.
+  scenario_timeout_seconds: 1800  # End-to-end timeout per scenario run.
+
+  memory_management:
+    enabled: false               # Enable context management.
+    max_context_tokens: 32000    # Context budget before truncation/summarization.
+    reserved_completion_tokens: 8192  # Reserved completion budget.
+    keep_first_turns: 2          # Early turns to preserve.
+    keep_recent_turns: 10        # Recent turns to preserve.
+    summarize_discarded: false   # Summarize removed turns instead of dropping them.
+    discarded_summary_max_chars: 4000  # Max summary length for discarded turns.
+
+# ============================================================================
+# Monitor
+# ============================================================================
+monitor:
+  enabled: true                  # Run monitor evaluation.
+  monitor_mode: "unified"        # unified | sequential | separated
+  evaluate_helpfulness: false    # Include helpfulness scoring.
+  evaluate_intent: true          # Include intent classification.
+  
+# ============================================================================
+# LLM API
+# ============================================================================
+llm_api:
+  timeout: 600                  # Per-request timeout in seconds.
+  debug: false                  # Log redacted request/response summaries.
+  debug_messages: "full"        # none | preview | full
+  debug_max_chars: 0            # 0 disables truncation.
+  litellm_debug: false          # Enable LiteLLM internal debug logging.
+  drop_params: true             # Drop unsupported provider params when possible.
+  max_retries: 5                # Request retry limit.
+  retry_on_timeout: true        # Retry timed-out requests.
+  enable_exponential_backoff: true  # Enable exponential backoff between retries.
+  initial_backoff: 5.0          # Initial backoff in seconds.
+  max_backoff: 300.0            # Maximum backoff in seconds.
+  backoff_multiplier: 2.0       # Exponential backoff multiplier.
+
+# ============================================================================
+# Environment
+# ============================================================================
+environment:
+  max_versions: 3               # Maximum stored versions per environment.
+
+# ============================================================================
+# Paths
+# ============================================================================
+paths:
+  results_base_dir: "results"   # Base directory for runtime outputs.
+  runtime_env_dir: "runtime_envs"  # Temporary/importable environment modules.
