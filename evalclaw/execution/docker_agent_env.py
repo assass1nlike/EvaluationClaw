@@ -70,6 +70,7 @@ class DockerWorkspaceAgentEnvironment:
     workdir: str = "/workspace"
     browser: dict[str, Any] = field(default_factory=dict)
     evaluation: dict[str, Any] = field(default_factory=dict)
+    interventions: list[dict[str, Any]] = field(default_factory=list)
     environment_kind: str = "docker_workspace"
     allowed_workspace_tools: set[str] = field(default_factory=set)
     expose_test_tool: bool = True
@@ -159,6 +160,11 @@ class DockerWorkspaceAgentEnvironment:
             workdir=str(config.get("workdir") or "/workspace"),
             browser=browser,
             evaluation=evaluation,
+            interventions=[
+                dict(intervention)
+                for intervention in config.get("interventions", [])
+                if isinstance(intervention, dict)
+            ],
             environment_kind=environment_kind,
             allowed_workspace_tools=allowed_workspace_tools,
             expose_test_tool=bool(config.get("expose_test_tool", not browser_enabled)),
@@ -236,6 +242,31 @@ class DockerWorkspaceAgentEnvironment:
             timeout=(timeout or self.timeout) + 5,
             input_text=input_text,
         )
+
+    def _control_command(
+        self, command: str, timeout: int, *, user: str = ""
+    ) -> subprocess.CompletedProcess[str]:
+        args = ["exec"]
+        if user:
+            args += ["--user", user]
+        return self._run_docker(
+            [
+                *args,
+                "--workdir",
+                self.workdir,
+                self._container_name,
+                "sh",
+                "-lc",
+                command,
+            ],
+            timeout=timeout + 5,
+        )
+
+    def run_external_command(
+        self, command: str, timeout: int
+    ) -> subprocess.CompletedProcess[str]:
+        """Run a Builder-declared control action outside the target's tool loop."""
+        return self._control_command(command, timeout)
 
     def _require_ok(self, proc: subprocess.CompletedProcess[str], action: str) -> None:
         if proc.returncode == 0:
@@ -575,6 +606,39 @@ class DockerWorkspaceAgentEnvironment:
             f"Evaluator {status} with score={evaluator.score:.4f}, "
             f"returncode={proc.returncode}.{detail}"
         )
+
+    def evaluate_with_evidence(self, evidence: dict[str, Any]) -> str:
+        """Run the final evaluator with runner-private episode evidence available."""
+        payload = json.dumps(evidence, ensure_ascii=False)
+        self._require_ok(
+            self._control_command(
+                "rm -rf /evalclaw-evidence && mkdir -p /evalclaw-evidence",
+                self.timeout,
+                user="0:0",
+            ),
+            "create evaluator evidence directory",
+        )
+        write = self._run_docker(
+            [
+                "exec",
+                "-i",
+                "--user",
+                "0:0",
+                self._container_name,
+                "sh",
+                "-lc",
+                "cat > /evalclaw-evidence/episode.json && chmod 0444 /evalclaw-evidence/episode.json",
+            ],
+            timeout=self.timeout + 5,
+            input_text=payload,
+        )
+        self._require_ok(write, "write evaluator evidence")
+        try:
+            return self._run_configured_tests()
+        finally:
+            self._control_command(
+                "rm -rf /evalclaw-evidence", self.timeout, user="0:0"
+            )
 
     def preflight(self) -> EvaluatorResult:
         """Verify setup and evaluator materialization in an isolated container."""

@@ -175,7 +175,7 @@ plan
 - **环境仅 agent**：`choice`/`fill_blank`/`generation`/`multi_turn` 的 `environment_requirements` 必须返回 `{}`（不要展开内部字段为 null/空串/空列表）；要可执行交互就改成 `agent`。`multi_turn` 的对话行为走 `interaction_requirements`，不用执行环境。
 - **多轮必设**：`interaction_requirements.followup_mode` 必须 `adaptive` 或 `scripted`。
 - **source_plan.strategy 恰好一个**：`generated` 留空 `source_plan.suggested_urls`；`adapted`/`reused`/`imported_dataset` 至少给一个 `suggested_urls`。
-- **复杂构题资源**：对确实能从公开文档、模板、仓库或协议获益的复杂题，尤其 E2/E3 agent 题，提供直接有用的 `builder_resource_urls`；不要添加仅相关但无实际构题用途的 URL。
+- **复杂构题资源**：`builder_resource_urls` 主要用于 agent 题，尤其 E2/E3 agent 题。对非 agent 题通常留空；仅当根据 TaskDesign 和资源本身，有具体理由预期检查该资源可能显著提高构题效率或可达到的题目难度时才少量提供。Builder 可以先检查以判断其价值，但检查后只有确认实际有帮助才采用。不要添加仅相关但无实际构题用途的 URL。
 - **非 agent 不用文件资产**（除图片）：非 agent 任务用文本 + 图片（以 `Image N` 引用，框架按 assets 顺序附加）；非图片文件需求 → 改 `agent`。
 
 ### 全局审计

@@ -684,6 +684,38 @@ def test_fetch_url_text_caches_success(monkeypatch) -> None:
     assert calls == 1
 
 
+def test_fetch_url_links_resolves_static_page_links(monkeypatch) -> None:
+    def fake_get(url, **kwargs):
+        return backends.httpx.Response(
+            200,
+            text=(
+                '<html><head><base href="/releases/"></head><body>'
+                '<a href="package.zip"><span>Download package</span></a>'
+                '<a href="https://cdn.example/model.bin#download">Model</a>'
+                '<a href="mailto:owner@example.com">Contact</a>'
+                '</body></html>'
+            ),
+            headers={"content-type": "text/html"},
+            request=backends.httpx.Request("GET", url),
+        )
+
+    monkeypatch.setattr(backends.httpx, "get", fake_get)
+
+    result = backends.fetch_url_links("https://project.example/downloads")
+
+    assert result == {
+        "url": "https://project.example/downloads",
+        "resolved_url": "https://project.example/downloads",
+        "links": [
+            {
+                "url": "https://project.example/releases/package.zip",
+                "text": "Download package",
+            },
+            {"url": "https://cdn.example/model.bin", "text": "Model"},
+        ],
+    }
+
+
 def test_fetch_url_text_disables_forbidden_origin_for_run(monkeypatch) -> None:
     calls = 0
 

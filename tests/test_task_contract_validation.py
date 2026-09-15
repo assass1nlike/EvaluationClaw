@@ -37,6 +37,7 @@ from evalclaw.types import (
     QcReport,
     QcSeverity,
     ReferenceTrajectoryStep,
+    TargetModelConfig,
     TaskDefinition,
     TaskDesign,
     TaskSuite,
@@ -430,6 +431,48 @@ def test_gui_vm_contract_treats_vm_as_requires_vm_and_rejects_placeholder_source
     issues = task_structure_issues(task)
 
     assert any("environment.vm.template" in issue for issue in issues)
+
+
+def test_external_harness_incompatibility_is_structurally_rejected() -> None:
+    environment = AgentEnvironmentSpec(
+        type=AgentEnvironmentType.docker_workspace,
+        runtime_files={"service.py": "private"},
+        test_command="true",
+    )
+
+    issues = task_structure_issues(
+        _task(TaskType.agent, environment=environment),
+        target_harnesses=["openclaw"],
+    )
+
+    assert any("runtime_files" in issue for issue in issues)
+    assert not any(
+        "runtime_files" in issue
+        for issue in task_structure_issues(_task(TaskType.agent, environment=environment))
+    )
+
+
+def test_external_harness_accepts_both_environment_serializations() -> None:
+    from evalclaw.execution.harness_compatibility import external_harness_issues
+
+    environment = AgentEnvironmentSpec(type=AgentEnvironmentType.docker_workspace, test_command="true")
+    for mode in ("python", "json"):
+        assert external_harness_issues(environment.model_dump(mode=mode), ["openclaw"]) == []
+    environment.type = AgentEnvironmentType.vm
+    assert external_harness_issues(environment.model_dump(), ["openclaw"])
+
+
+def test_agent_may_discover_assets_without_names_in_prompt(tmp_path) -> None:
+    from evalclaw.types import TaskAsset
+
+    (tmp_path / "input.csv").write_text("x\n1\n")
+    task = _task(TaskType.agent, environment=AgentEnvironmentSpec(test_command="true"))
+    task.assets = [TaskAsset(path="input.csv")]
+    issues = task_structure_issues(task, builder_work_dir=tmp_path)
+    assert not any("reference asset" in issue for issue in issues)
+    (tmp_path / "input.csv").unlink()
+    issues = task_structure_issues(task, builder_work_dir=tmp_path)
+    assert any("does not exist" in issue for issue in issues)
 
 
 def test_windows_capability_vm_requires_concrete_named_user_setup() -> None:
@@ -1211,6 +1254,46 @@ def test_task_agent_packaging_keeps_runner_private_vm_state_out_of_target_contex
     assert "hidden_file_names" not in serialized
     assert "vm_provisioning" not in serialized
     assert "evaluation" not in serialized
+
+
+def test_qc_rejects_tasks_incompatible_with_selected_external_harness() -> None:
+    dimension = EvalDimension(
+        id="agent",
+        name="Agent",
+        description="Evaluate an agent.",
+        approach="Use an executable task.",
+        task_types=[TaskType.agent],
+    )
+    spec = EvalSpec(
+        objective="Evaluate an agent.", dimensions=[dimension], task_types=[TaskType.agent]
+    )
+    item = BenchmarkItem(
+        id="agent_1",
+        dimension_id="agent",
+        task_type=TaskType.agent,
+        prompt="Complete this sufficiently specified executable task.",
+        metadata={
+            "agent_env": {
+                "type": "docker_workspace",
+                "runtime_files": {"private.py": "secret"},
+                "test_command": "true",
+            }
+        },
+    )
+    suite = TaskSuite(spec=spec, objective=spec.objective, tasks=[item])
+
+    report = run_qc_gate(
+        suite,
+        BenchmarkConfig(
+            targets=[
+                TargetModelConfig(
+                    provider="openai", model="model", harness="openclaw"
+                )
+            ]
+        ),
+    )
+
+    assert any("runtime_files" in issue.message for issue in report.issues)
 
 
 def test_removed_reference_model_tool_is_always_rejected() -> None:

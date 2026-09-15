@@ -257,6 +257,8 @@ def build_report(
                 "",
             ]
         )
+        if analysis.error:
+            lines.extend([f"Analysis status: {analysis.status}. {analysis.error}", ""])
 
     if laaj is not None:
         metrics = [

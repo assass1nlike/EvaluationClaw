@@ -28,6 +28,7 @@ from evalclaw.types import (
     ChoiceOption,
     EvalDimension,
     EvalSpec,
+    TargetModelConfig,
     TaskDefinition,
     TaskType,
 )
@@ -646,6 +647,46 @@ def test_builder_assistance_urls_are_separate_from_task_sources() -> None:
     ]
     assert payload["resources"]["selection"]["strategy"] == "generated"
     assert payload["resources"]["selection"]["suggested_urls"] == []
+
+
+def test_builder_contract_declares_selected_external_harness_constraints() -> None:
+    dimension = EvalDimension(
+        id="agent_skill",
+        name="Agent skill",
+        description="Evaluate an agent skill.",
+        approach="Use an executable task.",
+        task_types=[TaskType.agent],
+    )
+    spec = EvalSpec(
+        objective="Evaluate an agent skill.",
+        task_types=[TaskType.agent],
+        dimensions=[dimension],
+    )
+    blueprint = make_blueprint(
+        "agent_tasks",
+        dimension.id,
+        "Agent task",
+        task_type=TaskType.agent,
+        environment_type=AgentEnvironmentType.docker_workspace,
+    )
+
+    payload = _task_builder_payload(
+        spec,
+        dimension,
+        blueprint,
+        "No external sources.",
+        config=BenchmarkConfig(
+            targets=[
+                TargetModelConfig(
+                    provider="openai", model="model", harness="openclaw"
+                )
+            ]
+        ),
+    )
+
+    compatibility = payload["task_builder_contract"]["external_harness_compatibility"]
+    assert compatibility["selected_harnesses"] == ["openclaw"]
+    assert any("runtime_files" in rule for rule in compatibility["requirements"])
 
 
 def test_ablation_builder_prompt_omits_removed_field_keys() -> None:

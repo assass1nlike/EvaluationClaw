@@ -8,9 +8,46 @@ from evalclaw.planning.task_planner import (
     _audit_plan,
     _valid_effort_distribution,
     plan_benchmark,
+    plan_from_spec,
 )
 from evalclaw.types import BenchmarkConfig, BenchmarkPlan, ChallengeEffort, TaskType
 from tests.config_helpers import dummy_config_kwargs
+
+
+def test_replanning_uses_scoped_outline_count(monkeypatch) -> None:
+    plan = _plan(task_count=2)
+    config = BenchmarkConfig(**dummy_config_kwargs(), item_count=20)
+
+    def planner(instruction, config, **kwargs):
+        constraints = json.loads(instruction.split("# Framework-Supplied Task-Design Constraints\n\n")[1])
+        assert constraints["explicit_total_task_count"] == 2
+        assert kwargs["expected_task_count"] == 2
+        return plan, []
+
+    monkeypatch.setattr("evalclaw.planning.task_planner._run_planner", planner)
+    plan_from_spec(plan.to_eval_spec(), config)
+    assert config.item_count == 20
+
+
+def test_planner_task_cap_allows_smaller_plans_and_rejects_oversized_plans() -> None:
+    assert _audit_plan(_plan(task_count=1), max_task_count=3) == []
+    assert _audit_plan(_plan(task_count=3), max_task_count=3) == []
+    assert _audit_plan(_plan(task_count=4), max_task_count=3)
+
+
+def test_planner_exposes_and_audits_selected_harness_environments() -> None:
+    from evalclaw.planning.task_planner import _instruction_resource, _parse_plan_response
+    from evalclaw.types import TargetModelConfig
+
+    config = BenchmarkConfig(targets=[TargetModelConfig(id="target", provider="openai_compatible", model="test", harness="openclaw")])
+    instruction = _instruction_resource("Evaluate", config)
+    constraints = json.loads(instruction.split("# Framework-Supplied Task-Design Constraints\n\n")[1])
+    assert constraints["available_environment_types"] == ["docker_workspace"]
+    data = {"plan": _plan(task_type=TaskType.agent, environment_category="vm").model_dump(mode="json")}
+    _, issues = _parse_plan_response(data, config)
+    assert issues
+    _, native_issues = _parse_plan_response(data, BenchmarkConfig())
+    assert native_issues == []
 
 
 def _plan(
