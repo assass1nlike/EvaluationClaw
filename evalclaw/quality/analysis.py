@@ -32,6 +32,7 @@ from ..types import (
     AnalysisIteration,
     AnalysisProbeDesign,
     AnalysisReport,
+    AnalysisWeakness,
     BenchmarkConfig,
     BenchmarkPlan,
     BenchmarkPlanDimension,
@@ -50,6 +51,35 @@ from .analysis_tools import (
 )
 
 _MAX_ARTIFACT_CALLS = 6
+
+_FINAL_BENCHMARK_PROMPT = """\
+Whenever analysis ends, also deliver a benchmark selected from the main run and
+all completed probe iterations, grouped by the evaluated model's weaknesses.
+Select existing tasks that satisfy the user's original evaluation need and whose
+observed results provide evidence of those weaknesses. Do not substitute a
+different measurement for the original need. Exclude invalid or ambiguous tasks
+and failures caused by evaluators, harnesses, or infrastructure.
+
+Return a "benchmark" list alongside "analysis". Each group has a concise weakness
+"name", a brief "description" of its meaning, and "items" listing all existing
+tasks that qualify for that weakness, not just representative examples.
+Group by the weakness demonstrated, not merely
+the original dimension or subject. Do not force unrelated failures together.
+Use exact existing references, not rewritten or newly invented tasks:
+{"name": "...", "description": "...", "items": [
+  {"iteration": 0, "item_id": "...", "target_id": "..."}
+]}
+iteration=0 means the main run; positive values identify completed probe
+iterations. target_id identifies the evaluated model whose result supports the
+classification. A task may belong to multiple weaknesses when justified, but
+do not repeat a reference within one group.
+
+This final deliverable is required both when you choose done=true and when
+remaining_probe_iterations or max_probe_tasks is zero. Do not request more tasks
+when ending. If no supported, in-scope weakness benchmark can be selected,
+return "benchmark": [] and explain the evidence limitation in analysis; do not
+invent a weakness to populate it. While continuing, omit benchmark.
+"""
 
 ANALYSER_SYSTEM_PROMPT = """\
 You are the EvaluationClaw Analyser. Analyse the evaluated model's behaviour
@@ -110,7 +140,7 @@ Return pure JSON only:
 The probe's total task count must not exceed max_probe_tasks. When
 remaining_probe_iterations is zero, do not give a goal — set "done": true and state your
 conclusion in analysis.
-"""
+""" + "\n" + _FINAL_BENCHMARK_PROMPT
 
 
 ANALYSER_TASK_DESIGN_PROMPT = """\
@@ -162,7 +192,7 @@ Return pure JSON only:
 When requesting probes, their total task_count must not exceed max_probe_tasks. When
 remaining_probe_iterations is zero, do not give task_designs — set "done": true and state
 your conclusion in analysis.
-"""
+""" + "\n" + _FINAL_BENCHMARK_PROMPT
 
 
 SIMILAR_TASKS_ABLATION_PROMPT = """\
@@ -214,7 +244,11 @@ max_probe_tasks.
 
 Return pure JSON only:
 {"analysis": "...", "goal": "...", "done": false}"""
-    return f"{SIMILAR_TASKS_ABLATION_PROMPT}\n{output_instruction}\n"
+    return (
+        f"{SIMILAR_TASKS_ABLATION_PROMPT}\n{output_instruction}\n{_FINAL_BENCHMARK_PROMPT}\n"
+        "For the final grouping, describe observed failures only; do not infer latent capability "
+        "weaknesses or use this reporting step to introduce hypothesis-driven probes.\n"
+    )
 
 
 def _analyser_system_prompt(mode: str, ablation: str = "none") -> str:
@@ -643,6 +677,44 @@ def _parse_response(
     return analysis, goal, False, designs
 
 
+def _parse_benchmark(
+    data: dict[str, Any],
+    suite: TaskSuite,
+    run: EvalRun,
+    iterations: list[AnalysisIteration],
+) -> list[AnalysisWeakness]:
+    raw = data.get("benchmark")
+    if not isinstance(raw, list):
+        raise ValueError("Final Analyser response requires a benchmark list (empty if unsupported).")
+    groups = [AnalysisWeakness.model_validate(group) for group in raw]
+    sources = {0: (suite, run)}
+    sources.update({entry.iteration: (entry.suite, entry.run) for entry in iterations})
+    eligible: set[tuple[int, str, str]] = set()
+    for number, (source_suite, source_run) in sources.items():
+        if source_suite is None or source_run is None:
+            continue
+        task_ids = {task.id for task in source_suite.tasks}
+        rejected = set(source_run.qc_report.rejected_item_ids)
+        eligible.update(
+            (number, result.item_id, result.target_id)
+            for result in source_run.results
+            if result.item_id in task_ids and result.item_id not in rejected and not result.error
+        )
+    for group in groups:
+        seen: set[tuple[int, str, str]] = set()
+        for item in group.items:
+            reference = (item.iteration, item.item_id, item.target_id)
+            if reference not in eligible:
+                raise ValueError(
+                    f"Benchmark reference {reference!r} must identify an existing task with a "
+                    "completed, non-error target result and no QC rejection."
+                )
+            if reference in seen:
+                raise ValueError(f"Duplicate benchmark reference {reference!r} in weakness {group.name!r}.")
+            seen.add(reference)
+    return groups
+
+
 def _probe_plan(
     suite: TaskSuite,
     task_designs: list[AnalysisProbeDesign],
@@ -909,24 +981,24 @@ def _run_analysis(
             f"  [Analysis] Analyser call {next_iteration}; "
             f"remaining probe iterations: {remaining}."
         )
+
+        def parse(data: dict[str, Any]):
+            analysis, goal, done, task_designs = _parse_response(
+                data, suite, config, iteration=next_iteration, remaining_probe_iterations=remaining
+            )
+            benchmark = _parse_benchmark(data, suite, run, iterations) if done else None
+            return analysis, goal, done, task_designs, benchmark
+
         data = _call_analyser_json(
             payload,
             config,
             trace_dir=call_dir,
             artifact_dir=artifact_dir,
-            validate=lambda data: _parse_response(
-                data, suite, config, iteration=next_iteration, remaining_probe_iterations=remaining
-            ),
+            validate=parse,
         )
         if call_dir is not None:
             write_json(call_dir / "response.json", data)
-        analysis, goal, done, task_designs = _parse_response(
-            data,
-            suite,
-            config,
-            iteration=next_iteration,
-            remaining_probe_iterations=remaining,
-        )
+        analysis, goal, done, task_designs, benchmark = parse(data)
         if done:
             report = AnalysisReport(
                 strategy=(
@@ -935,6 +1007,7 @@ def _run_analysis(
                     else config.ablation_analyser
                 ),
                 analysis=analysis,
+                benchmark=benchmark,
                 iterations=iterations,
             )
             if root is not None:

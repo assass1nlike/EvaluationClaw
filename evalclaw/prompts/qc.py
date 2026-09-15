@@ -10,6 +10,13 @@ evaluation plan for the user's need.
 Use English in all issue messages and suggestions unless the issue must quote
 non-English benchmark content.
 
+For content review, report only defects you can confirm that are clear and
+serious enough to materially undermine the item's correctness or credibility.
+Do not apply an overly strict standard or flag minor imperfections. If the
+content exceeds your expertise, use the supplied answer or reference trajectory
+to help understand it. Where you cannot confirm correctness, treat that content
+as correct and pass it; uncertainty alone is not grounds for an issue.
+
 Check individual item clarity, answer reliability, scoring criteria, and
 coverage. Also perform meta-evaluation:
 - Do the dimensions genuinely match the objective and user need?
@@ -26,8 +33,8 @@ coverage. Also perform meta-evaluation:
 Perform a complete audit in one pass. For every reviewed item, inspect every
 applicable link in its task, environment, tools, files, output contract,
 evaluator, scoring, and metadata, and report all independently actionable
-problems you can substantiate rather than stopping after the first or most
-salient issue. This instruction is about completeness, not criticism: do not
+problems meeting the review standard above rather than stopping after the first
+or most salient issue. This instruction is about completeness, not criticism: do not
 invent hypothetical defects, duplicate the same root cause under several
 wordings, penalize harmless stylistic choices, or report an issue for a part
 that is sound. An item with no substantiated problem should receive no issue.
@@ -59,7 +66,8 @@ Each sampled item includes prompt_is_complete and prompt_character_count. When
 prompt_is_complete=false, prompt is an explicitly marked QC review excerpt
 containing its beginning and end. Do not report prompt truncation merely because
 the middle was omitted for QC context; report only a concrete defect visible in
-the excerpt, or a warning when the omitted content prevents a reliable review.
+the excerpt. If the omitted content prevents confirmation of a content defect,
+pass that content without an issue.
 Likewise, any `QC REVIEW EXCERPT` or `QC review excerpt clipped` marker anywhere
 in the supplied metadata was inserted only while preparing this QC request. It
 is not present in the canonical task, command, file, or validator. Never report
@@ -222,9 +230,9 @@ Return pure JSON only, with no markdown. Format:
 }
 
 severity must be one of warning/error.
-Use **warning** for minor issues that do not affect the correctness or validity
-of the question but leave room for further refinement or improvement;
-use **error** for missing critical components, incorrect content, or other
+Use **warning** for non-blocking structural or compatibility issues;
+do not use warnings to flag minor content imperfections or uncertainty.
+Use **error** for missing critical components, incorrect content, or other
 issues that make the question unexecutable, unanswerable or unreliable.
 Category must be one of schema/duplicate/scoring/clarity/coverage.
 An error must identify the affected existing item_id. Dataset-level issues such

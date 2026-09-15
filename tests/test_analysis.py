@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from evalclaw.quality import analysis as analysis_module
 from evalclaw.reporting.viewer import build_report_viewer_html
 from evalclaw.types import (
+    AnalysisIteration,
     AnalysisReport,
     BenchmarkConfig,
     BenchmarkItem,
@@ -86,6 +89,14 @@ def _config(**updates) -> BenchmarkConfig:
     )
 
 
+def _benchmark(*references: dict) -> list[dict]:
+    return [{
+        "name": "Counterexample neglect",
+        "description": "Accepts a claim despite explicit contradicting evidence.",
+        "items": list(references) or [{"iteration": 0, "item_id": "reasoning_1", "target_id": "target"}],
+    }]
+
+
 def _probe_design(**updates) -> dict:
     design = {
         "dimension_id": "reasoning",
@@ -152,6 +163,7 @@ def test_analysis_without_probes_returns_supported_conclusion(monkeypatch, tmp_p
         captured.append(payload)
         return {
             "analysis": "The target overlooks explicit counterexamples.",
+            "benchmark": _benchmark(),
             "goal": "",
             "done": True,
         }
@@ -168,6 +180,9 @@ def test_analysis_without_probes_returns_supported_conclusion(monkeypatch, tmp_p
 
     assert report.analysis == "The target overlooks explicit counterexamples."
     assert report.iterations == []
+    assert report.benchmark[0].items[0].iteration == 0
+    saved = AnalysisReport.model_validate_json((tmp_path / "analysis/report.json").read_text())
+    assert saved.benchmark == report.benchmark
     assert captured[0]["main_run"]["results"][0]["raw_response"] == run.results[0].raw_response
     assert captured[0]["remaining_probe_iterations"] == 0
 
@@ -262,6 +277,7 @@ def test_analysis_round_trips_in_package_and_is_rendered_in_viewer() -> None:
         run=run,
         analysis=AnalysisReport(
             analysis="The target misses counterexamples.",
+            benchmark=_benchmark(),
         ),
         report=EvalReport(title="Report", markdown="", summaries=[]),
     )
@@ -271,8 +287,15 @@ def test_analysis_round_trips_in_package_and_is_rendered_in_viewer() -> None:
 
     assert restored.analysis is not None
     assert restored.analysis.analysis == "The target misses counterexamples."
+    assert restored.analysis.benchmark == package.analysis.benchmark
     assert "Model Performance Analysis" in html
     assert "The target misses counterexamples." in html
+    from evalclaw.reporting.reporter import build_report
+
+    markdown = build_report(run, analysis=restored.analysis).markdown
+    assert restored.analysis.benchmark[0].name in markdown
+    assert restored.analysis.benchmark[0].description in markdown
+    assert restored.analysis.benchmark[0].name in html
 
 
 def test_analysis_runs_probe_then_analyses_new_evidence(monkeypatch, tmp_path) -> None:
@@ -290,6 +313,10 @@ def test_analysis_runs_probe_then_analyses_new_evidence(monkeypatch, tmp_path) -
             }
         return {
             "analysis": "The probe supports a specific counterexample-handling weakness.",
+            "benchmark": _benchmark(
+                {"iteration": 0, "item_id": "reasoning_1", "target_id": "target"},
+                {"iteration": 1, "item_id": "analysis_probe_1", "target_id": "target"},
+            ),
             "task_designs": [],
             "done": True,
         }
@@ -320,6 +347,7 @@ def test_analysis_runs_probe_then_analyses_new_evidence(monkeypatch, tmp_path) -
 
     assert report.analysis == "The probe supports a specific counterexample-handling weakness."
     assert len(report.iterations) == 1
+    assert [ref.iteration for ref in report.benchmark[0].items] == [0, 1]
     assert report.iterations[0].task_designs[0].task_design.id == "analysis_01_design_01"
     assert calls[1]["remaining_probe_iterations"] == 0
     assert calls[1]["verification_history"][0]["run"]["results"][0]["item_id"] == "analysis_probe_1"
@@ -444,6 +472,7 @@ def test_analysis_defaults_to_goal_probe(monkeypatch, tmp_path) -> None:
             }
         return {
             "analysis": "The probe confirms a counterexample-handling weakness.",
+            "benchmark": _benchmark(),
             "goal": "",
             "done": True,
         }
@@ -558,7 +587,7 @@ def test_analysis_failure_preserves_completed_iterations_and_can_resume(monkeypa
     markdown = build_report(run, analysis=report).markdown
     assert "Invalid analyser output" in markdown
     assert "Analysis status: failed" in markdown
-    monkeypatch.setattr(analysis_module, "_call_analyser_json", lambda *a, **k: {"analysis": "Concluded.", "done": True})
+    monkeypatch.setattr(analysis_module, "_call_analyser_json", lambda *a, **k: {"analysis": "Concluded.", "done": True, "benchmark": []})
     resumed = analysis_module.run_analysis(suite, run, _config(), artifact_dir=tmp_path, log=lambda _: None)
     assert resumed.status == "completed"
     assert resumed.analysis == "Concluded."
@@ -594,3 +623,82 @@ def test_probe_review_rejects_budget_expansion_before_construction(monkeypatch) 
     monkeypatch.setattr(analysis_module, "_run_analyser_tool_loop", loop)
     with pytest.raises(ValueError, match="exceed"):
         analysis_module._review_probes(suite, "Hypothesis", _config(analysis_max_tasks=2), trace_dir=None)
+
+
+def test_final_benchmark_resolves_colliding_ids_by_iteration_and_target() -> None:
+    suite, run = _suite_and_run()
+    probe_suite, probe_run = _suite_and_run()
+    probe_run.results[0].target_id = "second-target"
+    history = [AnalysisIteration(iteration=1, suite=probe_suite, run=probe_run)]
+    refs = [
+        {"iteration": 0, "item_id": "reasoning_1", "target_id": "target"},
+        {"iteration": 1, "item_id": "reasoning_1", "target_id": "second-target"},
+    ]
+    groups = analysis_module._parse_benchmark({"benchmark": _benchmark(*refs)}, suite, run, history)
+    assert [item.model_dump() for item in groups[0].items] == refs
+    refs[1]["target_id"] = "target"
+    with pytest.raises(ValueError, match="existing task"):
+        analysis_module._parse_benchmark({"benchmark": _benchmark(*refs)}, suite, run, history)
+
+
+@pytest.mark.parametrize("problem", ["unknown_task", "unrun", "runner_error", "qc_rejected", "duplicate"])
+def test_final_benchmark_rejects_invalid_evidence(problem) -> None:
+    suite, run = _suite_and_run()
+    groups = _benchmark()
+    if problem == "unknown_task":
+        groups[0]["items"][0]["item_id"] = "invented"
+    elif problem == "unrun":
+        run.results = []
+    elif problem == "runner_error":
+        run.results[0].error = "Environment setup failed."
+    elif problem == "qc_rejected":
+        run.qc_report.rejected_item_ids = ["reasoning_1"]
+    else:
+        groups[0]["items"] *= 2
+    with pytest.raises(ValueError):
+        analysis_module._parse_benchmark({"benchmark": groups}, suite, run, [])
+
+
+@pytest.mark.parametrize("groups", [None, {}, [{"name": "", "description": "Failure", "items": []}]])
+def test_final_benchmark_requires_a_valid_group_list(groups) -> None:
+    suite, run = _suite_and_run()
+    with pytest.raises(ValueError):
+        analysis_module._parse_benchmark({"benchmark": groups}, suite, run, [])
+    assert analysis_module._parse_benchmark({"benchmark": []}, suite, run, []) == []
+
+
+@pytest.mark.parametrize("mode", ["goal", "task_design"])
+@pytest.mark.parametrize("ablation", ["none", "similar_tasks"])
+@pytest.mark.parametrize("stop", ["voluntary", "iterations", "tasks"])
+def test_terminal_analysis_repairs_missing_benchmark(monkeypatch, tmp_path, mode, ablation, stop) -> None:
+    suite, run = _suite_and_run()
+    calls = []
+
+    def model(messages, **kwargs):
+        calls.append(messages)
+        data = {
+            "analysis": "No trustworthy weakness classification can be established.",
+            "done": stop == "voluntary",
+        }
+        if len(calls) > 1:
+            data["benchmark"] = []
+        content = json.dumps(data)
+        return analysis_module.TargetToolModelResponse(
+            adapter="openai_compatible", content=content, tool_calls=[],
+            assistant_message={"role": "assistant", "content": content}, raw_response={},
+        )
+
+    monkeypatch.setattr(analysis_module, "call_orchestrator_with_tools", model)
+    report = analysis_module.run_analysis(
+        suite, run,
+        _config(
+            analysis_probe_mode=mode, ablation_analyser=ablation,
+            analysis_iterations=0 if stop == "iterations" else 3,
+            analysis_max_tasks=0 if stop == "tasks" else 1,
+        ),
+        artifact_dir=tmp_path, log=lambda _: None,
+    )
+    assert len(calls) == 2
+    assert report.status == "completed"
+    assert report.benchmark == []
+    assert report.iterations == []

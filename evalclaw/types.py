@@ -11,7 +11,16 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Annotated, Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictBool,
+    StrictInt,
+    StrictStr,
+    computed_field,
+    model_validator,
+)
 
 
 def utc_now() -> str:
@@ -962,17 +971,86 @@ class AnalysisIteration(BaseModel):
         return value
 
 
+class AnalysisBenchmarkItem(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    iteration: StrictInt = Field(ge=0, description="0 for the main run; otherwise the probe iteration number.")
+    item_id: str = Field(min_length=1)
+    target_id: str = Field(min_length=1)
+
+
+class AnalysisWeakness(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    name: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    items: list[AnalysisBenchmarkItem] = Field(min_length=1)
+
+
 class AnalysisReport(BaseModel):
     strategy: Literal["hypothesis_driven", "similar_tasks"] = "hypothesis_driven"
     status: Literal["completed", "failed"] = "completed"
     error: str | None = None
     analysis: str = ""
+    benchmark: list[AnalysisWeakness] | None = None
     iterations: list[AnalysisIteration] = Field(default_factory=list)
 
 
 class LaajMetric(BaseModel):
     score: float = Field(ge=1.0, le=5.0)
     reasoning: str = Field(min_length=1)
+
+
+class ContaminationMatch(BaseModel):
+    url: str
+    task_quote: str
+    source_excerpt: str
+    source_location: str = ""
+    task_area: str = "task"
+    task_path: str = ""
+
+
+class ContaminationScore(BaseModel):
+    score: StrictInt = Field(ge=1, le=5)
+    reasoning: str = Field(min_length=1)
+
+
+class ContaminationItemResult(BaseModel):
+    item_id: str
+    status: Literal["matched", "no_confirmed_match", "not_searchable", "failed"]
+    queries: list[str] = Field(default_factory=list)
+    checked_urls: list[str] = Field(default_factory=list)
+    matches: list[ContaminationMatch] = Field(default_factory=list)
+    contamination: ContaminationScore | None = None
+    limitations: list[str] = Field(default_factory=list)
+    research_summary: str = ""
+    unresolved_urls: list[str] = Field(default_factory=list)
+    stop_reason: Literal["agent_finished", "budget_exhausted", "failed"] | None = None
+    tool_calls: int = 0
+
+
+class ContaminationReport(BaseModel):
+    model: str
+    search_backend: str
+    total_item_count: int
+    max_queries_per_item: int
+    max_sources_per_item: int
+    source_character_limit: int
+    max_tool_calls_per_item: int | None = None
+    min_overlap_chars: int | None = None
+    items: list[ContaminationItemResult] = Field(default_factory=list)
+    created_at: str = Field(default_factory=utc_now)
+
+    @computed_field
+    @property
+    def confirmed_overlap_fraction(self) -> float | None:
+        return sum(bool(item.matches) for item in self.items) / len(self.items) if self.items else None
+
+    @computed_field
+    @property
+    def conditional_score(self) -> float | None:
+        scores = [item.contamination.score for item in self.items if item.contamination is not None]
+        return sum(scores) / len(scores) if scores else None
 
 
 class LaajReport(BaseModel):
@@ -983,6 +1061,7 @@ class LaajReport(BaseModel):
     diversity: LaajMetric
     systematicness: Optional[LaajMetric] = None
     credibility: Optional[LaajMetric] = None
+    contamination: ContaminationReport | None = None
     evaluated_item_ids: list[str] = Field(default_factory=list)
     total_item_count: int = 0
     created_at: str = Field(default_factory=utc_now)
@@ -1054,6 +1133,12 @@ class BenchmarkConfig(BaseModel):
     laaj_reasoning_effort: Optional[str] = None
     laaj_extra_body: dict[str, Any] = Field(default_factory=dict)
     laaj_sample_size: int = Field(default=50, ge=1)
+    contamination_enabled: bool = True
+    contamination_sample_size: int | None = Field(default=None, ge=1)
+    contamination_max_queries: int = Field(default=12, ge=1)
+    contamination_max_sources: int = Field(default=20, ge=1)
+    contamination_max_tool_calls: int = Field(default=40, ge=1)
+    contamination_min_overlap_chars: int = Field(default=200, ge=1)
     task_models: list[TargetModelConfig] = Field(
         default_factory=list,
         description=(
@@ -1100,7 +1185,7 @@ class BenchmarkConfig(BaseModel):
         ),
     )
     large_scale_llm_qc_sample_size: int = 120
-    use_llm_qc: bool = False
+    use_llm_qc: bool = True
     ablation_simplified_contract: bool = False
     ablation_authoritative_research: bool = False
     ablation_no_builder_harness: bool = False

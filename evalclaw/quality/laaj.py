@@ -5,7 +5,7 @@ import base64
 import json
 import mimetypes
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from ..diagnostics import redact_secrets
 from ..models.llm import (
@@ -313,18 +313,26 @@ def _run_laaj_tool_loop(
     artifact_dir: Path | None,
     trace_name: str,
     include_agent_tools: bool,
+    system_prompt: str = LAAJ_SYSTEM_PROMPT,
+    additional_tools: list[ToolSpec] | None = None,
+    tool_handlers: dict[str, Callable[[ToolCall], ToolResult]] | None = None,
+    max_tool_calls: int = LAAJ_MAX_TOOL_CALLS,
+    on_tool_result: Callable[[ToolCall, ToolResult], None] | None = None,
+    validate_response: Callable[[str], None] | None = None,
 ) -> str:
     settings = role_model_settings(config, "laaj")
     messages: list[dict[str, Any]] = [
         {"role": "user", "content": json.dumps(request, ensure_ascii=False, indent=2)}
     ]
     tools = _laaj_tools(artifact_dir, include_agent_tools=include_agent_tools)
+    tools.extend(additional_tools or [])
     calls_used = 0
+    repairs_used = 0
     while True:
-        active_tools = tools if calls_used < LAAJ_MAX_TOOL_CALLS else []
+        active_tools = tools if calls_used < max_tool_calls else []
         response = call_orchestrator_with_tools(
             messages,
-            system_prompt=LAAJ_SYSTEM_PROMPT,
+            system_prompt=system_prompt,
             **settings.call_kwargs(),
             backend=config.llm_backend,
             tools=active_tools,
@@ -335,11 +343,22 @@ def _run_laaj_tool_loop(
             trace_name=trace_name,
         )
         if not response.tool_calls:
-            if not response.content.strip():
-                raise ValueError("LaaJ returned empty final content.")
+            try:
+                if not response.content.strip():
+                    raise ValueError("LaaJ returned empty final content.")
+                if validate_response is not None:
+                    validate_response(response.content)
+            except ValueError as exc:
+                if validate_response is None or repairs_used:
+                    raise
+                repairs_used += 1
+                messages.extend([response.assistant_message, {
+                    "role": "user", "content": f"Invalid final response: {exc}. Return the required JSON without inventing evidence.",
+                }])
+                continue
             return response.content
 
-        remaining = LAAJ_MAX_TOOL_CALLS - calls_used
+        remaining = max_tool_calls - calls_used
         selected = response.tool_calls[:remaining]
         if not selected:
             raise ValueError("LaaJ requested a tool after its evidence-tool budget was exhausted.")
@@ -351,6 +370,7 @@ def _run_laaj_tool_loop(
             ANALYSER_ARTIFACT_TOOL.name: lambda call: read_run_artifact(call, artifact_dir),
             ANALYSER_ITEM_EVIDENCE_TOOL.name: lambda call: read_item_evidence(call, artifact_dir),
         }
+        handlers.update(tool_handlers or {})
         results: list[ToolResult] = [
             handlers[call.name](call)
             if call.name in handlers
@@ -372,8 +392,11 @@ def _run_laaj_tool_loop(
             for call in response.tool_calls[len(selected) :]
         )
         calls_used += len(selected)
+        if on_tool_result is not None:
+            for call, result in zip(response.tool_calls, results):
+                on_tool_result(call, result)
         _append_tool_results(messages, response, results)
-        if calls_used >= LAAJ_MAX_TOOL_CALLS:
+        if calls_used >= max_tool_calls:
             messages.append({
                 "role": "user",
                 "content": "The evidence-tool budget is exhausted. Return the final JSON now.",

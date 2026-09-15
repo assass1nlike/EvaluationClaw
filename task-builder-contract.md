@@ -207,6 +207,8 @@ tasks[]（每个元素是一个 task 对象，框架打包成 BenchmarkItem）
 - **source-backed 任务另有 `resource_ids`**：`adapted`/`reused`/`imported_dataset` 任务绑定所用素材 id（对应工作文件 `resources` 里的 id）。
 - **框架注入（Builder 不写）**：`id`、`dimension_id`、`metadata.task_design_id`。
 
+Builder 可用 `read_document` 分页读取工作目录内的 UTF-8 文本、PDF 或指定 ZIP/TAR 成员，用 `list_archive` 分页查看成员，用 `extract_archive` 解出指定文件或整个包（每次最多 64 个文件、解压后总计 1 GiB）。解压保留目录结构和可执行权限，不执行文件；返回路径可直接作为 `assets` 或 `build_image.context_files` 的来源，后者通过目标路径保留 Docker 内的目录布局。返回列表不完整时，可读取 `manifest_path` 获取全部文件。以上本地工具不依赖联网开关。PDF 文本提取需安装 Poppler 的 `pdftotext`，不包含扫描件 OCR。`fetch_url` 和 `read_research_source` 也支持用 `offset` 接续返回的 `next_offset`；后者仅能读取 Planner 已保留的文本。
+
 ## 6. 各类型的语义要求（Builder 必须遵守）
 
 - **choice**：`choices` 至少两个，每项仅 `text`；`correct_choice_indices` 非空，用零基位置；不要把多部分答案对象塞进选择题；选项只放 `choices`，prompt 里不要重复选项文本。

@@ -1,0 +1,12 @@
+PETRI_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+export UV_PROJECT_ENVIRONMENT="$PETRI_ROOT/.venv"
+export UV_PYTHON_INSTALL_DIR="$PETRI_ROOT/.python"
+export UV_CACHE_DIR="$PETRI_ROOT/.cache/uv"
+export XDG_CACHE_HOME="$PETRI_ROOT/.cache"
+export XDG_CONFIG_HOME="$PETRI_ROOT/.config"
+export XDG_DATA_HOME="$PETRI_ROOT/.local/share"
+export XDG_STATE_HOME="$PETRI_ROOT/.local/state"
+export TMPDIR="$PETRI_ROOT/.tmp"
+export INSPECT_LOG_DIR="$PETRI_ROOT/results/logs"
+export PYTHONDONTWRITEBYTECODE=1
+mkdir -p "$TMPDIR" "$XDG_CACHE_HOME"

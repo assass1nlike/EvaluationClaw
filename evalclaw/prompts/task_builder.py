@@ -82,6 +82,10 @@ _TYPE_RULES = {
         "system_prompt is only the adaptive dialogue simulator prompt. Provide transcript scoring."
     ),
     TaskType.agent: (
+        "For agent tasks, wherever feasible, implement the user's scenario in the actual environment "
+        "rather than establishing it only through verbal descriptions in the prompt. "
+        "When using resources to construct an agent task, ensure that the answer to the task's core "
+        "challenge is not directly revealed in the original resource content. "
         "Provide an executable environment, output contract, and deterministic checks or task-specific "
         "scoring. Also provide reference_trajectory as one ordered, feasible solution path. Each step must "
         "state an action and may name an abstract or concrete tool, its arguments, and the expected observation. "
@@ -418,6 +422,16 @@ def build_task_builder_tool_prompt(
     parts = [
         "Use supplied tools only when they materially improve construction. run_python operates in "
         "the fixed Builder directory; save files needed by the task there.",
+        "Use read_document for local UTF-8 text or PDFs, including a named ZIP/TAR member. "
+        "Use list_archive to find members, then extract_archive to unpack selected files or the whole "
+        "archive (up to 64 files and 1 GiB per call). Extraction preserves directory structure and "
+        "executable permissions without running files. Returned file paths can be used as assets or "
+        "build_image context_files sources; context_files target paths preserve the desired Docker layout. "
+        "If the extraction response omits file entries, read its manifest_path for the complete list. "
+        "Follow next_offset with offset to page through documents, archive listings, fetch_url text, "
+        "and retained read_research_source text; the latter can only expose what the Planner retained. "
+        "These helpers avoid writing custom parsing or extraction code. PDFs need pdftotext (Poppler); "
+        "scanned PDFs without text need OCR, which read_document does not provide.",
     ]
     if task_type == TaskType.agent:
         parts.append(

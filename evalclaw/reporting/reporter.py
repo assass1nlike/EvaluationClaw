@@ -259,6 +259,24 @@ def build_report(
         )
         if analysis.error:
             lines.extend([f"Analysis status: {analysis.status}. {analysis.error}", ""])
+        if analysis.benchmark is not None:
+            lines.extend(["### Benchmark by Model Weakness", ""])
+            if not analysis.benchmark:
+                lines.extend(["No supported, in-scope weakness tasks selected.", ""])
+            for group in analysis.benchmark:
+                lines.extend([f"#### {group.name}", "", group.description, ""])
+                lines.append(_markdown_table(
+                    ["Source", "Task", "Target"],
+                    [
+                        [
+                            "Main run" if item.iteration == 0 else f"Iteration {item.iteration}",
+                            item.item_id,
+                            item.target_id,
+                        ]
+                        for item in group.items
+                    ],
+                ))
+                lines.append("")
 
     if laaj is not None:
         metrics = [
@@ -288,6 +306,49 @@ def build_report(
                 "",
             ]
         )
+
+    if laaj is not None and laaj.contamination is not None:
+        contamination = laaj.contamination
+        fraction = contamination.confirmed_overlap_fraction
+        score = contamination.conditional_score
+        matched = sum(bool(item.matches) for item in contamination.items)
+        scored = sum(item.contamination is not None for item in contamination.items)
+        lines.extend([
+            "### Contamination Resistance", "",
+            f"- Items assessed: {len(contamination.items)}/{contamination.total_item_count}",
+            f"- Failed assessments: {sum(item.status == 'failed' for item in contamination.items)}; "
+            f"not searchable as text: {sum(item.status == 'not_searchable' for item in contamination.items)}",
+            f"- Confirmed overlap: {matched}/{len(contamination.items)}"
+            + (f" ({_pct(fraction)})" if fraction is not None else ""),
+            f"- Conditional score (confirmed matches only): {score:.2f}/5 ({scored} items)"
+            if score is not None else "- Conditional score: not available; no scored confirmed matches.",
+            f"- Per-item budget: {contamination.max_queries_per_item} queries, "
+            f"{contamination.max_sources_per_item} source URLs, {contamination.source_character_limit} characters per document.",
+            "- No confirmed match does not establish absence of contamination or training-data membership.",
+            "",
+        ])
+        if contamination.max_tool_calls_per_item is not None:
+            lines.extend([
+                f"Research-agent budget: {contamination.max_tool_calls_per_item} tool calls per item. "
+                f"Minimum exact overlap: {contamination.min_overlap_chars} characters after whitespace normalization.", "",
+            ])
+        for item in contamination.items:
+            lines.extend([
+                f"#### {item.item_id}", "",
+                f"Status: {item.status}. Score: {item.contamination.score}/5."
+                if item.contamination is not None else f"Status: {item.status}. Score: not assigned.",
+                "",
+            ])
+            if item.contamination is not None:
+                lines.extend([item.contamination.reasoning, ""])
+            if item.research_summary:
+                lines.extend([item.research_summary, ""])
+            if item.stop_reason:
+                lines.extend([f"Research ended: {item.stop_reason}; {item.tool_calls} tool calls.", ""])
+            lines.extend(f"- Source: {url}" for url in item.checked_urls)
+            lines.extend(f"- Unresolved lead: {url}" for url in item.unresolved_urls)
+            lines.extend(f"- Limitation: {limitation}" for limitation in item.limitations)
+            lines.append("")
 
     recommendations = _recommendations(run)
     lines.extend(["## Recommendations", ""])
