@@ -45,13 +45,14 @@ Ablations：总结错误题目的共性、继续生成满足共性的题目，�
 
 ### 实验评估
 
-EvalClaw-Harness 的 QC 工具保证的通过的题目结构已经正确、环境可执行，不用检测。
+EvalClaw-Harness 的 QC 工具保证的通过的题目结构正确、环境可执行，可执行性/能不能跑起来这件事不用检测。
 
 - LaaJ：
   - Clearity：题面内容明确
   - Correctness：Builder 给出参考答案的正确性
   - faithfulness：题目考察的内容符合原始的用户需求
   - diversity：整体的题目多样性
+  - contaminaiton：一种特殊的方式，用 deep research 去尽力找和这道题有直接字面重叠的来源，然后对那些确认是字面重叠的内容，看看核心考点是否一致，最后就按照此时的一致性打分。
 - 统计指标：
   - discrimination：不同模型得分的标准差
   - Ordering Fidelity：在开源模型家族上，得分与模型尺寸的相关性
