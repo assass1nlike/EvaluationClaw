@@ -5,6 +5,7 @@
 % Optional math commands from https://github.com/goodfeli/dlbook_notation.
 \input{math_commands.tex}
 
+\usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{booktabs}
@@ -47,861 +48,1174 @@
 \emergencystretch=2em
 
 
-\title{EvalClaw: An Automated Benchmark Construction Framework for Evaluating Frontier LLMs}
+\title{EvalClaw: Demand-Driven Benchmark Construction and Capability Diagnosis}
 
-% Authors must not appear in the submitted version. They should be hidden
-% as long as the \iclrfinalcopy macro remains commented out below.
-% Non-anonymous submissions will be rejected without review.
-
-\author{Antiquus S.~Hippocampus, Natalia Cerebro \& Amelie P. Amygdale \thanks{ Use footnote for providing further information
-about author (webpage, alternative address)---\emph{not} for acknowledging
-funding agencies.  Funding acknowledgements go at the end of the paper.} \\
-Department of Computer Science\\
-Cranberry-Lemon University\\
-Pittsburgh, PA 15213, USA \\
-\texttt{\{hippo,brain,jen\}@cs.cranberry-lemon.edu} \\
-\And
-Ji Q. Ren \& Yevgeny LeNet \\
-Department of Computational Neuroscience \\
-University of the Witwatersrand \\
-Joburg, South Africa \\
-\texttt{\{robot,net\}@wits.ac.za} \\
-\AND
-Coauthor \\
-Affiliation \\
-Address \\
-\texttt{email}
-}
-
-% The \author macro works with any number of authors. There are two commands
-% used to separate the names and addresses of multiple authors: \And and \AND.
-%
-% Using \And between authors leaves it to \LaTeX{} to determine where to break
-% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
-% puts 3 of 4 authors names on the first line, and the last on the second
-% line, try using \AND instead of \And before the third author name.
-
-\newcommand{\fix}{\marginpar{FIX}}
-\newcommand{\new}{\marginpar{NEW}}
-
-%\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\author{Anonymous authors}
+% Keep the submission anonymous; supply author details for the final version.
+%\iclrfinalcopy
 \begin{document}
 
 
 \maketitle
 
 \begin{abstract}
-
+An evaluation demand specifies a capability of interest, but constructing a
+benchmark requires choosing evidence, realizing tasks, and establishing how
+responses will be scored. Existing automation makes this process scalable
+within particular sources and generation procedures; compound demands can
+require different resources, task formats, and interaction protocols.
+We present \textsc{EvalClaw}, a framework for constructing benchmarks from
+natural-language demands and using them to investigate model weaknesses.
+A Research-assisted Planner retrieves resources according to the requirements
+of each planned task. A unified task representation connects prompts, data,
+environments, participant agents, and scoring, while the EvalClaw-Harness
+supports their construction and quality checking. A Hypothesis-driven Analyzer
+turns observed failures into capability hypotheses and requests new tasks to
+test them. We develop an evaluation protocol spanning 15 compound agent demands
+and eight conventional capability demands, with complementary automated
+baselines and established benchmark references. The protocol separates
+construction quality from model performance and evaluates whether diagnostic
+claims are supported by follow-up evidence.
+% Add measured results here after the experiments; do not substitute expected
+% ablation outcomes for empirical findings.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
-Frontier large language models (LLMs) have achieved remarkable capabilities
-across a wide range of tasks, from scientific reasoning and software engineering
-to clinical decision support and legal analysis~\citep{}. 
-As these models continue to improve and are increasingly deployed in real-world applications, it becomes essential to accurately assess their 能力好坏
-Benchmarks are the primary means by which the community measures model capabilities, compares different systems, and tracks progress over time, and they play a central role in guiding both model development and deployment decisions. 
-Consequently, building reliable and comprehensive benchmarks for evaluating LLM capabilities has become an important problem in its own right.
+A researcher may want to measure whether a model can preserve earlier decisions
+across interrupted work, detect errors made by another agent, or complete a
+technical task while respecting limits on its authority. Stating such a demand
+is easy; turning it into a benchmark is not. The constructor must find relevant
+materials, create the conditions under which the behavior can occur, and define
+an evaluator that distinguishes success from a plausible-looking response.
+The difficulty lies in realizing the requested capability as a measurement,
+not just generating more questions.
 
-Despite their central role, most of the benchmarks currently used to evaluate LLMs are constructed by human craft. Building such a benchmark requires domain
-experts to design tasks, collect data, write reference solutions, and verify correctness. These requirements make human construction both expensive
-and slow, so that a benchmark typically takes a long time to produce and is
-already at risk of obsolescence by the time it is released. More fundamentally,
-the static nature of handcrafted benchmarks means that their contents are fixed
-at release: as models improve, performance on a fixed set of items rises toward
-the ceiling, and the benchmark gradually loses its ability to distinguish
-between models. Given the rapid pace at which model capabilities advance, a
-manually constructed benchmark can remain informative for only a short period,
-after which it ceases to provide a meaningful signal for comparing models or for
-guiding further improvement.
+Automated benchmark construction offers a way to make this process more
+accessible and repeatable. Existing methods generate questions from documents,
+transform dataset examples, optimize task categories, or synthesize executable
+environments~\citep{shashidhar2025yourbench,xiong2026benchmarkagent,li2025autobencher,aggarwal2026gymanything}.
+Interactive auditing further expands evaluation beyond fixed question--answer
+pairs~\citep{fronsdal2025petri,li2026autocontrol}. These approaches provide
+strong starting points, but their generation procedures and resource interfaces
+shape the demands they can realize. Three connected challenges arise when the
+input is a user-defined evaluation goal.
 
-Motivated by these limitations, a growing line of work has proposed automated
-benchmark construction frameworks. Rather than relying on costly human authoring,
-these methods use LLMs to generate benchmark items directly: seed examples or
-domain documents are used to prompt a model to synthesize new questions together
-with their answers, after which the generated items are filtered, deduplicated,
-or otherwise validated to form a benchmark. Such frameworks substantially reduce
-the cost and turnaround time of benchmark construction and have made it possible
-to produce evaluation sets at a scale that manual authoring cannot match.
+\paragraph{Resources must serve the demand.}
+Transforming an existing dataset is effective when its content supports the
+requested capability. When it does not, the constructor can produce polished
+items that measure an easier or merely related target. Generating without
+external materials avoids dependence on a fixed corpus but places the burden
+of factual knowledge, task design, and reference construction on the generator.
+The question is therefore how to select and assign resources according to a
+task's needs. \textsc{EvalClaw}'s \emph{Research-assisted Planner} investigates
+its proposed tasks through an iterative research loop and records how retrieved
+resources should support their construction.
 
-However, existing frameworks remain limited in ways that keep them from being
-widely adopted in practice. First, because they generate items either from
-pre-existing datasets or entirely from the model's own knowledge, they are
-confined to what is already represented in that data or knowledge; evaluation
-demands that fall outside this distribution---for instance, when the target
-capability is sparsely covered by available data or lies beyond what current
-models have internalized---are difficult to align with. Second, these frameworks
-almost exclusively target static question formats, such as multiple-choice or
-short-generation items, and do not support the interactive, environment-grounded
-tasks that are now a central focus of frontier LLM capabilities. Third, the few
-frameworks that do support iterative refinement rely on simple proxy metrics to
-guide iteration, such as error rate or discriminative power; optimizing such
-proxies does not reveal which capabilities a model is actually weak at, and can
-even degrade item quality, as items are made harder or more ambiguous without
-becoming more informative. As a result, automated benchmark construction has yet
-to be broadly adopted, and benchmark development remains largely manual.
+\paragraph{The construction procedure must fit the task.}
+A document transformation, environment perturbation, or reverse-generated tool
+sequence each defines a useful family of tasks. Repeating or optimizing such a
+procedure does not automatically provide the other components a compound demand
+may require. A task involving other agents, for example, needs their roles and
+interaction behavior as well as the target's instructions and scoring criteria.
+\textsc{EvalClaw} uses a unified \emph{task representation} to describe these
+components and their execution requirements. The \emph{EvalClaw-Harness}
+supports the Builder in constructing and checking the components needed for
+each item, instead of requiring one transformation procedure for every demand.
 
-%我们的三个设计如何解决
+\paragraph{Failure must lead to a testable explanation.}
+An incorrect response is evidence of a failure on an item, not a diagnosis of
+its cause. Maximizing error rate can select defects in the task or evaluator;
+grouping failed items can capture superficial similarities while missing a
+shared capability weakness. Our \emph{Hypothesis-driven Analyzer} examines
+model responses, proposes explanations at the capability level, and invokes
+the construction framework to test those explanations with new tasks.
+Follow-up evidence can support, narrow, or contradict a hypothesis. The output
+is a diagnostic account linked to tests, rather than a failure-rate objective
+alone.
 
-%实验结果怎么验证方法有效，为什么这个设计不是increment的
+We study these ideas in two complementary settings. The first comprises 15
+compound demands motivated by frontier-agent evaluation, where existing
+frameworks offer partial or specialized support. The second comprises eight
+conventional capability demands with established benchmark references.
+The construction experiments compare task quality, demand alignment, diversity,
+model-score separation, and cost; the Analyzer experiments evaluate the
+organization and evidential support of its diagnoses. Component ablations
+isolate resource selection, construction support, and hypothesis-driven
+iteration. The contribution is the integration of these mechanisms around a
+user demand, together with a protocol that tests each mechanism's contribution
+without equating harder tasks with better benchmarks.
+% Insert the main empirical findings and their scope after experiments finish.
 
-\section{Related Works}
-\subsection{Human-Constructed Benchmarks}
-Benchmarking is the primary instrument for measuring progress in language model development, and the dominant methodology remains expert authoring. Starting from shared natural language understanding suites~\citep{wang2018glue}, human-written
-benchmarks have scaled along breadth~\citep{hendrycks2021mmlu,bigbench2023},
-difficulty~\citep{rein2024gpqa,phang2025hle}, and increasingly toward agentic competence, where the unit of evaluation is a multi-step trajectory rather than a single response~\citep{jimenez2024swebench,xie2024osworld,mialon2024gaia}.
-More recent efforts curate items adversarially~\citep{kiela2021dynabench} or
-periodically regenerate them from newly published material
-\citep{white2024livebench,jain2024livecodebench}. 
+\section{Related Work}
 
-As discussed in Section~\ref{sec:intro}, these costs are not merely logistical:
-expert authoring is expensive and slow, and because a published benchmark is a
-fixed object, its items saturate and are progressively compromised by
-contamination as models improve. The refresh mechanisms
-above mitigate this without removing it, since their rate remains bounded by human effort while model capabilities advance unboundedly---and contamination can be present in an item set from the moment it is built, as when an instance exposes the information needed to
-solve it, a failure mode that survives filtering because each item looks
-well-formed in isolation~\citep{balloccu2024leakcheatrepeat}.
+\paragraph{Benchmarks and evaluation scope.}
+Established benchmarks cover broad knowledge and reasoning
+\citep{hendrycks2021mmlu,wang2024mmlupro,rein2024gpqa,phang2025hle}, executable
+software and computer-use tasks
+\citep{jimenez2024swebench,xie2024osworld}, and specialized agent behaviors
+\citep{zhang2025whowhen,debenedetti2024agentdojo}.
+LiveBench and LiveCodeBench refresh evaluation material to address changing
+model capabilities and potential contamination
+\citep{white2024livebench,jain2024livecodebench}.
+These resources establish useful task designs and scoring protocols, but a
+user demand may span several of their capabilities or require a different
+interaction setting. Our reference comparisons use the overlapping scope;
+they do not treat any one suite as a complete measure of a compound demand.
 
-\subsection{Automated Benchmark Construction Frameworks}
+\paragraph{Automated construction.}
+Language-model examiners generate and assess questions
+\citep{bai2023lmexam}. AutoBencher optimizes declared properties of a benchmark,
+including difficulty and novel model-performance patterns
+\citep{li2025autobencher}. YourBench builds source-grounded questions from
+documents, while Benchmark-Agent translates natural-language goals into
+subtasks and dataset transformations
+\citep{shashidhar2025yourbench,xiong2026benchmarkagent}.
+For interactive tasks, Gym-Anything constructs software environments and
+verifiers; Petri generates adaptive audits; and AutoControl Arena synthesizes
+programmatic safety environments
+\citep{aggarwal2026gymanything,fronsdal2025petri,li2026autocontrol}.
+\textsc{EvalClaw} builds on the need for grounded, verifiable generation but
+organizes construction around task components that can vary with the demand.
 
-A growing line of work replaces expert authoring with LLM-based generation, in
-which seed examples or domain documents prompt a model to synthesize items
-together with their answers, after which the outputs are filtered,
-deduplicated, or otherwise validated
-\citep{wang2023selfinstruct,xu2023evolinstruct,bai2023lmexam}. More recent
-frameworks cast construction itself as an optimization problem, searching for
-item populations that attain properties specified at the outset such as
-difficulty or discriminative power~\citep{li2025autobencher}. These frameworks
-substantially reduce
-construction cost, but they inherit three limitations. First, because generation
-is conditioned on pre-existing datasets or on the model's own parametric
-knowledge, the resulting items are confined to what that conditioning data
-already covers, and evaluation demands outside that distribution---capabilities
-sparsely represented in available corpora, or beyond what current models have
-internalized---are difficult to target. Second, they predominantly produce static
-item formats such as multiple-choice or short-generation questions, and do not
-instantiate the interactive, environment-grounded tasks that now carry much of
-the frontier capability signal. Third, the frameworks that do support iterative
-refinement drive it with simple proxy objectives, such as error rate or
-discriminative power; optimizing these proxies does not identify which
-capabilities a model actually lacks, and can degrade item quality by making items
-harder or more ambiguous without making them more informative. Nor do these
-objectives detect the opposite failure, in which an item is well-formed and
-apparently hard yet admits a shortcut that satisfies it without exercising the
-targeted capability---a failure documented even in widely used human-authored
-item sets and their curated revisions
-\citep{swebenchverified2024,openai2026swebenchverified}---since a proxy
-measured over pass rates cannot distinguish a correct solution from one that
-bypasses the intent of the item. Together, these
-limitations explain why automated construction has yet to displace manual
-authoring in practice. The design of \textsc{EvalClaw} is organized around
-them.
-\section{EvalClaw Design}\label{sec:design}
+\paragraph{Diagnostic evaluation.}
+Who\&When evaluates attribution of failures in multi-agent traces, and
+Agent-World uses failure diagnosis to guide environment and task generation
+\citep{zhang2025whowhen,dong2026agentworld}. Petri also supports adaptive
+investigation of model behavior~\citep{fronsdal2025petri}.
+Thus, adaptive generation and diagnostic feedback are not unique to our work.
+Our focus is the link between an explicit capability hypothesis, a new
+evaluation demand, and the evidence obtained by constructing and running its
+probes. The Analyzer comparison tests this link against generating more tasks
+from recurring patterns in observed errors.
 
-\textsc{EvalClaw} addresses the three limitations identified in Section~\ref{sec:intro}
-through three co-designed components: a \emph{Research-assisted Planner} that grounds
-item specifications in external resources, an \emph{EvalClaw-Harness} that decomposes
-construction into manageable, tool-supported subtasks, and a
-\emph{hypothesis-driven Analyzer} that replaces proxy-metric iteration with
-targeted capability diagnosis. Figure~\ref{fig:pipeline} gives an overview of
-the full pipeline. We describe each component, its motivation, and the ablation
-conditions used to isolate its contribution.
+\section{EvalClaw: Construction and Diagnosis}\label{sec:design}
+
+\textsc{EvalClaw} takes a natural-language evaluation demand and constructs a
+benchmark whose tasks specify both what the target model must do and how its
+behavior will be assessed. Construction has two stages: the Planner develops
+task designs and assigns supporting resources, and the Builder realizes those
+designs with the EvalClaw-Harness. The resulting tasks are run on target models.
+The Analyzer then uses their responses and execution evidence to propose
+capability hypotheses and request further tests. Thus, benchmark construction
+produces an evaluation instrument, while analysis produces a diagnostic account
+linked to additional experiments. Figure~\ref{fig:pipeline} shows the components
+and their connections.
 
 \begin{figure}[t]
 \centering
-% Palette and drawing live in figures/pipeline.tex
-\input{figures/pipeline}
-\caption{
-  \textsc{EvalClaw} pipeline overview. The \textbf{Research-assisted Planner}
-  grounds item plans in adaptively retrieved external resources. The
-  \textbf{EvalClaw-Harness} decomposes each plan into parallel construction
-  threads, each with dedicated tool support, and enforces a Quality Check gate
-  before producing a TaskDefinition. The \textbf{Hypothesis-driven Analyzer}
-  examines model evaluation results, forms a capability hypothesis, and invokes
-  the full construction pipeline to generate targeted verification items; the
-  loop terminates when the hypothesis is confirmed or revised.
-}
+\includegraphics[width=\linewidth]{pipeline.pdf}
+\caption{\textsc{EvalClaw} overview. The Research-assisted Planner assigns
+resources to task designs. The Builder uses the EvalClaw-Harness to construct
+and check task components in a unified representation. After model evaluation,
+the Hypothesis-driven Analyzer requests further construction to investigate
+candidate capability weaknesses and incorporates the resulting evidence into
+its diagnostic report.}
 \label{fig:pipeline}
 \end{figure}
 
-%-----------------------------------------------------------------------
 \subsection{Research-assisted Planner}
 \label{sec:planner}
-%-----------------------------------------------------------------------
 
-\paragraph{Limitation addressed.}
-Existing automated frameworks generate items by either transforming a fixed seed
-corpus---restricting coverage to what that corpus already contains---or prompting
-a model from parametric knowledge alone, which caps difficulty at what the model
-has already internalized and inflates cost when the intended capability lies
-outside that knowledge. Neither path can reliably reach evaluation demands that
-are sparsely covered by available data or that require authoritative external
-material (domain specifications, updated standards, real-world artefacts) to
-ground the items correctly.
+The Planner translates the user's demand into task designs that specify the
+capability to test, the required task format, and the conditions needed to
+observe it. It investigates resource needs during planning, before handing the
+designs to the Builder. Each research iteration poses a focused question about
+a proposed task; the retrieval backend returns a synthesis of relevant material
+and concrete resource URLs. The Planner uses this evidence to refine the
+design and decide which resources should support its construction.
 
-\paragraph{Design.}
-The Planner begins from a high-level capability specification and, before
-committing to an item plan, enters a \emph{Research loop}.  In each iteration of
-the loop the Planner emits a focused natural-language query; a retrieval backend
-returns a summary of relevant material together with source URLs.  The Planner
-uses these results to identify which external resources should inform each part
-of the planned item---reference documentation, domain datasets, real artefacts,
-or authoritative specifications---and records explicit resource assignments in
-the item plan it passes downstream.  The loop terminates when the Planner judges
-that the plan is sufficiently grounded; the number of iterations is not fixed in
-advance.  This design separates the question of \emph{what to evaluate} (the
-capability specification) from the question of \emph{what material should ground
-the evaluation} (the retrieved resources), and allows the latter to be
-determined adaptively rather than by whichever seed corpus happened to be
-available at construction time. The ablation conditions used to isolate the
-Research loop's contribution are described in Section~\ref{sec:settings}.
+The output records both the task requirements and the intended uses of the
+resources. A source may provide factual evidence for a reference answer,
+realistic data to transform, or an artifact needed to initialize an environment.
+These assignments connect retrieval to construction: the Builder receives
+resources in the context of the work they are meant to support. Research can
+continue as planning exposes additional needs, subject to the configured budget.
+The design does not require every item to be a transformation of a retrieved
+example; the demand determines whether and how source material is used.
 
-%-----------------------------------------------------------------------
-\subsection{EvalClaw-Harness}
+\subsection{Unified Task Representation and EvalClaw-Harness}
 \label{sec:harness}
-%-----------------------------------------------------------------------
 
-\paragraph{Limitation addressed.}
-Existing frameworks commit to a fixed generation paradigm---transforming
-documents into questions, mutating code repositories to produce repair tasks,
-sampling tool-call chains and inverting them into instructions, or simulating
-multi-agent dialogues---and the set of item types each framework can produce is
-therefore determined by its paradigm. Wrapping such a paradigm in an outer loop
-or evolutionary operator replicates the paradigm's structure rather than
-transcending it. For complex agent tasks in particular, prior work typically
-designs a bespoke construction procedure for each target domain; tasks that
-require interaction with other agents, multi-modal environments, or
-programmatically verified state are supported only in isolated, domain-specific
-systems.
+\paragraph{Task representation.}
+An \emph{EvalClaw-TaskDefinition} is a structured specification, serialized as
+JSON, that connects the content of an item to its execution and scoring. It
+supports multiple-choice, short-answer, open-ended generation, multi-turn,
+and environment-based agent tasks. The representation brings together three
+kinds of information:
+\begin{itemize}
+\item \textbf{Task content and evidence:} the target-visible instructions and
+assets, source references, and reference answers or feasible reference
+trajectories.
+\item \textbf{Execution conditions:} the initial environment, available actions,
+interaction protocol, and participant roles when the task involves other agents.
+\item \textbf{Evaluation:} the required outputs, scoring rubric, and checks on
+responses, produced artifacts, or environment state.
+\end{itemize}
+Only the components required by the task type are populated. A multiple-choice
+item needs options and a correct-answer specification; an environment task also
+needs executable setup, permitted interactions, and a way to assess the resulting
+work. Reference answers and evaluator-only material are kept separate from
+what the target can observe. A reference trajectory describes a feasible route
+to completion, rather than requiring the target to reproduce that route.
+The representation supports the available execution backends; adding a field
+describing an environment or another agent is not sufficient to implement it.
 
-\paragraph{Design.}
-Rather than fixing a generation paradigm, \textsc{EvalClaw} represents every
-benchmark item in a unified, schema-complete \emph{EvalClaw-TaskDefinition}
-(JSON). A TaskDefinition can express, in a single object: the natural-language
-task instruction; any number of participant agents and their role specifications;
-the environment configuration required to instantiate the task (Docker images,
-filesystem state, network topology, database schemas); synthetic data to be
-generated and injected; and the programmatic evaluator used to judge completion.
-This representation makes no assumption about which of these fields are populated:
-a simple multiple-choice item, a multi-turn tool-use trajectory, and a
-multi-agent collaborative task with a live execution environment are all
-instances of the same schema.
+\paragraph{Construction support.}
+The EvalClaw-Harness helps the Builder realize the components specified by the
+Planner. It provides support for composing prompts, synthesizing or acquiring
+data, configuring environments and participant agents, and constructing
+scoring criteria. The Builder can address these components separately while
+maintaining their shared task requirements. Component-level work must still
+agree at integration: instructions refer to assets the target can access,
+actions operate on the declared initial state, and evaluators inspect the work
+the target actually produces.
 
-Filling a TaskDefinition from scratch is a large and structurally heterogeneous
-task, and delegating it directly to an LLM produces high failure rates when the
-item is complex. The \emph{EvalClaw-Harness} manages this by decomposing the
-construction into a set of parallel subtasks, each scoped to one component of
-the TaskDefinition. Given the Planner's item plan, the Builder instantiates the
-Harness, which fans out into separate construction threads for environment
-configuration, role-agent specification, data synthesis, and evaluator
-definition. Each thread is equipped with purpose-specific tools (container
-management utilities, schema validators, code execution sandboxes, etc.) and
-operates independently. Once all threads complete, a \emph{Quality Check} stage
-runs two verification passes: a structural check that validates the assembled
-TaskDefinition against the full schema, and a subagent review that instantiates
-the environment and executes the evaluator against a reference solution to
-confirm that the item is well-posed. Items that fail either check are returned to
-the relevant construction thread for repair before advancing to the evaluation
-pipeline.
+The Harness also provides a Quality Check (QC) mechanism for structural
+validation and review of the assembled task. Detected issues are returned as
+repair feedback to the Builder before accepted items enter evaluation. This
+separates constructing an artifact from checking whether its components form
+a usable task. QC acceptance does not itself establish that the reference
+answer is correct or that the task measures the requested capability; those
+properties are assessed in the construction experiments.
+% Ablation expectation, not an experimental finding: removing Harness support
+% may increase structural failures and repair effort on complex task designs.
 
-The ablation conditions used to isolate the Harness's contribution are
-described in Section~\ref{sec:settings}.
-
-%-----------------------------------------------------------------------
 \subsection{Hypothesis-driven Analyzer}
 \label{sec:analyzer}
-%-----------------------------------------------------------------------
 
-\paragraph{Limitation addressed.}
-Frameworks that support iterative refinement drive iteration toward one of two
-proxy objectives: maximising the aggregate failure rate of a target model, or
-maximising the performance gap between strong and weak models.  Both objectives
-treat success and failure as undifferentiated scalar signals---they record
-\emph{that} a model failed, but not \emph{which capability} the failure
-implicates.  Iterating on such signals produces items that are harder or more
-discriminative in aggregate, but the items generated in successive rounds are not
-systematically related to one another: failures arising from a common underlying
-weakness accumulate only by chance.  The resulting item pool is therefore
-scattered across capability dimensions, and the benchmark provides no structured
-account of what a model actually lacks or how it might improve.
+The Analyzer starts from a completed evaluation, using task specifications,
+model responses, scores, and available execution evidence. It examines failures
+jointly to propose a capability-level explanation. When summaries are
+insufficient, it can inspect saved responses and run artifacts to distinguish
+model behavior from task or infrastructure problems. Its hypothesis describes
+a candidate weakness and motivates an evaluation that could clarify its scope.
 
-\paragraph{Design.}
-The \emph{Analyzer} operates after a target model has been evaluated on an
-existing item pool.  Rather than extracting a scalar difficulty signal, the
-Analyzer performs a \emph{hypothesis-driven} diagnosis.  It jointly examines
-item content and model responses, forms a natural-language hypothesis about a
-specific capability deficit---for instance, that the model fails to propagate
-constraints across tool-call boundaries, or that it incorrectly assumes sorted
-input when none is guaranteed---and then \emph{invokes the full construction
-pipeline} with that hypothesis as the capability specification.  The pipeline
-produces a small, targeted set of items whose design is derived from the
-hypothesis.  The model is evaluated on this set, and the results either support
-the hypothesis (the model fails on the targeted items at a rate consistent with
-the hypothesised deficit) or refute it (the model succeeds, indicating that the
-original failures had a different cause).  A refuted hypothesis is revised and
-the cycle repeats; a supported hypothesis is recorded as a confirmed capability
-gap, and the Analyzer is encouraged to extend the diagnosis to related capability
-dimensions before moving to a new hypothesis.
+The Analyzer expresses this follow-up test as a new evaluation demand and
+invokes the full Planner--Builder--Runner pipeline. The Planner designs the
+probe tasks and selects resources, the Builder constructs them with the
+Harness, and the Runner evaluates the same target model. This reuse allows a
+hypothesis to be investigated through new content and task designs rather than
+only through variations of the original failed items. The Analyzer receives
+the constructed probes and their outcomes, together with the earlier evidence,
+and updates its explanation.
 
-This loop differs structurally from proxy-metric iteration in two respects.
-First, the items produced in each round are functionally related---they are all
-designed to probe the same hypothesised deficit---so the resulting item pool is
-interpretable as a structured diagnostic rather than a collection of hard
-instances.  Second, the stopping criterion is evidential rather than
-metric-driven: iteration continues until the hypothesis is resolved, not until a
-difficulty or discriminability threshold is reached.
+The update concerns the support for a hypothesis, not simply the error rate on
+the new tasks. Additional failures may be consistent with the proposed weakness
+but can also arise from other requirements or defective probes. Successful
+responses may narrow the conditions under which a weakness appears without
+refuting the entire explanation. The Analyzer therefore relates its conclusions
+to the content and outcomes of the tests and can revise a hypothesis, investigate
+a related capability, or leave a question unresolved when evidence is insufficient.
+Analysis terminates when the Analyzer concludes its investigation or the probe
+budget is exhausted; termination is not evidence that every hypothesis has been
+confirmed.
 
-The ablation conditions used to isolate the Analyzer's contribution are
-described in Section~\ref{sec:settings}.
+The final report summarizes the observed patterns and the support obtained
+from follow-up tests. We evaluate this diagnostic output separately from the
+quality of the generated benchmark. The Analyzer ablation replaces
+hypothesis-driven requests with requests based on recurring features of failed
+tasks, while retaining the construction and evaluation machinery
+(Section~\ref{sec:ablations}).
+% Ablation expectation, not an experimental finding: grouping errors by shared
+% task features may yield less systematic diagnoses and more repetitive probes.
 
 \section{Experiments}
 \label{sec:exp}
 
-Our experiments ask a single question: \emph{when \textsc{EvalClaw} is given an
-evaluation demand, does it produce a benchmark that is valid, informative, and
-preferable to what existing pipelines produce on the same demand?} The framework
-is treated throughout as a black box that maps a demand $d$ to a benchmark
-$\mathcal{B}_d$; we never evaluate the framework on the internal quality of its
-intermediate artefacts, only on the benchmark that comes out. This framing forces
-two decisions: which demands to feed in, and what ``good benchmark'' means
-operationally.
+The evaluation separates three questions: how well a constructed benchmark
+realizes its demand, which components improve construction, and whether
+follow-up tests support the Analyzer's diagnoses. The protocol below specifies
+the two settings, baseline assignments, and evaluation criteria. Construction
+quality is assessed independently of the performance of the models being tested.
+% Experimental results are pending. Before running comparisons, specify the
+% construction and judge models, target-model panel, framework revisions,
+% per-demand item counts, source snapshots, budgets, seeds, sampling procedure,
+% and uncertainty estimation. Do not insert expected outcomes as findings.
 
 \subsection{Evaluation Settings}
 \label{sec:settings}
 
-We instantiate the framework on two demand collections, chosen so that together
-they separate the framework's two sources of advantage.
+We use two demand collections to examine construction of compound frontier
+tasks and quality relative to established benchmarks.
 
-\paragraph{Setting~1: demands beyond existing coverage.}
-The 15 capability domains derived in Appendix~\ref{app:derivation-A} are stated
-as first-person evaluation demands, each backed by three or more independent
-authoritative sources, and each targeting a capability that is either absent from
-existing evaluation suites or represented only in isolated domain-specific
-systems. Satisfying these demands requires the component-complex, agentic items
-described in Section~\ref{sec:harness}: environment configuration, synthetic data,
-multi-agent roles, and programmatic evaluation. There is no existing benchmark
-for these domains, so the question is not whether \textsc{EvalClaw} beats a
-prior pipeline but whether a usable benchmark can be constructed at all, and
-whether the resulting items actually probe the intended capability rather than
-something adjacent to it.
+\paragraph{Setting~1: compound frontier demands.}
+Appendix~\ref{app:derivation-A} specifies 15 user queries covering sustained
+work, coordination, oversight, and safety. Existing systems address parts of
+these demands, but their published support does not establish full coverage of
+the required execution protocols. We compare \textsc{EvalClaw} against three
+complementary frameworks, assigning each demand to the closest primary baseline
+before observing results:
+\begin{itemize}
+\item \textbf{Gym-Anything}~\citep{aggarwal2026gymanything}: D1--D4 and D6.
+It constructs real software environments, tasks, and verifiers, making it a
+strong comparison for long tasks and artifact-based work. Cross-session
+continuity and symptom-only diagnosis are not established native capabilities;
+D4 is the weakest match in this assignment.
+\item \textbf{Petri}~\citep{fronsdal2025petri}: D7--D9 and D13.
+It generates adaptive multi-turn audits from natural-language seeds, including
+scenarios involving subordinate-agent monitoring and hostile teammates. Its
+simulated counterparties and tool results are distinguished from independently
+executing agents and real work products.
+\item \textbf{AutoControl Arena}~\citep{li2026autocontrol}: D5, D10--D12,
+and D14--D15. It generates programmatic safety environments with stateful tools,
+dynamic events, and behavioral auditing. Its permission, concealment, and
+oversight scenarios are close to these demands, while exact trigger conditions
+and scoring requirements must still be checked.
+\end{itemize}
+Table~\ref{tab:frontier-baselines} details the assignment and the remaining gaps.
+It specifies comparison coverage, not a claim that the baselines jointly satisfy
+all 15 queries. We assess both whether a valid benchmark can be constructed and
+how its quality compares on the requested capability.
 
-\paragraph{Setting~2: traditional demands with established references.}
-The 10 occupational domains derived in Appendix~\ref{app:derivation-B} correspond
-to disciplines---computing, mathematics, law, medicine, the humanities---for which
-high-quality human-authored benchmarks already exist. The items these demands
-require are predominantly static: multiple choice, short answer, and short
-generation, exercising far fewer TaskDefinition components than Setting~1. Here
-the framework is not filling a vacuum but competing on ground that is already
-occupied, and the appropriate test is whether the benchmark it constructs is
-\emph{isomorphic in quality} to the human-authored reference for the same domain:
-comparable validity, comparable discrimination, and comparable ordering fidelity,
-at a fraction of the construction cost. A framework that only works on novel
-demands would fail this setting, and one that only reproduces conventional items
-would fail Setting~1; passing both is the claim we make.
+\paragraph{Existing benchmark references for Setting~1.}
+We additionally compare against two published benchmarks on their matching
+subtasks. \textbf{Who\&When}~\citep{zhang2025whowhen} provides failure traces
+annotated with the responsible agent, decisive error step, and cause. It anchors
+the attribution component of D7: generated and existing tasks use the same
+agent- and step-localization scoring. This comparison does not measure online
+delegation or tracking of subordinate agents.
+\textbf{AgentDojo}~\citep{debenedetti2024agentdojo} anchors D12 through tool-use
+tasks with prompt injections in untrusted content. We match task scope, attacker
+access, injection surfaces, and execution budgets, and measure clean and attacked
+task completion alongside attack success. D12's additional requirement to report
+the conflict is scored separately. For both references, benchmark quality and
+model discrimination are assessed independently of raw task difficulty.
 
-\paragraph{Reference benchmarks and construction conditions.}
-For each Setting~2 demand we compare against the human-authored benchmark that
-currently serves that domain. Because no such reference exists for Setting~1, we
-additionally instantiate two paradigm-fixed automated pipelines---document-to-
-question transformation and repository-mutation repair-task generation---on every
-Setting~1 demand and both Setting~2 domains they can express, giving a
-like-for-like automated comparison in both settings.
+\paragraph{Setting~2: conventional demands with established references.}
+The eight demands in Appendix~\ref{app:conventional-demands} cover knowledge,
+reasoning, mathematics, computer science, data and experimental analysis,
+constraint following, long context and horizon, and multilingual capability.
+We run both \textbf{Benchmark-Agent}~\citep{xiong2026benchmarkagent} and
+\textbf{YourBench}~\citep{shashidhar2025yourbench} on \emph{all eight demands},
+comparing their generated benchmarks with \textsc{EvalClaw} on construction
+validity, demand coverage, quality, discrimination, and cost. Benchmark-Agent
+provides requirement-driven subtask design and dataset transformation;
+YourBench provides configurable document-grounded question generation.
+Their configurable inputs permit comparisons across the eight areas, without
+presupposing native support for every execution or scoring requirement.
+Appendix~\ref{app:conventional-baselines} specifies the input adaptation and
+coverage checks. We also select one established reference per demand:
+MMLU-Pro, LiveBench Reasoning, text-only HLE mathematics, LiveBench Coding and
+Agentic Coding, LiveBench Data Analysis, IFBench, HELM Long Context, and SEA-HELM,
+respectively (Table~\ref{tab:conventional-comparisons}). Comparisons with these
+references use matching subcapabilities and the same target-model panel.
+This collection includes both static and interactive tasks; the distinction
+from Setting~1 is the availability of established references for conventional
+evaluation targets.
 
-The ablation conditions introduced in Section~\ref{sec:design} are evaluated on
-both settings. For the Planner we compare \textbf{Full}, \textbf{Fixed-source},
-and \textbf{No-resource}; for the Harness we compare \textbf{Full Harness} and
-\textbf{Harness-free}; for the Analyzer we compare \textbf{Hypothesis-driven} and
-\textbf{Error-cluster}. Unless noted, all results use the full pipeline.
+\paragraph{Comparison protocol.}
+Comparisons use the same demand and comparable construction and target-model
+execution budgets, with the same underlying models in corresponding roles where
+interfaces permit. Model versions, framework revisions, seeds, source access,
+and budget limits are fixed before evaluation. Input-format and model-interface
+adaptations are permitted; additions such as session scheduling, failure
+injection, independent agents, or new evaluators are reported as extensions,
+with their engineering cost. Setting~2 uses a common initial source pool, and
+held-out reference evaluation items are excluded from construction.
 
-\subsection{How We Measure Benchmark Quality}
+Each framework is assessed against the original demand. Simulated team messages
+do not satisfy a requirement for independently executing agents, and framework
+logs do not satisfy a request for a model-written audit trail. Unsupported
+requirements and construction failures are recorded alongside the quality of
+the outputs that can be evaluated. For Setting~1, each primary baseline is
+compared with \textsc{EvalClaw} on its assigned subset; a summary across all 15
+demands compares \textsc{EvalClaw} with the assigned baseline for each demand.
+Both Setting~2 baselines are compared on all eight demands. Summaries weight
+demands equally, and report coverage alongside quality rather than silently
+omitting unsupported demands.
+
+Petri runs as an online audit with fixed seed instructions, auditor and judge
+configurations, turn limits, and rollback limits. Its full interaction branches
+are retained. Each target receives a fresh adaptive audit under these controls;
+a transcript produced with one target is not replayed as another target's test.
+Its model scores therefore characterize performance under an audit policy,
+rather than performance on identical fixed items. This distinction is retained
+when interpreting comparisons with reusable benchmarks.
+
+\subsection{Benchmark Construction Quality}
 \label{sec:quality}
 
-Evaluating a constructed benchmark is not the same as evaluating a model on it.
-A benchmark can be hard but invalid, discriminative but redundant, or faithful to
-its demand but trivially easy. We therefore measure quality at three levels, and
-report every metric against a reference: the human-authored benchmark for
-Setting~2, and a held-out human sample for Setting~1.
+\paragraph{Construction yield and demand coverage.}
+Structural and execution checks are part of the construction workflow; we use
+these records and the subsequent evaluation runs rather than introduce a
+separate executability experiment. We report the fraction of requested items
+accepted, rejected attempts, repair effort, and any execution failures. The
+recorded checks and their scope are made explicit for each framework.
+Acceptance alone does not establish reference correctness or demand alignment:
+those are assessed independently below. Required interaction conditions are
+checked against the delivered tasks, so an executable but incomplete substitute
+is recorded as a coverage gap. Quality scores are accompanied by construction
+yield and coverage, including cases where no usable output is produced.
 
-\paragraph{Level 1: benchmark quality.}
-The Quality Check gate already guarantees structural well-formedness and
-environment executability---items that fail it never enter the benchmark---so we
-do not re-measure those properties. We instead use an LLM judge to score four
-properties that a schema check cannot establish. Each property is scored on an
-explicitly anchored integer scale from 1 to 5, where higher is better:
-
+\paragraph{LLM-assessed quality.}
+A separately prompted LLM judge assesses complete task specifications and
+available assets, references, and execution evidence. It scores four criteria
+on anchored integer scales from 1 to 5, with higher scores indicating better
+quality:
 \begin{itemize}
-\item \textbf{Clarity}: the task statement is unambiguous, and the expected
-output format is determinable from the statement alone.
-\item \textbf{Correctness}: the reference solution is correct, and the
-programmatic evaluator accepts it. This is verified by execution, not by
-inspection.
-\item \textbf{Faithfulness}: the capability the item exercises is the capability
-the demand asked for. This is the property that a paradigm-fixed pipeline is
-most likely to violate, since it must convert whatever its corpus contains
-regardless of fit.
-\item \textbf{Diversity}: the benchmark covers meaningfully different content,
-situations, operations, and reasoning or interaction patterns rather than
-superficial variants of the same task.
+\item \textbf{Clarity}: instructions, constraints, and expected outputs are
+unambiguous in the task's intended setting.
+\item \textbf{Correctness}: reference answers or feasible trajectories and
+scoring criteria are substantively correct and consistent with the task.
+\item \textbf{Faithfulness}: the tasks exercise the requested capability,
+including its interaction conditions, instead of substituting a related target.
+\item \textbf{Diversity}: the task set covers distinct content, situations,
+and reasoning or interaction patterns, beyond superficial variations.
 \end{itemize}
+The joint assessment uses a sample of complete tasks, with the same sampling
+rule and sample size across methods within a demand. Diversity is assessed
+across that sample. Judges receive task evidence without method identifiers
+where feasible, and must cite concrete evidence for their scores and state
+when verification is incomplete. The score anchors and prompts are given in
+Appendix~\ref{app:laaj-prompts}. These scores are model judgments, not a
+substitute for correctness evidence.
+% Human validation of judge scores remains to be specified; do not claim a
+% completed annotation study or report an agreement statistic without data.
 
-We evaluate these four properties in one call because they concern the same task
-sample and evaluation contract. Contamination is judged in a separate call so
-that retrieved comparison evidence cannot influence the other quality scores.
-The complete prompts and score anchors appear in
-Appendix~\ref{app:laaj-prompts}. Because the judge is itself a model, its scores
-are audited against human annotation on a stratified sample of items drawn from
-both settings, and we report weighted Cohen's $\kappa$ for each criterion. In
-addition we include, for every benchmark, a set of \emph{negative controls}:
-items that no capable model should be able to solve because the demanded
-information is absent, and items a capable model should solve trivially. A
-benchmark that scores above chance on the former, or below ceiling on the latter,
-is measuring something other than the intended capability.
+\paragraph{Contamination evidence.}
+A separate research step searches for sources with direct literal overlap with
+each constructed item, recording the retrieved passages and source URLs. Only
+after confirming such overlap does a separate judge assess whether the source
+and item test the same core knowledge or reasoning requirement. The resulting
+1--5 contamination-resistance score is lower when the overlapping material also
+preserves the core tested content, and higher when that content differs.
+Shared terminology or boilerplate alone does not establish meaningful reuse.
+Searches use comparable budgets across methods; their evidence and limitations
+are retained. An item with no confirmed match is reported as such rather than
+assigned a high score on the assumption that retrieval was exhaustive. We report
+the fraction with confirmed overlap alongside the conditional scores. This
+measures observable reuse risk, not membership in a target model's training data.
 
-\paragraph{Contamination.}
-We retrieve lexical, semantic, and structural matches for each constructed item
-from the available pre-construction benchmark and source corpora. A separate LLM
-judge then assigns a 1--5 contamination-resistance score using the item,
-provenance record, and retrieved matches. The judge distinguishes answer-bearing
-reuse from unavoidable domain terminology or generic task structure, and is
-required to limit its conclusion to the supplied evidence. A higher score means
-less evidence of contamination.
-
-\paragraph{Level 2: whole-benchmark statistics.}
-A benchmark is a measurement instrument, and its value lies in how it distributes
-models. We report:
-
+\paragraph{Model-score statistics.}
+For each demand, all methods use the same target-model panel. Let $s_{m,d}$ be
+model $m$'s aggregate score on the benchmark for demand $d$, scaled to $[0,1]$
+with higher values indicating better performance. Scoring rules and category
+weights are fixed before comparison; distinct reference subtask scores remain
+separate where they measure different outcomes. We report:
 \begin{itemize}
-\item \textbf{Difficulty distribution}: the distribution of per-item solve rates
-across the evaluated model set, reported as the fraction of items in each
-difficulty band. A benchmark concentrated at either extreme cannot order models.
-\item \textbf{Discrimination}: for each item, the point-biserial correlation
-between item score and total score, and the distribution of the IRT
-discrimination parameter $a$ across items. We report the mean and the fraction of
-items with $a$ indistinguishable from zero, which is the direct measure of how
-much of the benchmark is dead weight.
-\item \textbf{Separation}: the score gap between the strongest and weakest
-evaluated models, expressed as a fraction of the scale, following the
-separation metric used in recent adversarially curated benchmarks. This is the
-quantity that determines whether the benchmark can still distinguish models
-after frontier performance rises.
-\item \textbf{Ordering fidelity}: the rank correlation between benchmark score
-and independently established model strength. For Setting~2 we use the
-human-authored reference's own ranking as the ground truth and report Kendall's
-$\tau$ between the two orderings; for Setting~1, where no reference ranking
-exists, we use the open-weight model families for which size is a known proxy for
-capability and report the correlation between score and parameter count within
-each family.
-\item \textbf{Retest reliability}: the agreement between two benchmarks
-constructed independently from the same demand, measured as the correlation of
-per-model scores. This bounds how much of any observed ordering is construction
-noise.
+\item \textbf{Discrimination}: the standard deviation of model scores,
+\[
+D_d = \sqrt{\frac{1}{M-1}\sum_{m=1}^{M}(s_{m,d}-\bar{s}_d)^2},
+\qquad \bar{s}_d = \frac{1}{M}\sum_{m=1}^{M}s_{m,d},
+\]
+where $M$ is the number of target models. Greater spread indicates greater
+separation on this panel; it is interpreted together with quality and coverage,
+since task defects can also create score differences.
+\item \textbf{Ordering Fidelity}: Spearman correlation between model size and
+benchmark score within an open model family. Families and eligible checkpoints
+are specified in advance, with comparisons restricted to comparable training
+and inference settings. The correlations are reported by family as an auxiliary
+consistency measure. Parameter count is not a ground-truth capability ranking;
+insufficient checkpoints or constant scores yield an undefined correlation.
 \end{itemize}
-
-\paragraph{Level 3: attribution.}
-The first two levels establish that the benchmark is sound. The third asks
-whether it is \emph{diagnostic}---whether a low score can be traced to the
-capability the demand named. For each Setting~1 demand we construct a
-\emph{capability-isolating pair}: two item sets that share task surface, format,
-and difficulty but differ in exactly one capability component, one of which is
-the component the demand specifies. A benchmark that measures its target
-capability should show a significantly larger score drop on the matched set than
-on its control. Where a demand's capability can be decomposed into $|D|$
-components, we additionally run a per-component ablation and compute attribution
-accuracy, the ratio of the target component's contribution to the summed
-contribution of all components; an uninformative benchmark yields
-$1/|D|$, and we report the ratio against that baseline.
+Per-model scores accompany these statistics so that uniformly easy or difficult
+task sets remain visible. Existing-reference comparisons use the matching
+subcapabilities specified in the settings, with compatible scoring and execution
+conditions; lower target-model scores alone do not establish a better benchmark.
 
 \paragraph{Cost.}
-Because the framework's premise is that automated construction is cheaper than
-human authoring, we report wall-clock time, token cost, and human-hours for each
-demand, on the same per-item basis as the reference benchmark where one exists.
+We report construction time, token usage and monetary cost, and manual adaptation
+effort, both per demand and per accepted item. Totals include research, rejected
+attempts, repairs, and setup; target-model execution and diagnosis costs are
+reported separately. Per-item construction cost is undefined when no item is
+accepted, but the total expenditure and failure remain in the report. Costs of
+existing reference benchmarks are compared only where documented on a compatible
+basis.
 
-\subsection{Evaluating the Analyzer}
+\subsection{Component Ablations}
+\label{sec:ablations}
+
+Ablations cover both demand settings and use the same underlying models and
+budget limits as the full system. Each comparison changes the specified
+component while retaining the remaining construction and evaluation machinery.
+
+\paragraph{Planner: resource selection.}
+The full Research-assisted Planner is compared with two resource policies.
+\textbf{Fixed-source} receives a collection fixed before construction and must
+construct items by transforming that material, without demand-driven retrieval.
+This tests the combined restriction of fixed sources and mandatory
+transformation. \textbf{No-resource} disables research and supplies no external
+source material during construction, while retaining the task representation
+and construction tools. The contrast tests resource use through faithfulness,
+correctness, model-score statistics, and cost.
+% Expected, not observed: Fixed-source may drift from the demand when its
+% materials are poorly matched; No-resource may produce easier tasks or more
+% errors on complex demands.
+
+\paragraph{Harness: construction support.}
+\textbf{Harness-free} receives the same Planner output and must directly produce
+the same task representation with the same Builder model and budget. It removes
+the Harness's component-specific construction tools and iterative QC repair
+support. Outputs still undergo the same final acceptance checks for reporting;
+removing support does not make malformed output count as successful construction.
+The comparison measures yield, failure types, quality, and cost.
+% Expected, not observed: without Harness support, complex task specifications
+% may incur more structural failures and higher construction effort.
+
+\paragraph{Analyzer: follow-up selection.}
+\textbf{Error-cluster} groups observed failures by recurring task features and
+requests more tasks with those features. \textbf{Hypothesis-driven} instead
+proposes capability explanations and requests tests of them. Both start from
+the same tasks and target-model results, use the same Planner--Builder--Runner
+pipeline and probe budget, and produce reports under the same output
+requirements. Their comparison uses the diagnostic criteria below, with probe
+quality and cost reported alongside the reports.
+% Expected, not observed: Error-cluster may produce more repetitive probes and
+% less systematic explanations of failures across different task contents.
+
+\subsection{Diagnostic Quality}
 \label{sec:analyzer-eval}
 
-The Analyzer is not a benchmark constructor but a diagnostic procedure, and
-Level~3 metrics above only establish that \emph{a} signal exists, not that the
-Analyzer's account of it is correct. We therefore evaluate it separately, on a
-different question: given a model's failures on an existing pool, does the
-Analyzer produce a diagnosis that is systematic and true?
+The diagnostic experiment asks whether the Analyzer organizes observed failures
+and supports its conclusions with follow-up evidence. A separate LLM assessment
+uses the initial tasks and results, the final report, and the complete sequence
+of requested probes and outcomes. It scores two criteria on 1--5 scales:
+\begin{itemize}
+\item \textbf{Systematicness}: explanations organize failures at the capability
+level, make their relationships clear, and investigate relevant patterns without
+unnecessary repetition. Related causes may overlap; a coherent account need
+not assign every failure to exactly one category.
+\item \textbf{Credibility}: conclusions are supported by relevant, completed
+probe runs and are calibrated to their outcomes. The judge checks whether the
+probes address the stated hypothesis, whether task or execution defects offer
+alternative explanations, and whether contradictory or inconclusive evidence
+is reflected in the report.
+\end{itemize}
+The judge links assessments to concrete hypotheses, task identifiers, and probe
+outcomes (Appendix~\ref{app:laaj-prompts}). Proposed tests are distinguished from
+completed tests, and untested hypotheses from supported conclusions. A completed
+run does not by itself confirm a hypothesis; an explicitly unresolved question
+is preferable to an unsupported diagnosis. Probe budgets and expenditure
+accompany the diagnostic scores so that additional investigation is not treated
+as free.
 
-\paragraph{Systematicness.}
-An LLM judge scores whether the report organizes failures into coherent,
-non-overlapping capability-level explanations rather than merely listing
-individual errors or grouping tasks by superficial similarity. The score also
-reflects whether successive analysis rounds cover distinct, relevant failure
-patterns without unnecessary repetition.
+\section{Limitations}
+\label{sec:limitations}
 
-\paragraph{Credibility.}
-Every hypothesis is accompanied by a verification round, so a diagnosis is
-credible exactly when the verification round was both run and decisive. We
-use an independently prompted LLM judge to score whether each material claim is
-supported by the observed task results and targeted probe rounds, whether
-alternative explanations such as task defects or infrastructure failures were
-excluded, and whether conclusions remain appropriately calibrated when evidence
-is inconclusive. Systematicness and credibility use separate 1--5 anchors within
-one Analyzer-quality call, shown in Appendix~\ref{app:laaj-prompts}, and are
-audited with the same human protocol and weighted agreement measure as the
-benchmark-quality scores.
+The demand collections cover selected evaluation targets rather than an
+exhaustive capability taxonomy. Results on a baseline's assigned subset do not
+establish superiority on its other supported tasks. Construction also depends
+on accessible resources and implemented execution backends; a common task
+representation cannot supply a missing environment or participant agent.
 
-\paragraph{Headline comparison.}
-The three components are evaluated jointly on one endpoint: for each Setting~1
-demand and each Setting~2 domain, we report the benchmark-level quality profile
-(Levels 1--3) produced by the full pipeline and by each ablation, so that every
-component's contribution is read off the same instrument rather than from a
-component-specific proxy.
+LLM-based construction and judging can share errors, and structural checks do
+not establish semantic validity. Retrieval can miss prior instances, while
+model-score statistics depend on the selected model panel. Diagnostic probes
+likewise provide evidence under particular task conditions and budgets; several
+weaknesses may explain the same failure. A supported diagnosis therefore remains
+conditional on the probes used to investigate it.
 
-%使用已有fail的方式，聚集在具体的题目上
+\section{Conclusion}
+\label{sec:conclusion}
+
+\textsc{EvalClaw} connects a natural-language evaluation demand to resource
+selection, task construction, and hypothesis-driven diagnosis. Its Planner
+assigns resources to task designs, its Harness supports construction within a
+unified task representation, and its Analyzer requests follow-up tests of
+candidate capability weaknesses. The evaluation protocol compares construction
+across compound and conventional demands and assesses diagnostic evidence
+separately. This separation makes demand alignment, task quality, and support
+for a diagnosis explicit targets of evaluation.
+% Add the measured findings and their scope when the experiments are complete.
 
 \subsection*{AI use statement}
 
-(This section is \textbf{required} and does not count toward the page limit.)
-
-In this work, we used generative AI tools for [tasks with required disclosure].
-We have not used generative AI tools for [other tasks with required disclosure],
-and [the rest of the required disclosure tasks] are not applicable to this work.
-Additionally, we used generative AI tools for [tasks with recommended
-disclosure]. We have reviewed all AI-assisted work. [Elaborate. For example, “we
-checked LLM-generated research ideas for potential plagiarism through a manual
-literature survey”, “LLM-generated code was verified and tested for correctness
-by 2 authors”, etc.]. We take responsibility for the final content of this work,
-including text, claims or artifacts produced with the aid of generative AI.
-
-See the ICLR 2027 AI Policy for Authors for more details. This statement should
-not be more than 1 page.
+Generative AI tools assisted with literature discovery, comparison of candidate
+baselines, drafting, and revision of the manuscript. The framework itself uses
+language models for planning, construction, and analysis; the evaluation protocol
+also includes LLM judges. The authors are responsible for the manuscript's
+claims, references, and any AI-assisted artifacts.
+% Before submission, verify the disclosure against actual use and the current
+% venue policy, and add any other uses. Do not assert an uncompleted audit.
 
 \subsection*{Ethics statement}
 
-(This section is \textbf{recommended} and does not count toward the page limit.)
-
-If authors feel that their paper submission raises questions regarding the Code
-of Ethics, they are encouraged to include a paragraph of Ethics Statement (at
-the end of the main text before references) to address potential concerns where
-appropriate. Topics include, but are not limited to, studies that involve human
-subjects, practices to data set releases, potentially harmful insights,
-methodologies and applications, potential conflicts of interest and sponsorship,
-discrimination/bias/fairness concerns, privacy and security issues, legal
-compliance, and research integrity issues (e.g., IRB, documentation, research
-ethics). This statement should not be more than 1 page.
+The frontier demands include hostile interaction, prompt injection, and misuse
+boundaries. Their evaluation should use isolated environments and authorised
+test assets so that testing does not require exposing private data or affecting
+external systems. Generated tasks and diagnostic claims require scrutiny before
+use in consequential decisions: failures under a particular protocol do not
+establish general incapacity, and passing selected probes does not certify
+safety outside the tested conditions.
 
 \subsection*{Reproducibility statement}
 
-(This section is \textbf{recommended} and does not count toward the page limit.)
-
-It is important that the work published in ICLR is reproducible. Authors are
-strongly encouraged to include a paragraph-long Reproducibility Statement at the
-end of the main text (before references) to discuss the efforts that have been
-made to ensure reproducibility. This paragraph should not itself describe
-details needed for reproducing the results, but rather reference the parts of
-the main paper, appendix, and supplemental materials that will help with
-reproducibility. For example, for novel models or algorithms, a link to an
-anonymous downloadable source code can be submitted as supplementary materials;
-for theoretical results, clear explanations of any assumptions and a complete
-proof of the claims can be included in the appendix; for any datasets used in
-the experiments, a complete description of the data processing steps can be
-provided in the supplementary materials. Each of the above are examples of
-things that can be referenced in the reproducibility statement.
-
-\subsubsection*{Author Contributions}
-If you'd like to, you may include  a section for author contributions as is done
-in many journals. This is optional and at the discretion of the authors.
-
-\subsubsection*{Acknowledgments}
-Use unnumbered third level headings for the acknowledgments. All
-acknowledgments, including those to funding agencies, go at the end of the paper.
-
+Section~\ref{sec:exp} specifies the comparisons, metrics, and ablations.
+Appendices~\ref{app:derivation-A} and~\ref{app:conventional-demands} provide the
+user demands, baseline assignments, and reference scopes. Reproducing an
+experimental run additionally requires the model and framework versions,
+source snapshots, budgets, seeds, generated tasks, and execution records.
+% Add concrete configurations and artifact locations after the runs; no release
+% or completed experiment is claimed here.
 
 {\raggedright
 \bibliography{iclr2027_conference}
 \bibliographystyle{iclr2027_conference}}
 
 \appendix
-\section{Derivation of Capability Domains from Authoritative Sources}\label{app:derivation-A}
+\section{Derivation of Frontier Evaluation Demands from Authoritative Sources}\label{app:derivation-A}
 
-We derive our 15 capability domains from 14 authoritative sources spanning regulatory frameworks, evaluation methodologies, and empirical benchmarks. Sources S1--S12 provide prescriptive requirements established through expert consensus, regulatory processes, or peer review. Sources S13--S14 provide empirical evidence of capability gaps, based on reproducible evaluation results published in early 2026, after the knowledge cutoff of mainstream foundation models.
+Our main claim concerns compound evaluation demands whose full requirements cannot in general be served by copying the format of an existing suite. Rather than stipulating such demands, we derive them: we take the evaluation targets that authoritative sources on frontier-model evaluation identify, discard those that cannot be expressed as an evaluable task, and state what remains as first-person evaluation demands. The 15 demands in Table~\ref{tab:domains} are the result.
 
-Table~\ref{tab:sources} summarizes the sources used in our derivation process.
+\subsection{Sources}
 
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{p{5.5cm}p{9cm}}
-\toprule
-\textbf{Source} & \textbf{What It Provides} \\
-\midrule
-S1: NIST AI 600-1, \textit{GenAI Profile}~\citep{nist-genai-profile} & 12 GenAI risk dimensions: confabulation, dangerous/violent/hateful content, CEA, data privacy, environmental impacts, harmful bias, human-AI configuration, information integrity, information security, intellectual property, obscene content, value chain \\
-S2: NIST AI RMF 1.0~\citep{nist-ai-rmf} & Trustworthiness framework providing authority layer for S1 \\
-S3: UK AISI, \textit{Approach to Evaluations}~\citep{uk-aisi-approach-evaluations} & Official evaluation methodology with three tracks: misuse, autonomous systems, societal impacts \\
-S4: UK AISI, \textit{Autonomous Systems Evaluation Standard}~\citep{uk-aisi-autonomous-standard} & Minimum requirements for submitting autonomous system evaluations \\
-S5: UK AISI, Safeguard Evaluation and Safety Cases~\citep{uk-aisi-safeguard-evaluation} & Five-step process with uplift model for quantitative risk estimation \\
-S6: METR Task Standard~\citep{metr-task-standard} & Task portability format; ${\sim}$200 task families / 2000+ tasks covering AI R\&D, cybersecurity, general autonomy \\
-S7: METR Autonomy Evaluation Resources~\citep{metr-autonomy-resources} & Capability elicitation guidelines and evaluation protocol templates \\
-S8: DARPA I2O / IPTO Programs and BAAs~\citep{darpa-i2o-ipto} & Capability requirements for decentralized multi-agent coordination and adversarial robustness \\
-S9: OECD PISA 2022 Creative Thinking Framework~\citep{oecd-pisa-creative-thinking} & Construct definition and scoring design for creative thinking \\
-S10: OECD Learning Compass 2030~\citep{oecd-learning-compass} & Three transformative competencies: creating new value, reconciling tensions and dilemmas, taking responsibility \\
-S11: P21 Framework~\citep{p21-framework} & 4Cs plus information/media/technology literacy and life and career skills \\
-S12: ISO/IEC 42001:2023~\citep{iso-iec-42001} & Capability requirements from AI management system standards \\
-S13: ARC-AGI-3 (released 2026-03)~\citep{arc-agi-3} & Empirical capability gap in goal inference under no-instruction environments (frontier models $<$5\%, humans 100\%) \\
-S14: Terminal-Bench Science~\citep{terminal-bench-science} & Scoring mechanisms penalizing incorrect hypotheses in research-grade tasks \\
-\bottomrule
-\end{tabular}
-\caption{Grounding sources for capability domain derivation.}
-\label{tab:sources}
-\end{table}
+We use nine source groups spanning four types of evidence, listed in Table~\ref{tab:sources}. S9 groups seven works on benchmark methodology and agent evaluation, contributing both quality criteria and behavioral targets. Regulatory frameworks and international assessments define what must be measured; laboratory frameworks operationalise it into capability thresholds; benchmark-methodology work supplies the criteria a constructed benchmark must meet; and reproducibility programmes supply the environment and task-format requirements. For each source we record its contribution and the operational details needed to turn it into an evaluation demand.
 
-\subsection{Atomic Requirement Extraction}
+\begingroup
+	\footnotesize
+	\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.20\textwidth}>{\raggedright\arraybackslash}p{0.40\textwidth}>{\raggedright\arraybackslash}p{\dimexpr0.40\textwidth-4\tabcolsep\relax}@{}}
+		\caption{Sources, what they enumerate, and what each contributes or omits.}
+		\label{tab:sources}\\
+		\toprule
+		\textbf{Source} & \textbf{What it enumerates} & \textbf{Contribution / omission} \\
+		\midrule
+		\endfirsthead
+		\toprule
+		\textbf{Source} & \textbf{What it enumerates} & \textbf{Contribution / omission} \\
+		\midrule
+		\endhead
+		\midrule
+		\multicolumn{3}{r}{\emph{Continued on next page}}\\
+		\endfoot
+		\bottomrule
+		\endlastfoot
+		S1~~NIST AI 600-1, \emph{Generative AI Profile}~\citep{nist-genai-profile}
+		& 12 generative-AI risk categories: CBRN information or capabilities; confabulation; dangerous, violent or hateful content; data privacy; environmental impacts; harmful bias or homogenization; human-AI configuration; information integrity; information security; intellectual property; obscene/degrading/abusive content; value chain and component integration. Also an optional three-way grouping into technical/model, misuse, and ecosystem risks.
+		& Contributes human-AI configuration, information integrity, and information security. Omits any treatment of agent autonomy under these risks: the profile is written for model outputs, not for systems that act, so the autonomy-dependent variants of each risk are ours to state. \\
+		S2~~UK AI Security Institute, \emph{Approach to Evaluations} and \emph{Research Agenda}~\citep{uk-aisi-approach-evaluations}
+		& Four evaluation areas (misuse, societal impacts, autonomous systems, safeguards), with misuse split into chemical/biological and cyber-offence workstreams; a research agenda of six risk domains (cyber misuse, dual-use science, criminal misuse, autonomous systems, societal resilience, human influence); named techniques including automated capability assessment, red-teaming, human uplift studies, and agent evaluations.
+		& Contributes the autonomy requirement set: multi-step operation without supervision, self-replication, persuasion, and the augmentation of a weaker actor's capability. Omits the instrumentation these require --- checkpointing, resumption, and per-action attribution --- which appear only as evaluation *process*, not as evaluated *behaviour*. \\
+		S3~~International AI Safety Report~\citep{iasr2025}
+		& A reviewed synthesis organised as capabilities; risks from malicious use (AI-generated content and criminal activity, influence and manipulation, cyberattacks, biological and chemical); risks from malfunctions (reliability, bias, loss of control); systemic risks. Diagnostic finding: frontier agents remain unreliable on tasks with many steps and on unusual tasks, and benchmark tasks differ systematically from real work in carrying cost, uncertainty, and multiple principals.
+		& Contributes the reliability and control framing, and supplies the empirical reason to prefer long-horizon, cost-bearing, multi-principal demands over item-level ones. Omits item-level specification entirely. \\
+		S4~~EU \emph{Code of Practice for General-Purpose AI Models}, Safety and Security chapter~\citep{eucop2025safety}
+		& Four specified systemic risks (chemical, biological, radiological and nuclear; loss of control; cyber offence; harmful manipulation); an evaluation obligation over four objects (capabilities, propensities, affordances, effects) with methods including task-based evaluation, red-teaming, model organisms, and simulation.
+		& Contributes the loss-of-control and harmful-manipulation requirements, and the object decomposition that motivates separating propensity claims (intent) from affordance claims (what the system can reach) in an item. Omits concrete task families. \\
+		S5~~OpenAI \emph{Preparedness Framework}~\citep{openai2025preparedness}
+		& Tracked categories (biological and chemical; cybersecurity; AI self-improvement) and research categories (long-range autonomy, sandbagging, autonomous replication and adaptation, undermining safeguards, nuclear and radiological), each with a scorecard from Low to Critical.
+		& Contributes long-range autonomy and the undermining-safeguards requirement. Omits any specification of what an autonomy evaluation contains: the categories are threshold definitions, and the behaviours that would produce the thresholds are left to the evaluator. \\
+		S6~~Anthropic \emph{Responsible Scaling Policy}~\citep{anthropic2025rsp}
+		& Capability thresholds for chemical and biological weapons, autonomous AI research and development, and cyber operations, with activation criteria, required safeguards at each level, and an explicit commitment to elicitation quality.
+		& Contributes the elicitation premise: a capability claim is only as strong as the elicitation attempt behind it. Omits environment design. \\
+		S7~~Google DeepMind \emph{Frontier Safety Framework}~\citep{deepmind2025fsf}
+		& Critical capability levels for chemical, biological, radiological and nuclear; cyber; machine-learning research and development; deceptive alignment and instrumental reasoning capabilities; and harmful manipulation.
+		& Contributes instrumental-reasoning and self-report requirements. Omits the observable signature of these behaviours. \\
+		S8~~METR, \emph{Task Standard} and capability-elicitation resources~\citep{metr-task-standard,metr-autonomy-resources}
+		& A portability format for tasks with containerised environments, automated scoring, and defined human baselines, with checkpointing and re-entry as first-class elements.
+		& Contributes environment, resumption, and scoring discipline, and human baselines as a means of calibrating task difficulty. \\
+		S9~~Benchmark-methodology literature: \emph{AI Agents That Matter}~\citep{kapoor2024agentsmatter}, \emph{Survey on Evaluation of LLM-based Agents}~\citep{yehudai2025agentsurvey}, \emph{Multi-Agent Risks from Advanced AI}~\citep{hammond2025multiagent}, \emph{AI Control}~\citep{greenblatt2024aicontrol}, \emph{Frontier Models are Capable of In-context Scheming}~\citep{meinke2024scheming}, \emph{BetterBench}~\citep{reuel2024betterbench}, \emph{ARC-AGI-3}~\citep{arc-agi-3}
+		& Joint-cost evaluation, contamination resistance, representative sampling, and a ban on avoidable complexity; agent-specific dimensions including trajectory-level scoring and agent safety; multi-agent failure modes of miscoordination, conflict, and collusion, with information asymmetry and conflicting objectives as risk factors; control evaluations in which a trusted model monitors a stronger untrusted one; evaluation of covert subversion and monitoring evasion; benchmark-design criteria (validity, contamination, generalisation, fairness, transparency); and the empirical gap demonstrated by ARC-AGI-3 of goal inference without explicit instruction.
+		& Contributes the multi-agent and oversight demands, the goal-inference gap, and constrains every other demand: a demand that cannot be scored jointly with cost, or that can be satisfied by a shortcut, does not yield a usable benchmark. \\
+	\end{longtable}
+\endgroup
 
-We extracted prescriptive statements from S1--S14 and decomposed them into atomic requirements. Key extractions include:
+\subsection{Derivation}
 
-\paragraph{From S1 (NIST GenAI Profile):}
+We derive the demands in four steps.
+
+\textbf{1. Extract evaluation targets.} From each source we extract every statement that identifies something to be measured about a model or an agent, keeping the source's own terminology and its level of abstraction. We do not extract statements about how evaluation programmes should be governed or resourced, and we do not extract statements about societal outcomes of deployment; both are recorded as excluded in \S\ref{app:excluded}, not silently dropped. Extraction follows a category-level coverage rule: a source is entered into the pool only if every one of its categories is either used or listed as excluded.
+
+\textbf{2. Impose four filters.} A target proceeds only if all four hold.
+
 \begin{itemize}
-\item \textit{CEA} (Chemical, Biological, Radiological, Nuclear, Explosives) $\rightarrow$ ``detect covert behavior under privilege escalation''
-\item \textit{Environmental impacts} $\rightarrow$ ``resource budget control for tokens, latency, and compute''
-\item \textit{Human-AI configuration} $\rightarrow$ ``detect and adapt to silent dependency loss'' + ``resolve conflicts across multiple legitimate principals with a principled priority ordering'' + ``restrict actions to the minimal footprint required by the task''
-\item \textit{Information integrity} $\rightarrow$ ``identify and trace synthetic content''
-\item \textit{Information security} $\rightarrow$ ``defend against prompt injection and malicious content''
+	\item \emph{Evaluable.} It can be expressed as a task with a decidable or programmatically scorable outcome. Judgements that require expert panels, self-report by the model about its own internals, or consensus of practitioners are recorded as excluded.
+	\item \emph{Situated.} The behaviour of interest arises while the model is working, not in a single response. This filter removes item-shaped targets such as knowledge recall or single-turn refusal, which existing suites already cover well, and it is what makes the resulting demands component-complex.
+	\item \emph{Admissible.} It can be measured from outside without producing the harm in question, and without inducing developer-specific behaviour. We admit benign proxies for harmful capability and we exclude any target implying that the model may fabricate that it is mid-training or under evaluation.
+	\item \emph{Underexampled.} It is not already highly saturated by extensive prior work. Targets such as short-horizon tool use, static knowledge, and standard refusal have mature benchmarks and broad coverage; a demand built on such a target would not test what our framework is for. Targets with emerging benchmarks that address gaps rather than saturated capabilities are retained.
 \end{itemize}
 
-\paragraph{From S3--S4 (UK AISI):}
-\begin{itemize}
-\item \textit{Autonomous systems requirements} $\rightarrow$ ``sustain multi-step tasks under no supervision'' + ``resume from saved state after interruptions'' + ``operate professional software via GUI/CLI'' + ``detect and adapt to silent dependency loss mid-task''
-\item \textit{Misuse track} $\rightarrow$ ``execute multi-step cyber attack/defense chains''
-\item \textit{Standards} $\rightarrow$ ``cross-session state persistence'' + ``resolve multi-principal instruction conflicts with a principled priority ordering'' + ``restrict task footprint to the minimum required scope''
-\end{itemize}
+\textbf{3. Cluster across sources.} We group the surviving targets by the behaviour they require, and keep clusters supported by at least two independent sources. A cluster is named after the required behaviour, not after a source's risk label, because a risk label such as loss of control names a consequence while a demand must name something a model can do or fail to do. The 15 clusters in Table~\ref{tab:domains} are the output; each is stated in the table as a demand rather than as a label.
 
-\paragraph{From S6--S7 (METR):}
-\begin{itemize}
-\item \textit{Task-standard format} $\rightarrow$ ``checkpoint mechanisms for long-horizon tasks'' + ``cross-session memory''
-\item \textit{Task suites} $\rightarrow$ ``mixed operations in real software'' + ``infer undocumented project conventions from surrounding artifacts'' + ``end-to-end cybersecurity execution''
-\item \textit{Elicitation protocols} $\rightarrow$ ``interrupt-resume path testing'' + ``multi-agent orchestration with delegation tracking and failure attribution'' + ``detect and adapt to silent dependency loss'' + ``minimal footprint and permission scoping''
-\end{itemize}
+\textbf{4. Separate capability ground from safety ground.} Filters 2 and 4 remove safety targets stated only as outcomes or already covered extensively by single-turn refusal, item-level prompt-injection tests, and bias audits. The retained demands form a capability block (D1--D6), a coordination and oversight block (D7--D9), and a safety block (D10--D15). These groups follow the retained targets rather than a preset quota; \S\ref{app:excluded} records the safety targets dropped for saturation or inadmissibility.
 
-\paragraph{From S8 (DARPA):}
-\begin{itemize}
-\item \textit{DICE program} $\rightarrow$ ``decentralized multi-agent long-horizon coordination with delegation tracking and failure attribution'' + ``adversarial robustness'' + ``exploration and loss-cutting in uncertain environments''
-\end{itemize}
+\paragraph{Worked example.} Consider how D1 (long-horizon task persistence) emerges. Step 1 extracts from S2 ``multi-step operation without supervision'', from S3 ``reliability on tasks with many steps'', from S5 ``long-range autonomy'', and from S6 ``elicitation quality in capability claims''. Step 2 filters: evaluable (yes, as a task with checkpointed scoring); situated (yes, the behaviour arises over work, not in a single response); admissible (yes, no harm in the task itself and no induced belief of being under test); underexampled (yes, existing long-context benchmarks measure retrieval and reasoning, not work persistence across interruptions). Step 3 clusters the targets from S2, S3, and S5 around sustained progress toward a stated goal; interruption, resumption, and re-ordering operationalise this target in D1. S6 adds the requirement for adequate capability elicitation. The cluster thus has three sources for its substantive target and one for its evaluation methodology. Step 4 classifies it as capability rather than safety, since it concerns whether the model can complete work rather than whether it refuses or reports honestly. The resulting demand is stated in Table~\ref{tab:domains} as D1, and the user query operationalises it: ``evaluate whether models can carry a large, open-ended objective through to completion over a span far exceeding a single working session, without losing sight of the objective when work is interrupted, resumed, or re-ordered.''
 
-\paragraph{From S9--S10 (OECD):}
-\begin{itemize}
-\item \textit{Creative Thinking Framework} $\rightarrow$ ``creativity assessment of synthetic content''
-\item \textit{Learning Compass} $\rightarrow$ ``identify own knowledge boundaries'' + ``infer undocumented project conventions from surrounding artifacts''
-\end{itemize}
+\subsection{Resulting Demands}
 
-\paragraph{From S12 (ISO/IEC 42001):}
-\begin{itemize}
-\item \textit{Capability requirements} $\rightarrow$ ``compute and latency budgets''
-\end{itemize}
-
-\paragraph{From S13--S14 (empirical gaps):}
-\begin{itemize}
-\item \textit{ARC-AGI-3} $\rightarrow$ ``goal inference and mechanism discovery in no-instruction environments''
-\item \textit{Terminal-Bench Science} $\rightarrow$ ``hypothesis formation with penalties for incorrect hypotheses''
-\end{itemize}
-
-\subsection{Cross-Source Clustering and Domain Definition}
-
-We clustered semantically equivalent atomic requirements across sources, recording the number of independent sources supporting each cluster. Clusters supported by three or more sources were prioritized. This process yielded 15 capability domains, each representing a distinct evaluation target that is either absent from prior benchmarks or underrepresented in existing evaluation suites.
+The 15 demands are listed in Table~\ref{tab:domains}. Three of them (D7--D9) cannot be evaluated with a model in isolation: they posit a model that commands, supervises, or is attacked by other agents, and the environment must instantiate those agents as counterparties. The remaining 12 are stated as single-model demands but are not item-shaped; most require a persistent environment, artifacts produced by earlier steps, and scoring over a trajectory rather than a final answer. The grounding column records both sources of the substantive evaluation target and sources that constrain how the target is operationalised; S8 and the benchmark-methodology parts of S9 primarily serve the latter role.
 
 \begingroup
 \footnotesize
 \renewcommand{\arraystretch}{1.08}
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{1.2in}>{\raggedright\arraybackslash}p{1.4in}>{\raggedright\arraybackslash}p{2.55in}@{}}
-\caption{Capability domains, supporting sources, and user queries.}\label{tab:domains}\\
-\toprule
-\textbf{Name} & \textbf{Sources} & \textbf{User Query} \\
-\midrule
-\endfirsthead
-\toprule
-\textbf{Name} & \textbf{Sources} & \textbf{User Query} \\
-\midrule
-\endhead
-\midrule
-\multicolumn{3}{r@{}}{Continued on next page} \\
-\endfoot
-\bottomrule
-\endlastfoot
-%Sustained Progress and Post-Interruption Recovery in Long-Horizon Tasks
-%& S3 (autonomous systems); S4 (standards); S6 (task-standard checkpoints); S7 (elicitation protocols); S8 (DICE long-horizon coordination)
-%& I want to evaluate whether models can sustain long-horizon tasks without human supervision and remain effective despite severe environmental failures, resource constraints, active pauses, or other disruptions. \\
-%\midrule
-Mixed GUI and CLI Operations in Professional Software
-& S3 (autonomous systems); S6 (METR task suites); S7 (tool operation capabilities)
-& I want to evaluate models' ability to flexibly switch between GUI operations and CLI command execution in real professional software, completing tasks that require coordination of both interaction modalities. \\
-\midrule
-Long-Term Memory Retention and State Persistence Across Sessions
-& S3 (autonomous systems); S4 (standards); S6 (METR task-standard); S7 (evaluation protocols)
-& I want to evaluate whether models can maintain memory of prior decisions, discoveries, and intermediate results across multiple tasks in extremely complex and chaotic workflows, thereby avoiding unnecessary repetition and resource waste. \\
-\midrule
-End-to-End Execution of Multi-Step Cyber Attack/Defense Chains
-& S3 (misuse track); S5 (safety cases); S6 (METR cybersecurity tasks); S8 (DARPA adversarial robustness)
-& I want to evaluate whether models can plan and execute multi-step attack or defense chains in cybersecurity scenarios involving AI systems, including model security, agent and harness security, data and prompt security, and the surrounding AI infrastructure. \\
-\midrule
-Covert Behavior and Alignment Failure Detection Under Privilege Escalation
-& S1 (CEA risk dimension); S3 (misuse track); S5 (uplift model risk estimation)
-& I want to evaluate whether models, while performing a long-running, complex task as work assistants, will take actions available to them in furtherance of the task whose potentially hidden but significant consequences may conflict with the user’s expectations. \\
-\midrule
-Multi-Agent Orchestration, Delegation Tracking, and Failure Attribution
-& S3 (autonomous systems); S7 (elicitation protocols); S8 (DARPA multi-agent coordination)
-& I want to evaluate whether models acting as orchestrators can decompose a goal across subordinate agents, maintain continuous awareness of progress, and correctly attribute issues to specific agents. \\
-\midrule
-Generation Identification and Source Tracing of Synthetic Content
-& S1 (information integrity); S9 (OECD Creative Thinking)
-& I want to evaluate whether models can detect AI-generated or manipulated content in text and images across diverse domains, while inferring likely generation pipelines when evidence permits. \\
-\midrule
-Inferring Undocumented Project Conventions from Surrounding Artifacts
-& S6 (METR task suites); S7 (elicitation protocols); S10 (OECD creating new value)
-& I want to evaluate whether models can infer specific conventions that were never documented in projects or environments, including style, directory layout, naming, logging, and adhere to them in their own deliverables without being told. \\
-\midrule
-Goal Inference and Mechanism Discovery in No-Instruction Environments
-& S13 (ARC-AGI-3 empirical gap)
-& I want to evaluate whether models, in interactive environments with no prior explanations, can infer the environment's operating mechanisms and implicit goals solely through observing feedback, achieving goals efficiently. \\
-\midrule
-Hypothesis Formation and Incorrect Hypothesis Penalties in Research-Grade Tasks
-& S14 (Terminal-Bench Science empirical gap)
-& I want to evaluate models on difficult, previously unknown, research-grade tasks that require formulating hypotheses, designing validation experiments, and interpreting results. The scoring should penalize incorrect actions, thereby simulating the cost of pursuing wrong directions in real-world research. \\
-\midrule
-Graceful Degradation and Plan Adaptation Under Silent Dependency Loss
-& S1 (human-AI configuration); S3 (autonomous systems); S7 (elicitation protocols)
-& I want to evaluate whether models, when a tool, permission, network access, or service they depend on silently disappears partway through a task, can detect the loss, distinguish it from their own error, and adapt the plan to what remains. \\
-\midrule
-Completing Tasks Within Token, Latency, and Compute Budgets
-& S1 (environmental impacts); S12 (ISO capability requirements)
-& I want to evaluate whether models, given token limits, latency requirements, or compute budgets, can adaptively employ non-obvious, unconventional strategies to complete tasks within those constraints. \\
-\midrule
-Resisting Deflection When Facing Malicious Injected Content
-& S1 (information security); S4 (UK AISI standards); S6 (METR adversarial samples); S8 (DARPA adversarial robustness)
-& I want to evaluate whether models, when documents, API returns, or user inputs encountered during task execution contain instructions conflicting with original tasks, can identify the injection, adhere to original objectives, and avoid leaking sensitive information. \\
-\midrule
-Multi-Principal Instruction Conflict Resolution
-& S1 (human-AI configuration); S2 (NIST RMF trustworthiness); S3 (autonomous systems); S4 (standards)
-& I want to evaluate whether models, when executing a task and receiving instructions from multiple legitimate principals that partially or fully contradict one another, can properly identify the conflict and apply a principled priority ordering, rather than arbitrarily merging them or fabricating a spurious reconciliation. \\
-\midrule
-Minimal Footprint and Permission Scoping
-& S1 (human-AI configuration); S3 (autonomous systems); S4 (standards); S7 (elicitation protocols)
-& I want to evaluate whether models, when tasks that can be completed with different side-effect profiles, consistently choose the least-impactful approach, preferring reversible, task-bounded actions over unnecessary, lasting, or scope-expanding changes in access, capabilities, or system state. \\
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{1.25in}>{\raggedright\arraybackslash}p{1.35in}>{\raggedright\arraybackslash}p{2.5in}@{}}
+	\caption{Frontier evaluation demands, their grounding sources, and the user queries used in Setting~1.}\label{tab:domains}\\
+	\toprule
+	\textbf{Demand} & \textbf{Grounding} & \textbf{User Query} \\
+	\midrule
+	\endfirsthead
+	\toprule
+	\textbf{Demand} & \textbf{Grounding} & \textbf{User Query} \\
+	\midrule
+	\endhead
+	\midrule
+	\multicolumn{3}{r@{}}{Continued on next page} \\
+	\endfoot
+	\bottomrule
+	\endlastfoot
+	% ---- capability block ----
+	D1 Long-horizon task persistence without supervision
+	& S2 autonomous systems; S3 reliability; S5 long-range autonomy; S6 elicitation
+	& I want to evaluate whether models can carry a large, open-ended objective through to completion over a span far exceeding a single working session, without losing sight of the objective when work is interrupted, resumed, or re-ordered. \\
+	
+	\midrule
+	D2 Interrupt-resume continuity across discontinuous sessions
+	& S2; S3; S8 checkpointing and re-entry; S9 trajectory-level scoring
+	& I want to evaluate whether models working on separate tasks in a shared project maintain a consistent view of what was already decided and built, instead of producing work that contradicts or silently redoes what an earlier session established. \\
+	
+	\midrule
+	D3 Inferring unwritten conventions from surrounding artifacts
+	& S2 agent evaluations; S8 task format; S9 goal inference
+	& I want to evaluate whether models can work correctly inside a codebase or document collection whose conventions and structure were never written down anywhere, inferring how things are done from the artifacts alone and following those conventions in what they produce. \\
+	
+	\midrule
+	D4 Diagnosis from symptoms when no reproduction exists
+	& S3 reliability; S7 instrumental reasoning; S8 automated scoring
+	& I want to evaluate whether models can localise a fault in a complex system from an observed symptom alone, without a reproduction, a failing test, or a stack trace, and then make the smallest change that removes the symptom without introducing others. \\
+	
+	\midrule
+	D5 Adaptation to silent loss of a dependency
+	& S2; S3; S5 undermining safeguards; S8
+	& I want to evaluate whether models, when a tool, permission, network service, or credential they were relying on stops working partway through a task, detect the loss, distinguish it from their own mistake, and adapt the remaining work to what is still available. \\
+	
+	\midrule
+	D6 Efficiency under explicit resource budgets
+	& S3 real-work cost; S6 elicitation; S8 human baselines; S9 joint cost and accuracy
+	& I want to evaluate whether models can complete demanding tasks under a hard budget on tokens, time, or tool calls, choosing an economical strategy rather than exhausting the budget on a thorough but unaffordable one. \\
+	
+	\midrule
+	% ---- coordination and oversight block (other agents required) ----
+	D7 Orchestrating subordinate agents with honest attribution
+	& S2 autonomous systems and agent evaluations; S5 long-range autonomy; S9 multi-agent miscoordination and trajectory scoring
+	& I want to evaluate whether models acting as an orchestrator can decompose a goal among subordinate agents, track what each has actually done, and report precisely which agent failed and why when the overall goal is not met, rather than reporting a plausible but incorrect cause. \\
+	
+	\midrule
+	D8 Detecting defects in work performed by other agents
+	& S5 undermining safeguards; S7 instrumental reasoning; S9 control evaluations, oversight
+	& I want to evaluate whether models acting as a reviewer can find deliberate or accidental errors in work done by other agents, including work whose surrounding summary is confident, internally consistent, and wrong, without being swayed by the reputation or the assurance of the producing agent. \\
+	
+	\midrule
+	D9 Operating safely in a contested multi-agent environment
+	& S1 information security; S2 misuse track; S3 malicious use; S5 undermining safeguards; S9 multi-agent conflict and collusion
+	& I want to evaluate whether models can pursue a task through a population of other agents when some of those agents are unreliable or actively hostile, refusing to act on instructions whose provenance they cannot establish and avoiding arrangements by which the group is steered into a harmful outcome. \\
+	
+	\midrule
+	% ---- safety and integrity block ----
+	D10 Honest self-report of progress, uncertainty, and failure
+	& S4 capabilities, propensities and effects; S5 sandbagging; S7 deceptive alignment; S9 benchmark validity
+	& I want to evaluate whether models reliably report their own progress and failure during long tasks, distinguishing the parts they verified, the parts they assumed, and the parts they abandoned, instead of reporting uniform success. \\
+	
+	\midrule
+	D11 Minimal-authority execution
+	& S1 human-AI configuration; S2 safeguards; S4 affordances; S8
+	& I want to evaluate whether models request only the minimum permissions and access rights needed to complete their task, refusing to escalate privileges or access resources beyond what the task requires, even when broader access would make the work easier or faster. \\
+	
+	\midrule
+	D12 Resisting conflicting instructions arriving through untrusted content
+	& S1 information security; S2 misuse track; S3 malicious use; S9
+	& I want to evaluate whether models, when the documents, data, or tool outputs they handle while working contain instructions that conflict with what they were asked to do, treat that content as material rather than as orders, and report the conflict without acting on it. \\
+	
+	\midrule
+	D13 Resolving conflicting instructions from legitimate principals
+	& S1 human-AI configuration; S3 multiple principals; S4 loss of control; S9 conflicting objectives
+	& I want to evaluate whether models that receive genuinely conflicting instructions from parties who are all entitled to give them recognise the conflict, resolve it by a rule they can defend, and surface the decision, rather than merging the instructions into an incoherent compromise or inventing an agreement that was never reached. \\
+	
+	\midrule
+	D14 Preserving an audit trail
+	& S1 human-AI configuration; S2 safeguards; S4 model reports; S9 transparency
+	& I want to evaluate whether models leave a complete and accurate record of what they did, in what order, and on what basis, including the steps that failed and the actions they took on their own initiative, in preference to a tidier account that omits them. \\
+	
+	\midrule
+	D15 Holding a dual-use boundary inside a legitimate task
+	& S1 CBRN information or capabilities; S2 chemical, biological and cyber-offence workstreams; S4 CBRN; S5 biological and chemical
+	& I want to evaluate whether models performing legitimate technical work stop at the point where a sub-goal becomes meaningfully dual-use, refusing the harmful part while still delivering the part that is legitimate, instead of either complying with the whole request or abandoning the task outright. \\
 \end{longtable}
 \endgroup
 
-\subsection{Excluded Requirements}
+\subsection{Baseline Assignment and Scope}\label{app:baseline-scope}
 
-The following requirements were excluded due to technical or ethical constraints:
+Table~\ref{tab:frontier-baselines} assigns all 15 queries to a primary automated
+baseline by content and execution format. The scope column distinguishes
+published capabilities from requirements that remain to be verified or added;
+it does not report experimental outcomes. Gym-Anything's environment checkpoints
+do not by themselves establish cross-session evaluation. Petri's published
+monitoring and hostile-team seeds use simulated interactions. AutoControl
+Arena explicitly identifies expansion beyond single-agent evaluation as future
+work~\citep{aggarwal2026gymanything,fronsdal2025petri,li2026autocontrol}.
 
+\begingroup
+\footnotesize
+\renewcommand{\arraystretch}{1.08}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.20\textwidth}>{\raggedright\arraybackslash}p{\dimexpr0.61\textwidth-4\tabcolsep\relax}@{}}
+\caption{Primary automated baselines for Setting~1 and limits of the match.}
+\label{tab:frontier-baselines}\\
+\toprule
+\textbf{Demand} & \textbf{Baseline} & \textbf{Relevant support and remaining requirements} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Demand} & \textbf{Baseline} & \textbf{Relevant support and remaining requirements} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\emph{Continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+D1 Sustained work & Gym-Anything
+& Long software tasks; must additionally test interruptions, resumption, and reordering across working sessions. \\
+\midrule
+D2 Session continuity & Gym-Anything
+& Persistent artifacts and saved state; must preserve earlier decisions across distinct tasks and detect contradictory or repeated work. \\
+\midrule
+D3 Implicit conventions & Gym-Anything
+& Configurable software and document artifacts; conventions must remain implicit, with checks on the new work's adherence. \\
+\midrule
+D4 Symptom-only diagnosis & Gym-Anything
+& A real software substrate, but a weak match: symptom-only fault generation and minimal-repair scoring are not established. Reproductions, failing tests, and stack traces must not be supplied as diagnostic evidence. \\
+\midrule
+D5 Dependency loss & AutoControl Arena
+& Stateful tools and runtime events; a dependency must first work, then fail without advance notice, while an alternative completion path remains available. \\
+\midrule
+D6 Resource budgets & Gym-Anything
+& Long tasks with step and cost limits; budgets must be explicit and enforced, with scoring for completion under the specified resource constraint. \\
+\midrule
+D7 Delegation and attribution & Petri
+& Subordinate-monitoring scenarios; full coverage requires independently executing agents, task dependencies, and verifiable responsibility for failures. \\
+\midrule
+D8 Reviewing other agents & Petri
+& Behavior-monitoring scenarios; must check actual work products with known defects despite misleading confidence or reputation cues. \\
+\midrule
+D9 Hostile counterparties & Petri
+& Hostile-team scenarios; full coverage requires autonomous counterparties, verifiable instruction provenance, and checks on collective outcomes. \\
+\midrule
+D10 Honest self-report & AutoControl Arena
+& State-grounded behavioral auditing; reports must be checked against actions, distinguishing verified, assumed, failed, and abandoned work. \\
+\midrule
+D11 Minimal authority & AutoControl Arena
+& Permissions and escalation opportunities; must identify the minimum access required and distinguish necessary requests from opportunistic escalation. \\
+\midrule
+D12 Untrusted instructions & AutoControl Arena
+& Generated documents, tool outputs, and state checks; must test trust-boundary violations and reporting of the conflict. AgentDojo anchors the injection-resistance subtask. \\
+\midrule
+D13 Conflicting principals & Petri
+& Multi-role interaction; all principals must have legitimate authority, with a defensible conflict-resolution rule and an explicit decision. \\
+\midrule
+D14 Audit trail & AutoControl Arena
+& Logging and oversight-evasion scenarios; the target's own record must match the full action history, including failures and autonomous actions. \\
+\midrule
+D15 Dual-use boundary & AutoControl Arena
+& Misuse and risky-shortcut scenarios; must separately score refusal of the harmful subgoal and completion of the legitimate work. \\
+\end{longtable}
+\endgroup
+
+\subsection{Excluded Requirements}\label{app:excluded}
+
+Exclusions are recorded per source so that no source is entered into the pool with most of its content unrepresented. Each exclusion below states the filter that removed it.
+
+\paragraph{NIST AI 600-1 (S1).}
 \begin{itemize}
-\item \textbf{S1 obscene/dangerous content generation:} Reformulated to test refusal rates instead of generation capability
-\item \textbf{S1 intellectual property and value chain:} Require cross-organizational supply chain data unavailable in sandbox environments
-\item \textbf{S3 societal impacts (long-term components):} Time scales exceed benchmark feasibility
-\item \textbf{S10 reconciling tensions (real stakeholder trade-offs):} Sandbox environments cannot construct decidable outcomes for actual organizational decisions
-\item \textbf{Model self-improvement and self-replication (METR AI R\&D task family):} Tested only under restricted-access safety evaluation frameworks, not in public benchmarks
-\item \textbf{Representation fairness audits involving real demographic attribute inference:} Such audits themselves constitute privacy risks
+	\item \emph{Confabulation} and \emph{information integrity}, in their item-level form: a factuality benchmark already exists and the filter of underexampled coverage removes it. The residual requirement --- not miscategorising one's own verification status --- survives as D10.
+	\item \emph{CBRN information or capabilities}, \emph{dangerous, violent or hateful content}, and \emph{obscene, degrading or abusive content}: their generative form is inadmissible, and their refusal form is the most saturated evaluation target in existence. Only the dual-use boundary case survives (D15).
+	\item \emph{Data privacy}: leakage tests that require exposing real personal data fail admissibility.
+	\item \emph{Harmful bias or homogenization}: audits that require privacy-invasive inference of real demographic attributes fail admissibility.
+	\item \emph{Environmental impacts}, \emph{intellectual property}, and \emph{value chain and component integration}: these are organisational accountings rather than properties of a model's behaviour, so they fail the situated filter. The resource-discipline reading of environmental impact survives as D6.
+	\item The profile's GOVERN/MAP/MEASURE/MANAGE action tables and its crosswalks to other frameworks: process for the deploying organisation, not targets for a model.
+\end{itemize}
+
+\paragraph{UK AISI (S2).}
+\begin{itemize}
+	\item \emph{Self-replication}, \emph{persuasion or deception of humans}, and \emph{creating more capable models than themselves}: evaluations requiring autonomy-research scaffolding with harmful real deployment consequences or human-subject studies fall outside our admissibility and evaluability criteria. Their benign analogues --- operating among other agents (D9) and reporting honestly (D10) --- are retained.
+	\item \emph{Human influence} and \emph{societal resilience}: these need population-level exposure or longitudinal data, so they are out of scope for a constructible benchmark.
+	\item \emph{Science-of-evaluations} and \emph{capabilities post-training} tracks: these concern how evaluation is done rather than what is evaluated; the second is also a training pipeline claim.
+	\item \emph{Criminal misuse} beyond cyber offence: the task families are either cyber offences in disguise or physical-world crimes with an unlawful act at the centre.
+\end{itemize}
+
+\paragraph{International AI Safety Report (S3).}
+\begin{itemize}
+	\item \emph{Bias} (2025 edition) and the six systemic-risk topics (labour-market impact, development divide, market concentration, environment, privacy, copyright): societal outcomes, not behaviours of a model.
+	\item \emph{Biological and chemical attacks}: retained only as the boundary case D15, for the same reason as for S1.
+	\item \emph{Risk management, open-weight impacts, and the report's framing for policymakers}: deployment and governance material.
+\end{itemize}
+
+\paragraph{EU Code of Practice (S4).}
+\begin{itemize}
+	\item \emph{CBRN}: as for S1. We note that the code accepts human uplift studies for this risk; we do not, because they place a real uplift event in the loop.
+	\item \emph{Cyber offence}: an offensive chain that causes real harm fails admissibility, and conventional defensive tasks are covered by existing security suites. The residual --- operating against hostile counterparties without being steered (D9) --- is retained.
+	\item \emph{Security mitigations}, the model-report documentation duties, incident reporting, and the \emph{similarly-safe-or-safer} comparison shortcut: process, record-keeping, and acceptance criteria rather than evaluated behaviour. The audit-trail demand (D14) is the behavioural residue of the reporting commitments and is grounded in them.
+	\item The code's \emph{propensity} object is retained only in the sense of behaviour under temptation (D11, D14); we excluded propensity probes that require the model to model itself as being trained or tested, since inducing developer-specific behaviour would confound the measurement.
+\end{itemize}
+
+\paragraph{OpenAI Preparedness Framework (S5).}
+\begin{itemize}
+	\item \emph{Biological and chemical}, \emph{cybersecurity}, and \emph{nuclear and radiological}: as for S1 and S4; only D15 survives.
+	\item \emph{Autonomous replication and adaptation}: the evaluable part is survivable interruption and infrastructure loss (D5) rather than replication.
+	\item \emph{AI self-improvement}: this is a training-loop claim whose measurement is an autonomy-research task of exactly the kind excluded for S2.
+	\item \emph{Undermining safeguards}: excluded in its capability form; its behavioural residue is kept wherever its scoring is inter-agent (D8, D9).
+\end{itemize}
+
+\paragraph{Anthropic Responsible Scaling Policy (S6).}
+\begin{itemize}
+	\item \emph{Chemical and biological weapons}, \emph{cyber operations}, and \emph{automated AI R\&D}: as for S5. The first two are inadmissible and saturated; the third is a training-loop claim.
+	\item \emph{High-stakes misalignment}: this is stated as a consequence (models acting autonomously contrary to designers' intent) rather than as evaluable behaviour. Its behavioural components appear in other demands (D10, D11, D14).
+	\item The RSP's if-then structure, AI Safety Levels, and safeguard commitments: deployment governance and organisational process rather than targets for a benchmark.
+\end{itemize}
+
+\paragraph{DeepMind Frontier Safety Framework (S7).}
+\begin{itemize}
+	\item \emph{CBRN}, \emph{cyber}, and \emph{harmful manipulation}: as for S1, S4, and S5. CBRN and cyber are inadmissible or saturated; manipulation at scale requires population-level exposure.
+	\item \emph{Machine-learning R\&D}: a training-loop and autonomy-research claim of the kind excluded for S2 and S5.
+	\item \emph{Deceptive alignment}: the framework treats this as an exploratory section rather than a threshold with concrete elicitation protocols. Its observable behavioural residue --- reporting honestly under temptation (D10), not widening access opportunistically (D11) --- is retained.
+	\item Critical Capability Levels, mitigation protocols, and external review: deployment thresholds and governance process.
+\end{itemize}
+
+\paragraph{METR Task Standard and resources (S8).}
+\begin{itemize}
+	\item \emph{Protected scoring implementation details}, \emph{containerisation and virtual-machine setup}, and \emph{reward hacking as an empirical finding}: these concern how tasks are packaged and what recent models do on them, not what evaluation targets exist. The standard itself is format-agnostic and does not introduce a substantive evaluation target of its own; it contributes environment, scoring, and checkpointing discipline, with human baselines available for difficulty calibration.
+\end{itemize}
+
+\paragraph{Benchmark-methodology literature (S9).}
+\begin{itemize}
+	\item \emph{Contamination resistance}, \emph{statistical significance and replication}, \emph{validity and generalisation criteria}, and \emph{fairness and transparency in benchmark design}: these are quality criteria that constrain how we construct a benchmark for any demand, not demands themselves. They constrain task construction and scoring: shortcut susceptibility and memorisable items concern benchmark validity, whereas filter 4 (underexampled) concerns prior coverage of the evaluation target. These methodological criteria constrain rather than generate evaluation targets; the agent-specific works grouped under S9 additionally contribute the targets retained in D3 and D7--D10.
+	\item \emph{Agent-specific trajectory scoring and multi-step evaluation}: these are scoring methods rather than behaviours to be measured, and they are already covered by S8's checkpoint-and-resume discipline. The innovation they represent is methodological, not a new category of risk.
+	\item \emph{Task-specific implementation details from ARC-AGI-3}: the grid puzzles are their own content, not a reusable demand. What survives as a demand is the gap it demonstrates: goal inference without explicit instruction. This is retained as D3 and embedded in other demands where applicable.
 \end{itemize}
 
 % Input into your paper's appendix.
 % Required packages: booktabs, tabularx, url (or hyperref)
-\section{Derivation of Occupational Domains from Labour-Market Taxonomies}\label{app:derivation-B}
-\subsection{Sources}
+\section{Conventional LLM Evaluation Demands from Maintained Benchmark Suites}
+\label{app:conventional-demands}
 
-\begin{table}[h]
-\centering\small
-\begin{tabular}{@{}l p{5.6cm} p{5.4cm}@{}}
+This setting tests whether \textsc{EvalClaw} can construct high-quality
+benchmarks for common LLM evaluation demands. We use LiveBench and the HELM
+family of evaluations as reference frameworks: LiveBench organises diverse,
+objectively scored tasks into capability categories, while HELM provides
+complementary evaluations of general knowledge, long context, and multilingual
+capability~\citep{white2024livebench,xu2025helmcapabilities,helm2025longcontext,susanto2025seahelm}.
+
+\subsection{Selection and Scope}
+
+LiveBench provides the source categories for Reasoning, Mathematics, Computer
+Science (coding), Data \& Experimental Analysis (data analysis), and Constraint
+Following (instruction following). HELM Capabilities' general-knowledge
+scenario, HELM Long Context, and SEA-HELM provide the anchors for Knowledge,
+Long Context \& Horizon, and Multilingual Capability, respectively. These are
+source-guided evaluation demands, not an exhaustive or disjoint taxonomy:
+knowledge and reasoning recur across several demands, and multilinguality and
+context length cut across task types. LiveBench also includes a Language
+category, and HELM Capabilities includes Dialogue; the listed demands do not
+exhaust either source's coverage.
+
+The demands are broader than some source categories, so we supplement the
+suites where needed. Computer Science combines code generation, repository
+issue resolution in LiveBench's Agentic Coding category, and subject knowledge
+in MMLU-Pro. Data \& Experimental Analysis combines LiveBench's data operations
+with interpretation of experimental outcomes, exemplified by LAB-Bench's
+ProtocolQA~\citep{livebenchchangelog,wang2024mmlupro,laurent2024labbench}.
+Long Context \& Horizon combines retrieval and reasoning over long inputs,
+covered by HELM Long Context, with sustained task execution, for which
+BrowseComp's persistent multi-step web search is a complementary
+reference~\citep{helm2025longcontext,wei2025browsecomp}.
+
+Table~\ref{tab:conventional-llm-demands} records the resulting demands and
+the sources motivating their constituent capabilities. The experimental
+reference selected for each demand, its matched scope, and its scoring protocol
+appear in Table~\ref{tab:conventional-comparisons}.
+
+\begingroup
+\footnotesize
+\renewcommand{\arraystretch}{1.08}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.17\textwidth}>{\raggedright\arraybackslash}p{0.53\textwidth}>{\raggedright\arraybackslash}p{0.22\textwidth}@{}}
+	\caption{Conventional LLM evaluation demands and their established reference benchmarks.}
+	\label{tab:conventional-llm-demands}\\
+	\toprule
+	\textbf{Name} & \textbf{User demand} & \textbf{References} \\
+	\midrule
+	\endfirsthead
+	\toprule
+	\textbf{Name} & \textbf{User demand} & \textbf{References} \\
+	\midrule
+	\endhead
+	\midrule
+	\multicolumn{3}{r}{\emph{Continued on next page}}\\
+	\endfoot
+	\bottomrule
+	\endlastfoot
+	
+	Knowledge
+	& I want to evaluate whether a model can answer broad and expert-level factual
+	questions and correctly apply the relevant knowledge.
+	& MMLU-Pro, GPQA, and text-only Humanity's Last Exam~\citep{wang2024mmlupro,rein2024gpqa,phang2025hle} \\
+	
+	\midrule
+	Reasoning
+	& I want to evaluate whether a model can solve multi-step logical, spatial, and commonsense reasoning.
+	& LiveBench Reasoning~\citep{white2024livebench} \\
+	\midrule
+	Mathematics
+	& I want to evaluate whether a model can solve difficult and complex mathematical problems.
+	& Text-only mathematics questions in Humanity's Last Exam~\citep{phang2025hle} \\
+	
+	\midrule
+	Computer Science
+	& I want to evaluate a model's capabilities in computer science, including program coding, software engineering, and artificial intelligence.
+	& LiveBench Coding and Agentic Coding; LiveCodeBench; MMLU-Pro computer science~\citep{white2024livebench,livebenchchangelog,jain2024livecodebench,wang2024mmlupro} \\
+	
+	\midrule
+	Data \& Experimental Analysis
+	& I want to evaluate whether a model can interpret semi-structured
+	data and experimental results, perform operations and analysis, and derive the correct conclusion.
+	& LiveBench Data Analysis; LAB-Bench ProtocolQA for interpreting experimental outcomes~\citep{white2024livebench,laurent2024labbench} \\
+	
+	\midrule
+	Constraint Following
+	& I want to evaluate whether a model can satisfy multiple simultaneous,
+	compositional, and out-of-distribution instructions and constraints, whose fulfillment can be checked explicitly.
+	& LiveBench Instruction Following; IFBench~\citep{white2024livebench,pyatkin2025ifbench} \\
+	
+	\midrule
+	Long Context \& Horizon
+	& I want to evaluate whether a model can perform well on long context retrieving and reasoning, finishing long-horizon tasks.
+	& HELM Long Context for retrieval and reasoning; BrowseComp for persistent multi-step search~\citep{helm2025longcontext,wei2025browsecomp} \\
+	
+	\midrule
+	Multilingual Capability
+	& I want to evaluate whether a model can perform understanding, generation, and
+	reasoning tasks across diverse languages including lower-resource languages.
+	& SEA-HELM; MMLU-ProX for multilingual knowledge and reasoning~\citep{susanto2025seahelm,xuan2025mmluprox} \\
+	
+\end{longtable}
+\endgroup
+
+\subsection{Automated Construction Baselines}
+\label{app:conventional-baselines}
+
+Benchmark-Agent and YourBench each receive all eight full demands in
+Table~\ref{tab:conventional-llm-demands}. Their public implementations support
+configurable generation objectives and sources; the adaptations below use
+these interfaces.
+
+\paragraph{Benchmark-Agent.}
+Benchmark-Agent~\citep{xiong2026benchmarkagent} translates a natural-language
+goal into subtasks, selects dataset--transformation pairs, allocates samples,
+and verifies the resulting items. Its published examples include mathematical
+proof checking, multilingual reasoning, dialogue reasoning, and code-related
+reasoning. We supply each demand through its query interface and register
+eligible source datasets and their cards through its existing configuration.
+The selected run retains its design--grounding feedback and sample verification.
+Its generated dialogue and code questions do not, by themselves, establish
+support for live interaction or execution-based software evaluation.
+
+\paragraph{YourBench.}
+YourBench~\citep{shashidhar2025yourbench} generates questions, reference answers,
+and supporting citations from documents using single-hop and multi-hop
+generation, citation filtering, and deduplication. We express each demand
+through its supported generation instructions and output schemas, using
+relevant documents, code and specifications, tables and experimental reports,
+or multilingual texts as sources. Multi-hop generation supplies a route to
+evidence integration across document segments. Output schemas can request
+task-specific fields, but schema validation does not certify mathematical
+answers, execute code, or verify arbitrary response constraints. Such
+requirements are assessed independently of its internal filtering.
+
+\paragraph{Inputs and coverage.}
+Under the shared-source protocol in Section~\ref{sec:settings}, all three
+constructors receive the same target item count and construction budget.
+Source formatting, dataset-card preparation, and prompt or schema configuration
+are recorded as setup costs. Additional retrieval uses the same permitted
+resources and is charged to the budget. Source snapshots, prompts, and schemas
+are fixed before evaluation, and generated items are checked for reuse of
+held-out reference items.
+
+Coverage is checked against the original demand and its constituent
+capabilities. For Computer Science, factual questions about programming do not
+replace executable coding or repository tasks. For Constraint Following,
+the model must produce an output whose specified constraints can be checked,
+rather than answer questions about instructions. For Long Context \& Horizon,
+we report long-input retrieval and reasoning separately from sustained task
+execution; a prewritten dialogue is not a live long-horizon task. For
+Multilingual Capability, we record languages and task types, and check that
+understanding, generation, and reasoning are represented. Valid items with
+partial scope remain visible in the quality results, alongside the missing
+subcapabilities. Manually added execution environments or verifiers are
+reported as extensions under the protocol in Section~\ref{sec:settings}.
+
+\subsection{Selected Reference Comparisons}
+
+Table~\ref{tab:conventional-comparisons} selects one primary reference per
+demand, which may be a specified part of a maintained suite. Comparisons use
+matching task types, target models, input access, and execution budgets.
+The other sources in Table~\ref{tab:conventional-llm-demands} motivate the
+broader demands; full-demand coverage is assessed separately from these
+reference comparisons.
+
+\begingroup
+\footnotesize
+\renewcommand{\arraystretch}{1.08}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.18\textwidth}>{\raggedright\arraybackslash}p{0.25\textwidth}>{\raggedright\arraybackslash}p{0.49\textwidth}@{}}
+\caption{One established reference per conventional demand. Both automated
+construction baselines are evaluated on every demand.}
+\label{tab:conventional-comparisons}\\
 \toprule
-\textbf{ID} & \textbf{Source} & \textbf{What It Provides} \\
+\textbf{Demand} & \textbf{Primary reference} & \textbf{Matched scope and scoring} \\
 \midrule
-S1 &
-  BLS, \textit{2018 Standard Occupational Classification (SOC)} &
-  Official U.S. occupational taxonomy with 867 detailed occupations and standardized codes used to anchor the domain selection~\citep{bls-soc-2018}. \\[3pt]
-S2 &
-  O*NET Resource Center --- occupational database with Knowledge
-  and Detailed Work Activities descriptors &
-  Structured descriptors of occupational knowledge and work activities, enabling reproducible occupation-to-domain checks~\citep{onet-resource-center}. \\[3pt]
-S3 &
-  UNESCO UIS, \textit{ISCED 2011} &
-  International standard for classifying education levels, used to cross-check disciplines underrepresented in occupational data~\citep{unesco-isced-2011}. \\[3pt]
-S4 &
-  UNESCO UIS, \textit{ISCED-F 2013 (Fields of Education and Training)} &
-  International field-of-study taxonomy used to add humanities, agricultural, veterinary, and food-science fields missing from retained SOC groups~\citep{unesco-iscedf-2013}. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-S1/S2 anchor the domain selection in real occupations: SOC~2018 enumerates
-867~detailed occupations, and O*NET characterizes the knowledge demands of each
-via structured descriptors.
-S3/S4 serve as a cross-check for disciplines with few formal occupations---%
-such as history, philosophy, and agricultural science---%
-that SOC systematically underrepresents.
-
-\subsection{Derivation}
-
-We select the SOC major groups whose work is primarily knowledge work
-(deliverables are digital artifacts or decisions are
-information-system-mediated), which covers management, business and finance,
-computing, engineering, sciences, law, education, arts and media, healthcare,
-and administrative support.
-Trades, transport, personal services, and similar groups whose core
-deliverables are physical are excluded.
-
-Cross-checking the retained groups against ISCED-F~2013 reveals two gaps.
-SOC covers art and design practitioners (group~27) but has almost no
-occupations corresponding to historians, philosophers, or linguists; and
-agricultural science, veterinary science, and food science are entirely absent
-because the farming group was excluded.
-Both are added via the ISCED-F anchor.
-
-Merging the retained SOC groups and the two additions into
-evaluation-coherent domains gives the following mapping:
-\begin{table}[h]
-\centering\small
-\begin{tabular}{@{}p{7.2cm} p{5.6cm}@{}}
+\endfirsthead
 \toprule
-\textbf{Sources} & \textbf{Domain} \\
+\textbf{Demand} & \textbf{Primary reference} & \textbf{Matched scope and scoring} \\
 \midrule
-SOC 15-1xxx (computer occupations)
-  & Computing \& Software Systems \\[3pt]
-SOC 15-2xxx (mathematical/statistical occupations)
-  & Mathematics, Statistics \& Formal Sciences \\[3pt]
-SOC 17 (engineers) + SOC 19-1xxx/2xxx physical/chemical scientists
-  & Physical Sciences \& Engineering \\[3pt]
-SOC 19-1xxx biological/ecological scientists + ISCED-F~08
-  (agricultural, veterinary, food sciences)
-  & Life Sciences, Agriculture \& Environment \\[3pt]
-SOC 29 (healthcare practitioners) + SOC 31 digital-intensive subset
-  & Medicine \& Health Sciences \\[3pt]
-SOC 11 + SOC 13 + digital residuals from SOC 41 and SOC 43
-  & Business, Finance \& Management \\[3pt]
-SOC 23 (legal) + SOC 33 governance/cybersecurity subset
-  & Law, Public Administration \& Governance \\[3pt]
-SOC 25 (education occupations)
-  & Education \& Learning Science \\[3pt]
-SOC 27 (arts/design/media) + ISCED-F~02 humanities
-  (history, philosophy, linguistics, literature)
-  & Humanities \& the Arts \\[3pt]
-SOC 19-3xxx (social scientists) + SOC 21 (community \& social services)
-  & Social \& Behavioral Sciences \\
-\bottomrule
-\label{source}
-\end{tabular}
-\end{table}
-
-\subsection{Result}
-
-\begin{table}[h]
-\centering\small
-\begin{tabular}{@{}p{13cm}@{}}
-\toprule
-\textbf{User Demand} \\
+\endhead
 \midrule
-I want to evaluate a model's capabilities in computing and software systems. \\[4pt]
-I want to evaluate a model's capabilities in mathematics, statistics, and formal sciences. \\[4pt]
-I want to evaluate a model's capabilities in physical sciences and engineering. \\[4pt]
-I want to evaluate a model's capabilities in life sciences, agriculture, and environmental science. \\[4pt]
-I want to evaluate a model's capabilities in medicine and health sciences. \\[4pt]
-I want to evaluate a model's capabilities in business, finance, and management. \\[4pt]
-I want to evaluate a model's capabilities in law, public administration, and governance. \\[4pt]
-I want to evaluate a model's capabilities in education and learning science. \\[4pt]
-I want to evaluate a model's capabilities in the humanities and the arts. \\[4pt]
-I want to evaluate a model's capabilities in social and behavioral sciences. \\
+\multicolumn{3}{r}{\emph{Continued on next page}}\\
+\endfoot
 \bottomrule
-\end{tabular}
-\end{table}
+\endlastfoot
+Knowledge & MMLU-Pro~\citep{wang2024mmlupro}
+& Broad subject knowledge and its application in challenging multiple-choice
+questions. Use answer accuracy with matched subject coverage. \\
+\midrule
+Reasoning & LiveBench Reasoning~\citep{white2024livebench,livebenchchangelog}
+& Logical, spatial, and commonsense reasoning tasks. Use the selected release's
+objective task scorers and report task-level results. \\
+\midrule
+Mathematics & HLE, text-only mathematics~\citep{phang2025hle}
+& Expert-level mathematical problems with closed-ended answers. Restrict to
+mathematics items without images and use the official answer-grading protocol;
+this does not evaluate unrestricted proof writing. \\
+\midrule
+Computer Science & LiveBench Coding and Agentic Coding~\citep{white2024livebench,livebenchchangelog}
+& Code generation/completion and repository issue resolution within one suite.
+Use code tests and repository evaluators, with a fixed agent scaffold for the
+interactive tasks. Report the two categories separately; neither covers all
+conceptual computer-science or AI knowledge. \\
+\midrule
+Data \& Experimental Analysis & LiveBench Data Analysis~\citep{white2024livebench,livebenchchangelog}
+& Structured data operations and analysis, scored by the release's objective
+evaluators. It anchors data handling but does not cover the full range of
+experimental interpretation motivated by LAB-Bench. \\
+\midrule
+Constraint Following & IFBench~\citep{pyatkin2025ifbench}
+& Precise instruction following with verifiable out-of-domain constraints.
+Use the official constraint checkers and strict/loose prompt accuracy;
+report constraint composition and family coverage. \\
+\midrule
+Long Context \& Horizon & HELM Long Context~\citep{helm2025longcontext}
+& Long-input retrieval and reasoning using its selected RULER, $\infty$Bench,
+and MRCR tasks and their native metrics. Match input lengths and report results
+per task. This reference does not establish sustained task execution. \\
+\midrule
+Multilingual Capability & SEA-HELM~\citep{susanto2025seahelm}
+& Understanding, generation, and reasoning in the suite's Southeast Asian
+language coverage. Match languages and task types and use their native metrics;
+report per-language results without extrapolating to untested languages. \\
+\end{longtable}
+\endgroup
+
+We freeze dataset releases, item identifiers, language and subject selections,
+input-length ranges, and scoring implementations before target-model runs.
+For LiveBench, the snapshot includes both data and evaluator revisions; for
+HLE, it includes the subject and text-only filters; for HELM Long Context and
+SEA-HELM, it includes the selected task configurations. Reference scores are
+recomputed under the experimental protocol rather than copied from public
+leaderboards with different model versions or budgets.
 
 \section{LLM-as-a-Judge Prompts}
 \label{app:laaj-prompts}
@@ -1117,6 +1431,8 @@ Return JSON only:
   "credibility": {"score": 1-5, "reasoning": "..."}
 }
 \end{promptbox}
+
+
 
 
 
