@@ -54,13 +54,20 @@ from ..models.llm import (
 )
 from ..models.roles import role_model_settings
 from ..prompts.task_builder import TASK_BUILDER_TRUNCATION_SUMMARY_PROMPT
-from ..protocols.tool import ToolCall, ToolResult, ToolSpec
+from ..protocols.tool import ToolCall, ToolResult, ToolSpec, object_schema
 from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_anthropic,
     evalclaw_tool_result_to_openai,
     evalclaw_tool_result_to_openai_response_input,
 )
 from ..research.backends import download_url_file, fetch_url_links, fetch_url_text, web_search
+from ..research.documents import (
+    extract_archive,
+    list_archive,
+    local_resource_path,
+    page_payload,
+    read_document,
+)
 from ..types import AgentEnvironmentSpec, BenchmarkConfig, Message
 
 _MAX_DOWNLOAD_URLS = 64
@@ -96,6 +103,15 @@ class TaskBuilderCallError(RuntimeError):
 TASK_BUILDER_TOOL_PROMPT = """\
 You may use the supplied tools when they materially improve task construction.
 Use run_python for computation, validation, or creating and processing task files.
+Use read_document for local UTF-8 text or PDF, including a named ZIP/TAR member.
+Use list_archive to discover members and extract_archive to unpack selected files or all
+files (up to 64 files and 1 GiB per call). Extraction preserves layout and executable
+permissions without running files. Returned paths can be assets or build_image
+context_files sources; set context_files targets for the desired Docker layout. Read
+manifest_path for the full extracted-file list if entries are omitted from the response.
+Follow next_offset with offset for documents, archive listings, fetch_url text, and
+read_research_source retained text. The latter only contains what the Planner retained.
+PDF reading requires pdftotext (Poppler) and does not perform OCR for scanned pages.
 Save required task files in its fixed working directory. Tool results identify files
 with host paths that are available only during construction. Asset paths in the final
 response may use those host paths or paths relative to the fixed Builder job directory;
@@ -622,6 +638,37 @@ TASK_BUILDER_VM_IMAGE_TOOLS = [
 ]
 
 
+TASK_BUILDER_DOCUMENT_TOOLS = [
+    ToolSpec(
+        name="read_document",
+        description="Read a local UTF-8 text file or PDF, optionally a named ZIP/TAR member, without extraction. Follow next_offset for more text. PDF requires pdftotext (Poppler).",
+        parameters=object_schema({
+            "path": {"type": "string", "description": "File inside the Builder directory; absolute or relative path."},
+            "member": {"type": "string", "description": "Optional exact archive member name from list_archive."},
+            "offset": {"type": "integer", "minimum": 0},
+            "max_chars": {"type": "integer", "minimum": 500},
+        }, required=["path"]),
+    ),
+    ToolSpec(
+        name="list_archive",
+        description="List ZIP or TAR (including compressed TAR) members, sizes, and kinds. Follow next_offset for more entries.",
+        parameters=object_schema({
+            "path": {"type": "string"},
+            "offset": {"type": "integer", "minimum": 0},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 200},
+        }, required=["path"]),
+    ),
+    ToolSpec(
+        name="extract_archive",
+        description="Extract selected ZIP/TAR files (or all if members is omitted) into a new Builder directory. Preserves layout and executable permissions; never executes content. Up to 64 regular files and 1 GiB per call. Returns paths usable as assets or build_image context_files sources.",
+        parameters=object_schema({
+            "path": {"type": "string"},
+            "members": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 64},
+        }, required=["path"]),
+    ),
+]
+
+
 TASK_BUILDER_SOURCE_TOOLS = [
     ToolSpec(
         name="read_research_source",
@@ -630,6 +677,7 @@ TASK_BUILDER_SOURCE_TOOLS = [
             "type": "object",
             "properties": {
                 "url": {"type": "string", "description": "URL from source_material_index."},
+                "offset": {"type": "integer", "minimum": 0, "description": "Character offset; follow next_offset to read more retained text."},
                 "max_chars": {
                     "type": "integer",
                     "description": "Maximum retained text characters to return.",
@@ -665,6 +713,7 @@ TASK_BUILDER_SOURCE_TOOLS = [
             "type": "object",
             "properties": {
                 "url": {"type": "string", "description": "Public HTTP(S) URL to inspect."},
+                "offset": {"type": "integer", "minimum": 0, "description": "Character offset; follow next_offset for more page text."},
                 "max_chars": {
                     "type": "integer",
                     "description": "Maximum text characters to return.",
@@ -1580,6 +1629,34 @@ def _execute_task_builder_tool(
                 content=_tool_content(result, max_chars=max_chars),
             )
 
+        if call.name in {"read_document", "list_archive", "extract_archive"}:
+            if work_dir is None:
+                raise ValueError("A Builder working directory is required for local resources.")
+            path = local_resource_path(work_dir, str(args.get("path") or ""))
+            if call.name == "read_document":
+                content = read_document(
+                    path, work_dir / ".document-cache",
+                    member=str(args.get("member") or ""), offset=int(args.get("offset", 0)),
+                    max_chars=_bounded_int(args.get("max_chars"), default=min(8000, max_chars), minimum=500, maximum=max_chars),
+                )
+            elif call.name == "list_archive":
+                content = json.dumps(list_archive(
+                    path, offset=int(args.get("offset", 0)), limit=int(args.get("limit", 50)),
+                    max_chars=max_chars,
+                ), ensure_ascii=False)
+            else:
+                members = args.get("members")
+                if members is not None and (not isinstance(members, list) or not all(isinstance(name, str) for name in members)):
+                    raise ValueError("members must be a list of archive member names.")
+                result = extract_archive(path, work_dir / "resources", members=members)
+                manifest = Path(result["directory"]).with_suffix(".json")
+                write_json(manifest, result)
+                result.update(manifest_path=str(manifest), file_count=len(result["files"]))
+                while len(json.dumps(result, ensure_ascii=False)) > max_chars and result["files"]:
+                    result["files"].pop()
+                content = json.dumps(result, ensure_ascii=False)
+            return ToolResult(tool_call_id=call.id, name=call.name, content=content)
+
         if call.name == "read_research_source":
             url = str(args.get("url") or "").strip()
             brief = config.research_brief
@@ -1601,16 +1678,16 @@ def _execute_task_builder_tool(
             requested_chars = _bounded_int(
                 args.get("max_chars"), default=max_chars, minimum=500, maximum=max_chars
             )
+            offset = int(args.get("offset", 0))
+            if offset < 0:
+                raise ValueError("offset must be nonnegative.")
             return ToolResult(
                 tool_call_id=call.id,
                 name=call.name,
-                content=_tool_content(
-                    {
-                        "url": material.url,
-                        "title": material.title,
-                        "content": material.content[:requested_chars],
-                    },
-                    max_chars=max_chars,
+                content=page_payload(
+                    material.content[offset:offset + requested_chars], offset,
+                    max_chars=max_chars, has_more=offset + requested_chars < len(material.content),
+                    url=material.url, title=material.title, total_characters=len(material.content),
                 ),
             )
 
@@ -1653,7 +1730,10 @@ def _execute_task_builder_tool(
             requested_chars = _bounded_int(
                 args.get("max_chars"), default=max_chars, minimum=500, maximum=max_chars
             )
-            content = fetch_url_text(url, max_chars=requested_chars)
+            offset = int(args.get("offset", 0))
+            if offset < 0 or offset + requested_chars >= _MAX_DOWNLOAD_BYTES:
+                raise ValueError("Page offset must be nonnegative and within the 1 GiB text limit.")
+            content = fetch_url_text(url, max_chars=offset + requested_chars + 1)
             if content is None:
                 return ToolResult(
                     tool_call_id=call.id,
@@ -1664,7 +1744,10 @@ def _execute_task_builder_tool(
             return ToolResult(
                 tool_call_id=call.id,
                 name=call.name,
-                content=_tool_content({"url": url, "content": content}, max_chars=max_chars),
+                content=page_payload(
+                    content[offset:offset + requested_chars], offset, max_chars=max_chars,
+                    has_more=len(content) > offset + requested_chars, url=url,
+                ),
             )
 
         if call.name == "list_url_links":
@@ -1899,6 +1982,7 @@ def run_task_builder_tools(
         maximum=100_000,
     )
     tools = [TASK_BUILDER_PYTHON_TOOL, TASK_BUILDER_READ_TOOL, TASK_BUILDER_WRITE_TOOL, TASK_BUILDER_VIEW_IMAGE_TOOL]
+    tools.extend(TASK_BUILDER_DOCUMENT_TOOLS)
     if _image_generation_configured(config):
         tools.append(TASK_BUILDER_GENERATE_IMAGE_TOOL)
     if include_image_tools:

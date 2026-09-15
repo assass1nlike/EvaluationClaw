@@ -152,11 +152,50 @@ and still runs its Benchmark Design Research search stage.
 
 Each model role has its own connection options. Planner and TaskBuilder roles
 are required for the main pipeline; QC, LaaJ, Research, and the Analyser are optional.
+LLM QC is enabled by default when a QC model is configured; use `--no-llm-qc` to disable it.
 Use `--planner-*`, `--task-builder-*`, `--qc-*`, `--research-*`, and
 `--analyser-*` to configure them independently. Configure `--laaj-*` to score
 benchmark clarity, correctness, faithfulness, and diversity on a 1–5 scale; when
 Analysis runs, it also scores systematicness and credibility. Task-specific judges and dialogue
 simulators are selected with repeated `--task-model` or `--task-config` options.
+
+Builder resource tools read local UTF-8 text and PDFs, inspect ZIP/TAR members,
+and extract selected files or entire archives (up to 64 files and 1 GiB per call).
+Extraction preserves layout and executable permissions; returned paths work as
+task assets or Docker build context sources. Documents, archive listings, web
+page text, and retained Planner text support pagination. Local processing is
+available without web research. PDF text extraction requires Poppler's
+`pdftotext`; scanned-page OCR is not included.
+
+With LaaJ configured, a separate contamination evaluation runs by default;
+disable it with `--no-contamination`. It searches every constructed item unless
+`--contamination-sample-size` sets a stratified sample. A research agent searches,
+opens pages, follows static page links, downloads documents, and revises its
+queries based on the evidence. It keeps looking after the first match and
+records unresolved leads when it stops. Each item has a budget of 40 research
+tool calls, at most 12 queries and 20 distinct source URLs, configurable with
+`--contamination-max-tool-calls`, `--contamination-max-queries`, and
+`--contamination-max-sources`. Search, navigation, inspection, and match
+confirmation all consume the shared tool budget.
+Search uses `--search-backend` (Gemini requires `GEMINI_API_KEY`), independently
+of construction's `--web-research` switch. The LaaJ model drives the research
+agent and, in a separate call, judges confirmed overlaps on a 1–5 resistance
+scale. Agent environment and file inspection tools are available at both stages.
+Only contiguous passages verified against both the task and retrieved original
+text qualify as overlap. The default minimum is 200 characters after whitespace
+normalization (`--contamination-min-overlap-chars`); case and punctuation must
+match exactly. Search-generated summaries alone do not qualify. Reports include the confirmed
+overlap fraction, the mean score conditional on scored matches, and individual
+search/inspection failures. Unmatched items receive no score. Research queries,
+retrieved text, and model exchanges are retained under `contamination/` in the
+debug run directory. Downloads support UTF-8 text, PDF (requires `pdftotext`),
+ZIP and TAR; archives are read without extracting paths or executing contents.
+Downloads are capped at 64 MiB, archives at 64 inspected members and 64 MiB read,
+and each document at 100,000 extracted characters. Later portions of retained
+text can be read in pages. Unreadable, truncated, dynamic, or inaccessible content
+is reported as a coverage limitation. This measures observable reuse, not
+training-data membership or an exhaustive search of the Internet.
+
 For example:
 
 ```bash
@@ -286,6 +325,13 @@ Each run writes:
 - `lm-eval-results/<target>/...` - optional lm-eval-harness results.
 
 ## Notes
+
+When analysis ends, the Analyser returns its narrative and a benchmark grouped
+by observed model weaknesses. Each group contains a name, a brief description,
+and references to selected tasks and target results from the main run
+(`iteration: 0`) or completed probe iterations. The selection must meet the
+original evaluation need and exclude task or infrastructure defects. The
+groups are saved in `analysis/report.json` and displayed in the reports.
 
 The direct runner is the source of truth for rubric-based open-generation tasks.
 The lm-eval runner is currently an interoperability layer and works best for
