@@ -249,6 +249,46 @@ def test_environment_claw_reports_custom_docker_image_build(monkeypatch) -> None
     assert not any(action.action.startswith("pull docker image build://auto") for action in report.actions)
 
 
+def test_environment_claw_checks_external_harness_without_executable_preflight(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.docker_status",
+        lambda **kwargs: DockerStatus(
+            available=True, executable="docker", client_version="1", server_version="1"
+        ),
+    )
+    monkeypatch.setattr(
+        "evalclaw.execution.environment_claw.inspect_docker_image",
+        lambda image, **kwargs: DockerImageProbe(image=image, local=True),
+    )
+    item = BenchmarkItem(
+        id="incompatible",
+        dimension_id="docker",
+        task_type=TaskType.agent,
+        prompt="Complete the task in the container.",
+        metadata={
+            "agent_env": {
+                "type": "docker_workspace",
+                "image": "python:3.11-slim",
+                "runtime_files": {"private.py": "secret"},
+                "test_command": "true",
+            }
+        },
+    )
+    config = BenchmarkConfig(
+        environment_preflight=False,
+        targets=[
+            TargetModelConfig(provider="openai", model="model", harness="openclaw")
+        ],
+    )
+
+    _, report = run_environment_claw([item], config)
+
+    assert item.id in report.blocked_item_ids
+    assert any("runtime_files" in error for error in report.blocking_errors)
+
+
 def test_task_builder_requires_role_key_by_default() -> None:
     dimension = EvalDimension(
         id="agent_capability",

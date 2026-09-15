@@ -60,11 +60,11 @@ from ..protocols.tool_adapters import (
     evalclaw_tool_result_to_openai,
     evalclaw_tool_result_to_openai_response_input,
 )
-from ..research.backends import download_url_file, fetch_url_text, web_search
+from ..research.backends import download_url_file, fetch_url_links, fetch_url_text, web_search
 from ..types import AgentEnvironmentSpec, BenchmarkConfig, Message
 
-_MAX_DOWNLOAD_URLS = 32
-_MAX_DOWNLOAD_BYTES = 256 * 1024 * 1024
+_MAX_DOWNLOAD_URLS = 64
+_MAX_DOWNLOAD_BYTES = 1024 * 1024 * 1024
 _PYTHON_TIMEOUT_SECONDS = 60
 TASK_BUILDER_MAX_OUTPUT_TOKENS = 65_536
 _MAX_IMAGE_BUILDS = 3
@@ -112,7 +112,8 @@ or environment fields. For non-agent tasks, use only stable labels such as ``Ima
 assets-list order as multimodal inputs. Never expose host paths. For agent
 tasks, refer to each asset by the path visible in the agent environment. When source tools are available, use read_research_source to
 inspect text retained by the Planner, search_web for a new query, fetch_url for
-readable public HTTP(S) text, and download_files to persist public files. Do not
+readable public HTTP(S) text, list_url_links to follow links from static landing
+pages, and download_files to persist public files. Do not
 perform ceremonial tool calls, search for secrets, or use hidden evaluator content.
 Use view_image when visual inspection of an image created or downloaded in the Builder
 job directory is needed; the image will be attached to the next model turn. When
@@ -175,6 +176,17 @@ TASK_BUILDER_PYTHON_TOOL = ToolSpec(
 )
 
 
+_DOCUMENT_PATH_SCHEMA = {
+    "type": ["string", "array"],
+    "items": {"type": ["string", "integer"], "minimum": 0},
+    "description": (
+        "Dot path, or an array of literal object keys and integer list indices. "
+        'For filenames use ["tasks", 0, "environment", "visible_files", "src/main.py"] '
+        "so dots and slashes remain part of the filename."
+    ),
+}
+
+
 TASK_BUILDER_READ_TOOL = ToolSpec(
     name="read_candidate",
     description=(
@@ -185,7 +197,7 @@ TASK_BUILDER_READ_TOOL = ToolSpec(
     parameters={
         "type": "object",
         "properties": {
-            "path": {"type": "string", "description": "Optional dot path to read."},
+            "path": _DOCUMENT_PATH_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -197,7 +209,8 @@ TASK_BUILDER_WRITE_TOOL = ToolSpec(
     description=(
         "Apply a list of operations to the working candidate JSON file (top-level keys "
         "construction_notes, resources, tasks). Each operation is {\"op\": \"set\"|\"remove\"|\"append\", "
-        "\"path\": \"dot.path\" (list items indexed from 0), \"value\": ...}. Returns the updated "
+        "\"path\": \"dot.path\" or an array of literal keys and integer indices, \"value\": ...}. "
+        "Use path arrays for individual file-map entries whose filenames contain dots. Returns the updated "
         "document summary (task titles and completion) plus any field-level validity issues "
         "(unknown field names, wrong types, invalid file paths) for the written fields."
     ),
@@ -210,7 +223,7 @@ TASK_BUILDER_WRITE_TOOL = ToolSpec(
                     "type": "object",
                     "properties": {
                         "op": {"type": "string", "enum": ["set", "remove", "append"]},
-                        "path": {"type": "string"},
+                        "path": _DOCUMENT_PATH_SCHEMA,
                         "value": {},
                     },
                     "required": ["op", "path"],
@@ -662,6 +675,27 @@ TASK_BUILDER_SOURCE_TOOLS = [
         },
     ),
     ToolSpec(
+        name="list_url_links",
+        description=(
+            "Inspect a public static HTML page and return its HTTP(S) links with their visible labels. "
+            "Use this to navigate from documentation, project, or release pages to direct resources."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "Public HTTP(S) page URL to inspect."},
+                "max_links": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200,
+                    "description": "Maximum number of distinct links to return.",
+                },
+            },
+            "required": ["url"],
+            "additionalProperties": False,
+        },
+    ),
+    ToolSpec(
         name="download_files",
         description=(
             "Download public HTTP(S) files into framework-managed benchmark assets. "
@@ -999,7 +1033,7 @@ def _execute_task_builder_tool(
                 raise ValueError("The working document is not a JSON object")
 
             if call.name == "read_candidate":
-                path = str(args.get("path") or "").strip()
+                path = args.get("path") or ""
                 if path:
                     try:
                         node = document_get(current, path)
@@ -1028,7 +1062,7 @@ def _execute_task_builder_tool(
                 if not isinstance(operation, dict):
                     raise ValueError("each operation must be an object")
                 op = str(operation.get("op") or "")
-                path = str(operation.get("path") or "")
+                path = operation.get("path") or ""
                 if op == "set":
                     document_set(current, path, operation.get("value"))
                 elif op == "remove":
@@ -1631,6 +1665,30 @@ def _execute_task_builder_tool(
                 tool_call_id=call.id,
                 name=call.name,
                 content=_tool_content({"url": url, "content": content}, max_chars=max_chars),
+            )
+
+        if call.name == "list_url_links":
+            url = str(args.get("url") or "").strip()
+            parsed = urlsplit(url)
+            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                raise ValueError("url must be an absolute HTTP(S) URL")
+            result = fetch_url_links(
+                url,
+                max_links=_bounded_int(
+                    args.get("max_links"), default=50, minimum=1, maximum=200
+                ),
+            )
+            if result is None:
+                return ToolResult(
+                    tool_call_id=call.id,
+                    name=call.name,
+                    content="The page links could not be inspected.",
+                    error="link_inspection_failed",
+                )
+            return ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content=_tool_content(result, max_chars=max_chars),
             )
 
         if call.name == "download_files":

@@ -17,6 +17,7 @@ from .docker_images import (
     docker_image_build_requested,
     inspect_docker_image,
 )
+from .harness_compatibility import external_harness_issues
 from .installers import package_list
 from .vm_materializer import (
     VmTaskMaterializationError,
@@ -381,6 +382,8 @@ def _preflight_executable_items(
     for item in items:
         if _agent_env_type(item) != "docker_workspace":
             continue
+        if item.id in report.blocked_item_ids:
+            continue
         environment = None
         try:
             environment = build_agent_environment(item, config)
@@ -429,6 +432,39 @@ def _preflight_executable_items(
                 cleanup()
             if trace_dir is not None:
                 write_json(trace_dir / "report.json", report.as_dict())
+
+
+def _check_external_harness_compatibility(
+    report: EnvironmentClawReport,
+    items: list[BenchmarkItem],
+    config: BenchmarkConfig,
+) -> None:
+    harnesses = [target.harness for target in config.targets if target.harness]
+    if not harnesses:
+        return
+    for item in items:
+        if not _agent_env_type(item):
+            continue
+        issues = external_harness_issues(
+            _agent_env(item),
+            harnesses,
+            has_workflow=item.workflow is not None,
+        )
+        if not issues:
+            continue
+        detail = " ".join(issues)
+        report.probes.append(
+            EnvironmentProbe(
+                name="external_harness_compatibility",
+                ok=False,
+                detail=detail,
+                data={"item_id": item.id, "harnesses": sorted(set(harnesses))},
+            )
+        )
+        report.blocking_errors.append(
+            f"Task {item.id} is incompatible with the selected external harnesses: {detail}"
+        )
+        report.blocked_item_ids.append(item.id)
 
 
 def run_environment_claw(
@@ -502,6 +538,8 @@ def run_environment_claw(
     if config.runner in {"lm-eval", "auto"}:
         _probe_lm_eval(report)
 
+    if config.run_targets:
+        _check_external_harness_compatibility(report, items, config)
     if config.environment_preflight and config.run_targets and has_docker_workspace:
         _preflight_executable_items(report, items, config, trace_dir=trace_dir)
 

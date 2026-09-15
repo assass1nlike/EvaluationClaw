@@ -3,22 +3,24 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
+from concurrent.futures import CancelledError
 from pathlib import Path
 from typing import Any, Callable
 
 from ..benchmark import build_benchmark_suite_with_qc_loop, build_suite_from_spec_with_qc_loop
-from ..diagnostics import new_debug_dir, write_json
+from ..diagnostics import error_record, new_debug_dir, redact_secrets, write_json
 from ..execution.environment_claw import run_environment_claw
 from ..execution.plan import build_execution_plan, exclude_blocked_items
 from ..execution.runner import run_eval
 from ..models.llm import (
     DEFAULT_MAX_OUTPUT_TOKENS,
+    LLMFinalContentMissingError,
     TargetToolModelResponse,
     call_orchestrator_with_tools,
     extract_json,
 )
 from ..models.roles import role_model_settings
-from ..planning.loop import apply_review_to_suite
+from ..planning.loop import _apply_review, apply_review_to_suite
 from ..planning.task_planner import _audit_plan
 from ..protocols.tool import ToolResult
 from ..protocols.tool_adapters import (
@@ -238,6 +240,7 @@ Return pure JSON only:
 Use only the item ids and dimension ids listed in the request. done=true means every
 probe task is ready to run; then leave the three lists empty. Do not restructure
 dimensions — only fix the probe tasks themselves.
+Keep the total planned task count within max_probe_tasks, including any requested additions.
 """
 
 
@@ -272,12 +275,14 @@ def _run_analyser_tool_loop(
     trace_dir: Path | None,
     artifact_dir: Path | None,
     system_prompt: str = ANALYSER_SYSTEM_PROMPT,
+    validate: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     settings = role_model_settings(config, "analyser")
     messages: list[dict[str, Any]] = [
         {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)}
     ]
     calls_used = 0
+    repairs_used = 0
     while True:
         tools = (
             [
@@ -288,34 +293,47 @@ def _run_analyser_tool_loop(
             if artifact_dir is not None and calls_used < _MAX_ARTIFACT_CALLS
             else []
         )
-        response = call_orchestrator_with_tools(
-            messages,
-            system_prompt=system_prompt,
-            **settings.call_kwargs(),
-            backend=config.llm_backend,
-            tools=tools,
-            max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
-            retry_on_truncation=True,
-            expect_json=not tools,
-            trace_dir=trace_dir / "llm" if trace_dir is not None else None,
-            trace_name="analyser",
-        )
-        if not response.tool_calls:
-            if not response.content.strip():
-                raise ValueError("Analyser returned empty final content.")
-            return extract_json(response.content)
+        response = None
+        try:
+            response = call_orchestrator_with_tools(
+                messages,
+                system_prompt=system_prompt,
+                **settings.call_kwargs(),
+                backend=config.llm_backend,
+                tools=tools,
+                max_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
+                retry_on_truncation=True,
+                expect_json=not tools,
+                trace_dir=trace_dir / "llm" if trace_dir is not None else None,
+                trace_name="analyser",
+            )
+            if not response.tool_calls:
+                data = extract_json(response.content)
+                if not isinstance(data, dict):
+                    raise ValueError("Analyser response must be a JSON object.")
+                if validate is not None:
+                    validate(data)
+                return data
+        except (ValueError, LLMFinalContentMissingError) as exc:
+            if repairs_used >= 1:
+                raise
+            repairs_used += 1
+            if response is not None:
+                messages.append(response.assistant_message)
+            messages.append({
+                "role": "user",
+                "content": (
+                    f"The response could not be accepted: {exc}. Return the required JSON. "
+                    "Preserve your substantive judgment, including any refusal or limitation; "
+                    "do not invent evidence or claim success to satisfy the format."
+                ),
+            })
+            continue
 
-        remaining = _MAX_ARTIFACT_CALLS - calls_used
+        remaining = max(0, _MAX_ARTIFACT_CALLS - calls_used)
         selected = response.tool_calls[:remaining]
         if not selected:
-            messages.append(response.assistant_message)
-            messages.append(
-                {
-                    "role": "user",
-                    "content": "The artifact-read budget is exhausted. Return the final analysis JSON now.",
-                }
-            )
-            continue
+            raise ValueError("Analyser requested tools after its artifact-read budget was exhausted.")
         handlers = {
             ANALYSER_ARTIFACT_TOOL.name: read_run_artifact,
             ANALYSER_ARTIFACT_LIST_TOOL.name: list_run_artifacts,
@@ -332,6 +350,15 @@ def _run_analyser_tool_loop(
             )
             for call in selected
         ]
+        results.extend(
+            ToolResult(
+                tool_call_id=call.id,
+                name=call.name,
+                content="The artifact-read budget is exhausted.",
+                error="tool_budget_exhausted",
+            )
+            for call in response.tool_calls[len(selected):]
+        )
         calls_used += len(selected)
         _append_tool_results(messages, response, results)
         if calls_used >= _MAX_ARTIFACT_CALLS:
@@ -349,12 +376,14 @@ def _call_analyser_json(
     *,
     trace_dir: Path | None = None,
     artifact_dir: Path | None = None,
+    validate: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     return _run_analyser_tool_loop(
         payload,
         config,
         trace_dir=trace_dir,
         artifact_dir=artifact_dir,
+        validate=validate,
         system_prompt=_analyser_system_prompt(
             str(getattr(config, "analysis_probe_mode", "goal")),
             config.ablation_analyser,
@@ -564,8 +593,10 @@ def _parse_response(
     if not analysis:
         raise ValueError("Analyser response requires a non-empty analysis.")
 
-    done = bool(data.get("done"))
-    if done:
+    if not isinstance(data.get("done"), bool):
+        raise ValueError("Analyser response requires a boolean done field.")
+    done = data["done"]
+    if done or remaining_probe_iterations <= 0 or _analysis_max_tasks(config, suite) == 0:
         return analysis, "", True, []
 
     mode = str(getattr(config, "analysis_probe_mode", "goal"))
@@ -576,8 +607,6 @@ def _parse_response(
         raw_designs = data.get("task_designs", [])
         if not isinstance(raw_designs, list):
             raise ValueError("Analyser task_designs must be a list.")
-        if raw_designs and remaining_probe_iterations <= 0:
-            return analysis, "", True, []
         known_dimensions = {dimension.id for dimension in suite.spec.dimensions}
         total_tasks = 0
         for index, raw in enumerate(raw_designs, 1):
@@ -607,8 +636,6 @@ def _parse_response(
         if not isinstance(raw_goal, str) or not raw_goal.strip():
             raise ValueError("Analyser response requires a non-empty goal when done=false.")
         goal = raw_goal.strip()
-        if remaining_probe_iterations <= 0:
-            return analysis, "", True, []
 
     if not goal and not designs:
         raise ValueError("Analyser response with done=false must include a goal or task_designs.")
@@ -664,13 +691,24 @@ def _review_probes(
     payload = {
         "hypothesis": analysis,
         "tasks": _task_context(probe_suite),
+        "max_probe_tasks": config.analysis_max_tasks,
     }
+
+    def validate(data: dict[str, Any]) -> None:
+        if not isinstance(data.get("done"), bool):
+            raise ValueError("Analyser review requires a boolean done field.")
+        if not data["done"] and config.analysis_max_tasks is not None:
+            outcome = _apply_review(probe_suite, data, QcReport(), config)
+            if outcome.spec.scale > config.analysis_max_tasks:
+                raise ValueError("Probe review would exceed max_probe_tasks; revise within the budget.")
+
     data = _run_analyser_tool_loop(
         payload,
         config,
         trace_dir=trace_dir,
         artifact_dir=None,
         system_prompt=ANALYSER_REVIEW_SYSTEM_PROMPT,
+        validate=validate,
     )
     if not isinstance(data, dict):
         raise ValueError("Analyser review must be a JSON object.")
@@ -696,30 +734,20 @@ def _build_and_run_probes(
     trace_dir: Path | None,
     log: Callable[[str], None],
 ) -> tuple[TaskSuite, QcReport, EvalRun]:
+    max_tasks = _analysis_max_tasks(config, main_suite)
+    config = config.model_copy(update={
+        "item_count": None,
+        "challenge_effort_distribution": {},
+        "analysis_max_tasks": max_tasks,
+    })
     if goal:
         _probe_spec, probe_suite, probe_qc = build_benchmark_suite_with_qc_loop(
             goal,
             config,
             log=log,
             trace_dir=trace_dir / "construction" if trace_dir is not None else None,
+            max_task_count=max_tasks,
         )
-        max_tasks = _analysis_max_tasks(config, main_suite)
-        produced = len(probe_suite.tasks)
-        if produced > max_tasks:
-            kept = probe_suite.tasks[:max_tasks]
-            kept_ids = {item.id for item in kept}
-            probe_suite = probe_suite.model_copy(update={"tasks": kept})
-            probe_qc = probe_qc.model_copy(
-                update={
-                    "passed_item_ids": [i for i in probe_qc.passed_item_ids if i in kept_ids],
-                    "rejected_item_ids": [i for i in probe_qc.rejected_item_ids if i in kept_ids],
-                }
-            )
-            if log:
-                log(
-                    f"  [Analysis] Goal-mode probe produced {produced} tasks; "
-                    f"clamped to the first {max_tasks} (analysis_max_tasks)."
-                )
     else:
         plan = _probe_plan(main_suite, task_designs, iteration=iteration)
         spec = plan.to_eval_spec()
@@ -748,6 +776,9 @@ def _build_and_run_probes(
             trace_dir=trace_dir / "construction" if trace_dir is not None else None,
         )
         probe_suite.plan = plan
+    if trace_dir is not None:
+        write_json(trace_dir / "probe-suite.json", probe_suite.model_dump(mode="json"))
+        write_json(trace_dir / "probe-qc.json", probe_qc.model_dump(mode="json"))
     for review_index in range(_probe_review_iterations(config)):
         review_trace = (
             trace_dir / f"review-{review_index + 1:02d}" if trace_dir is not None else None
@@ -766,7 +797,11 @@ def _build_and_run_probes(
             config,
             log=log,
             trace_dir=review_trace,
+            max_task_count=max_tasks,
         )
+        if trace_dir is not None:
+            write_json(trace_dir / "probe-suite.json", probe_suite.model_dump(mode="json"))
+            write_json(trace_dir / "probe-qc.json", probe_qc.model_dump(mode="json"))
     execution_plan = build_execution_plan(probe_suite, probe_qc)
     environment_config = config.model_copy(update={"environment_preflight": False})
     run_config, environment_report = run_environment_claw(
@@ -817,12 +852,42 @@ def run_analysis(
         raise RuntimeError("Analysis requires target-model results from the main benchmark run.")
 
     root = artifact_dir / "analysis" if artifact_dir is not None else new_debug_dir(config.output_dir, "analysis")
+    try:
+        return _run_analysis(suite, run, config, artifact_dir=artifact_dir, root=root, log=log)
+    except CancelledError:
+        raise
+    except Exception as exc:
+        error = redact_secrets(f"{type(exc).__name__}: {exc}")
+        log(f"  [Analysis] Failed: {error}. Preserving completed results for reporting.")
+        report = AnalysisReport(
+            strategy="hypothesis_driven" if config.ablation_analyser == "none" else config.ablation_analyser,
+            status="failed",
+            error=error,
+            iterations=_load_iterations(root),
+        )
+        if root is not None:
+            write_json(root / "failure.json", error_record(exc), redact=True)
+            write_json(root / "failed-report.json", report.model_dump(mode="json"))
+        return report
+
+
+def _run_analysis(
+    suite: TaskSuite,
+    run: EvalRun,
+    config: BenchmarkConfig,
+    *,
+    artifact_dir: Path | None,
+    root: Path | None,
+    log: Callable[[str], None],
+) -> AnalysisReport:
     if root is not None:
         root.mkdir(parents=True, exist_ok=True)
         report_path = root / "report.json"
         if report_path.is_file():
             try:
-                return AnalysisReport.model_validate_json(report_path.read_text(encoding="utf-8"))
+                report = AnalysisReport.model_validate_json(report_path.read_text(encoding="utf-8"))
+                if report.status == "completed":
+                    return report
             except (OSError, TypeError, ValueError):
                 pass
     iterations = _load_iterations(root)
@@ -849,6 +914,9 @@ def run_analysis(
             config,
             trace_dir=call_dir,
             artifact_dir=artifact_dir,
+            validate=lambda data: _parse_response(
+                data, suite, config, iteration=next_iteration, remaining_probe_iterations=remaining
+            ),
         )
         if call_dir is not None:
             write_json(call_dir / "response.json", data)

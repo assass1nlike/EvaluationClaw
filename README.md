@@ -232,10 +232,9 @@ is mounted read-only only to provide the agent CLI. The runner records the
 task, harness, and model-gateway image identities plus the harness manifest.
 The model credential stays in the restricted egress gateway; the agent receives
 only a gateway placeholder. Hidden evaluator files are injected only after the
-agent exits, and scoring runs in a fresh container from the same task image.
-Only `/workspace` changes persist from the agent into scoring, so setup commands
-must be idempotent and container-local package or service changes are not part of
-the task contract.
+agent exits. Trusted setup, non-privileged target execution, and trusted scoring
+run sequentially in one task container, so container-local state remains available
+to the evaluator without granting setup privileges to the target.
 Unsupported contracts fail closed: external harnesses currently accept only
 `docker_workspace` tasks rooted at `/workspace`, without browser/tool
 restrictions, private `runtime_files`, or multi-stage workflows.

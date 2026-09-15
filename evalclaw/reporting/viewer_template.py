@@ -1417,6 +1417,9 @@ HTML_TEMPLATE = """<!doctype html>
       ]));
       section.append(node("p", {class: "small"}, `Strategy: ${humanLabel(analysis.strategy || "hypothesis_driven")}`));
       const iterations = analysis.iterations || [];
+      if (analysis.error) {
+        section.append(node("p", {}, `Analysis status: ${analysis.status}. ${analysis.error}`));
+      }
       if (iterations.length) {
         section.append(node("h3", {}, "Verification Iterations"));
         section.append(table(

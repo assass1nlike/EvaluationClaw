@@ -25,9 +25,10 @@ import time
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, quote_plus, unquote, urlsplit
+from urllib.parse import parse_qs, quote_plus, unquote, urldefrag, urljoin, urlsplit
 
 import httpx
 
@@ -51,6 +52,7 @@ _USER_AGENT = (
 _TERMINAL_SOURCE_STATUSES = {401, 403, 407, 429}
 _FETCH_STATE_LOCK = threading.RLock()
 _FETCH_CACHE: dict[tuple[str, int], str | None] = {}
+_FETCH_LINK_CACHE: dict[tuple[str, int], dict[str, Any] | None] = {}
 _FETCH_BLOCKED_ORIGINS: dict[str, int | str] = {}
 _FETCH_ORIGIN_LOCKS: dict[str, threading.Lock] = {}
 
@@ -223,6 +225,100 @@ def fetch_url_text(url: str, max_chars: int = 4000, timeout: float = 10.0) -> st
     with _FETCH_STATE_LOCK:
         _FETCH_CACHE[cache_key] = result
     return result
+
+
+class _PageLinkParser(HTMLParser):
+    def __init__(self, base_url: str) -> None:
+        super().__init__(convert_charrefs=True)
+        self.base_url = base_url
+        self.links: list[tuple[str, str]] = []
+        self._href = ""
+        self._text: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = dict(attrs)
+        if tag.lower() == "base" and values.get("href"):
+            self.base_url = urljoin(self.base_url, str(values["href"]))
+        if tag.lower() == "a" and values.get("href"):
+            self._finish_link()
+            self._href = str(values["href"])
+
+    def handle_data(self, data: str) -> None:
+        if self._href:
+            self._text.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() == "a":
+            self._finish_link()
+
+    def close(self) -> None:
+        super().close()
+        self._finish_link()
+
+    def _finish_link(self) -> None:
+        if self._href:
+            self.links.append((self._href, " ".join(self._text).strip()))
+        self._href = ""
+        self._text = []
+
+
+def fetch_url_links(
+    url: str,
+    *,
+    max_links: int = 50,
+    timeout: float = 10.0,
+) -> dict[str, Any] | None:
+    """Return HTTP(S) links exposed by a public static HTML page."""
+    parsed = urlsplit(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return None
+    max_links = max(1, min(int(max_links), 200))
+    cache_key = (url, max_links)
+    origin = parsed.netloc.lower()
+    with _FETCH_STATE_LOCK:
+        if cache_key in _FETCH_LINK_CACHE:
+            return _FETCH_LINK_CACHE[cache_key]
+        if origin in _FETCH_BLOCKED_ORIGINS:
+            return None
+        origin_lock = _FETCH_ORIGIN_LOCKS.setdefault(origin, threading.Lock())
+    with origin_lock:
+        with _FETCH_STATE_LOCK:
+            if cache_key in _FETCH_LINK_CACHE:
+                return _FETCH_LINK_CACHE[cache_key]
+            if origin in _FETCH_BLOCKED_ORIGINS:
+                return None
+        try:
+            response = httpx.get(
+                url,
+                follow_redirects=True,
+                timeout=timeout,
+                headers={"User-Agent": _USER_AGENT},
+            )
+            response.raise_for_status()
+            content_type = response.headers.get("content-type", "")
+            if "html" not in content_type:
+                result = {"url": url, "resolved_url": str(response.url), "links": []}
+            else:
+                parser = _PageLinkParser(str(response.url))
+                parser.feed(response.text)
+                parser.close()
+                links: list[dict[str, str]] = []
+                seen: set[str] = set()
+                for raw_url, text in parser.links:
+                    resolved, _ = urldefrag(urljoin(parser.base_url, _html.unescape(raw_url)))
+                    target = urlsplit(resolved)
+                    if target.scheme not in {"http", "https"} or not target.netloc or resolved in seen:
+                        continue
+                    seen.add(resolved)
+                    links.append({"url": resolved, "text": re.sub(r"\s+", " ", text)[:300]})
+                    if len(links) >= max_links:
+                        break
+                result = {"url": url, "resolved_url": str(response.url), "links": links}
+        except (httpx.HTTPError, ValueError):
+            result = None
+        with _FETCH_STATE_LOCK:
+            _FETCH_LINK_CACHE[cache_key] = result
+        return result
 
 
 def format_search_result(result: SearchResult) -> str:
@@ -768,6 +864,7 @@ def reset_network_state() -> None:
     _KEYLESS_BACKEND.reset()
     with _FETCH_STATE_LOCK:
         _FETCH_CACHE.clear()
+        _FETCH_LINK_CACHE.clear()
         _FETCH_BLOCKED_ORIGINS.clear()
         _FETCH_ORIGIN_LOCKS.clear()
 

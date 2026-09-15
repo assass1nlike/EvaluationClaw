@@ -641,6 +641,17 @@ class ActorRuntime:
             "infrastructure_error": self.fatal_error,
         }
 
+    def evidence(self) -> dict[str, Any]:
+        """Return complete benchmark-authored actor context and episode interactions."""
+        return {
+            "definitions": [
+                actor.model_dump(mode="json") for actor in self.actors.values()
+            ],
+            "toolsets": self.toolsets,
+            "summary": self.summary(),
+            "interactions": self.interactions,
+        }
+
     def save(self) -> None:
         if self.artifact_dir is None:
             return

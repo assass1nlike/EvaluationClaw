@@ -907,6 +907,7 @@ def apply_review_to_suite(
     *,
     log: Callable[[str], None] | None = None,
     trace_dir: Path | None = None,
+    max_task_count: int | None = None,
 ) -> tuple[EvalSpec, TaskSuite, QcReport]:
     """Apply a structured review to a suite, keeping unaffected items verbatim.
 
@@ -915,6 +916,8 @@ def apply_review_to_suite(
     the missing items each dimension still needs, then re-runs QC.
     """
     outcome = _apply_review(suite, review, qc_report, config)
+    if max_task_count is not None and outcome.spec.scale > max_task_count:
+        raise ValueError(f"Reviewed plan exceeds the maximum of {max_task_count} tasks.")
     notes = outcome.notes
     if log and notes:
         for note in notes:
