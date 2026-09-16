@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_email_alerts@1",
+  "task_completion": [
+    {
+      "id": "open_wazuh_configuration",
+      "description": "Verify that the Wazuh configuration interface or file is opened for editing.",
+      "points": 10,
+      "visual_evidence": "Look for the Wazuh Dashboard configuration XML editor or a terminal text editor (like nano or vim) editing the ossec.conf file."
+    },
+    {
+      "id": "set_email_notification",
+      "description": "Verify that email notifications are enabled.",
+      "points": 15,
+      "visual_evidence": "Look for the XML tag <email_notification>yes</email_notification> or a corresponding UI toggle set to 'yes' in the configuration."
+    },
+    {
+      "id": "set_smtp_server",
+      "description": "Verify that the SMTP server is configured correctly.",
+      "points": 15,
+      "visual_evidence": "Look for the XML tag <smtp_server>smtp.company.internal</smtp_server> in the global configuration section."
+    },
+    {
+      "id": "set_email_to",
+      "description": "Verify that the destination email address is configured.",
+      "points": 20,
+      "visual_evidence": "Look for the XML tag <email_to>security-alerts@company.com</email_to> in the configuration."
+    },
+    {
+      "id": "set_email_from",
+      "description": "Verify that the sender email address is configured.",
+      "points": 20,
+      "visual_evidence": "Look for the XML tag <email_from>wazuh@company.com</email_from> in the configuration."
+    },
+    {
+      "id": "set_email_maxperhour",
+      "description": "Verify that the maximum number of emails per hour is configured.",
+      "points": 20,
+      "visual_evidence": "Look for the XML tag <email_maxperhour>12</email_maxperhour> in the configuration."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_wazuh_environment",
+      "description": "Verify the agent is interacting with a real Wazuh environment.",
+      "visual_evidence": "Look for genuine Wazuh dashboard UI elements (menus, logos) or standard terminal paths like /var/ossec/etc/ossec.conf."
+    },
+    {
+      "id": "no_dummy_text_file",
+      "description": "Verify the agent did not just type the answers into an empty text file.",
+      "visual_evidence": "Ensure the surrounding text contains standard Wazuh configuration XML tags (e.g., <ossec_config>, <global>, <alerts>) and is not just an isolated list of the requested parameters."
+    },
+    {
+      "id": "configuration_saved",
+      "description": "Verify that the configuration changes were saved.",
+      "visual_evidence": "Look for a 'Save' button being clicked, a 'Configuration saved successfully' toast message in the GUI, or terminal commands indicating the file was saved and the wazuh-manager service was restarted."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected Wazuh configuration values are: email_notification = 'yes', smtp_server = 'smtp.company.internal', email_to = 'security-alerts@company.com', email_from = 'wazuh@company.com', and email_maxperhour = 12."
+}

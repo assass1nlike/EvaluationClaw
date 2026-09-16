@@ -1,0 +1,59 @@
+{
+  "task_id": "photometric_pipeline_commissioning@1",
+  "task_completion": [
+    {
+      "id": "kstars_vega_focus",
+      "description": "Agent uses KStars/Ekos to slew to Vega and capture focus test images.",
+      "points": 15,
+      "visual_evidence": "KStars/Ekos GUI showing the telescope slewing to Vega, or the Ekos capture module taking 10s exposures at different focuser positions (e.g., 25000 to 37000)."
+    },
+    {
+      "id": "focus_script_creation",
+      "description": "Agent writes or executes a script to determine the best focus.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing 'find_best_focus.py' being written or run, calculating FWHM values for the captured focus images."
+    },
+    {
+      "id": "kstars_calibration_frames",
+      "description": "Agent uses KStars/Ekos to capture Bias and Flat calibration frames.",
+      "points": 15,
+      "visual_evidence": "Ekos capture module showing a sequence queue for Bias frames (0s) and Flat frames (5s, V-band)."
+    },
+    {
+      "id": "kstars_science_frames",
+      "description": "Agent uses KStars/Ekos to capture science frames for SA 98 and M67.",
+      "points": 15,
+      "visual_evidence": "KStars/Ekos GUI showing the telescope slewing to SA 98 or M67, and the capture module taking 30s exposures in V and B bands."
+    },
+    {
+      "id": "pipeline_script_creation",
+      "description": "Agent writes the data-reduction pipeline script.",
+      "points": 20,
+      "visual_evidence": "A text editor showing 'reduce_and_calibrate.py' being written, containing code for FITS file processing, aperture photometry (e.g., using astropy/numpy), and zero-point calculation."
+    },
+    {
+      "id": "json_results_creation",
+      "description": "Agent saves the quantitative results to the required JSON file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing 'photometric_pipeline.json' being created or viewed, containing keys such as 'best_focus_position', 'zp_V', 'm67_V_cal', etc., with numerical values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "kstars_gui_interaction",
+      "description": "Verify that the agent actually used the KStars/Ekos GUI to control the telescope and capture images.",
+      "visual_evidence": "Screenshots should show the KStars and Ekos windows being actively used, rather than the agent mocking FITS files via terminal commands or scripts."
+    },
+    {
+      "id": "script_based_analysis",
+      "description": "Verify that the agent wrote and executed Python scripts to process the data.",
+      "visual_evidence": "Screenshots should show the Python scripts ('find_best_focus.py', 'reduce_and_calibrate.py') being executed in a terminal to generate the results, rather than the agent manually typing guessed values into the JSON file."
+    },
+    {
+      "id": "authentic_json_values",
+      "description": "Verify that the JSON file contains calculated numerical values.",
+      "visual_evidence": "The 'photometric_pipeline.json' file should contain specific calculated numbers (e.g., best focus 34000, zero-points around 19-21) and not just empty templates, placeholders, or copy-pasted text from the prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "The optimal focus position is 34000 (FWHM=3.50px). Focus test positions are 25000, 28000, 31000, 34000, 37000. Calibration requires 10 bias frames and 10 V-band flats (5s). Science targets are SA 98 and M67, requiring 5x30s exposures in both V and B bands. The output JSON must be saved to ~/Documents/photometric_pipeline.json and contain exactly 12 keys: best_focus_position, best_fwhm, readnoise_adu, master_flat_mean, zp_V, zp_V_std, zp_B, zp_B_std, m67_V_cal, m67_B_cal, m67_BV_color, n_frames_total. Expected zero-points are approximately 19-21."
+}

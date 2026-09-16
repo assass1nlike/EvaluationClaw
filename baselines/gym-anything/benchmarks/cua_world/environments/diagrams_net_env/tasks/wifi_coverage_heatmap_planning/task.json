@@ -1,0 +1,35 @@
+{
+  "id": "wifi_coverage_heatmap_planning@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a Network Engineer designing a WiFi upgrade. Create a coverage heatmap for an office floor plan in Diagrams.net (draw.io) using the floor plan image ~/Desktop/office_floorplan.png and the specifications provided in ~/Desktop/wifi_project_specs.txt. The diagram must be organized into three layers: a 'Floor Plan' layer for the background image, a 'Hardware' layer containing three Wireless Access Point icons at the specified locations, and a 'Coverage' layer showing semi-transparent signal range circles for each access point. Save the working file as ~/Diagrams/wifi_project.drawio and export the final heatmap as a PNG to ~/Diagrams/exports/wifi_coverage_map.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/wifi_coverage_heatmap_planning/setup_task.sh",
+    "post_task": "/workspace/tasks/wifi_coverage_heatmap_planning/export_result.sh"
+  },
+  "metadata": {
+    "floorplan_path": "/home/ga/Desktop/office_floorplan.png",
+    "specs_path": "/home/ga/Desktop/wifi_project_specs.txt",
+    "working_file": "/home/ga/Diagrams/wifi_project.drawio",
+    "export_file": "/home/ga/Diagrams/exports/wifi_coverage_map.png",
+    "required_layers": [
+      "Floor Plan",
+      "Hardware",
+      "Coverage"
+    ],
+    "required_ap_count": 3,
+    "min_coverage_shapes": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wifi_coverage_heatmap_planning"
+    }
+  }
+}

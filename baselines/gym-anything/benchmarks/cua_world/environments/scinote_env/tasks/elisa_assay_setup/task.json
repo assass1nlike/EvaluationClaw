@@ -1,0 +1,57 @@
+{
+  "id": "elisa_assay_setup@1",
+  "version": "1.0",
+  "env_id": "scinote_env@0.1",
+  "description": "You are an immunologist setting up ELISA assay documentation in SciNote ELN. Within the project 'ELISA Assay Development - IL-6', create an 'Antibody Pair Optimization' experiment with a sequential workflow of four connected tasks: 'Plate Coating', 'Sample Dilution', 'Primary Antibody Incubation', and 'Signal Detection'. The 'Plate Coating' task must include a protocol of at least 5 steps. Update the 'ELISA Consumables' inventory by adding 'Volume (mL)' and 'Storage Temperature' columns and recording three items: 'IL-6 Capture Antibody' (Supplier: R&D Systems, Catalog: MAB206), 'IL-6 Detection Antibody' (Supplier: R&D Systems, Catalog: BAF206), and 'Streptavidin",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/elisa_assay_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/elisa_assay_setup/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_name": "ELISA Assay Development - IL-6",
+    "expected_experiment_name": "Antibody Pair Optimization",
+    "expected_task_order": [
+      "Plate Coating",
+      "Sample Dilution",
+      "Primary Antibody Incubation",
+      "Signal Detection"
+    ],
+    "protocol_task": "Plate Coating",
+    "protocol_min_steps": 5,
+    "expected_inventory_name": "ELISA Consumables",
+    "preseeded_columns": [
+      "Supplier",
+      "Catalog Number"
+    ],
+    "new_columns": [
+      "Volume (mL)",
+      "Storage Temperature"
+    ],
+    "expected_items": [
+      {
+        "name": "IL-6 Capture Antibody",
+        "catalog_number": "MAB206"
+      },
+      {
+        "name": "IL-6 Detection Antibody",
+        "catalog_number": "BAF206"
+      },
+      {
+        "name": "Streptavidin-HRP",
+        "catalog_number": "DY998"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_elisa_assay_setup"
+    }
+  }
+}

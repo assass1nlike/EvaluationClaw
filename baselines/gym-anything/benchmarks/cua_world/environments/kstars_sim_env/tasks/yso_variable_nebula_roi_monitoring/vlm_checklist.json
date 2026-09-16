@@ -1,0 +1,53 @@
+{
+  "task_id": "yso_variable_nebula_roi_monitoring@1",
+  "task_completion": [
+    {
+      "id": "roi_size_configured",
+      "description": "Configure the CCD Region of Interest (ROI) size to 1024x1024.",
+      "points": 20,
+      "visual_evidence": "Look for the Ekos Capture module or INDI Control Panel showing 'Width' and 'Height' values set to exactly 1024."
+    },
+    {
+      "id": "roi_offset_configured",
+      "description": "Configure the CCD ROI offsets to perfectly center the 1024x1024 region on the 4096x4096 sensor.",
+      "points": 20,
+      "visual_evidence": "Look for the Ekos Capture module or INDI Control Panel showing 'X' (or X-offset) and 'Y' (or Y-offset) values set to exactly 1536."
+    },
+    {
+      "id": "targets_observed",
+      "description": "Execute observations of the specified Young Stellar Object (YSO) targets.",
+      "points": 25,
+      "visual_evidence": "Look for the Ekos sequence queue, scheduler, or FITS viewer showing active or completed observations for NGC 2261, NGC 1555, or McNeil's Nebula."
+    },
+    {
+      "id": "final_context_image_captured",
+      "description": "Capture a final sky context image.",
+      "points": 15,
+      "visual_evidence": "Look for a captured image displayed in the FITS viewer or a completed capture action in the Ekos capture module distinct from the main target sequence."
+    },
+    {
+      "id": "ccd_restored_full_frame",
+      "description": "Restore the CCD to full-frame mode.",
+      "points": 20,
+      "visual_evidence": "Look for the Ekos Capture module or INDI Control Panel showing 'Width' and 'Height' values restored to 4096."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the KStars/Ekos GUI to configure the camera and capture images.",
+      "visual_evidence": "Screenshots should show the KStars/Ekos interface open and being interacted with, rather than just terminal windows running backend scripts to fake the FITS files."
+    },
+    {
+      "id": "genuine_image_capture",
+      "description": "The agent actually captured images using the simulated CCD.",
+      "visual_evidence": "The FITS viewer or Ekos capture module should display actual astronomical image data or capture progress bars, not just text files or empty frames."
+    },
+    {
+      "id": "settings_visually_confirmed",
+      "description": "The ROI and full-frame settings are genuinely applied in the camera settings.",
+      "visual_evidence": "The X/Y offsets and Width/Height values should be visible in the actual INDI/Ekos camera configuration panels, not just typed into a notepad or terminal echo."
+    }
+  ],
+  "privileged_info_for_vlm": "The observing plan requires capturing images of NGC 2261, NGC 1555, and McNeil's Nebula. The CCD must be configured to a perfectly centered 1024x1024 Region of Interest (ROI). Since the full frame is 4096x4096, the correct X and Y offsets for the ROI are exactly 1536 ((4096 - 1024) / 2). Finally, the CCD must be restored to its full-frame resolution of 4096x4096."
+}

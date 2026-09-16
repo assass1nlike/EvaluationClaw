@@ -1,0 +1,26 @@
+{
+  "id": "redraw_grid_pattern@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Complete Level 1 of the 'Redraw the given image' activity in GCompris by copying the reference pattern to the blank grid. Save a screenshot of the completed level to /home/ga/redraw_complete.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/redraw_grid_pattern/setup_task.sh",
+    "post_task": "/workspace/tasks/redraw_grid_pattern/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/redraw_complete.png",
+    "min_file_size_kb": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_redraw_grid_pattern"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "mcnemar_neuroticism_thresholds@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Compare the proportion of high scores (>3) between variables N1 and N2 from /home/ga/Documents/Jamovi/NeuroticiIndex.csv using a McNemar's test. Create two nominal computed variables, 'N1_Binary' (Formula: IF(N1 > 3, 1, 0)) and 'N2_Binary' (Formula: IF(N2 > 3, 1, 0)), for the analysis. Save the Jamovi project to /home/ga/Documents/Jamovi/NeuroticismMcNemar.omv and record the resulting p-value in the format 'p_value: [value]' to /home/ga/Documents/Jamovi/mcnemar_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mcnemar_neuroticism_thresholds/setup_task.sh",
+    "post_task": "/workspace/tasks/mcnemar_neuroticism_thresholds/export_result.sh"
+  },
+  "metadata": {
+    "source_csv": "/home/ga/Documents/Jamovi/NeuroticiIndex.csv",
+    "expected_omv": "/home/ga/Documents/Jamovi/NeuroticismMcNemar.omv",
+    "expected_report": "/home/ga/Documents/Jamovi/mcnemar_results.txt",
+    "var_n1": "N1",
+    "var_n2": "N2",
+    "threshold": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mcnemar_neuroticism_thresholds"
+    }
+  }
+}

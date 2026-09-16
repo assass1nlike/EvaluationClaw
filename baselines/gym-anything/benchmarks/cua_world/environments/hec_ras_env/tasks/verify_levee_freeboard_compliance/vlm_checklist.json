@@ -1,0 +1,53 @@
+{
+  "task_id": "verify_levee_freeboard_compliance@1",
+  "task_completion": [
+    {
+      "id": "open_hec_ras_project",
+      "description": "Open the Muncie HEC-RAS project",
+      "points": 10,
+      "visual_evidence": "The HEC-RAS main application window is open and displays the 'Muncie' project loaded from the '~/Documents/hec_ras_projects/Muncie' directory."
+    },
+    {
+      "id": "run_unsteady_simulation",
+      "description": "Run the Unsteady Flow simulation for Plan 04",
+      "points": 20,
+      "visual_evidence": "The HEC-RAS Unsteady Flow Analysis window is visible with 'Plan 04' selected, or a computation window is shown indicating that the simulation is running or has completed."
+    },
+    {
+      "id": "extract_max_wse",
+      "description": "Extract the Maximum Water Surface Elevation (WSE) profile",
+      "points": 15,
+      "visual_evidence": "A HEC-RAS output table or profile plot showing the Maximum WSE is visible, or the agent is seen exporting this specific data to a file."
+    },
+    {
+      "id": "generate_compliance_csv",
+      "description": "Generate the levee compliance CSV report",
+      "points": 30,
+      "visual_evidence": "A file named 'levee_compliance.csv' is shown in a text editor, spreadsheet, or terminal output, containing the columns 'Station_ft', 'Levee_Top_Elev_ft', 'Modeled_WSE_ft', 'Freeboard_ft', and 'Status' (with PASS/FAIL values)."
+    },
+    {
+      "id": "generate_profile_plot",
+      "description": "Generate the levee profile visualization plot",
+      "points": 25,
+      "visual_evidence": "An image viewer or plot window displays 'levee_profile.png', showing a graph with at least two distinct lines/series representing the Levee Top and the Max WSE."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_hec_ras_usage",
+      "description": "Verify the agent actually used HEC-RAS to generate the simulation data",
+      "visual_evidence": "Screenshots should show the agent interacting with the HEC-RAS GUI to compute the simulation and extract results, rather than bypassing the software or hallucinating the output data."
+    },
+    {
+      "id": "genuine_computation",
+      "description": "Verify the agent computed the freeboard and status dynamically",
+      "visual_evidence": "The agent should be seen writing/running a script (e.g., Python) or using a spreadsheet to interpolate WSE, subtract it from Levee Elev, and apply the 3.0 ft threshold logic, rather than hardcoding the final CSV."
+    },
+    {
+      "id": "correct_output_locations",
+      "description": "Verify the outputs are saved in the correct directory",
+      "visual_evidence": "The terminal, file explorer, or script should explicitly show 'levee_compliance.csv' and 'levee_profile.png' being saved to or residing in '~/Documents/hec_ras_results/'."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/Documents/hec_ras_projects/Muncie. Output CSV path: /home/ga/Documents/hec_ras_results/levee_compliance.csv. Output plot path: /home/ga/Documents/hec_ras_results/levee_profile.png. Freeboard threshold: 3.0 ft (Status must be 'FAIL' if Freeboard_ft < 3.0, otherwise 'PASS')."
+}

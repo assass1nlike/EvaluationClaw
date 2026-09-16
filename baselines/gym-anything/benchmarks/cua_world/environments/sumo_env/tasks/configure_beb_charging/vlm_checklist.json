@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_beb_charging@1",
+  "task_completion": [
+    {
+      "id": "charging_station_configured",
+      "description": "Configure the charging station with the correct ID, power, and efficiency.",
+      "points": 20,
+      "visual_evidence": "Look for an XML file (e.g., additional.xml) open in a text editor or printed in the terminal showing a <chargingStation> tag with id=\"charger_1\", power=\"300000\", and efficiency=\"0.95\"."
+    },
+    {
+      "id": "bus_battery_configured",
+      "description": "Configure the bus fleet with the correct maximum and actual battery capacities.",
+      "points": 20,
+      "visual_evidence": "Look for an XML file (e.g., rou.xml or vtypes.xml) showing battery parameters for the bus vehicle type, specifically containing values or parameters for maximum capacity (150000) and actual/initial capacity (50000)."
+    },
+    {
+      "id": "battery_output_configured",
+      "description": "Ensure the simulation is set to generate battery output at the specified path.",
+      "points": 20,
+      "visual_evidence": "Look for a .sumocfg file containing <battery-output value=\"/home/ga/SUMO_Output/battery.xml\"/> or a terminal command running SUMO with the flag --battery-output /home/ga/SUMO_Output/battery.xml."
+    },
+    {
+      "id": "simulation_executed",
+      "description": "Run the SUMO simulation.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output showing the SUMO simulation executing, which typically includes step logs, routing information, or a 'Simulation ended' message."
+    },
+    {
+      "id": "charging_summary_saved",
+      "description": "Count the number of vehicles that received a charge and save it to charging_summary.txt.",
+      "points": 25,
+      "visual_evidence": "Look for a terminal command (like cat, echo, or a script execution) showing a numeric count being written to or read from /home/ga/SUMO_Output/charging_summary.txt."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Verify that the agent actually executed the SUMO simulation.",
+      "visual_evidence": "Look for the actual 'sumo' command being run in the terminal with corresponding simulation output logs, rather than the agent just creating the output files manually."
+    },
+    {
+      "id": "authentic_calculation",
+      "description": "Verify that the agent calculated the charged vehicles count from the simulation output.",
+      "visual_evidence": "Look for a script (Python, bash) or command (grep, awk) being used to parse battery.xml for 'energyCharged' values greater than 0, rather than just echoing a hardcoded or guessed number into the summary file."
+    },
+    {
+      "id": "genuine_file_modification",
+      "description": "Verify that the agent interacted with the configuration files legitimately.",
+      "visual_evidence": "Look for the use of standard text editors (nano, vim) or stream editors (sed, awk) to modify the XML files, rather than bypassing the file system or hallucinating the file creation."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario directory is /home/ga/SUMO_Scenarios/bologna_pasubio and the output directory is /home/ga/SUMO_Output. The charging station must be configured with power='300000' and efficiency='0.95'. The bus fleet must be configured with maximum battery capacity='150000' and actual battery capacity='50000'."
+}

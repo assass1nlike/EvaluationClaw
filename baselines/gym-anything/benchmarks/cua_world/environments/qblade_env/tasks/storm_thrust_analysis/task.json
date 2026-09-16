@@ -1,0 +1,35 @@
+{
+  "id": "storm_thrust_analysis@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Perform a structural survivability analysis for a wind turbine rotor under extreme storm conditions using QBlade. The objective is to compare rotor thrust loads for a parked turbine in 50 m/s winds between a 'Runaway' state (0 deg pitch) and a 'Feathered' state (90 deg pitch). The analysis requires a 3-bladed rotor (20m radius, 1m constant chord, 0 deg constant twist) using a NACA 0012 airfoil with a 360-degree extrapolated polar (Re=1,000,000). Conduct simulations at 50 m/s wind speed and 0.1 RPM for both pitch configurations. Save the project file to /home/ga/Documents/projects/storm_analysis.wpa and document the resulting thrust values in Newtons at /home/ga/Documents/projects/storm_report.txt using the following format:\nThrust at 0 deg: [Value] N\nThrust at 90 deg: [Value] N",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/storm_thrust_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/storm_thrust_analysis/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/Documents/projects/storm_analysis.wpa",
+    "report_path": "/home/ga/Documents/projects/storm_report.txt",
+    "min_thrust_0deg": 50000,
+    "max_thrust_90deg": 15000,
+    "physics_check_ratio": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_storm_thrust_analysis"
+    }
+  },
+  "tags": [
+    "engineering",
+    "simulation",
+    "physics",
+    "qblade"
+  ]
+}

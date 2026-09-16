@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_pv_snow_losses@1",
+  "task_completion": [
+    {
+      "id": "weather_and_system_configured",
+      "description": "Verify the weather file and PV system parameters are configured correctly.",
+      "points": 20,
+      "visual_evidence": "Look for SAM GUI or Python code showing the weather file set to '/home/ga/SAM_Weather_Data/Anchorage.epw', system capacity set to 250 kW (or 250000 W), tilt set to 45 degrees, and azimuth set to 180 degrees."
+    },
+    {
+      "id": "simulation_logic_present",
+      "description": "Verify the agent set up both baseline and snow-enabled simulations.",
+      "points": 20,
+      "visual_evidence": "Look for SAM GUI settings or Python code explicitly showing the snow model being toggled on and off (or two separate models/runs being executed) to compare the baseline vs. snow-enabled configurations."
+    },
+    {
+      "id": "workflow_evidence_saved",
+      "description": "Verify the workflow evidence file (.py or .sam) is saved in the correct directory.",
+      "points": 20,
+      "visual_evidence": "Look for a file explorer, terminal `ls` command, or editor tab showing a `.py` or `.sam` file saved in the `/home/ga/Documents/SAM_Projects/` directory."
+    },
+    {
+      "id": "json_results_saved",
+      "description": "Verify the results are saved to the specified JSON file with the correct structure.",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'snow_loss_analysis.json' in '/home/ga/Documents/SAM_Projects/' containing the keys: 'baseline_energy_kwh', 'snow_model_energy_kwh', 'snow_loss_kwh', and 'snow_loss_percentage'."
+    },
+    {
+      "id": "json_results_accurate",
+      "description": "Verify the quantified energy values in the JSON file are accurate based on the weather data.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of 'snow_loss_analysis.json'. The 'baseline_energy_kwh' should be between 200000 and 270000. The 'snow_loss_kwh' and 'snow_loss_percentage' must be exactly 0 or 0.0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_tool_used",
+      "description": "Verify the agent actually used SAM or PySAM to compute the results.",
+      "visual_evidence": "Look for the SAM application open and running, or a terminal/IDE executing a Python script that imports PySAM. The agent should not just be guessing values in a text editor."
+    },
+    {
+      "id": "no_hardcoded_json_generation",
+      "description": "Verify the agent did not bypass the simulation by directly echoing hardcoded JSON.",
+      "visual_evidence": "Ensure the JSON file was generated as an output of the Python script or manually transcribed from actual SAM GUI results, rather than created via a simple `echo` command without running any simulation."
+    },
+    {
+      "id": "authentic_file_paths",
+      "description": "Verify the agent used the exact requested directories.",
+      "visual_evidence": "Check terminal commands or file explorer paths to ensure files were actually placed in '/home/ga/Documents/SAM_Projects/' and not a mock directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline energy must be between 200,000 and 270,000 kWh (typically ~211,721 to 227,581 kWh). Because the provided Anchorage.epw file has 0.0 for snow depth throughout the entire year, the snow model will calculate exactly 0.0 kWh for snow loss. The resulting JSON file must reflect a snow loss of 0.0 and a snow loss percentage of 0.0."
+}

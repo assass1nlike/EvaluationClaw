@@ -1,0 +1,31 @@
+{
+  "id": "dbscan_cluster_world_cities@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Perform a spatial cluster analysis on world cities using the DBSCAN algorithm. Using the vector layer at /home/ga/GIS_Data/ne_110m_populated_places.shp, run the DBSCAN clustering algorithm with a minimum cluster size of 3 and a maximum distance of 5 degrees. Export the resulting layer, ensuring the cluster ID field is included, as a GeoJSON file to /home/ga/GIS_Data/exports/clustered_cities.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dbscan_cluster_world_cities/setup_task.sh",
+    "post_task": "/workspace/tasks/dbscan_cluster_world_cities/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/GIS_Data/ne_110m_populated_places.shp",
+    "expected_output_file": "/home/ga/GIS_Data/exports/clustered_cities.geojson",
+    "parameters": {
+      "min_cluster_size": 3,
+      "epsilon": 5
+    },
+    "data_url": "https://naciscdn.org/naturalearth/110m/cultural/ne_110m_populated_places.zip"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dbscan_cluster_world_cities"
+    }
+  }
+}

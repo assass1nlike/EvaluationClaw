@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_layer_extraction@1",
+  "task_completion": [
+    {
+      "id": "docker_layer_extraction",
+      "description": "The agent inspects the Docker image history and extracts the filesystem layers to locate the deleted file.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing commands like `docker save acme/credit-score:v1`, extracting tarballs, or using tools like `dive` to explore the image layers."
+    },
+    {
+      "id": "file_saved_to_desktop",
+      "description": "The recovered file is saved to the Desktop.",
+      "points": 20,
+      "visual_evidence": "Terminal commands showing the file being copied/moved to `~/Desktop/risk_model.py`, or the `risk_model.py` file icon visible on the GUI Desktop."
+    },
+    {
+      "id": "content_class_scorer",
+      "description": "The recovered file contains the CreditRiskScorer class definition.",
+      "points": 20,
+      "visual_evidence": "The file contents displayed in a terminal (e.g., via `cat`) or a text editor showing the string `class CreditRiskScorer`."
+    },
+    {
+      "id": "content_income_weight",
+      "description": "The recovered file contains the specific income weight assignment.",
+      "points": 15,
+      "visual_evidence": "The file contents displayed in a terminal or text editor showing the exact string `self._income_weight = 0.85`."
+    },
+    {
+      "id": "content_confidential",
+      "description": "The recovered file contains the CONFIDENTIAL watermark.",
+      "points": 15,
+      "visual_evidence": "The file contents displayed in a terminal or text editor showing the string `CONFIDENTIAL` (typically in a docstring)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_extraction",
+      "description": "The agent actually extracted the file from the Docker image layers rather than writing a new Python script from scratch.",
+      "visual_evidence": "Look for a continuous workflow of extracting a layer tarball and copying the file from it, rather than opening an editor and typing out the code."
+    },
+    {
+      "id": "complete_file_content",
+      "description": "The recovered file is a complete Python script, not just a mock file with the required strings.",
+      "visual_evidence": "When the file is viewed, it should appear as a full class implementation (approx 1KB in size) with multiple methods, not just 3-4 lines of text."
+    },
+    {
+      "id": "correct_target_image",
+      "description": "The agent interacted with the correct Docker image.",
+      "visual_evidence": "Terminal commands should explicitly reference `acme/credit-score:v1`."
+    }
+  ],
+  "privileged_info_for_vlm": "Target image: acme/credit-score:v1. Recovery path: /home/ga/Desktop/risk_model.py. The ground truth file is approximately 1025 bytes and contains the following specific strings: 'class CreditRiskScorer', 'self._income_weight = 0.85', and 'CONFIDENTIAL'."
+}

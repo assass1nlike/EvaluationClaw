@@ -1,0 +1,53 @@
+{
+  "task_id": "dns_latency_profiling@1",
+  "task_completion": [
+    {
+      "id": "analyze_capture_file",
+      "description": "Agent opens and analyzes the dns.cap file",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent opening '/home/ga/Documents/captures/dns.cap' in Wireshark, or using terminal commands like 'tshark' or a Python script to read the pcap file."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Agent creates the required report file",
+      "points": 10,
+      "visual_evidence": "Screenshots show a text editor or terminal command creating/editing a file specifically at the path '/home/ga/Documents/captures/dns_latency_report.txt'."
+    },
+    {
+      "id": "report_header_and_counts",
+      "description": "Report contains the correct header and DNS query counts",
+      "points": 20,
+      "visual_evidence": "The report file shows the exact header 'DNS Latency Profiling Report', 'Capture File: dns.cap', and the counts: Total DNS Queries: 19, Queries With Response: 19, Unanswered Queries: 0."
+    },
+    {
+      "id": "report_latency_statistics",
+      "description": "Report contains the correct latency statistics",
+      "points": 30,
+      "visual_evidence": "The report file shows the 'Latency Statistics (ms):' section with Minimum: 0.387, Maximum: 832.133, Mean: 101.143, and Median: 18.287."
+    },
+    {
+      "id": "report_slowest_resolution",
+      "description": "Report contains the correct slowest resolution details",
+      "points": 30,
+      "visual_evidence": "The report file shows the 'Slowest Resolution:' section with Domain: google.com and Latency: 832.133 ms."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis_performed",
+      "description": "Agent actually analyzed the pcap file using appropriate tools",
+      "visual_evidence": "Screenshots should show the agent interacting with Wireshark, tshark, or writing a script to calculate the statistics, rather than magically typing the final answers without prior analysis steps."
+    },
+    {
+      "id": "no_ground_truth_cheating",
+      "description": "Agent did not read the ground truth file to get the answers",
+      "visual_evidence": "Ensure the agent does not open or read from '/tmp/dns_ground_truth.json' at any point during the trajectory."
+    },
+    {
+      "id": "correct_output_format",
+      "description": "Agent followed the exact formatting requested",
+      "visual_evidence": "The final text file must strictly match the requested layout, capitalization, and spacing as defined in the task description, without extra conversational text."
+    }
+  ],
+  "privileged_info_for_vlm": "The capture file 'dns.cap' contains exactly 19 DNS queries, 19 queries with response, and 0 unanswered queries. The latency statistics are: Minimum: 0.387 ms, Maximum: 832.133 ms, Mean: 101.143 ms, Median: 18.287 ms. The slowest resolution is for the domain 'google.com' with a latency of 832.133 ms. The expected output file must be saved to '/home/ga/Documents/captures/dns_latency_report.txt'."
+}

@@ -1,0 +1,74 @@
+{
+  "dataset_id": "b94b6cc3",
+  "name": "Soccer-Sentiment-Classification",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Soccer-Sentiment-Classification dataset contains 200 sports-related social media texts annotated with sentiment labels. It evaluates whether a model can classify the sentiment of short sports-related text as positive, negative, or neutral.",
+  "card_text": "This dataset is a text-only multiclass sentiment classification resource focused on soccer and broader sports-related social media content. Each sample consists of a raw social media post or tweet and a prompt instructing the model to output only one of three sentiment categories: positive, negative, or neutral. The raw texts are informal, often containing hashtags, mentions, emojis, URLs, and World Cup 2022 references. The dataset is designed to test sentiment analysis on noisy, user-generated sports commentary rather than on standard review or news corpora. The expected output is a single category word, making it straightforward to evaluate classification accuracy.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "sports social media sentiment",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "mixed",
+        "semantics": "The raw sports-related social media text (e.g., tweets containing hashtags, mentions, and links) whose sentiment is to be classified. It is the primary content the model must read and is referenced by the prompt.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The instruction that asks the model to identify the sentiment of the raw text as positive, negative, or neutral and to output only the category name. It references the raw_text via a placeholder.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold sentiment label assigned to the raw text, expressed as a single category word: positive, negative, or neutral.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with raw_text (the sports-related social media content) and prompt (an instruction referencing raw_text and specifying the three allowed sentiment categories), and an output object with text (the sentiment label). The prompt acts as the question/instruction, raw_text is the context to classify, and output.text is the answer label. No dialog, options, or other auxiliary annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Soccer-Sentiment-Classification/annotation.json",
+    "existing_tags": {
+      "task": "sports_sentiment_analysis",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

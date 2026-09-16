@@ -1,0 +1,47 @@
+{
+  "task_id": "enable_compliance_archival@1",
+  "task_completion": [
+    {
+      "id": "wazuh_log_monitoring_configured",
+      "description": "Verify that Wazuh is configured to monitor the custom log file.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal or text editor showing the Wazuh configuration file (e.g., ossec.conf) with a '<localfile>' block containing '<location>/var/log/legacy_fin_app.log</location>' and '<log_format>syslog</log_format>'."
+    },
+    {
+      "id": "wazuh_logall_json_enabled",
+      "description": "Verify that the global JSON archiving setting is enabled.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal or text editor showing the Wazuh configuration file with the '<logall_json>yes</logall_json>' setting."
+    },
+    {
+      "id": "log_event_appended",
+      "description": "Verify that the simulated log event was appended to the target log file.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal showing the contents of '/var/log/legacy_fin_app.log' containing the string '2024-01-01 12:00:00 LegacyFinApp: INFO Transaction ID 998877 completed successfully by user_auditor'."
+    },
+    {
+      "id": "proof_file_created",
+      "description": "Verify that the JSON event was extracted and saved to the proof file.",
+      "points": 40,
+      "visual_evidence": "Look for a terminal showing the contents of '/home/ga/archive_proof.json'. It should contain a full JSON object representing the Wazuh event, which includes the 'LegacyFinApp: INFO Transaction ID 998877' log message."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_wazuh_configuration",
+      "description": "Ensure the configuration changes and log appending were performed inside the Wazuh manager container.",
+      "visual_evidence": "Look for Docker commands (e.g., 'docker exec -it wazuh-wazuh.manager-1') or a shell prompt indicating the agent is inside the 'wazuh-wazuh.manager-1' container."
+    },
+    {
+      "id": "genuine_json_extraction",
+      "description": "Ensure the proof file contains a genuine Wazuh archive JSON event, not a manually forged one.",
+      "visual_evidence": "The JSON in '/home/ga/archive_proof.json' should contain standard Wazuh event fields (e.g., 'timestamp', 'rule', 'agent', 'location', 'full_log') rather than a minimal, hand-typed JSON structure."
+    },
+    {
+      "id": "no_direct_proof_creation",
+      "description": "Ensure the agent actually extracted the event from the archives.",
+      "visual_evidence": "Look for commands like 'grep', 'cat', or 'jq' reading from '/var/ossec/logs/archives/archives.json' and redirecting the output to '/home/ga/archive_proof.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target log file is '/var/log/legacy_fin_app.log' and the target archive file is '/var/ossec/logs/archives/archives.json', both located inside the 'wazuh-wazuh.manager-1' container. The required log content must include 'LegacyFinApp: INFO Transaction ID 998877'. The final proof file must be saved at '/home/ga/archive_proof.json'."
+}

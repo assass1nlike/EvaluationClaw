@@ -1,0 +1,31 @@
+{
+  "id": "book_chapter_page_styles@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Format the book chapter manuscript '/home/ga/Documents/chapter1_draft.docx' (Pride and Prejudice, Chapter I) with professional page styles. Apply mirror margins (Inside 1.25\", Outside 1.0\", Top 1.0\", Bottom 1.0\"). Configure the document with a different first page and different odd/even pages. The first page should have an empty header and a centered page number in the footer. Even page headers must contain 'Pride and Prejudice' aligned left, and odd page headers must contain 'Chapter I' aligned right. Apply the Heading 1 style to the centered chapter title 'Chapter I'. Set all body text to 12pt Serif font with double spacing (2.0). Save the result as a new file at '/home/ga/Documents/chapter1_formatted.docx' without overwriting the original.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/book_chapter_page_styles/setup_task.sh",
+    "post_task": "/workspace/tasks/book_chapter_page_styles/export_result.sh"
+  },
+  "metadata": {
+    "draft_path": "/home/ga/Documents/chapter1_draft.docx",
+    "output_path": "/home/ga/Documents/chapter1_formatted.docx",
+    "required_text_content": "It is a truth universally acknowledged",
+    "margin_inside_emu": 1143000,
+    "margin_outside_emu": 914400,
+    "header_even_text": "Pride and Prejudice",
+    "header_odd_text": "Chapter I"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_book_chapter_page_styles"
+    }
+  }
+}

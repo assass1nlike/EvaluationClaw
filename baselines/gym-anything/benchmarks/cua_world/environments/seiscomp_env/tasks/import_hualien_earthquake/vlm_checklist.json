@@ -1,0 +1,53 @@
+{
+  "task_id": "import_hualien_earthquake@1",
+  "task_completion": [
+    {
+      "id": "scml_file_creation",
+      "description": "Create the SCML file in the correct directory",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano, vim) is open editing a file named 'hualien_earthquake.scml' in the '~/Documents' directory, or terminal commands show the creation of this file at the correct path."
+    },
+    {
+      "id": "scml_origin_data",
+      "description": "Include the correct origin parameters in the SCML file",
+      "points": 30,
+      "visual_evidence": "The content of the SCML file contains the correct origin time (2024-04-02T23:58:11.000Z), latitude (23.819), longitude (121.562), and depth (34.8)."
+    },
+    {
+      "id": "scml_magnitude_and_metadata",
+      "description": "Include the correct magnitude and metadata in the SCML file",
+      "points": 20,
+      "visual_evidence": "The content of the SCML file contains the magnitude value (7.4), magnitude type (Mw), agency (CWA), and description (Hualien)."
+    },
+    {
+      "id": "scdb_command_execution",
+      "description": "Execute the scdb command to import the SCML file",
+      "points": 20,
+      "visual_evidence": "The terminal shows the execution of the 'scdb' command with the correct database URL (mysql://sysop:sysop@localhost/seiscomp) and the input file (~/Documents/hualien_earthquake.scml)."
+    },
+    {
+      "id": "import_success_output",
+      "description": "Verify successful database import",
+      "points": 20,
+      "visual_evidence": "The terminal output from the 'scdb' command shows that the file was successfully parsed and objects were imported/sent to the database without connection or parsing errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_scdb_execution",
+      "description": "The agent runs the real scdb command",
+      "visual_evidence": "The agent executes the actual 'scdb' binary in the terminal, rather than using 'echo' to print a fake success message or running a mock script."
+    },
+    {
+      "id": "no_direct_db_manipulation",
+      "description": "The agent uses scdb instead of direct SQL inserts",
+      "visual_evidence": "The agent uses the requested 'scdb' tool to import the data, rather than opening the 'mysql' command-line client to manually insert rows into the database."
+    },
+    {
+      "id": "authentic_xml_creation",
+      "description": "The agent creates a properly formatted XML file",
+      "visual_evidence": "The file created by the agent has valid XML/SCML tags and structure, rather than just being a flat text file containing the parameters."
+    }
+  ],
+  "privileged_info_for_vlm": "The SCML file must be saved to /home/ga/Documents/hualien_earthquake.scml. The required earthquake parameters are: Origin Time 2024-04-02T23:58:11.000Z, Latitude 23.819, Longitude 121.562, Depth 34.8, Magnitude 7.4, Magnitude Type Mw, Agency CWA, and Description 'Hualien'."
+}

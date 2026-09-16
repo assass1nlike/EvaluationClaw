@@ -1,0 +1,117 @@
+{
+  "dataset_id": "eff9f1ae",
+  "name": "Road Scene Panoptic Segmentation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image",
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Road Scene Panoptic Segmentation dataset contains urban street scene images paired with panoptic segmentation annotations. Each sample provides an input image and an instruction prompt, and the expected output is a panoptic segmentation mask along with per-segment metadata (bounding boxes, category IDs). It evaluates a model's ability to jointly segment and classify all objects and regions in a road scene.",
+  "card_text": "This dataset consists of 200 samples from the Cityscapes-style road scene domain, with RGB images and panoptic segmentation annotations. Each sample includes an input image (e.g., frankfurt_000001_051737_leftImg8bit.png) and a short textual prompt instructing the model to perform panoptic segmentation. The output is a panoptic segmentation PNG mask plus a segments_info list containing area, bounding box, category ID, and iscrowd flag for each segment. The dataset covers complex urban driving scenes with many objects such as cars, pedestrians, roads, buildings, and vegetation. The task combines semantic and instance segmentation in a single panoptic output. Annotations follow the Cityscapes panoptic format, with category IDs corresponding to classes like road, sidewalk, building, car, person, etc. The dataset is intended for evaluating panoptic segmentation models in autonomous driving perception.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "autonomous driving / urban road scenes",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Instruction prompt that explicitly asks the model to perform panoptic segmentation on the provided road scene image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "scenery",
+        "semantics": "Input RGB image of an urban road scene captured from a vehicle, containing numerous objects such as cars, pedestrians, roads, buildings, and vegetation.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.png_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "Panoptic segmentation mask image where each pixel is assigned a segment ID; different colors correspond to different object categories or instances.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.segments_info[].bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Bounding box coordinates [x, y, width, height] for each segment in the panoptic annotation, delineating the spatial extent of each object or region.",
+        "path_types": [
+          "list<int>"
+        ]
+      },
+      "category": {
+        "paths": [
+          "output.segments_info[].category_id"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Integer category ID for each segment, indicating the class (e.g., car, road, building) according to the panoptic label set.",
+        "path_types": [
+          "int"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "output.segments_info[].area",
+          "output.segments_info[].iscrowd"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Auxiliary per-segment attributes: area (number of pixels) and iscrowd flag (whether the segment represents a crowd of objects).",
+        "path_types": [
+          "int",
+          "int"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image and a text instruction prompt, paired with a target output that includes a panoptic segmentation mask PNG and a list of segment metadata. The segment list contains bounding boxes, category IDs, area, and crowd flags for every annotated segment. The prompt instructs the model to perform panoptic segmentation on the image, and the mask and segment info together define the expected panoptic segmentation."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/road_scene_panoptic_segmentation/json/annotation.json",
+    "existing_tags": {
+      "task": "road scene panoptic segmentation",
+      "type": "comprehension",
+      "skill": "Panoptic Segmentation (Panoptic Seg)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

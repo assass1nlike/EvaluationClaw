@@ -1,0 +1,85 @@
+{
+  "dataset_id": "366da9d6",
+  "name": "Bottle Anomaly Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 25,
+  "description": "Bottle Anomaly Detection is a small image-to-image segmentation dataset for industrial quality inspection. Each sample contains a bottle image and a fixed instruction to detect the anomaly region, with a binary mask as the target output.",
+  "card_text": "The dataset consists of paired bottle images and binary anomaly masks, accompanied by a short natural-language prompt. Input images depict bottles in an industrial inspection setting, and the prompt is a fixed imperative: 'Detect the anomaly region of the bottle'. The target output is a mask image that highlights defective or anomalous areas. It is designed for pixel-level anomaly localization, assuming a single object per image and a clear binary distinction between normal and anomalous regions. With only 25 samples, it serves as a lightweight benchmark or demonstration for segmentation-based anomaly detection.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "industrial anomaly detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Input image showing a bottle to be inspected for anomalies. It provides the visual content on which the anomaly region must be detected.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Imperative text prompt instructing the model to detect the anomaly region of the bottle. It specifies the target region for segmentation.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Output binary mask image that marks the anomalous region on the bottle, corresponding to the input image and the instruction.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample pairs an input bottle image (input.image_file) with a short instruction (input.prompt) and a target mask image (output.mask_file). The input image provides the visual scene, the prompt asks to detect the anomaly region, and the mask image is the pixel-wise annotation of that region. There are no extra text, options, or bounding boxes."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/BottleAnomalyDetection/bottle_anomaly_detection.json",
+    "existing_tags": {
+      "task": "bottle anomaly detection",
+      "type": "image comprehension",
+      "skill": "Industrial Anomaly Detection",
+      "domain": [
+        "Engineering"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Engineering"
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "id": "ecommerce_wardley_map@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a Wardley Map for an online marketplace platform based on the strategy document provided at ~/Desktop/marketplace_strategy.txt. The diagram must include a map titled 'Online Marketplace Platform — Wardley Map' with the X-axis labeled with evolution stages ('Genesis', 'Custom Built', 'Product (+rental)', 'Commodity (+utility)') and the Y-axis labeled from 'Visible' to 'Invisible'. Map all 18 components and their relationships according to the value chain visibility, evolution stages, and dependencies defined in the strategy file. Include a second page in the diagram named 'Strategic Moves' that lists the 3 strategic recommendations found in the document. Save the diagram to ~/Desktop/marketplace_wardley_map.drawio and export the map page as a PNG to ~/Desktop/marketplace_wardley_map.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ecommerce_wardley_map/setup_task.sh",
+    "post_task": "/workspace/tasks/ecommerce_wardley_map/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "marketplace_wardley_map.drawio",
+    "expected_png": "marketplace_wardley_map.png",
+    "strategy_file": "/home/ga/Desktop/marketplace_strategy.txt",
+    "component_count": 18,
+    "min_edges": 12,
+    "axis_labels": [
+      "Genesis",
+      "Custom",
+      "Product",
+      "Commodity",
+      "Visible",
+      "Invisible"
+    ],
+    "components": [
+      "Customer",
+      "Buyer Experience",
+      "Seller Experience",
+      "Search & Discovery",
+      "Product Listings",
+      "Checkout Flow",
+      "Seller Dashboard",
+      "Ratings & Reviews",
+      "Recommendation Engine",
+      "Fraud Detection",
+      "Order Management",
+      "Payment Processing",
+      "Notification Service",
+      "Data Analytics",
+      "Compute Infrastructure",
+      "Object Storage",
+      "CDN",
+      "Identity & Auth"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ecommerce_wardley_map"
+    }
+  }
+}

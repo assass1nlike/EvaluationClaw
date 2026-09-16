@@ -1,0 +1,53 @@
+{
+  "task_id": "patient_entity_resolution_match@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQL Developer) or terminal (e.g., SQL*Plus, Python script) showing an active connection to localhost:1521/XEPDB1 with the user 'hr'."
+    },
+    {
+      "id": "create_patient_linkage_table",
+      "description": "Create the PATIENT_LINKAGE table with the required columns.",
+      "points": 20,
+      "visual_evidence": "A SQL 'CREATE TABLE PATIENT_LINKAGE' statement being executed with columns INTAKE_ID (NUMBER), MPI_ID (NUMBER), and MATCH_SCORE (NUMBER), or the table appearing in the database schema browser."
+    },
+    {
+      "id": "probabilistic_matching_logic",
+      "description": "Write a query to match patients using UTL_MATCH and exact demographic matches.",
+      "points": 30,
+      "visual_evidence": "A SQL query joining 'MASTER_PATIENT_INDEX' and 'CLINIC_INTAKE' that includes exact equality checks for DOB and Gender, and uses 'UTL_MATCH.JARO_WINKLER_SIMILARITY' on both First Name and Last Name."
+    },
+    {
+      "id": "apply_match_threshold",
+      "description": "Filter the matches to ensure the average Jaro-Winkler similarity is 90 or greater.",
+      "points": 20,
+      "visual_evidence": "A WHERE clause or calculation in the SQL query ensuring that the average of the First Name and Last Name similarity scores is >= 90."
+    },
+    {
+      "id": "export_csv_report",
+      "description": "Export the PATIENT_LINKAGE table to a CSV file on the Desktop, ordered by match score descending.",
+      "points": 20,
+      "visual_evidence": "A file named 'linkage_report.csv' visible on the Desktop (/home/ga/Desktop/), or a GUI export action/script showing the results being saved to this path with an 'ORDER BY MATCH_SCORE DESC' clause."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_query",
+      "description": "The agent must interact with the Oracle database to perform the resolution.",
+      "visual_evidence": "Screenshots should show SQL queries being executed against the database, rather than the agent generating a mock CSV file without querying the tables."
+    },
+    {
+      "id": "used_oracle_utl_match",
+      "description": "The agent must use Oracle's UTL_MATCH package as instructed.",
+      "visual_evidence": "The SQL query must explicitly contain 'UTL_MATCH.JARO_WINKLER_SIMILARITY'. The agent should not download the data and use external Python libraries (like fuzzywuzzy or jellyfish) for the similarity calculation."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent must not hardcode the final output.",
+      "visual_evidence": "The CSV export must be the result of a query or script output, not manually typed or echo'd patient IDs and scores."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a table named 'PATIENT_LINKAGE' with columns INTAKE_ID, MPI_ID, and MATCH_SCORE. The matching logic must use Oracle's UTL_MATCH.JARO_WINKLER_SIMILARITY to calculate similarity for First Name and Last Name, requiring an average score >= 90, plus exact matches on DOB and Gender. The final output must be exported to /home/ga/Desktop/linkage_report.csv, ordered by match score descending. Connection details are hr/hr123 at localhost:1521/XEPDB1."
+}

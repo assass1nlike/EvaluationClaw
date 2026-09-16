@@ -1,0 +1,29 @@
+{
+  "id": "create_restricted_coupon@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Create a WooCommerce coupon with the code 'CLOTHING-DEAL' that provides a $20 fixed cart discount. The coupon must require a minimum spend of $75.00, exclude sale items, and be restricted to the 'Clothing' category.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_restricted_coupon/setup_task.sh",
+    "post_task": "/workspace/tasks/create_restricted_coupon/export_result.sh"
+  },
+  "metadata": {
+    "expected_code": "CLOTHING-DEAL",
+    "expected_amount": "20.00",
+    "expected_type": "fixed_cart",
+    "expected_min_spend": "75.00",
+    "expected_category_name": "Clothing"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_restricted_coupon"
+    }
+  }
+}

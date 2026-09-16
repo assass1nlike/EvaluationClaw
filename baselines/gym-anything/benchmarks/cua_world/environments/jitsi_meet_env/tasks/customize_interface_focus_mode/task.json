@@ -1,0 +1,45 @@
+{
+  "id": "customize_interface_focus_mode@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Configure Jitsi Meet for a distraction-free 'Focus Mode'. Set the application name to 'ExamPortal' and configure the toolbar to include only the following buttons: 'microphone', 'camera', 'desktop', 'fullscreen', 'hangup', 'raisehand', 'chat', and 'tileview'. Save a screenshot of the simplified toolbar to ~/Documents/focus_mode_toolbar.png and a screenshot showing the 'ExamPortal' branding to ~/Documents/focus_mode_branding.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/customize_interface_focus_mode/setup_task.sh",
+    "post_task": "/workspace/tasks/customize_interface_focus_mode/export_result.sh"
+  },
+  "metadata": {
+    "config_path": "/home/ga/.jitsi-meet-cfg/web/custom-interface_config.js",
+    "expected_app_name": "ExamPortal",
+    "allowed_buttons": [
+      "microphone",
+      "camera",
+      "desktop",
+      "fullscreen",
+      "hangup",
+      "raisehand",
+      "chat",
+      "tileview"
+    ],
+    "forbidden_buttons": [
+      "invite",
+      "security",
+      "videoquality",
+      "filmstrip",
+      "shortcuts",
+      "stats",
+      "settings"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_customize_interface_focus_mode"
+    }
+  }
+}

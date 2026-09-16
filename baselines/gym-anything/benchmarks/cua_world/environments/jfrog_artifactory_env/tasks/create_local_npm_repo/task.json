@@ -1,0 +1,30 @@
+{
+  "id": "create_local_npm_repo@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Create a local npm repository in JFrog Artifactory at http://localhost:8082 using the credentials admin/password. The repository must have the key 'npm-local', package type 'npm', and description 'Local npm package repository'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_local_npm_repo/setup_task.sh"
+  },
+  "metadata": {
+    "target_repo_key": "npm-local",
+    "target_repo_type": "local",
+    "target_package_type": "npm",
+    "target_description": "Local npm package repository",
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_local_npm_repo"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "generate_aged_receivables@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "In the Northwind Traders business within Manager.io, generate an Aged Receivables report for today's date. Report the total outstanding accounts receivable amount and identify the customer with the largest outstanding balance. If the report is empty, record the total as 0.00. Credentials: Username = administrator, Password = (leave empty).",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_aged_receivables/setup_task.sh"
+  },
+  "metadata": {
+    "manager_module": "reports",
+    "report_type": "aged_receivables"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_aged_receivables"
+    }
+  }
+}

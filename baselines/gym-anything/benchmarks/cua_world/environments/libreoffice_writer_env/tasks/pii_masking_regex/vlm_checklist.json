@@ -1,0 +1,53 @@
+{
+  "task_id": "pii_masking_regex@1",
+  "task_completion": [
+    {
+      "id": "open_sensitive_file",
+      "description": "Open the sensitive employee roster file",
+      "points": 10,
+      "visual_evidence": "A word processor window (e.g., LibreOffice Writer) displaying the 'employee_roster_sensitive.odt' file, showing a list of employee records with names, SSNs, and emails."
+    },
+    {
+      "id": "mask_ssns",
+      "description": "Mask Social Security Numbers",
+      "points": 25,
+      "visual_evidence": "SSNs in the document are modified so that the first five digits are replaced by 'XXX-XX-', leaving only the last four digits visible (e.g., 'XXX-XX-1234')."
+    },
+    {
+      "id": "mask_emails",
+      "description": "Replace email domains",
+      "points": 25,
+      "visual_evidence": "Email addresses in the document are modified so that their domain part is replaced with '@redacted.com' (e.g., 'firstname.lastname@redacted.com')."
+    },
+    {
+      "id": "highlight_modifications",
+      "description": "Apply yellow highlight to modified PII",
+      "points": 20,
+      "visual_evidence": "A yellow background color (highlight) is applied specifically to the modified SSNs and email addresses in the document."
+    },
+    {
+      "id": "save_sanitized_file",
+      "description": "Save the sanitized file to the correct path",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog showing the file being saved as 'roster_sanitized.odt' in the '/home/ga/Documents/' directory, or the word processor window title updated to 'roster_sanitized.odt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_word_processor",
+      "description": "The agent used a graphical word processor to edit the document",
+      "visual_evidence": "Modifications and highlighting should be done within a GUI word processor (like LibreOffice Writer) using its built-in tools (e.g., Find & Replace), rather than a text editor."
+    },
+    {
+      "id": "no_terminal_scripting",
+      "description": "The agent did not use terminal scripts to bypass GUI interaction",
+      "visual_evidence": "No terminal windows should be visible running scripts (Python, bash, sed, etc.) to automatically modify the underlying XML of the ODT file."
+    },
+    {
+      "id": "genuine_highlighting",
+      "description": "The highlight is a genuine formatting change",
+      "visual_evidence": "The yellow highlight must be an actual text background color change applied via the word processor's formatting tools, not a typed text annotation like '[YELLOW]'."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: '/home/ga/Documents/employee_roster_sensitive.odt' (contains 50 records). Output file: '/home/ga/Documents/roster_sanitized.odt'. SSNs must be masked to 'XXX-XX-####' and emails to '*@redacted.com'. Both modified SSNs and emails must have yellow highlighting applied."
+}

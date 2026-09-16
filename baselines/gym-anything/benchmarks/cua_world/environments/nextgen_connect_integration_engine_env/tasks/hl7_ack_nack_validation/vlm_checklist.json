@@ -1,0 +1,65 @@
+{
+  "task_id": "hl7_ack_nack_validation@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify a new channel named 'ADT_Inbound_Validator' was created.",
+      "points": 10,
+      "visual_evidence": "Look for a channel named 'ADT_Inbound_Validator' in the NextGen Connect (Mirth Connect) Administrator channels list or via an API deployment script."
+    },
+    {
+      "id": "source_tcp_port",
+      "description": "Verify the channel source is configured to listen on TCP port 6661.",
+      "points": 15,
+      "visual_evidence": "Look at the Source tab or configuration showing the connector type as 'TCP Listener' and the port set to '6661'."
+    },
+    {
+      "id": "hl7_mllp_configured",
+      "description": "Verify the source data type is HL7 v2.x with MLLP framing.",
+      "points": 10,
+      "visual_evidence": "Look for 'HL7 v2.x' selected as the inbound data type and transmission mode/framing set to 'MLLP' in the source properties."
+    },
+    {
+      "id": "validation_logic",
+      "description": "Verify the channel validates the presence of PID.3 and PID.5.",
+      "points": 25,
+      "visual_evidence": "Look for a Filter, Transformer, or Script (e.g., JavaScript) that explicitly checks for the existence/length of the HL7 fields PID.3 (Patient ID) and PID.5 (Patient Name)."
+    },
+    {
+      "id": "ack_response_logic",
+      "description": "Verify the channel returns an ACK with MSA-1='AA' for valid messages and MSA-1='AE' for invalid messages.",
+      "points": 20,
+      "visual_evidence": "Look for response generation logic (in scripts or ACK settings) that conditionally sets the MSA-1 segment to 'AA' when PID.3 and PID.5 are present, and 'AE' when either is missing."
+    },
+    {
+      "id": "destination_file_writer",
+      "description": "Verify valid messages are written to a file writer destination at '/home/ga/hl7_outbound/'.",
+      "points": 10,
+      "visual_evidence": "Look at the Destinations tab showing a 'File Writer' connector type with the Directory set to '/home/ga/hl7_outbound/'."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Verify the channel is deployed and active.",
+      "points": 10,
+      "visual_evidence": "Look at the NextGen Connect Dashboard showing the 'ADT_Inbound_Validator' channel with a status of 'Deployed' or 'Started'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_platform_usage",
+      "description": "Verify the agent used NextGen Connect (via GUI or API) rather than building a standalone mock TCP server.",
+      "visual_evidence": "Look for screenshots of the NextGen Connect Administrator application, or terminal windows showing API curl commands/scripts interacting with https://localhost:8443/api."
+    },
+    {
+      "id": "no_manual_file_creation",
+      "description": "Verify the agent did not manually create fake HL7 output files to bypass the channel logic.",
+      "visual_evidence": "Ensure there are no terminal commands like 'echo ... > /home/ga/hl7_outbound/msg.hl7' used to fake the destination output."
+    },
+    {
+      "id": "genuine_hl7_logic",
+      "description": "Verify the validation and ACK logic is integrated into the channel configuration.",
+      "visual_evidence": "The logic checking PID.3/PID.5 and setting AA/AE should be visible inside the NextGen Connect interface (e.g., Edit Channel -> Scripts/Filters) or within the XML/JSON payload sent to the API, not just printed in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "HL7 v2.x is a standard healthcare messaging protocol. PID.3 (Patient Identifier) and PID.5 (Patient Name) are standard fields in the PID segment. In acknowledgement messages, the MSA segment contains the status: MSA-1='AA' indicates Application Accept (success), and MSA-1='AE' indicates Application Error. MLLP (Minimal Lower Layer Protocol) is the standard transport framing. NextGen Connect (formerly Mirth Connect) is the integration platform used for this task."
+}

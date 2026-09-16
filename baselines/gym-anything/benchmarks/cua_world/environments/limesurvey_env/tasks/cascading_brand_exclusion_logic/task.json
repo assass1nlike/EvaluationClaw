@@ -1,0 +1,31 @@
+{
+  "id": "cascading_brand_exclusion_logic@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create and activate a 'Smartphone Brand Funnel 2026' survey in LimeSurvey (admin/Admin123!) featuring a 'Brand Dynamics' question group with cascading exclusion logic. The survey must include: Q1_USE, a Multiple Choice question ('Which of the following smartphone brands do you currently use?') with brands Apple, Samsung, Google, Motorola, and Sony using codes SQ001-SQ005; Q2_REJECT, a Multiple Choice question ('Which of the brands you do NOT use would you never consider buying?') using the same brands and codes but excluding selections from Q1_USE; and Q3_WHY, an Array question ('Why would you never consider these brands?') using the same brands and codes for the Y-axis and 'Too Expensive', 'Poor Quality', 'Bad Design', and 'Privacy Concerns' for the X-axis, filtered to show only selections from Q2_REJECT.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cascading_brand_exclusion_logic/setup_task.sh",
+    "post_task": "/workspace/tasks/cascading_brand_exclusion_logic/export_result.sh"
+  },
+  "metadata": {
+    "expected_survey_title": "Smartphone Brand Funnel 2026",
+    "expected_q1_code": "Q1_USE",
+    "expected_q2_code": "Q2_REJECT",
+    "expected_q3_code": "Q3_WHY",
+    "expected_filter_exclude": "Q1_USE",
+    "expected_filter_include": "Q2_REJECT",
+    "expected_subquestion_count": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cascading_logic"
+    }
+  }
+}

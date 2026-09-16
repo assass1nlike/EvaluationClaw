@@ -1,0 +1,59 @@
+{
+  "task_id": "create_clv_report_calc@1",
+  "task_completion": [
+    {
+      "id": "columns_present",
+      "description": "Verify that the required columns are present in the spreadsheet.",
+      "points": 10,
+      "visual_evidence": "Look for column headers 'FirstName', 'LastName', 'Country', and 'TotalSpent' in the LibreOffice Calc spreadsheet."
+    },
+    {
+      "id": "data_populated",
+      "description": "Verify that customer data from the Chinook database is populated in the spreadsheet.",
+      "points": 15,
+      "visual_evidence": "Look for multiple rows of customer names, countries, and numeric spending values filling the spreadsheet under the respective columns."
+    },
+    {
+      "id": "segment_column_created",
+      "description": "Verify that a 'Segment' column exists and contains tier labels.",
+      "points": 15,
+      "visual_evidence": "Look for a column header 'Segment' with text values such as 'Gold', 'Silver', or 'Bronze' in the cells below it."
+    },
+    {
+      "id": "segment_logic_correct",
+      "description": "Verify that the Segment values correctly match the TotalSpent thresholds.",
+      "points": 25,
+      "visual_evidence": "Check specific rows to ensure that a TotalSpent of 45.00 or more is labeled 'Gold', between 40.00 and 44.99 is labeled 'Silver', and below 40.00 is labeled 'Bronze'."
+    },
+    {
+      "id": "data_sorted_descending",
+      "description": "Verify that the data is sorted by TotalSpent in descending order.",
+      "points": 20,
+      "visual_evidence": "Look at the TotalSpent column to ensure the numeric values are decreasing from top to bottom (the highest value, e.g., 49.62, should be at the top)."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "Verify that the spreadsheet is saved to the correct path.",
+      "points": 15,
+      "visual_evidence": "Look at the LibreOffice Calc window title bar for 'CLV_Report.ods' or a save dialog/file manager showing the file in the '/home/ga/Documents/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_calc_gui",
+      "description": "Verify that the agent used the LibreOffice Calc GUI to create and format the report.",
+      "visual_evidence": "Look for screenshots showing LibreOffice Calc open with the data being manipulated, rather than just a terminal window running a script to generate the file."
+    },
+    {
+      "id": "actual_database_query",
+      "description": "Verify that the agent extracted data from the actual Chinook database.",
+      "visual_evidence": "Look for evidence of the agent querying the database (e.g., using a SQLite browser, terminal query, or Python script) to get the customer data, rather than hallucinating or typing fake data."
+    },
+    {
+      "id": "no_hardcoded_generation",
+      "description": "Verify the agent didn't just run a pre-written script to bypass GUI interaction.",
+      "visual_evidence": "Ensure the agent actually interacts with the spreadsheet software (LibreOffice Calc) to paste data, sort, and add the Segment column, rather than generating the final .ods file entirely via a background script."
+    }
+  ],
+  "privileged_info_for_vlm": "The Chinook database contains exactly 59 customers. The maximum spending is $49.62. The Gold tier (>= $45.00) should have exactly 5 customers (e.g., spending 49.62, 47.62, 46.62, 45.62, 45.62). The Silver tier ($40.00 to $44.99) should have 9 customers. The Bronze tier (< $40.00) should have 45 customers. The file must be saved exactly as /home/ga/Documents/CLV_Report.ods."
+}

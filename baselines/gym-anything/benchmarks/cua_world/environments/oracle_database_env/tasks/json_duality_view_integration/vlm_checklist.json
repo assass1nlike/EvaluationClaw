@@ -1,0 +1,53 @@
+{
+  "task_id": "json_duality_view_integration@1",
+  "task_completion": [
+    {
+      "id": "create_duality_view",
+      "description": "Create the JSON Relational Duality View named DEPT_EMP_DV",
+      "points": 20,
+      "visual_evidence": "Look for a SQL command starting with 'CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW DEPT_EMP_DV' (or similar) being executed in a database client, along with a success message like 'View created'."
+    },
+    {
+      "id": "provision_json_data",
+      "description": "Provision Department 300 and employees 3001 and 3002 using the view",
+      "points": 20,
+      "visual_evidence": "Look for an INSERT statement targeting DEPT_EMP_DV that includes a JSON document with department ID 300, name 'Cloud Infrastructure', and a nested 'staff' array containing employees 3001 and 3002."
+    },
+    {
+      "id": "update_dept_name",
+      "description": "Update the Department Name to 'Cloud Operations' through the view",
+      "points": 15,
+      "visual_evidence": "Look for an UPDATE statement explicitly targeting DEPT_EMP_DV that modifies the department name to 'Cloud Operations' for department 300."
+    },
+    {
+      "id": "update_emp_email",
+      "description": "Update Sanjay's Email to 'SGUPTA_CLOUD' through the view",
+      "points": 15,
+      "visual_evidence": "Look for an UPDATE statement explicitly targeting DEPT_EMP_DV that modifies the email to 'SGUPTA_CLOUD' for employee 3001."
+    },
+    {
+      "id": "export_json_document",
+      "description": "Export the resulting JSON document for Department 300 to cloud_ops.json",
+      "points": 30,
+      "visual_evidence": "Look for a terminal command, SQL spool command, or file manager showing the creation of '/home/ga/Desktop/cloud_ops.json'. The file or output should contain the JSON document for Department 300 with the updated name and email."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_client_used",
+      "description": "The agent interacted with a genuine Oracle database client",
+      "visual_evidence": "Look for standard Oracle SQL client interfaces such as SQL*Plus (SQL> prompt), SQLcl, or a GUI like SQL Developer, rather than just typing text into a generic text editor."
+    },
+    {
+      "id": "updated_through_view",
+      "description": "Updates were performed through the duality view, not base tables",
+      "visual_evidence": "Ensure the UPDATE statements explicitly reference 'DEPT_EMP_DV'. The agent should not be directly updating the underlying 'DEPARTMENTS' or 'EMPLOYEES' tables."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The JSON file was exported from the database, not manually typed",
+      "visual_evidence": "Look for evidence of a query output being redirected to the file (e.g., using SPOOL, > redirection, or an export tool) rather than the agent manually typing the expected JSON structure into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a JSON Relational Duality View named 'DEPT_EMP_DV'. The agent must insert Department ID 300 with employees 3001 and 3002. The department name must be updated to 'Cloud Operations' and employee 3001's email to 'SGUPTA_CLOUD' specifically through the view. Finally, the JSON document for Department 300 must be exported to '/home/ga/Desktop/cloud_ops.json'."
+}

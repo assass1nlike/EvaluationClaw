@@ -1,0 +1,107 @@
+{
+  "dataset_id": "e9b10356",
+  "name": "Openset Multimodal Document Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Multimodal Document VQA dataset consists of document images paired with textual prompts that contain a question and a multiple-choice list. The model must answer the question by selecting the correct choice based on visual information in the accompanying document page images.",
+  "card_text": "This dataset evaluates multimodal document visual question answering. Each sample includes one or more document page images (e.g., tables, charts, or figures) and a text prompt that instructs the model to answer a question by choosing from a provided list of options. The prompts are in English and embed the question and choice list within a single string. Answers are short text strings, typically numeric values or short phrases. The dataset is open-set and covers general document content, requiring the model to locate and extract information from visual document layouts. Typical challenges include reading tables, interpreting charts, and matching textual questions to visual evidence across multiple images.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering",
+    "table_question_answering"
+  ],
+  "domain": "document VQA",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The prompt string that contains the task instruction, the question to answer, and the multiple-choice options. It directs the model to select an answer from the listed choices based on the accompanying images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The question embedded within the prompt, asking for a specific fact or value (e.g., 'what is the av. value of sodium in lettuce (R) as mentioned in the given page?').",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The multiple-choice list embedded within the prompt, providing candidate answers (e.g., ['3.2', '2.9', '3.1', '3.5']).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "diagram",
+        "semantics": "A list of image file names referencing document pages (e.g., tables or charts) that contain the visual information needed to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct answer string, usually a short value or phrase selected from the provided choices.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image_file list of document page images and a prompt string that embeds the instruction, question, and multiple-choice options; the output object contains a short text answer. The model must jointly process the images and the textual prompt to select the correct answer from the choices."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/MultimodalDocumentVQA/openset_multimodal_document_vqa.json",
+    "existing_tags": {
+      "task": "Multimodal Document VQA",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_extract_interface@1",
+  "task_completion": [
+    {
+      "id": "project_opened",
+      "description": "The payment-platform project is opened in IntelliJ IDEA.",
+      "points": 10,
+      "visual_evidence": "IntelliJ IDEA is visible with 'payment-platform' shown in the Project tool window."
+    },
+    {
+      "id": "interface_extracted",
+      "description": "The PaymentGateway interface is created.",
+      "points": 20,
+      "visual_evidence": "A file named 'PaymentGateway.java' is visible in the IDE's editor tabs or the Project tool window."
+    },
+    {
+      "id": "interface_methods_correct",
+      "description": "The PaymentGateway interface contains the correct business methods.",
+      "points": 20,
+      "visual_evidence": "The editor shows 'PaymentGateway.java' containing method signatures for 'charge', 'refund', and 'verifyCard'. It should NOT contain 'connectToStripeAPI'."
+    },
+    {
+      "id": "stripe_service_implements",
+      "description": "StripeService implements the new PaymentGateway interface.",
+      "points": 20,
+      "visual_evidence": "The editor shows 'StripeService.java' with the class declaration 'public class StripeService implements PaymentGateway'. The 'connectToStripeAPI' method should still be visible as private."
+    },
+    {
+      "id": "checkout_service_refactored",
+      "description": "CheckoutService is refactored to depend on PaymentGateway.",
+      "points": 30,
+      "visual_evidence": "The editor shows 'CheckoutService.java' using 'PaymentGateway' instead of 'StripeService' for its fields and constructor parameters (e.g., 'private final PaymentGateway paymentGateway;')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "ide_usage",
+      "description": "The agent used IntelliJ IDEA to perform the refactoring.",
+      "visual_evidence": "Screenshots show interaction with IntelliJ IDEA's GUI, editor, or refactoring dialogs."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "The agent did not bypass the IDE by using terminal commands to rewrite files.",
+      "visual_evidence": "There is no evidence of the agent using commands like 'sed', 'echo', or 'cat' in a terminal to directly modify the Java files."
+    },
+    {
+      "id": "genuine_refactoring",
+      "description": "The refactored code appears syntactically valid and properly integrated.",
+      "visual_evidence": "The code in the IDE editor shows proper syntax highlighting, correct imports, and no obvious compilation error highlights (red squiggly lines) typical of blind text replacement."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/IdeaProjects/payment-platform. The interface to extract is 'PaymentGateway'. The concrete class is 'StripeService'. The client class is 'CheckoutService'. The interface must contain exactly three methods: 'charge', 'refund', and 'verifyCard'. The methods 'connectToStripeAPI' and 'logTransaction' must remain private in StripeService and not be included in the interface."
+}

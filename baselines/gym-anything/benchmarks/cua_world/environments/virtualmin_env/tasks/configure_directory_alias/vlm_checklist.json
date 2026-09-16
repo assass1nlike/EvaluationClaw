@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_directory_alias@1",
+  "task_completion": [
+    {
+      "id": "open_apache_config",
+      "description": "Open the Apache configuration file for the target domain.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit) is open showing the file '/etc/apache2/sites-available/acmecorp.test.conf'."
+    },
+    {
+      "id": "configure_alias_directive",
+      "description": "Add the Apache Alias directive mapping the URL path to the filesystem path.",
+      "points": 20,
+      "visual_evidence": "The configuration file contains a line similar to 'Alias /marketing /var/acme_marketing'."
+    },
+    {
+      "id": "configure_directory_access",
+      "description": "Grant Apache access to the new filesystem directory.",
+      "points": 20,
+      "visual_evidence": "The configuration file contains a '<Directory \"/var/acme_marketing\">' block with 'Require all granted' (or equivalent access permissions) to prevent a 403 Forbidden error."
+    },
+    {
+      "id": "apply_apache_configuration",
+      "description": "Apply the configuration changes by reloading or restarting Apache.",
+      "points": 20,
+      "visual_evidence": "A terminal window shows a successful execution of a command like 'sudo systemctl reload apache2' or 'sudo systemctl restart apache2'."
+    },
+    {
+      "id": "verify_in_browser",
+      "description": "Verify that the file loads successfully in a web browser.",
+      "points": 30,
+      "visual_evidence": "A web browser (or a command-line HTTP client like curl) is open, navigating to 'http://acmecorp.test/marketing/press_kit_v1.txt', and displaying the text 'AcmeCorp Official Press Kit - Q3 2024'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_redirect_directive",
+      "description": "Ensure the agent used an Alias and not a Redirect.",
+      "visual_evidence": "The Apache configuration file must use the 'Alias' directive, and must NOT contain 'Redirect /marketing' or 'RedirectMatch'."
+    },
+    {
+      "id": "no_filesystem_symlink_shortcut",
+      "description": "Ensure the agent configured Apache rather than just creating a filesystem symlink.",
+      "visual_evidence": "The agent should edit the Apache .conf file. There should be no terminal commands creating a symbolic link (e.g., 'ln -s /var/acme_marketing /var/www/html/marketing')."
+    },
+    {
+      "id": "genuine_browser_verification",
+      "description": "Ensure the agent actually loaded the file via the web server.",
+      "visual_evidence": "The final verification must show the content being served over HTTP (e.g., in a browser address bar or via a curl command to the http:// URL), not just using 'cat' on the local filesystem."
+    }
+  ],
+  "privileged_info_for_vlm": "The Apache configuration file is located at '/etc/apache2/sites-available/acmecorp.test.conf'. The correct configuration requires mapping the URL path '/marketing' to the filesystem path '/var/acme_marketing'. The test file is accessible at 'http://acmecorp.test/marketing/press_kit_v1.txt' and its expected content contains 'AcmeCorp Official Press Kit - Q3 2024'."
+}

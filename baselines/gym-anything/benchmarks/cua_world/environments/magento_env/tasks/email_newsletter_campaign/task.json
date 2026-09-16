@@ -1,0 +1,40 @@
+{
+  "id": "email_newsletter_campaign@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Set up the email newsletter infrastructure in Magento. Configure the newsletter settings to allow guest subscriptions and disable the confirmation requirement. Create a newsletter template named 'Holiday Collection 2024' with the subject 'Discover Our Holiday Collection - Exclusive Early Access', sender name 'NestWell Home', and sender email 'newsletter@nestwell-home.com'. The template content must be HTML including an <h1> heading 'Holiday Collection', a paragraph, and a list of at least 3 items. Subscribe Alice Johnson, Bob Smith, Carol Williams, David Brown, and Emma Davis to the newsletter.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/email_newsletter_campaign/setup_task.sh",
+    "post_task": "/workspace/tasks/email_newsletter_campaign/export_result.sh"
+  },
+  "metadata": {
+    "template_name": "Holiday Collection 2024",
+    "template_subject": "Discover Our Holiday Collection - Exclusive Early Access",
+    "sender_name": "NestWell Home",
+    "sender_email": "newsletter@nestwell-home.com",
+    "required_html_tags": [
+      "h1",
+      "p",
+      "li"
+    ],
+    "target_customers": [
+      "alice.johnson@example.com",
+      "bob.smith@example.com",
+      "carol.williams@example.com",
+      "david.brown@example.com",
+      "emma.davis@example.com"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_email_newsletter_campaign"
+    }
+  }
+}

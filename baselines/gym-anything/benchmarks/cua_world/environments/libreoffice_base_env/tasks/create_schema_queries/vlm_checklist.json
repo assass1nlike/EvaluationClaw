@@ -1,0 +1,59 @@
+{
+  "task_id": "create_schema_queries@1",
+  "task_completion": [
+    {
+      "id": "open_database",
+      "description": "Open the Chinook database in LibreOffice Base",
+      "points": 10,
+      "visual_evidence": "A LibreOffice Base window is open with 'chinook.odb' visible in the title bar."
+    },
+    {
+      "id": "create_table_column_catalog_query",
+      "description": "Create the query for table columns with correct fields, filters, and sorting",
+      "points": 25,
+      "visual_evidence": "A query editor window (SQL view or Design view) showing a query on the 'SYSTEM_COLUMNS' table. It must select TABLE_NAME, COLUMN_NAME, TYPE_NAME, ORDINAL_POSITION, and IS_NULLABLE. It must include a filter for the 'PUBLIC' schema and show sorting by TABLE_NAME then ORDINAL_POSITION."
+    },
+    {
+      "id": "save_table_column_catalog",
+      "description": "Save the first query as 'TableColumnCatalog'",
+      "points": 15,
+      "visual_evidence": "The name 'TableColumnCatalog' appears in the list of Queries in the main LibreOffice Base window."
+    },
+    {
+      "id": "create_primary_key_catalog_query",
+      "description": "Create the query for primary keys with correct fields, filters, and sorting",
+      "points": 25,
+      "visual_evidence": "A query editor window (SQL view or Design view) showing a query on the 'SYSTEM_PRIMARYKEYS' table. It must select TABLE_NAME, COLUMN_NAME, KEY_SEQ, and PK_NAME. It must include a filter for the 'PUBLIC' schema and show sorting by TABLE_NAME then KEY_SEQ."
+    },
+    {
+      "id": "save_primary_key_catalog",
+      "description": "Save the second query as 'PrimaryKeyCatalog'",
+      "points": 15,
+      "visual_evidence": "The name 'PrimaryKeyCatalog' appears in the list of Queries in the main LibreOffice Base window alongside the first query."
+    },
+    {
+      "id": "save_database_file",
+      "description": "Save the database file to persist changes",
+      "points": 10,
+      "visual_evidence": "The save icon (floppy disk) is clicked in the main LibreOffice Base window, or the unsaved indicator (often an asterisk in the title bar) disappears after the queries are created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the LibreOffice Base GUI to create the queries",
+      "visual_evidence": "Screenshots show interaction with the LibreOffice Base interface (Query Design or SQL View) rather than terminal commands or text editors modifying the .odb file directly."
+    },
+    {
+      "id": "genuine_query_creation",
+      "description": "The agent actually created SQL queries rather than typing static tables",
+      "visual_evidence": "The query editor shows actual SQL syntax (SELECT ... FROM SYSTEM_COLUMNS ...) or GUI query design blocks, not a manually constructed static table of text."
+    },
+    {
+      "id": "no_external_shortcuts",
+      "description": "The agent did not use external scripts to bypass the GUI",
+      "visual_evidence": "There are no terminal windows showing python scripts or sqlite3/hsqldb command-line tools being used to inject the queries into the database file."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/chinook.odb. The 'TableColumnCatalog' query MUST use the HSQLDB system table 'SYSTEM_COLUMNS' and select exactly: TABLE_NAME, COLUMN_NAME, TYPE_NAME, ORDINAL_POSITION, and IS_NULLABLE, filtered to the 'PUBLIC' schema. The 'PrimaryKeyCatalog' query MUST use the system table 'SYSTEM_PRIMARYKEYS' and select exactly: TABLE_NAME, COLUMN_NAME, KEY_SEQ, and PK_NAME, filtered to the 'PUBLIC' schema. Both queries must be saved within the LibreOffice Base GUI."
+}

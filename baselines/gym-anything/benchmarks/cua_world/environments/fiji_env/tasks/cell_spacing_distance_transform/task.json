@@ -1,0 +1,44 @@
+{
+  "id": "cell_spacing_distance_transform@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Analyze the spatial distribution of cells in the fluorescence microscopy image at ~/Fiji_Data/workspace/cell_image.tif (scale: 1 px = 0.65 µm). Segment the cells and generate a Euclidean Distance Map (EDM) of the intercellular space, saving the result to ~/Fiji_Data/results/spacing/distance_map.tif. Extract cell centroids, areas, and Nearest-Neighbor (NN) distances, saving this data to ~/Fiji_Data/results/spacing/cell_measurements.csv with columns: cell_id, centroid_x, centroid_y, area_px, and nn_dist. Generate a summary report at ~/Fiji_Data/results/spacing/spacing_report.txt containing the keys: num_cells, cell_coverage_percent, mean_nn_distance_px, edm_mean_px, and edm_max_px. Save a visual QC overlay showing the original image with cell outlines to ~/Fiji_Data/results/spacing/qc_overlay.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cell_spacing_distance_transform/setup_task.sh",
+    "post_task": "/workspace/tasks/cell_spacing_distance_transform/export_result.sh"
+  },
+  "metadata": {
+    "pixel_scale_um": 0.65,
+    "input_path": "~/Fiji_Data/workspace/cell_image.tif",
+    "output_csv": "~/Fiji_Data/results/spacing/cell_measurements.csv",
+    "output_map": "~/Fiji_Data/results/spacing/distance_map.tif",
+    "output_report": "~/Fiji_Data/results/spacing/spacing_report.txt",
+    "output_qc": "~/Fiji_Data/results/spacing/qc_overlay.png",
+    "data_source": "Broad Bioimage Benchmark Collection (BBBC005)",
+    "scoring": {
+      "file_existence": 35,
+      "data_completeness": 30,
+      "data_consistency": 20,
+      "process_verification": 15
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cell_spacing"
+    }
+  },
+  "tags": [
+    "bioimage-analysis",
+    "fiji",
+    "distance-transform",
+    "spatial-analysis",
+    "morphometry"
+  ]
+}

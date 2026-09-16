@@ -1,0 +1,44 @@
+{
+  "id": "create_shelled_enclosure@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "You are an electronics engineering technician prototyping an enclosure for a small PCB assembly. Create an open-top rectangular enclosure box with outer dimensions of 100 mm x 60 mm and a height of 25 mm. The box must have a uniform wall thickness of 2 mm. Save the completed model to ~/Documents/FreeCAD/enclosure.FCStd.",
+  "difficulty": "medium",
+  "category": "CAD Modeling",
+  "tags": [
+    "part_design",
+    "shell",
+    "thickness",
+    "enclosure",
+    "pad",
+    "sketch"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_shelled_enclosure/setup_task.sh",
+    "post_task": "/workspace/tasks/create_shelled_enclosure/export_result.sh"
+  },
+  "metadata": {
+    "expected_path": "/home/ga/Documents/FreeCAD/enclosure.FCStd",
+    "target_dims": [
+      100.0,
+      60.0,
+      25.0
+    ],
+    "target_volume_range": [
+      20000,
+      35000
+    ],
+    "dim_tolerance": 2.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_shelled_enclosure"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "add_kitchen_wall_cabinets@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "Open the 'Sample House' project in DreamPlan Home Design Software. In the kitchen area, place at least three (3) upper/wall kitchen cabinets along a wall, ensuring they are mounted above the counters and aligned with the wall. Save the project to 'Documents\\DreamPlan\\kitchen_renovation.dpp' and ensure the cabinets are visible in the final 3D view.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\add_kitchen_wall_cabinets\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\add_kitchen_wall_cabinets\\export_result.ps1"
+  },
+  "metadata": {
+    "project_save_path": "C:\\Users\\Docker\\Documents\\DreamPlan\\kitchen_renovation.dpp",
+    "min_cabinets": 3,
+    "furniture_category": "Kitchen",
+    "item_type": "Wall Cabinet"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_kitchen_wall_cabinets"
+    }
+  }
+}

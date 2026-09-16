@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_city30_noise_impact@1",
+  "task_completion": [
+    {
+      "id": "baseline_simulation_run",
+      "description": "Run the baseline SUMO simulation using the original network.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a `sumo` command being executed with the original network file (or a configuration file pointing to it), along with SUMO execution logs indicating a successful run."
+    },
+    {
+      "id": "baseline_files_created",
+      "description": "Verify the creation of baseline trip info and noise output files.",
+      "points": 15,
+      "visual_evidence": "Terminal showing an `ls` command or a file manager displaying `baseline_tripinfo.xml` and `baseline_noise.xml` in the `/home/ga/SUMO_Output/` directory."
+    },
+    {
+      "id": "network_modification",
+      "description": "Modify the network to cap speed limits at 8.33 m/s and save the new network.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a script execution (e.g., Python), a `netconvert` command, or text editor usage that modifies the network file to set maximum speed limits to 8.33 m/s, saving the result as `pasubio_city30.net.xml` in `/home/ga/SUMO_Output/`."
+    },
+    {
+      "id": "policy_simulation_run",
+      "description": "Run the policy SUMO simulation using the modified network.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a `sumo` command being executed using the modified `pasubio_city30.net.xml` network file, along with SUMO execution logs."
+    },
+    {
+      "id": "policy_files_created",
+      "description": "Verify the creation of policy trip info and noise output files.",
+      "points": 20,
+      "visual_evidence": "Terminal showing an `ls` command or a file manager displaying `city30_tripinfo.xml` and `city30_noise.xml` in the `/home/ga/SUMO_Output/` directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sumo_execution",
+      "description": "The agent actually ran SUMO to generate the outputs.",
+      "visual_evidence": "Screenshots should show SUMO execution logs in the terminal, including step counts and simulation completion messages, rather than just `touch` or `echo` commands creating the files."
+    },
+    {
+      "id": "genuine_network_modification",
+      "description": "The agent genuinely modified the network file to change speed limits.",
+      "visual_evidence": "Screenshots should show the use of a script (e.g., Python with `xml.etree` or `sumolib`) or `netconvert` to alter the speed limits, rather than just copying the original file without changes."
+    },
+    {
+      "id": "no_dummy_files",
+      "description": "The output files contain actual simulation data.",
+      "visual_evidence": "If the contents of the XML files are shown, they should contain realistic SUMO tripinfo and edge data (with at least 100 trips), not empty structures or hardcoded dummy text."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires generating five specific files in /home/ga/SUMO_Output/: baseline_tripinfo.xml, baseline_noise.xml, pasubio_city30.net.xml, city30_tripinfo.xml, and city30_noise.xml. The modified network must cap speed limits at 8.33 m/s (verified as <= 8.34 m/s). Both baseline and policy simulations must generate at least 100 traffic trips."
+}

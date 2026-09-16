@@ -1,0 +1,36 @@
+{
+  "id": "add_allergy@1",
+  "version": "1.0",
+  "env_id": "openmrs_env@0.1",
+  "description": "Add an allergy record for patient Clarinda Rolfson (DOB: 1980-11-16) with the following details: Allergen: Bee venom, Reaction: Hives, and Severity: Mild. URL: http://localhost/openmrs/spa. Login credentials: admin / Admin123.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 45,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_allergy/setup_task.sh"
+  },
+  "metadata": {
+    "patient_name": "Clarinda Rolfson",
+    "patient_dob": "1980-11-16",
+    "expected_allergen_keywords": [
+      "bee venom",
+      "bee"
+    ],
+    "expected_reaction_keywords": [
+      "hive",
+      "urticaria"
+    ],
+    "expected_severity_keywords": [
+      "mild"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_allergy"
+    }
+  }
+}

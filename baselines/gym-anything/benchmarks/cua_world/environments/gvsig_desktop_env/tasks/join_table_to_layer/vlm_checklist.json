@@ -1,0 +1,53 @@
+{
+  "task_id": "join_table_to_layer@1",
+  "task_completion": [
+    {
+      "id": "load_shapefile",
+      "description": "The Natural Earth countries shapefile is loaded into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The layer list or map view shows the 'ne_110m_admin_0_countries' shapefile loaded."
+    },
+    {
+      "id": "load_csv",
+      "description": "The World Bank indicators CSV is loaded into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The layer list or table view shows the 'world_bank_indicators' CSV loaded."
+    },
+    {
+      "id": "configure_join",
+      "description": "The join operation is configured using ISO_A3 and ISO3 as matching keys.",
+      "points": 30,
+      "visual_evidence": "A join configuration dialog or layer properties window is visible, showing the shapefile's 'ISO_A3' field being linked to the CSV's 'ISO3' field."
+    },
+    {
+      "id": "export_shapefile",
+      "description": "The joined layer is exported to the specified path.",
+      "points": 30,
+      "visual_evidence": "A 'Save As', 'Export', or similar dialog is visible with the file path ending in 'exports/countries_with_indicators.shp', or the new layer appears in the layer list."
+    },
+    {
+      "id": "verify_exported_fields",
+      "description": "The exported shapefile contains the required indicator fields.",
+      "points": 20,
+      "visual_evidence": "The attribute table, layer properties, or export dialog of the joined/exported layer shows the fields 'CO2_PC', 'LIFE_EXP', and 'INTERNET_PCT'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui",
+      "description": "The agent used the GIS graphical user interface to perform the join and export.",
+      "visual_evidence": "Screenshots show interaction with the GIS application's menus, dialogs, and layer panels, rather than terminal commands or Python scripts."
+    },
+    {
+      "id": "genuine_join",
+      "description": "The agent actually performed a table join rather than manually editing fields.",
+      "visual_evidence": "The join dialog or layer properties showing active joins is visible in the screenshots."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not use a text editor or spreadsheet software to manually merge the files.",
+      "visual_evidence": "No text editors (like nano, vim) or spreadsheet apps (like LibreOffice Calc) are used to manipulate the CSV or DBF files directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is '/home/ga/gvsig_data/exports/countries_with_indicators.shp'. The required fields in the joined output are 'CO2_PC', 'LIFE_EXP', and 'INTERNET_PCT'. The join must use 'ISO_A3' from the shapefile and 'ISO3' from the CSV. For validation, if the attribute table is visible, the USA should have a CO2_PC of approximately 13.68, and China (CHN) should have a LIFE_EXP of approximately 77.10."
+}

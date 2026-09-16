@@ -1,0 +1,32 @@
+{
+  "id": "establish_artifact_feed_strategy@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "The TailwindTraders development team needs a centralized artifact feed to manage dependencies and prevent build failures due to public registry timeouts. Create a new Artifact Feed named 'Tailwind-Universal' in the 'TailwindTraders' project. The feed must include upstream sources for both NuGet Gallery and npmjs. Configure the feed with project-level visibility and a retention policy that limits the maximum number of versions per package to 15.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\establish_artifact_feed_strategy\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\establish_artifact_feed_strategy\\export_result.ps1"
+  },
+  "metadata": {
+    "target_feed_name": "Tailwind-Universal",
+    "expected_retention_limit": 15,
+    "required_upstreams": [
+      "NuGet",
+      "npm"
+    ],
+    "project_name": "TailwindTraders",
+    "collection_url": "http://localhost/DefaultCollection"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_establish_artifact_feed_strategy"
+    }
+  }
+}

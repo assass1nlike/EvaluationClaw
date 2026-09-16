@@ -1,0 +1,53 @@
+{
+  "task_id": "camera_occlusion_analysis@1",
+  "task_completion": [
+    {
+      "id": "script_creation_zmq",
+      "description": "Create a Python script utilizing the CoppeliaSim ZMQ Remote API.",
+      "points": 15,
+      "visual_evidence": "A text editor or IDE showing Python code that imports and initializes the ZMQ Remote API (e.g., `from coppeliasim_zmqremoteapi_client import RemoteAPIClient` or similar)."
+    },
+    {
+      "id": "target_point_defined",
+      "description": "Define the target inspection point at (0.5, 0.0, 0.05).",
+      "points": 15,
+      "visual_evidence": "Python code visible in the editor explicitly defining the target coordinates as `[0.5, 0.0, 0.05]` or `(0.5, 0.0, 0.05)`."
+    },
+    {
+      "id": "camera_config_loops",
+      "description": "Implement logic to iterate across at least 8 camera positions and 15 robot joint configurations.",
+      "points": 20,
+      "visual_evidence": "Python code showing loops, ranges, or lists that iterate over at least 8 cameras and 15 configurations to check for line-of-sight occlusion."
+    },
+    {
+      "id": "csv_output_generated",
+      "description": "Save the raw occlusion results to the specified CSV file.",
+      "points": 25,
+      "visual_evidence": "Terminal output, file manager, or text editor showing the creation and contents of `/home/ga/Documents/CoppeliaSim/exports/occlusion_data.csv` with headers for camera_id, cam_x, cam_y, cam_z, config_id, and is_occluded."
+    },
+    {
+      "id": "json_report_generated",
+      "description": "Save the summary report to the specified JSON file.",
+      "points": 25,
+      "visual_evidence": "Terminal output, file manager, or text editor showing the creation and contents of `/home/ga/Documents/CoppeliaSim/exports/occlusion_report.json` containing keys for total_cameras_tested, total_configs_tested, target_position, best_camera_id, best_visibility_pct, and worst_visibility_pct."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_api_interaction",
+      "description": "The script genuinely interacts with the CoppeliaSim API rather than hardcoding the output files.",
+      "visual_evidence": "The Python code contains actual API calls for object positions, vision sensors, or ray casting (e.g., `sim.getObjectPosition`, `sim.checkVisionSensor`) rather than just writing static strings to the output files."
+    },
+    {
+      "id": "script_execution",
+      "description": "The agent actually executed the Python script to generate the files.",
+      "visual_evidence": "A terminal window showing the command used to run the Python script (e.g., `python3 occlusion_check.py`) and any resulting console output."
+    },
+    {
+      "id": "correct_export_paths",
+      "description": "The output files are saved in the exact directory requested.",
+      "visual_evidence": "The file paths in the script or terminal explicitly match `/home/ga/Documents/CoppeliaSim/exports/` without deviations."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires generating two specific files: a CSV at '/home/ga/Documents/CoppeliaSim/exports/occlusion_data.csv' and a JSON at '/home/ga/Documents/CoppeliaSim/exports/occlusion_report.json'. The script must test a minimum of 8 cameras and 15 configurations. The target position must be exactly (0.5, 0.0, 0.05). The CSV must contain: camera_id, cam_x, cam_y, cam_z, config_id, is_occluded. The JSON must contain: total_cameras_tested, total_configs_tested, target_position, best_camera_id, best_visibility_pct, worst_visibility_pct."
+}

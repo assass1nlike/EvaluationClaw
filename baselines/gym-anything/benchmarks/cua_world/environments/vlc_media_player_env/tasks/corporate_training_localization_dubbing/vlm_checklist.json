@@ -1,0 +1,53 @@
+{
+  "task_id": "corporate_training_localization_dubbing@1",
+  "task_completion": [
+    {
+      "id": "import_media_assets",
+      "description": "Import the required source video, audio, subtitle, and watermark files into the video editor.",
+      "points": 10,
+      "visual_evidence": "Look at the media bin or project library of the video editing software. Verify that 'compliance_training_master.mp4', 'french_dub_track.mp3', 'corp_watermark.png', and 'french_captions.srt' are loaded."
+    },
+    {
+      "id": "replace_audio_track",
+      "description": "Replace the original English audio with the French dub track.",
+      "points": 20,
+      "visual_evidence": "Look at the timeline. The original audio track linked to the master video should be deleted, muted, or its volume set to zero. The 'french_dub_track' should be placed on an active audio track."
+    },
+    {
+      "id": "overlay_watermark",
+      "description": "Overlay the corporate watermark logo onto the video.",
+      "points": 20,
+      "visual_evidence": "Look at the timeline and preview window. The 'corp_watermark' image should be placed on a video track above the main video track, and the watermark should be visibly overlaid on the video in the preview window."
+    },
+    {
+      "id": "apply_hardsubs",
+      "description": "Burn the French subtitles into the video frames.",
+      "points": 20,
+      "visual_evidence": "Look at the video preview window or timeline. Subtitles from the .srt file should be visible on the video preview, or a subtitle track/text filter should be actively applied and configured in the project."
+    },
+    {
+      "id": "export_final_video",
+      "description": "Export the final localized video to the specified delivery path.",
+      "points": 30,
+      "visual_evidence": "Look at the render/export dialog window. The output destination path must be explicitly set to '/home/ga/Videos/localized_delivery/compliance_french_final.mp4' before rendering."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_video_editor_used",
+      "description": "The agent used a GUI video editor or transcoder rather than terminal commands.",
+      "visual_evidence": "Check that a graphical application (e.g., Kdenlive, Pitivi, Handbrake) is open and being used to manipulate the media. The agent must not simply execute an 'ffmpeg' command in the terminal to bypass GUI interaction."
+    },
+    {
+      "id": "actual_render_process",
+      "description": "The agent actually rendered the video using the software.",
+      "visual_evidence": "Look for a rendering/exporting progress bar, an active encoding window, or a completion dialog from the video editor, proving the file was genuinely processed."
+    },
+    {
+      "id": "no_dummy_file_creation",
+      "description": "The agent did not spoof the output file.",
+      "visual_evidence": "Ensure the agent didn't just use a terminal command (like 'touch') or a file manager to create an empty or fake file named 'compliance_french_final.mp4'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is exactly '/home/ga/Videos/localized_delivery/compliance_french_final.mp4'. The source files are verified to be at: '/home/ga/Videos/compliance_training_master.mp4' (master video), '/home/ga/Music/french_dub_track.mp3' (French audio), '/home/ga/Documents/french_captions.srt' (French subtitles), and '/home/ga/Pictures/corp_watermark.png' (watermark logo)."
+}

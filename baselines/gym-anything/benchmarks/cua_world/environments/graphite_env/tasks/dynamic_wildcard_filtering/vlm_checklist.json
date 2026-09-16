@@ -1,0 +1,53 @@
+{
+  "task_id": "dynamic_wildcard_filtering@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Create a new dashboard named 'Sanitized Compute Fleet'",
+      "points": 10,
+      "visual_evidence": "Look for a dashboard interface in Graphite with the title 'Sanitized Compute Fleet' visible at the top of the screen."
+    },
+    {
+      "id": "graph_stateless_compute",
+      "description": "Configure the 'Stateless Compute Nodes' graph with wildcards, exclude('rds'), and aliasByNode(1)",
+      "points": 25,
+      "visual_evidence": "Look for a graph titled 'Stateless Compute Nodes'. In its target input field or legend, verify the presence of a wildcard (*), the exclude() function targeting 'rds', and the aliasByNode() function set to 1."
+    },
+    {
+      "id": "graph_maintenance_exclusion",
+      "description": "Configure the 'Maintenance Exclusion Avg' graph with wildcards, averageSeries(), and excluding 'instance_2'",
+      "points": 25,
+      "visual_evidence": "Look for a graph titled 'Maintenance Exclusion Avg'. In its target input field or legend, verify the presence of a wildcard (*), the averageSeries() function, and an exclusion (like exclude()) targeting 'instance_2'."
+    },
+    {
+      "id": "graph_ec2_grep",
+      "description": "Configure the 'EC2 Explicit Grep' graph with wildcards, grep('ec2'), and aliasByNode(1)",
+      "points": 25,
+      "visual_evidence": "Look for a graph titled 'EC2 Explicit Grep'. In its target input field or legend, verify the presence of a wildcard (*), the grep() function targeting 'ec2', and the aliasByNode() function set to 1."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "Save the completed dashboard",
+      "points": 15,
+      "visual_evidence": "Look for visual confirmation that the dashboard has been saved, such as a 'Dashboard saved' notification, the absence of an 'unsaved changes' indicator (like an asterisk next to the title), or the agent clicking the Save button."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "The agent used the Graphite web interface to create the dashboard",
+      "visual_evidence": "The screenshots should show the Graphite web UI in a browser, with the agent interacting with graph dialogs, target input fields, and dashboard menus."
+    },
+    {
+      "id": "actual_graph_rendering",
+      "description": "The graphs are actually rendering data from the server",
+      "visual_evidence": "The graphs in the dashboard should display plotted lines or data points, indicating that the wildcard queries are successfully fetching real telemetry data."
+    },
+    {
+      "id": "no_direct_json_editing",
+      "description": "The agent did not bypass the UI by directly writing the dashboard JSON file",
+      "visual_evidence": "The screenshots should not show the agent simply pasting a pre-written JSON payload into a text editor or terminal to create the dashboard file directly."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected dashboard name: 'Sanitized Compute Fleet'. Expected graph titles: 'Stateless Compute Nodes', 'Maintenance Exclusion Avg', 'EC2 Explicit Grep'. Graph 1 must use exclude() for 'rds' and aliasByNode(1). Graph 2 must use averageSeries() and exclude 'instance_2'. Graph 3 must use grep() for 'ec2' and aliasByNode(1). All targets must use wildcards (*)."
+}

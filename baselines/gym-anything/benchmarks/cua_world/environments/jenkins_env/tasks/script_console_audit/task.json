@@ -1,0 +1,28 @@
+{
+  "id": "script_console_audit@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "Your company's security team has requested a quarterly audit of the Jenkins CI/CD server. Use the Jenkins Script Console to execute a Groovy script that collects system information and writes an audit report to /var/jenkins_home/audit_report.txt. \n\nThe report must include the following information:\n1. Jenkins Version\n2. JVM Information\n3. Installed Plugins (a complete listing with short name and version, e.g., git:5.2.1)\n4. Configured Jobs (a listing of all job names)\n\nThe script should write the report to /var/jenkins_home/audit_report.txt and print the output to the Script Console for visual confirmation.\n\nLogin credentials:\n  Username: admin\n  Password: Admin123!\n\nNote: There are several pre-existing jobs already configured in this Jenkins instance that should appear in your audit report.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/script_console_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/script_console_audit/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "expected_file_path": "/var/jenkins_home/audit_report.txt",
+    "login_user": "admin",
+    "login_pass": "Admin123!"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_script_console_audit"
+    }
+  }
+}

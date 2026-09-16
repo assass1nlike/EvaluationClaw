@@ -1,0 +1,45 @@
+{
+  "id": "garch_financial_risk@1",
+  "version": "1.0",
+  "env_id": "rstudio_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are a quantitative analyst at a risk management firm. Your team needs a volatility forecasting model for the S&P 500 ETF (SPY) to support daily VaR (Value-at-Risk) reporting using historical price data from /home/ga/RProjects/datasets/spy_prices.csv. Create an R script at /home/ga/RProjects/garch_analysis.R that fits a GARCH(1,1) model (sGARCH variance, ARMA(1,0) mean, 'norm' distribution) using the rugarch package to SPY log-returns. The script must output 1-day VaR estimates at 95% and 99% confidence levels to /home/ga/RProjects/output/spy",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 85
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/garch_financial_risk/setup_task.sh",
+    "post_task": "/workspace/tasks/garch_financial_risk/export_result.sh",
+    "pre_task_timeout": 360
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/RProjects/datasets/spy_prices.csv",
+    "var_csv_path": "/home/ga/RProjects/output/spy_var_estimates.csv",
+    "backtest_csv_path": "/home/ga/RProjects/output/spy_backtest.csv",
+    "plot_png_path": "/home/ga/RProjects/output/spy_garch_report.png",
+    "script_path": "/home/ga/RProjects/garch_analysis.R",
+    "ticker": "SPY",
+    "garch_model": "sGARCH(1,1)",
+    "var_levels": [
+      0.95,
+      0.99
+    ],
+    "expected_var95_exceedance_rate_range": [
+      0.02,
+      0.12
+    ],
+    "expected_conditional_vol_range_annualized": [
+      0.05,
+      1.5
+    ],
+    "occupation": "Financial Quantitative Analyst",
+    "task_note": "Uses rugarch (CRAN) + real SPY ETF price data from Yahoo Finance"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_garch_financial_risk"
+    }
+  }
+}

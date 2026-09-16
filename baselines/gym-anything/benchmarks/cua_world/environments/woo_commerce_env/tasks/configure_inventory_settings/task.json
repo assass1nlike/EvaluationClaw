@@ -1,0 +1,35 @@
+{
+  "id": "configure_inventory_settings@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Configure the WooCommerce global inventory management settings. Enable stock management with a 45-minute hold stock duration. Enable both low and out of stock notifications for warehouse@example.com. Set the low stock threshold to 10 and the out of stock threshold to 2. Configure the system to hide out of stock items from the catalog and only show stock levels when they are low.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_inventory_settings/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_inventory_settings/export_result.sh"
+  },
+  "metadata": {
+    "target_settings": {
+      "woocommerce_manage_stock": "yes",
+      "woocommerce_hold_stock_minutes": "45",
+      "woocommerce_notify_low_stock": "yes",
+      "woocommerce_notify_no_stock": "yes",
+      "woocommerce_stock_email_recipient": "warehouse@example.com",
+      "woocommerce_notify_low_stock_amount": "10",
+      "woocommerce_notify_no_stock_amount": "2",
+      "woocommerce_hide_out_of_stock_items": "yes",
+      "woocommerce_stock_format": "low_amount"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_inventory_settings"
+    }
+  }
+}

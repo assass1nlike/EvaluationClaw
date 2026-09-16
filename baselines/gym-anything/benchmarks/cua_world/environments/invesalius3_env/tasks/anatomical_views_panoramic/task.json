@@ -1,0 +1,42 @@
+{
+  "id": "anatomical_views_panoramic@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "The CT Cranium DICOM dataset is loaded in InVesalius 3. Document the skull morphology by creating a 3D surface model from a bone segmentation mask and exporting three standardized anatomical views. Export the Anterior view (Norma Frontalis) to /home/ga/Documents/norma_frontalis.png, the Right Lateral view (Norma Lateralis) to /home/ga/Documents/norma_lateralis.png, and the Inferior view (Norma Basilaris) to /home/ga/Documents/norma_basilaris.png. Ensure the skull is centered and visible in all exported images.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/anatomical_views_panoramic/setup_task.sh",
+    "post_task": "/workspace/tasks/anatomical_views_panoramic/export_result.sh"
+  },
+  "metadata": {
+    "files": [
+      {
+        "path": "/home/ga/Documents/norma_frontalis.png",
+        "view": "Anterior (Front)",
+        "min_size_kb": 30
+      },
+      {
+        "path": "/home/ga/Documents/norma_lateralis.png",
+        "view": "Right Lateral (Side)",
+        "min_size_kb": 30
+      },
+      {
+        "path": "/home/ga/Documents/norma_basilaris.png",
+        "view": "Inferior (Bottom)",
+        "min_size_kb": 30
+      }
+    ],
+    "dicom_series": "ct_cranium/0051"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_anatomical_views"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "edit_point_elevations@1",
+  "task_completion": [
+    {
+      "id": "import_survey_data",
+      "description": "Verify that the agent opens or imports the specified survey CSV file.",
+      "points": 15,
+      "visual_evidence": "An application window (e.g., spreadsheet, text editor, or GIS tool) showing the contents of 'colorado_foothills_survey.csv' with columns for Point ID, Easting, Northing, Elevation, and Code."
+    },
+    {
+      "id": "locate_target_points",
+      "description": "Verify that the agent locates the specific points requiring elevation correction.",
+      "points": 15,
+      "visual_evidence": "The agent scrolls to, highlights, or filters for Point IDs 21, 22, 23, 24, and 25 on the screen."
+    },
+    {
+      "id": "apply_elevation_correction",
+      "description": "Verify that the agent subtracts 1.52 meters from the elevation of the target points.",
+      "points": 30,
+      "visual_evidence": "The agent is seen using a formula (e.g., '=cell-1.52'), using a calculator, or manually typing the newly calculated elevation values into the Elevation (Z) column for points 21-25."
+    },
+    {
+      "id": "verify_corrected_values",
+      "description": "Verify that the elevation values for the target points have been successfully updated.",
+      "points": 20,
+      "visual_evidence": "The Elevation column for Point IDs 21, 22, 23, 24, and 25 displays the updated numerical values (which should be exactly 1.52 less than their original values)."
+    },
+    {
+      "id": "export_corrected_data",
+      "description": "Verify that the agent exports the complete dataset to the specified text file.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' or 'Export' dialog box showing the file being saved as 'corrected_points.txt' in the 'C:\\Users\\Docker\\Documents\\' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used a GUI application to edit the data rather than terminal shortcuts.",
+      "visual_evidence": "The agent interacts with a spreadsheet, text editor, or surveying GUI. There should be no terminal commands (like sed, awk, or python scripts) used to bypass manual GUI interaction."
+    },
+    {
+      "id": "complete_dataset_exported",
+      "description": "Verify the agent exports the entire set of survey points, not just the modified ones.",
+      "visual_evidence": "The application window or export preview shows the full list of survey points (including unmodified points) being saved, rather than only points 21-25."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "Verify the agent actually performs the calculation or edits the file manually.",
+      "visual_evidence": "Presence of a formula, calculator usage, or manual typing of the new values, rather than instantly pasting a fully completed file or text block from outside the environment."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: C:\\Users\\Docker\\Documents\\colorado_foothills_survey.csv. Output file: C:\\Users\\Docker\\Documents\\corrected_points.txt. Target Point IDs to modify: 21, 22, 23, 24, and 25. Correction: Subtract exactly 1.52 meters from the Elevation (Z) column for the target points. Tolerance for corrected values is 0.02m."
+}

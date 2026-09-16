@@ -1,0 +1,86 @@
+{
+  "dataset_id": "7cd47974",
+  "name": "Image Editing Instruction Generation",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset evaluates the ability to infer an image-editing instruction from a pair of before/after images. Given a source image, a target image, and a natural-language prompt, the model must produce the free-form instruction that would transform the source into the target.",
+  "card_text": "Image Editing Instruction Generation is a small (200-sample) vision-language dataset in which each sample pairs a source image with its edited target image. Both image paths live under the input object, together with a fixed task instruction and a short prompt asking the model to analyze the two images and generate an editing instruction. The expected output is a single short free-form phrase describing the edit (e.g. 'make the art an oil painting' or 'make it the 68th Annual Saturn Awards'). The images span varied scenes, art styles and subjects, so the visual content and the generated instructions are highly diverse. The dataset probes inverse editing: rather than applying an edit, the model must verbally reconstruct the edit that already occurred, requiring joint reasoning over two visual inputs plus instruction following.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "image editing",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt",
+          "input.instruction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Short task prompt and instruction that tell the model to analyze the source and target images and generate an editing instruction. They frame the task and specify the expected output type, and are constant across samples.",
+        "path_types": [
+          "str",
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.source_image_files",
+          "input.target_image_files"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "Two image references per sample: the original source image and its edited target image. Their visual difference encodes the edit that the model must verbalize, so the pair is the core evidence behind the answer.",
+        "path_types": [
+          "str",
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.editing_instruction"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short free-form imperative phrase describing the edit that turns the source image into the target image. It is the ground-truth target text conditioned on the source/target image pair and the prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains four semantic components: two image paths (input.source_image_files and input.target_image_files) forming a before/after pair, a fixed task prompt (input.prompt) and instruction (input.instruction) in natural language, and a short output editing_instruction (output.editing_instruction). The two images carry the visual evidence of the edit; the prompt text instructs the model to compare them and produce the edit description; the output text is that description. No dialog, options, boxes, masks or other annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/image_editing_instruction_generation/json/annotation.json",
+    "existing_tags": {
+      "task": "image editing instruction generation",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General-domain",
+      "general_capability": [
+        "Content Recognition",
+        "Creativity and Innovation"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General-domain"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "dataset_id": "0d418d2b",
+  "name": "Vehicle Counting",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 183,
+  "description": "The Vehicle Counting dataset contains images paired with an instruction to count the number of vehicles present. It evaluates visual counting and scene understanding, where the model must output the exact number of vehicles in each image.",
+  "card_text": "This dataset is designed for visual vehicle counting from images. Each sample consists of an image (showing a traffic or aerial scene with many vehicles) and a text prompt asking to count the vehicles. The expected output is a single integer representing the total number of vehicles in that image. Counts often exceed 100, indicating dense scenes. The dataset has 183 samples with image and text modalities. The task requires the model to identify and tally all vehicles, but no bounding boxes or semantic labels are provided. It assumes a consistent definition of 'vehicle' across images and focuses on exact count accuracy rather than localization.",
+  "tasks": [
+    "visual_question_answering"
+  ],
+  "domain": "vehicle counting / traffic imagery",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "scenery",
+        "semantics": "The image shows an outdoor traffic or aerial scene containing many vehicles. It is the visual context that the model must analyze to determine the number of vehicles.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction asking the model to count the number of vehicles in the provided image. It defines the task for the visual context.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.number"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The integer count of vehicles present in the image, serving as the target answer for the counting question.",
+        "path_types": [
+          "int"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image file, a text prompt (instruction), and a numeric answer. The image is the visual context, the prompt is the question asking to count vehicles, and the number is the answer. No bounding boxes, masks, options, or other annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/vehicle_counting/json/annotation.json",
+    "existing_tags": {
+      "task": "vehicle counting",
+      "type": "comprehension",
+      "skill": "Object Counting Object Count",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

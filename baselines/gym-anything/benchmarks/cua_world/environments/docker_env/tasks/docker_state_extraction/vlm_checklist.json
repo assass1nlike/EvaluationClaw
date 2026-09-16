@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_state_extraction@1",
+  "task_completion": [
+    {
+      "id": "document_container_changes",
+      "description": "Document the identified container changes in container_changes.txt",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of '~/Desktop/container_changes.txt' with notes about OS packages (curl, vim), Python libraries (Flask, gunicorn, requests), environment variables, users, or application files."
+    },
+    {
+      "id": "create_dockerfile",
+      "description": "Create a new Dockerfile that reproduces the container state",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing a 'Dockerfile' in '~/projects/acme-legacy-app/' containing instructions like 'FROM python:3.11-slim', 'RUN apt-get install...', 'pip install...', and 'COPY' commands for the application files."
+    },
+    {
+      "id": "build_restored_image",
+      "description": "Build the new Docker image tagged as acme-legacy-app:restored",
+      "points": 25,
+      "visual_evidence": "Terminal showing the execution of 'docker build -t acme-legacy-app:restored .' (or similar) and the successful build completion output."
+    },
+    {
+      "id": "run_restored_container",
+      "description": "Run the newly built restored container",
+      "points": 15,
+      "visual_evidence": "Terminal showing a 'docker run' command executing the 'acme-legacy-app:restored' image, likely with a port mapping (e.g., -p 8000:8000)."
+    },
+    {
+      "id": "verify_health_endpoint",
+      "description": "Verify the /health endpoint of the restored container responds correctly",
+      "points": 15,
+      "visual_evidence": "Terminal showing a 'curl' command to 'http://localhost:8000/health' (or the mapped port) returning a successful response, or a web browser displaying the health endpoint response."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_investigation",
+      "description": "Verify the agent actively investigated the running container rather than guessing or using prior knowledge.",
+      "visual_evidence": "Terminal history showing commands like 'docker exec', 'docker diff', 'docker cp', or 'docker inspect' targeting the original 'acme-legacy-app' container."
+    },
+    {
+      "id": "genuine_dockerfile_creation",
+      "description": "Verify the agent created a proper Dockerfile rather than taking shortcuts like exporting/importing the container filesystem.",
+      "visual_evidence": "The Dockerfile contains standard build instructions (FROM, RUN, COPY) and does not rely on importing a tarball of the original container."
+    },
+    {
+      "id": "verified_restored_image",
+      "description": "Verify the health check was performed on the restored container, not the original one.",
+      "visual_evidence": "The terminal shows the restored container being started and the subsequent health check (curl) hitting the port mapped to the new container, not the original."
+    }
+  ],
+  "privileged_info_for_vlm": "The original container uses base image 'python:3.11-slim'. It contains system packages 'curl' and 'vim', and Python dependencies 'Flask==3.0.0', 'gunicorn==21.2.0', and 'requests==2.31.0'. Required files to be extracted and copied in the Dockerfile are '/app/inventory_api.py', '/app/config.json', '/app/start.sh', and '/app/data/inventory.db'. The health endpoint is at 'http://localhost:8000/health'. The documentation must be at '/home/ga/Desktop/container_changes.txt', the new Dockerfile at '/home/ga/projects/acme-legacy-app/Dockerfile', and the built image tagged 'acme-legacy-app:restored'."
+}

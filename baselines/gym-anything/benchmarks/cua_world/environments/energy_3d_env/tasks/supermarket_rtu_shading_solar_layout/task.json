@@ -1,0 +1,28 @@
+{
+  "id": "supermarket_rtu_shading_solar_layout@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Model a commercial supermarket, simulate HVAC shading, and design an optimized solar layout.\n\nGoal: Model a flat-roof supermarket with 4 large HVAC units, generate a solar heat map to identify shadow zones, and place a >250-panel solar array that strictly avoids these shadows.\n\nActions:\n1. Set the project location to Phoenix, AZ.\n2. Draw a rectangular building (~60m x 45m footprint, 8m height) with a perfectly flat roof.\n3. Add 4 block structures (~4m x 4m footprint, 2m height) on top of the roof to represent Rooftop HVAC Units (RTUs). Spread them out across the roof.\n4. Run the Solar Heat Map tool to visualize the dark shadow paths cast by the RTUs.\n5. Place solar panel racks on the roof (at least 250 panels total).\n6. Position the solar panels strictly outside of the deep shadow zones identified by the heat map.\n7. Run the Annual Solar Yield analysis.\n8. Save the project to ~/Documents/Energy3D/supermarket_rtu_layout.ng3\n9. Export the yield graph/results to a CSV file named ~/Documents/Energy3D/supermarket_yield.csv\n\nFinal State: A 3D model of the supermarket with RTUs and intelligently placed panels is complete. The .ng3 file and yield .csv are saved.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/supermarket_rtu_shading_solar_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/supermarket_rtu_shading_solar_layout/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Commercial Solar Designer",
+    "industry": "Renewable Energy / Retail",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/supermarket_rtu_layout.ng3",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/supermarket_yield.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_supermarket_task"
+    }
+  }
+}

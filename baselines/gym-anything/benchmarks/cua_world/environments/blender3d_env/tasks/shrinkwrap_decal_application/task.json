@@ -1,0 +1,30 @@
+{
+  "id": "shrinkwrap_decal_application@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You are a 3D environment artist adding details to a sci-fi corridor. Conform the 'WarningLabel' object to the surface of the 'IndustrialPipe' object so it follows the curve without clipping or Z-fighting. Ensure the modification remains non-destructive and the label is positioned close to the surface. Save the project to /home/ga/BlenderProjects/pipe_decal.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/shrinkwrap_decal_application/setup_task.sh",
+    "post_task": "/workspace/tasks/shrinkwrap_decal_application/export_result.sh"
+  },
+  "metadata": {
+    "source_blend": "/home/ga/BlenderProjects/pipe_scene.blend",
+    "expected_output": "/home/ga/BlenderProjects/pipe_decal.blend",
+    "target_object": "IndustrialPipe",
+    "label_object": "WarningLabel",
+    "min_offset": 0.005,
+    "max_offset": 0.02
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_shrinkwrap_decal"
+    }
+  }
+}

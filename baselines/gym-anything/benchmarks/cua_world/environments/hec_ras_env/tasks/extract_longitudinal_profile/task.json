@@ -1,0 +1,33 @@
+{
+  "id": "extract_longitudinal_profile@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Perform post-processing analysis on the Muncie HEC-RAS model located in /home/ga/Documents/hec_ras_projects/Muncie. Ensure the unsteady flow simulation results (Muncie.p04.hdf) are available, running the simulation if required. Create a Python script named extract_profile.py in /home/ga/Documents/hec_ras_results/ to extract the longitudinal profile data at the peak flow condition, including river stations, bed elevations, water surface elevations (WSE), and flow depths. Generate the following outputs in /home/ga/Documents/hec_ras_results/: a CSV file named longitudinal_profile.csv containing the extracted data (river_station, bed_elevation_ft, wse_ft, flow_depth_ft), a plot named longitudinal_profile.png showing Bed Elevation and Peak WSE versus River Station, and a summary text file named profile_summary.txt reporting the total number of cross-sections, maximum WSE, minimum bed elevation, and maximum flow depth.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/extract_longitudinal_profile/setup_task.sh",
+    "post_task": "/workspace/tasks/extract_longitudinal_profile/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "expected_csv": "longitudinal_profile.csv",
+    "expected_plot": "longitudinal_profile.png",
+    "expected_summary": "profile_summary.txt",
+    "expected_script": "extract_profile.py",
+    "min_cross_sections": 5,
+    "elevation_min": 900,
+    "elevation_max": 980
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_extract_longitudinal_profile"
+    }
+  }
+}

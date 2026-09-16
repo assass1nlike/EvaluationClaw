@@ -1,0 +1,59 @@
+{
+  "task_id": "podcast_episode_assembly_and_mastering@1",
+  "task_completion": [
+    {
+      "id": "import_audio_files",
+      "description": "The agent imports the three raw audio components (intro, episode_raw, outro).",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the files intro.wav, episode_raw.wav, and outro.wav opened in an audio editor (e.g., Audacity) or referenced in a terminal command."
+    },
+    {
+      "id": "concatenate_audio",
+      "description": "The agent arranges the audio files sequentially: intro, then episode, then outro.",
+      "points": 20,
+      "visual_evidence": "The audio editor timeline shows the three clips aligned end-to-end in the correct order, or a command-line tool is used with concatenation arguments in the correct sequence."
+    },
+    {
+      "id": "export_master_wav",
+      "description": "The agent exports the concatenated audio as a lossless master WAV file.",
+      "points": 20,
+      "visual_evidence": "An export dialog or command showing the file being saved as a WAV (44.1kHz, stereo, 16-bit) to /home/ga/Music/podcast_output/."
+    },
+    {
+      "id": "export_distribution_mp3",
+      "description": "The agent exports the concatenated audio as a distribution MP3 file.",
+      "points": 15,
+      "visual_evidence": "An export dialog or command showing the file being saved as an MP3 (192kbps) to /home/ga/Music/podcast_output/."
+    },
+    {
+      "id": "embed_metadata",
+      "description": "The agent embeds the required ID3 metadata into the MP3 file.",
+      "points": 20,
+      "visual_evidence": "A metadata editor window (e.g., in Audacity) or command-line flags showing Title='Episode 47: Market Analysis', Artist='The Finance Hour', Album='Season 3', Track=47."
+    },
+    {
+      "id": "export_highlight_clip",
+      "description": "The agent exports a 15-second highlight clip starting at the 20-second mark of the raw episode.",
+      "points": 15,
+      "visual_evidence": "The audio editor shows a ~15-second selection being exported, or a command-line tool is used to extract a 15-second segment, saved to /home/ga/Music/podcast_output/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_audio_processing",
+      "description": "The agent used genuine audio processing software (like Audacity or ffmpeg) to create the outputs.",
+      "visual_evidence": "Screenshots show actual interaction with audio editing software or valid execution of audio processing commands, rather than just renaming files or creating empty files."
+    },
+    {
+      "id": "actual_metadata_entry",
+      "description": "The agent entered the metadata into the software's metadata fields or command arguments.",
+      "visual_evidence": "The metadata is seen being typed into an actual ID3 tag editor or passed as valid arguments to an audio processing tool, not just written in a text file."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The agent actually saved the files to the requested output directory.",
+      "visual_evidence": "The save dialogs or terminal commands explicitly show the destination path as /home/ga/Music/podcast_output/."
+    }
+  ],
+  "privileged_info_for_vlm": "The master and distribution copies should be approximately 70 seconds long. The highlight clip should be approximately 15 seconds long. The ID3 metadata must exactly match: Title='Episode 47: Market Analysis', Artist='The Finance Hour', Album='Season 3', Track=47. The master must be a 16-bit WAV file at 44.1kHz stereo, and the distribution copy must be a 192kbps MP3."
+}

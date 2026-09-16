@@ -1,0 +1,38 @@
+{
+  "id": "microscopy_timelapse_formatting@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Microscopy Time-Lapse Formatting",
+  "description": "Process the 'Mitosis' sample dataset into a presentation-ready video format. Perform a Maximum Intensity Z-Projection on the 5D hyperstack and isolate the Red channel (Channel 1, Chromatin). Create a sub-stack containing only the first 20 timepoints and add a timestamp starting at 00:00 with a 15.00-second interval in the top-left corner (font size 20-25). Save the final TIFF stack to ~/ImageJ_Data/processed/mitosis_movie_formatted.tif.",
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "hyperstack",
+    "z-projection",
+    "time-lapse",
+    "image-processing"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/microscopy_timelapse_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/microscopy_timelapse_formatting/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/processed/mitosis_movie_formatted.tif",
+    "original_width": 171,
+    "original_height": 196,
+    "expected_frames": 20,
+    "expected_channels": 1,
+    "timestamp_interval": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_microscopy_timelapse_formatting"
+    }
+  }
+}

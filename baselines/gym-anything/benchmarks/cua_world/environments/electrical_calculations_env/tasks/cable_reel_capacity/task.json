@@ -1,0 +1,35 @@
+{
+  "id": "cable_reel_capacity@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "Calculate the maximum length of cable (in meters) that can fit on a wooden reel using the 'Cable Reel Capacity' calculator in the Electrical Engineering Calculations app. Use the following dimensions: Reel Flange Diameter (800 mm), Reel Barrel/Core Diameter (400 mm), Reel Traverse/Width (500 mm), Edge Clearance (50 mm), and Cable Diameter (16 mm). Save the calculated capacity to '/sdcard/reel_capacity.txt' and a screenshot of the calculator showing the inputs and result to '/sdcard/reel_capacity_evidence.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/cable_reel_capacity/setup_task.sh",
+    "post_task": "/sdcard/tasks/cable_reel_capacity/export_result.sh"
+  },
+  "metadata": {
+    "inputs": {
+      "flange_diameter": 800,
+      "barrel_diameter": 400,
+      "width": 500,
+      "clearance": 50,
+      "cable_diameter": 16
+    },
+    "expected_output_file": "/sdcard/reel_capacity.txt",
+    "evidence_screenshot": "/sdcard/reel_capacity_evidence.png",
+    "min_expected_meters": 300,
+    "max_expected_meters": 600
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cable_reel_capacity"
+    }
+  }
+}

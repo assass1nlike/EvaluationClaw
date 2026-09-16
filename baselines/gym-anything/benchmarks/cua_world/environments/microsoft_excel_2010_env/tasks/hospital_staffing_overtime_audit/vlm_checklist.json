@@ -1,0 +1,59 @@
+{
+  "task_id": "hospital_staffing_overtime_audit@1",
+  "task_completion": [
+    {
+      "id": "employee_summary_columns",
+      "description": "Verify the 'Employee_Overtime_Summary' sheet contains the required columns and 30 employee rows.",
+      "points": 20,
+      "visual_evidence": "Look for a worksheet named 'Employee_Overtime_Summary' with columns for Regular Hours, Overtime Hours, Regular Pay, Overtime Pay, Total Pay, and OT_Flag. There should be rows for 30 distinct employees."
+    },
+    {
+      "id": "employee_summary_calculations",
+      "description": "Verify the calculations in the 'Employee_Overtime_Summary' sheet are correct based on the privileged information.",
+      "points": 20,
+      "visual_evidence": "Look at the OT_Flag column to see exactly 7 cells containing the text 'OT_REVIEW'. Alternatively, check if the total Overtime Hours sum to 776.1."
+    },
+    {
+      "id": "employee_summary_totals_row",
+      "description": "Verify the 'Employee_Overtime_Summary' sheet includes a totals row.",
+      "points": 10,
+      "visual_evidence": "Look for a row at the bottom of the employee list (likely row 32) that sums the numeric columns (Regular Hours, Overtime Hours, Regular Pay, Overtime Pay, Total Pay)."
+    },
+    {
+      "id": "department_summary_columns",
+      "description": "Verify the 'Department_Cost_Summary' sheet contains the 5 departments and required aggregate columns.",
+      "points": 20,
+      "visual_evidence": "Look for a worksheet named 'Department_Cost_Summary' with rows for ICU, ER, Surgery, Oncology, and Pediatrics. It must have columns for Total Regular Hours, Total Overtime Hours, Total Regular Pay, Total Overtime Pay, Total Labor Cost, Avg Cost per Employee, and OT%."
+    },
+    {
+      "id": "department_summary_calculations",
+      "description": "Verify the aggregate calculations in the 'Department_Cost_Summary' sheet are correct.",
+      "points": 20,
+      "visual_evidence": "Look for the total Overtime Pay to equal $53,666.70 and the total Overtime Hours to equal 776.1 across the departments."
+    },
+    {
+      "id": "department_summary_totals_row",
+      "description": "Verify the 'Department_Cost_Summary' sheet includes a hospital-wide total row.",
+      "points": 10,
+      "visual_evidence": "Look for a 'Total' or 'Hospital-wide Total' row at the bottom of the department list that aggregates the department metrics."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Excel GUI to complete the task.",
+      "visual_evidence": "Look for screenshots showing Microsoft Excel open with the ribbon, formula bar, and sheet tabs visible, rather than a terminal window running a Python script (like pandas/openpyxl)."
+    },
+    {
+      "id": "formula_usage",
+      "description": "Verify the agent used formulas or pivot tables rather than hardcoding answers.",
+      "visual_evidence": "Look at the formula bar in the screenshots. When a calculated cell is selected, the formula bar should show an Excel formula (e.g., =SUM(...), =IF(...)) rather than a static typed number."
+    },
+    {
+      "id": "correct_save_location",
+      "description": "Verify the file is saved to the correct path.",
+      "visual_evidence": "Look at the Excel title bar or a 'Save As' dialog box confirming the file is saved to 'C:\\Users\\Docker\\Desktop\\ExcelTasks\\hospital_staffing.xlsx'."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 30 employees across 5 departments (ICU, ER, Surgery, Oncology, Pediatrics). The correct total Overtime Hours across all employees is exactly 776.1. The correct total Overtime Pay (cost) is exactly $53,666.70. There should be exactly 7 employees flagged with 'OT_REVIEW' in the OT_Flag column."
+}

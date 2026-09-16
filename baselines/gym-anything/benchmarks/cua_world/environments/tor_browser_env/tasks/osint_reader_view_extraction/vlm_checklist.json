@@ -1,0 +1,53 @@
+{
+  "task_id": "osint_reader_view_extraction@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_url",
+      "description": "Navigate to the specified Wikipedia article in Tor Browser.",
+      "points": 10,
+      "visual_evidence": "Tor Browser is open with 'https://en.wikipedia.org/wiki/Open-source_intelligence' visible in the address bar."
+    },
+    {
+      "id": "enable_reader_view",
+      "description": "Enable Reader View for the article.",
+      "points": 15,
+      "visual_evidence": "The Tor Browser address bar shows the Reader View icon as active (often highlighted or showing 'about:reader?url=' in the address bar), and the page layout is simplified without standard Wikipedia sidebars."
+    },
+    {
+      "id": "configure_reader_view",
+      "description": "Configure Reader View to use a Dark theme and Serif font.",
+      "points": 20,
+      "visual_evidence": "The article text is rendered in a Serif font on a dark background. The Reader View typography settings menu (Aa icon) might be visible showing 'Dark' and 'Serif' selected."
+    },
+    {
+      "id": "save_clean_text",
+      "description": "Save the article's clean text to the specified file.",
+      "points": 30,
+      "visual_evidence": "A 'Save As' dialog saving the page to '/home/ga/Documents/osint_clean_extract.txt', or a text editor/file manager showing this exact file path containing the article text."
+    },
+    {
+      "id": "create_bookmark",
+      "description": "Create a bookmark for the Reader View page with the specified name.",
+      "points": 25,
+      "visual_evidence": "The bookmark creation dialog (popup from the star icon in the address bar) showing the name 'OSINT Clean Reading', or the bookmark visible in the bookmarks toolbar/menu."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_interaction",
+      "description": "Verify the agent used the Tor Browser GUI to navigate and view the page.",
+      "visual_evidence": "Screenshots should show the Tor Browser window and standard web navigation, not terminal commands like `curl`, `wget`, or python scripts fetching the URL."
+    },
+    {
+      "id": "genuine_reader_view",
+      "description": "Verify the text styling came from the browser's Reader View.",
+      "visual_evidence": "The browser's built-in Reader View is visibly active in the browser window, rather than the agent manually pasting text into a dark-themed text editor to fake the appearance."
+    },
+    {
+      "id": "gui_bookmark_creation",
+      "description": "Verify the bookmark was created using the browser's GUI.",
+      "visual_evidence": "The browser's bookmark dialog, star icon, or library menu is used, rather than terminal commands editing the Firefox/Tor places.sqlite database directly."
+    }
+  ],
+  "privileged_info_for_vlm": "Target URL: https://en.wikipedia.org/wiki/Open-source_intelligence. Output file path: /home/ga/Documents/osint_clean_extract.txt. Expected bookmark title: 'OSINT Clean Reading'. Reader View must be configured with a 'dark' theme and 'serif' font."
+}

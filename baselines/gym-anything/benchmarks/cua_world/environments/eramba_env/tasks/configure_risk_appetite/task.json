@@ -1,0 +1,31 @@
+{
+  "id": "configure_risk_appetite@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "A compliance manager needs to update the organization's risk appetite configuration in Eramba (http://localhost:8080, Login: admin / Admin2024!) following a board-level risk governance review. Update the risk appetite settings for Enterprise Risks (Risks), Third Party Risks (ThirdPartyRisks), and Business Continuity Risks (BusinessContinuities) by changing the appetite value from 3 to 2 for each. Maintain the risk appetite method as simple threshold mode (value 0) and the risk calculation method as 'eramba' across all three domains.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_risk_appetite/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_risk_appetite/export_result.sh"
+  },
+  "metadata": {
+    "target_appetite": 2,
+    "models": [
+      "Risks",
+      "ThirdPartyRisks",
+      "BusinessContinuities"
+    ],
+    "eramba_url": "http://localhost:8080"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_risk_appetite"
+    }
+  }
+}

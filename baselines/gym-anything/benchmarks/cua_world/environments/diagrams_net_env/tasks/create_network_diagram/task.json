@@ -1,0 +1,34 @@
+{
+  "id": "create_network_diagram@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Create an office network topology diagram in diagrams.net. The diagram must include labeled elements for 'Internet' (cloud shape), 'Router', 'Switch', 'PC1', 'PC2', 'PC3', and 'Server'. Connect these elements with at least five lines to represent the network structure (e.g., Internet to Router, Router to Switch, and Switch to the end devices). Save the final diagram as office_network.drawio to the Desktop.",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_network_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_network_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "office_network.drawio",
+    "expected_save_location": "/home/ga/Desktop",
+    "min_shapes": 6,
+    "min_connections": 5,
+    "required_elements": [
+      "internet",
+      "router",
+      "switch",
+      "computer",
+      "server"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_network_diagram"
+    }
+  }
+}

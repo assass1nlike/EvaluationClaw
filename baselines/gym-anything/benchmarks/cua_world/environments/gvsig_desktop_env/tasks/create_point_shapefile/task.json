@@ -1,0 +1,57 @@
+{
+  "id": "create_point_shapefile@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "gvSIG is open with the 'countries_base' project loaded. Create a new point Shapefile layer and save it to /home/ga/gvsig_data/exports/survey_sites.shp. Define the attribute fields as site_name (String, length 50), site_type (String, length 30), and priority (Integer, length 5). Digitize three survey sites anywhere on the map with the following attribute data: Alpha Station (Weather, priority 1), Beta Outpost (Seismic, priority 2), and Gamma Point (Tidal, priority 3). Ensure the layer is saved and visible in the View.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_point_shapefile/setup_task.sh",
+    "post_task": "/workspace/tasks/create_point_shapefile/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/gvsig_data/exports/survey_sites.shp",
+    "expected_count": 3,
+    "expected_schema": [
+      {
+        "name": "site_name",
+        "type": "C"
+      },
+      {
+        "name": "site_type",
+        "type": "C"
+      },
+      {
+        "name": "priority",
+        "type": "N"
+      }
+    ],
+    "expected_records": [
+      {
+        "site_name": "Alpha Station",
+        "site_type": "Weather",
+        "priority": 1
+      },
+      {
+        "site_name": "Beta Outpost",
+        "site_type": "Seismic",
+        "priority": 2
+      },
+      {
+        "site_name": "Gamma Point",
+        "site_type": "Tidal",
+        "priority": 3
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_point_shapefile"
+    }
+  }
+}

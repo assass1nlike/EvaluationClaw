@@ -1,0 +1,38 @@
+{
+  "id": "create_digital_logic_circuit@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a 1-bit Full Adder circuit diagram in Wondershare EdrawMax using two XOR gates, two AND gates, and one OR gate. The circuit must implement the logic for Sum (A XOR B XOR Cin) and Cout ((A AND B) OR (Cin AND (A XOR B))). Label the inputs 'A', 'B', and 'Cin' and the outputs 'Sum' and 'Cout' near their respective terminals. Save the diagram to /home/ga/Diagrams/full_adder_circuit.eddx and export it as an image to /home/ga/Diagrams/full_adder_circuit.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_digital_logic_circuit/setup_task.sh",
+    "post_task": "/workspace/tasks/create_digital_logic_circuit/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Diagrams/full_adder_circuit.eddx",
+    "expected_png_path": "/home/ga/Diagrams/full_adder_circuit.png",
+    "required_gates": {
+      "XOR": 2,
+      "AND": 2,
+      "OR": 1
+    },
+    "required_labels": [
+      "Sum",
+      "Cout",
+      "A",
+      "B",
+      "Cin"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_digital_logic_circuit"
+    }
+  }
+}

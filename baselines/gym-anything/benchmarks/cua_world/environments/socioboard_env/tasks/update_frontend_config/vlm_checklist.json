@@ -1,0 +1,59 @@
+{
+  "task_id": "update_frontend_config@1",
+  "task_completion": [
+    {
+      "id": "open_target_file",
+      "description": "Open the correct .env configuration file for editing or viewing.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit) or terminal command (e.g., cat, less) displaying the contents of '/opt/socioboard/socioboard-web-php/.env'."
+    },
+    {
+      "id": "update_app_name",
+      "description": "Update the APP_NAME configuration.",
+      "points": 15,
+      "visual_evidence": "The line 'APP_NAME=\"MarketPulse Hub\"' (or without quotes if the agent typed it that way, though quotes are standard) is visible in the file editor or terminal output."
+    },
+    {
+      "id": "update_mail_server_settings",
+      "description": "Update the MAIL_DRIVER, MAIL_HOST, and MAIL_PORT configurations.",
+      "points": 25,
+      "visual_evidence": "The lines 'MAIL_DRIVER=smtp', 'MAIL_HOST=smtp.marketpulse.io', and 'MAIL_PORT=587' are visible in the file editor or terminal output."
+    },
+    {
+      "id": "update_mail_credentials",
+      "description": "Update the MAIL_USERNAME, MAIL_PASSWORD, and MAIL_ENCRYPTION configurations.",
+      "points": 25,
+      "visual_evidence": "The lines 'MAIL_USERNAME=notifications@marketpulse.io', 'MAIL_PASSWORD=MPulse!Notify2024', and 'MAIL_ENCRYPTION=tls' are visible in the file editor or terminal output."
+    },
+    {
+      "id": "update_session_lifetime",
+      "description": "Update the SESSION_LIFETIME configuration.",
+      "points": 15,
+      "visual_evidence": "The line 'SESSION_LIFETIME=480' is visible in the file editor or terminal output."
+    },
+    {
+      "id": "save_changes",
+      "description": "Save the changes to the .env file.",
+      "points": 10,
+      "visual_evidence": "A terminal prompt returning after a save action in an editor, a 'File saved' message, or a subsequent 'cat'/'grep' command showing the updated values successfully written to the file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "preserve_other_settings",
+      "description": "Ensure other settings in the .env file remain unchanged.",
+      "visual_evidence": "The screenshots should show other standard Laravel/Socioboard .env variables (like DB_*, REDIS_*, etc.) still present in the file, proving the file was not completely overwritten with only the new values."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "The agent actually modified the file rather than just printing the expected output.",
+      "visual_evidence": "Use of a real text editor (nano, vim, gedit) or valid terminal commands (sed, echo >>) to modify the file, rather than just echoing the text to the console without redirecting to the file."
+    },
+    {
+      "id": "correct_file_path",
+      "description": "The agent modified the correct file path.",
+      "visual_evidence": "The file path visible in the editor header, terminal command, or window title must specifically be '/opt/socioboard/socioboard-web-php/.env'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: /opt/socioboard/socioboard-web-php/.env. Expected values to verify: APP_NAME=\"MarketPulse Hub\", MAIL_DRIVER=smtp, MAIL_HOST=smtp.marketpulse.io, MAIL_PORT=587, MAIL_USERNAME=notifications@marketpulse.io, MAIL_PASSWORD=MPulse!Notify2024, MAIL_ENCRYPTION=tls, SESSION_LIFETIME=480."
+}

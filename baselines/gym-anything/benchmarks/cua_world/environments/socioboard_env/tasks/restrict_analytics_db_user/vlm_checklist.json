@@ -1,0 +1,53 @@
+{
+  "task_id": "restrict_analytics_db_user@1",
+  "task_completion": [
+    {
+      "id": "access_mysql_client",
+      "description": "Agent accesses a MySQL client interface",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent opening a terminal with a `mysql>` prompt or a graphical database management tool (like DBeaver, phpMyAdmin, or MySQL Workbench)."
+    },
+    {
+      "id": "locate_target_user",
+      "description": "Agent identifies the target user account",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent querying the user table (e.g., `SELECT user, host FROM mysql.user;`) or navigating to the user management section in a GUI to find 'analytics_user'@'localhost'."
+    },
+    {
+      "id": "update_password",
+      "description": "Agent updates the user's password to the specified value",
+      "points": 30,
+      "visual_evidence": "Screenshots show the execution of an SQL command like `ALTER USER 'analytics_user'@'localhost' IDENTIFIED BY 'DataViz#2026';` or the password being entered and saved in a GUI user management form."
+    },
+    {
+      "id": "revoke_excessive_privileges",
+      "description": "Agent revokes the user's excessive privileges",
+      "points": 20,
+      "visual_evidence": "Screenshots show the execution of a command like `REVOKE ALL PRIVILEGES ON *.* FROM 'analytics_user'@'localhost';` (or similar REVOKE statements for the socioboard database), or unchecking global/excessive privilege boxes in a GUI."
+    },
+    {
+      "id": "grant_select_privilege",
+      "description": "Agent grants only the SELECT privilege on the target database",
+      "points": 30,
+      "visual_evidence": "Screenshots show the execution of `GRANT SELECT ON socioboard.* TO 'analytics_user'@'localhost';` or the specific selection of the SELECT privilege for the 'socioboard' database in a GUI, followed by a success message (e.g., 'Query OK')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "Agent used a real database client rather than a text editor",
+      "visual_evidence": "The interface used to type SQL commands is a genuine database client (terminal MySQL prompt, DBeaver, etc.) and not a plain text editor like Notepad or Nano."
+    },
+    {
+      "id": "commands_executed",
+      "description": "Commands were actually executed and not just typed",
+      "visual_evidence": "There is visual confirmation of execution, such as 'Query OK, X rows affected' in the terminal, or success notification banners in a GUI."
+    },
+    {
+      "id": "no_script_tampering",
+      "description": "Agent did not tamper with benchmark evaluation scripts",
+      "visual_evidence": "The agent is interacting directly with the database system and not editing files like 'export_result.sh' or 'setup_task.sh' to bypass the actual database configuration."
+    }
+  ],
+  "privileged_info_for_vlm": "Target user: 'analytics_user'@'localhost'. Target database: 'socioboard'. New password: 'DataViz#2026'. The agent must ensure the user has ONLY the SELECT privilege on the 'socioboard' database and no other privileges."
+}

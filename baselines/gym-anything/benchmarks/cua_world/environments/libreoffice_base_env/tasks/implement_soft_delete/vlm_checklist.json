@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_soft_delete@1",
+  "task_completion": [
+    {
+      "id": "add_is_deleted_column",
+      "description": "Add a boolean column named 'IsDeleted' to the 'Track' table.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Track' table opened in design view showing a new column 'IsDeleted' of type Boolean/YesNo, or an ALTER TABLE SQL command being executed."
+    },
+    {
+      "id": "initialize_is_deleted_false",
+      "description": "Initialize the 'IsDeleted' column to FALSE for all existing records.",
+      "points": 10,
+      "visual_evidence": "Look for an SQL UPDATE command setting 'IsDeleted' to FALSE (or 0) being executed, or a data view of the 'Track' table showing the column populated with FALSE/unchecked boxes."
+    },
+    {
+      "id": "update_metal_tracks_true",
+      "description": "Mark all tracks with the Genre 'Metal' as deleted by setting IsDeleted to TRUE.",
+      "points": 20,
+      "visual_evidence": "Look for an SQL UPDATE command setting 'IsDeleted' to TRUE (or 1) for tracks where GenreId is 3 (Metal), or a data view showing TRUE/checked boxes for Metal tracks."
+    },
+    {
+      "id": "create_active_tracks_view",
+      "description": "Create a View named 'ActiveTracks'.",
+      "points": 15,
+      "visual_evidence": "Look for 'ActiveTracks' appearing in the list of Views in the database application."
+    },
+    {
+      "id": "active_tracks_view_definition",
+      "description": "The 'ActiveTracks' view shows only tracks where IsDeleted is FALSE.",
+      "points": 20,
+      "visual_evidence": "Look for the SQL definition of the 'ActiveTracks' view containing a WHERE clause like 'IsDeleted = FALSE' (or 0), or the view design window showing this filter criterion."
+    },
+    {
+      "id": "save_database_changes",
+      "description": "Save the database changes to 'chinook.odb'.",
+      "points": 15,
+      "visual_evidence": "Look for the agent clicking the 'Save' button, using the File -> Save menu, or closing the application and confirming the save prompt for chinook.odb."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_database_gui",
+      "description": "The agent used a database management GUI to perform the tasks.",
+      "visual_evidence": "Screenshots should show LibreOffice Base or a similar database tool being used, not just a text editor or terminal."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "The agent actually executed the changes.",
+      "visual_evidence": "Look for execution success messages, data changing in the table views, or the save button being clicked in the database GUI."
+    },
+    {
+      "id": "correct_database_file",
+      "description": "The agent modified the correct chinook.odb database.",
+      "visual_evidence": "The window title or database connection details should indicate that 'chinook.odb' is the active database."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/chinook.odb. The 'Track' table contains exactly 3503 rows. The 'Metal' genre corresponds to GenreId=3 and contains 374 tracks. The target column to add is 'IsDeleted' and the target view to create is 'ActiveTracks'."
+}

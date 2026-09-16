@@ -1,0 +1,31 @@
+{
+  "id": "classify_hotel_markets@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "The marketing team needs to classify hotels into 'International' or 'Domestic' markets based on their visitor history in the 'demodb' database (user: root, pass: GymAnything123!). Update the 'Hotels' class to include a String property named 'Market' and populate it for every hotel that has had visitors. Classify a hotel as 'International' if 50% or more of the visits (incoming 'HasStayed' edges) are from Profiles with a Nationality different from the Hotel's Country, and 'Domestic' if more than 50% of the visits are from Profiles with a Nationality the same as the Hotel's Country.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/classify_hotel_markets/setup_task.sh",
+    "post_task": "/workspace/tasks/classify_hotel_markets/export_result.sh"
+  },
+  "metadata": {
+    "database": "demodb",
+    "target_class": "Hotels",
+    "target_property": "Market",
+    "values": [
+      "International",
+      "Domestic"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_classify_hotel_markets"
+    }
+  }
+}

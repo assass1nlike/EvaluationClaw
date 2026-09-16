@@ -1,0 +1,35 @@
+{
+  "id": "generate_marketing_list@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "The Chinook database is open in LibreOffice Base. Your task is to generate a targeted mailing list for a 'Roots of Rhythm' marketing campaign. Identify all customers who have purchased at least one track from the 'Jazz' or 'Blues' genres and create a table named 'TargetedMailingList' containing their CustomerId, FormalName (formatted as \"LastName, FirstName\"), and FullAddress (formatted as \"Address, City, State ZipCode, Country\", ensuring NULL states are handled so the result is not null). Export the 'TargetedMailingList' table to a CSV file at /home/ga/Documents/mailing_list.csv with a header row and comma delimiters.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_marketing_list/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_marketing_list/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/mailing_list.csv",
+    "required_columns": [
+      "CustomerId",
+      "FormalName",
+      "FullAddress"
+    ],
+    "target_genres": [
+      "Jazz",
+      "Blues"
+    ],
+    "sqlite_source": "/opt/libreoffice_base_samples/Chinook_Sqlite.sqlite"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_marketing_list"
+    }
+  }
+}

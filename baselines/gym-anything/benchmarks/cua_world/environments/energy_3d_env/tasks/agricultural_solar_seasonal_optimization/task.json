@@ -1,0 +1,33 @@
+{
+  "id": "agricultural_solar_seasonal_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Design a 100+ panel ground-mounted solar array for an agricultural site in Sacramento, CA (approximate latitude 38.5°). The goal is to optimize the tilt angle to maximize energy yield specifically for the summer irrigation season (June - August). Start with the empty Energy3D scene. Set the location to Sacramento, CA. Draw a Foundation, place a Solar Panel Array on it with at least 100 panels, and use the Monthly Yield Analysis tool to find the optimum tilt angle for summer generation (ignoring annual/winter performance). Set the panels to this optimal summer tilt angle. Save the project to ~/Documents/Energy3D/summer_irrigation_array.ng3. Finally, create a text file at ~/Documents/Energy3D/optimization_report.txt containing your chosen tilt angle and a 1-sentence justification.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/agricultural_solar_seasonal_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/agricultural_solar_seasonal_optimization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Photovoltaic Engineer",
+    "industry": "Agriculture / Renewable Energy",
+    "output_file": "/home/ga/Documents/Energy3D/summer_irrigation_array.ng3",
+    "report_file": "/home/ga/Documents/Energy3D/optimization_report.txt",
+    "target_location": "Sacramento",
+    "optimal_tilt_min": 5.0,
+    "optimal_tilt_max": 20.0,
+    "annual_default_tilt_min": 25.0,
+    "annual_default_tilt_max": 45.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_solar_optimization"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "export_clean_and_annotated_views@1",
+  "task_completion": [
+    {
+      "id": "draw_line_measurement",
+      "description": "Draw a line measurement on the loaded CT image",
+      "points": 20,
+      "visual_evidence": "A line measurement tool is active and a line with a measurement (typically showing length in mm or cm) is visible on the CT image in the DICOM viewer."
+    },
+    {
+      "id": "export_annotated_jpeg",
+      "description": "Export the view with the measurement as 'annotated.jpg'",
+      "points": 25,
+      "visual_evidence": "A save/export dialog or confirmation message showing the image being saved as 'annotated.jpg' in the ~/DICOM/exports/ directory, while the measurement is visible on screen."
+    },
+    {
+      "id": "hide_measurement",
+      "description": "Hide the measurement on the CT image",
+      "points": 15,
+      "visual_evidence": "The CT image is visible in the viewer but the previously drawn line measurement is no longer visible (toggled off or hidden)."
+    },
+    {
+      "id": "export_clean_jpeg",
+      "description": "Export the view without the measurement as 'clean.jpg'",
+      "points": 25,
+      "visual_evidence": "A save/export dialog or confirmation message showing the image being saved as 'clean.jpg' in the ~/DICOM/exports/ directory, while the measurement is hidden."
+    },
+    {
+      "id": "verify_exported_files",
+      "description": "Verify both JPEG files exist in the target directory",
+      "points": 15,
+      "visual_evidence": "A file manager window or terminal output showing the contents of the /home/ga/DICOM/exports/ directory, clearly listing both 'annotated.jpg' and 'clean.jpg'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_dicom_viewer",
+      "description": "The agent used the provided DICOM viewer GUI to draw the measurement and export the images.",
+      "visual_evidence": "Screenshots should show interaction with a medical imaging application's interface (e.g., 3D Slicer, Weasis, etc.), not a generic image editor like GIMP or Paint."
+    },
+    {
+      "id": "authentic_measurement",
+      "description": "The measurement is a genuine software annotation.",
+      "visual_evidence": "The line drawn should look like a native measurement tool from the viewer (often accompanied by text showing the exact length), rather than a freehand line drawn with a brush tool."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "The agent did not use terminal commands to bypass the GUI export process.",
+      "visual_evidence": "There should be no terminal commands like 'touch clean.jpg' or 'convert image.png annotated.jpg' used to artificially create the expected output files without using the viewer's export functionality."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected export directory is exactly '/home/ga/DICOM/exports'. The expected filenames are exactly 'annotated.jpg' and 'clean.jpg'."
+}

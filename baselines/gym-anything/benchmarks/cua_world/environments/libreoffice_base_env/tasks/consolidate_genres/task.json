@@ -1,0 +1,35 @@
+{
+  "id": "consolidate_genres@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Consolidate the 'Rock' and 'Metal' music genres into a new genre named 'Heavy Music' in the Chinook database by reassigning all associated tracks and removing the original genre records. Export a list of all tracks now in the 'Heavy Music' genre, including TrackId and Name columns, to /home/ga/Documents/heavy_music_tracks.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/consolidate_genres/setup_task.sh",
+    "post_task": "/workspace/tasks/consolidate_genres/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/heavy_music_tracks.csv",
+    "odb_path": "/home/ga/chinook.odb",
+    "target_genre_name": "Heavy Music",
+    "source_genres": [
+      "Rock",
+      "Metal"
+    ],
+    "approx_track_count": 1671,
+    "track_count_tolerance": 10,
+    "sample_rock_track": "Whole Lotta Love",
+    "sample_metal_track": "Enter Sandman"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_consolidate_genres"
+    }
+  }
+}

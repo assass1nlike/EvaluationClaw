@@ -1,0 +1,36 @@
+{
+  "id": "mark_no_show@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "A patient named Robert Thornton was scheduled for a follow-up visit at 10:00 AM today with Dr. Sarah Chen (provider oscardoc) but did not arrive. Log in to Oscar EMR (username: oscardoc, password: oscar, PIN: 1117) and mark Robert Thornton's 10:00 AM appointment as 'No Show' (status code 'N'). The appointment should remain visible on the schedule but clearly marked as a No Show.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mark_no_show/setup_task.sh",
+    "post_task": "/workspace/tasks/mark_no_show/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Robert",
+    "patient_lname": "Thornton",
+    "appt_time": "10:00:00",
+    "provider_no": "999998",
+    "expected_status": "N"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mark_no_show"
+    }
+  },
+  "tags": [
+    "oscar",
+    "schedule",
+    "appointment",
+    "no-show",
+    "workflow"
+  ]
+}

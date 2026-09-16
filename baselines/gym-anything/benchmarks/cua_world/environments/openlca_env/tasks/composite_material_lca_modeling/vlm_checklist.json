@@ -1,0 +1,59 @@
+{
+  "task_id": "composite_material_lca_modeling@1",
+  "task_completion": [
+    {
+      "id": "databases_imported",
+      "description": "Verify that the USLCI database and LCIA methods have been imported into OpenLCA.",
+      "points": 10,
+      "visual_evidence": "In the OpenLCA Navigation pane on the left, look for 'USLCI' (or similar) under Databases, and check that LCIA methods are populated in the Indicators and Parameters section."
+    },
+    {
+      "id": "custom_flow_created",
+      "description": "Verify that the custom 'Rice Husks' flow was created.",
+      "points": 10,
+      "visual_evidence": "Look for a flow named 'Rice Husks' in the Navigation pane under Flows, or listed in the Inputs table of the process with a unit of mass (kg)."
+    },
+    {
+      "id": "process_output_configured",
+      "description": "Verify the creation of the 'Bio-brick Production' process with the correct output amount.",
+      "points": 20,
+      "visual_evidence": "Look for a process window named 'Bio-brick Production'. In its Inputs/Outputs tab, the Output section (or Quantitative Reference) should show 'Bio-brick' with an amount of 2.0 kg."
+    },
+    {
+      "id": "process_inputs_configured",
+      "description": "Verify that all four required inputs are added to the process with correct amounts.",
+      "points": 30,
+      "visual_evidence": "In the Inputs/Outputs tab of the 'Bio-brick Production' process, the Inputs section must list: Portland cement (0.5 kg), Sand (1.2 kg), Rice Husks (0.3 kg), and Electricity (0.05 kWh)."
+    },
+    {
+      "id": "lcia_calculated",
+      "description": "Verify that the LCIA results were calculated using the TRACI 2.1 method.",
+      "points": 15,
+      "visual_evidence": "Look for an open 'LCIA Results' or 'Project' tab showing impact assessment results, specifically indicating that the 'TRACI 2.1' method was used."
+    },
+    {
+      "id": "results_exported",
+      "description": "Verify that the Global Warming Potential results were exported to the correct CSV file.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal window, file explorer, or OpenLCA export dialog showing the file 'biobrick_impact.csv' located in the '~/LCA_Results/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_openlca_gui",
+      "description": "Verify that the agent actually used the OpenLCA graphical interface to build the model.",
+      "visual_evidence": "Screenshots should show the OpenLCA application open with the process, flows, and results tabs actively being interacted with, rather than just terminal scripts."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Verify that the CSV file was generated from actual LCA results and not manually spoofed.",
+      "visual_evidence": "Check terminal history or text editor windows to ensure the agent didn't simply use 'echo' or a text editor to write fake numbers into 'biobrick_impact.csv'."
+    },
+    {
+      "id": "linked_database_flows",
+      "description": "Verify that the USLCI inputs are genuinely linked to the database.",
+      "visual_evidence": "In the process Inputs table, the cement, sand, and electricity entries should have provider processes or database icons indicating they are drawn from the USLCI database, not just typed as plain text."
+    }
+  ],
+  "privileged_info_for_vlm": "Target process name is 'Bio-brick Production' with a target output of 2.0 kg. Custom flow is 'Rice Husks' (Mass, kg). Inputs must be exactly: 0.5 kg Portland cement, 1.2 kg Sand, 0.3 kg Rice Husks, and 0.05 kWh Electricity. The impact method is TRACI 2.1, and the target impact category is Global Warming Potential (GWP). Expected output file is /home/ga/LCA_Results/biobrick_impact.csv."
+}

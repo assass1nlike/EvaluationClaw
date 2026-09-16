@@ -1,0 +1,35 @@
+{
+  "id": "setup_course_groups@1",
+  "version": "1.0",
+  "env_id": "moodle_env@0.1",
+  "description": "Log in to Moodle as admin (username: admin, password: Admin1234!) at http://localhost/moodle. In the \"World History\" (HIST201) course, set up student groups for collaborative discussions. Create \"Discussion Group A\" with the description \"Group for discussing ancient civilizations topics\" and add Bob Brown (bbrown) and Carol Garcia (cgarcia) as members. Create \"Discussion Group B\" with the description \"Group for discussing modern history topics\" and add David Lee (dlee) as a member. Configure the course group mode to \"Separate groups\".",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_course_groups/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_course_groups/export_result.sh"
+  },
+  "metadata": {
+    "course_shortname": "HIST201",
+    "course_fullname": "World History",
+    "group_a_name": "Discussion Group A",
+    "group_b_name": "Discussion Group B",
+    "group_a_members": [
+      "bbrown",
+      "cgarcia"
+    ],
+    "group_b_members": [
+      "dlee"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_course_groups"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "pear_cam_profile@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a mechanical drawing of a pear-shaped cam with a keyed shaft bore in LibreCAD using millimeter units. The drawing must include a 'PROFILE' layer (Color: White/7) containing the outer cam shape formed by a base circle (Radius 30mm at 0,0) and a nose circle (Radius 10mm at 0,50) joined by tangent lines. Include a 'BORE' layer (Color: Cyan/4) featuring a 20mm diameter shaft hole centered at (0,0) with a 5mm wide keyway notch (centered on the Y-axis) with its top edge at Y=13mm. Ensure both the cam profile and the keyed bore are single continuous shapes. Save the final drawing to /home/ga/Documents/LibreCAD/cam_profile.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pear_cam_profile/setup_task.sh",
+    "post_task": "/workspace/tasks/pear_cam_profile/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/cam_profile.dxf",
+    "layers": [
+      "PROFILE",
+      "BORE"
+    ],
+    "geometry": {
+      "base_radius": 30,
+      "nose_radius": 10,
+      "nose_center_y": 50,
+      "bore_radius": 10,
+      "keyway_width": 5,
+      "keyway_top_y": 13
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pear_cam_profile"
+    }
+  }
+}

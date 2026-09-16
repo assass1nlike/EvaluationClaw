@@ -1,0 +1,28 @@
+{
+  "id": "custom_header_auth_bypass_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Configure Screaming Frog SEO Spider to simulate bypassing a firewall or accessing a restricted environment by sending a custom HTTP request header named 'X-Audit-Token' with the value 'SF-Verified-9988'. Crawl 'https://crawler-test.com/other/crawler_request_headers' and verify the header is received by performing a custom search for 'SF-Verified-9988' in the page source. Export the custom search results to '~/Documents/SEO/exports/custom_header_evidence.csv'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/custom_header_auth_bypass_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/custom_header_auth_bypass_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/other/crawler_request_headers",
+    "required_header_name": "X-Audit-Token",
+    "required_header_value": "SF-Verified-9988",
+    "expected_export_path": "/home/ga/Documents/SEO/exports/custom_header_evidence.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_custom_header_auth_bypass_audit"
+    }
+  }
+}

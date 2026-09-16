@@ -1,0 +1,29 @@
+{
+  "id": "datacenter_rooftop_solar_thermal_offset@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Modify a baseline flat-roof building to simulate a Phoenix data center, cover its roof with premium solar panels, and export an annual building energy analysis showing the combined electricity generation and reduced cooling load.\n\nInstructions:\n1. Locate the large, simple rectangular building with a completely flat roof (this represents your baseline data center).\n2. Change the project location/city to Phoenix, AZ.\n3. Install a dense solar panel array on the roof of this specific flat-roofed building (at least 50 panels).\n4. Upgrade the solar panels to a premium model (e.g., cell efficiency > 20% or select a high-efficiency SunPower model).\n5. Run the Annual Building Energy Analysis for this building.\n6. Export the resulting data to a CSV file named exactly `~/Documents/Energy3D/thermal_offset_results.csv`.\n7. Save your modified 3D scene as a new file at `~/Documents/Energy3D/datacenter_shaded.ng3`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/datacenter_rooftop_solar_thermal_offset/setup_task.sh",
+    "post_task": "/workspace/tasks/datacenter_rooftop_solar_thermal_offset/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Data Center Sustainability Engineer",
+    "industry": "Renewable Energy / IT Infrastructure",
+    "starter_file": "city-block.ng3",
+    "expected_csv": "/home/ga/Documents/Energy3D/thermal_offset_results.csv",
+    "expected_ng3": "/home/ga/Documents/Energy3D/datacenter_shaded.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_datacenter_rooftop_solar"
+    }
+  }
+}

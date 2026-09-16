@@ -1,0 +1,32 @@
+{
+  "id": "generate_propagate_ssl@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "The development team is encountering SSL warnings when accessing the server tools for 'acmecorp.test'. Generate a self-signed certificate for 'acmecorp.test' with the following details: Common Name: acmecorp.test, Country: US, State: California, City: San Francisco, Organization: Acme Corp, Department (OU): IT Dept, and Validity: 365 days. Configure the system to use this new certificate for the Webmin, Postfix, and Dovecot services.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_propagate_ssl/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_propagate_ssl/export_result.sh"
+  },
+  "metadata": {
+    "domain": "acmecorp.test",
+    "required_subject_parts": {
+      "O": "Acme Corp",
+      "L": "San Francisco",
+      "OU": "IT Dept",
+      "CN": "acmecorp.test"
+    },
+    "cert_path": "/home/acmecorp/ssl.cert"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_propagate_ssl"
+    }
+  }
+}

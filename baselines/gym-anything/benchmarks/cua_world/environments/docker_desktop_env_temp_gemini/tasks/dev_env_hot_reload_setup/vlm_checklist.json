@@ -1,0 +1,53 @@
+{
+  "task_id": "dev_env_hot_reload_setup@1",
+  "task_completion": [
+    {
+      "id": "bind_mount_added",
+      "description": "Verify that a bind mount mapping ./src to /app is added to docker-compose.yml.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., cat) showing the contents of /home/ga/projects/quote-service/docker-compose.yml. Under the 'web' service, there should be a 'volumes:' section containing '- ./src:/app' (or absolute path equivalent)."
+    },
+    {
+      "id": "command_overridden",
+      "description": "Verify that the service command is overridden to run the Flask development server in debug mode.",
+      "points": 20,
+      "visual_evidence": "Look for the contents of docker-compose.yml showing a 'command:' directive under the 'web' service set to 'flask run --debug --host=0.0.0.0' (either as a string or a YAML array)."
+    },
+    {
+      "id": "service_accessible",
+      "description": "Verify that the service is accessible at http://localhost:5000.",
+      "points": 20,
+      "visual_evidence": "Look for a web browser navigated to http://localhost:5000 showing the application's response, or a terminal showing the successful output of 'curl http://localhost:5000'."
+    },
+    {
+      "id": "source_code_modified",
+      "description": "Verify that the agent modifies src/app.py to test hot-reloading.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor open to /home/ga/projects/quote-service/src/app.py where the agent is changing the return string or application logic."
+    },
+    {
+      "id": "hot_reload_verified",
+      "description": "Verify that changes to src/app.py are reflected immediately without a container rebuild.",
+      "points": 30,
+      "visual_evidence": "Look for a browser or curl output showing the updated text from the modified app.py, OR terminal output from the running docker container showing Flask detecting a change (e.g., '* Detected change in...' and '* Restarting with stat')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "running_in_docker",
+      "description": "Ensure the application is actually running inside the Docker container, not just locally on the host.",
+      "visual_evidence": "Look for terminal commands like 'docker compose up' or 'docker ps' showing the container running, rather than the agent just running 'flask run' directly in the host terminal."
+    },
+    {
+      "id": "no_manual_restart",
+      "description": "Ensure the agent did not manually restart or rebuild the container after modifying the source code.",
+      "visual_evidence": "Check the terminal history to ensure there are no commands like 'docker compose restart', 'docker compose down', or 'docker compose build' executed after src/app.py was modified."
+    },
+    {
+      "id": "genuine_file_edits",
+      "description": "Ensure the agent genuinely edited the files.",
+      "visual_evidence": "Look for the use of a real text editor (like nano, vim, or VS Code) or valid shell commands (like sed or echo) to modify docker-compose.yml and app.py, rather than just printing the desired file contents to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/projects/quote-service. The Docker Compose service to modify is named 'web', and the web application runs on port 5000."
+}

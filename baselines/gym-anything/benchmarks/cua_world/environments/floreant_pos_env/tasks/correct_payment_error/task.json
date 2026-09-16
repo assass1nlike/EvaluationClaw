@@ -1,0 +1,29 @@
+{
+  "id": "correct_payment_error@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Simulate a cashier error and its correction for a Dine In ticket containing at least one food item. The process requires an initial settlement via CASH that is subsequently voided, followed by a final settlement via CREDIT CARD. The resulting ticket must reflect both the voided cash transaction and the successful credit card payment.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/correct_payment_error/setup_task.sh",
+    "post_task": "/workspace/tasks/correct_payment_error/export_result.sh"
+  },
+  "metadata": {
+    "expected_tender_sequence": [
+      "CASH",
+      "CREDIT_CARD"
+    ],
+    "db_path": "/opt/floreantpos/database/derby-server"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_correct_payment_error"
+    }
+  }
+}

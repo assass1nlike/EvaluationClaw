@@ -1,0 +1,27 @@
+{
+  "id": "bittorrent_traffic_forensics@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Analyze the capture file 'suspicious_activity.pcap' located in '/home/ga/Documents/captures/' to confirm BitTorrent traffic and identify the client initiating the handshake. Extract the Info Hash (SHA1) of the torrent, the Peer ID of the client, and the Source IP address of the client. Create a forensic report at '/home/ga/Documents/p2p_forensic_report.txt' using the following format:\n\nPROTOCOL: BitTorrent\nCLIENT_IP: <IP_Address>\nINFO_HASH: <Hex_String>\nPEER_ID: <Peer_ID_String>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bittorrent_traffic_forensics/setup_task.sh",
+    "post_task": "/workspace/tasks/bittorrent_traffic_forensics/export_result.sh"
+  },
+  "metadata": {
+    "pcap_source": "https://wiki.wireshark.org/uploads/__moin_import__/attachments/SampleCaptures/BITTORRENT.pcap",
+    "target_pcap": "suspicious_activity.pcap",
+    "report_path": "/home/ga/Documents/p2p_forensic_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bittorrent_forensics"
+    }
+  }
+}

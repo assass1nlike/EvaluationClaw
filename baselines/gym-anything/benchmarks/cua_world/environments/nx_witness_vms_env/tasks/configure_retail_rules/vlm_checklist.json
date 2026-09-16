@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_retail_rules@1",
+  "task_completion": [
+    {
+      "id": "void_rule_event",
+      "description": "Verify the creation of the VOID Generic Event rule.",
+      "points": 15,
+      "visual_evidence": "Look for a row in the Event Rules dialog where the Event is 'Generic Event', the Source is 'POS-Register-01', and the Caption contains 'VOID'."
+    },
+    {
+      "id": "void_rule_action",
+      "description": "Verify the action for the VOID rule.",
+      "points": 15,
+      "visual_evidence": "For the VOID rule, check that the Action column says 'Bookmark' and the Target/Camera column specifies 'Entrance Camera'."
+    },
+    {
+      "id": "refund_rule_event",
+      "description": "Verify the creation of the REFUND Generic Event rule.",
+      "points": 15,
+      "visual_evidence": "Look for a row in the Event Rules dialog where the Event is 'Generic Event', the Source is 'POS-Register-01', and the Caption contains 'REFUND'."
+    },
+    {
+      "id": "refund_rule_action",
+      "description": "Verify the action for the REFUND rule.",
+      "points": 15,
+      "visual_evidence": "For the REFUND rule, check that the Action column says 'Show desktop notification'."
+    },
+    {
+      "id": "soft_trigger_event",
+      "description": "Verify the creation of the Silent Alarm Soft Trigger rule.",
+      "points": 20,
+      "visual_evidence": "Look for a row in the Event Rules dialog where the Event is 'Soft Trigger', the Name is 'Silent Alarm' (with a Bell or Alarm icon), and the Source/Camera is 'Entrance Camera'."
+    },
+    {
+      "id": "soft_trigger_action",
+      "description": "Verify the action for the Soft Trigger rule.",
+      "points": 20,
+      "visual_evidence": "For the Soft Trigger rule, check that the Action column says 'Bookmark' and the Target/Camera column specifies 'Entrance Camera'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Nx Witness VMS GUI to configure the rules.",
+      "visual_evidence": "Screenshots should show the Nx Witness VMS client interface and the Event Rules dialog being actively used."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "The agent did not use terminal commands or scripts to bypass the GUI.",
+      "visual_evidence": "There should be no terminal windows open showing API calls, curl commands, or scripts used to configure the rules."
+    },
+    {
+      "id": "actual_application",
+      "description": "The agent interacted with the genuine Nx Witness application.",
+      "visual_evidence": "The interface matches the standard Nx Witness VMS client, not a text editor or a mock interface."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring three specific rules in Nx Witness VMS: 1) Event: Generic Event, Source: 'POS-Register-01', Caption: 'VOID', Action: Bookmark, Target: 'Entrance Camera'. 2) Event: Generic Event, Source: 'POS-Register-01', Caption: 'REFUND', Action: Show desktop notification. 3) Event: Soft Trigger, Name: 'Silent Alarm', Source: 'Entrance Camera', Action: Bookmark, Target: 'Entrance Camera'."
+}

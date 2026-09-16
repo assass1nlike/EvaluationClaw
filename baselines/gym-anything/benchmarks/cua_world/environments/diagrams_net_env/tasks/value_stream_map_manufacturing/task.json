@@ -1,0 +1,46 @@
+{
+  "id": "value_stream_map_manufacturing@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a Lean Manufacturing Consultant tasked with completing a current-state Value Stream Map (VSM) for the 'Stamping' product family and designing a future-state map. Using the incomplete diagram in '~/Diagrams/stamping_vsm.drawio' and the data provided in '~/Desktop/vsm_data_sheet.txt', complete the current-state map by adding the remaining process steps (Welding II, Assembly I, Assembly II, and Shipping), data boxes with values from the data sheet, inventory triangles, and a lead time ladder calculating total lead time and processing time. Ensure information flow arrows connect Production Control to the Supplier and all processes. On a new page named 'Future State', design an improved flow that combines Welding I and II into a 'Weld Cell', combines Assembly I and II into an 'Assembly Cell', incorporates a 'Supermarket' between Stamping and the Weld Cell, uses a 'FIFO' lane between the Weld and Assembly cells, and includes 'Kaizen' bursts for identified improvements. Export the final multi-page diagram as a PDF to '~/Diagrams/stamping_vsm.pdf'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/value_stream_map_manufacturing/setup_task.sh",
+    "post_task": "/workspace/tasks/value_stream_map_manufacturing/export_result.sh"
+  },
+  "metadata": {
+    "diagram_file": "/home/ga/Diagrams/stamping_vsm.drawio",
+    "pdf_file": "/home/ga/Diagrams/stamping_vsm.pdf",
+    "data_sheet": "/home/ga/Desktop/vsm_data_sheet.txt",
+    "required_processes": [
+      "Stamping",
+      "Welding I",
+      "Welding II",
+      "Assembly I",
+      "Assembly II",
+      "Shipping"
+    ],
+    "required_totals": [
+      "23.5",
+      "188"
+    ],
+    "future_state_terms": [
+      "Weld Cell",
+      "Assembly Cell",
+      "Supermarket",
+      "FIFO",
+      "Kaizen"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_value_stream_map_manufacturing"
+    }
+  }
+}

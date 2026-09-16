@@ -1,0 +1,59 @@
+{
+  "task_id": "production_incident_response@1",
+  "task_completion": [
+    {
+      "id": "login_rancher",
+      "description": "Log into Rancher UI",
+      "points": 10,
+      "visual_evidence": "The Rancher dashboard is visible in the browser at https://localhost, indicating successful login."
+    },
+    {
+      "id": "navigate_ecommerce_namespace",
+      "description": "Navigate to the 'ecommerce' namespace",
+      "points": 10,
+      "visual_evidence": "The Rancher UI shows the Workloads, Deployments, or Services view specifically filtered for the 'ecommerce' namespace."
+    },
+    {
+      "id": "fix_api_gateway",
+      "description": "Restore 'api-gateway' to a healthy state",
+      "points": 20,
+      "visual_evidence": "The 'api-gateway' deployment in the Rancher UI shows a green 'Active' status, indicating the broken image tag was fixed and the pod is running."
+    },
+    {
+      "id": "fix_web_frontend",
+      "description": "Restore 'web-frontend' to a healthy state",
+      "points": 20,
+      "visual_evidence": "The 'web-frontend' service or deployment in the Rancher UI shows a green 'Active' status and/or the service shows active endpoints, indicating the selector mismatch was resolved."
+    },
+    {
+      "id": "fix_cache_layer",
+      "description": "Restore 'cache-layer' to a healthy state",
+      "points": 20,
+      "visual_evidence": "The 'cache-layer' deployment in the Rancher UI shows a green 'Active' status, indicating the ConfigMap port was corrected and the pod is running."
+    },
+    {
+      "id": "fix_batch_processor",
+      "description": "Restore 'batch-processor' to a healthy state",
+      "points": 20,
+      "visual_evidence": "The 'batch-processor' deployment in the Rancher UI shows a green 'Active' status, indicating the excessive memory request was reduced and the pod is no longer Pending."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_gui",
+      "description": "Agent used the Rancher web interface",
+      "visual_evidence": "Screenshots should show interaction with the Rancher web UI in a browser, rather than just using a terminal with kubectl commands."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "Agent genuinely interacted with the resources",
+      "visual_evidence": "Screenshots should show the agent navigating through Rancher menus, editing YAML or form fields in the UI, and applying changes."
+    },
+    {
+      "id": "no_spoofing",
+      "description": "Results are from the actual application",
+      "visual_evidence": "The healthy states should be visible within the standard Rancher interface, not in a text editor, local HTML file, or console output."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 4 specific failures in the 'ecommerce' namespace via the Rancher UI: 1) 'api-gateway' has a broken image tag ('nginx:broken-tag-xyz-nonexistent') causing ImagePullBackOff. 2) 'web-frontend' has a service selector mismatch (selector 'app: web-frontend' vs pod label 'app: frontend-app'). 3) 'cache-layer' has a ConfigMap with the wrong Redis port (6380 instead of 6379). 4) 'batch-processor' has an excessive memory request (32Gi) causing a Pending state. Success is achieved when all 4 workloads show a green 'Active' state in Rancher."
+}

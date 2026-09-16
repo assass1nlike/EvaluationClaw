@@ -1,0 +1,38 @@
+{
+  "id": "create_chemical_pid@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a Piping and Instrumentation Diagram (P&ID) for a chemical feed pre-heating loop in Wondershare EdrawMax. The diagram must include a Vertical Tank labeled 'T-100', a Centrifugal Pump labeled 'P-101', and a Shell and Tube Heat Exchanger labeled 'E-102'. Establish a flow path from the bottom of Tank 'T-100' to the Pump 'P-101' inlet, from the Pump 'P-101' outlet to the Heat Exchanger 'E-102' inlet, and an outlet pipe leaving the Heat Exchanger terminating with an arrow. Incorporate a Gate Valve on the line between the tank and pump, a Check Valve immediately after the pump, and a Control Valve on the line entering the heat exchanger. Include the title 'Unit 100: Feed Pre-heating Loop' at the top of the diagram. Save the project to /home/ga/Diagrams/pid_unit100.eddx and export the final diagram to /home/ga/Diagrams/pid_unit100.pdf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_chemical_pid/setup_task.sh",
+    "post_task": "/workspace/tasks/create_chemical_pid/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Diagrams/pid_unit100.eddx",
+    "expected_pdf_path": "/home/ga/Diagrams/pid_unit100.pdf",
+    "required_text": [
+      "T-100",
+      "P-101",
+      "E-102",
+      "Unit 100: Feed Pre-heating Loop"
+    ],
+    "required_shape_keywords": [
+      "Valve",
+      "Pump",
+      "Tank",
+      "Exchanger"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_chemical_pid"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "hl7_data_normalization@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Channel named 'Data_Quality_Normalizer' is created",
+      "points": 10,
+      "visual_evidence": "The NextGen Connect Administrator GUI shows a channel named 'Data_Quality_Normalizer' in the Channels or Summary tab."
+    },
+    {
+      "id": "source_configured",
+      "description": "Source connector is configured as a TCP Listener on port 6661",
+      "points": 10,
+      "visual_evidence": "In the Source tab, the Connector Type is set to 'TCP Listener' and the Local Port is set to '6661'."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Destination connector is configured as a File Writer to the correct directory and filename",
+      "points": 15,
+      "visual_evidence": "In the Destinations tab, the Connector Type is 'File Writer', the Directory is '/tmp/normalized_output/', and the File Name is 'normalized_${message.messageId}.hl7'."
+    },
+    {
+      "id": "transformers_configured",
+      "description": "JavaScript transformers are configured for the normalization rules",
+      "points": 30,
+      "visual_evidence": "In the Transformers view (Source or Destination), there is JavaScript code visible that references PID.13 (Phone), PID.7 (DOB), and PID.8 (Gender) implementing the normalization logic."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "The channel is deployed and has processed messages",
+      "points": 15,
+      "visual_evidence": "The Dashboard tab shows the 'Data_Quality_Normalizer' channel with a status of Started/Deployed, and non-zero counts (likely 4) under the Received and Sent columns."
+    },
+    {
+      "id": "output_verified",
+      "description": "The normalized output files are generated and contain the correctly transformed data",
+      "points": 20,
+      "visual_evidence": "A terminal window or file viewer shows the contents of the files in '/tmp/normalized_output/', displaying the normalized PID segments (e.g., DOB as YYYYMMDD, Phone as (XXX) XXX-XXXX, Gender as M/F)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "Agent used the NextGen Connect Administrator GUI to configure the channel",
+      "visual_evidence": "Screenshots show the NextGen Connect Administrator Java application interface being used, rather than just XML channel files being edited in a text editor."
+    },
+    {
+      "id": "real_processing",
+      "description": "The messages were actually processed by the engine",
+      "visual_evidence": "The Dashboard shows message statistics (Received/Sent counts) indicating the engine processed the HL7 messages."
+    },
+    {
+      "id": "no_hardcoded_outputs",
+      "description": "Agent did not bypass the engine to generate outputs",
+      "visual_evidence": "There is no evidence of a standalone Python or Bash script being executed in the terminal to directly create the output files in '/tmp/normalized_output/'."
+    }
+  ],
+  "privileged_info_for_vlm": "Test data includes 4 HL7 messages. Expected normalized values in the PID segment:\nHospital A: Phone '(555) 867-5309', DOB '19850315', Gender 'M'.\nHospital B: Phone '(555) 234-5678', DOB '19900322', Gender 'F'.\nHospital C: Phone '(555) 987-6543', DOB '19781105', Gender 'M'.\nHospital D: Phone '(555) 345-6789', DOB '20010704', Gender 'M'.\nOutput files must be located in '/tmp/normalized_output/' with names formatted as 'normalized_<messageId>.hl7'."
+}

@@ -1,0 +1,40 @@
+{
+  "id": "loo_cross_validation_script@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform Leave-One-Out Cross-Validation (LOO-CV) for the model 'food_exp = const + income' using the 'food.gdt' dataset (40 observations). Calculate the Mean Squared Prediction Error (MSPE) and Root Mean Squared Prediction Error (RMSPE) based on the out-of-sample errors. Save a summary file to /home/ga/Documents/gretl_output/cv_results.txt containing the text 'MSPE: <value>' and 'RMSPE: <value>'. Save the individual predictions, including the actual 'food_exp' and the predicted values, to /home/ga/Documents/gretl_output/cv_predictions.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/loo_cross_validation_script/setup_task.sh",
+    "post_task": "/workspace/tasks/loo_cross_validation_script/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "output_dir": "/home/ga/Documents/gretl_output",
+    "results_file": "cv_results.txt",
+    "predictions_file": "cv_predictions.csv",
+    "scoring": {
+      "file_exists_points": 5,
+      "rmspe_reported_points": 10,
+      "mspe_reported_points": 5,
+      "rmspe_accuracy_points": 25,
+      "mspe_accuracy_points": 15,
+      "predictions_file_exists_points": 5,
+      "predictions_count_points": 10,
+      "actual_values_points": 10,
+      "predictions_plausible_points": 10,
+      "timestamp_points": 5
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_loo_cv"
+    }
+  }
+}

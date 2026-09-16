@@ -1,0 +1,53 @@
+{
+  "task_id": "disable_virtual_server@1",
+  "task_completion": [
+    {
+      "id": "select_target_domain",
+      "description": "Select the target domain in the Virtualmin interface",
+      "points": 10,
+      "visual_evidence": "The Virtualmin web interface is visible with 'greenfield-consulting.test' selected in the left sidebar or top domain dropdown menu."
+    },
+    {
+      "id": "open_disable_server_page",
+      "description": "Navigate to the Disable Virtual Server page",
+      "points": 20,
+      "visual_evidence": "The main panel displays the 'Disable Virtual Server' page or form specifically for the domain 'greenfield-consulting.test'."
+    },
+    {
+      "id": "enter_disable_reason",
+      "description": "Enter the exact required disable reason",
+      "points": 30,
+      "visual_evidence": "The exact text 'Abuse report #4781: Suspected phishing content - pending investigation' is typed into the disable reason input field on the Disable Virtual Server page."
+    },
+    {
+      "id": "execute_disable_action",
+      "description": "Execute the disable action and view the success output",
+      "points": 20,
+      "visual_evidence": "A success message, progress log, or confirmation screen in the Virtualmin UI indicating that the virtual server services for 'greenfield-consulting.test' have been successfully disabled."
+    },
+    {
+      "id": "verify_domain_disabled",
+      "description": "Verify the domain remains in the list but is marked as disabled",
+      "points": 20,
+      "visual_evidence": "The domain 'greenfield-consulting.test' is still visible in the Virtualmin sidebar or domain list, but it has a visual indicator showing it is disabled (e.g., a 'Disabled' label, a red X icon, or grayed-out text)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "Verify the agent used the Virtualmin web interface instead of terminal commands",
+      "visual_evidence": "All disabling actions are performed within the web browser UI. There should be no terminal windows showing CLI commands like 'virtualmin disable-domain'."
+    },
+    {
+      "id": "domain_not_deleted",
+      "description": "Verify the domain was disabled and not permanently deleted",
+      "visual_evidence": "The domain 'greenfield-consulting.test' must still appear in the Virtualmin interface at the end of the task. It should not disappear entirely from the domain list."
+    },
+    {
+      "id": "actual_browser_used",
+      "description": "Verify the agent interacted with the live Virtualmin application",
+      "visual_evidence": "The browser address bar should show a URL starting with 'https://localhost:10000', indicating interaction with the real control panel rather than a local HTML file or text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target domain: 'greenfield-consulting.test'. The domain must be disabled, NOT deleted. The exact disable reason to look for is: 'Abuse report #4781: Suspected phishing content - pending investigation'. The control panel is Virtualmin, accessed via a web browser at https://localhost:10000."
+}

@@ -1,0 +1,39 @@
+{
+  "id": "annotate_http_packets@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "A security analyst needs to annotate key packets in an HTTP capture for an incident report. Using the capture file at /home/ga/Documents/captures/http.cap, add the comment \"Initial HTTP GET request to server\" to the first HTTP GET request packet and the comment \"Server responded with 200 OK\" to the first HTTP 200 OK response packet. Save the annotated capture containing all 43 original packets in pcapng format to /home/ga/Documents/captures/http_annotated.pcapng.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/annotate_http_packets/setup_task.sh",
+    "post_task": "/workspace/tasks/annotate_http_packets/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/captures/http.cap",
+    "output_file": "/home/ga/Documents/captures/http_annotated.pcapng",
+    "expected_packet_count": 43,
+    "expected_comments": [
+      {
+        "type": "GET",
+        "filter": "http.request.method == \"GET\"",
+        "text": "Initial HTTP GET request"
+      },
+      {
+        "type": "200 OK",
+        "filter": "http.response.code == 200",
+        "text": "Server responded with 200 OK"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_annotate_http_packets"
+    }
+  }
+}

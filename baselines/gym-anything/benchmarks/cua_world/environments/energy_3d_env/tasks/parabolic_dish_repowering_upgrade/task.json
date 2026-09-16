@@ -1,0 +1,28 @@
+{
+  "id": "parabolic_dish_repowering_upgrade@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Repower an existing solar site by replacing aging photovoltaic tech with a Concentrating Solar Power (CSP) array.\n\n1. Open the starter file: ~/Documents/Energy3D/solar-rack-array.ng3\n2. Demolish the existing infrastructure by deleting all existing flat solar racks/panels from the foundation.\n3. Add a new array of Parabolic Dishes to the empty foundation. Place at least 6 dishes, spaced appropriately so they do not collide.\n4. Configure the parameters for ALL the new Parabolic Dishes using the properties panel:\n   - Diameter: 10.0\n   - Reflectance: 0.94 (94%)\n5. Run the Annual Energy Analysis (Analysis > Solar Panels > Annual Yield Analysis or similar) to calculate the expected yield.\n6. Save the upgraded site design to: ~/Documents/Energy3D/dish_array_upgrade.ng3",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/parabolic_dish_repowering_upgrade/setup_task.sh",
+    "post_task": "/workspace/tasks/parabolic_dish_repowering_upgrade/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/Energy3D/dish_array_upgrade.ng3",
+    "dish_count_min": 6,
+    "diameter": "10.0",
+    "reflectance": "0.94"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_repowering"
+    }
+  }
+}

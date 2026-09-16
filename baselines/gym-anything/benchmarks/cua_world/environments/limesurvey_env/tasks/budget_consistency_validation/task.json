@@ -1,0 +1,33 @@
+{
+  "id": "budget_consistency_validation@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Implement a cross-question validation rule in the 'Household Financial Wellness 2025' survey (admin / Admin123!). Configure the 'Q_EXPENSES' question so that the sum of all expense sub-questions cannot exceed the reported 'Total Monthly Income' (Q_INCOME). The validation must ensure sum(Q_EXPENSES) <= Q_INCOME and include a dynamic validation tip: 'Total expenses cannot exceed your reported income of {Q_INCOME}.'",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/budget_consistency_validation/setup_task.sh",
+    "post_task": "/workspace/tasks/budget_consistency_validation/export_result.sh"
+  },
+  "metadata": {
+    "survey_title": "Household Financial Wellness 2025",
+    "target_question": "Q_EXPENSES",
+    "reference_question": "Q_INCOME",
+    "expected_tip_fragment": "cannot exceed",
+    "expected_logic_operators": [
+      "sum",
+      "<",
+      "le"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_budget_consistency_validation"
+    }
+  }
+}

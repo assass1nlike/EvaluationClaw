@@ -1,0 +1,39 @@
+{
+  "id": "dynamic_metric_selection@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "A sales director needs a decluttered dashboard. Implement a 'Disconnected Table' pattern in a Power BI report using the data source C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv. The report must allow users to toggle a clustered bar chart between \"Revenue\", \"Units\", and \"Transactions\" metrics. The implementation requires a 'Metric_Param' table with a 'Metric' column and base measures 'Total_Revenue' (Sum of Sales_Amount), 'Total_Units' (Sum of Quantity_Sold), and 'Total_Transactions' (Count of rows). A dynamic measure 'Selected_Metric_Value' should return the appropriate base measure based on the 'Metric_Param'[Metric] selection, defaulting to Revenue. The report must include a slicer for 'Metric_Param'[Metric] and a clustered bar chart showing 'Selected_Metric_Value' by 'Region' with a dynamic title measure 'Chart_Title' (\"Metric by Region: \" & selection) bound to the visual. Save the final report to C:\\Users\\Docker\\Desktop\\Dynamic_Metric_Report.pbix.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dynamic_metric_selection\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dynamic_metric_selection\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Dynamic_Metric_Report.pbix",
+    "required_measures": [
+      "Total_Revenue",
+      "Total_Units",
+      "Total_Transactions",
+      "Selected_Metric_Value",
+      "Chart_Title"
+    ],
+    "required_tables": [
+      "Metric_Param"
+    ],
+    "required_visuals": [
+      "slicer",
+      "clusteredBarChart"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dynamic_metric_selection"
+    }
+  }
+}

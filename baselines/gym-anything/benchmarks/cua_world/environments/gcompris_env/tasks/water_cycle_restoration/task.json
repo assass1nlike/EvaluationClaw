@@ -1,0 +1,29 @@
+{
+  "id": "water_cycle_restoration@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Restore the water cycle in the GCompris 'Water Cycle' science simulation by activating the Sun, Cloud, Water Tower, and Water Treatment Plant. Once the system is fully active, save a screenshot to '~/Documents/active_cycle.png' and create a text file at '~/Documents/water_cycle_status.txt' with the content: 'Simulation verified: Water cycle is active.'",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/water_cycle_restoration/setup_task.sh",
+    "post_task": "/workspace/tasks/water_cycle_restoration/export_result.sh"
+  },
+  "metadata": {
+    "expected_text_file": "/home/ga/Documents/water_cycle_status.txt",
+    "expected_screenshot": "/home/ga/Documents/active_cycle.png",
+    "expected_text_content": "Simulation verified: Water cycle is active.",
+    "activity_name": "Water Cycle",
+    "category": "Science"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_water_cycle_restoration"
+    }
+  }
+}

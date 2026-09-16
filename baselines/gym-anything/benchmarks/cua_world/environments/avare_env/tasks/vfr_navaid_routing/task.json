@@ -1,0 +1,28 @@
+{
+  "id": "vfr_navaid_routing@1",
+  "env_id": "example.avare_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are a private pilot using the Avare EFB to plan a VFR cross-country flight from San Francisco International (KSFO) to Las Vegas (KLAS). Professional VFR pilots use intermediate VOR radio navigation fixes to stay on airways and clear obstructions. Build a flight plan on the VFR Sectional display that includes at least three intermediate navaids or airports along the route, for a total of at least five waypoints. Save the completed flight plan.",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/vfr_navaid_routing/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/vfr_navaid_routing/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_vfr_navaid_routing"
+    }
+  },
+  "metadata": {
+    "departure": "KSFO",
+    "destination": "KLAS",
+    "min_waypoints": 5,
+    "required_chart": "Sectional",
+    "task_type": "vfr_route_planning"
+  }
+}

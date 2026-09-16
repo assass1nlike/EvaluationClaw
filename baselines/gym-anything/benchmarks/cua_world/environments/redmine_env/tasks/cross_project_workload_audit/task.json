@@ -1,0 +1,32 @@
+{
+  "id": "cross_project_workload_audit@1",
+  "version": "1.0",
+  "env_id": "redmine_env@0.1",
+  "description": "You are a project manager at DevLabs addressing uneven workload distribution. Audit the open issues (status: New, In Progress, or Feedback) for developers bob.walker, carol.santos, david.kim, and grace.lee across all Redmine projects to identify the most-loaded and least-loaded individuals. Reassign the lowest priority 'New' status issue from the most-loaded developer to the least-loaded developer (if tied, choose bob.walker or grace.lee). On the reassigned issue, add the comment 'Workload rebalancing: reassigned to reduce team burnout. Previous assignee was over capacity.', log 0.5 hours of Design activity with the comment 'Sprint planning: workload rebalancing session.', and increase the estimated hours by 2.0 hours from its current value. Login credentials: admin / Admin1234!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 800,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cross_project_workload_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/cross_project_workload_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_issue_subject_fragment": "centralized log aggregation",
+    "original_assignee_name": "Carol Santos",
+    "expected_reassigned_to_names": [
+      "Bob Walker",
+      "Grace Lee"
+    ],
+    "expected_estimated_hours_min": 62.0,
+    "result_file": "/tmp/cross_project_workload_audit_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cross_project_workload_audit"
+    }
+  }
+}

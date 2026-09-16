@@ -1,0 +1,26 @@
+{
+  "id": "lumens_to_lux@1",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "difficulty": "easy",
+  "description": "Using the Electrical Engineering Calculations app, calculate the illuminance in Lux for a luminous flux of 800 lumens and an area of 10 square meters using the Lumens to Lux converter.",
+  "init": {
+    "timeout_sec": 150,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/lumens_to_lux/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/lumens_to_lux/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_lumens_to_lux"
+    }
+  },
+  "metadata": {
+    "lumens": 800,
+    "area_sq_m": 10,
+    "expected_lux": 80
+  }
+}

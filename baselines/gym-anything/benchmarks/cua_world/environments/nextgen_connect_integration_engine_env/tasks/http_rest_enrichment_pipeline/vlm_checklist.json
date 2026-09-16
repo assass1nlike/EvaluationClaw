@@ -1,0 +1,65 @@
+{
+  "task_id": "http_rest_enrichment_pipeline@1",
+  "task_completion": [
+    {
+      "id": "mock_service_channel_created",
+      "description": "The 'Region_Mock_Service' channel is created.",
+      "points": 10,
+      "visual_evidence": "In the Mirth Connect Administrator, a channel named 'Region_Mock_Service' is visible in the channels list or its summary tab is open."
+    },
+    {
+      "id": "mock_service_http_listener",
+      "description": "The 'Region_Mock_Service' source is configured as an HTTP Listener on port 6666.",
+      "points": 15,
+      "visual_evidence": "The Source tab for 'Region_Mock_Service' shows the connector type as 'HTTP Listener' and the port set to '6666'."
+    },
+    {
+      "id": "mock_service_logic",
+      "description": "The 'Region_Mock_Service' logic handles the 'zip' parameter and returns JSON based on the first digit.",
+      "points": 15,
+      "visual_evidence": "A script in 'Region_Mock_Service' (e.g., in the Source Transformer or a Destination) shows logic checking a 'zip' parameter (e.g., checking if the first digit is 0-4 or 5-9) and returning the JSON strings `{\"region\": \"EAST\"}` or `{\"region\": \"WEST\"}`."
+    },
+    {
+      "id": "enricher_channel_created",
+      "description": "The 'ADT_Region_Enricher' channel is created.",
+      "points": 10,
+      "visual_evidence": "A channel named 'ADT_Region_Enricher' is visible in the channels list or its summary tab is open."
+    },
+    {
+      "id": "enricher_tcp_listener",
+      "description": "The 'ADT_Region_Enricher' source is configured as a TCP Listener on port 6661.",
+      "points": 15,
+      "visual_evidence": "The Source tab for 'ADT_Region_Enricher' shows the connector type as 'TCP Listener', the port set to '6661', and ideally Transmission Mode 'MLLP' or Data Type 'HL7v2'."
+    },
+    {
+      "id": "enricher_transformation_logic",
+      "description": "The 'ADT_Region_Enricher' extracts the zip code, queries the mock service, and updates the county/parish code.",
+      "points": 20,
+      "visual_evidence": "A transformer step or script in 'ADT_Region_Enricher' shows HL7 field extraction for PID.11.5 (Zip Code), an HTTP request/call to the Mock Service (port 6666), and assignment of the parsed region to PID.11.9 (County/Parish Code)."
+    },
+    {
+      "id": "enricher_file_writer",
+      "description": "The 'ADT_Region_Enricher' destination writes to /tmp/enriched_output/.",
+      "points": 15,
+      "visual_evidence": "The Destinations tab for 'ADT_Region_Enricher' shows a connector type 'File Writer' with the Directory field set to '/tmp/enriched_output/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "mirth_connect_gui_used",
+      "description": "The agent used the Mirth Connect Administrator GUI to build the pipeline.",
+      "visual_evidence": "Screenshots show the Mirth Connect Administrator interface (Java application) being actively used to configure channels, sources, destinations, and scripts."
+    },
+    {
+      "id": "no_hardcoded_output_files",
+      "description": "The agent did not manually create the enriched output files using terminal commands.",
+      "visual_evidence": "The terminal is not used to run commands like `echo \"...\" > /tmp/enriched_output/message.hl7` or copy pre-made files into the output directory to bypass the pipeline."
+    },
+    {
+      "id": "dynamic_enrichment_logic",
+      "description": "The enrichment logic dynamically queries the mock service rather than hardcoding the region.",
+      "visual_evidence": "The script in the 'ADT_Region_Enricher' channel contains an actual HTTP request (e.g., using an HTTP Sender destination or a scripted HTTP call) rather than just an `if/else` block hardcoding the regions based on the zip code directly in the enricher."
+    }
+  ],
+  "privileged_info_for_vlm": "The Mock Service channel must use an HTTP Listener on port 6666. The Enricher channel must use a TCP Listener on port 6661 (MLLP/TCP) and write to /tmp/enriched_output/. The agent is expected to use Mirth Connect (NextGen Healthcare Integration Engine) to build this pipeline."
+}

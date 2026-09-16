@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_storage_intelligence_dashboard@1",
+  "task_completion": [
+    {
+      "id": "mysql_connection",
+      "description": "Connect to the local MySQL server",
+      "points": 10,
+      "visual_evidence": "A database client (such as DBeaver, MySQL Workbench, or a terminal running the mysql CLI) is open and successfully connected to the local MySQL server."
+    },
+    {
+      "id": "create_storage_metrics_view",
+      "description": "Create the sakila.v_storage_metrics view with required calculations",
+      "points": 30,
+      "visual_evidence": "An SQL editor showing the CREATE VIEW statement for 'sakila.v_storage_metrics' querying 'information_schema.TABLES'. The query must include calculations for 'total_size_mb', 'index_pct', and 'fragmentation_pct' as specified, OR the view is visible in the database schema tree."
+    },
+    {
+      "id": "create_maintenance_view",
+      "description": "Create the sakila.v_maintenance_required view with filtering and sorting",
+      "points": 20,
+      "visual_evidence": "An SQL editor showing the CREATE VIEW statement for 'sakila.v_maintenance_required' selecting from 'v_storage_metrics' with conditions 'fragmentation_pct > 15' or 'index_pct > 50' and 'ORDER BY total_size_mb DESC', OR the view is visible in the database schema tree."
+    },
+    {
+      "id": "query_maintenance_results",
+      "description": "Execute and view the results of the v_maintenance_required view",
+      "points": 20,
+      "visual_evidence": "A data grid or terminal output displaying the results of querying 'v_maintenance_required'. The results should prominently feature the 'rental' and 'payment' tables due to their high fragmentation."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the maintenance report to the specified CSV file path",
+      "points": 20,
+      "visual_evidence": "A file manager showing 'maintenance_report.csv' located in '/home/ga/Documents/exports/', an export dialog confirming this exact path, or the resulting CSV file opened in a spreadsheet/text editor."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "The agent interacted with a genuine database client to execute queries.",
+      "visual_evidence": "Screenshots show a real database tool (GUI like DBeaver/Workbench or CLI) being used to run SQL commands, rather than the agent just typing expected outputs into a text file."
+    },
+    {
+      "id": "dynamic_sql_execution",
+      "description": "The agent dynamically queried the information_schema rather than hardcoding results.",
+      "visual_evidence": "The SQL statements actually query 'information_schema.TABLES' and perform the math, rather than using a hardcoded SELECT statement with 'rental' and 'payment' strings."
+    },
+    {
+      "id": "authentic_export",
+      "description": "The CSV export was generated through a software feature or SQL command.",
+      "visual_evidence": "The CSV file was created using a database client's export wizard, a 'SELECT ... INTO OUTFILE' command, or a script, rather than the agent manually typing the CSV contents."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating two specific views: 'v_storage_metrics' and 'v_maintenance_required'. The final output must be exported to '/home/ga/Documents/exports/maintenance_report.csv'. Due to the environment setup, the 'rental' and 'payment' tables are intentionally fragmented and MUST appear in the final maintenance report results."
+}

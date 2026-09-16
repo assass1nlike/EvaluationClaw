@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_totp_secret_from_qr@1",
+  "task_completion": [
+    {
+      "id": "qr_image_displayed",
+      "description": "The QR code image is displayed on screen to be captured by the virtual camera.",
+      "points": 15,
+      "visual_evidence": "OBS Studio (or an image viewer/other software) is open and displaying the totp_setup.png QR code."
+    },
+    {
+      "id": "bcwebcam_opened",
+      "description": "The bcWebCam application is launched and visible on the screen.",
+      "points": 15,
+      "visual_evidence": "The bcWebCam application window is open on the desktop."
+    },
+    {
+      "id": "bcwebcam_feed_active",
+      "description": "bcWebCam is actively receiving the virtual camera feed containing the QR code.",
+      "points": 20,
+      "visual_evidence": "The QR code is visible inside the live camera feed area of the bcWebCam application interface."
+    },
+    {
+      "id": "bcwebcam_scanned_uri",
+      "description": "bcWebCam successfully scans the QR code and outputs the URI.",
+      "points": 20,
+      "visual_evidence": "An 'otpauth://' URI is visible in the scanned text output box within the bcWebCam interface."
+    },
+    {
+      "id": "authenticator_command_executed",
+      "description": "The authenticator script is run with the extracted secret.",
+      "points": 30,
+      "visual_evidence": "A Command Prompt or PowerShell window shows the command 'python C:\\Users\\Docker\\Documents\\authenticator.py add CorpVPN <secret>' where <secret> is a Base32 string."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_bcwebcam",
+      "description": "The agent used bcWebCam to decode the QR code as requested, rather than a CLI tool or script.",
+      "visual_evidence": "The decoded 'otpauth://' URI appears in the bcWebCam GUI, not just as output from a Python/ZBar script in the terminal."
+    },
+    {
+      "id": "secret_extracted_correctly",
+      "description": "The agent extracted ONLY the Base32 secret from the URI.",
+      "visual_evidence": "The terminal command shows only the Base32 string (e.g., ABCDEF...) being passed to the script, without 'otpauth://', '?secret=', or other URI parameters."
+    },
+    {
+      "id": "gui_interaction",
+      "description": "The agent genuinely interacted with the required GUI applications.",
+      "visual_evidence": "Screenshots show the actual windows for OBS Studio (or similar) and bcWebCam open and configured, rather than just terminal windows."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected account name to be added via the script is 'CorpVPN'."
+}

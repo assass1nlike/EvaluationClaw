@@ -1,0 +1,32 @@
+{
+  "id": "create_involute_spur_gear@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a standard involute spur gear model in FreeCAD with 24 teeth, a 2.0 mm module, and a 20-degree pressure angle. The gear must have an extrusion thickness of 10 mm and a 12 mm diameter central bore. Save the completed model to /home/ga/Documents/FreeCAD/spur_gear.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_involute_spur_gear/setup_task.sh",
+    "post_task": "/workspace/tasks/create_involute_spur_gear/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "spur_gear.FCStd",
+    "parameters": {
+      "teeth": 24,
+      "module": 2.0,
+      "pressure_angle": 20,
+      "height": 10.0,
+      "bore_radius": 6.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_spur_gear"
+    }
+  }
+}

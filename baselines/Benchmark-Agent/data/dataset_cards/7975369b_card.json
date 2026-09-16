@@ -1,0 +1,81 @@
+{
+  "dataset_id": "7975369b",
+  "name": "Football-Player-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset is designed for football player detection, providing images from football matches annotated with bounding boxes for players, referees, and the ball. It evaluates object detection models on sports imagery.",
+  "card_text": "The dataset contains 200 samples, each with an input image and a short textual prompt. The images are football match scenes with multiple people and objects. Annotations are provided as a list of bounding boxes, where each box includes a class label (player, referee, or ball) and coordinates in [x, y, width, height] format, likely normalized or pixel coordinates. The prompt field is a placeholder instruction, and the main task is to localize and classify all relevant objects in the image. The dataset is intended for evaluating detection capabilities in a sports domain, with varying scene complexity and object counts.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "sports",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short placeholder prompt string that serves as the textual instruction for the detection task; it is generic and accompanies the input image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "scenery",
+        "semantics": "The input image file path pointing to a football match photograph; the image contains multiple players, referees, and sometimes the ball, which are the objects to be detected.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "structured",
+        "semantics": "A list of bounding box annotations for objects in the image. Each entry is a dictionary with a single class label key (e.g., 'player', 'referee', 'ball') whose value is a four-number list [x, y, w, h] likely representing the center coordinates and dimensions of the box.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input image reference path and a short generic instruction prompt. The output is a list of bounding boxes, where each box is a dictionary with a single class label key (e.g., 'player', 'referee', 'ball') mapped to a four-number list representing the box coordinates, likely center x, center y, width, height. The prompt and image together define the detection task, and the bounding boxes provide the spatial annotations for objects in the image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/football-player-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "football-player-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

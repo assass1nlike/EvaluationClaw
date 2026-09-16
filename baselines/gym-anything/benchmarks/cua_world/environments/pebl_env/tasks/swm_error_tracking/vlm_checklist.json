@@ -1,0 +1,53 @@
+{
+  "task_id": "swm_error_tracking@1",
+  "task_completion": [
+    {
+      "id": "access_clickstream_data",
+      "description": "Agent accesses the SWM clickstream data file.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the agent opening, reading, or referencing '~/pebl/data/swm_clickstream.csv' in a script, terminal, or data analysis tool."
+    },
+    {
+      "id": "implement_error_logic",
+      "description": "Agent implements logic to calculate Between-Search Errors (BSE) and Within-Search Errors (WSE).",
+      "points": 30,
+      "visual_evidence": "Screenshots show code or formulas that calculate BSE (clicking a box that yielded a token in a strictly previous search) and WSE (clicking an empty box already clicked during the current search, excluding BSEs)."
+    },
+    {
+      "id": "exclude_sub_999",
+      "description": "Agent excludes participant 'sub-999' from the calculations.",
+      "points": 20,
+      "visual_evidence": "Screenshots show code or logic explicitly filtering out 'sub-999' or excluding participants with Total WSE > 100."
+    },
+    {
+      "id": "format_json_output",
+      "description": "Agent formats the output data correctly with a 'participants' key.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the agent structuring the final output as a JSON object containing a 'participants' key (a list of objects)."
+    },
+    {
+      "id": "save_report_file",
+      "description": "Agent saves the final report to the specified JSON file.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the agent saving or writing the output to '~/pebl/analysis/swm_report.json', or verifying its existence in the terminal/file explorer."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution",
+      "description": "Agent uses a script or data processing tool to generate the report.",
+      "visual_evidence": "Screenshots show the agent executing a Python script, Jupyter notebook, or similar tool to process the data, rather than manually typing out the JSON output."
+    },
+    {
+      "id": "data_source_integrity",
+      "description": "Agent uses the actual provided dataset.",
+      "visual_evidence": "Screenshots show the script loading the actual 'swm_clickstream.csv' file rather than using a mocked, hardcoded, or hallucinated dataset."
+    },
+    {
+      "id": "authentic_exclusion",
+      "description": "Agent programmatically excludes the contaminated participant.",
+      "visual_evidence": "Screenshots show the exclusion of 'sub-999' happening via code logic (e.g., an if-statement or pandas filter) rather than manually deleting their entry from a final text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 15 real participants (sub-01 to sub-15) and 1 contaminated participant (sub-999). sub-999 has a simulated 'stuck_touchscreen' resulting in 587 WSEs, which exceeds the >100 threshold for exclusion. The final output must be saved to /home/ga/pebl/analysis/swm_report.json."
+}

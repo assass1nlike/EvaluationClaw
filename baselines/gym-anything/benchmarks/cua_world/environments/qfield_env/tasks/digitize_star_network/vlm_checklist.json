@@ -1,0 +1,65 @@
+{
+  "task_id": "digitize_star_network@1",
+  "task_completion": [
+    {
+      "id": "layer_selected",
+      "description": "The 'network_lines' layer is selected and in editing/digitizing mode.",
+      "points": 10,
+      "visual_evidence": "The QField interface shows the 'network_lines' layer active in the side panel, or the digitizing crosshair/tools are visible on the map indicating line creation mode."
+    },
+    {
+      "id": "vienna_bratislava_geometry",
+      "description": "A line feature is drawn connecting Vienna to the geographic location of Bratislava.",
+      "points": 20,
+      "visual_evidence": "A line is visible on the map starting at the point marker for Vienna and ending a short distance to the east. Note that there is no point marker for Bratislava, so the line will end in an empty area corresponding to its real-world location."
+    },
+    {
+      "id": "vienna_bratislava_attributes",
+      "description": "The attributes for the Vienna-Bratislava line are correctly entered.",
+      "points": 10,
+      "visual_evidence": "The QField feature attribute form is visible showing 'VIE-BTS' in the link_id field and 'planned' in the status field."
+    },
+    {
+      "id": "vienna_budapest_geometry",
+      "description": "A line feature is drawn connecting Vienna to Budapest.",
+      "points": 15,
+      "visual_evidence": "A line is visible on the map starting at the point marker for Vienna and ending at the point marker for Budapest (southeast of Vienna)."
+    },
+    {
+      "id": "vienna_budapest_attributes",
+      "description": "The attributes for the Vienna-Budapest line are correctly entered.",
+      "points": 15,
+      "visual_evidence": "The QField feature attribute form is visible showing 'VIE-BUD' in the link_id field and 'planned' in the status field."
+    },
+    {
+      "id": "vienna_prague_geometry",
+      "description": "A line feature is drawn connecting Vienna to Prague.",
+      "points": 15,
+      "visual_evidence": "A line is visible on the map starting at the point marker for Vienna and ending at the point marker for Prague (northwest of Vienna)."
+    },
+    {
+      "id": "vienna_prague_attributes",
+      "description": "The attributes for the Vienna-Prague line are correctly entered.",
+      "points": 15,
+      "visual_evidence": "The QField feature attribute form is visible showing 'VIE-PRG' in the link_id field and 'planned' in the status field."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the QField GUI to draw lines and enter attributes.",
+      "visual_evidence": "Screenshots show the QField map interface, digitizing crosshairs, and attribute forms being actively used, rather than terminal commands executing spatial SQL queries."
+    },
+    {
+      "id": "genuine_geography",
+      "description": "The agent navigated the map to locate the cities visually.",
+      "visual_evidence": "Screenshots show panning and zooming around Central Europe (Austria, Slovakia, Hungary, Czechia) to locate the target capitals."
+    },
+    {
+      "id": "no_database_editor_shortcut",
+      "description": "The agent did not use a SQLite database editor to insert the features directly.",
+      "visual_evidence": "There should be no screenshots of SQLite editors, DB Browser, or terminal sqlite3 prompts being used to modify the 'world_survey.gpkg' file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires digitizing three lines in QField on the 'network_lines' layer, forming a star topology centered on Vienna. The three lines must go to Bratislava, Budapest, and Prague. CRITICAL: Bratislava is intentionally missing from the 'world_capitals' layer on the map. The agent must estimate its location (approximately 60km east of Vienna) to draw the line. The other capitals (Vienna, Budapest, Prague) have visible point markers. The required attributes for the lines are link_id ('VIE-BTS', 'VIE-BUD', 'VIE-PRG') and status ('planned' for all three)."
+}

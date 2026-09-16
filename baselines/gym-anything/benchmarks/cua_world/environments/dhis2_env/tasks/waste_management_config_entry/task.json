@@ -1,0 +1,31 @@
+{
+  "id": "waste_management_config_entry@1",
+  "version": "1.0",
+  "env_id": "dhis2_env@0.1",
+  "description": "The Ministry of Health has launched a new 'Hospital Waste Management' initiative. As the DHIS2 Administrator (admin / district), configure the system to collect monthly data by creating two aggregate data elements: 'Waste Generated (kg)' (Short name: 'Waste Gen', Number, Sum) and 'Waste Incinerated (kg)' (Short name: 'Waste Incin', Number, Sum), using the default category combination. Create a monthly dataset named 'Hospital Waste Management' including these elements and assign it to 'Bo District' and all its sub-units. Record 150 for 'Waste Generated' and 120 for 'Waste Incinerated' for 'Bo Government Hospital' for January 2024 and mark the dataset as complete.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/waste_management_config_entry/setup_task.sh",
+    "post_task": "/workspace/tasks/waste_management_config_entry/export_result.sh"
+  },
+  "metadata": {
+    "target_de_gen": "Waste Generated (kg)",
+    "target_de_inc": "Waste Incinerated (kg)",
+    "target_dataset": "Hospital Waste Management",
+    "target_ou_name": "Bo Government Hospital",
+    "target_period": "202401",
+    "value_gen": "150",
+    "value_inc": "120"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_waste_management"
+    }
+  }
+}

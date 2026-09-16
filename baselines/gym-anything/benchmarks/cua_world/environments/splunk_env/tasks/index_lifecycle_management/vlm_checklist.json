@@ -1,0 +1,53 @@
+{
+  "task_id": "index_lifecycle_management@1",
+  "task_completion": [
+    {
+      "id": "create_audit_trail_index",
+      "description": "Create a new index named 'audit_trail' with the specified maximum size and retention period.",
+      "points": 30,
+      "visual_evidence": "Look for the Splunk 'Indexes' list or the 'New Index' configuration screen showing an index named 'audit_trail'. The configuration must show a maximum size (maxTotalDataSizeMB) of 5120 MB (or 5 GB) and a retention period (frozenTimePeriodInSecs) of 31536000 seconds (or 365 days)."
+    },
+    {
+      "id": "update_security_logs_retention",
+      "description": "Update the 'security_logs' index to a retention period of 31536000 seconds.",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk 'Indexes' list or the edit screen for the 'security_logs' index showing the retention period/searchable time updated to 31536000 seconds (or 365 days)."
+    },
+    {
+      "id": "update_web_logs_retention",
+      "description": "Update the 'web_logs' index to a retention period of 7776000 seconds.",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk 'Indexes' list or the edit screen for the 'web_logs' index showing the retention period/searchable time updated to 7776000 seconds (or 90 days)."
+    },
+    {
+      "id": "create_saved_search",
+      "description": "Create a saved search named 'Index_Volume_Monitor'.",
+      "points": 15,
+      "visual_evidence": "Look for the Splunk 'Reports' or 'Searches, Reports, and Alerts' page showing a saved search explicitly named 'Index_Volume_Monitor'."
+    },
+    {
+      "id": "saved_search_query_logic",
+      "description": "The saved search reports on data volume using internal index metadata.",
+      "points": 15,
+      "visual_evidence": "Look for the search bar or saved search details showing the query for 'Index_Volume_Monitor'. The query must use internal metadata commands or indexes (e.g., containing '| rest', '| dbinspect', 'index=_internal', or 'index=_introspection')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_splunk_interaction",
+      "description": "The agent interacted with the actual Splunk application.",
+      "visual_evidence": "Screenshots should show the Splunk Web UI (accessed via http://localhost:8000) or valid Splunk CLI/API terminal commands, rather than a text editor with typed answers."
+    },
+    {
+      "id": "genuine_search_creation",
+      "description": "The saved search was actually saved in the system.",
+      "visual_evidence": "The search 'Index_Volume_Monitor' should appear in the list of saved Reports/Searches or show a 'Save As' success confirmation, not just be typed into the search bar without saving."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "The results appear to be genuine system configurations.",
+      "visual_evidence": "The Splunk UI elements should look standard without signs of HTML tampering, browser developer tools being used to fake values, or mockups."
+    }
+  ],
+  "privileged_info_for_vlm": "The required index lifecycle parameters are mathematically verified: 365 days = 31536000 seconds, 90 days = 7776000 seconds, and 5 GB = 5120 MB. The Splunk UI might display these in days/GB or seconds/MB depending on the specific view. Valid saved search queries for index volume must include internal telemetry keywords such as '_internal', '_introspection', 'rest', 'dbinspect', 'licenser', 'metrics.log', 'currentdbsizemb', 'totaleventcount', or 'per_index_thruput'."
+}

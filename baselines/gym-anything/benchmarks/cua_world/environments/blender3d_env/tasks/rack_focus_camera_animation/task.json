@@ -1,0 +1,41 @@
+{
+  "id": "rack_focus_camera_animation@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You are a cinematographer setting up a dramatic rack focus shot for a product commercial in Blender. Create a smooth rack focus animation using the camera 'RackFocusCam' where the focus transitions from the 'ForegroundObject' (red cone) at frame 1 to the 'BackgroundObject' (blue torus) at frame 60. Configure the camera with a shallow depth of field to produce visible bokeh. Set the timeline frame range from 1 to 60. Render frame 1 to /home/ga/BlenderProjects/rack_focus_frame01.png, render frame 60 to /home/ga/BlenderProjects/rack_focus_frame60.png, and save the project to /home/ga/BlenderProjects/rack_focus.blend.",
+  "category": "3d_graphics",
+  "difficulty": "medium",
+  "tags": [
+    "blender",
+    "camera",
+    "animation",
+    "depth-of-field",
+    "cinematography",
+    "keyframes"
+  ],
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/rack_focus_camera_animation/setup_task.sh",
+    "post_task": "/workspace/tasks/rack_focus_camera_animation/export_result.sh"
+  },
+  "metadata": {
+    "expected_blend_path": "/home/ga/BlenderProjects/rack_focus.blend",
+    "render_frame01_path": "/home/ga/BlenderProjects/rack_focus_frame01.png",
+    "render_frame60_path": "/home/ga/BlenderProjects/rack_focus_frame60.png",
+    "focus_near": 4.0,
+    "focus_far": 12.0,
+    "focus_tolerance": 2.0,
+    "fstop_min": 1.0,
+    "fstop_max": 2.8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_rack_focus"
+    }
+  }
+}

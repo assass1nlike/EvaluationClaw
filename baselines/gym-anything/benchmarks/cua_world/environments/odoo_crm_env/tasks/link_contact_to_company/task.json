@@ -1,0 +1,28 @@
+{
+  "id": "link_contact_to_company@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "You are cleaning up contact data for an active deal. Update the contact record for 'Elena Grigoryeva', who is the customer on the 'Cloud Migration - Stratosphere' opportunity. Link her to the company 'Stratosphere Solutions', set her Job Position to 'VP of Engineering', and update her Mobile number to '+1 (555) 010-9988'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/link_contact_to_company/setup_task.sh",
+    "post_task": "/workspace/tasks/link_contact_to_company/export_result.sh"
+  },
+  "metadata": {
+    "target_contact_name": "Elena Grigoryeva",
+    "target_company_name": "Stratosphere Solutions",
+    "expected_job": "VP of Engineering",
+    "expected_mobile": "+1 (555) 010-9988"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_link_contact_to_company"
+    }
+  }
+}

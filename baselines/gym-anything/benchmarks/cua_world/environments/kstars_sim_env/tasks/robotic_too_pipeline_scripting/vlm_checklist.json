@@ -1,0 +1,53 @@
+{
+  "task_id": "robotic_too_pipeline_scripting@1",
+  "task_completion": [
+    {
+      "id": "spec_read",
+      "description": "The agent reads the specification file to understand the requirements.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'cat ~/Documents/too_script_spec.txt' or the file open in a text editor."
+    },
+    {
+      "id": "script_created",
+      "description": "The bash script too_capture.sh is created in the correct directory.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the file /home/ga/too_capture.sh being edited or listed."
+    },
+    {
+      "id": "script_uses_indi_getprop",
+      "description": "The script utilizes indi_getprop for hardware state polling.",
+      "points": 20,
+      "visual_evidence": "The visible contents of too_capture.sh contain the command 'indi_getprop'."
+    },
+    {
+      "id": "script_executed",
+      "description": "The script is executed to capture the GRB 221009A event.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the script (e.g., './too_capture.sh' or 'bash too_capture.sh') with arguments or inputs related to GRB 221009A."
+    },
+    {
+      "id": "fits_image_generated",
+      "description": "The FITS image is successfully generated in the specified directory.",
+      "points": 30,
+      "visual_evidence": "Terminal (e.g., 'ls /home/ga/Images/too_alerts/GRB221009A') or file manager showing a .fits file present in the /home/ga/Images/too_alerts/GRB221009A directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_driven_capture",
+      "description": "The image capture was driven by the bash script, not manually through a GUI.",
+      "visual_evidence": "The KStars/Ekos GUI should not be the primary method used to capture the image; the terminal should show the script executing the capture."
+    },
+    {
+      "id": "genuine_indi_commands",
+      "description": "The script uses genuine INDI commands to interact with the hardware.",
+      "visual_evidence": "The script contents should show actual 'indi_setprop', 'indi_getprop', or 'indi_eval' commands rather than mocking the output or copying existing files."
+    },
+    {
+      "id": "no_manual_mocking",
+      "description": "The output FITS file is a genuine capture, not a manually created or copied dummy file.",
+      "visual_evidence": "The terminal history should not show commands like 'touch /home/ga/Images/too_alerts/GRB221009A/image.fits' or 'cp dummy.fits ...'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target: GRB 221009A. RA: 19.2175 hours, Dec: 19.7733 degrees. Exposure: 120 seconds. Filter: R (Slot 4). Script must be at /home/ga/too_capture.sh and output FITS files to /home/ga/Images/too_alerts/GRB221009A. The specification is located at /home/ga/Documents/too_script_spec.txt."
+}

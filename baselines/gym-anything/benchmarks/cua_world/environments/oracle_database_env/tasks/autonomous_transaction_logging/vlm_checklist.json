@@ -1,0 +1,53 @@
+{
+  "task_id": "autonomous_transaction_logging@1",
+  "task_completion": [
+    {
+      "id": "open_legacy_code",
+      "description": "Open the legacy payment code file for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE showing the file /home/ga/Desktop/legacy_payment_code.sql open."
+    },
+    {
+      "id": "implement_autonomous_transaction",
+      "description": "Create a logging procedure using PRAGMA AUTONOMOUS_TRANSACTION.",
+      "points": 30,
+      "visual_evidence": "Code visible in the editor showing a PL/SQL procedure that includes the exact phrase 'PRAGMA AUTONOMOUS_TRANSACTION' to handle the logging."
+    },
+    {
+      "id": "update_process_transfer",
+      "description": "Update the PROCESS_TRANSFER procedure to use the new autonomous logging procedure.",
+      "points": 20,
+      "visual_evidence": "Code visible in the editor showing the PROCESS_TRANSFER procedure modified to call the newly created autonomous logging procedure instead of the old logging method."
+    },
+    {
+      "id": "execute_failing_transfer",
+      "description": "Attempt the $5000 transfer from User 1001 to User 1002.",
+      "points": 20,
+      "visual_evidence": "A database client or terminal showing the execution of the transfer procedure with arguments corresponding to User 1001 (sender), User 1002 (receiver), and 5000 (amount)."
+    },
+    {
+      "id": "export_audit_evidence",
+      "description": "Export the SYSTEM_LOGS to the audit evidence file.",
+      "points": 20,
+      "visual_evidence": "A terminal showing a command exporting the logs to /home/ga/Desktop/audit_evidence.txt, or a text editor showing the contents of this file containing the 'Insufficient funds' message."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_execution",
+      "description": "Verify the agent actually executed the SQL code against the database.",
+      "visual_evidence": "Screenshots should show a database client or terminal with execution feedback (e.g., 'Procedure created', 'PL/SQL procedure successfully completed', or SQL prompt interactions), not just code sitting in a text editor."
+    },
+    {
+      "id": "authentic_evidence_export",
+      "description": "Verify the evidence file was generated from the database.",
+      "visual_evidence": "The creation of audit_evidence.txt should be the result of a database query export (e.g., using SPOOL or a command-line DB query redirection), rather than the agent manually typing the expected output into a text file."
+    },
+    {
+      "id": "no_hardcoded_bypass",
+      "description": "Verify the agent did not bypass the PL/SQL fix by hardcoding the output.",
+      "visual_evidence": "The agent must not simply run a bash command like `echo 'Insufficient funds' > /home/ga/Desktop/audit_evidence.txt`. The output must clearly stem from querying the SYSTEM_LOGS table after the failed transaction."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing a PL/SQL rollback bug. The sender_id is 1001 (initial balance: 1000) and receiver_id is 1002. The agent must attempt a transfer of 5000, which will fail and trigger an 'Insufficient funds' log. The VLM should verify that this exact string ('Insufficient funds') is successfully captured in /home/ga/Desktop/audit_evidence.txt despite the transaction rollback."
+}

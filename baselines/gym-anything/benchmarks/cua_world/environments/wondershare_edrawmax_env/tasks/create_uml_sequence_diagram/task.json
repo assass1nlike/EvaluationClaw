@@ -1,0 +1,48 @@
+{
+  "id": "create_uml_sequence_diagram@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a UML sequence diagram in Wondershare EdrawMax depicting a payment processing flow titled 'Payment Processing Sequence Diagram'. The diagram should include six participants arranged left-to-right: 'User', 'Web Frontend', 'API Gateway', 'Payment Service', 'Fraud Detection', and 'Bank API'. Document the following sequence of messages: 'User' sends 'Submit Payment' (Synchronous) to 'Web Frontend'; 'Web Frontend' sends 'POST /payments' (Synchronous) to 'API Gateway'; 'API Gateway' sends 'processPayment()' (Synchronous) to 'Payment Service'; 'Payment Service' sends 'checkFraud()' (Synchronous) to 'Fraud Detection'; 'Fraud Detection' returns 'fraudResult()' to 'Payment Service'; 'Payment Service' sends 'authorizeTransaction()' (Synchronous) to 'Bank API'; 'Bank API' returns 'authorizationResponse()' to 'Payment Service'; 'Payment Service' returns 'paymentResult()' to 'API Gateway'; 'API Gateway' returns 'HTTP 200 Response' to 'Web Frontend'; and 'Web Frontend' returns 'Payment Confirmation' to 'User'. Save the editable diagram to '/home/ga/Documents/payment_sequence_diagram.eddx' and export it as an image to '/home/ga/Documents/payment_sequence_diagram.png'. If an account login dialog appears on startup, dismiss it.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_uml_sequence_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_uml_sequence_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/payment_sequence_diagram.eddx",
+    "expected_png_path": "/home/ga/Documents/payment_sequence_diagram.png",
+    "required_participants": [
+      "User",
+      "Web Frontend",
+      "API Gateway",
+      "Payment Service",
+      "Fraud Detection",
+      "Bank API"
+    ],
+    "required_messages": [
+      "Submit Payment",
+      "POST /payments",
+      "processPayment",
+      "checkFraud",
+      "fraudResult",
+      "authorizeTransaction",
+      "authorizationResponse",
+      "paymentResult",
+      "HTTP 200 Response",
+      "Payment Confirmation"
+    ],
+    "min_eddx_size_bytes": 5000,
+    "min_png_size_bytes": 10000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_uml_sequence_diagram"
+    }
+  }
+}

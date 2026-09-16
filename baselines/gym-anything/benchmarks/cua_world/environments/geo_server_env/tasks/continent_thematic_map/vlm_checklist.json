@@ -1,0 +1,59 @@
+{
+  "task_id": "continent_thematic_map@1",
+  "task_completion": [
+    {
+      "id": "workspace_creation",
+      "description": "Verify the 'regional_atlas' workspace is created with the correct URI.",
+      "points": 10,
+      "visual_evidence": "GeoServer 'Workspaces' page showing a workspace named 'regional_atlas' with the Namespace URI 'http://atlas.regional.example.org'."
+    },
+    {
+      "id": "datastore_creation",
+      "description": "Verify the 'world_geodata' PostGIS datastore is created in the 'regional_atlas' workspace.",
+      "points": 15,
+      "visual_evidence": "GeoServer 'Stores' page showing a store named 'world_geodata' of type PostGIS, associated with the 'regional_atlas' workspace."
+    },
+    {
+      "id": "style_creation",
+      "description": "Verify the 'continent_colors' style is created.",
+      "points": 10,
+      "visual_evidence": "GeoServer 'Styles' page showing 'continent_colors' in the list of styles, or the Style Editor page with 'continent_colors' as the name."
+    },
+    {
+      "id": "style_rules_configuration",
+      "description": "Verify the 'continent_colors' style contains exactly 7 classification rules using ogc:PropertyIsEqualTo on the 'continent' attribute with unique colors.",
+      "points": 35,
+      "visual_evidence": "In the GeoServer Style Editor for 'continent_colors', the SLD XML code must show 7 distinct `<Rule>` blocks. Each rule must contain an `<ogc:PropertyIsEqualTo>` filter with `<ogc:PropertyName>continent</ogc:PropertyName>` and an `<ogc:Literal>` for a specific continent (Africa, Antarctica, Asia, Europe, North America, Oceania, South America). Each rule must also have a `<PolygonSymbolizer>` with a unique fill color."
+    },
+    {
+      "id": "layer_publishing",
+      "description": "Verify the 'ne_countries' table is published as a layer named 'countries'.",
+      "points": 15,
+      "visual_evidence": "GeoServer 'Layers' page showing a layer named 'countries', or the 'Edit Layer' page for 'countries' showing it is published from the 'ne_countries' resource in the 'world_geodata' store."
+    },
+    {
+      "id": "layer_style_assignment",
+      "description": "Verify the 'countries' layer is configured with 'continent_colors' as its default style.",
+      "points": 15,
+      "visual_evidence": "On the 'Edit Layer' page for the 'countries' layer, under the 'Publishing' tab, the 'Default Style' dropdown must have 'continent_colors' selected."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the GeoServer web GUI to configure the service.",
+      "visual_evidence": "Screenshots should show the agent navigating the GeoServer web administration interface (http://localhost:8080/geoserver/web/) in a browser, rather than using a terminal to send curl/REST API commands."
+    },
+    {
+      "id": "genuine_sld_code",
+      "description": "Verify the agent actually generated or inputted the SLD XML code.",
+      "visual_evidence": "The Style Editor text area should show the actual XML code being edited or pasted, not just an empty box or a script bypassing the UI."
+    },
+    {
+      "id": "actual_application_usage",
+      "description": "Verify the agent interacted with the actual GeoServer application.",
+      "visual_evidence": "The browser URL bar should show localhost:8080 and standard GeoServer UI elements (menus, headers) should be visible and properly rendered."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected namespace URI is exactly 'http://atlas.regional.example.org'. The source table is 'ne_countries'. The style must contain exactly 7 rules for the 7 continents (Africa, Antarctica, Asia, Europe, North America, Oceania, South America). The property name in the OGC filter must be lowercase 'continent' (e.g., <ogc:PropertyName>continent</ogc:PropertyName>)."
+}

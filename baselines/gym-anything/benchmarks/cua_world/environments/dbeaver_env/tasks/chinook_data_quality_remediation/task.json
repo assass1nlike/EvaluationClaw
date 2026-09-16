@@ -1,0 +1,27 @@
+{
+  "id": "chinook_data_quality_remediation@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Software QA Analyst performing a data integrity audit on the Chinook digital media database (/home/ga/Documents/databases/chinook_audit.db). Using the connection name 'ChinookAudit', identify and delete all orphaned invoice_items rows that reference non-existent InvoiceIds. For all 'Rock' tracks where the Composer field is NULL, update the field to 'Unknown'. Count the number of customers whose Email field is invalid (missing '@' or a '.' after the '@'). Export an audit report to /home/ga/Documents/exports/quality_audit.csv with columns IssueType, RecordsAffected, TableName, and Action, including rows for orphaned_invoice_items, null_rock_composers, and invalid_emails. The RecordsAffected column should reflect the count of affected records before any fixes or the current count for the email check. Login: ga / password123.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_data_quality_remediation/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_data_quality_remediation/export_result.sh"
+  },
+  "metadata": {
+    "target_db": "/home/ga/Documents/databases/chinook_audit.db",
+    "connection_name": "ChinookAudit",
+    "output_csv": "/home/ga/Documents/exports/quality_audit.csv",
+    "source_db": "/home/ga/Documents/databases/chinook.db"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_data_quality_remediation"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "compute_stage_change_rate@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "A conservation scientist needs to assess how rapidly water levels change during the Muncie flood event. Compute the maximum rate of stage rise and fall (in ft/hr) for every cross-section in the model. Save the results to a CSV file at /home/ga/Documents/hec_ras_results/stage_change_rates.csv with columns: 'cross_section', 'max_rise_rate_ft_per_hr', 'max_fall_rate_ft_per_hr', 'time_of_max_rise_hr', and 'time_of_max_fall_hr'. Additionally, create a summary text file at /home/ga/Documents/hec_ras_results/stage_change_summary.txt containing the highest rise and fall rates found across the entire river, formatted as:\nOverall_Max_Rise_Rate_ft_per_hr: <value>\nOverall_Max_Fall_Rate_ft_per_hr: <value>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_stage_change_rate/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_stage_change_rate/export_result.sh"
+  },
+  "metadata": {
+    "output_csv": "/home/ga/Documents/hec_ras_results/stage_change_rates.csv",
+    "output_summary": "/home/ga/Documents/hec_ras_results/stage_change_summary.txt",
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_stage_change_rate"
+    }
+  }
+}

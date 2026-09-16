@@ -1,0 +1,36 @@
+{
+  "id": "ux_persona_card@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Design a professional User Persona Card for 'Penny Parker' in draw.io Desktop using the persona details in '~/Desktop/persona_data.txt' and the profile photo at '~/Desktop/penny.jpg'. The card should feature a main container with the photo in the top-left and a header next to it for the name 'Penny Parker' and role 'Senior Project Manager'. Below the header, implement a two-column layout with Bio and Demographics on the left and Goals and Frustrations on the right. At the bottom, include a 'Personality' section with three visual sliders (horizontal lines with circle handles) representing Introvert-Extrovert (handle near right), Analytical-Creative (handle near left), and Tech-Savvy (handle near right). Group all elements of the card and save the file to '~/Desktop/persona_card.drawio' and export it to '~/Desktop/persona_card.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ux_persona_card/setup_task.sh",
+    "post_task": "/workspace/tasks/ux_persona_card/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "persona_card.drawio",
+    "expected_export": "persona_card.png",
+    "required_text": [
+      "Penny Parker",
+      "Senior Project Manager",
+      "Introvert",
+      "Extrovert",
+      "Analytical",
+      "Creative"
+    ],
+    "min_lines": 3,
+    "min_circles": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ux_persona_card"
+    }
+  }
+}

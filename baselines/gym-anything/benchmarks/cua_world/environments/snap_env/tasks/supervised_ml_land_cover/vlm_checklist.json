@@ -1,0 +1,53 @@
+{
+  "task_id": "supervised_ml_land_cover@1",
+  "task_completion": [
+    {
+      "id": "open_landsat_image",
+      "description": "Open the Landsat 4-band image",
+      "points": 10,
+      "visual_evidence": "Look for a GIS/Remote Sensing application (like SNAP) with 'landsat_multispectral.tif' loaded in the product explorer or displayed in the main viewer."
+    },
+    {
+      "id": "create_vector_containers",
+      "description": "Create vector data containers for training data",
+      "points": 20,
+      "visual_evidence": "Look for vector nodes, layers, or folders named exactly 'Water_Train' and 'Veg_Train' within the vector data section of the loaded product."
+    },
+    {
+      "id": "perform_classification",
+      "description": "Perform Supervised Machine Learning land cover classification",
+      "points": 30,
+      "visual_evidence": "Look for a 'Supervised Classification' dialog box (e.g., Random Forest, Maximum Likelihood) being configured or a new product generated with a name indicating it is a classification result."
+    },
+    {
+      "id": "save_dimap_format",
+      "description": "Save the classification product in BEAM-DIMAP format",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save Product' dialog or file manager showing the file 'supervised_ml_map.dim' being saved in the '/home/ga/snap_exports/' directory."
+    },
+    {
+      "id": "export_geotiff_format",
+      "description": "Export the classification product as a GeoTIFF",
+      "points": 20,
+      "visual_evidence": "Look for an 'Export' dialog (e.g., Export -> GeoTIFF) or file manager showing the file 'supervised_ml_map.tif' being saved in the '/home/ga/snap_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "The agent used the GUI application to perform the classification",
+      "visual_evidence": "Check that the SNAP GUI (or equivalent application) is actively used for loading the image, creating vectors, and running the classification, rather than terminal commands."
+    },
+    {
+      "id": "genuine_classification",
+      "description": "The classification product is a genuine result of a machine learning algorithm",
+      "visual_evidence": "Ensure the classification process is actually run via the GUI (e.g., seeing a progress bar or classification parameters dialog) and the output is not just a renamed copy of the original image."
+    },
+    {
+      "id": "no_text_editor_shortcuts",
+      "description": "The agent did not use a text editor or terminal to create dummy output files",
+      "visual_evidence": "Ensure the output files (.dim and .tif) are not created using commands like 'touch' or a text editor in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The input image is located at /home/ga/snap_data/landsat_multispectral.tif. The expected outputs are a BEAM-DIMAP file at /home/ga/snap_exports/supervised_ml_map.dim and a GeoTIFF file at /home/ga/snap_exports/supervised_ml_map.tif. The task requires creating vector data containers named 'Water_Train' and 'Veg_Train' for training."
+}

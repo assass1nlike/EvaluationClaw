@@ -1,0 +1,29 @@
+{
+  "id": "setup_wholesale_price_list@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "Configure a wholesale pricing structure for 'TechStart Inc.' and verify it with a transaction. Create a price list named 'Wholesale' and add 'House Blend Coffee Beans 1kg' at a price of $18.50. Assign this price list to the customer 'TechStart Inc.' and process a cash sale for them containing one unit of 'House Blend Coffee Beans 1kg'. Save the resulting receipt as a PDF to 'C:\\Users\\Docker\\Documents\\wholesale_receipt.pdf'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\setup_wholesale_price_list\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\setup_wholesale_price_list\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_price_list_name": "Wholesale",
+    "expected_customer": "TechStart Inc.",
+    "expected_item": "House Blend Coffee Beans 1kg",
+    "expected_price": "18.50",
+    "expected_receipt_path": "C:\\Users\\Docker\\Documents\\wholesale_receipt.pdf"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wholesale_price_setup"
+    }
+  }
+}

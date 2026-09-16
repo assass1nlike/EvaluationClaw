@@ -1,0 +1,34 @@
+{
+  "id": "chinook_dedup_cleanup@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "A database corruption incident occurred where duplicate Customer and Artist records were inserted into the Chinook database, and some related records (Invoices, Albums) were incorrectly linked to these duplicates. Clean up the SQLite database at /home/ga/Documents/databases/chinook_dedup.db (Connection name: 'ChinookDedup') by merging duplicate records into the canonical record, defined as the record with the lowest ID. For Customers, duplicates are identified by matching FirstName, LastName, and Email; for Artists, duplicates share the same Name. Reassign all child records (Invoices for Customers and Albums for Artists) from the duplicates to the canonical records to prevent data loss before deleting the duplicate entries. Save the SQL cleanup script to /home/ga/Documents/scripts/dedup_cleanup.sql and produce a deduplication report CSV at /home/ga/Documents/exports/dedup_report.csv with the following columns: TableName, DuplicateGroupsFound, RecordsRemoved, and ChildRecordsReassigned.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_dedup_cleanup/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_dedup_cleanup/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_dedup.db",
+    "connection_name": "ChinookDedup",
+    "report_path": "/home/ga/Documents/exports/dedup_report.csv",
+    "script_path": "/home/ga/Documents/scripts/dedup_cleanup.sql",
+    "original_customer_count": 59,
+    "original_artist_count": 275,
+    "original_invoice_count": 412,
+    "original_album_count": 347,
+    "added_duplicates_customers": 8,
+    "added_duplicates_artists": 6
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_dedup_cleanup"
+    }
+  }
+}

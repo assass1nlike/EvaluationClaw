@@ -1,0 +1,28 @@
+{
+  "id": "run_backtest_with_custom_execution_settings@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is open with daily OHLCV data for MSFT (Microsoft Corp.) from January 2023 to December 2024 available. As a quantitative trader, stress-test the 'SampleMACrossover' strategy by running a backtest for MSFT on a daily timeframe from 1/2/2023 to 12/29/2024. Configure the execution parameters with an order quantity of 500 and slippage of 2 ticks. Run the backtest and save the workspace to persist these settings.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\run_backtest_with_custom_execution_settings\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\run_backtest_with_custom_execution_settings\\export_result.ps1"
+  },
+  "metadata": {
+    "strategy_name": "SampleMACrossover",
+    "instrument": "MSFT",
+    "expected_quantity": 500,
+    "expected_slippage": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_run_backtest_with_custom_execution_settings"
+    }
+  }
+}

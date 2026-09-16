@@ -1,0 +1,59 @@
+{
+  "task_id": "tactical_throw_deployment_setup@1",
+  "task_completion": [
+    {
+      "id": "read_tactical_brief",
+      "description": "Agent opens and reads the tactical brief to obtain the airframe ID.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '/home/ga/Documents/QGC/tactical_brief.txt'."
+    },
+    {
+      "id": "access_qgc_parameters",
+      "description": "Agent navigates to the Parameters menu in QGroundControl.",
+      "points": 10,
+      "visual_evidence": "QGroundControl is open with the 'Vehicle Setup' menu active (gear icon) and the 'Parameters' tab selected."
+    },
+    {
+      "id": "set_throw_parameters",
+      "description": "Agent configures the THROW parameters for drop deployment.",
+      "points": 20,
+      "visual_evidence": "In the QGroundControl Parameters screen, THROW_TYPE is set to 1, THROW_NEXTMODE is set to 5, and THROW_MOT_START is set to 1."
+    },
+    {
+      "id": "set_motor_disarm_parameters",
+      "description": "Agent configures motor spin and disarm delay parameters.",
+      "points": 20,
+      "visual_evidence": "In the QGroundControl Parameters screen, MOT_SPIN_ARM is set to 0.0 and DISARM_DELAY is set to 0."
+    },
+    {
+      "id": "set_flight_mode",
+      "description": "Agent sets the primary flight mode to Throw.",
+      "points": 10,
+      "visual_evidence": "In QGroundControl, FLTMODE1 is set to 18 in the Parameters screen, or Flight Mode 1 is set to 'Throw' in the Flight Modes setup screen."
+    },
+    {
+      "id": "write_signoff_report",
+      "description": "Agent creates the readiness sign-off report with required details.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the file '/home/ga/Documents/QGC/ready_signoff.txt' being edited or created, containing an airframe ID, a name, and the exact phrase 'Throw mode configured'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "qgc_gui_used",
+      "description": "Agent used the QGroundControl GUI to configure parameters.",
+      "visual_evidence": "Screenshots show interaction with the QGroundControl application interface to search and modify parameters, rather than using terminal commands or scripts to modify parameter files directly."
+    },
+    {
+      "id": "brief_actually_read",
+      "description": "Agent opened the tactical brief to extract the airframe ID.",
+      "visual_evidence": "There is at least one screenshot showing the contents of 'tactical_brief.txt' being viewed, proving the agent didn't hallucinate or guess the airframe ID."
+    },
+    {
+      "id": "report_manually_created",
+      "description": "Agent manually created the sign-off report.",
+      "visual_evidence": "Screenshots show a text editor or terminal command (like echo or cat) being used to write the specific required text into 'ready_signoff.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The tactical brief is located at '/home/ga/Documents/QGC/tactical_brief.txt'. The required ArduPilot parameters to be configured in QGroundControl are: FLTMODE1=18, THROW_TYPE=1, THROW_NEXTMODE=5, THROW_MOT_START=1, MOT_SPIN_ARM=0.0, and DISARM_DELAY=0. The final sign-off report must be saved to '/home/ga/Documents/QGC/ready_signoff.txt' and contain the exact phrase 'throw mode configured' (case-insensitive), the airframe ID from the brief, and the agent's name."
+}

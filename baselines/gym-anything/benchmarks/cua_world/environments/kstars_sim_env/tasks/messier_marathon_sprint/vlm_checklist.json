@@ -1,0 +1,53 @@
+{
+  "task_id": "messier_marathon_sprint@1",
+  "task_completion": [
+    {
+      "id": "read_target_sheet",
+      "description": "Agent opens and reads the marathon targets sheet.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of 'marathon_targets.txt', showing the list of Messier objects."
+    },
+    {
+      "id": "capture_messier_objects",
+      "description": "Agent uses KStars/Ekos to capture images of the required Messier targets.",
+      "points": 30,
+      "visual_evidence": "The KStars/Ekos capture module actively taking images, or a file manager showing FITS files saved in subdirectories like '~/Images/marathon/M1/', '~/Images/marathon/M13/', etc."
+    },
+    {
+      "id": "verify_exposure_counts",
+      "description": "Agent captures the correct number of frames for the targets as specified in the target sheet.",
+      "points": 20,
+      "visual_evidence": "The Ekos sequence queue showing the specific exposure counts (e.g., 3 for M13, 2 for M1), or a file manager showing exactly 3 files in the M13 folder and 2 files in the M1 folder."
+    },
+    {
+      "id": "generate_sky_view",
+      "description": "Agent generates and saves a sky view of the final target (M101).",
+      "points": 20,
+      "visual_evidence": "The KStars sky map centered on M101 with an export/save dialog, or an image viewer displaying the saved 'sky_view_m101.png'."
+    },
+    {
+      "id": "write_observation_log",
+      "description": "Agent writes the final observation log.",
+      "points": 20,
+      "visual_evidence": "A text editor displaying 'marathon_log.txt' containing observation notes for the marathon."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_kstars_usage",
+      "description": "Agent actually used KStars and the Ekos capture module to generate the images.",
+      "visual_evidence": "Screenshots must show the KStars GUI and Ekos capture module being interacted with. The agent should not be using terminal commands like 'touch' or 'cp' to create dummy FITS files."
+    },
+    {
+      "id": "authentic_sky_view",
+      "description": "The sky view image is genuinely exported from KStars.",
+      "visual_evidence": "The sky view image should visually match the KStars planetarium rendering of M101, not a generic downloaded image or a blank screen."
+    },
+    {
+      "id": "no_log_hallucination",
+      "description": "The observation log is created manually or via genuine observation, not just copied from a pre-existing solution file.",
+      "visual_evidence": "The agent is seen typing or constructing the log in a text editor, rather than copying it from an external script or hidden file."
+    }
+  ],
+  "privileged_info_for_vlm": "Targets and required exposure frames: M1 (2), M13 (3), M27 (2), M51 (2), M57 (2), M101 (2). Target sheet path: /home/ga/Documents/marathon_targets.txt. Base image directory: /home/ga/Images/marathon/. Sky view path: /home/ga/Images/marathon/sky_view_m101.png. Observation log path: /home/ga/Documents/marathon_log.txt. The task uses the KStars/INDI CCD simulator to generate synthetic FITS imagery."
+}

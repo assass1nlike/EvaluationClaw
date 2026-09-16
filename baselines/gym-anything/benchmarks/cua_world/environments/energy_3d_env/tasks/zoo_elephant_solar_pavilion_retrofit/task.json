@@ -1,0 +1,30 @@
+{
+  "id": "zoo_elephant_solar_pavilion_retrofit@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Zoo Facility Manager redesigning an outdoor elephant enclosure for an environment in Phoenix. The current canopy sits too low and provides poor shade at midday. Open the existing project file at `~/Documents/Energy3D/solar-canopy.ng3`. First, change the project Location to Phoenix. Then, modify the properties of the solar canopy (make sure it applies to the whole canopy/rack array): Change the Base Height (clearance) to 6.0 meters so the elephants fit safely underneath. Change the Tilt Angle to 10 degrees to provide a flatter roof for better midday ground shade. Finally, change the Solar Panel Model to 'SunPower SPR-X21-345' to offset the yield penalty of the flatter tilt. Run the Annual Yield analysis for the solar panels, export the results as a CSV file to `~/Documents/Energy3D/elephant_pavilion_yield.csv`, and save the modified project as `~/Documents/Energy3D/phoenix_elephant_pavilion.ng3`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/zoo_elephant_solar_pavilion_retrofit/setup_task.sh",
+    "post_task": "/workspace/tasks/zoo_elephant_solar_pavilion_retrofit/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/Energy3D/elephant_pavilion_yield.csv",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/phoenix_elephant_pavilion.ng3",
+    "expected_city": "Phoenix",
+    "expected_base_height": 6.0,
+    "expected_tilt": 10.0,
+    "expected_panel": "SunPower SPR-X21-345"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_retrofit"
+    }
+  }
+}

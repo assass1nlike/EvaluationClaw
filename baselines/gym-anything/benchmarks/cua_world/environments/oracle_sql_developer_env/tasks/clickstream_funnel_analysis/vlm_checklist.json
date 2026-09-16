@@ -1,0 +1,59 @@
+{
+  "task_id": "clickstream_funnel_analysis@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the Oracle database as the click_analyst user",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a terminal running sqlplus (e.g., sqlplus click_analyst/Click2024@localhost:1521/XEPDB1) or a database GUI client connected to the XEPDB1 service."
+    },
+    {
+      "id": "create_user_sessions",
+      "description": "Sessionize events into the USER_SESSIONS table",
+      "points": 15,
+      "visual_evidence": "SQL commands showing CREATE TABLE or INSERT INTO for CLICK_ANALYST.USER_SESSIONS, utilizing window functions (like LAG) to detect >30 minute gaps, followed by a success message."
+    },
+    {
+      "id": "create_funnel_patterns",
+      "description": "Detect funnel patterns and populate the FUNNEL_PATTERNS table",
+      "points": 20,
+      "visual_evidence": "SQL commands showing the creation or population of CLICK_ANALYST.FUNNEL_PATTERNS. Look for advanced analytical SQL, specifically the MATCH_RECOGNIZE clause, to identify 'COMPLETE_CONVERSION', 'CART_ABANDONMENT', and 'CHECKOUT_ABANDONMENT'."
+    },
+    {
+      "id": "create_user_segments",
+      "description": "Categorize users into the USER_SEGMENTS table",
+      "points": 15,
+      "visual_evidence": "SQL commands showing the creation or population of CLICK_ANALYST.USER_SEGMENTS, using conditional logic (e.g., CASE statements) to assign 'ONE_TIME_VISITOR', 'RETURNING_BROWSER', or 'CUSTOMER'."
+    },
+    {
+      "id": "create_views",
+      "description": "Create the conversion funnel view and engagement dashboard materialized view",
+      "points": 20,
+      "visual_evidence": "SQL commands executing 'CREATE VIEW CONVERSION_FUNNEL_VW' and 'CREATE MATERIALIZED VIEW ENGAGEMENT_DASHBOARD_MV', along with execution success messages."
+    },
+    {
+      "id": "export_csv_report",
+      "description": "Export the conversion funnel report to a CSV file",
+      "points": 20,
+      "visual_evidence": "Terminal commands or GUI actions showing the export of the conversion funnel data to /home/ga/funnel_report.csv, such as using SQL spooling, a Python script, or an 'ls' command verifying the file's existence."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "Verify that SQL queries were actually executed against the database",
+      "visual_evidence": "Look for database confirmation messages (e.g., 'Table created.', 'View created.', 'X rows inserted.') or query result grids, rather than just SQL code written in a text editor without being run."
+    },
+    {
+      "id": "dynamic_data_transformation",
+      "description": "Verify that tables were populated using data from the EVENTS table",
+      "visual_evidence": "SQL INSERT or CREATE TABLE AS SELECT statements should query the source EVENTS table. The agent should not use hardcoded INSERT statements with dummy data to bypass the analytical logic."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Verify the CSV file was generated programmatically or via a database tool",
+      "visual_evidence": "The creation of /home/ga/funnel_report.csv should be the result of a script, a database export command, or a GUI export feature, not manually typed out in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires the agent to perform sequential transformations on clickstream data in an Oracle database (Service: XEPDB1, User: click_analyst). The expected workflow involves using advanced Oracle features: Window Functions for sessionization, MATCH_RECOGNIZE for funnel pattern detection, and Materialized Views for the engagement dashboard. Ensure the agent actually executes these analytical SQL queries and successfully exports the final funnel report to /home/ga/funnel_report.csv."
+}

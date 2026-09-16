@@ -1,0 +1,59 @@
+{
+  "task_id": "hl7_batch_file_processor@1",
+  "task_completion": [
+    {
+      "id": "setup_directories_and_table",
+      "description": "Verify the required directories and database table are created.",
+      "points": 10,
+      "visual_evidence": "Look for terminal screenshots showing the creation or existence of '/home/ga/hl7_batch_inbox/' and '/home/ga/hl7_batch_archive/'. Also look for a psql terminal or database client showing the creation of the 'batch_processing_log' table with columns: batch_file, message_seq, patient_mrn, message_type, and processed_at."
+    },
+    {
+      "id": "channel_created",
+      "description": "Verify a NextGen Connect channel is created with the correct name.",
+      "points": 10,
+      "visual_evidence": "Look at the NextGen Connect Administrator GUI (Channels view) for a channel explicitly named 'Nightly HL7 Batch Processor'."
+    },
+    {
+      "id": "source_configured",
+      "description": "Verify the Source connector is configured to poll the inbox and move files to the archive.",
+      "points": 20,
+      "visual_evidence": "In the Source tab of the channel: Connector Type should be 'File Reader'. Directory should be '/home/ga/hl7_batch_inbox/'. File Pattern should be '*.hl7'. Polling Frequency should be 30000 (ms). 'After Processing Action' should be set to 'Move', and 'Move-to Directory' should be '/home/ga/hl7_batch_archive/'."
+    },
+    {
+      "id": "batch_processing_configured",
+      "description": "Verify the channel is configured to split HL7 batch files into individual messages.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Data Types' dialog or Inbound Properties for the Source. The format should be HL7 v2.x, with 'Process Batch' checked and 'Split by Message' selected (or similar batch stripping configuration to remove BHS/BTS segments)."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Verify the Destination connector is configured to insert extracted data into the PostgreSQL database.",
+      "points": 20,
+      "visual_evidence": "In the Destination tab: Connector Type should be 'Database Writer'. The URL should point to 'jdbc:postgresql://nextgen-postgres:5432/mirthdb'. The SQL query should be an INSERT statement targeting 'batch_processing_log' and mapping variables for PID-3 (patient_mrn) and MSH-9 (message_type)."
+    },
+    {
+      "id": "channel_deployed_and_processed",
+      "description": "Verify the channel was deployed and successfully processed the sample batch file.",
+      "points": 20,
+      "visual_evidence": "Look at the NextGen Connect Dashboard showing the channel as 'Deployed' and 'Started' with a Received/Sent count of 4. Alternatively, look for a terminal screenshot showing a SELECT query on 'batch_processing_log' returning 4 rows with MRNs (MRN100001 to MRN100004)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_nextgen_connect_usage",
+      "description": "Ensure the agent actually configured NextGen Connect rather than writing a standalone Python/Bash script to bypass the application.",
+      "visual_evidence": "Look for screenshots of the NextGen Connect Administrator GUI (Java Web Start app) or API calls to localhost:8443/api. The processing must be done by the integration engine, not a standalone script."
+    },
+    {
+      "id": "dynamic_hl7_parsing",
+      "description": "Ensure the agent dynamically parsed the HL7 fields rather than hardcoding the expected test data.",
+      "visual_evidence": "In the Destination SQL or Transformer steps, look for HL7 path references (e.g., msg['PID']['PID.3']['PID.3.1'].toString() or similar Mirth syntax) rather than hardcoded strings like 'MRN100001'."
+    },
+    {
+      "id": "actual_db_insertion",
+      "description": "Ensure the database records were genuinely created in PostgreSQL.",
+      "visual_evidence": "Look for a psql query execution (e.g., 'SELECT * FROM batch_processing_log;') showing the actual inserted rows, confirming the Database Writer worked."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected channel name is exactly 'Nightly HL7 Batch Processor'. The inbox directory is '/home/ga/hl7_batch_inbox' and archive is '/home/ga/hl7_batch_archive'. The target database is 'mirthdb' with table 'batch_processing_log'. The sample HL7 batch file contains exactly 4 messages wrapped in a BHS/BTS envelope. If processed correctly, the channel dashboard will show 4 messages received/sent, and the database will contain 4 rows with patient MRNs: MRN100001, MRN100002, MRN100003, MRN100004 and message types: ADT^A01, ADT^A01, ADT^A08, ADT^A03."
+}

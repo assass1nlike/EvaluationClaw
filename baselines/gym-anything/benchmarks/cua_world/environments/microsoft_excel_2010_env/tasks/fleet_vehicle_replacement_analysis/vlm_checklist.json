@@ -1,0 +1,59 @@
+{
+  "task_id": "fleet_vehicle_replacement_analysis@1",
+  "task_completion": [
+    {
+      "id": "file_opened",
+      "description": "Open the fleet_analysis.xlsx file",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open displaying the 'fleet_analysis.xlsx' file."
+    },
+    {
+      "id": "inventory_calculations",
+      "description": "Calculate Total Maintenance Cost, Age, and CPM in the Inventory sheet",
+      "points": 30,
+      "visual_evidence": "In the 'Inventory' sheet, the columns for 'Total Maintenance Cost', 'Age', and 'CPM' are populated with numerical values. The formula bar may show formulas like SUMIF (for maintenance), 2025 minus Year (for age), or division (for CPM)."
+    },
+    {
+      "id": "status_determined",
+      "description": "Determine the Status (REPLACE or KEEP) for each vehicle",
+      "points": 20,
+      "visual_evidence": "In the 'Inventory' sheet, the 'Status' column is populated with the words 'REPLACE' or 'KEEP'. The formula bar may show an IF/OR statement checking the thresholds."
+    },
+    {
+      "id": "red_fill_formatting",
+      "description": "Apply red fill to REPLACE statuses",
+      "points": 10,
+      "visual_evidence": "In the 'Inventory' sheet, the cells in the 'Status' column that contain the word 'REPLACE' have a red background color (applied manually or via conditional formatting)."
+    },
+    {
+      "id": "policy_budget_calculated",
+      "description": "Calculate Total Budget Required in the Policy sheet",
+      "points": 20,
+      "visual_evidence": "The 'Policy' sheet is active, and cell H2 contains a calculated total budget value. Based on the data, this value is expected to be between $580,000 and $700,000."
+    },
+    {
+      "id": "file_saved",
+      "description": "Save the updated file",
+      "points": 10,
+      "visual_evidence": "A save action (clicking the save icon or File > Save) is visible, or the application title bar shows no unsaved changes indicator (like an asterisk) at the end of the trajectory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_spreadsheet",
+      "description": "The agent used a graphical spreadsheet application to complete the task.",
+      "visual_evidence": "Screenshots show interaction with a spreadsheet UI (like LibreOffice Calc), not just a text editor or terminal."
+    },
+    {
+      "id": "no_scripting_bypass",
+      "description": "The agent did not use a script to bypass manual spreadsheet interaction.",
+      "visual_evidence": "There are no terminal windows open where the agent is running Python (e.g., pandas/openpyxl) or bash scripts to modify the .xlsx file directly."
+    },
+    {
+      "id": "formula_usage_visible",
+      "description": "The agent used spreadsheet formulas rather than hardcoding final answers.",
+      "visual_evidence": "The formula bar in the spreadsheet shows actual formulas (e.g., =SUMIF, =IF, =COUNTIF) being typed or used, rather than the agent just typing the final expected numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires calculating Age (2025 - Year), CPM (Total Maintenance / Odometer), and Status. A vehicle is marked 'REPLACE' if Age >= 8, Odometer >= 200,000, or CPM >= 0.12. The new vehicle cost is $58,000. Based on the synthetic data, there should be approximately 10-12 vehicles marked 'REPLACE', resulting in a Total Budget Required (in Policy sheet H2) between $580,000 and $696,000 (typically $600,000 - $700,000)."
+}

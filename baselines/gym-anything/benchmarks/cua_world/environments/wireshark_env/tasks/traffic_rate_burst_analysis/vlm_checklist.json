@@ -1,0 +1,59 @@
+{
+  "task_id": "traffic_rate_burst_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Open the target PCAP file for analysis",
+      "points": 10,
+      "visual_evidence": "Screenshots showing Wireshark open with '200722_tcp_anon.pcapng' loaded, or a terminal executing a command like 'tshark', 'capinfos', or a Python script reading the file."
+    },
+    {
+      "id": "analyze_traffic_stats",
+      "description": "Analyze the packet capture to determine traffic rates and intervals",
+      "points": 20,
+      "visual_evidence": "Visuals of Wireshark's 'I/O Graphs' or 'Capture File Properties', or terminal output showing per-second packet counts, durations, and totals."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Create the required text report file",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or gedit) open with the file path '/home/ga/Documents/traffic_rate_report.txt', or terminal commands redirecting output to this file."
+    },
+    {
+      "id": "record_basic_stats",
+      "description": "Record the capture duration, total packets, and average PPS",
+      "points": 20,
+      "visual_evidence": "The report file contains the lines 'CAPTURE_DURATION_SECS: 27', 'TOTAL_PACKETS: 35', and 'AVERAGE_PPS: 1.3'."
+    },
+    {
+      "id": "record_peak_stats",
+      "description": "Record the peak PPS and the second it occurred",
+      "points": 20,
+      "visual_evidence": "The report file contains the lines 'PEAK_PPS: 17' and 'PEAK_SECOND: 9'."
+    },
+    {
+      "id": "record_idle_stats",
+      "description": "Record the number of idle seconds",
+      "points": 20,
+      "visual_evidence": "The report file contains the line 'IDLE_SECONDS: 20'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis_performed",
+      "description": "The agent used a legitimate analysis method (GUI tool, CLI tool, or script) to compute the statistics rather than hallucinating them.",
+      "visual_evidence": "Screenshots must show the intermediate steps of analysis, such as viewing an I/O graph, running a tshark command, or executing a custom script that processes the PCAP."
+    },
+    {
+      "id": "correct_output_format",
+      "description": "The output file strictly follows the requested 'LABEL: value' format with one entry per line.",
+      "visual_evidence": "The text file contents should be a simple list of keys and values separated by a colon and space, without extra conversational text or markdown formatting."
+    },
+    {
+      "id": "file_saved_to_disk",
+      "description": "The report is actually saved to the correct directory.",
+      "visual_evidence": "Look for a saved file indicator in the text editor, or terminal commands like 'cat /home/ga/Documents/traffic_rate_report.txt' confirming the file exists on disk."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct values for the report are: CAPTURE_DURATION_SECS: 27, TOTAL_PACKETS: 35, AVERAGE_PPS: 1.3, PEAK_PPS: 17, PEAK_SECOND: 9, IDLE_SECONDS: 20. The target file is /home/ga/Documents/captures/200722_tcp_anon.pcapng and the output must be saved to /home/ga/Documents/traffic_rate_report.txt."
+}

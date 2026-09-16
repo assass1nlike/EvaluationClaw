@@ -1,0 +1,35 @@
+{
+  "id": "process_quarterly_pipeline_review@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "Perform a quarterly pipeline review for three stalled opportunities in the 'Qualified' stage: 'Cloud Migration - Hyperion Systems', 'ERP Implementation - Zenith Corp', and 'Consulting Retainer - Apex Global'. Based on the 'Internal Notes' for each opportunity, update the records accordingly: mark as Lost with the reason 'Too Expensive' if the deal was lost due to price; add the 'At Risk' tag and set Priority to Low (0 stars) if the deal is in trouble; or move the opportunity to the 'Negotiation' stage and set Probability to 90% if there is a verbal agreement. Ensure all updates are saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/process_quarterly_pipeline_review/setup_task.sh",
+    "post_task": "/workspace/tasks/process_quarterly_pipeline_review/export_result.sh"
+  },
+  "metadata": {
+    "leads": {
+      "hyperion": "Cloud Migration - Hyperion Systems",
+      "zenith": "ERP Implementation - Zenith Corp",
+      "apex": "Consulting Retainer - Apex Global"
+    },
+    "expected_values": {
+      "lost_reason": "Too Expensive",
+      "tag": "At Risk",
+      "target_stage": "Negotiation",
+      "target_prob": 90.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pipeline_review"
+    }
+  }
+}

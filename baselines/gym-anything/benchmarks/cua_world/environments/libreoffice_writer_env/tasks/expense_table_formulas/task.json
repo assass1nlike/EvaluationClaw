@@ -1,0 +1,43 @@
+{
+  "id": "expense_table_formulas@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Open /home/ga/Documents/expense_report_q1.docx and complete the quarterly expense table. Insert formulas to calculate the 'Q1 Total' for each category row, the 'Monthly Total' for each month column, and the Grand Total in the bottom-right cell. Apply bold formatting to the 'Monthly Total' row. Save the completed document as /home/ga/Documents/expense_report_q1_complete.docx. Use the word processor's table formula feature rather than manual entry.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/expense_table_formulas/setup_task.sh",
+    "post_task": "/workspace/tasks/expense_table_formulas/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/Documents/expense_report_q1.docx",
+    "output_path": "/home/ga/Documents/expense_report_q1_complete.docx",
+    "expected_values": {
+      "row_totals": [
+        3334,
+        10550,
+        16800,
+        5600,
+        9950,
+        1201
+      ],
+      "col_totals": [
+        21490,
+        11244,
+        14701
+      ],
+      "grand_total": 47435
+    },
+    "tolerance": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_expense_table_formulas"
+    }
+  }
+}

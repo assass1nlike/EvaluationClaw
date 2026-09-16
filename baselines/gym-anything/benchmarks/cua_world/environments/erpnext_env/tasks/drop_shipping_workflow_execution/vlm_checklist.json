@@ -1,0 +1,53 @@
+{
+  "task_id": "drop_shipping_workflow_execution@1",
+  "task_completion": [
+    {
+      "id": "sales_order_basics",
+      "description": "Create a Sales Order for Apex Corp with 10 units of 'Industrial Solar Inverter' at $1500 each.",
+      "points": 20,
+      "visual_evidence": "A Sales Order screen in ERPNext showing 'Apex Corp' as the Customer. The items table must contain 'Industrial Solar Inverter' with a Quantity of 10 and a Rate of $1500."
+    },
+    {
+      "id": "sales_order_drop_ship",
+      "description": "Configure the Sales Order item row to be 'Delivered by Supplier' and set the supplier to 'Global Solar Supply'.",
+      "points": 20,
+      "visual_evidence": "The item details section (often an expanded row or modal in the Sales Order items table) showing the 'Delivered by Supplier' checkbox checked and the Supplier field populated with 'Global Solar Supply'."
+    },
+    {
+      "id": "purchase_order_basics",
+      "description": "Create a Purchase Order to Global Solar Supply linked to the Sales Order.",
+      "points": 20,
+      "visual_evidence": "A Purchase Order screen showing 'Global Solar Supply' as the Supplier. There should be evidence it is linked to the Sales Order (e.g., a reference in the 'Link' or 'Reference' section, or a notification/breadcrumb showing it was created from the Sales Order)."
+    },
+    {
+      "id": "purchase_order_rate",
+      "description": "Set the Purchase Order rate for the item to $1000 each.",
+      "points": 10,
+      "visual_evidence": "The items table in the Purchase Order showing 'Industrial Solar Inverter' with a Quantity of 10 and a Rate of $1000."
+    },
+    {
+      "id": "delivery_note_created",
+      "description": "Create the Delivery Note directly from the Purchase Order to record the drop ship delivery.",
+      "points": 30,
+      "visual_evidence": "A Delivery Note screen showing 'Apex Corp' as the customer and 10 units of 'Industrial Solar Inverter'. It must show a reference to the Purchase Order (e.g., in the 'Items' table reference fields or 'Get Items From' section), indicating it was created directly from the PO."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the ERPNext web interface to create the documents.",
+      "visual_evidence": "Screenshots show the ERPNext web interface in a browser, not a terminal, Python script, or database client."
+    },
+    {
+      "id": "genuine_workflow",
+      "description": "The agent used the application's built-in workflow buttons (e.g., 'Create' -> 'Purchase Order' from the Sales Order) rather than manually faking the documents.",
+      "visual_evidence": "Screenshots show the agent clicking the 'Create' or 'Make' buttons in the top right of saved documents to generate the next document in the chain."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "The agent did not use browser developer tools to alter the text on the screen to fake success.",
+      "visual_evidence": "The UI looks consistent with standard ERPNext styling, without open developer consoles or misaligned text elements."
+    }
+  ],
+  "privileged_info_for_vlm": "Customer: 'Apex Corp'. Supplier: 'Global Solar Supply'. Item: 'Industrial Solar Inverter'. Quantity: 10. Sales Rate: $1500.00. Purchase Rate: $1000.00. The workflow requires checking 'Delivered by Supplier' on the Sales Order item row, then creating the Purchase Order from the Sales Order, and finally creating the Delivery Note from the Purchase Order."
+}

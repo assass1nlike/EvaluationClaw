@@ -1,0 +1,34 @@
+{
+  "id": "print_layout_map_composition@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Create a professional print layout map in QGIS using the administrative zones polygon layer (/home/ga/GIS_Data/sample_polygon.geojson) and monitoring stations point layer (/home/ga/GIS_Data/sample_points.geojson). Style the layers to be visually distinguishable and create a print layout named 'Bay Area Report' that includes a map item, a legend, a scale bar, and a title label 'Bay Area Monitoring Stations'. Export the final layout as a PNG image to /home/ga/GIS_Data/exports/bay_area_map.png and save the QGIS project to /home/ga/GIS_Data/projects/bay_area_map.qgz.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/print_layout_map_composition/setup_task.sh",
+    "post_task": "/workspace/tasks/print_layout_map_composition/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_path_qgz": "/home/ga/GIS_Data/projects/bay_area_map.qgz",
+    "expected_project_path_qgs": "/home/ga/GIS_Data/projects/bay_area_map.qgs",
+    "expected_export_path": "/home/ga/GIS_Data/exports/bay_area_map.png",
+    "required_layout_items": [
+      "Map",
+      "Label",
+      "Legend",
+      "ScaleBar"
+    ],
+    "min_layer_count": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_print_layout_map_composition"
+    }
+  }
+}

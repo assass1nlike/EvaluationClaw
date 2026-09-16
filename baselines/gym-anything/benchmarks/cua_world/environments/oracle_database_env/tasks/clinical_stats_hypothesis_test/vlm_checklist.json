@@ -1,0 +1,53 @@
+{
+  "task_id": "clinical_stats_hypothesis_test@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the Oracle database as the RESEARCH user",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQL Developer, or terminal running sqlplus) is open, showing a connection to the XEPDB1 database with the user 'RESEARCH'."
+    },
+    {
+      "id": "create_cohorts_view",
+      "description": "Create the PATIENT_COHORTS_VW view with the COHORT classification",
+      "points": 20,
+      "visual_evidence": "A SQL query executing 'CREATE VIEW PATIENT_COHORTS_VW' that selects from HEART_PATIENTS and includes a conditional statement (e.g., CASE WHEN diagnosis > 0 THEN 'DISEASE' ELSE 'NORMAL' END AS COHORT), or the view is visible in the database schema browser."
+    },
+    {
+      "id": "create_results_table",
+      "description": "Create the STUDY_RESULTS table",
+      "points": 10,
+      "visual_evidence": "A SQL query executing 'CREATE TABLE STUDY_RESULTS' with columns METRIC_NAME (VARCHAR2) and METRIC_VALUE (NUMBER), or the table is visible in the database schema browser."
+    },
+    {
+      "id": "insert_p_value_and_correlation",
+      "description": "Calculate and insert P_VALUE_HR_DIFF and CORRELATION_AGE_CHOL into STUDY_RESULTS",
+      "points": 30,
+      "visual_evidence": "SQL INSERT statements or SELECT queries utilizing the Oracle functions 'STATS_T_TEST_INDEP' (for THALACH between cohorts) and 'CORR' (for Age and CHOL), targeting the STUDY_RESULTS table."
+    },
+    {
+      "id": "insert_average_heart_rates",
+      "description": "Calculate and insert AVG_HR_DISEASE and AVG_HR_NORMAL into STUDY_RESULTS",
+      "points": 30,
+      "visual_evidence": "SQL INSERT statements or SELECT queries calculating the average (AVG) of Max Heart Rate (THALACH) grouped by or filtered by the 'DISEASE' and 'NORMAL' cohorts, targeting the STUDY_RESULTS table."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client",
+      "description": "Agent used a genuine database client or terminal to execute queries",
+      "visual_evidence": "The screenshots should show a real database tool (like DBeaver, SQL*Plus, or a Python script executing DB commands) rather than just typing SQL into a plain text editor without execution."
+    },
+    {
+      "id": "used_oracle_stat_functions",
+      "description": "Agent used the required Oracle statistical functions rather than calculating externally",
+      "visual_evidence": "The SQL queries must explicitly contain 'STATS_T_TEST_INDEP' and 'CORR'. The agent should not be running a separate Python script (e.g., using scipy/pandas) to find the values and then hardcoding the numbers into simple INSERT statements."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Agent did not hardcode the final metric values without querying the data",
+      "visual_evidence": "The INSERT statements should be populated using subqueries or SELECT statements from the PATIENT_COHORTS_VW view, rather than inserting raw, pre-calculated decimal numbers directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The database user is 'RESEARCH' and the password is 'research123'. The dataset is the real UCI Heart Disease dataset. The grading logic enforces strict tolerances for the calculated metrics: 0.0001 for p-value and correlation, and 0.01 for averages. Ensure the agent uses the exact Oracle functions requested (STATS_T_TEST_INDEP, CORR) to compute these values directly within the database."
+}

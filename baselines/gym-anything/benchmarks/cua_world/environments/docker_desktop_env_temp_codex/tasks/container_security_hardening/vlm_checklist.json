@@ -1,0 +1,53 @@
+{
+  "task_id": "container_security_hardening@1",
+  "task_completion": [
+    {
+      "id": "edit_dockerfile",
+      "description": "Agent updates the Dockerfile to fix security misconfigurations.",
+      "points": 25,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit) is open showing /home/ga/insecure-app/Dockerfile with security improvements, such as adding a non-root USER directive or removing unnecessary root privileges."
+    },
+    {
+      "id": "edit_compose_file",
+      "description": "Agent updates docker-compose.yml to fix security misconfigurations.",
+      "points": 25,
+      "visual_evidence": "A text editor is open showing /home/ga/insecure-app/docker-compose.yml with added security contexts, such as 'cap_drop', 'read_only' root filesystem, or 'user' directives."
+    },
+    {
+      "id": "rebuild_image",
+      "description": "Agent rebuilds the Docker image with the required hardened tag.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing a 'docker build' or 'docker-compose build' command executing, specifically tagging the new image as 'secure-web:hardened'."
+    },
+    {
+      "id": "redeploy_app",
+      "description": "Agent redeploys the hardened containerized application.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing 'docker-compose up', 'docker-compose up -d', or 'docker run' commands successfully starting the newly built container."
+    },
+    {
+      "id": "verify_app_functional",
+      "description": "Agent verifies the application is still functional on port 8090.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a successful 'curl http://localhost:8090' command returning HTML/data, or a web browser successfully loading the application at localhost:8090."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Verifies the agent actually modified the configuration files using an editor or standard tools.",
+      "visual_evidence": "Screenshots show a real text editor interface or standard stream redirection (e.g., sed, echo) modifying the Dockerfile and docker-compose.yml, not just printing the final expected file contents."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "Verifies the agent actually ran Docker commands to build and deploy the application.",
+      "visual_evidence": "Terminal shows authentic Docker daemon output (e.g., build steps, layer caching, container creation logs) rather than mocked echo statements."
+    },
+    {
+      "id": "no_external_image_pull",
+      "description": "Verifies the agent built the hardened image locally rather than pulling a pre-made solution.",
+      "visual_evidence": "The docker build process shows local execution of the Dockerfile steps rather than just pulling a pre-existing 'secure-web:hardened' image from an external registry."
+    }
+  ],
+  "privileged_info_for_vlm": "The application directory is /home/ga/insecure-app. There are exactly 4 security issues (CIS violations) that need to be fixed across the Dockerfile and docker-compose.yml. The final rebuilt image must be tagged specifically as 'secure-web:hardened'. The application must remain functional and accessible on port 8090."
+}

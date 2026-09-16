@@ -1,0 +1,59 @@
+{
+  "task_id": "new_cafeteria_schedule_creation@1",
+  "task_completion": [
+    {
+      "id": "create_day_schedule",
+      "description": "Create a Day Schedule named 'Lunch-Rush-Day' with 1.0 occupancy from 11:00 AM to 2:00 PM and 0.0 otherwise",
+      "points": 20,
+      "visual_evidence": "Look for the eQUEST schedule properties window (or .inp file in a text editor) showing a Day Schedule named 'Lunch-Rush-Day' (Type: FRACTION). It must have values of 1.0 for hours 12, 13, and 14 (which correspond to 11 AM - 2 PM) and 0.0 for all other hours."
+    },
+    {
+      "id": "create_week_schedule",
+      "description": "Create a Week Schedule named 'Lunch-Rush-Week' applying the day schedule to weekdays",
+      "points": 15,
+      "visual_evidence": "Look for a Week Schedule named 'Lunch-Rush-Week' (Type: FRACTION) with 'Lunch-Rush-Day' assigned to Monday, Tuesday, Wednesday, Thursday, and Friday."
+    },
+    {
+      "id": "create_annual_schedule",
+      "description": "Create an Annual Schedule named 'Lunch-Rush-Annual' applying the week schedule for the entire year",
+      "points": 15,
+      "visual_evidence": "Look for an Annual Schedule named 'Lunch-Rush-Annual' (Type: FRACTION) with 'Lunch-Rush-Week' assigned for the entire year (e.g., Jan 1 to Dec 31)."
+    },
+    {
+      "id": "assign_schedule_to_zone",
+      "description": "Assign 'Lunch-Rush-Annual' to the People (Occupancy) load of zone 'G.E02'",
+      "points": 20,
+      "visual_evidence": "Look for the zone properties window for 'G.E02' showing 'Lunch-Rush-Annual' in the Occupancy/People schedule dropdown, OR a text editor showing the .inp file with 'PEOPLE-SCHEDULE = \"Lunch-Rush-Annual\"' under the definition for zone 'G.E02'."
+    },
+    {
+      "id": "run_annual_simulation",
+      "description": "Run the annual simulation in eQUEST",
+      "points": 15,
+      "visual_evidence": "Look for the eQUEST simulation dialog showing the simulation running (progress bars) or a 'Simulation Complete' message."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the eQUEST project",
+      "points": 15,
+      "visual_evidence": "Look for the agent clicking 'File -> Save', pressing Ctrl+S, or the eQUEST window title bar no longer showing an asterisk (*) next to the filename, indicating the project is saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_software_interaction",
+      "description": "Agent interacted with the actual eQUEST GUI or a genuine text editor to modify the .inp file",
+      "visual_evidence": "Screenshots should show the actual eQUEST interface (menus, dialogs, project tree) or a standard text editor (like Notepad/VSCode) editing the .inp file, not a mocked or hallucinated interface."
+    },
+    {
+      "id": "genuine_simulation_run",
+      "description": "The simulation was actually executed within the eQUEST environment",
+      "visual_evidence": "The simulation progress window or completion dialog must match eQUEST's standard DOE-2 simulation output interface."
+    },
+    {
+      "id": "no_text_hallucination",
+      "description": "Agent did not just type the expected answers into an unrelated text file to bypass GUI interaction",
+      "visual_evidence": "If a text editor is used, it must be editing the actual '4StoreyBuilding.inp' file with correct DOE-2 BDL syntax, not just a blank document with the task text pasted in."
+    }
+  ],
+  "privileged_info_for_vlm": "eQUEST uses 1-indexed hours: Hour 12 is 11:00 AM to 12:00 PM, Hour 13 is 12:00 PM to 1:00 PM, and Hour 14 is 1:00 PM to 2:00 PM. The Day Schedule should show 1.0 (100% occupancy) for these three hours and 0.0 for all others. Note that the target zone 'G.E02' does NOT exist in the default 4StoreyBuilding.inp file; the agent must either create/rename a zone to 'G.E02' or it will fail the assignment step. Score the assignment strictly based on whether 'G.E02' is visible with the correct schedule assigned."
+}

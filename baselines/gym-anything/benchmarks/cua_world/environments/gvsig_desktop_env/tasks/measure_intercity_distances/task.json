@@ -1,0 +1,31 @@
+{
+  "id": "measure_intercity_distances@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Measure the direct geodesic distances in kilometers between three specific pairs of cities: New York (USA) to London (UK), Tokyo (Japan) to Sydney (Australia), and Buenos Aires (Argentina) to Cape Town (South Africa). Use the cities layer located at `~/gvsig_data/cities/ne_110m_populated_places.shp` within the `countries_base` project to identify the locations. Create a text file at `~/gvsig_data/exports/distances.txt` containing the results in the following format:\n\nNew York-London: <value> km\nTokyo-Sydney: <value> km\nBuenos Aires-Cape Town: <value> km",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/measure_intercity_distances/setup_task.sh",
+    "post_task": "/workspace/tasks/measure_intercity_distances/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/gvsig_data/exports/distances.txt",
+    "ground_truth": {
+      "ny_london": 5570,
+      "tokyo_sydney": 7800,
+      "ba_capetown": 6890
+    },
+    "tolerance_percent": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_measure_distances"
+    }
+  }
+}

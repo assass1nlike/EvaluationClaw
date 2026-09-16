@@ -1,0 +1,36 @@
+{
+  "id": "microservices_dependency_audit@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Systems Analyst at a fintech company. A junior engineer started an architecture diagram for the company's microservices platform, but it is incomplete and incorrect. Audit the partial diagram at ~/Diagrams/microservices_partial.drawio against the authoritative service catalog at ~/Desktop/service_catalog.yaml to produce a corrected, complete architecture diagram. The final diagram must include all services from the catalog, with service-to-service dependencies represented as directed arrows labeled with their respective protocols (REST, gRPC, AMQP, etc.). Group services into their correct domain boundaries (Customer Domain, Payment Domain, and Operations Domain) and mark each service with its technology stack label. Include a second page titled 'Dependency Matrix' containing a table that maps dependencies between all services. Save the corrected diagram as ~/Desktop/microservices_architecture.drawio and export it as ~/Desktop/microservices_architecture.svg. Login: username=ga, password=password123",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/microservices_dependency_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/microservices_dependency_audit/export_result.sh"
+  },
+  "metadata": {
+    "total_services": 9,
+    "min_services": 7,
+    "min_edges": 10,
+    "min_pages": 2,
+    "domains": [
+      "customer",
+      "payment",
+      "operations"
+    ],
+    "starter_file": "/home/ga/Diagrams/microservices_partial.drawio",
+    "catalog_file": "/home/ga/Desktop/service_catalog.yaml",
+    "output_drawio": "/home/ga/Desktop/microservices_architecture.drawio",
+    "output_svg": "/home/ga/Desktop/microservices_architecture.svg"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_microservices_dependency_audit"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "create_project_template@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Create a Project Template named 'New Branch Office Setup' with the type 'Infrastructure', priority 'High', and description 'Standard template for commissioning IT equipment in new branch locations.' Include a milestone titled 'Infrastructure Preparation' (Status: 'Open') and a task under that milestone titled 'Site Survey and Cabling Check' with the owner 'Administrator' and priority 'Medium'. Login credentials: Administrator / Administrator (or Admin1234!).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_project_template/setup_task.sh",
+    "post_task": "/workspace/tasks/create_project_template/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "template_name": "New Branch Office Setup",
+    "milestone_title": "Infrastructure Preparation",
+    "task_title": "Site Survey and Cabling Check",
+    "priority": "High"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_project_template"
+    }
+  }
+}

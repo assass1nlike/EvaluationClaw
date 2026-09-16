@@ -1,0 +1,59 @@
+{
+  "task_id": "artifact_search_inventory@1",
+  "task_completion": [
+    {
+      "id": "report_file_created",
+      "description": "The artifact inventory report file is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command like 'cat ~/artifact_inventory_report.txt', 'nano /home/ga/artifact_inventory_report.txt', or an open text editor showing this file path."
+    },
+    {
+      "id": "commons_lang3_jar_entry",
+      "description": "The report includes the correct entry for the commons-lang3 JAR file.",
+      "points": 20,
+      "visual_evidence": "The report text contains an entry with Path ending in 'commons-lang3/3.14.0/commons-lang3-3.14.0.jar', Size: 657952, and SHA-256: 7b96bf3ee68949abb5bc465559ac270e0551596fa34523fddf890ec418dde13c."
+    },
+    {
+      "id": "commons_lang3_pom_entry",
+      "description": "The report includes the correct entry for the commons-lang3 POM file.",
+      "points": 15,
+      "visual_evidence": "The report text contains an entry with Path ending in 'commons-lang3/3.14.0/commons-lang3-3.14.0.pom', Size: 30894, and SHA-256: 110438863bad37c28f906bf87016e38c7a8c758ba321e09d11dc5a2363a8e79e."
+    },
+    {
+      "id": "commons_io_jar_entry",
+      "description": "The report includes the correct entry for the commons-io JAR file.",
+      "points": 20,
+      "visual_evidence": "The report text contains an entry with Path ending in 'commons-io/2.15.1/commons-io-2.15.1.jar', Size: 181, and a SHA-256 checksum (the exact checksum value will vary, just verify it is present)."
+    },
+    {
+      "id": "commons_io_pom_entry",
+      "description": "The report includes the correct entry for the commons-io POM file.",
+      "points": 15,
+      "visual_evidence": "The report text contains an entry with Path ending in 'commons-io/2.15.1/commons-io-2.15.1.pom', Size: 143, and SHA-256: 5cf07c685648d653e1ecc33d127ab5ee122561692dd83782ca9573ce5d68fde5."
+    },
+    {
+      "id": "correct_formatting",
+      "description": "The report follows the exact required formatting.",
+      "points": 20,
+      "visual_evidence": "Each entry has exactly three lines starting with 'Path: ', 'Size: ', and 'SHA-256: ' respectively, and entries are separated by a single blank line."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_artifactory_interaction",
+      "description": "The agent interacted with the Artifactory server to retrieve the information.",
+      "visual_evidence": "Look for terminal commands like 'curl', 'wget', or 'jfrog' querying the local Artifactory instance, or a web browser open to the Artifactory UI."
+    },
+    {
+      "id": "no_hardcoded_script",
+      "description": "The agent did not use a script with hardcoded answers to bypass the task.",
+      "visual_evidence": "Ensure any scripts written by the agent are actually querying the API or parsing downloaded data, rather than just echoing the final expected text."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "The report was actually saved to the filesystem.",
+      "visual_evidence": "Look for commands like '>', '>>', 'tee', or a text editor save action that writes the output to 'artifact_inventory_report.txt', rather than just printing it to the terminal screen."
+    }
+  ],
+  "privileged_info_for_vlm": "The report must be at /home/ga/artifact_inventory_report.txt. Expected values:\n1. commons-lang3-3.14.0.jar -> Size: 657952, SHA256: 7b96bf3ee68949abb5bc465559ac270e0551596fa34523fddf890ec418dde13c\n2. commons-lang3-3.14.0.pom -> Size: 30894, SHA256: 110438863bad37c28f906bf87016e38c7a8c758ba321e09d11dc5a2363a8e79e\n3. commons-io-2.15.1.jar -> Size: 181, SHA256: <dynamic/varies>\n4. commons-io-2.15.1.pom -> Size: 143, SHA256: 5cf07c685648d653e1ecc33d127ab5ee122561692dd83782ca9573ce5d68fde5"
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "ephemeral_storage_eviction_remediation@1",
+  "task_completion": [
+    {
+      "id": "login_rancher",
+      "description": "Log in to the Rancher dashboard",
+      "points": 10,
+      "visual_evidence": "Browser showing the Rancher login screen at https://localhost followed by the authenticated Rancher dashboard."
+    },
+    {
+      "id": "navigate_to_namespace",
+      "description": "Navigate to the target namespace",
+      "points": 10,
+      "visual_evidence": "Rancher UI showing the cluster explorer or workloads page filtered by or displaying the 'ml-workloads' namespace."
+    },
+    {
+      "id": "inspect_evicted_deployment",
+      "description": "Inspect the failing deployment",
+      "points": 10,
+      "visual_evidence": "Rancher UI displaying the 'ml-inference' deployment details, showing pods in an 'Evicted' state or events indicating ephemeral storage issues."
+    },
+    {
+      "id": "edit_deployment_resources",
+      "description": "Edit the deployment to resolve the ephemeral storage eviction",
+      "points": 30,
+      "visual_evidence": "Rancher UI showing the edit screen for the 'ml-inference' deployment (either form view or YAML view) where ephemeral storage limits/requests are being increased or removed."
+    },
+    {
+      "id": "verify_running_state",
+      "description": "Verify both replicas reach a Running state",
+      "points": 40,
+      "visual_evidence": "Rancher UI showing the 'ml-inference' deployment with 2/2 pods in a 'Running' state (typically indicated by green status icons)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rancher_gui",
+      "description": "Agent used the Rancher GUI to resolve the issue",
+      "visual_evidence": "The agent interacts with the Rancher web interface in a browser to edit the deployment, rather than exclusively using kubectl commands in a terminal."
+    },
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Agent interacted with a real web browser",
+      "visual_evidence": "The browser URL bar shows https://localhost and the Rancher UI is genuinely rendered, not a text editor or mocked interface."
+    },
+    {
+      "id": "no_inspect_element_faking",
+      "description": "Agent did not fake the final state using browser developer tools",
+      "visual_evidence": "The final 'Running' state is shown in the standard Rancher UI without the browser developer tools (Inspect Element) open to manipulate the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace: 'ml-workloads'. Target deployment: 'ml-inference'. The agent must resolve the Kubelet pod eviction issue (typically by adjusting ephemeral storage limits/requests) so that exactly 2 replicas reach the 'Running' state."
+}

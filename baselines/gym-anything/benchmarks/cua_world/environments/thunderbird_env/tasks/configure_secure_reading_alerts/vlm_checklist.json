@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_secure_reading_alerts@1",
+  "task_completion": [
+    {
+      "id": "desktop_alerts_enabled",
+      "description": "Desktop alerts for incoming mail are enabled.",
+      "points": 10,
+      "visual_evidence": "In Thunderbird Settings -> General -> Incoming Mails, the 'Show an alert' checkbox is checked."
+    },
+    {
+      "id": "alert_subject_hidden",
+      "description": "The subject is configured to not appear in notifications.",
+      "points": 15,
+      "visual_evidence": "In the New Mail Alert customization dialog (accessed via 'Customize...' next to 'Show an alert'), the 'Subject' checkbox is unchecked."
+    },
+    {
+      "id": "alert_message_text_hidden",
+      "description": "The message text is configured to not appear in notifications.",
+      "points": 15,
+      "visual_evidence": "In the New Mail Alert customization dialog, the 'Message Text' checkbox is unchecked."
+    },
+    {
+      "id": "custom_sound_enabled",
+      "description": "The option to use a custom sound file for new messages is selected.",
+      "points": 15,
+      "visual_evidence": "In Thunderbird Settings -> General -> Incoming Mails, the 'Use the following sound file' radio button is selected."
+    },
+    {
+      "id": "custom_sound_file_set",
+      "description": "The notification sound file is set to urgent_bell.wav.",
+      "points": 25,
+      "visual_evidence": "The file path next to 'Use the following sound file' shows 'urgent_bell.wav' or the full path '~/Documents/urgent_bell.wav' (or '/home/ga/Documents/urgent_bell.wav')."
+    },
+    {
+      "id": "read_delay_configured",
+      "description": "Messages are automatically marked as read only after being displayed for 5 seconds.",
+      "points": 20,
+      "visual_evidence": "In Thunderbird Settings -> General -> Reading & Display, the 'After displaying for' radio button is selected, and the numeric input box next to it is set to '5' seconds."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the Thunderbird GUI to configure settings.",
+      "visual_evidence": "Screenshots should show the Thunderbird Settings/Preferences window being navigated and modified, rather than a terminal window editing the 'prefs.js' file directly."
+    },
+    {
+      "id": "genuine_application",
+      "description": "The agent interacted with the actual Thunderbird application.",
+      "visual_evidence": "The application interface matches Mozilla Thunderbird, not a text editor or a mock-up."
+    },
+    {
+      "id": "no_terminal_shortcuts",
+      "description": "The agent did not use terminal commands to bypass the UI configuration.",
+      "visual_evidence": "There should be no terminal windows showing commands like 'sed', 'echo', or 'gsettings' being used to forcefully write Thunderbird preferences."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected configuration requires: 1) 'Show an alert' is checked, but 'Subject' and 'Message Text' are unchecked in the customization dialog. 2) The notification sound is set to use a custom file located at '~/Documents/urgent_bell.wav' (or '/home/ga/Documents/urgent_bell.wav'). 3) The reading setting is set to 'After displaying for' with a delay interval of exactly 5 seconds."
+}

@@ -1,0 +1,40 @@
+{
+  "id": "assess_migraine_med_safety_procarbazine@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Assess the safety of migraine medications (Sumatriptan, Ibuprofen, and Paracetamol) for a patient on Procarbazine (a chemotherapy agent with MAOI properties) using the Liverpool Cancer iChart Archive app. Document the interaction traffic light color (Red, Orange, Yellow, Green, or Grey) for each combination and identify the safest medication choice. Save the results to /sdcard/migraine_safety_report.txt using the following format:\n\nProcarbazine + Sumatriptan: [COLOR]\nProcarbazine + Ibuprofen: [COLOR]\nProcarbazine + Paracetamol: [COLOR]\nSafest Option: [Drug Name]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/assess_migraine_med_safety_procarbazine/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/assess_migraine_med_safety_procarbazine/export_result.sh"
+  },
+  "metadata": {
+    "expected_colors": {
+      "Sumatriptan": [
+        "red",
+        "orange"
+      ],
+      "Ibuprofen": [
+        "yellow",
+        "orange"
+      ],
+      "Paracetamol": [
+        "green",
+        "grey"
+      ]
+    },
+    "safest_option": "Paracetamol",
+    "output_file": "/sdcard/migraine_safety_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migraine_safety"
+    }
+  }
+}

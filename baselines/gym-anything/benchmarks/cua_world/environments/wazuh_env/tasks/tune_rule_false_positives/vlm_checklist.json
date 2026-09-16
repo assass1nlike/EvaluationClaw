@@ -1,0 +1,59 @@
+{
+  "task_id": "tune_rule_false_positives@1",
+  "task_completion": [
+    {
+      "id": "open_rules_file",
+      "description": "Open the Wazuh local rules file for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or a GUI editor) is open displaying the contents of '/var/ossec/etc/rules/local_rules.xml'."
+    },
+    {
+      "id": "override_rule_5402",
+      "description": "Override rule 5402 to level 0.",
+      "points": 20,
+      "visual_evidence": "The XML file contains a rule tag for 5402 with attributes setting it to level 0 and overwrite to yes, e.g., <rule id=\"5402\" level=\"0\" overwrite=\"yes\">."
+    },
+    {
+      "id": "preserve_rule_5402_logic",
+      "description": "Preserve the original logic for rule 5402.",
+      "points": 20,
+      "visual_evidence": "Inside the rule 5402 block, there are tags preserving the logic: <if_sid>5401</if_sid> and <match>; USER=root ; COMMAND=</match>."
+    },
+    {
+      "id": "create_child_rule_100100",
+      "description": "Create a new child rule with ID 100100 for parent rule 5501.",
+      "points": 20,
+      "visual_evidence": "The XML file contains a new rule block starting with <rule id=\"100100\" level=\"0\"> and includes <if_sid>5501</if_sid> to link it to the parent rule."
+    },
+    {
+      "id": "suppress_backup_svc_user",
+      "description": "Configure the child rule to suppress alerts for the 'backup_svc' user.",
+      "points": 15,
+      "visual_evidence": "Inside the rule 100100 block, there is a tag targeting the user, such as <user>backup_svc</user> or <match>backup_svc</match>."
+    },
+    {
+      "id": "restart_wazuh_manager",
+      "description": "Apply the changes to the Wazuh manager.",
+      "points": 15,
+      "visual_evidence": "A terminal shows a command being executed to restart the Wazuh manager, such as 'systemctl restart wazuh-manager' or '/var/ossec/bin/wazuh-control restart'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_edit",
+      "description": "Verify the agent actually edited the configuration file.",
+      "visual_evidence": "The screenshots should show an actual text editor interface modifying the file, not just echoing text into the void or writing a script without executing it."
+    },
+    {
+      "id": "valid_xml_structure",
+      "description": "Verify the XML modifications are structurally valid.",
+      "visual_evidence": "The added rules should be placed correctly within the <group> tags of the XML file, and all opened tags (like <rule>) should be properly closed (</rule>)."
+    },
+    {
+      "id": "genuine_service_restart",
+      "description": "Verify the agent genuinely restarted the Wazuh service.",
+      "visual_evidence": "The terminal should show the actual execution of the restart command without errors, rather than just typing it without pressing enter."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: /var/ossec/etc/rules/local_rules.xml. Rule 5402 must be overridden (level=\"0\" overwrite=\"yes\") while keeping if_sid: 5401 and match: '; USER=root ; COMMAND='. A new child rule 100100 must be created for parent rule 5501 (if_sid: 5501) at level 0, specifically targeting the user 'backup_svc'."
+}

@@ -1,0 +1,37 @@
+{
+  "id": "gala_dinner_seating_plan@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are an Event Coordinator finalizing the layout for a charity fundraiser dinner. Create a seating plan diagram in draw.io based on the requirements file provided on the Desktop (gala_requirements.txt). The floor plan must include a rectangular stage at the top (North), a rectangular head table for 6 people facing the stage, 6 round guest tables arranged in 2 rows of 3, 8 chairs around each guest table, a bar in the bottom-right corner, and an entrance in the bottom-left corner. Number the guest tables 1 through 6, highlighting Table 1 and Table 2 with a gold or yellow fill color. Ensure all chairs are clearly visible. Save the diagram to ~/Desktop/gala_seating_plan.drawio and export it to ~/Desktop/gala_seating_plan.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/gala_dinner_seating_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/gala_dinner_seating_plan/export_result.sh"
+  },
+  "metadata": {
+    "requirements_file": "/home/ga/Desktop/gala_requirements.txt",
+    "output_drawio": "/home/ga/Desktop/gala_seating_plan.drawio",
+    "output_png": "/home/ga/Desktop/gala_seating_plan.png",
+    "expected_guest_tables": 6,
+    "expected_chairs_per_table": 8,
+    "total_chairs_min": 50,
+    "vip_colors": [
+      "#FFD700",
+      "#FFFF00",
+      "#FFCC00",
+      "gold",
+      "yellow"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_gala_dinner_seating_plan"
+    }
+  }
+}

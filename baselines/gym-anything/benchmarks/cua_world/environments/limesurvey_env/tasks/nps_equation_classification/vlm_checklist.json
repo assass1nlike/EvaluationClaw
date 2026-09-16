@@ -1,0 +1,59 @@
+{
+  "task_id": "nps_equation_classification@1",
+  "task_completion": [
+    {
+      "id": "survey_and_nps_question",
+      "description": "Create the survey with the correct title, group, and mandatory 0-10 NPS question.",
+      "points": 15,
+      "visual_evidence": "Look for the survey titled 'Q4 2024 Customer Experience NPS Survey'. In the survey structure, there should be a group named 'NPS Rating' containing a question with code 'NPS' that is marked as mandatory and uses a 0-10 scale."
+    },
+    {
+      "id": "npscat_equation",
+      "description": "Create an equation question named 'NPSCat' with correct classification logic.",
+      "points": 20,
+      "visual_evidence": "Look for a question with code 'NPSCat' of type 'Equation'. The logic or equation field should show a formula classifying scores (e.g., Detractor for 0-6, Passive for 7-8, Promoter for 9-10)."
+    },
+    {
+      "id": "follow_up_questions",
+      "description": "Create a 'Follow-Up Feedback' group with three Long Free Text questions.",
+      "points": 15,
+      "visual_evidence": "Look for a group named 'Follow-Up Feedback' containing three questions of type Long Free Text with codes 'DetractorQ', 'PassiveQ', and 'PromoterQ'. The question texts should match the specific prompts requested for each category."
+    },
+    {
+      "id": "conditional_logic",
+      "description": "Apply conditional logic to the follow-up questions.",
+      "points": 20,
+      "visual_evidence": "Look for relevance equations or condition settings on 'DetractorQ', 'PassiveQ', and 'PromoterQ' ensuring they only display for their respective NPS categories (e.g., DetractorQ shows if NPS <= 6 or NPSCat == 'Detractor')."
+    },
+    {
+      "id": "anonymize_responses",
+      "description": "Configure survey settings to anonymize responses.",
+      "points": 15,
+      "visual_evidence": "Look for the survey's Participant settings or General settings showing 'Anonymized responses' set to 'Yes' or 'On'."
+    },
+    {
+      "id": "survey_activated",
+      "description": "Activate the survey.",
+      "points": 15,
+      "visual_evidence": "Look for a status indicator showing the survey is 'Active', 'Running', or a button to 'Stop this survey', indicating it has been successfully activated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the LimeSurvey web interface to create the survey.",
+      "visual_evidence": "Screenshots should show the LimeSurvey admin interface being navigated and forms being filled out, rather than terminal commands or API scripts."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "The agent did not use browser developer tools to fake the survey creation.",
+      "visual_evidence": "No browser developer tools (Inspect Element) should be visible modifying the DOM to fake the presence of the survey or questions."
+    },
+    {
+      "id": "actual_survey_creation",
+      "description": "The survey and questions were actually saved in the application.",
+      "visual_evidence": "Screenshots should show success messages after saving, or the questions appearing in the survey structure overview, not just typed into unsaved forms."
+    }
+  ],
+  "privileged_info_for_vlm": "LimeSurvey 6 supports Equation questions (type '*') for classification logic. The standard NPS classification ranges are Detractor: 0-6, Passive: 7-8, Promoter: 9-10. Follow-up questions should be Long Free Text (type 'T'). Conditional logic is implemented using relevance equations. Anonymized responses is a standard setting in LimeSurvey."
+}

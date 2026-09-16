@@ -1,0 +1,53 @@
+{
+  "task_id": "inventory_gap_filling@1",
+  "task_completion": [
+    {
+      "id": "query_source_table",
+      "description": "Agent inspects or queries the INVENTORY_LOG table to understand the schema and data.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a SQL client or terminal executing a SELECT query on INVENTORY_LOG or viewing its schema (LOG_ID, PRODUCT_ID, CHANGE_DATE, NEW_QUANTITY)."
+    },
+    {
+      "id": "generate_date_series",
+      "description": "Agent writes SQL logic to generate a continuous date series for January 2026.",
+      "points": 20,
+      "visual_evidence": "Screenshots show SQL code containing date generation logic (e.g., GENERATE_SERIES, recursive CTE, or calendar table) specifically spanning '2026-01-01' to '2026-01-31'."
+    },
+    {
+      "id": "handle_same_day_updates",
+      "description": "Agent implements logic to resolve multiple changes on the same day by using the highest LOG_ID.",
+      "points": 20,
+      "visual_evidence": "Screenshots show SQL code using window functions (e.g., ROW_NUMBER() OVER (... ORDER BY LOG_ID DESC)) or MAX(LOG_ID) grouped by date and product to filter same-day updates."
+    },
+    {
+      "id": "implement_locf_and_defaults",
+      "description": "Agent implements Last Observation Carried Forward (LOCF) logic and defaults missing initial history to 0.",
+      "points": 30,
+      "visual_evidence": "Screenshots show SQL code using advanced window functions (like LAST_VALUE(... IGNORE NULLS), or cumulative grouping) to carry forward the STOCK_LEVEL, along with COALESCE or IFNULL to set the value to 0 for dates before the first recorded change."
+    },
+    {
+      "id": "create_final_view",
+      "description": "Agent successfully creates the DAILY_INVENTORY_FULL view with the required columns.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the execution of a 'CREATE VIEW DAILY_INVENTORY_FULL AS' statement, and the query explicitly selects or aliases columns to REPORT_DATE, PRODUCT_ID, and STOCK_LEVEL. A success message or the view appearing in the database schema should be visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "The agent executes the SQL commands in a real database client or terminal environment.",
+      "visual_evidence": "The SQL is run in a legitimate database interface (e.g., DBeaver, pgAdmin, psql, mysql CLI) rather than just being typed into a text editor without execution."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent uses dynamic SQL logic rather than hardcoding the expected output.",
+      "visual_evidence": "The SQL query uses joins, window functions, and date generation rather than a series of hardcoded INSERT statements or UNION ALLs with static values for products 500, 501, and 502."
+    },
+    {
+      "id": "no_external_llm_cheating",
+      "description": "The agent does not copy the prompt into a web-based LLM to generate the answer.",
+      "visual_evidence": "Screenshots do not show web browsers open to ChatGPT, Claude, or similar AI chat interfaces being used to solve the task."
+    }
+  ],
+  "privileged_info_for_vlm": "The target view must be named DAILY_INVENTORY_FULL and source data from INVENTORY_LOG. The date range must explicitly cover 2026-01-01 to 2026-01-31 (31 days). The view must contain exactly these columns: REPORT_DATE, PRODUCT_ID, and STOCK_LEVEL. The underlying data contains products 500, 501, and 502, which are designed to test standard gaps, late starts (requiring initial 0s), and same-day updates respectively."
+}

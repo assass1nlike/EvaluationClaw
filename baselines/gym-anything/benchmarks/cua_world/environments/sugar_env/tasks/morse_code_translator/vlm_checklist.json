@@ -1,0 +1,53 @@
+{
+  "task_id": "morse_code_translator@1",
+  "task_completion": [
+    {
+      "id": "morse_reference_created",
+      "description": "Verify the creation of the morse_reference.txt file with A-Z and 0-9 mappings.",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands like 'cat morse_reference.txt' or an open text editor showing lines formatted as 'LETTER MORSE_CODE' (e.g., 'A .-', '1 .----') in /home/ga/Documents/morse/."
+    },
+    {
+      "id": "scripts_created",
+      "description": "Verify the creation of the encode.sh and decode.sh scripts.",
+      "points": 20,
+      "visual_evidence": "Look for 'ls' output showing 'encode.sh' and 'decode.sh' in the /home/ga/Documents/morse/ directory, or an editor/cat command showing their source code."
+    },
+    {
+      "id": "encoded_output_correct",
+      "description": "Verify the encoded output for 'SUGAR LABS' is correct and saved to encoded_output.txt.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command like 'cat encoded_output.txt' displaying the exact string: '... ..- --. .- .-. / .-.. .- -... ...'."
+    },
+    {
+      "id": "decoded_output_correct",
+      "description": "Verify the decoded output for '... --- ...' is correct and saved to decoded_output.txt.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command like 'cat decoded_output.txt' displaying the exact string: 'SOS'."
+    },
+    {
+      "id": "roundtrip_output_correct",
+      "description": "Verify the roundtrip output for 'HELLO WORLD' is correct and saved to roundtrip_output.txt.",
+      "points": 25,
+      "visual_evidence": "Look for a terminal command like 'cat roundtrip_output.txt' displaying the exact string: 'HELLO WORLD'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_terminal_activity",
+      "description": "Verify the agent used Sugar's Terminal activity.",
+      "visual_evidence": "The screenshots should show the Sugar desktop environment's Terminal application being used, rather than a different terminal emulator or bypassing the GUI entirely."
+    },
+    {
+      "id": "genuine_script_execution",
+      "description": "Verify the agent actually used the scripts to generate the outputs rather than directly echoing the answers.",
+      "visual_evidence": "Look for commands executing the scripts (e.g., './encode.sh \"SUGAR LABS\" > encoded_output.txt') rather than commands that directly write the final expected string (e.g., 'echo \"... --- ...\" > encoded_output.txt')."
+    },
+    {
+      "id": "no_hardcoded_outputs",
+      "description": "Verify the scripts contain actual translation logic and not just hardcoded responses for the specific test cases.",
+      "visual_evidence": "If the script contents are visible, ensure they read from morse_reference.txt or contain a full mapping array, rather than simple if/else statements checking for 'SUGAR LABS' or 'HELLO WORLD'."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected encoded output for 'SUGAR LABS' is '... ..- --. .- .-. / .-.. .- -... ...'. Expected decoded output for '... --- ...' is 'SOS'. Expected roundtrip output for 'HELLO WORLD' is 'HELLO WORLD'."
+}

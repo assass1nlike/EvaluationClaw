@@ -1,0 +1,53 @@
+{
+  "task_id": "identify_nearest_capital@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_target",
+      "description": "Navigate the map to the target coordinates (58.0\u00b0N, 19.5\u00b0E).",
+      "points": 15,
+      "visual_evidence": "The QField map is centered on or shows the Baltic Sea area around Gotland island."
+    },
+    {
+      "id": "identify_nearest_capital",
+      "description": "Identify the nearest capital city available on the map.",
+      "points": 20,
+      "visual_evidence": "The agent views or measures the distance to nearby capital points on the map, specifically identifying Riga as the closest available capital."
+    },
+    {
+      "id": "initiate_point_creation",
+      "description": "Initiate point feature creation at the target coordinates.",
+      "points": 15,
+      "visual_evidence": "The QField 'add feature' mode is active with the crosshairs positioned at approximately 58.0\u00b0N, 19.5\u00b0E on Gotland."
+    },
+    {
+      "id": "enter_site_name",
+      "description": "Enter the site name in the feature attributes.",
+      "points": 20,
+      "visual_evidence": "The text 'Relay Survey Site' is typed into a name-related field (such as observer_name) in the QField attribute form."
+    },
+    {
+      "id": "enter_capital_note",
+      "description": "Enter the nearest capital note in the feature attributes.",
+      "points": 30,
+      "visual_evidence": "The text 'Nearest capital: Riga' is typed into a notes-related field (such as location) in the QField attribute form."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qfield_gui",
+      "description": "The agent used the QField application GUI to complete the task.",
+      "visual_evidence": "Screenshots show interaction with the QField Android app interface, not terminal SQLite commands or Python scripts."
+    },
+    {
+      "id": "genuine_map_identification",
+      "description": "The agent derived the nearest capital from the provided map data.",
+      "visual_evidence": "The agent enters 'Riga' instead of 'Stockholm', proving it looked at the actual truncated dataset rather than relying on external LLM geographic knowledge."
+    },
+    {
+      "id": "no_script_modification",
+      "description": "The agent did not modify the evaluation scripts to bypass verification.",
+      "visual_evidence": "No terminal windows showing editing of verifier.py or setup_task.sh."
+    }
+  ],
+  "privileged_info_for_vlm": "The target coordinates are 58.0\u00b0N, 19.5\u00b0E (Gotland). While Stockholm is geographically the closest capital, the provided 'world_capitals' layer is truncated and does not contain Sweden. The nearest capital actually present on the map is Riga (Latvia). Therefore, the correct note entry must be 'Nearest capital: Riga'. The agent must enter 'Relay Survey Site' as the name and 'Nearest capital: Riga' in the feature attributes form. Note that the actual layer schema has fields like 'observer_name' and 'location' instead of 'Name' and 'Notes', so accept the values if entered into the available text fields."
+}

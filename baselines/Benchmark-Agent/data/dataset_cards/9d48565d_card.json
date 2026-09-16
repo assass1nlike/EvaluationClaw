@@ -1,0 +1,80 @@
+{
+  "dataset_id": "9d48565d",
+  "name": "Text Manipulation Region Matting",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset contains images with manipulated or tampered regions, where the task is to predict a binary mask localizing the tampered pixels. Each sample consists of an input image and a fixed instruction prompt, with a corresponding mask image as the target output.",
+  "card_text": "The Text Manipulation Region Matting dataset comprises 200 samples for image forgery localization. Each sample includes an input image (JPG) that may contain tampered regions, a textual prompt instructing the model to output a mask where tampered pixels are 1 (white) and others 0 (black), and an output mask image (PNG). The dataset is designed to evaluate pixel-level segmentation of manipulated areas. The prompt is fixed across all samples, and the masks serve as ground truth. The images are likely diverse, and the task requires fine-grained visual understanding to detect subtle tampering.",
+  "tasks": [
+    "segmentation",
+    "localization"
+  ],
+  "domain": "image forensics",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "other",
+        "semantics": "The input image that may contain tampered or manipulated regions. The model must analyze this image to localize the tampered areas.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed instruction describing the task: to predict a mask for the test image, where tampered pixels are 1 (white) and other pixels are 0 (black).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.map_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A binary mask image (PNG) indicating tampered regions (white) and non-tampered regions (black). It serves as the ground truth or predicted output.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image, a fixed text prompt instructing the prediction of a binary mask for tampered regions, and an output mask image. The input image is the visual context, the prompt specifies the task, and the mask provides the pixel-level annotation."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/TextManipulationRegionMatting/text_manipulation_region_matting.json",
+    "existing_tags": {
+      "task": "Text Manipulation Region Matting",
+      "type": "image comprehension",
+      "skill": "Object Matting",
+      "domain": "Ethics",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Ethics"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "sla_template_automation@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Transform the static Service Level Agreement (SLA) document at /home/ga/Documents/SLA_Draft_Sentinels.odt into a dynamic template. Define four User Fields (Variables): 'ClientName' (Value: 'Omicron Industries'), 'ContractDate' (Value: 'October 1, 2025'), 'UptimeTarget' (Value: '99.99%'), and 'ServiceCredit' (Value: '25%'). Replace all text placeholders in the document—specifically '[CLIENT]', '[CLIENT NAME]', or '[Client]' with the 'ClientName' field; '[DATE]' or '[START DATE]' with the 'ContractDate' field; '[UPTIME]' with the 'UptimeTarget' field; and '[CREDIT]' with the 'ServiceCredit' field. Save the automated document as /home/ga/Documents/SLA_Omicron_Final.odt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sla_template_automation/setup_task.sh",
+    "post_task": "/workspace/tasks/sla_template_automation/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/SLA_Draft_Sentinels.odt",
+    "output_file": "/home/ga/Documents/SLA_Omicron_Final.odt",
+    "variables": {
+      "ClientName": "Omicron Industries",
+      "ContractDate": "October 1, 2025",
+      "UptimeTarget": "99.99%",
+      "ServiceCredit": "25%"
+    },
+    "placeholders": [
+      "[CLIENT]",
+      "[CLIENT NAME]",
+      "[Client]",
+      "[DATE]",
+      "[START DATE]",
+      "[UPTIME]",
+      "[CREDIT]"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sla_automation"
+    }
+  }
+}

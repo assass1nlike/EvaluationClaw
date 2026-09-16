@@ -1,0 +1,29 @@
+{
+  "id": "correct_patient_insurance@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Update the existing Primary Insurance record for patient Brandie Sammet in LibreHealth EHR (admin/password). Set the Policy Number to 'XJ9942010' and the Copay to '25.00'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/correct_patient_insurance/setup_task.sh",
+    "post_task": "/workspace/tasks/correct_patient_insurance/export_result.sh"
+  },
+  "metadata": {
+    "target_patient_fname": "Brandie",
+    "target_patient_lname": "Sammet",
+    "expected_policy_number": "XJ9942010",
+    "expected_copay": "25.00",
+    "insurance_company": "Blue Cross"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_correct_patient_insurance"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "transfer_patient_ward@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Patient Li Wei (ID: P-LIWEI) has an active admission visit (dated Jan 12, 2025) in the General Ward. His condition has deteriorated, and the physician has ordered an immediate transfer to the Intensive Care Unit. Update his existing active visit to change the location to 'Intensive Care Unit'. Do not discharge the patient or create a new visit.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/transfer_patient_ward/setup_task.sh",
+    "post_task": "/workspace/tasks/transfer_patient_ward/export_result.sh"
+  },
+  "metadata": {
+    "patient_id": "patient_p1_liwei",
+    "visit_id": "visit_p1_liwei_001",
+    "target_location": "Intensive Care Unit",
+    "required_status": "Admitted"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_transfer_patient"
+    }
+  }
+}

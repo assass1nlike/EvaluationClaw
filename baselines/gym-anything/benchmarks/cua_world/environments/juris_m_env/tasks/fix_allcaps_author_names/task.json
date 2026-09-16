@@ -1,0 +1,41 @@
+{
+  "id": "fix_allcaps_author_names@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "The library contains three classic legal texts where the author names were imported in ALL CAPS. Correct the author names for 'The Common Law' (HOLMES, OLIVER WENDELL), 'Leviathan' (HOBBES, THOMAS), and 'The Spirit of Laws' (MONTESQUIEU, CHARLES) to standard Title Case. Ensure the author fields remain in two-field mode (Last Name, First Name).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_allcaps_author_names/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_allcaps_author_names/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "title": "The Common Law",
+        "expected_last": "Holmes",
+        "expected_first": "Oliver Wendell"
+      },
+      {
+        "title": "Leviathan",
+        "expected_last": "Hobbes",
+        "expected_first": "Thomas"
+      },
+      {
+        "title": "The Spirit of Laws",
+        "expected_last": "Montesquieu",
+        "expected_first": "Charles"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fix_allcaps_author_names"
+    }
+  }
+}

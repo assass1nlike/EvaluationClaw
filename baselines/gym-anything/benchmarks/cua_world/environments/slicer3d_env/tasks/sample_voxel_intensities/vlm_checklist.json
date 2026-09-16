@@ -1,0 +1,65 @@
+{
+  "task_id": "sample_voxel_intensities@1",
+  "task_completion": [
+    {
+      "id": "data_probe_visible",
+      "description": "The Data Probe module or tool is visible in the 3D Slicer interface, indicating the agent is actively sampling voxel intensities.",
+      "points": 10,
+      "visual_evidence": "Look for the Data Probe panel (usually in the bottom left corner of the 3D Slicer GUI) showing coordinates and background/foreground intensity values (HU)."
+    },
+    {
+      "id": "output_file_exists",
+      "description": "A text file named intensity_measurements.txt is created and opened in a text editor or terminal.",
+      "points": 15,
+      "visual_evidence": "A text editor (e.g., gedit, nano, VS Code) or terminal window showing a file named 'intensity_measurements.txt' being edited or viewed."
+    },
+    {
+      "id": "file_has_structure",
+      "description": "The text file contains the required formatting structure for the organ measurements.",
+      "points": 10,
+      "visual_evidence": "The text file contains lines formatted exactly as 'Aorta: [value] HU', 'Liver: [value] HU', and 'Spleen: [value] HU'."
+    },
+    {
+      "id": "interpretation_present",
+      "description": "The text file includes an interpretation line.",
+      "points": 5,
+      "visual_evidence": "The text file contains a line starting with 'Interpretation: ' followed by some assessment text."
+    },
+    {
+      "id": "aorta_correct",
+      "description": "The recorded Hounsfield Unit (HU) value for the Aorta falls within the expected physiological range (including tolerance).",
+      "points": 20,
+      "visual_evidence": "The text file shows 'Aorta: [value] HU' where [value] is a number between 120 and 280."
+    },
+    {
+      "id": "liver_correct",
+      "description": "The recorded Hounsfield Unit (HU) value for the Liver falls within the expected physiological range (including tolerance).",
+      "points": 20,
+      "visual_evidence": "The text file shows 'Liver: [value] HU' where [value] is a number between 10 and 110."
+    },
+    {
+      "id": "spleen_correct",
+      "description": "The recorded Hounsfield Unit (HU) value for the Spleen falls within the expected physiological range (including tolerance).",
+      "points": 20,
+      "visual_evidence": "The text file shows 'Spleen: [value] HU' where [value] is a number between 10 and 90."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the 3D Slicer GUI to find the measurements rather than guessing or hallucinating values.",
+      "visual_evidence": "Screenshots should show the 3D Slicer application open with the CT scan loaded and the crosshairs positioned over anatomical structures at some point in the trajectory."
+    },
+    {
+      "id": "no_hallucinated_values",
+      "description": "The agent actually performed the measurements instead of writing a script to output hardcoded values without checking the images.",
+      "visual_evidence": "The agent's terminal or editor history does not show them simply echoing or pasting pre-calculated values without first interacting with the Slicer GUI."
+    },
+    {
+      "id": "correct_file_path",
+      "description": "The output file is saved in the correct directory (~/Documents/SlicerData/).",
+      "visual_evidence": "The text editor or terminal shows the file path as '~/Documents/SlicerData/intensity_measurements.txt' or the absolute equivalent."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected Hounsfield Unit (HU) ranges for the organs are: Aorta (150-250 HU), Liver (40-80 HU), and Spleen (40-60 HU). A tolerance of 30 HU is applied to these ranges to account for physiological variation. Therefore, acceptable ranges are: Aorta (120-280 HU), Liver (10-110 HU), and Spleen (10-90 HU)."
+}

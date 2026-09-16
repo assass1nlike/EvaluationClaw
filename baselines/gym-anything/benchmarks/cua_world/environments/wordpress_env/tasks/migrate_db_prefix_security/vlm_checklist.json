@@ -1,0 +1,53 @@
+{
+  "task_id": "migrate_db_prefix_security@1",
+  "task_completion": [
+    {
+      "id": "update_wp_config",
+      "description": "Verify the WordPress configuration file has been updated with the new table prefix.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing the wp-config.php file with the line `$table_prefix = 'sec24_';`."
+    },
+    {
+      "id": "rename_db_tables",
+      "description": "Verify all database tables have been renamed to use the new prefix.",
+      "points": 30,
+      "visual_evidence": "A database management tool (like phpMyAdmin, Adminer, or terminal MySQL client) showing a list of tables starting with 'sec24_' (e.g., sec24_posts, sec24_users) instead of 'wp_'."
+    },
+    {
+      "id": "migrate_user_roles_key",
+      "description": "Verify the 'wp_user_roles' key in the options table has been renamed.",
+      "points": 15,
+      "visual_evidence": "A database view or SQL query result showing the `option_name` updated to 'sec24_user_roles' in the `sec24_options` table."
+    },
+    {
+      "id": "migrate_usermeta_keys",
+      "description": "Verify the 'wp_capabilities' and 'wp_user_level' keys in the usermeta table have been renamed.",
+      "points": 20,
+      "visual_evidence": "A database view or SQL query result showing `meta_key` values updated to 'sec24_capabilities' and 'sec24_user_level' in the `sec24_usermeta` table."
+    },
+    {
+      "id": "verify_site_functional",
+      "description": "Verify the WordPress site and admin panel load successfully after the migration.",
+      "points": 20,
+      "visual_evidence": "The WordPress front-end or admin dashboard (wp-admin) successfully loaded in the Firefox browser without database connection errors or permission denied messages."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Ensure the agent interacted with the actual database to rename tables and keys.",
+      "visual_evidence": "Screenshots showing a real database client (e.g., MySQL CLI, phpMyAdmin, Adminer) executing queries or displaying the updated schema/data, rather than just a text file mocking the output."
+    },
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Ensure the agent verified the site functionality using the actual Firefox browser.",
+      "visual_evidence": "The WordPress site is shown loaded in a Firefox browser window, not just a terminal curl output."
+    },
+    {
+      "id": "no_leftover_wp_tables",
+      "description": "Ensure no tables starting with 'wp_' remain in the database.",
+      "visual_evidence": "The database table list shows ONLY 'sec24_' tables, with no 'wp_' prefixed tables visible in the same database view."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database prefix is 'sec24_'. The old prefix was 'wp_'. The VLM must verify that the wp-config.php file reflects the new prefix, all database tables are renamed to start with 'sec24_', and specific metadata keys ('wp_user_roles', 'wp_capabilities', 'wp_user_level') are updated to start with 'sec24_'."
+}

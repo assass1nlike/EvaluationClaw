@@ -1,0 +1,53 @@
+{
+  "task_id": "comprehensive_file_type_triage@1",
+  "task_completion": [
+    {
+      "id": "case_directory_created",
+      "description": "Verify the forensic case directory was created.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command (e.g., mkdir) or file manager showing the creation of the directory '/home/ga/Cases/USB_Triage_2024'."
+    },
+    {
+      "id": "disk_image_processed",
+      "description": "Verify the agent analyzed the provided disk image.",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands (like fls, tsk_recover, file, or a script) or a forensic GUI tool actively processing '/home/ga/evidence/ntfs_undel.dd'."
+    },
+    {
+      "id": "inventory_file_headers",
+      "description": "Verify the file type inventory contains the correct category headers.",
+      "points": 20,
+      "visual_evidence": "Look for '/home/ga/Reports/file_type_inventory.txt' open in a text editor or displayed in the terminal. It must contain the exact headers: '=== IMAGES ===', '=== DOCUMENTS ===', '=== EXECUTABLES ===', '=== ARCHIVES ===', and '=== OTHER ===' on their own lines."
+    },
+    {
+      "id": "inventory_file_format",
+      "description": "Verify the inventory file follows the required pipe-separated format.",
+      "points": 20,
+      "visual_evidence": "Within 'file_type_inventory.txt', check that the file entries under the headers follow the format 'FILENAME|FULL_PATH|SIZE_BYTES|MIME_TYPE|IS_DELETED' (e.g., 'image.jpg|/img/image.jpg|1024|image/jpeg|NO')."
+    },
+    {
+      "id": "triage_summary_created",
+      "description": "Verify the triage summary report was generated with the required fields.",
+      "points": 30,
+      "visual_evidence": "Look for '/home/ga/Reports/triage_summary.txt' open in an editor or terminal. It must contain the required lines such as 'CASE_NAME: USB_Triage_2024', 'CASE_NUMBER: INV-TRG-007', 'TOTAL_FILES', 'DELETED_FILES', and the category counts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_analysis_performed",
+      "description": "Ensure the agent actually extracted and analyzed files rather than hallucinating the results.",
+      "visual_evidence": "Check terminal history for commands that extract files from the image (e.g., tsk_recover) and check their MIME types (e.g., file --mime-type), or the use of a script that performs this analysis."
+    },
+    {
+      "id": "no_placeholder_values",
+      "description": "Ensure the agent replaced the placeholder <N> values in the summary with actual numbers.",
+      "visual_evidence": "In 'triage_summary.txt', the fields like TOTAL_FILES, DELETED_FILES, and CATEGORY_IMAGES must have actual numeric values, not the literal string '<N>'."
+    },
+    {
+      "id": "files_actually_saved",
+      "description": "Ensure the reports were saved to the correct paths and not just printed to stdout.",
+      "visual_evidence": "Look for commands like 'nano', 'vim', 'echo ... >', or a script writing to '/home/ga/Reports/file_type_inventory.txt' and '/home/ga/Reports/triage_summary.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "Case Name: USB_Triage_2024. Case Number: INV-TRG-007. Disk Image: /home/ga/evidence/ntfs_undel.dd. Inventory File: /home/ga/Reports/file_type_inventory.txt. Summary File: /home/ga/Reports/triage_summary.txt. The inventory must use the pipe-separated format and include the 5 specific '===' headers. The summary must include the exact keys requested in the prompt."
+}

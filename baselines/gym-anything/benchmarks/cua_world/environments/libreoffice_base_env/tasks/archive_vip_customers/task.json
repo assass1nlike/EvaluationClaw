@@ -1,0 +1,27 @@
+{
+  "id": "archive_vip_customers@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "You are a Marketing Analyst for the Chinook music store. Create a static list of VIP customers for an upcoming gala invitation by identifying the Top 15 customers based on total lifetime spending (sum of Invoice Totals) in the 'chinook' database. Create and populate a table named 'GalaInvitees' containing exactly 15 rows with the following columns: 'CustomerId' (Integer, Primary Key), 'FullName' (formatted as 'FirstName LastName'), 'Email', and 'TotalSpent'. The data must be ordered by TotalSpent from highest to lowest. Save the database changes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/archive_vip_customers/setup_task.sh",
+    "post_task": "/workspace/tasks/archive_vip_customers/export_result.sh"
+  },
+  "metadata": {
+    "expected_table": "GalaInvitees",
+    "expected_row_count": 15,
+    "sqlite_source": "/opt/libreoffice_base_samples/Chinook_Sqlite.sqlite"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_archive_vip_customers"
+    }
+  }
+}

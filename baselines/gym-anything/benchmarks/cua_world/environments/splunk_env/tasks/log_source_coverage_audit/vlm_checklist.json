@@ -1,0 +1,53 @@
+{
+  "task_id": "log_source_coverage_audit@1",
+  "task_completion": [
+    {
+      "id": "search_query_execution",
+      "description": "Verify the agent executed a search to find hosts in 'system_logs' missing from 'security_logs'.",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk search interface with a query referencing both 'index=system_logs' and 'index=security_logs' (e.g., using setdiff, stats, or subsearches to find missing hosts)."
+    },
+    {
+      "id": "lookup_file_created",
+      "description": "Verify the results are saved to a CSV lookup file named 'non_compliant_hosts.csv'.",
+      "points": 20,
+      "visual_evidence": "Look for the search query ending with '| outputlookup non_compliant_hosts.csv', or a success message indicating the lookup was created, or the 'non_compliant_hosts.csv' file visible in the Splunk Lookups settings page."
+    },
+    {
+      "id": "scheduled_report_saved",
+      "description": "Verify the search is saved as a weekly scheduled report named 'Audit_Log_Coverage_Gaps'.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save As Report' dialog, a success confirmation, or the Splunk Reports list showing 'Audit_Log_Coverage_Gaps' with a schedule set to 'Weekly' or cron expression '0 0 * * 0'."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "Verify a dashboard named 'Compliance_Audit_Dashboard' is created.",
+      "points": 15,
+      "visual_evidence": "Look for the Splunk dashboard view or edit screen with the title 'Compliance_Audit_Dashboard'."
+    },
+    {
+      "id": "dashboard_panel_populated",
+      "description": "Verify the dashboard contains a panel displaying results from the lookup table.",
+      "points": 25,
+      "visual_evidence": "Look for a panel inside 'Compliance_Audit_Dashboard' showing tabular data of hosts. In edit mode or search mode, the panel's underlying query should be visible as '| inputlookup non_compliant_hosts.csv'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent interacted with the Splunk Web UI via the browser.",
+      "visual_evidence": "Screenshots should show the agent clicking through the Splunk web interface (http://localhost:8000) rather than executing curl commands or scripts in the terminal."
+    },
+    {
+      "id": "genuine_splunk_dashboard",
+      "description": "Verify the dashboard is a genuine Splunk dashboard.",
+      "visual_evidence": "The dashboard should have standard Splunk UI elements (Edit button, Add Panel, Splunk navigation bar) and not be a mocked HTML page or text document."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the dashboard panel is powered by a search and not hardcoded text.",
+      "visual_evidence": "The panel should be a standard Splunk statistics/table panel driven by a search (like inputlookup), not a static HTML or Markdown panel with manually typed hostnames."
+    }
+  ],
+  "privileged_info_for_vlm": "Target search name: 'Audit_Log_Coverage_Gaps'. Target dashboard name: 'Compliance_Audit_Dashboard'. Target lookup file: 'non_compliant_hosts.csv'. Target indexes: 'system_logs' and 'security_logs'. Splunk credentials: admin / SplunkAdmin1!"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "uspto_patent_format@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a patent paralegal at Summit IP Law Group. Format the raw text draft of the 'Adaptive Haptic Feedback Controller' from /home/ga/Documents/patent_draft.txt into a USPTO-compliant patent specification using Apache OpenOffice Writer. The document must have 1.00 inch margins on all sides and enabled line numbering in the left margin. Use 12pt Times New Roman or Arial font with double line spacing for the main text. Section headings must be bold and all caps. The Claims section must use a numbered list (1., 2., 3.), and the Abstract must start on a new page. Save the final document as /home/ga/Documents/NeuroSync_Patent_App.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/uspto_patent_format/setup_task.sh",
+    "post_task": "/workspace/tasks/uspto_patent_format/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/NeuroSync_Patent_App.odt",
+    "expected_margins": "1.00 inch",
+    "required_font_size": "12pt",
+    "required_line_spacing": "Double",
+    "client_name": "NeuroSync Interfaces",
+    "invention_title": "SYSTEM AND METHOD FOR ADAPTIVE HAPTIC FEEDBACK IN VIRTUAL ENVIRONMENTS"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_uspto_patent_format"
+    }
+  }
+}

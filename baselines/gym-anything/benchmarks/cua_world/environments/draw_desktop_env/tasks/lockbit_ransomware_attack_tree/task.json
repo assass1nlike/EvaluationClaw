@@ -1,0 +1,42 @@
+{
+  "id": "lockbit_ransomware_attack_tree@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "As a Cyber Threat Intelligence Analyst, create a formal Attack Tree diagram in draw.io Desktop visualizing the attack paths used by LockBit 3.0 ransomware based on the CISA/FBI advisory in '~/Desktop/lockbit_report.txt'. The diagram must be a hierarchical tree starting with the root node 'LockBit Ransomware Infection', followed by Tactics (Level 1) and specific Techniques with MITRE IDs (Levels 2/3). Use logic gates (AND/OR) to represent relationships and apply color coding: Red for Root Goal and Impact, Orange for Lateral Movement/Escalation, and Blue for Initial Access/Reconnaissance. Ensure the diagram is legible, connected, and explicitly includes the MITRE T-codes mentioned in the report. Save the diagram to '~/Desktop/lockbit_attack_tree.drawio' and export it as a PNG image to '~/Desktop/lockbit_attack_tree.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/lockbit_ransomware_attack_tree/setup_task.sh",
+    "post_task": "/workspace/tasks/lockbit_ransomware_attack_tree/export_result.sh"
+  },
+  "metadata": {
+    "report_file": "/home/ga/Desktop/lockbit_report.txt",
+    "expected_drawio": "/home/ga/Desktop/lockbit_attack_tree.drawio",
+    "expected_png": "/home/ga/Desktop/lockbit_attack_tree.png",
+    "required_keywords": [
+      "LockBit",
+      "Phishing",
+      "T1566",
+      "RDP",
+      "T1021",
+      "PsExec",
+      "Mimikatz",
+      "T1003",
+      "Encryption",
+      "T1486"
+    ],
+    "min_nodes": 8,
+    "min_edges": 7,
+    "min_colors": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_attack_tree"
+    }
+  }
+}

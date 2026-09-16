@@ -1,0 +1,34 @@
+{
+  "id": "sec_edgar_annual_report_analysis@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a financial analyst performing due diligence on Microsoft Corporation (CIK 0000789019), Apple Inc. (CIK 0000320193), and Alphabet Inc. (CIK 0001652044). Locate the most recent 10-K annual report filings (FY 2023 or 2024) for these companies via the SEC EDGAR system. For each company, extract the exact filing date, the total number of risk factors listed in Item 1A, and the reported total revenue in billions USD for the most recent fiscal year. Save this data to ~/Documents/edgar_analysis.json using keys 'microsoft', 'apple', and 'alphabet', each containing 'filing_date', 'risk_factor_count', and 'revenue_billions'. Additionally, bookmark the EDGAR filing index page for each company in a Firefox bookmark folder named 'SEC EDGAR Research'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sec_edgar_annual_report_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/sec_edgar_annual_report_analysis/export_result.sh"
+  },
+  "metadata": {
+    "target_companies": [
+      "microsoft",
+      "apple",
+      "alphabet"
+    ],
+    "microsoft_cik": "0000789019",
+    "apple_cik": "0000320193",
+    "alphabet_cik": "0001652044",
+    "required_json_path": "/home/ga/Documents/edgar_analysis.json",
+    "required_bookmark_folder": "SEC EDGAR Research",
+    "edgar_base_url": "https://www.sec.gov/cgi-bin/browse-edgar"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sec_edgar_annual_report_analysis"
+    }
+  }
+}

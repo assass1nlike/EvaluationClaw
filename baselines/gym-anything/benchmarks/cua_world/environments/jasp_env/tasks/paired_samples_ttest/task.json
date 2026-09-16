@@ -1,0 +1,34 @@
+{
+  "id": "paired_samples_ttest@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Using the sleep dataset at /home/ga/Documents/JASP/SleepWide.csv, conduct a Paired Samples T-Test comparing 'Drug1' and 'Drug2'. The analysis must include Cohen's d effect size, descriptive statistics, and a raincloud difference plot. Save the completed JASP analysis file to /home/ga/Documents/JASP/SleepPairedTTest.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/paired_samples_ttest/setup_task.sh",
+    "post_task": "/workspace/tasks/paired_samples_ttest/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/JASP/SleepWide.csv",
+    "expected_output_path": "/home/ga/Documents/JASP/SleepPairedTTest.jasp",
+    "required_analysis": "TTestPairedSamples",
+    "required_variables": [
+      "Drug1",
+      "Drug2"
+    ],
+    "check_effect_size": true,
+    "check_descriptives": true,
+    "check_raincloud": true
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_paired_samples_ttest"
+    }
+  }
+}

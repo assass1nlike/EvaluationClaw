@@ -1,0 +1,59 @@
+{
+  "task_id": "create_interactive_troubleshoot_guide@1",
+  "task_completion": [
+    {
+      "id": "tiddler_metadata",
+      "description": "Verify the tiddler is created with the correct title and tags.",
+      "points": 10,
+      "visual_evidence": "In the TiddlyWiki edit view or rendered view, the title must be exactly 'Troubleshooting: Internet Connectivity' and the tags must include 'Troubleshooting' and 'NetworkSupport'."
+    },
+    {
+      "id": "initial_question",
+      "description": "Verify the guide begins with the correct starting question and Yes/No options.",
+      "points": 10,
+      "visual_evidence": "The tiddler content (either in edit source or rendered view) must show the text 'Can the user access any websites?' accompanied by 'Yes' and 'No' buttons."
+    },
+    {
+      "id": "no_branch_logic",
+      "description": "Verify the 'No' branch contains the correct gateway and ping check logic.",
+      "points": 25,
+      "visual_evidence": "The tiddler source code or rendered view must contain logic/text for a gateway ping check. It must advise physical/cable checks if unreachable, and check ping to 8.8.8.8 if reachable (distinguishing between DNS resolution and routing/firewall issues)."
+    },
+    {
+      "id": "yes_branch_logic",
+      "description": "Verify the 'Yes' branch contains the correct partial internet logic.",
+      "points": 20,
+      "visual_evidence": "The tiddler source code or rendered view must contain logic/text distinguishing between slow speeds (advising a speed test) and specific site issues (advising a proxy/firewall check)."
+    },
+    {
+      "id": "widget_and_state_usage",
+      "description": "Verify the use of <$reveal> widgets, <$button> widgets, and the correct state tiddler.",
+      "points": 20,
+      "visual_evidence": "The tiddler source code in edit mode must explicitly show the use of '<$reveal>' and '<$button>' tags, and contain references to the state tiddler '$:/state/troubleshoot-internet'."
+    },
+    {
+      "id": "start_over_button",
+      "description": "Verify the presence of 'Start Over' buttons at the resolution steps.",
+      "points": 15,
+      "visual_evidence": "The tiddler source code or rendered view must include 'Start Over' buttons designed to reset the state tiddler back to the beginning of the flowchart."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the TiddlyWiki web interface to create the tiddler.",
+      "visual_evidence": "Screenshots should show the TiddlyWiki application in a web browser, specifically interacting with the 'New Tiddler' or edit tiddler interface."
+    },
+    {
+      "id": "actual_widgets_used",
+      "description": "Verify the agent wrote actual TiddlyWiki widget syntax rather than plain text mimicking a flowchart.",
+      "visual_evidence": "The edit mode screenshot should show valid TiddlyWiki syntax (e.g., <$button>, <$reveal>) rather than just static text like '-> If No, do this'."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "Verify the agent did not use terminal commands to inject the tiddler directly into the file system or server.",
+      "visual_evidence": "There should be no screenshots of terminal windows using commands like 'curl', 'echo', or 'node' to bypass the TiddlyWiki GUI."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected title is exactly 'Troubleshooting: Internet Connectivity'. The expected tags are 'Troubleshooting' and 'NetworkSupport'. The state tiddler used to manage the flowchart state must be exactly '$:/state/troubleshoot-internet'."
+}

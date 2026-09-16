@@ -1,0 +1,32 @@
+{
+  "id": "create_outpatient_visit@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Create a new outpatient visit for existing patient Elena Martinez (P00201) with the following details: Visit Type: Clinic, Start Date: 01/15/2025, End Date: 01/15/2025, Location: Clinic A, Examiner: Dr. James Wilson, and Reason for Visit: Recurring lower back pain. Save the visit record.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_outpatient_visit/setup_task.sh",
+    "post_task": "/workspace/tasks/create_outpatient_visit/export_result.sh"
+  },
+  "metadata": {
+    "patient_friendly_id": "P00201",
+    "patient_name": "Elena Martinez",
+    "patient_couch_id": "patient_p1_00201",
+    "expected_visit_type": "Clinic",
+    "expected_location": "Clinic A",
+    "expected_examiner": "Dr. James Wilson",
+    "expected_reason": "Recurring lower back pain",
+    "expected_date_str": "01/15/2025"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_outpatient_visit"
+    }
+  }
+}

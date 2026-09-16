@@ -1,0 +1,53 @@
+{
+  "task_id": "organize_encrypted_workspace@1",
+  "task_completion": [
+    {
+      "id": "volume_reformatted",
+      "description": "The encrypted volume was reformatted to ext4.",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands like 'mkfs.ext4' executed on the VeraCrypt mapper device (e.g., /dev/mapper/veracrypt1) or the VeraCrypt GUI showing the volume being formatted to ext4."
+    },
+    {
+      "id": "files_organized",
+      "description": "The files were moved into the correct directories.",
+      "points": 25,
+      "visual_evidence": "Look for terminal output (like 'tree' or 'ls -R') or a file manager window showing 'legal/SF312_Nondisclosure_Agreement.txt', 'financial/FY2024_Revenue_Budget.csv', and 'credentials/backup_authorized_keys'."
+    },
+    {
+      "id": "permissions_set",
+      "description": "The correct permissions were applied to the credentials directory and the backup_authorized_keys file.",
+      "points": 20,
+      "visual_evidence": "Look for 'ls -l' or 'stat' output showing 'drwx------' (700) for the 'credentials' directory and '-rw-------' (600) for the 'backup_authorized_keys' file."
+    },
+    {
+      "id": "manifest_created",
+      "description": "A manifest.sha256 file was created containing the checksums of the three files.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output such as 'cat manifest.sha256' showing three 64-character hexadecimal SHA-256 checksums alongside the filenames."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "The volume was dismounted and no sensitive files remain in the root directory.",
+      "points": 20,
+      "visual_evidence": "Look for the 'veracrypt -d' command being executed, or the VeraCrypt GUI showing no mounted volumes, along with evidence that the temporary backup/root directory is clean of the sensitive files."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_interaction",
+      "description": "The agent actually interacted with the VeraCrypt volume.",
+      "visual_evidence": "Check that the agent used 'veracrypt' CLI commands or the VeraCrypt GUI to mount/dismount the .hc file, rather than just creating a standard local folder named 'data_volume.hc'."
+    },
+    {
+      "id": "genuine_ext4_format",
+      "description": "The agent genuinely reformatted the volume.",
+      "visual_evidence": "Ensure there is evidence of an actual filesystem creation command (like mkfs.ext4) targeting the mounted block device, rather than just skipping the reformat step."
+    },
+    {
+      "id": "genuine_checksums",
+      "description": "The manifest contains real SHA-256 checksums.",
+      "visual_evidence": "Verify that the agent used 'sha256sum' to generate the hashes and didn't just type random strings or copy-paste placeholder text into the manifest file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses a VeraCrypt volume at '/home/ga/Volumes/data_volume.hc' with password 'MountMe2024'. The expected structure is: 'SF312_Nondisclosure_Agreement.txt' in 'legal/', 'FY2024_Revenue_Budget.csv' in 'financial/', and 'backup_authorized_keys' in 'credentials/'. The 'credentials' directory must have 700 permissions (drwx------) and 'backup_authorized_keys' must have 600 permissions (-rw-------)."
+}

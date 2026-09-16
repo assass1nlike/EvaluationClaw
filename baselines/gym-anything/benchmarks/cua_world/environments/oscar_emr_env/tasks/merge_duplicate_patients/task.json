@@ -1,0 +1,39 @@
+{
+  "id": "merge_duplicate_patients@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "A clinic records analyst has identified that patient 'Robert James Smith' (DOB 1965-05-20) has been accidentally registered twice in Oscar EMR. Merge the duplicate record ('Rob J Smith', demographic_no 10002, phone 416-555-0124) into the primary record ('Robert James Smith', demographic_no 10001, phone 416-555-0123). Ensure the penicillin allergy from the duplicate record is preserved in the consolidated primary record. Login credentials: username 'oscardoc', password 'oscar', PIN '1117'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/merge_duplicate_patients/setup_task.sh",
+    "post_task": "/workspace/tasks/merge_duplicate_patients/export_result.sh"
+  },
+  "metadata": {
+    "primary_id": "10001",
+    "duplicate_id": "10002",
+    "patient_dob": "1965-05-20",
+    "patient_lastname": "Smith",
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_merge_duplicate_patients"
+    }
+  },
+  "tags": [
+    "administration",
+    "data-quality",
+    "patient-merge",
+    "patient-safety"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "id": "employee_expense_approval@1",
+  "version": "1.0",
+  "env_id": "odoo_env@0.1",
+  "description": "An employee expense report is pending in the system and blocking the monthly close process. Log into Odoo (admin@example.com / admin, database: odoo_demo) and process the expense report for employee Sarah Mitchell titled 'Q1 Client Visit - Chicago'. Approve the report, post the accounting journal entries, and register the reimbursement payment.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/employee_expense_approval/setup_task.sh",
+    "post_task": "/workspace/tasks/employee_expense_approval/export_result.sh"
+  },
+  "metadata": {
+    "task_name": "employee_expense_approval",
+    "employee_name": "Sarah Mitchell",
+    "expense_report_name": "Q1 Client Visit - Chicago",
+    "expected_state_sequence": [
+      "submitted",
+      "approved",
+      "post",
+      "done"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_employee_expense_approval"
+    }
+  }
+}

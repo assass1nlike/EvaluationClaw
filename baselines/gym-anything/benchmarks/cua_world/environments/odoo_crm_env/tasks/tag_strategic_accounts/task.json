@@ -1,0 +1,43 @@
+{
+  "id": "tag_strategic_accounts@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "Identify high-value opportunities in the CRM Pipeline with an Expected Revenue of $90,000 or higher. Apply the 'Strategic Account' tag to the customer records associated with these qualifying opportunities. Ensure that customers with opportunities below the $90,000 threshold are not tagged.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tag_strategic_accounts/setup_task.sh",
+    "post_task": "/workspace/tasks/tag_strategic_accounts/export_result.sh"
+  },
+  "metadata": {
+    "tag_name": "Strategic Account",
+    "threshold": 90000,
+    "targets": [
+      {
+        "partner_name": "Logistics Pro Inc",
+        "should_be_tagged": true,
+        "opportunity_value": 150000
+      },
+      {
+        "partner_name": "NorthWest Retail",
+        "should_be_tagged": true,
+        "opportunity_value": 95000
+      },
+      {
+        "partner_name": "SmallTime LLC",
+        "should_be_tagged": false,
+        "opportunity_value": 12000
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tag_strategic_accounts"
+    }
+  }
+}

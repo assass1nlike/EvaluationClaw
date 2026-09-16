@@ -1,0 +1,59 @@
+{
+  "task_id": "create_alpr_voice_query@1",
+  "task_completion": [
+    {
+      "id": "create_target_directory",
+      "description": "Create the alpr_query directory in the Talon user folder",
+      "points": 10,
+      "visual_evidence": "Look for a file explorer, terminal, or IDE file tree showing the creation or existence of the folder 'alpr_query' inside 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\'."
+    },
+    {
+      "id": "create_phonetic_list",
+      "description": "Implement the user.police_phonetic list in phonetic.talon-list",
+      "points": 15,
+      "visual_evidence": "Look for a file named 'phonetic.talon-list' open in a text editor. It must contain a list definition for 'user.police_phonetic' and show mappings of APCO terms (e.g., adam: A, boy: B) and digits to their respective characters."
+    },
+    {
+      "id": "define_police_plate_capture",
+      "description": "Define the police_plate capture in alpr_query.py",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'alpr_query.py' open in a text editor. It must contain a Talon capture definition (e.g., @mod.capture) named 'police_plate' that takes the phonetic matches and concatenates them into a continuous string."
+    },
+    {
+      "id": "define_lookup_action_db_query",
+      "description": "Define the lookup_towed_vehicle action with the SQLite database query",
+      "points": 20,
+      "visual_evidence": "Look for 'alpr_query.py' in a text editor showing an action named 'lookup_towed_vehicle(plate: str)'. The function must contain code to connect to the SQLite database at 'C:\\Users\\Docker\\talon_data\\towed_vehicles.db' and query the 'towed' table."
+    },
+    {
+      "id": "define_lookup_action_output",
+      "description": "Implement the correct output strings using actions.insert()",
+      "points": 15,
+      "visual_evidence": "Look inside the 'lookup_towed_vehicle' function in 'alpr_query.py'. It must use 'actions.insert()' to output either 'VEHICLE FOUND: [Color] [Make] at [Towed_to_Address]' or 'VEHICLE NOT FOUND IN TOW DATABASE' based on the query result."
+    },
+    {
+      "id": "create_talon_voice_command",
+      "description": "Define the voice command in alpr_query.talon",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'alpr_query.talon' open in a text editor. It must contain the voice command 'tow search <user.police_plate>:' and show it triggering the 'user.lookup_towed_vehicle()' action with the captured plate."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify the agent actually created and saved the files rather than just printing code to the terminal",
+      "visual_evidence": "Look for the files being edited in a genuine text editor or IDE (like VS Code, Notepad, or Vim/Nano in the terminal) and saved to the disk."
+    },
+    {
+      "id": "no_hardcoded_bypass",
+      "description": "Verify the agent implemented actual database query logic instead of hardcoding responses",
+      "visual_evidence": "Check 'alpr_query.py' to ensure the agent uses a database library (like sqlite3) to execute a SELECT statement, rather than using 'if plate == ...' to fake the output."
+    },
+    {
+      "id": "correct_file_extensions",
+      "description": "Verify the agent split the code into the correct file types as instructed",
+      "visual_evidence": "Ensure there are three distinct files created: a '.talon-list' file, a '.py' file, and a '.talon' file, rather than dumping all Talon and Python code into a single file."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory for the Talon module is exactly 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\alpr_query'. Note: The database file 'C:\\Users\\Docker\\talon_data\\towed_vehicles.db' might not exist in the environment due to a missing setup script, but the agent is still expected to write the code exactly as if it does exist."
+}

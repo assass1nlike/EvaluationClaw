@@ -1,0 +1,29 @@
+{
+  "id": "create_drug@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Add 'Amoxicillin 500mg Capsule' to the hospital formulary using the OpenMRS Administration interface (https://localhost/openmrs/admin). Use the Bahmni login credentials (Username: superman, Password: Admin123). The drug must be linked to the 'AMOXICILLIN' concept with a strength of '500mg' and the combination flag set to false. Ensure the medication is correctly linked and available in the system.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_drug/setup_task.sh",
+    "post_task": "/workspace/tasks/create_drug/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_name": "Amoxicillin 500mg Capsule",
+    "expected_concept_name": "AMOXICILLIN",
+    "expected_strength": "500mg",
+    "api_query_param": "Amoxicillin"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_drug"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "create_sternberg_memory_search@1",
+  "task_completion": [
+    {
+      "id": "conditions_file_columns",
+      "description": "Verify the conditions CSV file is created with the correct columns.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet editor, text editor, or terminal output showing a file named 'sternberg_conditions.csv' with the exact headers: set_size, memory_set, probe, present, correct_key."
+    },
+    {
+      "id": "conditions_file_data",
+      "description": "Verify the conditions CSV file contains at least 12 trials with required set sizes and correct mappings.",
+      "points": 15,
+      "visual_evidence": "The contents of 'sternberg_conditions.csv' show at least 12 rows of data (excluding the header). The 'set_size' column contains the values 1, 3, and 5. The 'present' column contains 'y' or 'n', and the 'correct_key' column maps to 'left' for 'y' (present) and 'right' for 'n' (absent)."
+    },
+    {
+      "id": "psychopy_experiment_saved",
+      "description": "Verify the PsychoPy experiment is created and saved with the correct name.",
+      "points": 10,
+      "visual_evidence": "The PsychoPy Builder window is open, and the window title or save dialog shows the file is named 'sternberg_task.psyexp' and is located in the '/home/ga/PsychoPyExperiments/' directory."
+    },
+    {
+      "id": "routines_created",
+      "description": "Verify all required routines are created in the PsychoPy experiment.",
+      "points": 25,
+      "visual_evidence": "In the PsychoPy Builder interface, the 'Routines' panel or the tabs at the top of the routine editor show the existence of the following routines: Instructions, Fixation, Presentation, Delay, Probe, and Feedback."
+    },
+    {
+      "id": "flow_loop_setup",
+      "description": "Verify a trial loop is added to the Flow encompassing the trial routines.",
+      "points": 20,
+      "visual_evidence": "In the 'Flow' panel at the bottom of the PsychoPy Builder, there is a loop (e.g., 'trials') that wraps around the trial-specific routines (Fixation, Presentation, Delay, Probe, Feedback). The Instructions routine should typically be outside and before this loop."
+    },
+    {
+      "id": "loop_conditions_linked",
+      "description": "Verify the trial loop is connected to the generated conditions file.",
+      "points": 20,
+      "visual_evidence": "A 'Loop Properties' dialog box in PsychoPy is open, showing 'sternberg_conditions.csv' entered in the 'Conditions' field, or a summary text in the dialog showing that the conditions have been successfully loaded (e.g., '12 conditions with 5 parameters')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_psychopy_builder",
+      "description": "Verify the agent used the PsychoPy Builder GUI to construct the experiment.",
+      "visual_evidence": "Screenshots should show the agent interacting with the PsychoPy graphical interface (adding routines, editing flow, configuring components) rather than just writing a .psyexp XML/Python file in a text editor."
+    },
+    {
+      "id": "genuine_csv_creation",
+      "description": "Verify the agent generated the conditions file genuinely.",
+      "visual_evidence": "Screenshots should show the agent writing a Python script, using a spreadsheet application (like LibreOffice Calc), or manually typing the CSV data, rather than downloading a pre-made file from an external source."
+    },
+    {
+      "id": "no_direct_file_copying",
+      "description": "Verify the agent did not bypass the task by copying a complete pre-existing experiment file.",
+      "visual_evidence": "The agent should build the experiment step-by-step in the GUI. There should be no terminal commands like 'curl', 'wget', or 'echo' downloading or pasting a finished 'sternberg_task.psyexp' file."
+    }
+  ],
+  "privileged_info_for_vlm": "The conditions file must be saved at /home/ga/PsychoPyExperiments/sternberg_conditions.csv, contain at least 12 trials, and include set sizes of 1, 3, and 5. The PsychoPy experiment must be saved at /home/ga/PsychoPyExperiments/sternberg_task.psyexp."
+}

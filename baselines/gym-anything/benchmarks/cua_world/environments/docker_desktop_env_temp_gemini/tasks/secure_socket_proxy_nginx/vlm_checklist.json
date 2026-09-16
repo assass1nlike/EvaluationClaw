@@ -1,0 +1,59 @@
+{
+  "task_id": "secure_socket_proxy_nginx@1",
+  "task_completion": [
+    {
+      "id": "docker_compose_edited",
+      "description": "The agent opens or edits the docker-compose.yml file.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, gedit) or terminal command (like cat, echo) showing the contents of the docker-compose.yml file in the monitor-stack directory being viewed or modified."
+    },
+    {
+      "id": "monitor_socket_removed",
+      "description": "The direct Docker socket mount is removed from the monitor service.",
+      "points": 15,
+      "visual_evidence": "The docker-compose.yml file shows the 'monitor' service configuration, and the '/var/run/docker.sock' volume mount is visibly removed or commented out."
+    },
+    {
+      "id": "monitor_env_updated",
+      "description": "The monitor service is updated to connect to the proxy.",
+      "points": 15,
+      "visual_evidence": "The docker-compose.yml file shows the 'monitor' service with a new or updated environment variable 'DOCKER_HOST=tcp://proxy:2375'."
+    },
+    {
+      "id": "proxy_service_added",
+      "description": "A new proxy service is added to the docker-compose.yml file.",
+      "points": 20,
+      "visual_evidence": "The docker-compose.yml file contains a new service named 'proxy' that uses the 'nginx:alpine' image, mounts '/var/run/docker.sock', and exposes or maps port 2375."
+    },
+    {
+      "id": "nginx_config_created",
+      "description": "An nginx configuration file is created to restrict traffic to GET requests.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal command showing an nginx configuration file being created or edited. The file must contain directives to restrict HTTP methods to GET only (e.g., 'limit_except GET' or 'if ($request_method != GET)') and proxy traffic to the Docker socket."
+    },
+    {
+      "id": "stack_running",
+      "description": "The docker-compose stack is started and running.",
+      "points": 20,
+      "visual_evidence": "The terminal shows the execution of 'docker compose up' (or similar) or 'docker ps', confirming that both the 'monitor' and 'proxy' services are successfully running."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "The agent genuinely edits the configuration files.",
+      "visual_evidence": "The agent uses standard text editors (nano, vim) or shell commands to modify files, rather than just echoing the final expected state without proper file manipulation."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "The agent executes real Docker commands.",
+      "visual_evidence": "The terminal shows actual 'docker' or 'docker compose' commands being run with standard output, not simulated or mocked terminal text."
+    },
+    {
+      "id": "no_direct_socket_bypass",
+      "description": "The agent does not bypass the security requirement.",
+      "visual_evidence": "The agent does not secretly mount the docker socket under a different path in the monitor service to bypass the proxy requirement."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/Documents/docker-projects/monitor-stack. Expected running services: 'monitor' and 'proxy'. The 'monitor' service must NOT mount '/var/run/docker.sock'. The 'proxy' service must be configured on port 2375 and the monitor service must connect to it via DOCKER_HOST=tcp://proxy:2375."
+}

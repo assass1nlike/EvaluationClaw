@@ -1,0 +1,28 @@
+{
+  "id": "chinook_storage_optimization@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Database Administrator tasked with optimizing a bloated SQLite database at /home/ga/Documents/databases/chinook_bloated.db. Connect to the 'ChinookBloated' database (Login: ga / password123) and export all 'audit_logs' records dated before '2024-01-01' to /home/ga/Documents/exports/audit_archive.csv, including a header row. Delete these archived records from the 'audit_logs' table and perform a VACUUM or optimization operation to physically reclaim disk space and shrink the database file size.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_storage_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_storage_optimization/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_bloated.db",
+    "archive_path": "/home/ga/Documents/exports/audit_archive.csv",
+    "cutoff_date": "2024-01-01",
+    "target_size_mb": 25.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_storage_optimization"
+    }
+  }
+}

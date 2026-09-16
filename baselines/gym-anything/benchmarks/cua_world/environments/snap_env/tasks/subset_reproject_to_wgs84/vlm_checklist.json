@@ -1,0 +1,53 @@
+{
+  "task_id": "subset_reproject_to_wgs84@1",
+  "task_completion": [
+    {
+      "id": "open_input_file",
+      "description": "Open the input Landsat multispectral GeoTIFF file.",
+      "points": 10,
+      "visual_evidence": "The file 'landsat_multispectral.tif' is visible in the application's product explorer, layer manager, or actively opened in the main viewing area."
+    },
+    {
+      "id": "perform_spatial_subset",
+      "description": "Extract a spatial subset from Scene start (0, 0) to Scene end (200, 200).",
+      "points": 20,
+      "visual_evidence": "A subset dialog or tool is visible with X and Y coordinates set to start at 0 and end at 200 (or width/height of 200/201), OR a new subsetted product is visible in the product tree."
+    },
+    {
+      "id": "perform_reprojection",
+      "description": "Reproject the subset to WGS 84 (EPSG:4326).",
+      "points": 20,
+      "visual_evidence": "A reprojection dialog is visible with the target CRS set to WGS 84 or EPSG:4326, OR a new reprojected product is visible in the product tree."
+    },
+    {
+      "id": "save_dimap_output",
+      "description": "Save the processed product in BEAM-DIMAP format to the specified projects directory.",
+      "points": 25,
+      "visual_evidence": "A save dialog showing the path '/home/ga/snap_projects/landsat_subset_wgs84.dim' with BEAM-DIMAP format selected, OR a file manager/terminal showing this .dim file exists."
+    },
+    {
+      "id": "export_geotiff_output",
+      "description": "Export the processed product as a GeoTIFF to the specified exports directory.",
+      "points": 25,
+      "visual_evidence": "An export dialog showing the path '/home/ga/snap_exports/landsat_subset_wgs84.tif' with GeoTIFF format selected, OR a file manager/terminal showing this .tif file exists."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_software_usage",
+      "description": "The agent used a graphical GIS/Remote Sensing application (like ESA SNAP) to perform the tasks.",
+      "visual_evidence": "Screenshots show the GUI of an application being used for subsetting and reprojection, rather than just terminal commands like 'gdalwarp' or 'gdal_translate'."
+    },
+    {
+      "id": "no_dummy_file_creation",
+      "description": "The agent did not bypass processing by creating empty or dummy files.",
+      "visual_evidence": "The agent does not use commands like 'touch' or a text editor to simply create files named 'landsat_subset_wgs84.dim' or 'landsat_subset_wgs84.tif'."
+    },
+    {
+      "id": "genuine_processing_evidence",
+      "description": "The agent genuinely interacted with the raster data.",
+      "visual_evidence": "Visual presence of raster image displays, processing progress bars, or a populated product tree showing bands and metadata, indicating real data manipulation."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is '/home/ga/snap_data/landsat_multispectral.tif' and contains 4 spectral bands. The spatial subset must be exactly from (0,0) to (200,200). The target CRS for reprojection is WGS 84 (EPSG:4326). The final outputs must be saved as BEAM-DIMAP to '/home/ga/snap_projects/landsat_subset_wgs84.dim' and exported as GeoTIFF to '/home/ga/snap_exports/landsat_subset_wgs84.tif'. The final raster dimensions should be under 400x400 pixels."
+}

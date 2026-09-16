@@ -1,0 +1,34 @@
+{
+  "id": "refactor_encapsulate_field@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Refactor the 'Product' class in the 'InventorySystem' project to use proper encapsulation. Convert the public fields (sku, name, price, and stockQuantity) in 'src/com/inventory/core/Product.java' to private fields with public getters and setters. Ensure that references in other classes, such as 'InventoryManager.java', are updated to use these new accessors and that the project compiles and passes 'ProductTest'.",
+  "difficulty": "intermediate",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_encapsulate_field/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_encapsulate_field/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "InventorySystem",
+    "project_dir": "/home/ga/eclipse-workspace/InventorySystem",
+    "target_class": "com.inventory.core.Product",
+    "client_class": "com.inventory.service.InventoryManager",
+    "fields_to_encapsulate": [
+      "sku",
+      "name",
+      "price",
+      "stockQuantity"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_encapsulate_field"
+    }
+  }
+}

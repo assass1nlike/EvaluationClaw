@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_longitudinal_profile@1",
+  "task_completion": [
+    {
+      "id": "hdf_file_available",
+      "description": "Verify that the unsteady flow simulation results file (Muncie.p04.hdf) is available or was generated.",
+      "points": 10,
+      "visual_evidence": "Look for terminal output, file explorer, or HEC-RAS GUI showing the existence of 'Muncie.p04.hdf' in the '/home/ga/Documents/hec_ras_projects/Muncie' directory, or evidence of the simulation being run."
+    },
+    {
+      "id": "python_script_created",
+      "description": "Verify the creation of the Python script named extract_profile.py.",
+      "points": 15,
+      "visual_evidence": "Look for 'extract_profile.py' in the '/home/ga/Documents/hec_ras_results/' directory via terminal (ls command), file explorer, or an open code editor."
+    },
+    {
+      "id": "csv_generated",
+      "description": "Verify the generation of the longitudinal_profile.csv file with the correct data columns.",
+      "points": 20,
+      "visual_evidence": "Look for 'longitudinal_profile.csv' in the results directory. If opened or printed in the terminal, it should contain columns for river_station, bed_elevation_ft, wse_ft, and flow_depth_ft."
+    },
+    {
+      "id": "plot_generated",
+      "description": "Verify the generation of the longitudinal_profile.png plot showing Bed Elevation and Peak WSE versus River Station.",
+      "points": 25,
+      "visual_evidence": "Look for 'longitudinal_profile.png' in the results directory. If displayed, it should be a graph with River Station on the x-axis and Elevation on the y-axis, containing at least two distinct lines/series (Bed Elevation and Peak WSE)."
+    },
+    {
+      "id": "summary_generated",
+      "description": "Verify the generation of the profile_summary.txt file containing the required statistics.",
+      "points": 30,
+      "visual_evidence": "Look for 'profile_summary.txt' in the results directory. If its contents are visible (e.g., via 'cat' or an editor), it must report the total number of cross-sections, maximum WSE, minimum bed elevation, and maximum flow depth."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_reads_hdf",
+      "description": "Verify that the Python script actually reads the HDF5 results file rather than hardcoding the outputs.",
+      "visual_evidence": "Look at the contents of 'extract_profile.py'. It should contain imports like 'h5py' and code that opens 'Muncie.p04.hdf' to extract arrays, rather than containing hardcoded print statements or pre-written CSV strings."
+    },
+    {
+      "id": "authentic_plot",
+      "description": "Verify that the generated plot is a genuine data visualization.",
+      "visual_evidence": "If the plot is visible, it should look like a standard programmatic plot (e.g., from matplotlib or seaborn) with appropriate axes, legends, and realistic data curves where the Bed Elevation is consistently below or equal to the Peak WSE."
+    },
+    {
+      "id": "accurate_summary_values",
+      "description": "Verify that the summary text file contains values derived from the actual dataset.",
+      "visual_evidence": "Look at the contents of 'profile_summary.txt'. It should show exactly 61 cross-sections, a minimum bed elevation of approximately 913.62 ft, and a maximum WSE of approximately 955.42 ft."
+    }
+  ],
+  "privileged_info_for_vlm": "The Muncie model contains exactly 61 cross-sections. The true minimum channel bed elevation is 913.62 ft, and the peak Water Surface Elevation (WSE) is 955.42 ft. The agent's generated summary file (profile_summary.txt) and plot should accurately reflect these specific values. All outputs (extract_profile.py, longitudinal_profile.csv, longitudinal_profile.png, profile_summary.txt) must be located in /home/ga/Documents/hec_ras_results/."
+}

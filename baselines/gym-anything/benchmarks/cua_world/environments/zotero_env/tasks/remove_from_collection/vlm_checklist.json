@@ -1,0 +1,65 @@
+{
+  "task_id": "remove_from_collection@1",
+  "task_completion": [
+    {
+      "id": "select_collection",
+      "description": "The agent opens Zotero and selects the 'Thesis References' collection.",
+      "points": 10,
+      "visual_evidence": "The Zotero application window is visible, and 'Thesis References' is highlighted in the left pane."
+    },
+    {
+      "id": "remove_einstein",
+      "description": "The agent removes 'On the Electrodynamics of Moving Bodies' from the collection.",
+      "points": 15,
+      "visual_evidence": "The paper by Einstein is selected, and the agent clicks 'Remove Item from Collection' in the context menu (or presses Delete), causing it to disappear from the list."
+    },
+    {
+      "id": "remove_watson_crick",
+      "description": "The agent removes 'Molecular Structure of Nucleic Acids' from the collection.",
+      "points": 15,
+      "visual_evidence": "The paper by Watson & Crick is selected, and the agent clicks 'Remove Item from Collection' in the context menu (or presses Delete), causing it to disappear from the list."
+    },
+    {
+      "id": "remove_goodfellow",
+      "description": "The agent removes 'Generative Adversarial Nets' from the collection.",
+      "points": 15,
+      "visual_evidence": "The paper by Goodfellow et al. is selected, and the agent clicks 'Remove Item from Collection' in the context menu (or presses Delete), causing it to disappear from the list."
+    },
+    {
+      "id": "remove_silver",
+      "description": "The agent removes 'Mastering the game of Go...' from the collection.",
+      "points": 15,
+      "visual_evidence": "The paper by Silver et al. is selected, and the agent clicks 'Remove Item from Collection' in the context menu (or presses Delete), causing it to disappear from the list."
+    },
+    {
+      "id": "verify_final_count",
+      "description": "The 'Thesis References' collection contains exactly 8 items at the end.",
+      "points": 15,
+      "visual_evidence": "In the final screenshots, the 'Thesis References' collection is selected and exactly 8 items are visible in the middle pane, or the item count at the bottom says '8 items'."
+    },
+    {
+      "id": "verify_main_library",
+      "description": "The removed papers are kept in the main library.",
+      "points": 15,
+      "visual_evidence": "The agent explicitly uses 'Remove Item from Collection' (which keeps it in the library) rather than 'Move Item to Trash', OR the agent clicks 'My Library' and the removed papers are still visible there."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui",
+      "description": "The agent interacted with the Zotero GUI to remove the papers.",
+      "visual_evidence": "Screenshots show mouse clicks, context menus, or keyboard navigation within the Zotero application, rather than terminal commands modifying the sqlite database."
+    },
+    {
+      "id": "no_trash_used",
+      "description": "The agent did not delete the items entirely from the database.",
+      "visual_evidence": "The agent does not select 'Move Item to Trash'. If the Trash folder is shown, it does not contain the 4 target papers."
+    },
+    {
+      "id": "correct_collection",
+      "description": "The agent modified the 'Thesis References' collection, not 'My Library'.",
+      "visual_evidence": "The removals happen while 'Thesis References' is selected in the left pane, not while 'My Library' is selected."
+    }
+  ],
+  "privileged_info_for_vlm": "The collection is named 'Thesis References'. The 4 papers to remove are: 1) 'On the Electrodynamics of Moving Bodies' (Einstein, 1905), 2) 'Molecular Structure of Nucleic Acids: A Structure for Deoxyribose Nucleic Acid' (Watson & Crick, 1953), 3) 'Generative Adversarial Nets' (Goodfellow et al., 2014), 4) 'Mastering the game of Go with deep neural networks and tree search' (Silver et al., 2016). The final count of the 'Thesis References' collection must be exactly 8 papers. The papers must be removed from the collection but kept in the main library (e.g., using 'Remove Item from Collection' instead of 'Move Item to Trash')."
+}

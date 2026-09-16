@@ -1,0 +1,59 @@
+{
+  "task_id": "high_wind_offshore_config@1",
+  "task_completion": [
+    {
+      "id": "read_briefing",
+      "description": "The agent opens and reads the operational briefing file.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano) or terminal command (e.g., cat, less) displaying the contents of '/home/ga/Documents/QGC/offshore_briefing.txt'."
+    },
+    {
+      "id": "access_qgc_parameters",
+      "description": "The agent navigates to the Parameters menu in QGroundControl.",
+      "points": 10,
+      "visual_evidence": "The QGroundControl application is open, with the 'Vehicle Setup' menu (gear icon) selected and the 'Parameters' tab active."
+    },
+    {
+      "id": "set_angle_and_wpnav",
+      "description": "The agent configures the ANGLE_MAX, WPNAV_SPEED, and WPNAV_ACCEL parameters to their correct native units.",
+      "points": 25,
+      "visual_evidence": "QGroundControl parameter list or search results showing ANGLE_MAX set to 4500, WPNAV_SPEED set to 1200, and WPNAV_ACCEL set to 250. These may appear in separate screenshots as the agent searches for them."
+    },
+    {
+      "id": "set_rtl_and_failsafe",
+      "description": "The agent configures the RTL_SPEED, RTL_ALT, and FS_EKF_THRESH parameters to their correct native units.",
+      "points": 25,
+      "visual_evidence": "QGroundControl parameter list or search results showing RTL_SPEED set to 1500, RTL_ALT set to 500, and FS_EKF_THRESH set to 1.0. These may appear in separate screenshots."
+    },
+    {
+      "id": "create_report_file",
+      "description": "The agent creates the wind certification report file at the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal command creating or saving a file named 'wind_certification.txt' in the '/home/ga/Documents/QGC/' directory."
+    },
+    {
+      "id": "report_contains_correct_data",
+      "description": "The agent includes the correct maximum angle, RTL speed, and System ID in the certification report.",
+      "points": 20,
+      "visual_evidence": "The contents of 'wind_certification.txt' visible in a text editor or terminal, explicitly listing the max angle (45 or 4500), RTL speed (15 or 1500), and the System ID (1)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "qgc_gui_used",
+      "description": "The agent used the QGroundControl GUI to modify the parameters.",
+      "visual_evidence": "Screenshots must show the QGroundControl interface being interacted with to change parameters, rather than the agent exclusively using terminal scripts or editing parameter files directly."
+    },
+    {
+      "id": "no_vehicle_launch",
+      "description": "The agent did not launch the vehicle, adhering to the negative constraint.",
+      "visual_evidence": "The QGroundControl interface should show the vehicle as 'Disarmed' or 'Ready to Fly' but never 'Armed' or 'Flying'. The map should not show the vehicle moving along a flight path."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The agent genuinely created the certification report.",
+      "visual_evidence": "The agent is seen typing the report in a text editor or using echo/cat commands in the terminal to construct the file, rather than copying a pre-existing file."
+    }
+  ],
+  "privileged_info_for_vlm": "The briefing file is located at /home/ga/Documents/QGC/offshore_briefing.txt. The target parameters to be configured in QGroundControl are: ANGLE_MAX = 4500, WPNAV_SPEED = 1200, WPNAV_ACCEL = 250, RTL_SPEED = 1500, RTL_ALT = 500, and FS_EKF_THRESH = 1.0. The expected vehicle MAVLink System ID (SYSID_THISMAV) is 1. The final certification report must be saved to /home/ga/Documents/QGC/wind_certification.txt and contain the maximum angle, RTL speed, and System ID."
+}

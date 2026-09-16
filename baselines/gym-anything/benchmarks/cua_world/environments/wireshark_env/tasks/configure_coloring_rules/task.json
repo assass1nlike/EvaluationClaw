@@ -1,0 +1,29 @@
+{
+  "id": "configure_coloring_rules@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Configure Wireshark with custom coloring rules to highlight threats in the capture file '~/Documents/captures/200722_tcp_anon.pcapng'. Implement a rule named 'Alert_High_RST' (Filter: 'tcp.flags.reset == 1', Background: Red 255,0,0, Foreground: White 255,255,255) and a rule named 'Alert_Medium_SYN' (Filter: 'tcp.flags.syn == 1 && tcp.flags.ack == 0', Background: Yellow 255,255,0, Foreground: Black 0,0,0). Ensure these rules are enabled and prioritized at the top of the list. Identify the frame number of the first packet highlighted by the 'Alert_High_RST' rule and save only the number to '~/Documents/rst_frame_number.txt'. Export a screenshot of the colored packet list to '~/Documents/colored_packets.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_coloring_rules/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_coloring_rules/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "/home/ga/Documents/captures/200722_tcp_anon.pcapng",
+    "expected_rst_filter": "tcp.flags.reset == 1",
+    "expected_syn_filter": "tcp.flags.syn == 1 && tcp.flags.ack == 0",
+    "output_file": "/home/ga/Documents/rst_frame_number.txt",
+    "screenshot_file": "/home/ga/Documents/colored_packets.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_coloring_rules"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "regression_manual_prediction_exam@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Run a multiple linear regression analysis to predict 'Exam' scores based on 'Revise' (time spent revising) and 'Anxiety' (exam anxiety) using the 'ExamAnxiety.csv' dataset. The analysis must include 95% Confidence Intervals for the Model Coefficients. Save the Jamovi analysis to '~/Documents/Jamovi/prediction_model.omv'. Additionally, calculate the predicted Exam score for a student who studied for 10 hours (Revise=10) and has an Anxiety score of 50 (Anxiety=50). Create a text report at '~/Documents/Jamovi/prediction_report.txt' with the following format, rounding all values to 2 decimal places:\n\nIntercept: [value]\nRevise_B: [value]\nAnxiety_B: [value]\nPredicted_Score: [value]\nRevise_95_CI_Lower: [value]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/regression_manual_prediction_exam/setup_task.sh",
+    "post_task": "/workspace/tasks/regression_manual_prediction_exam/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/Jamovi/ExamAnxiety.csv",
+    "output_omv_path": "/home/ga/Documents/Jamovi/prediction_model.omv",
+    "output_report_path": "/home/ga/Documents/Jamovi/prediction_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_regression_prediction"
+    }
+  }
+}

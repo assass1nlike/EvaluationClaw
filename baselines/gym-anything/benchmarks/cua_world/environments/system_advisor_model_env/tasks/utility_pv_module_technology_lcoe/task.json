@@ -1,0 +1,34 @@
+{
+  "id": "utility_pv_module_technology_lcoe@1",
+  "version": "1.0",
+  "env_id": "system_advisor_model_env@0.1",
+  "difficulty": "very_hard",
+  "description": "A utility-scale solar developer is conducting a module technology selection study for a 50 MW (DC) ground-mounted PV project in Daggett, California (34.867°N, -116.783°W). Evaluate three candidate module technologies to determine which delivers the lowest LCOE and best 25-year financial performance using SAM's physics-based PV model and the Daggett weather file.\n\nSystem Parameters:\n- Size: 50,000 kW DC, single-axis tracking, GCR 0.4.\n- Inverter efficiency: 98%, DC losses: 8%.\n\nModule Technologies:\n- Tech A (Standard mono-Si): 20.4% efficiency, Pmp=440W, Vmp=41.1V, Imp=10.7A, Voc=49.5V, Isc=11.4A, temp coeff Pmp=-0.36%/C, price $1.05/W DC.\n- Tech B (Premium HJT): 22.8% efficiency, Pmp=490W, Vmp=43.5V, Imp=11.3A, Voc=52.2V, Isc=12.0A, temp coeff Pmp=-0.26%/C, price $1.20/W DC.\n- Tech C (CdTe): 19.1% efficiency, Pmp=440W, Vmp=88.0V, Imp=5.0A, Voc=108V, Isc=5.4A, temp coeff Pmp=-0.28%/C, price $0.95/W DC.\n\nFinancial Assumptions:\n- BOS: $0.45/W DC, inverter: $0.06/W DC, EPC overhead: 10% of equipment.\n- O&M: $14/kW-yr, degradation: 0.5%/yr.\n- Analysis: 25 years, 6.0% discount rate, 30% federal ITC.\n- Debt: 60% fraction, 5.5% loan rate, 18-year term.\n- PPA price: $35/MWh.\n\nModel each technology's individual electrical parameters (efficiency, temperature coefficients, and cell-level I-V characteristics) to determine Year 1 annual energy (MWh), capacity factor (%), total installed cost ($), real LCO",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/utility_pv_module_technology_lcoe/setup_task.sh",
+    "post_task": "/workspace/tasks/utility_pv_module_technology_lcoe/export_result.sh"
+  },
+  "metadata": {
+    "expected_num_technologies": 3,
+    "expected_cf_min_pct": 22.0,
+    "expected_cf_max_pct": 35.0,
+    "expected_lcoe_min_usdpermwh": 20.0,
+    "expected_lcoe_max_usdpermwh": 80.0,
+    "expected_aep_min_mwh": 90000,
+    "expected_aep_max_mwh": 160000,
+    "pvsamv1_required": true,
+    "site_lat": 34.867,
+    "site_lon": -116.783,
+    "ppa_price_per_mwh": 35.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_utility_pv_module_technology_lcoe"
+    }
+  }
+}

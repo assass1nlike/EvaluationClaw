@@ -1,0 +1,53 @@
+{
+  "task_id": "bulk_mark_category_out_of_stock@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_products",
+      "description": "Navigate to the WooCommerce Products page.",
+      "points": 10,
+      "visual_evidence": "The WordPress admin dashboard is visible with the 'Products' menu selected, displaying the general list of store products."
+    },
+    {
+      "id": "filter_accessories_category",
+      "description": "Filter the product list to show only the 'Accessories' category.",
+      "points": 20,
+      "visual_evidence": "The category dropdown filter above the product list is set to 'Accessories' and the 'Filter' button has been clicked, resulting in a product list showing only Accessories."
+    },
+    {
+      "id": "modify_stock_status",
+      "description": "Change the stock status of the Accessories products to 'Out of stock'.",
+      "points": 30,
+      "visual_evidence": "The 'Bulk Edit' panel is open with the 'Stock status' dropdown set to 'Out of stock', OR the agent is using 'Quick Edit' or the individual product edit page to change the stock status to 'Out of stock'."
+    },
+    {
+      "id": "confirm_accessories_out_of_stock",
+      "description": "Verify that the Accessories products are successfully marked as out of stock.",
+      "points": 20,
+      "visual_evidence": "The product list for the Accessories category displays 'Out of stock' (often in red text) in the 'Stock' column for all listed products, typically accompanied by a 'Products updated' success message."
+    },
+    {
+      "id": "verify_other_categories_unaffected",
+      "description": "Ensure products in other categories remain 'In stock'.",
+      "points": 20,
+      "visual_evidence": "The agent navigates to view other categories (like 'Clothing') or the unfiltered product list, and the screenshots show that non-Accessories products still display 'In stock' in their 'Stock' column."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_only",
+      "description": "Verify the agent used the WordPress web interface rather than terminal commands to update the database.",
+      "visual_evidence": "The agent should interact exclusively with the web browser. No terminal windows, WP-CLI commands, or direct MySQL queries should be visible."
+    },
+    {
+      "id": "actual_status_update",
+      "description": "Verify the agent actually applied the changes rather than just selecting the option without saving.",
+      "visual_evidence": "Look for the 'Update' button being clicked in the Bulk Edit or Quick Edit menu, followed by a page reload or a WordPress success notification confirming the update."
+    },
+    {
+      "id": "no_html_tampering",
+      "description": "Verify the agent didn't use browser developer tools to fake the visual result.",
+      "visual_evidence": "Browser developer tools (Inspect Element) should not be open or used to manually change the DOM text in the 'Stock' column to 'Out of stock'."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct internal database value for the stock status is 'outofstock'. Note that in this specific environment, the 'Clothing' category contains no products by default. The agent successfully completes the control requirement if it leaves all non-Accessories products as 'In stock', even if it discovers the 'Clothing' category is empty and checks the general product list instead."
+}

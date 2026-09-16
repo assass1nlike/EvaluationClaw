@@ -1,0 +1,53 @@
+{
+  "task_id": "optimize_patient_lookup_speed@1",
+  "task_completion": [
+    {
+      "id": "access_mysql",
+      "description": "Connect to the MySQL database 'DrTuxTest' as root.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a 'mysql>' prompt after connecting with 'mysql -u root DrTuxTest' or a database GUI connected to the 'DrTuxTest' database."
+    },
+    {
+      "id": "execute_create_index",
+      "description": "Create an index named 'idx_numss' on the 'FchPat_NumSS' column in the 'fchpat' table.",
+      "points": 30,
+      "visual_evidence": "Execution of a SQL command like 'CREATE INDEX idx_numss ON fchpat(FchPat_NumSS);' or 'ALTER TABLE fchpat ADD INDEX idx_numss (FchPat_NumSS);' and a success message (e.g., 'Query OK')."
+    },
+    {
+      "id": "execute_explain",
+      "description": "Run the EXPLAIN query to verify the optimization.",
+      "points": 20,
+      "visual_evidence": "Execution of the exact query: \"EXPLAIN SELECT * FROM fchpat WHERE FchPat_NumSS = '1750578999999';\" in the MySQL client or via a terminal command."
+    },
+    {
+      "id": "verify_index_usage",
+      "description": "Check that the EXPLAIN output shows the new index being used.",
+      "points": 20,
+      "visual_evidence": "The output of the EXPLAIN query is visible on screen (either in the MySQL client or by viewing the saved text file), and the 'key' column (or equivalent in JSON/vertical format) shows 'idx_numss', indicating the index is used."
+    },
+    {
+      "id": "save_proof",
+      "description": "Save the EXPLAIN output to /home/ga/optimization_proof.txt.",
+      "points": 20,
+      "visual_evidence": "A terminal command redirecting the EXPLAIN output to '/home/ga/optimization_proof.txt' (e.g., using 'mysql -e ... > /home/ga/optimization_proof.txt') or a text editor saving the output to this exact file path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "The agent interacts with the actual MySQL database.",
+      "visual_evidence": "Commands are executed in a genuine MySQL client or terminal, showing standard MySQL prompts and output formatting."
+    },
+    {
+      "id": "genuine_explain_output",
+      "description": "The saved EXPLAIN output is genuine and not manually fabricated.",
+      "visual_evidence": "The output saved to the text file matches the exact formatting of MySQL EXPLAIN output (tabular, vertical, or JSON) and is not just manually typed text."
+    },
+    {
+      "id": "no_direct_file_manipulation_without_query",
+      "description": "The agent does not bypass running the query by directly writing fabricated output to the proof file.",
+      "visual_evidence": "There is evidence of the agent actually running the EXPLAIN query in MySQL before or while saving it to the file."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is 'DrTuxTest', the table is 'fchpat', and the column is 'FchPat_NumSS'. The expected index name is 'idx_numss'. The proof file must be saved to '/home/ga/optimization_proof.txt'. A successful EXPLAIN output will show 'idx_numss' in the 'key' or 'used_key' field, confirming the index is utilized for the query."
+}

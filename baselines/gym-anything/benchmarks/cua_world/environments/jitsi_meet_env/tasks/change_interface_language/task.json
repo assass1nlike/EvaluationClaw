@@ -1,0 +1,29 @@
+{
+  "id": "change_interface_language@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "You are in a Jitsi Meet video conference room (InterpretingSession2024) with the interface currently displayed in English. Change the Jitsi Meet interface language to French (Français) so that all toolbar buttons, menu items, and labels are displayed in French.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/change_interface_language/setup_task.sh",
+    "post_task": "/workspace/tasks/change_interface_language/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "target_language_code": "fr",
+    "target_language_name": "French",
+    "jitsi_url": "http://localhost:8080",
+    "local_storage_key": "features/base/settings"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_change_interface_language"
+    }
+  }
+}

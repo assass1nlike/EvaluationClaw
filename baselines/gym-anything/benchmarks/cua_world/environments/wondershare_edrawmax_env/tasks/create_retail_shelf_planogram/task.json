@@ -1,0 +1,34 @@
+{
+  "id": "create_retail_shelf_planogram@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a retail planogram for a coffee shop display in Wondershare EdrawMax. The planogram must feature a shelving unit with exactly 3 shelves. On the top shelf, place 4 'Premium Beans' items (dark/black) with a '$18.99' price label. On the middle shelf, place 4 'House Blend' items (light/orange) with a '$14.50' price label. On the bottom shelf, place 5 'Travel Mugs' (silver/blue) with a '$24.00' price label. Include the title 'Summer Coffee Display - Planogram A' at the top of the diagram. Save the diagram as /home/ga/Diagrams/coffee_planogram.eddx and export it as /home/ga/Diagrams/coffee_planogram.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_retail_shelf_planogram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_retail_shelf_planogram/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Diagrams/coffee_planogram.eddx",
+    "expected_png_path": "/home/ga/Diagrams/coffee_planogram.png",
+    "required_strings": [
+      "$18.99",
+      "$14.50",
+      "$24.00",
+      "Summer Coffee Display",
+      "Planogram A"
+    ],
+    "min_file_size_bytes": 5000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_retail_shelf_planogram"
+    }
+  }
+}

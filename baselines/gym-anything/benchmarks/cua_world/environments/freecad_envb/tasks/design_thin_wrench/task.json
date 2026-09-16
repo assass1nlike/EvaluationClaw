@@ -1,0 +1,30 @@
+{
+  "id": "design_thin_wrench@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Design a 15mm bicycle cone wrench as a single solid 3D model in FreeCAD. The wrench must feature a circular head with a 32mm diameter centered at the origin and a handle 12mm wide extending at least 100mm along the X-axis. Incorporate a 15.0mm wide jaw cutout angled at 15 degrees relative to the handle, with the throat positioned approximately 8mm from the center of the head. Extrude the final profile to a thickness of 2.0mm. Save the completed design to /home/ga/Documents/FreeCAD/cone_wrench.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/design_thin_wrench/setup_task.sh",
+    "post_task": "/workspace/tasks/design_thin_wrench/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "cone_wrench.FCStd",
+    "target_thickness_mm": 2.0,
+    "target_jaw_gap_mm": 15.0,
+    "tolerance_mm": 0.2,
+    "min_volume_mm3": 2500,
+    "max_volume_mm3": 3500
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_thin_wrench"
+    }
+  }
+}

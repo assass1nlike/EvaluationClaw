@@ -1,0 +1,59 @@
+{
+  "task_id": "phylogenetics_woodmouse_evolution@1",
+  "task_completion": [
+    {
+      "id": "script_setup",
+      "description": "Create and edit the required R script in RStudio.",
+      "points": 10,
+      "visual_evidence": "RStudio editor is open with a script named 'woodmouse_phylogeny.R' containing code to load the 'ape' package and the 'woodmouse' dataset."
+    },
+    {
+      "id": "distance_matrix_csv",
+      "description": "Calculate the K80 distance matrix and save it to a CSV file.",
+      "points": 15,
+      "visual_evidence": "R code visible in the editor showing distance calculation using 'dist.dna(..., model=\"K80\")' (or similar) and a command like 'write.csv' saving the output to '/home/ga/RProjects/output/woodmouse_dist.csv'."
+    },
+    {
+      "id": "nj_tree_rooting",
+      "description": "Construct a Neighbor-Joining tree and root it with the specified outgroup.",
+      "points": 20,
+      "visual_evidence": "R code visible showing tree construction using 'nj()' and rooting the tree using 'root(..., outgroup=\"No305\")'."
+    },
+    {
+      "id": "bootstrap_analysis",
+      "description": "Conduct a bootstrap analysis with 100 replicates.",
+      "points": 20,
+      "visual_evidence": "R code visible showing bootstrap analysis, typically using 'boot.phylo(..., B=100)' or a similar bootstrapping function with 100 replicates specified."
+    },
+    {
+      "id": "save_nwk_file",
+      "description": "Save the rooted tree topology to a Newick file.",
+      "points": 15,
+      "visual_evidence": "R code visible showing the tree being saved using 'write.tree(...)' to the path '/home/ga/RProjects/output/woodmouse_tree.nwk'."
+    },
+    {
+      "id": "save_png_plot",
+      "description": "Save a visualization of the rooted tree with bootstrap values to a PNG file.",
+      "points": 20,
+      "visual_evidence": "R code visible showing plotting commands (e.g., 'plot()', 'nodelabels()') wrapped in 'png(\"/home/ga/RProjects/output/woodmouse_tree_plot.png\")' and 'dev.off()', OR the actual phylogenetic tree plot with node numbers (bootstrap values) visible in the RStudio Plots pane."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_rstudio",
+      "description": "The agent used RStudio to write and execute the code.",
+      "visual_evidence": "Screenshots should show the RStudio GUI being used, rather than just a basic text editor like nano or vim in the terminal."
+    },
+    {
+      "id": "executed_code",
+      "description": "The agent actually executed the R script.",
+      "visual_evidence": "The RStudio Console pane should show the commands being run, output from the 'ape' package, or the Environment pane should show populated variables (like the distance matrix or tree object)."
+    },
+    {
+      "id": "no_dummy_files",
+      "description": "The agent did not simply create empty or dummy files with the expected names.",
+      "visual_evidence": "The script must contain genuine R logic for phylogenetic analysis, and the terminal/file explorer should not show the use of 'touch' or 'echo' to bypass the actual R computation."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using the 'ape' package in R. The distance model must be 'K80' (Kimura 2-parameter). The outgroup for rooting the tree must be exactly 'No305'. The bootstrap analysis must use exactly 100 replicates. Expected output files are: /home/ga/RProjects/output/woodmouse_dist.csv, /home/ga/RProjects/output/woodmouse_tree.nwk, and /home/ga/RProjects/output/woodmouse_tree_plot.png. The script must be saved as /home/ga/RProjects/woodmouse_phylogeny.R."
+}

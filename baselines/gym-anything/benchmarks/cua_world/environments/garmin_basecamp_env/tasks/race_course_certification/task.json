@@ -1,0 +1,22 @@
+{
+  "id": "race_course_certification@1",
+  "version": "1.0",
+  "env_id": "garmin_basecamp_env@0.1",
+  "description": "You are the Race Director and Event Operations Manager for the 'Fells 25K Trail Race'. Build the official GPS data package in Garmin BaseCamp for aid station timing and medical staff, using the fells_loop terrain data for reference. Create waypoints in My Collection with the following specifications:\n\n- Name: START - BELLEVUE POND | Coordinates: 42.4325, -71.1295 | Symbol: Flag, Blue | Comment: Official Start/Finish. Timing chip mat at 0.0km and 25.0km. Bag check closes 07:45.\n- Name: AS1 - NORTH LOOP | Coordinates: 42.4495, -71.1240 | Symbol: Food/Water | Comment: Aid Station 1. Km 7.2. Water, electrolytes, fruit. NO crew access.\n- Name: AS2 - SHEEPFOLD NORTH",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 110,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\race_course_certification\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\race_course_certification\\export_result.ps1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_race_course_certification"
+    }
+  }
+}

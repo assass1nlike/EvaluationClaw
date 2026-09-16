@@ -1,0 +1,53 @@
+{
+  "task_id": "pigeon_orientation_circular@1",
+  "task_completion": [
+    {
+      "id": "compute_summary_statistics",
+      "description": "Compute summary circular statistics for the pigeons dataset.",
+      "points": 20,
+      "visual_evidence": "RStudio script or console showing the use of the `circular` package and functions like `mean.circular`, `rho.circular`, or `rayleigh.test` applied to the `pigeons` dataset."
+    },
+    {
+      "id": "save_summary_csv",
+      "description": "Save the summary statistics to pigeon_summary.csv.",
+      "points": 20,
+      "visual_evidence": "R code showing `write.csv` (or similar) saving data to `/home/ga/RProjects/output/pigeon_summary.csv` with columns for group, n, mean_direction_deg, mean_resultant_length, and rayleigh_p_value, or the file visible in the file explorer."
+    },
+    {
+      "id": "conduct_and_save_watson_test",
+      "description": "Conduct a Watson-Williams test and save the results to pigeon_test.csv.",
+      "points": 20,
+      "visual_evidence": "R code showing `watson.williams.test` (or similar) and saving the output to `/home/ga/RProjects/output/pigeon_test.csv` with columns test_name, statistic, p_value, and significant_diff."
+    },
+    {
+      "id": "generate_rose_diagram",
+      "description": "Produce a Rose Diagram comparing the groups.",
+      "points": 20,
+      "visual_evidence": "RStudio plot pane displaying a circular rose diagram (a circular histogram) that plots the pigeon orientation data, ideally showing different groups."
+    },
+    {
+      "id": "save_rose_diagram",
+      "description": "Save the Rose Diagram as a PNG file.",
+      "points": 20,
+      "visual_evidence": "R code showing `png(\"/home/ga/RProjects/output/pigeon_rose_plot.png\")` (or `ggsave`), or the file `pigeon_rose_plot.png` visible in the `/home/ga/RProjects/output/` directory in the file explorer."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_execution",
+      "description": "Verify the agent actually executed R code to compute the statistics.",
+      "visual_evidence": "Look for R console output showing the results of the statistical tests or script execution, rather than the agent just typing mock data directly into a CSV file using a text editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent did not hardcode the expected statistical values.",
+      "visual_evidence": "The R script should extract p-values and statistics from the test objects (e.g., `test$p.value`) rather than typing out literal numbers like '0.0001' or 'FALSE' for significance."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "Verify the Rose Diagram is generated from the dataset.",
+      "visual_evidence": "The plot should appear in the RStudio plotting pane or be generated via explicit R plotting commands (like `rose.diag`), not downloaded or copied from an external source."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'pigeons' dataset is actually a data.frame with columns 'treatment' (c, on, v1) and 'bearing', not a list with '$control' and '$experimental' as the prompt implies. The control group ('c') mean direction is ~6.32 degrees. The control group mean resultant length (rho) is ~0.745 (> 0.5). The Rayleigh test for uniformity is significant (p < 0.0001). The Watson-Williams test comparing the control group to experimental groups is NOT significant (p > 0.05). Output files must be located exactly at /home/ga/RProjects/output/."
+}

@@ -1,0 +1,42 @@
+{
+  "id": "standardize_journal_abbreviations@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "A research librarian is preparing a bibliography that requires full, unabbreviated journal titles. Locate four specific classic papers in the Zotero library and update their 'Publication' field from the current abbreviation to the official full title: for Einstein (1905) 'On the Electrodynamics of Moving Bodies', change 'Ann. Phys.' to 'Annalen der Physik'; for McCarthy (1960) 'Recursive Functions...', change 'Comm. ACM' to 'Communications of the ACM'; for Dijkstra (1959) 'A Note on Two Problems...', change 'Numer. Math.' to 'Numerische Mathematik'; and for Shannon (1948) 'A Mathematical Theory of Communication', change 'Bell Syst. Tech. J.' to 'Bell System Technical Journal'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/standardize_journal_abbreviations/setup_task.sh",
+    "post_task": "/workspace/tasks/standardize_journal_abbreviations/export_result.sh"
+  },
+  "metadata": {
+    "targets": {
+      "einstein": {
+        "title": "On the Electrodynamics of Moving Bodies",
+        "expected_pub": "Annalen der Physik"
+      },
+      "mccarthy": {
+        "title": "Recursive Functions of Symbolic Expressions",
+        "expected_pub": "Communications of the ACM"
+      },
+      "dijkstra": {
+        "title": "A Note on Two Problems in Connexion with Graphs",
+        "expected_pub": "Numerische Mathematik"
+      },
+      "shannon": {
+        "title": "A Mathematical Theory of Communication",
+        "expected_pub": "Bell System Technical Journal"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_standardize_journal_abbreviations"
+    }
+  }
+}

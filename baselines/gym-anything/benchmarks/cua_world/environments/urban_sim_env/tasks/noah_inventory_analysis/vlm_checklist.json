@@ -1,0 +1,65 @@
+{
+  "task_id": "noah_inventory_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_opened",
+      "description": "Open or create the Jupyter notebook at the specified path.",
+      "points": 10,
+      "visual_evidence": "The Jupyter Notebook or JupyterLab interface is visible with a file named 'noah_inventory.ipynb' open in the '/home/ga/urbansim_projects/notebooks/' directory."
+    },
+    {
+      "id": "data_loaded_and_cleaned",
+      "description": "Load the H5 dataset and clean null values from specific columns.",
+      "points": 10,
+      "visual_evidence": "Code cells show reading from '/home/ga/urbansim_projects/data/sanfran_public.h5' (specifically 'buildings' and 'parcels' tables) and using a method like dropna() on 'residential_units', 'year_built', and 'residential_sales_price'."
+    },
+    {
+      "id": "noah_filtering_logic",
+      "description": "Identify NOAH buildings using the specified criteria.",
+      "points": 20,
+      "visual_evidence": "Code cells show filtering logic for multi-family (e.g., residential_units >= 4), age (e.g., year_built < 1990), and price (e.g., residential_sales_price <= quantile(0.33) or similar percentile calculation)."
+    },
+    {
+      "id": "buildings_csv_exported",
+      "description": "Export the filtered NOAH buildings to a CSV file with the correct columns.",
+      "points": 15,
+      "visual_evidence": "Code shows a dataframe containing 'parcel_id', 'zone_id', 'year_built', 'residential_units', and 'residential_sales_price' being exported to '/home/ga/urbansim_projects/output/noah_buildings.csv' using to_csv()."
+    },
+    {
+      "id": "summary_csv_exported",
+      "description": "Calculate the zone-level summary and export it to a CSV file.",
+      "points": 20,
+      "visual_evidence": "Code shows grouping by zone to calculate NOAH building count, total NOAH units, total residential units, and the percentage 'noah_unit_pct', followed by exporting to '/home/ga/urbansim_projects/output/zone_noah_summary.csv'."
+    },
+    {
+      "id": "choropleth_map_generated",
+      "description": "Create and save a choropleth map visualizing the NOAH unit percentage by zone.",
+      "points": 15,
+      "visual_evidence": "Code shows loading '/home/ga/urbansim_projects/data/zones.json', merging it with the summary data, plotting a choropleth map based on 'noah_unit_pct', and saving it to '/home/ga/urbansim_projects/output/noah_zones_map.png'. The map itself may also be visible in the cell output."
+    },
+    {
+      "id": "notebook_fully_executed",
+      "description": "Ensure the Jupyter notebook is fully executed.",
+      "points": 10,
+      "visual_evidence": "All code cells containing the required logic have execution numbers (e.g., [1], [2], [3]) next to them, indicating they have been successfully run without unhandled errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_jupyter_usage",
+      "description": "The agent used the Jupyter interface to write and execute Python code.",
+      "visual_evidence": "The screenshots show actual interaction with the Jupyter web interface, not just terminal commands echoing text into a .ipynb file or using a plain text editor to write JSON notebook structures."
+    },
+    {
+      "id": "dynamic_computation",
+      "description": "The agent computed the 33rd percentile and summary statistics dynamically rather than hardcoding fake values.",
+      "visual_evidence": "The code uses pandas/numpy functions (like .quantile(), .sum(), .count()) to calculate the values from the dataset, rather than assigning hardcoded numbers to variables."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "The agent generated the map using plotting libraries and the provided GeoJSON.",
+      "visual_evidence": "The code imports libraries like geopandas or matplotlib, loads the zones.json file, and calls plotting functions (.plot(), .savefig()), rather than downloading or copying an external image file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected notebook path is /home/ga/urbansim_projects/notebooks/noah_inventory.ipynb. The expected output files are /home/ga/urbansim_projects/output/noah_buildings.csv, /home/ga/urbansim_projects/output/zone_noah_summary.csv, and /home/ga/urbansim_projects/output/noah_zones_map.png. The required data sources are /home/ga/urbansim_projects/data/sanfran_public.h5 and /home/ga/urbansim_projects/data/zones.json."
+}

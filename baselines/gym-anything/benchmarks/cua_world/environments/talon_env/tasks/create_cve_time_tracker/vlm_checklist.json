@@ -1,0 +1,53 @@
+{
+  "task_id": "create_cve_time_tracker@1",
+  "task_completion": [
+    {
+      "id": "module_directory_created",
+      "description": "Create the cve_tracker directory in the Talon user folder",
+      "points": 10,
+      "visual_evidence": "A file explorer or terminal window showing the creation or existence of the 'cve_tracker' folder inside 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\'."
+    },
+    {
+      "id": "python_script_setup",
+      "description": "Create cve_timer.py and load the CISA KEV dataset",
+      "points": 20,
+      "visual_evidence": "An editor showing 'cve_timer.py' with code that imports Talon libraries (e.g., 'from talon import Module, actions') and reads 'C:\\workspace\\data\\cisa_kev.csv' to extract valid CVE IDs."
+    },
+    {
+      "id": "start_action_logic",
+      "description": "Implement user.start_cve_timer with normalization, validation, and notifications",
+      "points": 25,
+      "visual_evidence": "Code in 'cve_timer.py' defining 'start_cve_timer(cve_id: str)'. Look for string normalization (e.g., '.upper().strip()'), an 'if' condition checking the ID against the loaded dataset, and notification calls containing 'Invalid CVE' and 'Tracking'."
+    },
+    {
+      "id": "stop_action_logic",
+      "description": "Implement user.stop_cve_timer with duration calculation and CSV logging",
+      "points": 25,
+      "visual_evidence": "Code in 'cve_timer.py' defining 'stop_cve_timer()'. Look for time calculation logic (e.g., using 'time.time()'), and file appending logic ('open(..., \"a\")') writing to 'C:\\workspace\\data\\investigation_timesheet.csv' in a format resembling 'YYYY-MM-DD,CVE_ID,DurationSeconds', followed by an 'Investigation logged' notification."
+    },
+    {
+      "id": "talon_script_created",
+      "description": "Create cve_timer.talon with the required voice commands",
+      "points": 20,
+      "visual_evidence": "An editor showing 'cve_timer.talon' containing the exact voice commands 'investigate vulnerability <user.text>:' and 'stop investigation:' mapped to their respective 'user.start_cve_timer()' and 'user.stop_cve_timer()' actions."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_cve_validation",
+      "description": "The script dynamically validates against the CSV, not hardcoded test values",
+      "visual_evidence": "Check 'cve_timer.py' to ensure it does not explicitly hardcode 'CVE-2021-44228' as valid or 'CVE-9999-99999' as invalid. It must read from the cisa_kev.csv file."
+    },
+    {
+      "id": "genuine_script_creation",
+      "description": "The agent actually wrote the Python and Talon scripts rather than just mocking the output CSV",
+      "visual_evidence": "Screenshots should show the agent interacting with a text editor (like VS Code, Notepad, or nano/vim in terminal) to write the code, rather than just using 'echo' to create a fake timesheet."
+    },
+    {
+      "id": "correct_talon_syntax",
+      "description": "The Talon file uses valid syntax for voice commands",
+      "visual_evidence": "In 'cve_timer.talon', the commands should be followed by a colon and indented action calls (e.g., 'user.start_cve_timer(text)'), not Python code or plain text."
+    }
+  ],
+  "privileged_info_for_vlm": "The Talon module must be located at C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\cve_tracker. The Python script must read valid CVEs from C:\\workspace\\data\\cisa_kev.csv. The output timesheet must be saved to C:\\workspace\\data\\investigation_timesheet.csv. The verifier will test the code using the valid CVE 'CVE-2021-44228' and the invalid CVE 'CVE-9999-99999'."
+}

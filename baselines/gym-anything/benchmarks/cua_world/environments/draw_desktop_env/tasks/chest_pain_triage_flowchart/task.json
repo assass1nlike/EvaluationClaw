@@ -1,0 +1,40 @@
+{
+  "id": "chest_pain_triage_flowchart@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "As an Emergency Medicine educator creating a visual aid for residents based on the AHA/ACC 2021 Guidelines, create a clinical decision flowchart for Acute Chest Pain Triage using the logic provided in ~/Desktop/chest_pain_pathway.txt. The diagram must include two pages: Page 1 titled 'Triage Algorithm' mapping the decision logic with color-coded risk levels (RED for high risk/STEMI/NSTEMI, ORANGE for moderate risk/Observation, and GREEN for low risk/Discharge), and Page 2 titled 'HEART Score' containing a reference table of the five HEART score components found in the text file. Save the diagram to ~/Desktop/chest_pain_triage.drawio and export Page 1 as a PNG image to ~/Desktop/chest_pain_triage.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chest_pain_triage_flowchart/setup_task.sh",
+    "post_task": "/workspace/tasks/chest_pain_triage_flowchart/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Desktop/chest_pain_pathway.txt",
+    "output_drawio": "/home/ga/Desktop/chest_pain_triage.drawio",
+    "output_png": "/home/ga/Desktop/chest_pain_triage.png",
+    "required_keywords": [
+      "stemi",
+      "nstemi",
+      "troponin",
+      "heart",
+      "ecg",
+      "acs",
+      "discharge",
+      "admit"
+    ],
+    "min_shapes": 15,
+    "min_diamonds": 3,
+    "min_pages": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chest_pain_triage_flowchart"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "generate_pv_12x24_matrix@1",
+  "task_completion": [
+    {
+      "id": "read_weather_path",
+      "description": "Agent reads the weather data path from the specified text file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command like `cat /home/ga/.SAM/solar_resource_dir.txt` or Python code opening this file to read the weather data path."
+    },
+    {
+      "id": "configure_pysam_parameters",
+      "description": "Agent writes a Python script configuring PySAM.Pvwattsv8 with the correct system parameters.",
+      "points": 20,
+      "visual_evidence": "Code editor or terminal showing a Python script importing `PySAM.Pvwattsv8` and setting parameters: 50000 (capacity), 2 (array type), 1.2 (DC/AC ratio), 96 (inverter efficiency), and 14 (losses)."
+    },
+    {
+      "id": "execute_simulation",
+      "description": "Agent runs the Python script to perform the simulation.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of the Python script (e.g., `python script.py`) without throwing errors."
+    },
+    {
+      "id": "verify_json_creation",
+      "description": "Agent saves the results to the specified JSON file path.",
+      "points": 20,
+      "visual_evidence": "Terminal showing `ls /home/ga/Documents/SAM_Projects/` listing `12x24_profile.json`, or the Python script explicitly writing to `/home/ga/Documents/SAM_Projects/12x24_profile.json`."
+    },
+    {
+      "id": "verify_json_structure",
+      "description": "The generated JSON file has the correct structure and keys.",
+      "points": 20,
+      "visual_evidence": "The JSON file content displayed in a text editor or terminal showing the exact keys: `\"project_size_kw\"`, `\"location\"`, `\"annual_energy_kwh\"`, and `\"matrix_12x24\"`."
+    },
+    {
+      "id": "verify_json_values",
+      "description": "The generated JSON file contains valid simulation results.",
+      "points": 20,
+      "visual_evidence": "In the displayed JSON content, the `\"annual_energy_kwh\"` value is between 90,000,000 and 125,000,000, and the `\"matrix_12x24\"` contains 12 keys (months) with arrays where peak values exceed 20,000."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_json",
+      "description": "The agent must generate the JSON file programmatically using the PySAM simulation results.",
+      "visual_evidence": "Ensure the JSON file is created by the Python script outputting simulation results, not by the agent manually typing or hardcoding the JSON content."
+    },
+    {
+      "id": "genuine_pysam_execution",
+      "description": "The agent must actually execute the Python script containing the PySAM simulation.",
+      "visual_evidence": "Look for terminal output showing the script running and completing, rather than just creating a dummy file with mocked data."
+    },
+    {
+      "id": "correct_weather_file_usage",
+      "description": "The agent must use the weather file path obtained from the specified text file.",
+      "visual_evidence": "Check the Python script to ensure it reads from `/home/ga/.SAM/solar_resource_dir.txt` or uses the exact path found within it, rather than downloading a random weather file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is '/home/ga/Documents/SAM_Projects/12x24_profile.json'. The expected DC size is 50000 kW. The annual energy should be between 90,000,000 kWh and 125,000,000 kWh. The peak hour generation should be at least 20,000 kW."
+}

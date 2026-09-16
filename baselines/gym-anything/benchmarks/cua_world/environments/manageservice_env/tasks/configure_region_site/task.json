@@ -1,0 +1,31 @@
+{
+  "id": "configure_region_site@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Configure a new organizational structure in ServiceDesk Plus by adding a region named 'Asia Pacific' and a site named 'Singapore Hub' within that region. The 'Singapore Hub' site must include the following details: Address: 1 Raffles Place, City: Singapore, Postal Code: 048616, Country: Singapore, and Description: 'Regional HQ for APAC operations'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_region_site/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_region_site/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_region": "Asia Pacific",
+    "expected_site": "Singapore Hub",
+    "expected_address": "1 Raffles Place",
+    "expected_city": "Singapore",
+    "expected_zip": "048616",
+    "expected_country": "Singapore"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_region_site"
+    }
+  }
+}

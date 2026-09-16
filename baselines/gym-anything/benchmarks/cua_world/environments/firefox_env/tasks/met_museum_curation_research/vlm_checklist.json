@@ -1,0 +1,59 @@
+{
+  "task_id": "met_museum_curation_research@1",
+  "task_completion": [
+    {
+      "id": "bookmark_folder_created",
+      "description": "Verify that a bookmark folder named 'Met Van Gogh' was created.",
+      "points": 10,
+      "visual_evidence": "Look for a folder named 'Met Van Gogh' in the browser's bookmark bar or bookmark manager."
+    },
+    {
+      "id": "three_paintings_bookmarked",
+      "description": "Verify that exactly three Met Museum painting pages are saved in the bookmark folder.",
+      "points": 20,
+      "visual_evidence": "Look inside the 'Met Van Gogh' bookmark folder (or in the bookmark manager) to confirm it contains three distinct bookmarks pointing to metmuseum.org."
+    },
+    {
+      "id": "high_res_image_downloaded",
+      "description": "Verify that a high-resolution image was downloaded to the correct directory.",
+      "points": 20,
+      "visual_evidence": "Look at the file manager or terminal showing the contents of '/home/ga/Documents/met_images/'. There should be at least one image file (e.g., .jpg) present, and its file size should indicate a high-resolution image (typically >500 KB)."
+    },
+    {
+      "id": "json_catalog_exists",
+      "description": "Verify that the JSON catalog file was created at the specified path.",
+      "points": 10,
+      "visual_evidence": "Look for a file named 'exhibition_catalog.json' located in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "json_catalog_keys",
+      "description": "Verify that the JSON catalog contains the required keys for each of the three paintings.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of 'exhibition_catalog.json' (opened in a text editor or terminal). It must contain an array of three objects, and each object MUST have the keys: 'title', 'date', 'medium', 'accession_number', and 'url'."
+    },
+    {
+      "id": "json_catalog_accuracy",
+      "description": "Verify that the JSON catalog contains accurate information for Vincent van Gogh paintings.",
+      "points": 20,
+      "visual_evidence": "Read the values in the JSON file. The 'medium' should mention 'Oil' (e.g., 'Oil on canvas'), and the 'url' fields must point to 'metmuseum.org' domains."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_interaction",
+      "description": "Verify that the agent actually used the web browser to navigate the Met Museum website.",
+      "visual_evidence": "Look for browser tabs, history, or active navigation on metmuseum.org, proving the agent didn't just hallucinate the URLs or bypass the browser entirely (since bookmarking requires browser use)."
+    },
+    {
+      "id": "genuine_image_file",
+      "description": "Verify that the downloaded image is a genuine, non-empty file.",
+      "visual_evidence": "Look at the file properties or terminal 'ls -l' output for the image in 'met_images'. The file size should be substantial (e.g., several megabytes), not a 0-byte file or a tiny thumbnail."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "Verify that the JSON catalog contains realistic, specific data rather than placeholders.",
+      "visual_evidence": "Check the JSON file for specific accession numbers (e.g., '436528') and full URLs, ensuring the agent didn't use generic placeholders like 'title 1', 'url 1', or '12345'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target artist is 'Vincent van Gogh'. The required medium for his paintings in the Met collection is 'Oil' (typically 'Oil on canvas'). The valid URL domain for the artworks is 'metmuseum.org'. The downloaded image must be high-resolution (at least 500 KB, typically 3-5 MB for the Met's 'original' size). The bookmark folder must be exactly named 'Met Van Gogh'. The JSON catalog must be located at '/home/ga/Documents/exhibition_catalog.json' and the image directory must be '/home/ga/Documents/met_images'."
+}

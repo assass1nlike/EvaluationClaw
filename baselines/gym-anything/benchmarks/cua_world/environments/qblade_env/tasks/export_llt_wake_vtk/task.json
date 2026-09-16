@@ -1,0 +1,35 @@
+{
+  "id": "export_llt_wake_vtk@1",
+  "version": "1.0",
+  "env_id": "qblade_env@0.1",
+  "description": "Run an unsteady Lifting Line Theory (LLT) wake simulation using the 'NREL_5MW_Reference.wpa' project from '~/Documents/sample_projects/'. Configure the simulation with a wind speed of approximately 10m/s, a rotational speed of approximately 10RPM, and at least 50 timesteps. Export the velocity cut plane data (e.g., XZ plane at Y=0) intersecting the wake to '~/Documents/projects/wake_cutplane.vtu' and save the project as '~/Documents/projects/llt_simulation.wpa'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_llt_wake_vtk/setup_task.sh",
+    "post_task": "/workspace/tasks/export_llt_wake_vtk/export_result.sh"
+  },
+  "metadata": {
+    "expected_vtk_name": "wake_cutplane",
+    "expected_project_name": "llt_simulation.wpa",
+    "min_vtk_size_bytes": 10240,
+    "sample_project_path": "/home/ga/Documents/sample_projects/NREL_5MW_Reference.wpa"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_llt_wake_vtk"
+    }
+  },
+  "tags": [
+    "qblade",
+    "cfd",
+    "simulation",
+    "visualization",
+    "export"
+  ]
+}

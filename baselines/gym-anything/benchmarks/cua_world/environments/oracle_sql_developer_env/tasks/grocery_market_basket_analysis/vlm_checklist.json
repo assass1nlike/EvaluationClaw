@@ -1,0 +1,53 @@
+{
+  "task_id": "grocery_market_basket_analysis@1",
+  "task_completion": [
+    {
+      "id": "create_product_metrics_vw",
+      "description": "Create the PRODUCT_METRICS_VW view with required columns.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the execution of a SQL query starting with 'CREATE VIEW PRODUCT_METRICS_VW' that includes product_id, product_name, order_count, and product_support."
+    },
+    {
+      "id": "create_pair_metrics_vw",
+      "description": "Create the PAIR_METRICS_VW view calculating pair frequencies.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the execution of a SQL query for 'CREATE VIEW PAIR_METRICS_VW' that explicitly includes the condition 'product_a_id < product_b_id' and calculates pair_order_count and pair_support."
+    },
+    {
+      "id": "create_market_basket_rules_mv",
+      "description": "Create the MARKET_BASKET_RULES_MV materialized view with joined data and rounded metrics.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing 'CREATE MATERIALIZED VIEW MARKET_BASKET_RULES_MV' joining the previous views, with evidence of ROUND(..., 4) applied to confidence_a_to_b, confidence_b_to_a, and lift."
+    },
+    {
+      "id": "filter_market_basket_rules",
+      "description": "Filter the materialized view for pair_order_count >= 20 and lift > 2.0.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the SQL definition for the materialized view includes a WHERE or HAVING clause enforcing 'pair_order_count >= 20' and 'lift > 2.0'."
+    },
+    {
+      "id": "export_csv_results",
+      "description": "Export the top 200 rows ordered by lift descending to the specified CSV file.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the exported file at '/home/ga/Documents/exports/market_basket_top200.csv' (via file explorer, terminal, or text editor) containing column headers and data rows, or the export configuration/command showing 'ORDER BY lift DESC' and a limit of 200 rows."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent interacted with the actual Oracle database to execute queries.",
+      "visual_evidence": "Look for an active database connection in a tool like DBeaver, SQL*Plus, or another SQL client, showing successful query execution rather than just typing SQL in a text editor."
+    },
+    {
+      "id": "no_hardcoded_metrics",
+      "description": "Agent calculated metrics dynamically rather than hardcoding expected values.",
+      "visual_evidence": "Verify that the SQL queries use mathematical formulas (e.g., division for support, confidence, lift) and do not contain hardcoded lift values like 13.3333 or 44.4444."
+    },
+    {
+      "id": "authentic_export",
+      "description": "CSV export was generated from query results.",
+      "visual_evidence": "Ensure the CSV file was created via a database client export feature, a script, or a spool command, rather than being manually typed or mocked with fake data."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV path is /home/ga/Documents/exports/market_basket_top200.csv. The true mathematically correct lift values for specific pairs are 13.3333 (Hot Dogs & Buns) and 44.4444 (Peanut Butter & Jelly). The agent must calculate these dynamically via SQL, not hardcode them."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "high_latitude_telecom_solar_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Optimize an off-grid solar rack array for Anchorage, Alaska to maximize energy yield on the winter solstice. The Energy3D project is loaded with a default rack array. Perform the following steps:\n1. Change the site location to Anchorage, AK (Latitude ~61.2°N).\n2. Set the simulation date to December 21 (Winter Solstice).\n3. Select all solar racks and adjust their tilt angle to 75° (optimized for low winter sun).\n4. Notice that at this steep tilt, the front rows cast long shadows on the back rows. Increase the spacing (distance) between the rows of solar racks to eliminate this inter-row shading.\n5. Run the Daily Environmental Solver / Yield Analysis for this setup.\n6. Export the resulting Daily Yield graph data to `~/Documents/Energy3D/anchorage_winter_yield.csv`.\n7. Save the modified project to `~/Documents/Energy3D/anchorage_telecom_site.ng3`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/high_latitude_telecom_solar_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/high_latitude_telecom_solar_optimization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Telecom Infrastructure Engineer",
+    "industry": "Telecommunications / Renewable Energy",
+    "expected_csv_path": "/home/ga/Documents/Energy3D/anchorage_winter_yield.csv",
+    "expected_ng3_path": "/home/ga/Documents/Energy3D/anchorage_telecom_site.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_telecom_solar_optimization"
+    }
+  }
+}

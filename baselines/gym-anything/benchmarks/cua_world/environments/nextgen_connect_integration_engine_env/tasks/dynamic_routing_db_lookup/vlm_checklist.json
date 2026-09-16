@@ -1,0 +1,53 @@
+{
+  "task_id": "dynamic_routing_db_lookup@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify the channel 'Dynamic_Clinic_Router' is created.",
+      "points": 10,
+      "visual_evidence": "The NextGen Connect (Mirth Connect) Administrator dashboard shows a channel named 'Dynamic_Clinic_Router' in the channels list."
+    },
+    {
+      "id": "source_tcp_listener",
+      "description": "Verify the source is configured to listen on TCP port 6661.",
+      "points": 15,
+      "visual_evidence": "The 'Source' tab for the channel shows the Connector Type set to 'TCP Listener' and the 'Local Port' field is set to '6661'."
+    },
+    {
+      "id": "database_lookup_configured",
+      "description": "Verify a database lookup is configured to query the PostgreSQL database.",
+      "points": 25,
+      "visual_evidence": "A Transformer step (e.g., in Source or Destination) shows a Database connection or JavaScript code connecting to 'jdbc:postgresql://nextgen-postgres:5432/mirthdb' with user 'postgres' and querying the 'clinic_routes' table."
+    },
+    {
+      "id": "msh6_extraction_and_mapping",
+      "description": "Verify the channel extracts MSH-6 and maps the database results to variables.",
+      "points": 20,
+      "visual_evidence": "Transformer code or mapping steps show the extraction of the 'Receiving Facility' (MSH.6) from the HL7 message and the assignment of the resulting 'host' and 'port' from the database query into channel map variables (e.g., channelMap.put('targetPort', ...))."
+    },
+    {
+      "id": "dynamic_destination_routing",
+      "description": "Verify the destination uses dynamic variables for the host and port instead of hardcoded values.",
+      "points": 30,
+      "visual_evidence": "The 'Destinations' tab shows a 'TCP Sender' connector where the 'Remote Address' and 'Remote Port' fields contain variables using the ${variable_name} syntax (e.g., ${targetHost} and ${targetPort}) rather than static numbers like 6671 or 6672."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the NextGen Connect Administrator GUI.",
+      "visual_evidence": "Screenshots show the actual NextGen Connect Administrator Java application interface being interacted with, not just terminal commands, API scripts, or text editors."
+    },
+    {
+      "id": "no_hardcoded_destinations",
+      "description": "Verify the agent did not hardcode the target ports or create multiple static destinations.",
+      "visual_evidence": "The destination configuration does not have '6671' or '6672' typed directly into the port fields, and there are not multiple static destinations created to handle CLINIC_A and CLINIC_B separately."
+    },
+    {
+      "id": "genuine_db_query",
+      "description": "Verify the agent actually queries the database rather than using a mock script.",
+      "visual_evidence": "The transformer script or database step contains the actual JDBC URL and a SQL SELECT query, rather than an if/else block that manually checks for 'CLINIC_A' and assigns ports."
+    }
+  ],
+  "privileged_info_for_vlm": "Channel Name: Dynamic_Clinic_Router. Source Port: 6661. The database query should target jdbc:postgresql://nextgen-postgres:5432/mirthdb with credentials postgres/postgres. The dynamic routing should resolve to port 6671 for 'CLINIC_A' and port 6672 for 'CLINIC_B', but these ports MUST NOT be hardcoded in the destination settings. The destination must use variables (e.g., ${host}, ${port}) populated from the database lookup."
+}

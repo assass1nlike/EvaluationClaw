@@ -1,0 +1,36 @@
+{
+  "id": "batch_intensity_normalization@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Perform batch intensity normalization on 5 fluorescence microscopy images (files containing '_w2.TIF') from the BBBC005 dataset located in '~/Fiji_Data/raw/BBBC005/'. Normalize the intensity distribution of each image to a Target Mean of 100 and a Target Standard Deviation of 40, ensuring values are clipped to the 8-bit range (0-255). Save the normalized 8-bit TIFF images to '~/Fiji_Data/results/normalization/' with filenames 'normalized_A01.tif', 'normalized_A02.tif', etc., corresponding to the input order. Create a report at '~/Fiji_Data/results/normalization/normalization_report.csv' including columns for filename, original_mean, original_stddev, normalized_mean, and normalized_stddev. Additionally, save a histogram comparison image to '~/Fiji_Data/results/normalization/histogram_comparison.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/batch_intensity_normalization/setup_task.sh",
+    "post_task": "/workspace/tasks/batch_intensity_normalization/export_result.sh"
+  },
+  "metadata": {
+    "target_mean": 100,
+    "target_std": 40,
+    "tolerance_mean": 20,
+    "tolerance_std": 15,
+    "expected_files": [
+      "normalized_A01.tif",
+      "normalized_A02.tif",
+      "normalized_A03.tif",
+      "normalized_A04.tif",
+      "normalized_A05.tif"
+    ],
+    "output_dir": "~/Fiji_Data/results/normalization/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_batch_normalization"
+    }
+  }
+}

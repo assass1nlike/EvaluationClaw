@@ -1,0 +1,59 @@
+{
+  "task_id": "regatta_start_line_setup@1",
+  "task_completion": [
+    {
+      "id": "scenario_directory_created",
+      "description": "Create a new scenario directory at /opt/bridgecommand/Scenarios/r) Cowes Regatta Start/",
+      "points": 10,
+      "visual_evidence": "Terminal output showing 'mkdir' command success, 'ls' output listing the directory, or a file manager window showing the 'r) Cowes Regatta Start' folder inside /opt/bridgecommand/Scenarios/."
+    },
+    {
+      "id": "environment_configured",
+      "description": "Configure the Solent environment with wind direction 235 degrees, wind speed 15 knots, and good visibility",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output showing the scenario configuration file (e.g., .ini file) with settings for wind direction (235), wind speed (15), and visibility (e.g., high value or 'good')."
+    },
+    {
+      "id": "committee_boat_positioned",
+      "description": "Position the Committee Boat at 50.7750 N, 1.3000 W, anchored and heading 235 degrees",
+      "points": 20,
+      "visual_evidence": "Scenario configuration file showing the ownship/Committee Boat with latitude 50.7750, longitude -1.3000 (or 1.3 W), heading 235, and a parameter indicating it is anchored or has 0 speed."
+    },
+    {
+      "id": "pin_end_buoy_placed",
+      "description": "Place a Pin End buoy exactly 0.25 nautical miles from the Committee Boat on a bearing 90 degrees to the left of the wind (145 degrees)",
+      "points": 25,
+      "visual_evidence": "Scenario configuration file showing a buoy object with calculated latitude and longitude coordinates that correspond to a position 0.25 nm away at a 145-degree bearing from 50.7750 N, 1.3000 W."
+    },
+    {
+      "id": "yachts_fleet_included",
+      "description": "Include a fleet of at least 3 sailing yachts positioned downwind (North-East) heading towards the start line",
+      "points": 15,
+      "visual_evidence": "Scenario configuration file showing at least 3 additional ship/yacht objects with coordinates placing them to the North-East of the start line (higher latitude, less negative longitude) and headings set towards the start line (approx 235 degrees)."
+    },
+    {
+      "id": "instructions_file_saved",
+      "description": "Save the calculated coordinates of the Pin End Buoy to /home/ga/Documents/sailing_instructions.txt",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output (e.g., 'cat') showing the contents of /home/ga/Documents/sailing_instructions.txt containing the calculated latitude and longitude of the Pin End Buoy."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_actually_saved",
+      "description": "Verify that the scenario configuration and sailing instructions files were actually saved to disk.",
+      "visual_evidence": "Look for terminal commands like 'cat' or 'ls' confirming file existence, or a text editor showing no 'unsaved changes' indicator."
+    },
+    {
+      "id": "coordinates_actually_calculated",
+      "description": "Verify that the agent calculated actual coordinates for the Pin End Buoy rather than just writing a placeholder.",
+      "visual_evidence": "The sailing_instructions.txt file and scenario config must contain actual numerical latitude and longitude values, not text like '0.25 nm at 145 degrees'."
+    },
+    {
+      "id": "valid_scenario_format",
+      "description": "Verify that the scenario configuration uses a structured format appropriate for a simulator.",
+      "visual_evidence": "The scenario file should look like a valid configuration file (e.g., INI format with sections and key-value pairs) rather than unstructured natural language."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: Target wind direction is 235 degrees (Southwest). The Pin End buoy must be placed on a bearing 90 degrees to the left of the wind, which is exactly 145 degrees. The Committee Boat's longitude 1.3000 W should be represented as -1.3 in decimal degrees. The start line distance is 0.25 nautical miles."
+}

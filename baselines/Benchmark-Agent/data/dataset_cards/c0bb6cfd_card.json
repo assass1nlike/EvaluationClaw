@@ -1,0 +1,94 @@
+{
+  "dataset_id": "c0bb6cfd",
+  "name": "Rock-Paper-Scissors-Gesture-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A visual detection dataset for rock-paper-scissors hand gestures. Given an image and a generic prompt, the task is to localize hands with bounding boxes and classify them as Rock, Paper, or Scissors.",
+  "card_text": "Rock-Paper-Scissors-Gesture-Detection is a multimodal dataset for object detection of hand gestures in egocentric images. It contains 200 samples, each pairing a single RGB image with a generic text prompt and a structured output of bounding boxes. The images come from an EgoHands-style collection and show hands in everyday first-person scenes. Annotations are given as a list of dictionaries where each key is a gesture class (e.g., Paper or Scissors) and the value is a bounding box [x, y, width, height]. The prompt is a placeholder for model-specific instructions and does not vary per sample. The dataset is designed to evaluate visual localization and gesture classification, without requiring captioning, segmentation, or open-ended text generation.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "hand gesture recognition",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic prompt or instruction placeholder for the gesture detection task. It does not contain sample-specific content but serves as the textual query alongside the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Path to a single RGB image containing one or more hands performing rock-paper-scissors gestures. This is the primary visual input for detection.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list of detection annotations. Each entry is a dictionary mapping a gesture class label (e.g., 'Paper' or 'Scissors') to a bounding box given as [x, y, width, height] for a hand in the image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      },
+      "category": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gesture category labels (e.g., Paper, Scissors) are encoded as keys inside each bbox dictionary and represent the class of the detected hand.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image path (input.image_file), a generic text prompt (input.prompt), and an output object with a bbox list (output.bbox). The bbox list holds one or more dictionaries that map a gesture class label ('Paper' or 'Scissors') to a bounding box [x, y, width, height]. The image is the visual context, the prompt is a lightweight instruction, and the bbox entries provide the localization and category targets. No textual answers, masks, or additional annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/rock-paper-scissors-gesture-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "rock-paper-scissors-gesture-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "interactive_hr_form_creation@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Transform the static HR document '/home/ga/Documents/onboarding_draft.odt' into an interactive digital form. Add text boxes for 'Full Name' and 'Job Title', a date field for 'Start Date', mutually exclusive option buttons for 'Full-Time' and 'Part-Time', and a check box for 'Company Laptop Required?'. Save the completed interactive form as '/home/ga/Documents/onboarding_form_interactive.odt'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/interactive_hr_form_creation/setup_task.sh",
+    "post_task": "/workspace/tasks/interactive_hr_form_creation/export_result.sh"
+  },
+  "metadata": {
+    "draft_path": "/home/ga/Documents/onboarding_draft.odt",
+    "output_path": "/home/ga/Documents/onboarding_form_interactive.odt",
+    "min_text_boxes": 2,
+    "min_date_fields": 1,
+    "min_radios": 2,
+    "min_checkboxes": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_interactive_form"
+    }
+  }
+}

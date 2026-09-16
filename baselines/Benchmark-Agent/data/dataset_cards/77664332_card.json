@@ -1,0 +1,106 @@
+{
+  "dataset_id": "77664332",
+  "name": "Openset Abduction-Based Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates abductive visual question answering by presenting two image-question-answer groups and asking whether they share the same explanation for their answer differences. Models must choose True or False based on a predefined taxonomy of ten difference types.",
+  "card_text": "The dataset contains 200 samples, each with two images and a long textual prompt. The prompt includes instructions, definitions of ten possible explanations for VQA answer differences (e.g., Low Quality Image, Answer Not Present, Ambiguous), and two question-answer sets with ten answers each. The model must decide if both groups exhibit the same 'Question-Answer Differences' by outputting True or False. Images are everyday scenes, objects, or screenshots. The task requires multimodal reasoning, comparing visual evidence and textual answer distributions to infer the underlying explanation type. It tests the ability to perform abductive reasoning over noisy VQA data.",
+  "tasks": [
+    "classification_binary",
+    "visual_question_answering"
+  ],
+  "domain": "visual question answering",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "instruction",
+        "semantics": "Contains the full task instructions, definitions of ten explanation categories for VQA answer differences, and two groups of images with their questions and answer lists. It serves as the primary input context that the model must read and reason over.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Poses the binary question of whether the two question-answer groups have the same underlying explanation for their answer differences, requiring a True/False choice.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The embedded choice list ['True', 'False'] that defines the allowed answer labels for the binary decision.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "Two images per sample, representing the visual context for the two question-answer groups. They can be everyday objects, scenes, or screenshots, and are referenced by filename.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The binary judgment (True or False) indicating whether the two question-answer groups share the same 'Question-Answer Differences' explanation.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of two images, a long text prompt containing task instructions, definitions of ten explanation types, two question-answer groups (each with a question and ten answers), and an embedded True/False choice list. The model reads the prompt and images, then outputs a single binary label indicating whether the two groups share the same explanation for their answer differences. The images are referenced by filenames, and the prompt embeds all other textual components."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Abduction-basedVQA/openset_abduction-based_vqa.json",
+    "existing_tags": {
+      "task": "Abduction-based VQA",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

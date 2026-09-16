@@ -1,0 +1,53 @@
+{
+  "task_id": "setup_logging_framework@1",
+  "task_completion": [
+    {
+      "id": "add_maven_dependencies",
+      "description": "Add SLF4J API and Logback Classic dependencies to the project",
+      "points": 15,
+      "visual_evidence": "Look for the pom.xml file open in an editor showing <dependency> tags for 'org.slf4j:slf4j-api:2.0.9' and 'ch.qos.logback:logback-classic:1.4.14'."
+    },
+    {
+      "id": "configure_logback_xml",
+      "description": "Create and configure logback.xml with a console appender and DEBUG level",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'logback.xml' in 'src/main/resources/' open in an editor. It must contain a console appender (e.g., <appender class=\"ch.qos.logback.core.ConsoleAppender\">) and the root logger level set to DEBUG (<root level=\"DEBUG\">)."
+    },
+    {
+      "id": "instantiate_slf4j_loggers",
+      "description": "Import and instantiate SLF4J loggers in the required Java classes",
+      "points": 20,
+      "visual_evidence": "Look for Java files (LibraryApp.java, BookService.java, BookRepository.java, SearchEngine.java) showing imports for 'org.slf4j.Logger' and 'org.slf4j.LoggerFactory', along with logger instantiations like 'Logger logger = LoggerFactory.getLogger(...)';"
+    },
+    {
+      "id": "replace_system_out_err",
+      "description": "Replace System.out and System.err statements with SLF4J logger calls",
+      "points": 25,
+      "visual_evidence": "Look for the Java source files showing 'logger.info(...)', 'logger.debug(...)', or 'logger.error(...)'. There should be no remaining 'System.out.println' or 'System.err.println' calls in the visible code."
+    },
+    {
+      "id": "compile_project_successfully",
+      "description": "Ensure the project compiles successfully after modifications",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window running 'mvn compile' (or similar build command) showing a 'BUILD SUCCESS' message, or an IDE build tool window indicating successful compilation without errors."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "correct_project_directory",
+      "description": "Verify the agent is working in the correct project directory",
+      "visual_evidence": "Check the terminal prompt, IDE file explorer, or window title to ensure the project path is '/home/ga/IdeaProjects/library-app'."
+    },
+    {
+      "id": "book_java_unmodified",
+      "description": "Verify that Book.java was not unnecessarily modified",
+      "visual_evidence": "If Book.java is visible, ensure it does not contain SLF4J logger imports or instantiations, as it originally contained no System.out statements."
+    },
+    {
+      "id": "genuine_compilation_output",
+      "description": "Verify the compilation success is from a genuine build tool",
+      "visual_evidence": "Look at the terminal or IDE output to ensure the 'BUILD SUCCESS' message is part of a standard Maven/IDE build log, not just a text file or an 'echo' command."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at '/home/ga/IdeaProjects/library-app'. The expected dependencies to be added are 'org.slf4j:slf4j-api:2.0.9' and 'ch.qos.logback:logback-classic:1.4.14'. The logback configuration must be in 'src/main/resources/logback.xml' and include a console appender with a DEBUG root level. The files that require modification to replace System.out/err with SLF4J loggers are: 'LibraryApp.java', 'BookService.java', 'BookRepository.java', and 'SearchEngine.java'. The file 'Book.java' contains no print statements and should be ignored."
+}

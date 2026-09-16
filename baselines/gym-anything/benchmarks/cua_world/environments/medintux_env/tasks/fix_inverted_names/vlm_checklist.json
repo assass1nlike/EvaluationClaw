@@ -1,0 +1,48 @@
+{
+  "task_id": "fix_inverted_names@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the DrTuxTest database",
+      "points": 10,
+      "visual_evidence": "Terminal showing a MySQL connection to the 'DrTuxTest' database (e.g., 'mysql -u root DrTuxTest' or a 'mysql>' prompt after selecting the db), or a database GUI connected to it."
+    },
+    {
+      "id": "update_martin",
+      "description": "Correct the record for Sophie MARTIN",
+      "points": 25,
+      "visual_evidence": "Terminal or DB client showing an UPDATE command setting the last name to 'MARTIN' and first name to 'Sophie', OR a SELECT query output showing the corrected name for this record."
+    },
+    {
+      "id": "update_petit",
+      "description": "Correct the record for Thomas PETIT",
+      "points": 25,
+      "visual_evidence": "Terminal or DB client showing an UPDATE command setting the last name to 'PETIT' and first name to 'Thomas', OR a SELECT query output showing the corrected name for this record."
+    },
+    {
+      "id": "update_dubois",
+      "description": "Correct the record for Lucas DUBOIS",
+      "points": 25,
+      "visual_evidence": "Terminal or DB client showing an UPDATE command setting the last name to 'DUBOIS' and first name to 'Lucas', OR a SELECT query output showing the corrected name for this record."
+    },
+    {
+      "id": "verify_tables_and_guids",
+      "description": "Update both required tables without deleting records",
+      "points": 15,
+      "visual_evidence": "Evidence of UPDATE statements targeting both 'IndexNomPrenom' and 'fchpat' tables. There should be no DELETE or INSERT statements used for these records, ensuring GUIDs are preserved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent interacted with the actual database",
+      "visual_evidence": "The commands and queries are executed in a real MySQL terminal or database GUI, not just written in a text editor."
+    },
+    {
+      "id": "no_delete_insert",
+      "description": "Agent did not delete and recreate records",
+      "visual_evidence": "There should be no DELETE commands followed by INSERT commands for the target records in the terminal history."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains three target records with inverted names. Record 1 (GUID: FIX-INV-001) has Nom: 'Sophie', Prenom: 'MARTIN'. Record 2 (GUID: FIX-INV-002) has Nom: 'Thomas', Prenom: 'PETIT'. Record 3 (GUID: FIX-INV-003) has Nom: 'Lucas', Prenom: 'DUBOIS'. The correct values should swap these so Nom is the uppercase last name and Prenom is the first name. The tables to update are 'IndexNomPrenom' and 'fchpat'."
+}

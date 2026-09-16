@@ -1,0 +1,29 @@
+{
+  "id": "texture_paint_wear_mask@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Create a 'chipped paint' material effect on the 'SciFiCrate' object by painting a wear mask. UV unwrap the object and create a 1024x1024 black image texture named 'wear_mask'. Paint white wear details along the edges and corners of the crate. Configure the material to mix a blue base color (paint) and a grey metallic base color (metal) using the 'wear_mask' image texture as the mix factor. Save the painted image to /home/ga/BlenderProjects/wear_mask.png and the project to /home/ga/BlenderProjects/distressed_crate.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/texture_paint_wear_mask/setup_task.sh",
+    "post_task": "/workspace/tasks/texture_paint_wear_mask/export_result.sh"
+  },
+  "metadata": {
+    "expected_image_path": "/home/ga/BlenderProjects/wear_mask.png",
+    "expected_blend_path": "/home/ga/BlenderProjects/distressed_crate.blend",
+    "object_name": "SciFiCrate",
+    "min_painted_pixels_ratio": 0.005,
+    "max_painted_pixels_ratio": 0.95
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_texture_paint_wear_mask"
+    }
+  }
+}

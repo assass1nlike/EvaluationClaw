@@ -1,0 +1,59 @@
+{
+  "task_id": "stopmotion_assembly_pipeline@1",
+  "task_completion": [
+    {
+      "id": "master_video_created",
+      "description": "Verify the creation of 'commercial_master.mp4' with correct specifications.",
+      "points": 20,
+      "visual_evidence": "Look for 'commercial_master.mp4' in the file manager under /home/ga/Videos/stopmotion_output/. A properties window, terminal output, or media player should indicate it is 1280x720 resolution, has an audio track, and is approximately 10 seconds long."
+    },
+    {
+      "id": "cinematic_video_created",
+      "description": "Verify the creation of 'commercial_cinematic.mp4' with correct specifications.",
+      "points": 15,
+      "visual_evidence": "Look for 'commercial_cinematic.mp4' in the output folder. Visual evidence (properties, terminal, or player) should show it is 1280x720 resolution, lacks an audio track, and is approximately 5 seconds long."
+    },
+    {
+      "id": "web_video_created",
+      "description": "Verify the creation of 'commercial_web.mp4' with correct specifications.",
+      "points": 15,
+      "visual_evidence": "Look for 'commercial_web.mp4' in the output folder. Visual evidence should show it is scaled down to 640x360 resolution, includes an audio track, and is approximately 10 seconds long."
+    },
+    {
+      "id": "preview_video_created",
+      "description": "Verify the creation of 'commercial_preview.mp4' with correct specifications.",
+      "points": 15,
+      "visual_evidence": "Look for 'commercial_preview.mp4' in the output folder. Visual evidence should show it is 640x360 resolution, lacks an audio track, and is approximately 6 seconds long (composed of 12 frames at 2 fps)."
+    },
+    {
+      "id": "proof_sheet_created",
+      "description": "Verify the creation of 'proof_sheet.png' containing a 12-frame grid.",
+      "points": 15,
+      "visual_evidence": "Look for 'proof_sheet.png' opened in an image viewer or showing a clear thumbnail. It must display a grid/montage of exactly 12 distinct frames from the animation."
+    },
+    {
+      "id": "manifest_created",
+      "description": "Verify the creation and content of 'assembly_manifest.json'.",
+      "points": 20,
+      "visual_evidence": "Look for 'assembly_manifest.json' opened in a text editor or printed in the terminal. It must contain JSON keys for 'project_name', 'total_frames', 'source_resolution', and a 'deliverables' array listing the output files with their respective duration_seconds, resolution, and has_audio statuses."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_files",
+      "description": "Ensure the generated video files are actual media files and not empty or renamed dummy files.",
+      "visual_evidence": "The .mp4 files should display valid video thumbnails in the file manager or be shown successfully playing the animation (Big Buck Bunny or Mandelbrot visuals) in a media player."
+    },
+    {
+      "id": "accurate_manifest_data",
+      "description": "Check that the manifest JSON contains calculated, accurate data rather than generic placeholders.",
+      "visual_evidence": "The 'duration_seconds' in the JSON deliverables array should accurately reflect the math: 10 for master, 5 for cinematic, 10 for web, and 6 for preview."
+    },
+    {
+      "id": "proof_sheet_validity",
+      "description": "Ensure the proof sheet is generated from the actual source frames.",
+      "visual_evidence": "The images in 'proof_sheet.png' must match the visual content of the source frames (either Big Buck Bunny or synthetic Mandelbrot patterns), not random images."
+    }
+  ],
+  "privileged_info_for_vlm": "The source frames will either be Big Buck Bunny or synthetic Mandelbrot visuals. Based on mathematical frame counts: the 120 frames at 12 fps produce a 10-second master and web video. At 24 fps, they produce a 5-second cinematic video. The preview video uses every 10th frame (12 frames total) at 2 fps, producing exactly a 6-second video."
+}

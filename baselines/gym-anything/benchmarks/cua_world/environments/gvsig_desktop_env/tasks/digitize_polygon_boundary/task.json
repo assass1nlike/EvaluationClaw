@@ -1,0 +1,30 @@
+{
+  "id": "digitize_polygon_boundary@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "You are a GIS analyst needing to define a study area. Using the reference data at /home/ga/gvsig_data/countries/ne_110m_admin_0_countries.shp, create a new polygon shapefile at /home/ga/gvsig_data/projects/iceland_boundary.shp. Digitize a boundary enclosing the island of Iceland in the North Atlantic. The shapefile must contain a string field named 'region_id' (length 20) with the attribute value 'ISL-Zone-01' for the digitized feature.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/digitize_polygon_boundary/setup_task.sh",
+    "post_task": "/workspace/tasks/digitize_polygon_boundary/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/gvsig_data/projects/iceland_boundary.shp",
+    "reference_file": "/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.shp",
+    "target_country_code": "ISL",
+    "target_attribute_value": "ISL-Zone-01",
+    "target_field_name": "region_id",
+    "min_coverage_ratio": 0.8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_digitize_polygon_boundary"
+    }
+  }
+}

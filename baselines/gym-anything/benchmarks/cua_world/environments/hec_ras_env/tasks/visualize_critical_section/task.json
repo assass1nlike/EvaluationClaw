@@ -1,0 +1,26 @@
+{
+  "id": "visualize_critical_section@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Identify the river station with the maximum flood depth (calculated as Peak Water Surface Elevation minus Minimum Channel Elevation) using the Muncie simulation results in Muncie.p04.tmp.hdf. Generate a plot of this critical cross-section showing the terrain profile, peak water surface elevation as a filled blue area, and bank stations. Save the plot as a PNG to /home/ga/Documents/hec_ras_results/critical_section_plot.png, ensuring the plot title includes the River Station ID. Additionally, save a text report containing the River Station ID and the calculated maximum depth in feet to /home/ga/Documents/hec_ras_results/critical_section_info.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/visualize_critical_section/setup_task.sh",
+    "post_task": "/workspace/tasks/visualize_critical_section/export_result.sh"
+  },
+  "metadata": {
+    "expected_plot_path": "/home/ga/Documents/hec_ras_results/critical_section_plot.png",
+    "expected_report_path": "/home/ga/Documents/hec_ras_results/critical_section_info.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_visualize_critical_section"
+    }
+  }
+}

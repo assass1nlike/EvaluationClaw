@@ -1,0 +1,48 @@
+{
+  "task_id": "create_labeled_choropleth_map@1",
+  "task_completion": [
+    {
+      "id": "style_created",
+      "description": "Create the 'population_choropleth' style in the 'ne' workspace",
+      "points": 10,
+      "visual_evidence": "GeoServer UI showing the 'Styles' page with 'population_choropleth' in the 'ne' workspace, or a terminal command/script successfully creating it via the REST API."
+    },
+    {
+      "id": "rules_configured",
+      "description": "Configure 5 classification rules for 'pop_est' with correct fill colors",
+      "points": 25,
+      "visual_evidence": "SLD XML content (in GeoServer editor, text editor, or script) showing 5 rules using '<ogc:PropertyName>pop_est</ogc:PropertyName>', with threshold filters and '<CssParameter name=\"fill\">' matching the 5 hex codes: #ffffb2, #fecc5c, #fd8d3c, #f03b20, #bd0026."
+    },
+    {
+      "id": "stroke_and_labels_configured",
+      "description": "Configure stroke and labels according to specifications",
+      "points": 25,
+      "visual_evidence": "SLD XML content showing '<CssParameter name=\"stroke\">#999999</CssParameter>' and width 0.5, plus a '<TextSymbolizer>' for '<ogc:PropertyName>name</ogc:PropertyName>' with color #333333, SansSerif size 10, and a halo of radius 2 with color #ffffff."
+    },
+    {
+      "id": "layer_default_style",
+      "description": "Set 'population_choropleth' as the default style for the 'ne:ne_countries' layer",
+      "points": 20,
+      "visual_evidence": "GeoServer UI 'Publishing' tab for the 'ne_countries' layer showing 'population_choropleth' selected as the Default Style, or a REST API command updating the layer's default style."
+    },
+    {
+      "id": "map_exported",
+      "description": "Export a WMS map image to the specified output path",
+      "points": 20,
+      "visual_evidence": "Terminal showing a WMS GetMap request (e.g., curl or wget) saving the output to '/home/ga/output/population_map.png', or a file manager/image viewer showing the generated choropleth map at that exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "geoserver_interaction",
+      "description": "Agent actually interacted with GeoServer to apply the style",
+      "visual_evidence": "Screenshots must show the GeoServer web interface being used, or terminal commands making HTTP requests to the GeoServer REST API (localhost:8080/geoserver)."
+    },
+    {
+      "id": "wms_export_genuine",
+      "description": "The exported map was generated via a genuine WMS request",
+      "visual_evidence": "The command used to generate the PNG must be a valid WMS GetMap URL pointing to the local GeoServer instance, not a downloaded external image or a renamed dummy file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating an SLD style named 'population_choropleth' in the 'ne' workspace for the 'ne:ne_countries' layer. The style must classify the 'pop_est' attribute into 5 classes using the YlOrRd ColorBrewer palette (#ffffb2, #fecc5c, #fd8d3c, #f03b20, #bd0026). All polygons must have a #999999 stroke of width 0.5. Labels must use the 'name' attribute with #333333 text and a #ffffff halo of radius 2. The output must be a WMS-generated PNG saved to /home/ga/output/population_map.png."
+}

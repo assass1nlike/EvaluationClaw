@@ -1,0 +1,35 @@
+{
+  "id": "dual_chart_technical_setup@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is running on the Windows desktop with daily OHLCV data for SPY, AAPL, and MSFT. As a technical analyst, compare AAPL and MSFT by creating two visible chart windows. Configure the AAPL chart with 50-period and 200-period Simple Moving Averages and a Volume sub-panel. Configure the MSFT chart with a 20-period Exponential Moving Average, Bollinger Bands (Period=20, StdDev=2), and a MACD (12, 26, 9) sub-panel. Save the workspace. Login credentials: Docker / GymAnything123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dual_chart_technical_setup\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\dual_chart_technical_setup\\export_result.ps1"
+  },
+  "metadata": {
+    "chart1_instrument": "AAPL",
+    "chart1_indicators": [
+      "SMA(50)",
+      "SMA(200)",
+      "Volume"
+    ],
+    "chart2_instrument": "MSFT",
+    "chart2_indicators": [
+      "EMA(20)",
+      "BollingerBands(20,2)",
+      "MACD(12,26,9)"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dual_chart_technical_setup"
+    }
+  }
+}

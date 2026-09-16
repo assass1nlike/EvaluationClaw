@@ -1,0 +1,59 @@
+{
+  "task_id": "atacama_observatory_site_validation@1",
+  "task_completion": [
+    {
+      "id": "open_climate_datasets",
+      "description": "Verify the agent opened the required climate datasets in a data viewer (like Panoply).",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a data viewer application (e.g., Panoply) open with 'pres.mon.ltm.nc' and 'prate.sfc.mon.ltm.nc' loaded in the sources or datasets panel."
+    },
+    {
+      "id": "extract_pressure_value",
+      "description": "Verify the agent extracted the January surface pressure at the target coordinates.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a data grid, array view, or plot tool displaying the surface pressure variable for January (time index 0) at Latitude -22.5 (22.5 S) and Longitude 292.5 (67.5 W), showing a value of approximately 629.8 mb or 62981.6 Pa."
+    },
+    {
+      "id": "extract_precipitation_value",
+      "description": "Verify the agent extracted the January precipitation rate at the target coordinates.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a data grid, array view, or plot tool displaying the precipitation rate variable for January (time index 0) at the nearest grid cell (Latitude ~-21.9, Longitude 292.5), showing a value of approximately 3.798e-05 kg/m^2/s."
+    },
+    {
+      "id": "export_pressure_map",
+      "description": "Verify the agent exported the surface pressure map.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a saved file named 'atacama_pres_jan.png' in the ~/Documents/Observatory/ directory, or a save dialog actively exporting this map plot."
+    },
+    {
+      "id": "export_precipitation_map",
+      "description": "Verify the agent exported the precipitation rate map.",
+      "points": 15,
+      "visual_evidence": "Screenshots showing a saved file named 'atacama_precip_jan.png' in the ~/Documents/Observatory/ directory, or a save dialog actively exporting this map plot."
+    },
+    {
+      "id": "save_validation_report",
+      "description": "Verify the agent saved the structured site validation report with the extracted values.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a text editor or file manager with 'site_validation_report.txt' in ~/Documents/Observatory/, containing the extracted values (629.8 mb / 62981.6 Pa and ~3.798e-05 kg/m^2/s)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_map_exports",
+      "description": "Ensure the exported PNG files are actual data visualizations and not empty or renamed files.",
+      "visual_evidence": "The exported 'atacama_pres_jan.png' and 'atacama_precip_jan.png' should visibly contain plotted maps with color scales, not blank images or text."
+    },
+    {
+      "id": "actual_data_interaction",
+      "description": "Ensure the agent actually interacted with the dataset files to find the values.",
+      "visual_evidence": "Look for evidence of the agent navigating the dataset variables (e.g., in Panoply or via a Python script output) rather than just typing the final report from external knowledge."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Ensure the agent saved the outputs in the correct requested directory.",
+      "visual_evidence": "File paths in save dialogs, terminal windows, or file managers must explicitly show '/home/ga/Documents/Observatory/'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Coordinates: Latitude -22.5 (22.5 S), Longitude -67.5 (67.5 W, which is 292.5 E in 0-360 format). Expected January Surface Pressure: 629.81665 millibars (62981.665 Pascals). Expected January Precipitation Rate: ~3.79853e-05 kg/m^2/s (nearest grid cell is at lat -21.9044, lon 292.5). Output Directory: /home/ga/Documents/Observatory. Expected Files: atacama_pres_jan.png, atacama_precip_jan.png, site_validation_report.txt."
+}

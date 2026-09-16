@@ -1,0 +1,59 @@
+{
+  "task_id": "create_camouflaged_volume@1",
+  "task_completion": [
+    {
+      "id": "volume_creation_setup",
+      "description": "Verify the VeraCrypt volume is being created at the correct path with the correct size.",
+      "points": 15,
+      "visual_evidence": "Look for the VeraCrypt Volume Creation Wizard showing the volume location set to '/home/ga/Volumes/legacy_driver_backup.iso' and the volume size set to 50 MB."
+    },
+    {
+      "id": "volume_creation_settings",
+      "description": "Verify the VeraCrypt volume encryption, hash, filesystem, and password settings.",
+      "points": 15,
+      "visual_evidence": "Look for the VeraCrypt wizard screens showing Encryption Algorithm 'AES', Hash Algorithm 'SHA-512', Filesystem 'FAT', and the password field being filled (ideally with 'Display password' checked showing 'Camouflage2024!')."
+    },
+    {
+      "id": "volume_mounted",
+      "description": "Verify the newly created volume is mounted.",
+      "points": 10,
+      "visual_evidence": "Look for the VeraCrypt main window showing '/home/ga/Volumes/legacy_driver_backup.iso' successfully mounted to a drive slot."
+    },
+    {
+      "id": "file_copied",
+      "description": "Verify the exploit script is copied into the mounted volume.",
+      "points": 25,
+      "visual_evidence": "Look for a file manager window or terminal showing 'exploit_poc.py' located inside the mounted VeraCrypt volume directory (e.g., /media/veracrypt1/ or similar mount point)."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "Verify the volume is dismounted after copying the file.",
+      "points": 10,
+      "visual_evidence": "Look for the VeraCrypt main window showing that the previously used drive slot is now empty or a notification/terminal command indicating the volume was dismounted."
+    },
+    {
+      "id": "timestamp_modified",
+      "description": "Verify the 'Last Modified' timestamp of the container file is changed to June 15, 2021 10:00.",
+      "points": 25,
+      "visual_evidence": "Look for a terminal window showing a 'touch' command modifying the timestamp of '/home/ga/Volumes/legacy_driver_backup.iso' (e.g., 'touch -m -t 202106151000' or similar), or an 'ls -l' / 'stat' output confirming the date is June 15, 2021 10:00."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_interaction",
+      "description": "Ensure the agent actually used the VeraCrypt application to create the volume.",
+      "visual_evidence": "Look for genuine interaction with the VeraCrypt GUI windows (Volume Creation Wizard, Main Window) rather than just renaming an empty file to .iso."
+    },
+    {
+      "id": "genuine_terminal_execution",
+      "description": "Ensure terminal commands for copying or timestamp modification were actually executed.",
+      "visual_evidence": "Look for the presence of a new command prompt line after commands like 'cp' or 'touch' are typed, indicating the command was submitted and executed, not just typed into a text editor."
+    },
+    {
+      "id": "no_fake_timestamp_output",
+      "description": "Ensure the timestamp modification is genuine and not mocked.",
+      "visual_evidence": "Verify that the timestamp change is performed via actual system commands (like 'touch') or file properties dialogs, rather than typing fake 'ls' output into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target volume path: '/home/ga/Volumes/legacy_driver_backup.iso'. Target size: 50 MB. Target password: 'Camouflage2024!'. Source file to copy: '/home/ga/Documents/exploit_poc.py'. Target timestamp: June 15, 2021 10:00 (2021-06-15 10:00)."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "archimedes_pi_polygon_exhaustion@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create an interactive GeoGebra applet demonstrating Archimedes' method of exhaustion for approximating π. The construction must include a unit circle centered at the origin (0, 0) with radius 1 and an integer slider named 'n' (ranging from 3 to at least 48) that dynamically controls the number of sides for both a regular inscribed n-gon and a regular circumscribed n-gon. Display the numerical lower bound (inscribed polygon's half-perimeter) and upper bound (circumscribed polygon's half-perimeter) for π, along with a text annotation on the Graphics view referencing π and the computed approximation values. Save the completed construction as ~/Documents/GeoGebra/projects/archimedes_pi.ggb.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 540,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/archimedes_pi_polygon_exhaustion/setup_task.sh",
+    "post_task": "/workspace/tasks/archimedes_pi_polygon_exhaustion/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "archimedes_pi.ggb",
+    "output_path": "/home/ga/Documents/GeoGebra/projects/archimedes_pi.ggb",
+    "min_n": 3,
+    "max_n_requirement": 48
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_archimedes_pi_polygon_exhaustion"
+    }
+  }
+}

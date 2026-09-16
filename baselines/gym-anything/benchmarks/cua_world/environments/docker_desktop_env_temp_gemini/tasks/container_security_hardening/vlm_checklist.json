@@ -1,0 +1,53 @@
+{
+  "task_id": "container_security_hardening@1",
+  "task_completion": [
+    {
+      "id": "dockerfile_updated",
+      "description": "The Dockerfile is updated to include a USER directive to prevent running as root.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., cat) showing the contents of /home/ga/insecure-app/Dockerfile. It must contain a 'USER' instruction (e.g., 'USER nobody', 'USER appuser', or a specific UID)."
+    },
+    {
+      "id": "docker_compose_updated",
+      "description": "The docker-compose.yml is updated to fix the three security misconfigurations.",
+      "points": 30,
+      "visual_evidence": "Look for a text editor or terminal output showing /home/ga/insecure-app/docker-compose.yml. Verify that 'privileged: true' has been removed, the volume mount for '/var/run/docker.sock' has been removed, and a memory limit (e.g., 'mem_limit: 256m' or via 'deploy.resources.limits.memory') has been added."
+    },
+    {
+      "id": "image_rebuilt",
+      "description": "The Docker image is rebuilt with the required hardened tag.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing a docker build command with the tag '-t secure-web:hardened', or the output of 'docker images' listing the 'secure-web' repository with the 'hardened' tag."
+    },
+    {
+      "id": "container_redeployed",
+      "description": "The application container is redeployed using the updated configuration and hardened image.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output showing 'docker-compose up -d' being executed, or 'docker ps' displaying the running container utilizing the 'secure-web:hardened' image."
+    },
+    {
+      "id": "app_functional",
+      "description": "The hardened application remains functional and accessible on port 8090.",
+      "points": 15,
+      "visual_evidence": "Look for a web browser navigated to 'http://localhost:8090' successfully displaying the web application, or terminal output of 'curl http://localhost:8090' (or similar) returning a successful response."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_edits",
+      "description": "The agent genuinely edited the configuration files.",
+      "visual_evidence": "Look for the use of standard text editors (nano, vim, gedit, VS Code) or legitimate shell commands (sed, echo) to modify the Dockerfile and docker-compose.yml."
+    },
+    {
+      "id": "actual_docker_commands",
+      "description": "The agent executed real Docker commands rather than simulating output.",
+      "visual_evidence": "Look for genuine Docker CLI output in the terminal, including standard build steps, layer hashes, and container startup logs."
+    },
+    {
+      "id": "no_pre_baked_solution",
+      "description": "The agent manually identified and fixed the issues without using a shortcut script.",
+      "visual_evidence": "Ensure there is no execution of a single script (e.g., './fix_security.sh') that automatically resolves all misconfigurations at once."
+    }
+  ],
+  "privileged_info_for_vlm": "The application is located at /home/ga/insecure-app. There are exactly 4 security issues to fix: 1) missing USER directive in Dockerfile, 2) mounting the docker socket in docker-compose.yml, 3) running as a privileged container in docker-compose.yml, and 4) lacking memory limits in docker-compose.yml. The rebuilt image must be tagged as 'secure-web:hardened' and the app must remain functional on port 8090."
+}

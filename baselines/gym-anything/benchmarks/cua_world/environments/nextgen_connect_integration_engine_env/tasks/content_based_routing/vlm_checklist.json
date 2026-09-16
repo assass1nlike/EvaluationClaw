@@ -1,0 +1,59 @@
+{
+  "task_id": "content_based_routing@1",
+  "task_completion": [
+    {
+      "id": "source_configured",
+      "description": "Verify the channel source is configured as a TCP Listener on port 6661.",
+      "points": 20,
+      "visual_evidence": "In the NextGen Connect 'Source' tab for 'HL7_Message_Router', the Connector Type should be 'TCP Listener' and the Local Port should be '6661'."
+    },
+    {
+      "id": "adt_destination_configured",
+      "description": "Verify the ADT destination is configured correctly.",
+      "points": 15,
+      "visual_evidence": "In the 'Destinations' tab, there should be a destination named 'ADT_Destination' of type 'File Writer' with the Directory set to '/tmp/output/adt/' and a unique File Name (e.g., '${message.messageId}.hl7')."
+    },
+    {
+      "id": "orm_destination_configured",
+      "description": "Verify the ORM destination is configured correctly.",
+      "points": 15,
+      "visual_evidence": "In the 'Destinations' tab, there should be a destination named 'ORM_Destination' of type 'File Writer' with the Directory set to '/tmp/output/orm/' and a unique File Name."
+    },
+    {
+      "id": "oru_destination_configured",
+      "description": "Verify the ORU destination is configured correctly.",
+      "points": 15,
+      "visual_evidence": "In the 'Destinations' tab, there should be a destination named 'ORU_Destination' of type 'File Writer' with the Directory set to '/tmp/output/oru/' and a unique File Name."
+    },
+    {
+      "id": "filters_configured",
+      "description": "Verify that routing filters are configured for the destinations based on message type.",
+      "points": 20,
+      "visual_evidence": "In the 'Filters' view for the destinations, there should be rules checking the MSH-9.1 field (e.g., msg['MSH']['MSH.9']['MSH.9.1'].toString() == 'ADT', 'ORM', or 'ORU') corresponding to each destination."
+    },
+    {
+      "id": "channel_deployed_started",
+      "description": "Verify the channel is deployed and running.",
+      "points": 15,
+      "visual_evidence": "In the NextGen Connect 'Dashboard' view, the channel 'HL7_Message_Router' should be listed with a Status of 'STARTED'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the NextGen Connect Administrator GUI to configure the channel.",
+      "visual_evidence": "Screenshots should show the NextGen Connect Administrator Java application interface being interacted with, rather than terminal commands editing XML configuration files directly."
+    },
+    {
+      "id": "no_manual_file_creation_spoofing",
+      "description": "Verify the agent did not manually create the output files to bypass the routing engine.",
+      "visual_evidence": "The agent should not be seen using 'touch' or 'echo' commands in the terminal to create .hl7 files in the /tmp/output/ directories."
+    },
+    {
+      "id": "genuine_filter_setup",
+      "description": "Verify the agent actually entered the filter logic in the UI.",
+      "visual_evidence": "Screenshots should show the Filter editor in NextGen Connect with actual rule logic (JavaScript or Rule Builder) rather than leaving the filters blank."
+    }
+  ],
+  "privileged_info_for_vlm": "Channel Name: HL7_Message_Router. Listen Port: 6661. ADT Output Directory: /tmp/output/adt. ORM Output Directory: /tmp/output/orm. ORU Output Directory: /tmp/output/oru."
+}

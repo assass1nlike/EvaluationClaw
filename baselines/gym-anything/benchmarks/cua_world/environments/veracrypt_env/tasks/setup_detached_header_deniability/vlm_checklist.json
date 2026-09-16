@@ -1,0 +1,59 @@
+{
+  "task_id": "setup_detached_header_deniability@1",
+  "task_completion": [
+    {
+      "id": "volume_created",
+      "description": "Verify the VeraCrypt volume was created at the specified path.",
+      "points": 15,
+      "visual_evidence": "Look for the VeraCrypt GUI volume creation wizard or terminal commands successfully creating a 50MB container at '/home/ga/SecureTransport/ghost_data.hc'."
+    },
+    {
+      "id": "file_copied",
+      "description": "Verify the sample file was copied into the mounted volume.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager window or terminal commands (e.g., 'cp', 'ls') showing 'SF312_Nondisclosure_Agreement.txt' being placed inside the mounted VeraCrypt volume directory."
+    },
+    {
+      "id": "header_backed_up",
+      "description": "Verify the volume header was backed up to the specified external file.",
+      "points": 15,
+      "visual_evidence": "Look for the VeraCrypt 'Volume Tools' -> 'Backup Volume Header' dialog or terminal output confirming the creation of '/home/ga/SecureTransport/ghost_header.vc'."
+    },
+    {
+      "id": "headers_wiped",
+      "description": "Verify both the primary and embedded backup headers of the container file were securely wiped.",
+      "points": 25,
+      "visual_evidence": "Look for terminal commands (such as 'dd') overwriting the first 128KB and the last 128KB of 'ghost_data.hc' with random data or zeros (e.g., using /dev/urandom or /dev/zero, with bs=128K or bs=131072)."
+    },
+    {
+      "id": "mount_verification",
+      "description": "Verify the agent tested that the volume cannot mount normally but can mount with the external header.",
+      "points": 20,
+      "visual_evidence": "Look for a VeraCrypt error message or failed CLI mount attempt when trying to mount 'ghost_data.hc' normally, followed by a successful mount attempt when explicitly providing the 'ghost_header.vc' file as an external header."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "Verify the volume is left dismounted at the end of the task.",
+      "points": 10,
+      "visual_evidence": "Look for the VeraCrypt GUI showing no active mounted volumes, or a terminal command like 'veracrypt -d' being executed as the final step."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_veracrypt_usage",
+      "description": "Ensure the agent genuinely used VeraCrypt to create and manipulate the volume.",
+      "visual_evidence": "Check that the VeraCrypt GUI or official 'veracrypt' CLI commands were used, rather than the agent simply creating empty files with '.hc' or '.vc' extensions using 'touch'."
+    },
+    {
+      "id": "actual_wiping_commands",
+      "description": "Ensure the agent executed genuine file overwrite operations for the wiping step.",
+      "visual_evidence": "Check that commands like 'dd' or 'shred' were actually executed in the terminal with correct offsets/sizes, rather than the agent just typing a script without running it or echoing success messages."
+    },
+    {
+      "id": "no_fake_verification",
+      "description": "Ensure the mount verification was actually performed by the software.",
+      "visual_evidence": "Look for genuine VeraCrypt GUI dialogs or CLI output showing the mount failure and success, rather than the agent simply printing 'Verification successful' to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The VeraCrypt volume must be created at '/home/ga/SecureTransport/ghost_data.hc' with password 'ProtocolGhost2024!'. The sample file to copy is 'SF312_Nondisclosure_Agreement.txt'. The detached header backup must be saved to '/home/ga/SecureTransport/ghost_header.vc'. The header size to wipe is exactly 128KB (131072 bytes) at both the beginning (primary header) and end (backup header) of the container file."
+}

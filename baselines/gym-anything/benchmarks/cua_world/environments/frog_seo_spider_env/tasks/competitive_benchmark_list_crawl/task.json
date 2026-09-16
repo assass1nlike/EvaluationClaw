@@ -1,0 +1,32 @@
+{
+  "id": "competitive_benchmark_list_crawl@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a competitive SEO benchmark by crawling a curated list of URLs from three different domains using List Mode. \n\nDomain 1 (E-commerce):\n- https://books.toscrape.com/\n- https://books.toscrape.com/catalogue/category/books/mystery_3/index.html\n- https://books.toscrape.com/catalogue/category/books/travel_2/index.html\n- https://books.toscrape.com/catalogue/category/books/nonfiction_13/index.html\n- https://books.toscrape.com/catalogue/the-black-maria_991/index.html\n\nDomain 2 (Content):\n- https://quotes.toscrape.com/\n- https://quotes.toscrape.com/page/2/\n- https://quotes.toscrape.com/tag/love/\n- https://quotes.toscrape.com/tag/inspirational/\n- https://quotes.toscrape.com/author/Albert-Einstein/\n\nDomain 3 (Technical):\n- https://crawler-test.com/\n- https://crawler-test.com/titles/long_title\n- https://crawler-test.com/descriptions/missing_description\n- https://crawler-test.com/headers/h1\n- https://crawler-test.com/links/broken_links\n\nExport the crawl data to /home/ga/Documents/SEO/exports/competitive_benchmark.csv. Write a comparison report to /home/ga/Documents/SEO/reports/competitive_report.txt that evaluates the three domains based on average title length, meta description availability, and response time. The report must include at least 3 actionable recommendations.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/competitive_benchmark_list_crawl/setup_task.sh",
+    "post_task": "/workspace/tasks/competitive_benchmark_list_crawl/export_result.sh"
+  },
+  "metadata": {
+    "expected_domains": [
+      "books.toscrape.com",
+      "quotes.toscrape.com",
+      "crawler-test.com"
+    ],
+    "export_path": "/home/ga/Documents/SEO/exports/competitive_benchmark.csv",
+    "report_path": "/home/ga/Documents/SEO/reports/competitive_report.txt",
+    "min_rows": 12
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_competitive_benchmark_list_crawl"
+    }
+  }
+}

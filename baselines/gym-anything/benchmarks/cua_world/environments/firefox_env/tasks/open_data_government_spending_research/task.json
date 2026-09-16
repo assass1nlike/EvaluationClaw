@@ -1,0 +1,28 @@
+{
+  "id": "open_data_government_spending_research@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are an investigative data journalist researching federal government spending using USASpending.gov. Your editor has assigned you a story about federal contract spending by the Department of Defense (DOD) for fiscal year 2023. Download a CSV containing at least 100 rows of DOD contract search results for FY2023 to ~/Downloads/. Identify the total contract spending, total grant spending, and the top 3 recipient companies by award amount for FY2023 from the DOD spending profile, cross-referencing at least one data point with FPDS-NG (fpds.gov) or Data.gov. Create a research notes file at ~/Documents/dod_spending_research.txt containing the total DOD contract spending (in billions), the names of the top 3 contractors, the URLs of at least 2 data sources used, and a 2-3 sentence summary of your findings. Bookmark at least 3 pages from usaspending.gov in a Firefox bookmark folder named 'Government Spending Research'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/open_data_government_spending_research/setup_task.sh",
+    "post_task": "/workspace/tasks/open_data_government_spending_research/export_result.sh"
+  },
+  "metadata": {
+    "required_notes_path": "/home/ga/Documents/dod_spending_research.txt",
+    "required_bookmark_folder": "Government Spending Research",
+    "primary_site": "usaspending.gov",
+    "target_agency": "Department of Defense",
+    "target_fiscal_year": "2023"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_open_data_government_spending_research"
+    }
+  }
+}

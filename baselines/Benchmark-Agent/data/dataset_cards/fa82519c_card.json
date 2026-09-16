@@ -1,0 +1,74 @@
+{
+  "dataset_id": "fa82519c",
+  "name": "Organization-Recognition",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Organization-Recognition dataset contains short text snippets with organization names followed by numerical statistics, and asks models to extract organization names and format them as 'organization => ORG'. It evaluates entity recognition capabilities in a text-to-text extraction setting.",
+  "card_text": "This dataset is a text-only benchmark for organization name recognition. Each sample consists of a raw text input, typically a short string containing an organization name (often a sports club) followed by a sequence of numbers, and an instruction prompt asking the model to extract all organization names. The expected output is a formatted string where each extracted organization is labeled with '=> ORG', e.g., 'Barnet => ORG'. The data appears to be derived from sports statistics, where team names are mixed with numeric values. The task is a straightforward named entity recognition problem, requiring the model to identify organization entities within noisy numeric context. The dataset is small (200 samples) and uses a consistent instruction template, making it suitable for evaluating extraction accuracy on organization names.",
+  "tasks": [
+    "entity_recognition"
+  ],
+  "domain": "sports",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The raw text from which organizations are to be extracted. It typically contains an organization name (e.g., a sports team) followed by a series of numerical values, appearing as a short, structured string.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction that asks the model to extract all organization names from the provided raw text and format each as 'organization => ORG', separating multiple organizations with commas. It embeds the raw text via a placeholder.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The extracted organization names formatted as 'organization => ORG'. Multiple organizations are comma-separated. This is the target output for the extraction task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a context field (input.raw_text) with a short text snippet, a question field (input.prompt) that provides the extraction instruction including the raw text, and an answer field (output.text) with the formatted extracted organization names. The question refers to the context by embedding it via a placeholder, and the answer is the direct result of applying the extraction instruction to the context."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Organization-Recognition/annotation.json",
+    "existing_tags": {
+      "task": "organization_recognition",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

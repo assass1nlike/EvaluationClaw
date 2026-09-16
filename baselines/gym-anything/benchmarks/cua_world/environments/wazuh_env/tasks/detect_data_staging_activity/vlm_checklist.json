@@ -1,0 +1,59 @@
+{
+  "task_id": "detect_data_staging_activity@1",
+  "task_completion": [
+    {
+      "id": "inspect_audit_logs",
+      "description": "Verify the agent inspects the provided auditd log samples.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the agent reading the contents of '/home/ga/data/audit_staging_sample.log' using commands like 'cat', 'less', or a text editor."
+    },
+    {
+      "id": "access_wazuh_container",
+      "description": "Verify the agent accesses the correct Wazuh manager container.",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of a command like 'docker exec -it wazuh-wazuh.manager-1 bash' or similar to access the container shell."
+    },
+    {
+      "id": "edit_local_rules",
+      "description": "Verify the agent modifies the local_rules.xml file.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a text editor (e.g., nano, vi) open for '/var/ossec/etc/rules/local_rules.xml' or echo/sed commands appending to this specific file."
+    },
+    {
+      "id": "rule_definition_correct",
+      "description": "Verify the custom rule has the correct ID, level, and match conditions.",
+      "points": 30,
+      "visual_evidence": "Visual evidence of the rule block in the terminal or editor containing '<rule id=\"100250\" level=\"10\">' and match/regex tags containing the strings 'tar' and 'sensitive_project'."
+    },
+    {
+      "id": "test_malicious_log",
+      "description": "Verify the agent tests the rule against the malicious log sample.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the agent running '/var/ossec/bin/wazuh-logtest' (or similar) and pasting the malicious log sample, with the output showing that rule 100250 successfully fired in Phase 3."
+    },
+    {
+      "id": "test_benign_log",
+      "description": "Verify the agent tests the rule against the benign log sample to ensure it is ignored.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the agent running '/var/ossec/bin/wazuh-logtest' with the benign log sample, with the output showing that rule 100250 did NOT fire."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_container_interaction",
+      "description": "Ensure the agent actually interacted with the Docker container.",
+      "visual_evidence": "The terminal prompt should reflect the container environment (e.g., 'root@...' inside the container) or commands should be explicitly routed through 'docker exec'. The agent should not just be editing a local mock file."
+    },
+    {
+      "id": "authentic_logtest_output",
+      "description": "Ensure the wazuh-logtest output is genuine and not spoofed.",
+      "visual_evidence": "The logtest output should display the standard Wazuh testing format, including 'Phase 1: Completed pre-decoding', 'Phase 2: Completed decoding', and 'Phase 3: Completed filtering (rules)', rather than just a printed success message."
+    },
+    {
+      "id": "valid_xml_structure",
+      "description": "Ensure the rule was added within a valid XML structure.",
+      "visual_evidence": "The new rule should be enclosed within a valid '<group>' tag block in the local_rules.xml file, not just appended loosely at the end of the file outside the root XML tags."
+    }
+  ],
+  "privileged_info_for_vlm": "The custom rule must have ID 100250 and level 10. It must contain match strings for 'tar' and 'sensitive_project'. The malicious log to test is: 'type=EXECVE msg=audit(1698234001.123:101): argc=4 a0=\"tar\" a1=\"-czf\" a2=\"/tmp/backup_sensitive.tar.gz\" a3=\"/opt/sensitive_project\"'. The benign log is: 'type=EXECVE msg=audit(1698234055.456:102): argc=4 a0=\"tar\" a1=\"-czf\" a2=\"/tmp/my_docs.tar.gz\" a3=\"/home/user/documents\"'."
+}

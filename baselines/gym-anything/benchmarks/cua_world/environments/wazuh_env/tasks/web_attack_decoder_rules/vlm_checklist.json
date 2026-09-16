@@ -1,0 +1,59 @@
+{
+  "task_id": "web_attack_decoder_rules@1",
+  "task_completion": [
+    {
+      "id": "custom_decoder_created",
+      "description": "Create a custom log decoder for Nginx access logs extracting specific fields.",
+      "points": 20,
+      "visual_evidence": "Look for an XML decoder definition (e.g., `<decoder>`) in a file like `local_decoder.xml` that includes regex or `<order>` tags specifically extracting the requested URL, HTTP method, response code, and source IP."
+    },
+    {
+      "id": "sql_injection_rule",
+      "description": "Implement a custom rule for SQL injection with severity level 10 or higher.",
+      "points": 20,
+      "visual_evidence": "Look for an XML rule definition (e.g., `<rule id=\"...\" level=\"10\">` or higher) in `local_rules.xml` containing detection logic (regex/strings) for SQL injection (e.g., SELECT, UNION, %27)."
+    },
+    {
+      "id": "path_traversal_rule",
+      "description": "Implement a custom rule for path/directory traversal with severity level 10 or higher.",
+      "points": 20,
+      "visual_evidence": "Look for an XML rule definition with level 10 or higher containing detection logic for path traversal (e.g., `../`, `..%2f`, `etc/passwd`)."
+    },
+    {
+      "id": "command_injection_rule",
+      "description": "Implement a custom rule for command injection with severity level 9 or higher.",
+      "points": 20,
+      "visual_evidence": "Look for an XML rule definition with level 9 or higher containing detection logic for command injection (e.g., `;`, `|`, `&&`, `bin/sh`, `cmd.exe`)."
+    },
+    {
+      "id": "mitre_mapping_included",
+      "description": "Include a MITRE ATT&CK technique mapping in at least one rule.",
+      "points": 10,
+      "visual_evidence": "Look for a `<mitre>` tag containing an `<id>` (e.g., T1190) inside at least one of the custom rule definitions."
+    },
+    {
+      "id": "changes_saved_to_disk",
+      "description": "Ensure all changes are persistent in the Wazuh configuration files.",
+      "points": 10,
+      "visual_evidence": "Look for evidence that the changes were saved to disk, such as a successful save message in the Wazuh WUI configuration editor, or terminal commands like `:wq` in vim or `Ctrl+O` in nano for the files `local_decoder.xml` and `local_rules.xml`, followed by a Wazuh manager restart."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_wazuh_interaction",
+      "description": "The agent interacted with the actual Wazuh system.",
+      "visual_evidence": "Check that the agent is using the Wazuh WUI dashboard or a terminal connected to the Wazuh server, rather than just writing XML in an unrelated local text editor."
+    },
+    {
+      "id": "genuine_detection_logic",
+      "description": "The rules contain actual detection logic, not just placeholders.",
+      "visual_evidence": "Ensure the rules contain valid regex or string matching for the attacks, rather than just copying the task description text as rule descriptions without logic."
+    },
+    {
+      "id": "correct_file_locations",
+      "description": "The agent edited the correct Wazuh configuration files.",
+      "visual_evidence": "Verify that the files being edited are the actual Wazuh custom files (e.g., `/var/ossec/etc/rules/local_rules.xml` and `/var/ossec/etc/decoders/local_decoder.xml`)."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating at least 3 custom web attack rules: SQL injection (level 10+), path traversal (level 10+), and command injection (level 9+). At least one rule must have a MITRE ATT&CK mapping (e.g., <mitre><id>T1190</id></mitre>). The decoder must extract requested URL, HTTP method, response code, and source IP. The scoring logic awards full severity points if the maximum severity across all created rules is >= 10, but ideally, the specific levels should be met."
+}

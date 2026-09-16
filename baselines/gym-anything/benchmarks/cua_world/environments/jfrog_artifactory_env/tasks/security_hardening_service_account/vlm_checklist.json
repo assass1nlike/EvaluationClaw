@@ -1,0 +1,53 @@
+{
+  "task_id": "security_hardening_service_account@1",
+  "task_completion": [
+    {
+      "id": "create_group",
+      "description": "Verify the creation of the 'ci-services' group.",
+      "points": 10,
+      "visual_evidence": "In the Artifactory Administration -> Identity and Access -> Groups section, the list should display a group named 'ci-services'."
+    },
+    {
+      "id": "create_user_and_assign_group",
+      "description": "Verify the creation of the 'svc-deploy' user, its email, non-admin status, and group membership.",
+      "points": 20,
+      "visual_evidence": "In the Users section, 'svc-deploy' exists with the email 'svc-deploy@apex-healthcare.com'. The user details should show that 'Admin' privileges are NOT granted, and the user is a member of the 'ci-services' group."
+    },
+    {
+      "id": "create_local_npm_repo",
+      "description": "Verify the creation of the local npm repository named 'npm-builds'.",
+      "points": 20,
+      "visual_evidence": "In the Administration -> Repositories -> Local section, a repository named 'npm-builds' exists. Its Package Type should be 'npm' and the description should read 'CI/CD npm artifact store'."
+    },
+    {
+      "id": "create_permission_target",
+      "description": "Verify the creation of the 'svc-deploy-perms' permission target with correct repo and group access.",
+      "points": 30,
+      "visual_evidence": "In the Permissions section, 'svc-deploy-perms' exists. The details should show it applies to the 'npm-builds' repository, and under the Groups tab, the 'ci-services' group is granted 'Read' and 'Deploy' (or 'Deploy/Cache') permissions."
+    },
+    {
+      "id": "generate_access_token",
+      "description": "Verify the generation of an access token for the 'svc-deploy' user with the correct description.",
+      "points": 20,
+      "visual_evidence": "In the Access Tokens section or user profile, there is a token generated for the user 'svc-deploy' with the description 'Service account token - Q1 2026 rotation', or a success modal showing the token creation with these details."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Artifactory Web UI to complete the task.",
+      "visual_evidence": "Screenshots should show interaction with the Artifactory web interface in a browser (http://localhost:8082), rather than terminal commands or API scripts."
+    },
+    {
+      "id": "genuine_entity_creation",
+      "description": "The entities were actually created and saved in the application.",
+      "visual_evidence": "Look for success toast notifications (e.g., 'User created successfully') or the newly created entities appearing in their respective data tables/lists within the Artifactory UI."
+    },
+    {
+      "id": "no_text_editor_mocking",
+      "description": "The agent did not mock the results in a text editor.",
+      "visual_evidence": "The screenshots must not show the expected configuration written out in a text editor (like gedit, nano, or VS Code) as a substitute for actual application configuration."
+    }
+  ],
+  "privileged_info_for_vlm": "Target User: 'svc-deploy' | Target Email: 'svc-deploy@apex-healthcare.com' | Target Group: 'ci-services' | Target Repo: 'npm-builds' (Type: local npm, Description: 'CI/CD npm artifact store') | Target Permission: 'svc-deploy-perms' (Grants 'ci-services' Read and Deploy access to 'npm-builds') | Target Token Description: 'Service account token - Q1 2026 rotation'."
+}

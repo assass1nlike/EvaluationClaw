@@ -1,0 +1,31 @@
+{
+  "id": "investor_meeting_update@1",
+  "version": "1.0",
+  "env_id": "odoo_scheduling_env@0.1",
+  "description": "You are Northbridge's CFO, Grace Patel. Prepare for an upcoming investor presentation by updating the 'Investor Update Preparation' meeting in Odoo Calendar (http://localhost:8069, login: admin/admin). Add the company's Legal Counsel (found in Contacts) as an attendee, set the location to 'Board Room', and include a meeting agenda in the description covering financial performance review, projections, and compliance items. Additionally, configure an advance email reminder for all attendees.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/investor_meeting_update/setup_task.sh",
+    "post_task": "/workspace/tasks/investor_meeting_update/export_result.sh"
+  },
+  "metadata": {
+    "target_event_name": "Investor Update Preparation",
+    "attendee_to_add": "Karen Lee",
+    "attendee_title": "Legal Counsel",
+    "required_location_keyword": "board",
+    "occupation": "CFO",
+    "company": "Northbridge",
+    "pass_threshold": 70
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_investor_meeting_update"
+    }
+  }
+}

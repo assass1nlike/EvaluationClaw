@@ -1,0 +1,59 @@
+{
+  "task_id": "dispensing_trajectory_profiling@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_running",
+      "description": "CoppeliaSim is open and running the robot arm simulation.",
+      "points": 10,
+      "visual_evidence": "The CoppeliaSim application window is visible, showing a 3D environment with a robot arm."
+    },
+    {
+      "id": "script_implementation",
+      "description": "A script is written to programmatically drive the robot and calculate the flow rate.",
+      "points": 20,
+      "visual_evidence": "A code editor or terminal shows a script containing logic for a rectangular path (X and Y coordinates) and a flow rate calculation multiplying velocity by 5.0."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "The dispensing_profile.csv file is saved in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window shows the file 'dispensing_profile.csv' located in '/home/ga/Documents/CoppeliaSim/exports/'."
+    },
+    {
+      "id": "csv_content_verified",
+      "description": "The CSV file contains the required columns and multiple rows of simulation data.",
+      "points": 25,
+      "visual_evidence": "The CSV file is open in a text editor or terminal, displaying the header row with 'sim_time_s, tcp_x, tcp_y, tcp_z, j1, j2, j3, j4, j5, j6, tcp_speed_m_s, flow_rate_ml_s' and numerous rows of numerical data."
+    },
+    {
+      "id": "json_file_created",
+      "description": "The dispensing_report.json file is saved in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window shows the file 'dispensing_report.json' located in '/home/ga/Documents/CoppeliaSim/exports/'."
+    },
+    {
+      "id": "json_content_verified",
+      "description": "The JSON report contains the required summary fields.",
+      "points": 25,
+      "visual_evidence": "The JSON file is open, displaying the keys: 'total_path_length_m', 'average_speed_m_s', 'min_speed_m_s', 'max_speed_m_s', 'total_volume_ml', and 'robot_base_z' with corresponding numerical values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_interaction",
+      "description": "The agent interacted with the CoppeliaSim API rather than generating fake data.",
+      "visual_evidence": "The script includes imports or connections to the CoppeliaSim API (e.g., zmqRemoteApi, sim) and terminal logs show actual execution of this script."
+    },
+    {
+      "id": "no_manual_data_entry",
+      "description": "The CSV and JSON files were generated programmatically, not manually typed.",
+      "visual_evidence": "The agent runs a script that outputs the files. There is no evidence of the agent manually typing out rows of CSV data or JSON values in a text editor."
+    },
+    {
+      "id": "dynamic_flow_rate_calculation",
+      "description": "The flow rate is calculated dynamically based on speed.",
+      "visual_evidence": "The script shows a mathematical operation multiplying the instantaneous speed by the constant 5.0, rather than hardcoding a static flow rate value for all data points."
+    }
+  ],
+  "privileged_info_for_vlm": "The rectangular path must span at least 0.15m in X and 0.10m in Y. The CSV file must be saved to /home/ga/Documents/CoppeliaSim/exports/dispensing_profile.csv and contain at least 100 rows of high-frequency logs. The JSON file must be saved to /home/ga/Documents/CoppeliaSim/exports/dispensing_report.json. The flow rate constant is exactly 5.0 mL/m, meaning the 'flow_rate_ml_s' column must mathematically equal 'tcp_speed_m_s' * 5.0."
+}

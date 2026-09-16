@@ -1,0 +1,59 @@
+{
+  "task_id": "icu_telemetry_pattern_detection@1",
+  "task_completion": [
+    {
+      "id": "connect_oracle_db",
+      "description": "Connect to the Oracle database as clinical_admin",
+      "points": 10,
+      "visual_evidence": "Look for a terminal running SQL*Plus or a database GUI client (like DBeaver or SQL Developer) showing a successful connection to the XEPDB1 database using the clinical_admin user."
+    },
+    {
+      "id": "create_parsed_vitals_vw",
+      "description": "Create the PARSED_VITALS_VW view",
+      "points": 15,
+      "visual_evidence": "Look for SQL execution creating 'PARSED_VITALS_VW'. The query should show extraction from 'RAW_FHIR_EVENTS' (likely using JSON_TABLE) and logic to remove the 'Patient/' prefix from the patient_id."
+    },
+    {
+      "id": "create_clean_vitals_mv",
+      "description": "Create the CLEAN_VITALS_MV materialized view",
+      "points": 20,
+      "visual_evidence": "Look for SQL execution creating a materialized view named 'CLEAN_VITALS_MV'. The query should include window functions (like LAST_VALUE IGNORE NULLS) to forward-fill missing heart_rate, sbp, and glucose values ordered by time."
+    },
+    {
+      "id": "create_hypoglycemia_events_vw",
+      "description": "Create the HYPOGLYCEMIA_EVENTS_VW view",
+      "points": 20,
+      "visual_evidence": "Look for SQL execution creating 'HYPOGLYCEMIA_EVENTS_VW'. The query should contain pattern-matching logic (likely MATCH_RECOGNIZE) checking for glucose < 70 for at least 3 consecutive readings, and selecting the lowest glucose value."
+    },
+    {
+      "id": "create_tachycardia_trends_vw",
+      "description": "Create the TACHYCARDIA_TRENDS_VW view",
+      "points": 20,
+      "visual_evidence": "Look for SQL execution creating 'TACHYCARDIA_TRENDS_VW'. The query should contain pattern-matching logic (likely MATCH_RECOGNIZE) checking for >= 4 consecutive readings with strictly increasing heart rate, starting >= 90 and ending >= 120."
+    },
+    {
+      "id": "export_tachycardia_csv",
+      "description": "Export TACHYCARDIA_TRENDS_VW to a CSV file",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command (like sqlplus spooling, or a Python/bash script) or a GUI export action saving the contents of TACHYCARDIA_TRENDS_VW to '/home/ga/Documents/exports/tachycardia_alerts.csv'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent actually executed the SQL commands in a database client",
+      "visual_evidence": "Check that the SQL statements were actually run in a database client (e.g., seeing 'View created' or 'Materialized view created' messages in SQL*Plus) and not just typed into a text editor without execution."
+    },
+    {
+      "id": "no_hardcoded_mock_data",
+      "description": "Agent used proper SQL logic rather than hardcoding expected output",
+      "visual_evidence": "Ensure the view definitions contain actual analytical SQL logic (like JSON_TABLE, LAST_VALUE, MATCH_RECOGNIZE) rather than hardcoded SELECT statements with dummy data."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Agent genuinely exported the data to CSV",
+      "visual_evidence": "Check that the CSV file was generated via a script, database export tool, or spool command, rather than the agent manually typing out a CSV file in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires specific Oracle SQL features to be used in the views: JSON_TABLE (for parsing RAW_FHIR_EVENTS), LAST_VALUE IGNORE NULLS (for forward-filling in CLEAN_VITALS_MV), and MATCH_RECOGNIZE (for pattern detection in HYPOGLYCEMIA_EVENTS_VW and TACHYCARDIA_TRENDS_VW). The final export must be saved exactly to /home/ga/Documents/exports/tachycardia_alerts.csv."
+}

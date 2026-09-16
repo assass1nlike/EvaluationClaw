@@ -1,0 +1,53 @@
+{
+  "task_id": "identify_outbreak_source_rr@1",
+  "task_completion": [
+    {
+      "id": "open_epi_info",
+      "description": "Open Epi Info 7 Classic Analysis",
+      "points": 10,
+      "visual_evidence": "The Epi Info 7 Classic Analysis workspace or main window is visible on the screen."
+    },
+    {
+      "id": "load_dataset",
+      "description": "Load the wedding_cohort.csv dataset",
+      "points": 15,
+      "visual_evidence": "The 'wedding_cohort.csv' file is shown as the active data source in Epi Info (e.g., a READ command is visible in the command log, Record Count is displayed, or variables like Chicken, Salad, Cake, Water, IceCream, and Ill are visible in the variable list)."
+    },
+    {
+      "id": "run_analysis_tables",
+      "description": "Perform cohort analysis to calculate Risk Ratios",
+      "points": 25,
+      "visual_evidence": "The Epi Info output screen displays 2x2 tables, Means, or Tables analysis results specifically showing Risk Ratios for the food items (Chicken, Salad, Cake, Water, IceCream) against the 'Ill' outcome variable."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Create the culprit_report.txt file",
+      "points": 20,
+      "visual_evidence": "A text editor (e.g., Notepad) is open and the file is being saved to the path 'C:\\Users\\Docker\\Documents\\OutbreakData\\culprit_report.txt'."
+    },
+    {
+      "id": "write_correct_format",
+      "description": "Write the culprit and risk ratio in the specified format",
+      "points": 30,
+      "visual_evidence": "The text file contains the exact format 'Culprit: [FoodName]' and 'RiskRatio: [Value]' (e.g., Culprit: Cake, RiskRatio: 3.2). The values must correspond to the highest statistically significant Risk Ratio found in the Epi Info output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info_gui",
+      "description": "Agent used Epi Info 7 for analysis instead of bypassing it",
+      "visual_evidence": "Screenshots must show the agent clicking through the Epi Info 7 GUI or using its internal command prompt to generate the statistics, rather than using external Python scripts, R, or terminal commands to calculate the Risk Ratios."
+    },
+    {
+      "id": "values_match_output",
+      "description": "Reported values match the actual software output",
+      "visual_evidence": "The Risk Ratio value and Culprit name written in the text file must perfectly match the statistical output visible in the Epi Info analysis screens. The agent should not hallucinate or guess the values."
+    },
+    {
+      "id": "genuine_comparison",
+      "description": "Agent analyzed multiple exposures to find the highest Risk Ratio",
+      "visual_evidence": "The Epi Info output or command log should show the agent running the analysis for multiple food items to compare them, rather than magically querying only the correct culprit."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset is synthetic and dynamically generated, meaning the actual culprit and Risk Ratio are unknown beforehand. The dataset contains 5 food exposures (Chicken, Salad, Cake, Water, IceCream) and a binary outcome variable 'Ill' (1=Yes, 0=No). To verify correctness, you MUST check that the agent extracts the correct FoodName and Risk Ratio directly from the Epi Info 7 analysis output shown in the screenshots, specifically looking for the food item with the highest statistically significant Risk Ratio."
+}

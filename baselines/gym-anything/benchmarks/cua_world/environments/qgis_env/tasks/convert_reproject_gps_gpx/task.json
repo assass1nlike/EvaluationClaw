@@ -1,0 +1,29 @@
+{
+  "id": "convert_reproject_gps_gpx@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Import field data from the GPX file at /home/ga/GIS_Data/raw_gps/survey_data.gpx and extract the waypoints. Export the waypoints layer to a projected GeoPackage at /home/ga/GIS_Data/exports/field_observations.gpkg for web mapping. Use the EPSG:3857 (WGS 84 / Pseudo-Mercator) coordinate reference system and name the layer 'observations'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/convert_reproject_gps_gpx/setup_task.sh",
+    "post_task": "/workspace/tasks/convert_reproject_gps_gpx/export_result.sh"
+  },
+  "metadata": {
+    "source_file": "/home/ga/GIS_Data/raw_gps/survey_data.gpx",
+    "expected_output": "/home/ga/GIS_Data/exports/field_observations.gpkg",
+    "expected_crs_auth": "EPSG:3857",
+    "expected_geometry": "Point",
+    "expected_count": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_convert_reproject_gps_gpx"
+    }
+  }
+}

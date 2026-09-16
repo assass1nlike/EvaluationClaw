@@ -7,6 +7,7 @@ import time
 from collections import defaultdict
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from pathlib import Path
+from threading import Event
 from typing import Any, Callable
 
 from ..diagnostics import _io_path, new_debug_dir, safe_name, write_json
@@ -48,6 +49,7 @@ from ..types import (
     TaskSuite,
     TaskType,
 )
+from .evidence import execution_failure, redact_evidence
 from .plan import build_execution_plan
 from .sandbox import build_code_harness, run_python_sandbox
 
@@ -636,7 +638,22 @@ def _run_item(
             latency_ms=latency_ms,
         )
     except Exception as exc:
-        return ItemResult(item_id=item.id, target_id=target.id, error=str(exc), score=0.0)
+        failure = redact_evidence(
+            getattr(exc, "execution_evidence", None) or execution_failure(exc),
+            [target.api_key, config.actor_api_key],
+        )
+        if trace_dir is not None:
+            write_json(trace_dir / "execution-failure.json", failure, redact=True)
+        return ItemResult(
+            item_id=item.id, target_id=target.id,
+            error=redact_evidence(str(exc), [target.api_key, config.actor_api_key]), score=0.0,
+            raw_response=failure.get("target_execution", {}).get("raw_output", ""),
+            execution={
+                key: value for key, value in failure.items()
+                if key in {"stage", "target_started", "termination", "artifacts"}
+            },
+            latency_ms=round((time.monotonic() - start) * 1000),
+        )
 
 
 def _summarize(
@@ -713,11 +730,14 @@ def run_eval(
             redact=True,
         )
     results: list[ItemResult] = []
+    gateway_blocked = Event()
     if config.run_targets and config.targets:
         total = len(accepted) * len(config.targets)
         jobs = [(target.id, item) for target in config.targets for item in accepted]
 
-        def execute(target_id: str, item: BenchmarkItem) -> ItemResult:
+        def execute(target_id: str, item: BenchmarkItem) -> ItemResult | None:
+            if gateway_blocked.is_set():
+                return None
             item_dir = (
                 debug_dir / safe_name(target_id) / safe_name(item.id)
                 if debug_dir is not None
@@ -742,6 +762,8 @@ def run_eval(
             ):
                 return cached_result
             result = _run_item(item, config, target_id, trace_dir=item_dir)
+            if result.error and result.execution.get("stage") == "model_gateway":
+                gateway_blocked.set()
             if item_dir is not None:
                 write_json(item_dir / "result.json", result.model_dump(mode="json"))
             return result
@@ -751,6 +773,8 @@ def run_eval(
             completed = 0
             for target_id, item in jobs:
                 result = execute(target_id, item)
+                if result is None:
+                    break
                 results.append(result)
                 completed += 1
                 if on_progress:
@@ -758,13 +782,15 @@ def run_eval(
         else:
             completed = 0
             with ThreadPoolExecutor(max_workers=min(max_workers, len(jobs))) as executor:
-                futures: dict[Future[ItemResult], tuple[str, BenchmarkItem]] = {
+                futures: dict[Future[ItemResult | None], tuple[str, BenchmarkItem]] = {
                     executor.submit(execute, target_id, item): (target_id, item)
                     for target_id, item in jobs
                 }
                 for future in as_completed(futures):
                     target_id, item = futures[future]
                     result = future.result()
+                    if result is None:
+                        continue
                     results.append(result)
                     completed += 1
                     if on_progress:
@@ -786,6 +812,12 @@ def run_eval(
     )
     if debug_dir is not None:
         write_json(debug_dir / "run.json", run.model_dump(mode="json"))
+    if gateway_blocked.is_set():
+        raise RuntimeError(
+            "Model gateway infrastructure failed; stopped dispatching pending tasks. "
+            "Completed results and failure evidence are saved in the runner checkpoint. "
+            "Repair the infrastructure and resume this run."
+        )
     return run
 
 

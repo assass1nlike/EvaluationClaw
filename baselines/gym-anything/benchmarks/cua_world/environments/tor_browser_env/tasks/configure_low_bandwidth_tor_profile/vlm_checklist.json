@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_low_bandwidth_tor_profile@1",
+  "task_completion": [
+    {
+      "id": "set_image_preference",
+      "description": "Set permissions.default.image to 2",
+      "points": 15,
+      "visual_evidence": "Look for the Tor Browser 'about:config' page showing the preference 'permissions.default.image' with its value set to '2'."
+    },
+    {
+      "id": "set_font_preference",
+      "description": "Set browser.display.use_document_fonts to 0",
+      "points": 15,
+      "visual_evidence": "Look for the Tor Browser 'about:config' page showing the preference 'browser.display.use_document_fonts' with its value set to '0'."
+    },
+    {
+      "id": "set_autoplay_preference",
+      "description": "Set media.autoplay.default to 5",
+      "points": 15,
+      "visual_evidence": "Look for the Tor Browser 'about:config' page showing the preference 'media.autoplay.default' with its value set to '5'."
+    },
+    {
+      "id": "navigate_to_wikipedia",
+      "description": "Navigate to the Wikipedia Main Page and verify low-bandwidth appearance",
+      "points": 25,
+      "visual_evidence": "Look for Tor Browser navigated to 'https://en.wikipedia.org/wiki/Main_Page'. The page should visually reflect the low-bandwidth settings (e.g., missing images, basic system fonts instead of custom web fonts)."
+    },
+    {
+      "id": "save_screenshot",
+      "description": "Save a screenshot of the Wikipedia page to the specified path",
+      "points": 30,
+      "visual_evidence": "Look for a save dialog, file manager, or terminal command confirming that a screenshot of the browser was saved exactly to '/home/ga/Documents/low_bandwidth_test.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_interaction",
+      "description": "The agent used the Tor Browser GUI to change settings",
+      "visual_evidence": "Settings should be changed via the 'about:config' interface in the browser, not by editing a prefs.js file in a text editor or using terminal commands."
+    },
+    {
+      "id": "genuine_web_navigation",
+      "description": "The agent actually loaded the Wikipedia page in the browser",
+      "visual_evidence": "The Wikipedia page must be rendered inside the Tor Browser window, not downloaded via curl/wget or viewed in a local HTML viewer."
+    },
+    {
+      "id": "authentic_screenshot_creation",
+      "description": "The screenshot was genuinely captured and saved",
+      "visual_evidence": "The agent should use a screenshot tool (system or browser-based) to capture the screen, rather than downloading an existing image or faking the file creation."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires setting Tor Browser preferences in about:config: `permissions.default.image` to 2, `browser.display.use_document_fonts` to 0, and `media.autoplay.default` to 5. The agent must visit `en.wikipedia.org` and save a screenshot exactly at `/home/ga/Documents/low_bandwidth_test.png`."
+}

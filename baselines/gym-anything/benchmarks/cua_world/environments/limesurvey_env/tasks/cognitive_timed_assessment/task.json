@@ -1,0 +1,30 @@
+{
+  "id": "cognitive_timed_assessment@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create a cognitive assessment survey in LimeSurvey titled 'Executive Function Screening 2025' with a question group named 'Speed Trial Block'. Configure the survey to disable backward navigation and enable the progress bar. The 'Speed Trial Block' must contain two List (Radio) questions with randomized answer orders: 'EF01' ('Select the number that is ODD.' with options 2, 4, 7, 8) and 'EF02' ('Select the letter that is a VOWEL.' with options K, P, A, T). Set a 10-second time limit for 'EF01' and a 5-second time limit for 'EF02', both configured to move on without warning. Ensure the next button is enabled for 'EF01'. Login credentials: admin / Admin123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cognitive_timed_assessment/setup_task.sh",
+    "post_task": "/workspace/tasks/cognitive_timed_assessment/export_result.sh"
+  },
+  "metadata": {
+    "expected_survey_title": "Executive Function Screening 2025",
+    "expected_q1_code": "EF01",
+    "expected_q1_timer": "10",
+    "expected_q2_code": "EF02",
+    "expected_q2_timer": "5",
+    "expected_timer_action": "moveon"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cognitive_timed_assessment"
+    }
+  }
+}

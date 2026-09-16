@@ -1,0 +1,59 @@
+{
+  "task_id": "extract_aggregated_dive_stats@1",
+  "task_completion": [
+    {
+      "id": "open_subsurface",
+      "description": "Open the Subsurface application.",
+      "points": 10,
+      "visual_evidence": "The Subsurface graphical user interface is visible on the screen."
+    },
+    {
+      "id": "select_target_dives",
+      "description": "Select Dives #2, #3, and #4 in the Subsurface GUI.",
+      "points": 20,
+      "visual_evidence": "Dives #2, #3, and #4 are simultaneously highlighted or selected in the dive list panel of the Subsurface application."
+    },
+    {
+      "id": "view_aggregated_stats",
+      "description": "View the aggregated statistics for the selected dives.",
+      "points": 20,
+      "visual_evidence": "The statistics tab or information panel in Subsurface is open, displaying combined data (like total time and max depth) for the multiple selected dives."
+    },
+    {
+      "id": "open_output_file",
+      "description": "Open a text editor to create or modify the training_stats.txt file.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano, vim) is open, and the file path 'training_stats.txt' (ideally in ~/Documents/) is visible in the window title or terminal prompt."
+    },
+    {
+      "id": "record_total_time",
+      "description": "Record the total combined bottom time in minutes.",
+      "points": 20,
+      "visual_evidence": "The text file contains a line matching 'Total Time: [X] minutes', where [X] is approximately 59 (acceptable range: 57.0 to 61.0)."
+    },
+    {
+      "id": "record_max_depth",
+      "description": "Record the absolute maximum depth in meters.",
+      "points": 20,
+      "visual_evidence": "The text file contains a line matching 'Max Depth: [Y] meters', where [Y] is approximately 12.19 (acceptable range: 11.69 to 12.69)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_verified",
+      "description": "Verify the agent used the Subsurface GUI to find the information.",
+      "visual_evidence": "Screenshots show active interaction with the Subsurface GUI (selecting dives, viewing stats tabs) rather than using terminal commands to extract the data."
+    },
+    {
+      "id": "no_direct_file_parsing",
+      "description": "Verify the agent did not parse the dives.ssrf file directly.",
+      "visual_evidence": "There are no terminal windows running commands like 'grep', 'cat', or python scripts on 'dives.ssrf', nor is the raw XML file open in a text editor."
+    },
+    {
+      "id": "authentic_data_entry",
+      "description": "Verify the recorded data matches the GUI output.",
+      "visual_evidence": "The values typed into the text editor match the aggregated statistics displayed in the Subsurface GUI, indicating genuine extraction rather than hallucination."
+    }
+  ],
+  "privileged_info_for_vlm": "Target dives: #2, #3, and #4. Expected output file: /home/ga/Documents/training_stats.txt. True total time: 59.0 minutes (tolerance +/- 2.0 min). True max depth: 12.19 meters (tolerance +/- 0.5 m). The agent must use the Subsurface GUI to find these values and must not parse the .ssrf file directly."
+}

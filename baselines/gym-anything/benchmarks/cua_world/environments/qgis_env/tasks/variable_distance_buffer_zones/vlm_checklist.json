@@ -1,0 +1,53 @@
+{
+  "task_id": "variable_distance_buffer_zones@1",
+  "task_completion": [
+    {
+      "id": "load_input_layer",
+      "description": "Load the input roads GeoJSON layer",
+      "points": 10,
+      "visual_evidence": "The layer 'roads_noise_attributed' is visible in the Layers panel of the GIS software."
+    },
+    {
+      "id": "open_buffer_tool",
+      "description": "Open the Buffer geoprocessing tool",
+      "points": 10,
+      "visual_evidence": "A dialog box for the 'Buffer' tool is open on the screen."
+    },
+    {
+      "id": "configure_impact_dist_field",
+      "description": "Set the buffer distance to use the 'impact_dist' attribute field",
+      "points": 30,
+      "visual_evidence": "In the Buffer tool dialog, the distance parameter is configured to use a data-defined override or field, specifically selecting the 'impact_dist' field."
+    },
+    {
+      "id": "generate_buffer_layer",
+      "description": "Execute the buffer tool to create variable-width buffers",
+      "points": 20,
+      "visual_evidence": "A new polygon layer (e.g., 'Buffered') appears in the Layers panel, and the map canvas displays 3 distinct buffer polygons of varying widths around the road lines."
+    },
+    {
+      "id": "export_to_geojson",
+      "description": "Export the resulting buffer layer to the specified GeoJSON file path",
+      "points": 30,
+      "visual_evidence": "A 'Save Vector Layer as' or 'Export' dialog is visible, with the format set to GeoJSON and the file path explicitly set to '/home/ga/GIS_Data/exports/variable_buffers.geojson'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gis_gui",
+      "description": "The agent used the GIS software GUI to perform the task",
+      "visual_evidence": "Screenshots show interaction with a GIS application (like QGIS) rather than a terminal running GDAL/Python scripts."
+    },
+    {
+      "id": "genuine_tool_execution",
+      "description": "The agent actually used the geoprocessing tool rather than manually drawing polygons",
+      "visual_evidence": "The resulting buffer polygons perfectly follow the geometry of the input lines, and there is no evidence of manual digitizing/editing tools being active."
+    },
+    {
+      "id": "correct_export_dialog",
+      "description": "The agent used the GIS software's export functionality",
+      "visual_evidence": "The file path '/home/ga/GIS_Data/exports/variable_buffers.geojson' is typed into the GIS software's native save/export dialog, not a generic text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is '/home/ga/GIS_Data/roads_noise_attributed.geojson' containing exactly 3 road features. The buffer distance must be driven by the 'impact_dist' attribute field, which contains the values 150, 80, and 30. The final output must be exported as a GeoJSON to '/home/ga/GIS_Data/exports/variable_buffers.geojson'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_custom_error_pages@1",
+  "task_completion": [
+    {
+      "id": "create_error_directory",
+      "description": "Verify the creation or existence of the errors directory",
+      "points": 10,
+      "visual_evidence": "Terminal commands (e.g., mkdir) or a file manager showing the directory `/home/acmecorp/public_html/errors` being created or accessed."
+    },
+    {
+      "id": "create_404_page",
+      "description": "Verify the creation of the 404.html file with the required content",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the creation of `404.html` containing the heading 'AcmeCorp - Page Not Found', the text 'The page you requested could not be found', and a link to the homepage (e.g., `href='/'` or `href=\"/\"`)."
+    },
+    {
+      "id": "create_403_page",
+      "description": "Verify the creation of the 403.html file with the required content",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the creation of `403.html` containing the heading 'AcmeCorp - Access Denied' and the text 'You do not have permission to access this resource'."
+    },
+    {
+      "id": "configure_404_error_doc",
+      "description": "Verify the server is configured to serve the custom 404 error page",
+      "points": 25,
+      "visual_evidence": "Virtualmin GUI (e.g., Custom Error Messages section), an Apache configuration file, or an `.htaccess` file showing `ErrorDocument 404 /errors/404.html` (or equivalent) for the `acmecorp.test` domain."
+    },
+    {
+      "id": "configure_403_error_doc",
+      "description": "Verify the server is configured to serve the custom 403 error page",
+      "points": 25,
+      "visual_evidence": "Virtualmin GUI, an Apache configuration file, or an `.htaccess` file showing `ErrorDocument 403 /errors/403.html` (or equivalent) for the `acmecorp.test` domain."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_actually_created",
+      "description": "Ensure the agent actually saved the HTML files and didn't just type them in an unsaved editor.",
+      "visual_evidence": "Look for commands like `cat`, `ls`, or editor save confirmations indicating the files were written to disk."
+    },
+    {
+      "id": "correct_domain_configured",
+      "description": "Ensure the error document configuration is applied to the correct domain.",
+      "visual_evidence": "The configuration changes should be made in the context of `acmecorp.test` (e.g., inside its VirtualHost block, its specific `.htaccess` file, or its Virtualmin domain settings)."
+    },
+    {
+      "id": "server_reloaded_or_tested",
+      "description": "Ensure the agent applied the configuration changes if modifying server files directly.",
+      "visual_evidence": "If Apache config files were edited directly, look for a command like `systemctl reload apache2` or a curl/browser test confirming the pages work."
+    }
+  ],
+  "privileged_info_for_vlm": "The domain is 'acmecorp.test' with web root at /home/acmecorp/public_html. The custom error pages must be located in the 'errors' subdirectory. 404.html must contain heading 'AcmeCorp - Page Not Found', text 'The page you requested could not be found', and 'href=\"/\"' or 'href='/''. 403.html must contain heading 'AcmeCorp - Access Denied' and text 'You do not have permission to access this resource'. The server must be configured (via Virtualmin, Apache config, or .htaccess) to use these files for 404 and 403 errors."
+}

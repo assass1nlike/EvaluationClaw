@@ -1,0 +1,31 @@
+{
+  "id": "record_drip_transaction@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Record a Dividend Reinvestment Plan (DRIP) transaction for your Apple (AAPL) holdings in 'My Portfolio'. Record a dividend entry of $96.00 and a corresponding buy transaction of 0.55 units at $174.55 for AAPL, both dated March 15, 2024. Include the comment 'DRIP reinvestment' for the buy transaction. Do not modify existing holdings.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_drip_transaction/setup_task.sh",
+    "post_task": "/workspace/tasks/record_drip_transaction/export_result.sh"
+  },
+  "metadata": {
+    "target_symbol": "AAPL",
+    "dividend_amount": 96.0,
+    "dividend_date_year": 2024,
+    "dividend_date_month": "Mar",
+    "buy_units": 0.55,
+    "buy_price": 174.55,
+    "buy_comment_keyword": "DRIP"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_drip_transaction"
+    }
+  }
+}

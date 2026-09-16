@@ -1,0 +1,59 @@
+{
+  "task_id": "siberian_high_cold_surge_diagnostic@1",
+  "task_completion": [
+    {
+      "id": "load_dataset",
+      "description": "Open Panoply and load the SLP climatology dataset.",
+      "points": 10,
+      "visual_evidence": "The Panoply application window is open, and 'slp.mon.ltm.nc' is visible in the Datasets browser."
+    },
+    {
+      "id": "create_slp_plot",
+      "description": "Create a map plot for the sea level pressure (slp) variable.",
+      "points": 10,
+      "visual_evidence": "A Panoply plot window is open showing a 2D map of the 'slp' (Long Term Mean Sea Level Pressure) variable."
+    },
+    {
+      "id": "focus_eurasia",
+      "description": "Adjust the map projection or domain to focus spatially on Eurasia.",
+      "points": 15,
+      "visual_evidence": "The map plot is zoomed in or centered on the Eurasian landmass (e.g., Russia, China, Mongolia) rather than showing a full global extent."
+    },
+    {
+      "id": "export_january_map",
+      "description": "Generate and save the January SLP map.",
+      "points": 20,
+      "visual_evidence": "The Panoply plot is set to the January time step (e.g., Time = 1 or Jan). There is evidence of saving the plot as 'siberian_high_jan.png' in the '/home/ga/Documents/ColdSurge' directory (e.g., via a save dialog or visible in a file manager)."
+    },
+    {
+      "id": "export_july_map",
+      "description": "Generate and save the July SLP map.",
+      "points": 20,
+      "visual_evidence": "The Panoply plot is set to the July time step (e.g., Time = 7 or Jul). There is evidence of saving the plot as 'eurasian_slp_july.png' in the '/home/ga/Documents/ColdSurge' directory."
+    },
+    {
+      "id": "write_diagnostic_report",
+      "description": "Write the diagnostic report with the physically correct Siberian High central pressure.",
+      "points": 25,
+      "visual_evidence": "A text editor is open showing 'cold_surge_diagnostic.txt' saved in '/home/ga/Documents/ColdSurge'. The text must state the correct central pressure of approximately 1042 hPa (or mb) and coordinates near 50.0 N, 90.0 E. It should NOT say ~10.42 hPa."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_panoply_gui",
+      "description": "The agent used the Panoply GUI to generate the maps.",
+      "visual_evidence": "Screenshots show the agent clicking through Panoply menus, adjusting plot settings, and using the Panoply export dialog, rather than running a Python/bash script in the terminal to generate the images."
+    },
+    {
+      "id": "manual_report_creation",
+      "description": "The agent manually created the diagnostic report using a text editor.",
+      "visual_evidence": "A GUI text editor (like gedit, mousepad) or terminal editor (like nano, vim) is visibly used to type out the 'cold_surge_diagnostic.txt' file."
+    },
+    {
+      "id": "genuine_map_export",
+      "description": "The exported PNG files are genuine Panoply outputs.",
+      "visual_evidence": "The saved images exhibit Panoply's distinct default plotting style, color bars, and border layouts."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires analyzing 'slp' (Long Term Mean Sea Level Pressure) from '/home/ga/PanoplyData/slp.mon.ltm.nc' using Panoply. The expected outputs are '/home/ga/Documents/ColdSurge/siberian_high_jan.png', '/home/ga/Documents/ColdSurge/eurasian_slp_july.png', and '/home/ga/Documents/ColdSurge/cold_surge_diagnostic.txt'. CRITICAL: The task brief intentionally deceives the agent by suggesting the data is in Pascals and needs to be divided by 100. The data is natively in millibars (hPa). The correct maximum SLP for the Siberian High in January is approximately 1042 hPa at coordinates 50.0 N, 90.0 E. If the agent reports ~10.42 hPa, they fell for the deception and should not receive points for the diagnostic report accuracy."
+}

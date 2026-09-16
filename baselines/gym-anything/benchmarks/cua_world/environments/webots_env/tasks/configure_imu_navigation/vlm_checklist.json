@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_imu_navigation@1",
+  "task_completion": [
+    {
+      "id": "update_basic_timestep",
+      "description": "Verify the simulation basicTimeStep is updated to 8.",
+      "points": 10,
+      "visual_evidence": "In the Webots scene tree, under the WorldInfo node, the 'basicTimeStep' field should be set to 8."
+    },
+    {
+      "id": "add_inertial_unit",
+      "description": "Verify an InertialUnit node is added to the WAREHOUSE_AMR robot with the correct name and noise.",
+      "points": 20,
+      "visual_evidence": "In the Webots scene tree under the WAREHOUSE_AMR robot, an 'InertialUnit' node is present. Its 'name' field is 'inertial_unit' and its 'noise' field is set to 0.0005."
+    },
+    {
+      "id": "add_accelerometer",
+      "description": "Verify an Accelerometer node is added to the WAREHOUSE_AMR robot with the correct name and lookupTable.",
+      "points": 25,
+      "visual_evidence": "In the Webots scene tree under the WAREHOUSE_AMR robot, an 'Accelerometer' node is present. Its 'name' field is 'accelerometer' and its 'lookupTable' field contains the values [-100 -100 0.003, 100 100 0.003]."
+    },
+    {
+      "id": "add_gyro",
+      "description": "Verify a Gyro node is added to the WAREHOUSE_AMR robot with the correct name and lookupTable.",
+      "points": 25,
+      "visual_evidence": "In the Webots scene tree under the WAREHOUSE_AMR robot, a 'Gyro' node is present. Its 'name' field is 'gyro' and its 'lookupTable' field contains the values [-34.9 -34.9 0.001, 34.9 34.9 0.001]."
+    },
+    {
+      "id": "save_configured_world",
+      "description": "Verify the configured world is saved to the specified path.",
+      "points": 20,
+      "visual_evidence": "A file named 'imu_configured.wbt' is visible on the Desktop (/home/ga/Desktop/), or the Webots window title/save dialog explicitly shows this file path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_webots_gui",
+      "description": "The agent used the Webots GUI to configure the robot rather than just writing a text file.",
+      "visual_evidence": "Screenshots should show the Webots application open with the scene tree expanded and being interacted with, not just a text editor modifying the .wbt file."
+    },
+    {
+      "id": "genuine_node_interaction",
+      "description": "The agent actually interacted with the node properties in Webots.",
+      "visual_evidence": "Screenshots show the Webots field editor or 'Add Node' dialog being used to input the specific values (noise, lookupTable, etc.)."
+    },
+    {
+      "id": "no_script_bypass",
+      "description": "The agent didn't use a terminal script to directly write the .wbt file bypassing the application.",
+      "visual_evidence": "Terminal windows do not show commands like 'echo' or python scripts directly writing the expected output to /home/ga/Desktop/imu_configured.wbt."
+    }
+  ],
+  "privileged_info_for_vlm": "Target output path: /home/ga/Desktop/imu_configured.wbt. Target robot: WAREHOUSE_AMR. Expected basicTimeStep: 8. Expected InertialUnit noise: 0.0005. Expected Accelerometer lookupTable bounds: -100 to 100. Expected Gyro lookupTable bounds: -34.9 to 34.9."
+}

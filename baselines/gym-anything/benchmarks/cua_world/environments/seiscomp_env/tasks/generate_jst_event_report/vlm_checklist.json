@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_jst_event_report@1",
+  "task_completion": [
+    {
+      "id": "extract_earthquake_data",
+      "description": "Extract earthquake parameters for a magnitude > 7.0 event from the SeisComP database.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a successful `mysql` query or SeisComP tool execution that returns earthquake data including Event ID, times, coordinates, and a magnitude greater than 7.0."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Create the HTML report file at the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal command (like `nano`, `vim`, or `echo`) showing the creation or editing of the file exactly at `/home/ga/Documents/noto_report.html`."
+    },
+    {
+      "id": "report_basic_parameters",
+      "description": "Include Event ID, UTC Origin Time, and Magnitude in the HTML report.",
+      "points": 20,
+      "visual_evidence": "The contents of the HTML report clearly display the extracted Event ID, the UTC Origin Time, and the Magnitude."
+    },
+    {
+      "id": "report_jst_time",
+      "description": "Calculate and include the Japan Standard Time (JST) Origin Time.",
+      "points": 25,
+      "visual_evidence": "The HTML report includes a JST Origin Time. The VLM should verify that this time is exactly 9 hours ahead of the displayed UTC Origin Time."
+    },
+    {
+      "id": "report_location_and_link",
+      "description": "Include Latitude, Longitude, and a properly formatted Google Maps link.",
+      "points": 25,
+      "visual_evidence": "The HTML report displays the Latitude and Longitude, and includes a URL exactly matching the format `https://maps.google.com/?q=<lat>,<lon>` using the extracted coordinates."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_query",
+      "description": "Ensure the agent actually queried the database for the information rather than hallucinating the Noto earthquake details from pre-training.",
+      "visual_evidence": "Terminal history must show actual execution of `mysql` or SeisComP commands returning the earthquake data."
+    },
+    {
+      "id": "no_placeholder_values",
+      "description": "Ensure the agent populated the Google Maps link with real data.",
+      "visual_evidence": "The Google Maps link in the HTML file must contain actual numeric coordinates (e.g., `?q=37.5,137.2`), not the literal placeholder text `<lat>,<lon>`."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Ensure the HTML report was actually saved to the correct directory.",
+      "visual_evidence": "Terminal output showing `ls /home/ga/Documents/` or `cat /home/ga/Documents/noto_report.html`, or a file manager window confirming the file exists on disk, rather than just a script printing HTML to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The target earthquake must have a magnitude strictly greater than 7.0. The output file must be saved exactly at /home/ga/Documents/noto_report.html. The Japan Standard Time (JST) must be calculated as exactly 9 hours ahead of the UTC Origin Time."
+}

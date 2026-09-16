@@ -1,0 +1,35 @@
+{
+  "id": "comet_assay_analysis@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Quantify DNA damage in cells from the fluorescence microscopy image comet_sample.tif using the Comet Assay method. Analyze the three most prominent comets to determine the Integrated Density of the whole comet (head and tail) and the head alone. Calculate the percentage of tail DNA for each using the formula: % Tail DNA = (Whole Integrated Density - Head Integrated Density) / Whole Integrated Density * 100. Save the analysis results, including Comet ID, Whole Integrated Density, Head Integrated Density, and Percent Tail DNA, to ~/Fiji_Data/results/comet/comet_analysis.csv. Save a screenshot of the analyzed regions to ~/Fiji_Data/results/comet/roi_overlay.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/comet_assay_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/comet_assay_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_csv": "~/Fiji_Data/results/comet/comet_analysis.csv",
+    "expected_output_png": "~/Fiji_Data/results/comet/roi_overlay.png",
+    "min_comets": 3,
+    "data_source": "OpenComet Repository (samples/1.tif)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_comet_assay_analysis"
+    }
+  },
+  "tags": [
+    "biology",
+    "toxicology",
+    "genotoxicity",
+    "roi-management",
+    "image-arithmetic"
+  ]
+}

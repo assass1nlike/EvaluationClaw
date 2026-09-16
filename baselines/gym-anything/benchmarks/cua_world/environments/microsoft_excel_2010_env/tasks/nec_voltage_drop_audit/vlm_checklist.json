@@ -1,0 +1,59 @@
+{
+  "task_id": "nec_voltage_drop_audit@1",
+  "task_completion": [
+    {
+      "id": "open_workbook",
+      "description": "Open the commercial_circuits.xlsx workbook",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., Excel) is open displaying the 'commercial_circuits.xlsx' file with columns for circuit details like Length, Load, System Voltage, etc."
+    },
+    {
+      "id": "populate_resistance",
+      "description": "Populate the Resistance (Column H) with values from NEC Table 8",
+      "points": 20,
+      "visual_evidence": "Column H contains numerical resistance values corresponding to the wire size and material (e.g., 3.14 for 14 AWG Copper, 3.25 for 12 AWG Aluminum)."
+    },
+    {
+      "id": "calculate_voltage_drop",
+      "description": "Calculate the Voltage Drop in Column I",
+      "points": 20,
+      "visual_evidence": "Column I contains numerical values representing the calculated voltage drop. The formula bar may show a formula similar to =(2*Length*Resistance*Load)/1000."
+    },
+    {
+      "id": "calculate_percentage_drop",
+      "description": "Calculate the % Drop in Column J and format as a percentage with 2 decimal places",
+      "points": 20,
+      "visual_evidence": "Column J contains percentage values formatted to exactly two decimal places (e.g., '2.45%'). The formula bar may show Voltage Drop / System Voltage."
+    },
+    {
+      "id": "populate_status",
+      "description": "Populate the Status in Column K with 'PASS' or 'FAIL'",
+      "points": 15,
+      "visual_evidence": "Column K contains the text 'PASS' or 'FAIL' for each circuit row. 'FAIL' should correspond to rows where Column J is greater than 3.00%."
+    },
+    {
+      "id": "highlight_fail_cells",
+      "description": "Highlight 'FAIL' cells with a red background",
+      "points": 15,
+      "visual_evidence": "Cells in Column K that contain the word 'FAIL' have a red background fill color."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_gui",
+      "description": "The agent interacted with a spreadsheet GUI (like Microsoft Excel) rather than writing a script to bypass the UI.",
+      "visual_evidence": "Screenshots show the Excel interface being actively used (e.g., ribbon, formula bar, cell selection) rather than a terminal running a Python/Pandas script."
+    },
+    {
+      "id": "authentic_calculations",
+      "description": "The agent used spreadsheet formulas or features to calculate the values rather than typing in pre-calculated text.",
+      "visual_evidence": "The formula bar shows actual formulas (e.g., referencing other cells) when a calculated cell is selected, rather than hardcoded numbers."
+    },
+    {
+      "id": "authentic_formatting",
+      "description": "The agent applied actual cell background fill color for the highlighting requirement.",
+      "visual_evidence": "The red color is applied to the cell background (fill), not just changing the text/font color to red."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file is C:\\Users\\Docker\\Documents\\commercial_circuits.xlsx containing 50 circuits (rows 2-51). Resistance values must come from NEC Table 8 (stranded conductors at 75\u00b0C), e.g., 14 AWG Copper = 3.14 \u03a9/kft, 12 AWG Copper = 1.98 \u03a9/kft, 14 AWG Aluminum = 5.15 \u03a9/kft, 12 AWG Aluminum = 3.25 \u03a9/kft. Compliance limit is 3.00% (0.03); values strictly greater than 3.00% must be marked 'FAIL' and highlighted with a red background."
+}

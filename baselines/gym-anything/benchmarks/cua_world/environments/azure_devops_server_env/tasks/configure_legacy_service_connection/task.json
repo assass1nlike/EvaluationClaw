@@ -1,0 +1,30 @@
+{
+  "id": "configure_legacy_service_connection@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "Configure a secure service connection for the legacy inventory system in the TailwindTraders project. Create a 'Generic' service connection named 'LegacyInventorySystem' using the Server URL 'https://inventory.local/api/v1', Username 'svc_ado_connect', and Password 'Complex!88Password'. Include the description 'Connection to legacy mainframe for inventory sync' and ensure access permission is granted to all pipelines.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_legacy_service_connection\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_legacy_service_connection\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_name": "LegacyInventorySystem",
+    "expected_type": "generic",
+    "expected_url": "https://inventory.local/api/v1",
+    "expected_username": "svc_ado_connect",
+    "project_name": "TailwindTraders",
+    "collection_url": "http://localhost/DefaultCollection"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_legacy_service_connection"
+    }
+  }
+}

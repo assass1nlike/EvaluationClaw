@@ -1,0 +1,46 @@
+{
+  "id": "organize_inventory_categories@1",
+  "version": "1.0",
+  "env_id": "copper_point_of_sale_env@0.1",
+  "description": "You are setting up the POS system for a new convenience store. Import the inventory items from C:\\Users\\Docker\\Documents\\inventory_items.csv and organize them into the following categories: Beverages (Coffee Beans 1lb, Green Tea Box, Orange Juice 64oz), Snacks (Trail Mix Bag, Granola Bars 6pk, Potato Chips Family Size), Electronics (USB-C Cable 6ft, Wireless Mouse, Phone Charger 20W), and Stationery (Notebook College Ruled, Ballpoint Pen 10pk, Sticky Notes 3x3). Create a summary file at C:\\Users\\Docker\\Documents\\category_assignments.txt listing all 12 items in the format: Item Name | Category Name. Use exact spelling for category names.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\organize_inventory_categories\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\organize_inventory_categories\\export_result.ps1"
+  },
+  "metadata": {
+    "inventory_file": "C:\\Users\\Docker\\Documents\\inventory_items.csv",
+    "output_file": "C:\\Users\\Docker\\Documents\\category_assignments.txt",
+    "categories": [
+      "Beverages",
+      "Snacks",
+      "Electronics",
+      "Stationery"
+    ],
+    "assignments": {
+      "Coffee Beans 1lb": "Beverages",
+      "Green Tea Box": "Beverages",
+      "Orange Juice 64oz": "Beverages",
+      "Trail Mix Bag": "Snacks",
+      "Granola Bars 6pk": "Snacks",
+      "Potato Chips Family Size": "Snacks",
+      "USB-C Cable 6ft": "Electronics",
+      "Wireless Mouse": "Electronics",
+      "Phone Charger 20W": "Electronics",
+      "Notebook College Ruled": "Stationery",
+      "Ballpoint Pen 10pk": "Stationery",
+      "Sticky Notes 3x3": "Stationery"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_organize_inventory"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "paint_inventory_calculator@1",
+  "task_completion": [
+    {
+      "id": "room_dimensions_organized",
+      "description": "Verify that room dimensions and details are organized in the spreadsheet.",
+      "points": 10,
+      "visual_evidence": "Look for a spreadsheet containing columns for room names and their corresponding details such as length, width, height, number of doors, and number of windows."
+    },
+    {
+      "id": "wall_area_calculated",
+      "description": "Verify that the wall area is calculated for the rooms.",
+      "points": 20,
+      "visual_evidence": "Look for a column (e.g., 'Wall Area') in the spreadsheet displaying numerical values that represent the calculated wall area for each room."
+    },
+    {
+      "id": "paint_quantity_calculated",
+      "description": "Verify that the paint quantity is calculated using the ROUNDUP function.",
+      "points": 30,
+      "visual_evidence": "Look for a column showing the required paint quantity in whole numbers (gallons). If a cell in this column is selected, the formula bar should ideally show the use of the ROUNDUP function."
+    },
+    {
+      "id": "total_cost_calculated",
+      "description": "Verify that the total cost, including tax, is calculated.",
+      "points": 20,
+      "visual_evidence": "Look for a column displaying the total cost for the paint, which should include the base price of the paint and the applied tax."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "Verify that the results are saved to the specified file path.",
+      "points": 20,
+      "visual_evidence": "Look at the title bar of the spreadsheet application to see 'renovation_calculations.xlsx', or look for the file in a file manager window open to '/home/ga/Documents/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_spreadsheet",
+      "description": "Ensure the agent used a graphical spreadsheet application to perform the task.",
+      "visual_evidence": "Screenshots should show interaction with a spreadsheet GUI (like LibreOffice Calc) rather than a text editor."
+    },
+    {
+      "id": "no_terminal_generation",
+      "description": "Ensure the agent did not use a terminal script to bypass GUI interaction.",
+      "visual_evidence": "The terminal should not show commands executing a Python or bash script that directly generates the .xlsx file."
+    },
+    {
+      "id": "formulas_used",
+      "description": "Ensure the agent used formulas for calculations rather than hardcoding answers.",
+      "visual_evidence": "When a calculated cell is selected, the formula bar should show a formula (e.g., starting with '=') rather than a static typed number."
+    }
+  ],
+  "privileged_info_for_vlm": "Use these verified facts to check the agent's calculations:\n- Wall Area Formula: 2*(Length+Width)*Height - (Doors*20) - (Windows*15)\n- Paint Quantity Formula: ROUNDUP(Total_Area*2/375, 0) (accounts for 2 coats and 375 sq ft/gallon coverage)\n- Default ceiling height: 8 feet\n- Sales Tax Rate: 7%\n- Paint Prices per gallon: Pure White ($28), Agreeable Gray ($32), Sea Salt ($35), Coastal Blue ($38)"
+}

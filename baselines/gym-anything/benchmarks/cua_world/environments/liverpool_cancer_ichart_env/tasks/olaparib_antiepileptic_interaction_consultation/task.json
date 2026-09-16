@@ -1,0 +1,34 @@
+{
+  "id": "olaparib_antiepileptic_interaction_consultation@1",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are an oncology nurse practitioner specialising in gynaecological oncology. A patient with BRCA1-mutated high-grade serous ovarian cancer on olaparib maintenance therapy requires a safety review for three medications: carbamazepine (enzyme-inducing antiepileptic, first-line for partial seizures), warfarin (anticoagulation for DVT), and acenocoumarol (anticoagulation). Using the Liverpool Cancer iChart Archive app, identify the interaction ratings for these medications against olaparib and navigate to the Interaction Details screen for the olaparib and carbamazepine interaction.",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/olaparib_antiepileptic_interaction_consultation/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/olaparib_antiepileptic_interaction_consultation/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_olaparib_antiepileptic_interaction_consultation"
+    }
+  },
+  "metadata": {
+    "occupation": "Oncology Nurse Practitioner",
+    "industry": "Gynaecological Oncology",
+    "cancer_drug": "Olaparib",
+    "co_medications_to_screen": [
+      "Carbamazepine",
+      "Warfarin",
+      "Acenocoumarol"
+    ],
+    "expected_target_comedication": "Carbamazepine",
+    "expected_mechanism": "CYP3A4 induction by carbamazepine substantially reduces olaparib AUC",
+    "clinical_context": "BRCA1-mutated ovarian cancer patient on olaparib with epilepsy requiring antiepileptic therapy"
+  }
+}

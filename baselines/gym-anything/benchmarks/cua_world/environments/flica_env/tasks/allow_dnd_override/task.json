@@ -1,0 +1,27 @@
+{
+  "id": "allow_dnd_override@1",
+  "version": "1.0",
+  "env_id": "example.flica_env@0.1",
+  "description": "Configure Android's Do Not Disturb (DND) settings to allow Flight Crew View (com.robert.fcView) to send notifications even when DND is active. Ensure Do Not Disturb mode is enabled.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/allow_dnd_override/setup_task.sh",
+    "post_task": "/sdcard/tasks/allow_dnd_override/export_result.sh"
+  },
+  "metadata": {
+    "package_name": "com.robert.fcView",
+    "target_app_name": "Flight Crew View",
+    "required_zen_mode": "active"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_allow_dnd_override"
+    }
+  }
+}

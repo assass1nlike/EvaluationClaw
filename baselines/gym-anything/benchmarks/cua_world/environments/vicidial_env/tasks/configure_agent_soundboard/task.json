@@ -1,0 +1,33 @@
+{
+  "id": "configure_agent_soundboard@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Enable the Agent Soundboards and Central Sound Control features in the Vicidial System Settings for compliance. Upload the audio file located at /home/ga/Documents/legal_disclosure.wav and create a new soundboard with ID 'LEGAL_SB', name 'Mandatory Compliance Disclosure', and group '---ALL---' that includes this audio file for agent use.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_agent_soundboard/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_agent_soundboard/export_result.sh"
+  },
+  "metadata": {
+    "audio_source_path": "/home/ga/Documents/legal_disclosure.wav",
+    "expected_soundboard_id": "LEGAL_SB",
+    "expected_audio_name": "legal_disclosure",
+    "scoring": {
+      "system_settings": 20,
+      "soundboard_created": 30,
+      "audio_uploaded": 20,
+      "audio_linked": 30
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_agent_soundboard"
+    }
+  }
+}

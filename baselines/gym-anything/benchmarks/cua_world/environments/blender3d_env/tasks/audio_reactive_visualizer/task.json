@@ -1,0 +1,31 @@
+{
+  "id": "audio_reactive_visualizer@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Animate the 'SpeakerCone' object to react to music by baking the sound wave from the audio file at '/home/ga/assets/beat.wav' into the object's Z-axis Scale. Save the project to '/home/ga/BlenderProjects/visualizer_completed.blend'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audio_reactive_visualizer/setup_task.sh",
+    "post_task": "/workspace/tasks/audio_reactive_visualizer/export_result.sh"
+  },
+  "metadata": {
+    "audio_path": "/home/ga/assets/beat.wav",
+    "target_object": "SpeakerCone",
+    "target_channel": "scale",
+    "target_axis": 2,
+    "output_path": "/home/ga/BlenderProjects/visualizer_completed.blend",
+    "min_keyframe_count": 50,
+    "min_amplitude_variance": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audio_visualizer"
+    }
+  }
+}

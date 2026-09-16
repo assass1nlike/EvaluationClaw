@@ -1,0 +1,32 @@
+{
+  "id": "ground_floor_retail_conversion@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "Modify the ground floor zones and HVAC systems in the eQUEST model to reflect a retail occupancy conversion. For all ground floor space definitions (names beginning with 'G.'), set the AREA/PERSON parameter to 40 sqft/person. For all ground floor HVAC system definitions (names beginning with 'G.'), set the MIN-OUTSIDE-AIR parameter to 750 CFM. Run a full annual DOE-2.2 simulation and save the project.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\ground_floor_retail_conversion\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\ground_floor_retail_conversion\\export_result.ps1"
+  },
+  "metadata": {
+    "project_path": "C:\\Users\\Docker\\Documents\\eQUEST 3-65 Projects\\4StoreyBuilding\\4StoreyBuilding.inp",
+    "result_json_path": "C:\\Users\\Docker\\ground_floor_retail_conversion_result.json",
+    "target_area_per_person": 40,
+    "target_min_outside_air": 750,
+    "tolerance_area": 1.0,
+    "tolerance_air": 25,
+    "min_systems_count": 5,
+    "min_spaces_count": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ground_floor_retail_conversion"
+    }
+  }
+}

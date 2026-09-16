@@ -1,0 +1,82 @@
+{
+  "dataset_id": "61ad39ab",
+  "name": "Sign-Language-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Sign-Language-Detection dataset contains 200 image samples of sign-language hand gestures, each paired with a generic prompt and bounding-box annotations. It evaluates a model's ability to detect and localize sign-language letters or gestures in images.",
+  "card_text": "The dataset is a small image-text benchmark for sign-language gesture detection. Each item consists of an image showing a hand sign (often a letter from a sign alphabet), a short placeholder prompt meant to elicit detection behavior, and an output list of bounding boxes. Bounding boxes are given as class-label-to-coordinate mappings, where the key (e.g., 'j' or 'o') indicates the sign class and the four numbers mark the object's extent in image pixels. The images are drawn from a comprehension/sign-gesture-detection collection and assume the model can interpret visual hand shapes and return spatial localizations. The text prompt is not informative on its own; the visual modality carries the core content.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "sign language gesture recognition",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The image file is the visual input, showing a hand or hands forming a sign-language letter or gesture. It is the primary content that the model must inspect in order to locate the sign.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic user prompt instructing models to detect or identify sign-language gestures in the supplied image. It is a placeholder that varies across different models but consistently serves as the task instruction.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list of bounding-box annotations. Each annotation is a dictionary mapping a sign-language class label (e.g., 'j' or 'o') to a four-value coordinate array [x1, y1, x2, y2] that localizes the corresponding hand sign within the image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample pairs one image file with a short generic text prompt and an output annotation list. The image is the main content; the prompt is the instruction; the bbox list provides one or more labeled bounding boxes, where each label is a sign-language letter or gesture and the values are pixel coordinates locating the hand sign in the image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/sign-language-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "sign-gesture-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "Linguistics",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Linguistics"
+  }
+}

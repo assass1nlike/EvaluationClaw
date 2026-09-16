@@ -1,0 +1,59 @@
+{
+  "task_id": "sakila_performance_optimization@1",
+  "task_completion": [
+    {
+      "id": "restore_rental_index",
+      "description": "Restore missing indexes on the rental table.",
+      "points": 10,
+      "visual_evidence": "A SQL client (terminal or GUI) showing the execution of a CREATE INDEX statement for the 'rental' table, or the table schema showing the newly added indexes."
+    },
+    {
+      "id": "restore_payment_index",
+      "description": "Restore missing indexes on the payment table.",
+      "points": 10,
+      "visual_evidence": "A SQL client showing the execution of a CREATE INDEX statement for the 'payment' table (e.g., fk_payment_rental), or the table schema showing the indexes."
+    },
+    {
+      "id": "restore_inventory_index",
+      "description": "Restore missing indexes on the inventory table.",
+      "points": 10,
+      "visual_evidence": "A SQL client showing the execution of a CREATE INDEX statement for the 'inventory' table, or the table schema showing the indexes."
+    },
+    {
+      "id": "create_monthly_revenue_view",
+      "description": "Create a database view named v_monthly_revenue.",
+      "points": 25,
+      "visual_evidence": "A SQL client showing the successful execution of 'CREATE VIEW v_monthly_revenue' with columns payment_year, payment_month, and total_revenue, or the view visible in the database schema."
+    },
+    {
+      "id": "create_monthly_revenue_procedure",
+      "description": "Create a stored procedure named sp_monthly_revenue.",
+      "points": 25,
+      "visual_evidence": "A SQL client showing the successful execution of 'CREATE PROCEDURE sp_monthly_revenue(p_year INT)' or the procedure visible in the sakila database routines."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the results of calling sp_monthly_revenue(2005) to a CSV file.",
+      "points": 20,
+      "visual_evidence": "A terminal, file manager, or text editor showing the file '/home/ga/Documents/exports/monthly_revenue_2005.csv' containing exactly 4 rows of data (for May, June, July, and August)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "The agent interacted with a real MySQL client/server.",
+      "visual_evidence": "Screenshots should show a genuine MySQL interface (like MySQL CLI, MySQL Workbench, DBeaver) executing the queries, rather than just typing SQL into a text editor without running it."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV file was generated from the database query.",
+      "visual_evidence": "The agent should use a database export tool, an INTO OUTFILE SQL command, or a script to generate the CSV, rather than manually typing the 4 rows of data into a text editor."
+    },
+    {
+      "id": "correct_data_in_export",
+      "description": "The exported CSV contains genuine data from the Sakila database.",
+      "visual_evidence": "The CSV should contain exactly 4 rows of revenue data for 2005 (May, June, July, August). It should not contain 12 rows (which would indicate fabricated data)."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database is 'sakila'. The expected view is 'v_monthly_revenue' and the expected procedure is 'sp_monthly_revenue'. The expected output file is '/home/ga/Documents/exports/monthly_revenue_2005.csv'. Note: The payment table's index on rental_id is implicitly created by the foreign key constraint and inherits the name 'fk_payment_rental'. Also, the Sakila dataset only contains transaction data for 4 distinct months in 2005 (May, June, July, August), so the final CSV export should only contain 4 rows of data, not 12."
+}

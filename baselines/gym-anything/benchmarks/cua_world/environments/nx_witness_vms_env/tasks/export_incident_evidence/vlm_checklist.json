@@ -1,0 +1,53 @@
+{
+  "task_id": "export_incident_evidence@1",
+  "task_completion": [
+    {
+      "id": "read_incident_ticket",
+      "description": "Agent reads the incident ticket to extract the Case ID, Camera Name, and timestamps.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'cat ~/incident_ticket.json' or a text editor displaying the JSON file contents, revealing Case ID 4492."
+    },
+    {
+      "id": "access_nx_witness",
+      "description": "Agent accesses the Nx Witness system via Web Admin or API.",
+      "points": 20,
+      "visual_evidence": "Browser showing the Nx Witness Web Admin interface or API documentation at https://localhost:7001, or terminal showing API requests (e.g., curl or python scripts) to the Nx Witness endpoints."
+    },
+    {
+      "id": "export_video_mkv",
+      "description": "Agent exports the video footage as an MKV file to the evidence directory.",
+      "points": 40,
+      "visual_evidence": "Terminal showing a successful download command (curl, wget, python script) saving to '~/evidence/case_4492.mkv', or browser showing the file being downloaded to that path."
+    },
+    {
+      "id": "generate_sha256",
+      "description": "Agent generates a SHA-256 checksum for the exported MKV file.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the execution of 'sha256sum ~/evidence/case_4492.mkv' or a similar hashing command."
+    },
+    {
+      "id": "save_checksum_file",
+      "description": "Agent saves the generated checksum to the correct file path.",
+      "points": 15,
+      "visual_evidence": "Terminal showing output redirection (e.g., '> ~/evidence/case_4492.mkv.sha256') or an 'ls ~/evidence' command confirming the '.sha256' file exists."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_export_performed",
+      "description": "The MKV file was genuinely exported from the Nx Witness server.",
+      "visual_evidence": "Evidence of a real download from localhost:7001 (e.g., curl progress bar, browser download history) rather than the agent using 'touch' or 'echo' to create a fake MKV file."
+    },
+    {
+      "id": "genuine_checksum_generation",
+      "description": "The checksum was computed from the actual MKV file.",
+      "visual_evidence": "The agent runs a real hashing tool (like sha256sum) on the MKV file, rather than writing a random or hardcoded hash string directly into the file."
+    },
+    {
+      "id": "correct_case_id_usage",
+      "description": "The agent used the correct case ID from the ticket.",
+      "visual_evidence": "The filenames 'case_4492.mkv' and 'case_4492.mkv.sha256' are used, matching the Case ID found in the incident ticket."
+    }
+  ],
+  "privileged_info_for_vlm": "The incident ticket is located at '/home/ga/incident_ticket.json' and contains Case ID '4492' and Camera Name 'Parking Lot Camera'. The Nx Witness system is accessible at 'https://localhost:7001' (API endpoint '/rest/v1'). The exported video must be saved as '/home/ga/evidence/case_4492.mkv' and its SHA-256 checksum as '/home/ga/evidence/case_4492.mkv.sha256'."
+}

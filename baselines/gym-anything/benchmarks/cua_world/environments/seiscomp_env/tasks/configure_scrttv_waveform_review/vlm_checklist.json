@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_scrttv_waveform_review@1",
+  "task_completion": [
+    {
+      "id": "configure_recordstream",
+      "description": "Configure the recordstream service and source in the scrttv configuration file.",
+      "points": 20,
+      "visual_evidence": "A text editor (e.g., nano, vim) or scconfig window showing the file '~/seiscomp/etc/scrttv.cfg' (or '/home/ga/seiscomp/etc/scrttv.cfg') with settings for recordstream service ('sdsarchive') and source ('/home/ga/seiscomp/var/lib/archive')."
+    },
+    {
+      "id": "configure_filter_and_buffer",
+      "description": "Configure the bandpass filter and buffer size in the scrttv configuration file.",
+      "points": 20,
+      "visual_evidence": "A text editor or scconfig window showing the file '~/seiscomp/etc/scrttv.cfg' being edited to include the filter 'BW(2,0.5,8.0)' and a buffer size of at least 1800."
+    },
+    {
+      "id": "launch_scrttv",
+      "description": "Launch the SeisComP Real-Time Trace View (scrttv) application.",
+      "points": 20,
+      "visual_evidence": "The scrttv application window is open and visible on the screen."
+    },
+    {
+      "id": "visualize_waveforms",
+      "description": "Visualize the archived BHZ waveform data in the scrttv application.",
+      "points": 20,
+      "visual_evidence": "The scrttv window displays actual waveform traces (wavy lines) for the GE network stations, indicating it successfully loaded the archived data."
+    },
+    {
+      "id": "save_screenshot",
+      "description": "Save a screenshot of the scrttv interface to the specified path.",
+      "points": 20,
+      "visual_evidence": "A terminal command (e.g., 'scrot /home/ga/scrttv_screenshot.png', 'gnome-screenshot') or a GUI screenshot tool actively saving the image to the exact path '/home/ga/scrttv_screenshot.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_scrttv_execution",
+      "description": "Ensure the agent actually ran the scrttv application and didn't just open a pre-existing image.",
+      "visual_evidence": "The scrttv window should look like an active application with standard window borders, interactive UI elements, and ideally a terminal in the background showing the command used to launch it, rather than an image viewer."
+    },
+    {
+      "id": "genuine_file_modification",
+      "description": "Ensure the configuration file was genuinely edited and saved.",
+      "visual_evidence": "The text editor should show the correct file path being modified and saved, or terminal commands should show standard file manipulation (e.g., echo appending to the file), rather than just typing the expected text into an unrelated prompt."
+    },
+    {
+      "id": "authentic_waveform_rendering",
+      "description": "Ensure the waveforms are genuinely rendered by the application based on the configuration.",
+      "visual_evidence": "The waveforms should appear properly scaled within the scrttv trace view area with appropriate time axes and station labels, consistent with the configured buffer size and filter."
+    }
+  ],
+  "privileged_info_for_vlm": "The configuration must exactly include: recordstream.service = 'sdsarchive', recordstream.source = '/home/ga/seiscomp/var/lib/archive', filter = 'BW(2,0.5,8.0)', and bufferSize >= 1800. The final screenshot must be saved exactly to '/home/ga/scrttv_screenshot.png'."
+}

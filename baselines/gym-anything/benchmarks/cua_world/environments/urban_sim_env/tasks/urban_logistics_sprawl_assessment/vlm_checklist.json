@@ -1,0 +1,53 @@
+{
+  "task_id": "urban_logistics_sprawl_assessment@1",
+  "task_completion": [
+    {
+      "id": "notebook_executed",
+      "description": "Verify the Jupyter notebook is open and contains executed code for the logistics assessment.",
+      "points": 10,
+      "visual_evidence": "Jupyter Notebook interface showing 'logistics_assessment.ipynb' with executed cells containing Python code (e.g., pandas operations, reading the .h5 file)."
+    },
+    {
+      "id": "csv_generated",
+      "description": "Verify the logistics_zones.csv file is created with the required columns.",
+      "points": 20,
+      "visual_evidence": "File explorer showing 'logistics_zones.csv' in '/home/ga/urbansim_projects/output/', or a terminal/editor displaying its contents with columns: zone_id, candidate_buildings_count, total_logistics_sqft."
+    },
+    {
+      "id": "json_generated",
+      "description": "Verify the logistics_summary.json file is created with the required keys.",
+      "points": 20,
+      "visual_evidence": "File explorer showing 'logistics_summary.json' in '/home/ga/urbansim_projects/output/', or a terminal/editor displaying its contents with keys: total_citywide_logistics_sqft, total_candidate_buildings, top_zone_id, top_zone_sqft."
+    },
+    {
+      "id": "plot_generated",
+      "description": "Verify the bar chart top_logistics_zones.png is created with the correct title.",
+      "points": 20,
+      "visual_evidence": "An image file named 'top_logistics_zones.png' in the output directory, or displayed in the notebook/image viewer, showing a bar chart with the exact title 'Top 15 Zones for Urban Logistics Activity'."
+    },
+    {
+      "id": "correct_values_calculated",
+      "description": "Verify the calculated logistics sprawl metrics match the ground truth values.",
+      "points": 30,
+      "visual_evidence": "The JSON file, CSV file, or notebook output explicitly shows 1268 for total candidate buildings, 196535728 (or 196535728.0) for total citywide logistics sqft, and zone 142 as the top zone with 8115955 (or 8115955.0) sqft."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_execution",
+      "description": "Ensure the agent actually wrote and executed Python code to process the data.",
+      "visual_evidence": "The notebook contains actual pandas/data-processing code (e.g., filtering non_residential_sqft >= 40000) rather than just print statements or hardcoded file writing commands."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "Ensure the plot was generated via code and not downloaded or manually created.",
+      "visual_evidence": "The notebook contains matplotlib, seaborn, or pandas plotting code that corresponds to the generated 'top_logistics_zones.png' image."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Ensure the agent did not bypass the calculation by hardcoding the expected answers.",
+      "visual_evidence": "The code should show dynamic aggregation (e.g., groupby('zone_id').sum()) rather than hardcoding the values 1268, 196535728.0, or 142."
+    }
+  ],
+  "privileged_info_for_vlm": "A correct assessment yields exactly 1,268 candidate buildings and a total citywide logistics square footage of 196,535,728.0 sqft. The zone with the highest concentration of logistics activity is zone 142, containing 8,115,955.0 sqft."
+}

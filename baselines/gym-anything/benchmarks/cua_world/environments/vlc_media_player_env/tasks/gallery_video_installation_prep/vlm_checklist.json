@@ -1,0 +1,59 @@
+{
+  "task_id": "gallery_video_installation_prep@1",
+  "task_completion": [
+    {
+      "id": "read_room_specs",
+      "description": "Read the room specifications file",
+      "points": 10,
+      "visual_evidence": "Look for the agent opening or displaying the contents of `/home/ga/Documents/room_specs.txt` in a text editor or terminal."
+    },
+    {
+      "id": "transcode_videos",
+      "description": "Transcode source videos to H.264 MP4 format",
+      "points": 20,
+      "visual_evidence": "Look for the agent running video transcoding commands (e.g., ffmpeg) specifying the H.264 codec (e.g., `-c:v libx264`) and saving the outputs as MP4 files in `/home/ga/Videos/gallery_ready/`."
+    },
+    {
+      "id": "room_c_portrait",
+      "description": "Ensure Room C video is in portrait orientation",
+      "points": 15,
+      "visual_evidence": "Look for the agent applying a rotation filter (e.g., `-vf transpose=1` or `transpose=2`) during the transcoding of Room C's video, or verifying the output is in portrait orientation (width < height)."
+    },
+    {
+      "id": "audio_stripped_b_d",
+      "description": "Strip audio from Room B and Room D videos",
+      "points": 15,
+      "visual_evidence": "Look for the agent using the `-an` flag (or similar audio-disabling option) during the transcoding of the videos for Rooms B and D, or verifying the outputs have no audio stream."
+    },
+    {
+      "id": "m3u_playlist_created",
+      "description": "Create the M3U playlist with the four output files",
+      "points": 15,
+      "visual_evidence": "Look for the agent creating `installation_test.m3u` in `/home/ga/Videos/gallery_ready/` and adding the four output filenames to it (e.g., using a text editor or `echo` commands)."
+    },
+    {
+      "id": "json_manifest_created",
+      "description": "Generate the JSON installation manifest",
+      "points": 25,
+      "visual_evidence": "Look for the agent writing `installation_manifest.json` in `/home/ga/Documents/` containing the required metadata (filename, resolution, audio status, orientation) for each room (e.g., using a text editor or a Python script)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_transcoding_performed",
+      "description": "Verify that the agent actually executed transcoding commands",
+      "visual_evidence": "Check that the agent used a tool like ffmpeg to process the videos and did not simply copy or rename the source files."
+    },
+    {
+      "id": "genuine_manifest_creation",
+      "description": "Verify that the agent manually created or scripted the JSON and M3U files",
+      "visual_evidence": "Check that the agent typed out the contents or wrote a script to generate the JSON manifest and M3U playlist, rather than copying pre-existing files."
+    },
+    {
+      "id": "no_fake_files",
+      "description": "Verify that the output MP4 files are actual video files",
+      "visual_evidence": "Check that the transcoding process shows progress or takes time, ensuring the agent didn't just create empty or dummy files using `touch`."
+    }
+  ],
+  "privileged_info_for_vlm": "The verifier checks for the presence of the 4 output files in the M3U playlist but does not strictly enforce their order. Audio stripping, resolution scaling, portrait rotation for Room C, JSON manifest creation, and M3U playlist creation are explicitly required and verified. The JSON manifest must document filename, resolution, audio status, and orientation."
+}

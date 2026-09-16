@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_truss_analyzer@1",
+  "task_completion": [
+    {
+      "id": "open_project_directory",
+      "description": "Open the truss_analyzer project in an IDE or text editor.",
+      "points": 10,
+      "visual_evidence": "An IDE (like PyCharm) or text editor is open showing the directory tree for '/home/ga/PycharmProjects/truss_analyzer'."
+    },
+    {
+      "id": "fix_element_formulation",
+      "description": "Modify 'truss/element.py' to fix the element formulation and rotation matrix errors.",
+      "points": 25,
+      "visual_evidence": "The file 'truss/element.py' is open in the editor with visible modifications. Look for corrections in the 'stiffness_matrix' method and logic ensuring the cross-sectional area is calculated correctly for circular bars based on diameter."
+    },
+    {
+      "id": "fix_global_matrix_assembly",
+      "description": "Modify 'truss/solver.py' to fix the global matrix assembly errors.",
+      "points": 25,
+      "visual_evidence": "The file 'truss/solver.py' is open in the editor with visible modifications to the global stiffness matrix assembly logic (e.g., correctly mapping local element matrices to global degrees of freedom)."
+    },
+    {
+      "id": "run_test_suite",
+      "description": "Execute the test suite to verify the fixes.",
+      "points": 10,
+      "visual_evidence": "A terminal window shows a command being executed to run the tests (e.g., 'pytest tests/', 'python -m pytest', or 'python -m unittest')."
+    },
+    {
+      "id": "verify_tests_pass",
+      "description": "Verify that all tests in the test suite pass successfully.",
+      "points": 30,
+      "visual_evidence": "Terminal output shows a successful test run. Note: The VLM should specifically look for exactly 9 tests passing (e.g., '9 passed' in pytest output), as the actual test suite contains 9 tests, not 12."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_modifications",
+      "description": "Ensure the agent did not modify any files in the 'tests/' directory to bypass the requirements.",
+      "visual_evidence": "Check open editor tabs, file explorer indicators, or terminal git status to confirm no files within the 'tests/' folder were edited or overwritten."
+    },
+    {
+      "id": "no_external_fea_libraries",
+      "description": "Ensure the agent did not use external FEA libraries to solve the problem.",
+      "visual_evidence": "Check terminal history for forbidden pip installs (e.g., 'pip install opensees') and check the import statements in 'element.py' and 'solver.py' to ensure only standard or basic math libraries (like numpy) are used."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "Ensure the test passing output is genuine and not spoofed.",
+      "visual_evidence": "The terminal output showing passing tests must follow the standard formatting of the testing framework (e.g., pytest) and must be the result of actually running the test command, not an 'echo' command or a dummy script printing fake results."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is verified as /home/ga/PycharmProjects/truss_analyzer, and the pass threshold is 90. Crucially, despite the task description stating there are 12 tests, the test suite actually only contains 9 tests. A successful test run will show exactly 9 tests passing. Additionally, the rotation matrix bug in element.py is located in a method named 'stiffness_matrix' (not 'local_stiffness_matrix')."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "search_and_verify_disclaimer@1",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "difficulty": "hard",
+  "description": "The Cancer iChart Archive app is open on the Welcome screen. View the disclaimer content and then navigate to the interaction details page for the cancer drug Dabrafenib and the co-medication Carbamazepine.",
+  "init": {
+    "timeout_sec": 200,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/search_and_verify_disclaimer/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/search_and_verify_disclaimer/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_disclaimer_and_interaction"
+    }
+  },
+  "metadata": {
+    "cancer_drug": "Dabrafenib",
+    "co_medication": "Carbamazepine",
+    "required_pages": [
+      "Disclaimer",
+      "Interaction Details"
+    ]
+  }
+}

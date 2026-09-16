@@ -1,0 +1,33 @@
+{
+  "id": "complete_implant_workflow@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Prepare a presentation-ready treatment plan for a single dental implant in the lower right posterior jaw using the CBCT scan at C:\\Users\\Docker\\Documents\\DentalDICOM. The plan must demonstrate safe implant placement with adequate clearance from the inferior alveolar nerve and include appropriate panoramic curve alignment. Save the plan to C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\complete_plan.bsp and export a screenshot to C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\complete_plan_screenshot.png. Login credentials: Docker / GymAnything123!",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\complete_implant_workflow\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\complete_implant_workflow\\export_result.ps1"
+  },
+  "metadata": {
+    "dicom_dir": "C:\\Users\\Docker\\Documents\\DentalDICOM",
+    "expected_output_path": "C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\complete_plan.bsp",
+    "expected_screenshot_path": "C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\complete_plan_screenshot.png",
+    "implant_catalog": "BlueSkyBio",
+    "implant_diameter_mm": 4.0,
+    "implant_length_mm": 10,
+    "implant_region": "lower_right_first_molar",
+    "tooth_number": 30,
+    "result_json_path": "C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\complete_workflow_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_complete_implant_workflow"
+    }
+  }
+}

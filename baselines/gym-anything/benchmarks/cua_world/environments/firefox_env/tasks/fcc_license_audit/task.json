@@ -1,0 +1,37 @@
+{
+  "id": "fcc_license_audit@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a telecom compliance officer auditing the FCC license status for amateur radio stations 'W1AW' (ARRL HQ) and 'W6YX' (Stanford University). Using the FCC Universal Licensing System (http://wireless2.fcc.gov/UlsApp/UlsSearch/searchLicense.jsp), locate the active licenses for both call signs. Create a Firefox bookmark folder named 'FCC Audits' containing the specific license detail pages for both stations. Generate a JSON compliance report at '~/Documents/fcc_license_audit.json' using the call signs as keys, including the 'frn', 'status', 'grant_date', and 'expiration_date' for each station.",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "compliance",
+    "data-extraction",
+    "gov-database"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fcc_license_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/fcc_license_audit/export_result.sh"
+  },
+  "metadata": {
+    "w1aw_frn": "0002534816",
+    "w6yx_frn": "0003507852",
+    "required_status": "Active",
+    "output_file": "/home/ga/Documents/fcc_license_audit.json",
+    "bookmark_folder": "FCC Audits",
+    "fcc_domain": "wireless2.fcc.gov"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fcc_license_audit"
+    }
+  }
+}

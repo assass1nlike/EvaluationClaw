@@ -1,0 +1,59 @@
+{
+  "task_id": "dynamic_data_redaction_hr@1",
+  "task_completion": [
+    {
+      "id": "create_qa_tester_user",
+      "description": "Create the QA_TESTER user and grant necessary privileges",
+      "points": 10,
+      "visual_evidence": "Screenshots showing successful execution of SQL commands 'CREATE USER QA_TESTER IDENTIFIED BY...' and 'GRANT CONNECT...' and 'GRANT SELECT ON HR.EMPLOYEES TO QA_TESTER', or equivalent GUI actions in a database client."
+    },
+    {
+      "id": "create_redaction_policy",
+      "description": "Create an Oracle Data Redaction policy on the HR.EMPLOYEES table",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the execution of 'DBMS_REDACT.ADD_POLICY' targeting the 'HR' schema and 'EMPLOYEES' table, with a condition applying to the 'QA_TESTER' user (e.g., SYS_CONTEXT('USERENV', 'SESSION_USER') = 'QA_TESTER')."
+    },
+    {
+      "id": "redact_salary_and_commission",
+      "description": "Configure FULL redaction to 0 for SALARY and COMMISSION_PCT columns",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'DBMS_REDACT.ALTER_POLICY' or policy creation setting FULL redaction for 'SALARY' and 'COMMISSION_PCT', or a SELECT query executed by QA_TESTER showing these columns returning exactly '0'."
+    },
+    {
+      "id": "redact_phone_number",
+      "description": "Configure PARTIAL redaction for the PHONE_NUMBER column to show only the last 4 digits",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'DBMS_REDACT.ALTER_POLICY' setting PARTIAL redaction for 'PHONE_NUMBER' with appropriate regex/parameters, or a SELECT query executed by QA_TESTER showing phone numbers masked except for the last 4 digits (e.g., '***-***-1234' or '******1234')."
+    },
+    {
+      "id": "redact_email",
+      "description": "Configure PARTIAL redaction for the EMAIL column to show only the first letter followed by asterisks",
+      "points": 20,
+      "visual_evidence": "Screenshots showing 'DBMS_REDACT.ALTER_POLICY' setting PARTIAL redaction for 'EMAIL' with appropriate regex/parameters, or a SELECT query executed by QA_TESTER showing emails masked with only the first letter visible (e.g., 'S***' or 'S********')."
+    },
+    {
+      "id": "verify_hr_unredacted",
+      "description": "Ensure the HR user continues to see unredacted data",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a SELECT query on HR.EMPLOYEES executed by the 'HR' user (or SYSTEM user) where SALARY, COMMISSION_PCT, PHONE_NUMBER, and EMAIL display their original, unmasked values."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with a genuine database client or terminal",
+      "visual_evidence": "Screenshots show a real database tool (e.g., SQL*Plus, SQL Developer, DBeaver, or terminal running sqlplus) connected to the Oracle database, not just a text editor with typed out commands."
+    },
+    {
+      "id": "used_dbms_redact",
+      "description": "The agent used Oracle Data Redaction (DBMS_REDACT) rather than creating mock views or tables",
+      "visual_evidence": "The SQL commands explicitly use the 'DBMS_REDACT' package. The agent did not create a view named 'EMPLOYEES' or alter the actual table data to fake the redaction."
+    },
+    {
+      "id": "no_hardcoded_query_results",
+      "description": "The agent did not fake query results by manually typing them",
+      "visual_evidence": "Query results appear in the standard output format of the database client, with proper alignment, headers, and row counts, rather than manually typed text."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Table: HR.EMPLOYEES. Target User: QA_TESTER. Columns requiring redaction: SALARY (FULL redaction to 0), COMMISSION_PCT (FULL redaction to 0), PHONE_NUMBER (PARTIAL redaction, last 4 digits visible), EMAIL (PARTIAL redaction, first letter visible followed by asterisks). The HR user must remain exempt from these redaction policies and see the original data."
+}

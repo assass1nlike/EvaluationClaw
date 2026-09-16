@@ -1,0 +1,53 @@
+{
+  "task_id": "library_self_checkout_spl@1",
+  "task_completion": [
+    {
+      "id": "bcwebcam_running",
+      "description": "Verify that the bcWebCam application is running and displaying the camera feed.",
+      "points": 10,
+      "visual_evidence": "The bcWebCam application window is visible on the screen showing the camera feed."
+    },
+    {
+      "id": "barcode_extracted",
+      "description": "Verify that the agent extracted the barcode from the physical book under the scanner.",
+      "points": 20,
+      "visual_evidence": "A barcode number is visible being typed, copied, or used in a search query shortly after viewing the camera feed."
+    },
+    {
+      "id": "inventory_csv_accessed",
+      "description": "Verify that the agent accessed the local offline inventory database at C:\\workspace\\data\\spl_inventory.csv.",
+      "points": 20,
+      "visual_evidence": "A spreadsheet application, text editor, or terminal window is open showing the contents of or querying the file 'spl_inventory.csv'."
+    },
+    {
+      "id": "book_details_located",
+      "description": "Verify that the agent located the exact Title and Author corresponding to the scanned barcode in the CSV.",
+      "points": 20,
+      "visual_evidence": "The specific row in the CSV matching the barcode is visible or highlighted, showing the corresponding Title and Author."
+    },
+    {
+      "id": "receipt_file_generated",
+      "description": "Verify that the receipt file was generated at C:\\workspace\\tasks\\checkout_receipt.txt with the correct format.",
+      "points": 30,
+      "visual_evidence": "A text editor is open showing 'checkout_receipt.txt' with the exact format: 'RECEIPT' on the first line, followed by 'Barcode: [Scanned Barcode]', 'Title: [Exact Title]', and 'Author: [Exact Author]'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_camera_usage",
+      "description": "Ensure the agent actually used the bcWebCam feed to get the barcode.",
+      "visual_evidence": "The bcWebCam application must be visible in earlier screenshots before the barcode is used; the agent should not hallucinate or guess a barcode."
+    },
+    {
+      "id": "genuine_database_search",
+      "description": "Ensure the agent retrieved the book details from the local CSV file, not from external knowledge or web search.",
+      "visual_evidence": "The agent must be seen interacting with 'spl_inventory.csv' (via GUI or terminal) rather than using a web browser to search for the barcode."
+    },
+    {
+      "id": "receipt_saved_to_file",
+      "description": "Ensure the receipt was actually saved to the specified file path.",
+      "visual_evidence": "The receipt content should be in a text editor saving to 'C:\\workspace\\tasks\\checkout_receipt.txt' or created via a file-writing command, not just printed to a console output."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected receipt path is exactly C:\\workspace\\tasks\\checkout_receipt.txt."
+}

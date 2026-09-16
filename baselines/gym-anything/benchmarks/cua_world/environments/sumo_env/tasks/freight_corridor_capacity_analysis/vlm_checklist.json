@@ -1,0 +1,59 @@
+{
+  "task_id": "freight_corridor_capacity_analysis@1",
+  "task_completion": [
+    {
+      "id": "scenario_modification",
+      "description": "Agent accesses and modifies the SUMO scenario to add the 80 heavy trucks.",
+      "points": 15,
+      "visual_evidence": "Terminal commands showing navigation to /home/ga/SUMO_Scenarios/bologna_acosta/ and editing of route/demand XML files, or a Python script written to generate the additional 80 truck trips (length >= 10m, weight >= 12t)."
+    },
+    {
+      "id": "sumo_simulation_execution",
+      "description": "Agent runs the SUMO simulation for both the baseline and the modified scenarios.",
+      "points": 20,
+      "visual_evidence": "Terminal showing execution of the 'sumo' or 'sumo-gui' command, or a Python script running SUMO via subprocess or TraCI, generating output files for analysis."
+    },
+    {
+      "id": "csv_report_structure",
+      "description": "Agent creates the capacity analysis report with the correct columns.",
+      "points": 15,
+      "visual_evidence": "A file named corridor_capacity_report.csv is visible in /home/ga/SUMO_Output/ (via text editor, terminal 'cat', or file manager) containing exactly the columns: metric, baseline_value, with_trucks_value, and delta_pct."
+    },
+    {
+      "id": "csv_report_metrics",
+      "description": "The CSV report contains all required metrics with plausible values.",
+      "points": 25,
+      "visual_evidence": "The CSV file contains rows for avg_travel_time, avg_speed, total_vehicles_completed, avg_waiting_time, and truck_avg_travel_time. The avg_travel_time baseline should be approximately 276, and the with_trucks_value should be approximately 285."
+    },
+    {
+      "id": "recommendation_file_created",
+      "description": "Agent creates the professional recommendation text file.",
+      "points": 10,
+      "visual_evidence": "A file named corridor_recommendation.txt is created and saved in the /home/ga/SUMO_Output/ directory."
+    },
+    {
+      "id": "recommendation_conclusion",
+      "description": "The recommendation correctly concludes that the corridor can accommodate the traffic.",
+      "points": 15,
+      "visual_evidence": "The contents of corridor_recommendation.txt explicitly state that the corridor CAN handle the additional 80 trucks, noting that the average travel time remains under the 300-second maximum threshold."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Agent actually executed the SUMO simulation rather than fabricating the results.",
+      "visual_evidence": "Look for actual SUMO terminal output logs, generated XML output files (like tripinfo or summary files), or TraCI scripts running. The agent should not just write a CSV with hardcoded numbers without running the simulation."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "Agent saved the outputs to the exact requested directory.",
+      "visual_evidence": "The file paths for the CSV and TXT files must strictly be /home/ga/SUMO_Output/corridor_capacity_report.csv and /home/ga/SUMO_Output/corridor_recommendation.txt."
+    },
+    {
+      "id": "data_extraction_logic",
+      "description": "Agent used a script or tool to parse the SUMO outputs rather than guessing.",
+      "visual_evidence": "Look for a Python script, bash script, or spreadsheet calculation that parses SUMO output XMLs to calculate averages, rather than the agent just typing numbers directly into the CSV from nowhere."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline simulation of the bologna_acosta network yields an average travel time of approximately 276 seconds. When 80 heavy trucks are added, the average travel time increases to approximately 285 seconds. Because 285 seconds is below the 300-second maximum acceptable threshold, the correct conclusion in the recommendation file is that the corridor CAN accommodate the additional traffic."
+}

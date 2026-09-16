@@ -1,0 +1,66 @@
+{
+  "id": "store_configuration_and_multi_order_fulfillment@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "You are a store administrator preparing the WooCommerce store for a new fulfillment workflow and processing two customer orders. Enable the 'Cash on Delivery' payment method, setting its title to 'Pay on Delivery' and description to 'Pay with cash when your order is delivered.' Create a shipping class named 'Oversized Items' (slug: 'oversized-items', description: 'Items requiring special handling due to size.') and assign it to the 'Portable Camping Hammock' and 'Ceramic Plant Pot Set' products. Create a 'Completed' order for Mike Wilson (mike.wilson@example.com) containing one Wireless Bluetooth Headphones and one USB-C Laptop Charger, including a private note 'Delivered via express courier'. Finally, create a 'Processing' order for John Doe (john.doe@example.com) containing two Slim Fit Denim Jeans and one Merino Wool Sweater, including a private note 'Customer requested gift wrapping'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/store_configuration_and_multi_order_fulfillment/setup_task.sh",
+    "post_task": "/workspace/tasks/store_configuration_and_multi_order_fulfillment/export_result.sh"
+  },
+  "metadata": {
+    "cod_title": "Pay on Delivery",
+    "cod_description": "Pay with cash when your order is delivered.",
+    "shipping_class_name": "Oversized Items",
+    "shipping_class_slug": "oversized-items",
+    "shipping_class_products": [
+      "PCH-DUO",
+      "CPP-SET3"
+    ],
+    "order_a": {
+      "products": [
+        {
+          "name": "Wireless Bluetooth Headphones",
+          "sku": "WBH-001",
+          "quantity": 1
+        },
+        {
+          "name": "USB-C Laptop Charger",
+          "sku": "USBC-065",
+          "quantity": 1
+        }
+      ],
+      "customer_email": "mike.wilson@example.com",
+      "status": "completed",
+      "note": "Delivered via express courier"
+    },
+    "order_b": {
+      "products": [
+        {
+          "name": "Slim Fit Denim Jeans",
+          "sku": "SFDJ-BLU-32",
+          "quantity": 2
+        },
+        {
+          "name": "Merino Wool Sweater",
+          "sku": "MWS-GRY-L",
+          "quantity": 1
+        }
+      ],
+      "customer_email": "john.doe@example.com",
+      "status": "processing",
+      "note": "Customer requested gift wrapping"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_store_configuration_and_multi_order_fulfillment"
+    }
+  }
+}

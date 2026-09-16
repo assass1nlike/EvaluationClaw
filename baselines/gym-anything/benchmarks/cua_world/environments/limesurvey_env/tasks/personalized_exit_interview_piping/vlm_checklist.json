@@ -1,0 +1,59 @@
+{
+  "task_id": "personalized_exit_interview_piping@1",
+  "task_completion": [
+    {
+      "id": "survey_and_group_created",
+      "description": "Create the survey and question group",
+      "points": 10,
+      "visual_evidence": "In the LimeSurvey admin interface, verify the survey title is 'Employee Exit Interview 2024' and there is a question group named 'General Information'."
+    },
+    {
+      "id": "empname_question",
+      "description": "Create the EMPNAME question",
+      "points": 20,
+      "visual_evidence": "Verify a question exists with the code 'EMPNAME', text 'What is your full name?', type 'Short free text', and is set as mandatory (often indicated by a red asterisk or a mandatory toggle turned on)."
+    },
+    {
+      "id": "reason_question",
+      "description": "Create the REASON question",
+      "points": 20,
+      "visual_evidence": "Verify a question exists with the code 'REASON', text 'What is your primary reason for leaving?', and type 'List (Radio)'."
+    },
+    {
+      "id": "reason_options",
+      "description": "Add answer options to the REASON question",
+      "points": 15,
+      "visual_evidence": "Verify the 'REASON' question has the specific answer options: 'Found a better opportunity', 'Salary/Benefits', 'Relocation', and 'Career Change'."
+    },
+    {
+      "id": "piping_question",
+      "description": "Create the piping question",
+      "points": 20,
+      "visual_evidence": "Verify a Long Free Text question exists with the exact text: 'Can you provide more details about why \"{REASON.shown}\" was the primary factor, {EMPNAME}?'."
+    },
+    {
+      "id": "survey_activated",
+      "description": "Activate the survey",
+      "points": 15,
+      "visual_evidence": "Verify the survey is activated, indicated by a green 'Active' status badge, a 'Stop this survey' button in the admin interface, or the live survey being displayed in the browser."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the LimeSurvey web interface",
+      "visual_evidence": "Screenshots should show the agent navigating and clicking through the LimeSurvey web application, rather than using terminal commands or API scripts to create the survey."
+    },
+    {
+      "id": "no_text_editor_mockup",
+      "description": "Agent did not mock the survey in a text editor",
+      "visual_evidence": "The survey creation and questions must be visible within the actual LimeSurvey UI, not written out in a text editor or notes app."
+    },
+    {
+      "id": "genuine_activation",
+      "description": "Survey activation is genuine",
+      "visual_evidence": "The active survey status or live survey page should be a genuine LimeSurvey page, matching the expected UI for an active survey."
+    }
+  ],
+  "privileged_info_for_vlm": "The survey must be titled 'Employee Exit Interview 2024'. The first question must have the code 'EMPNAME'. The second question must have the code 'REASON'. The piping question must exactly include the syntax '{EMPNAME}' and '{REASON.shown}'. The '.shown' suffix is a valid LimeSurvey Expression Script feature required to display the answer text."
+}

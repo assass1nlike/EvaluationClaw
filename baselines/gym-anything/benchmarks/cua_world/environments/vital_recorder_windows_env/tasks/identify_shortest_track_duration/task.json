@@ -1,0 +1,28 @@
+{
+  "id": "identify_shortest_track_duration@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "You are a clinical research coordinator auditing VitalDB surgical recordings for data completeness. For the VitalDB Case #6 .vital file loaded in Vital Recorder, identify the track with the shortest total recording duration by reviewing all vital sign tracks. Create a report file at C:\\Users\\Docker\\Documents\\shortest_track_report.txt with the following format:\n\nCase: 6\nShortest Track: [DEVICE/PARAMETER_NAME]\nDuration (minutes): [NUMBER]\nTotal Case Duration (minutes): [NUMBER]\nCoverage Percentage: [NUMBER]%\n\nThe track name must include both the device and parameter name (e.g., Solar8000/ART_MBP). Round durations to the nearest whole minute and the coverage percentage (Duration / Total Case Duration * 100) to the nearest integer.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\identify_shortest_track_duration\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\identify_shortest_track_duration\\export_result.ps1"
+  },
+  "metadata": {
+    "report_path": "C:\\Users\\Docker\\Documents\\shortest_track_report.txt",
+    "vital_file_url": "https://api.vitaldb.net/cases/6",
+    "vital_file_path": "C:\\Users\\Docker\\Documents\\VitalDB\\case_0006.vital",
+    "ground_truth_path": "C:\\temp\\ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_identify_shortest_track_duration"
+    }
+  }
+}

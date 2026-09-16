@@ -1,0 +1,53 @@
+{
+  "task_id": "secrets_lifecycle_management@1",
+  "task_completion": [
+    {
+      "id": "update_payment_db_credentials",
+      "description": "Update the 'payment-db-credentials' secret in the 'payment' namespace with the correct password.",
+      "points": 20,
+      "visual_evidence": "Look for Rancher UI secret details/edit screen or terminal output (e.g., `kubectl get secret payment-db-credentials -n payment -o yaml` or `kubectl describe`) showing the 'payment-db-credentials' secret in the 'payment' namespace has been updated with the new password."
+    },
+    {
+      "id": "relocate_stripe_api_keys",
+      "description": "Relocate the 'stripe-api-keys' secret to the 'payment' namespace.",
+      "points": 20,
+      "visual_evidence": "Look for Rancher UI showing 'stripe-api-keys' under the 'payment' namespace, or terminal output of `kubectl get secrets -n payment` listing 'stripe-api-keys'."
+    },
+    {
+      "id": "create_frontend_tls_secret",
+      "description": "Create a 'frontend-tls' secret of type 'kubernetes.io/tls' in the 'web' namespace.",
+      "points": 20,
+      "visual_evidence": "Look for Rancher UI or terminal output (`kubectl get secrets -n web`) showing a new secret named 'frontend-tls' with the type 'kubernetes.io/tls' in the 'web' namespace."
+    },
+    {
+      "id": "create_inter_service_token_payment",
+      "description": "Create a new 'inter-service-token' Opaque secret in the 'payment' namespace.",
+      "points": 20,
+      "visual_evidence": "Look for Rancher UI or terminal output showing an Opaque secret named 'inter-service-token' successfully created in the 'payment' namespace containing the JWT token."
+    },
+    {
+      "id": "create_inter_service_token_web",
+      "description": "Create a new 'inter-service-token' Opaque secret in the 'web' namespace.",
+      "points": 20,
+      "visual_evidence": "Look for Rancher UI or terminal output showing an Opaque secret named 'inter-service-token' successfully created in the 'web' namespace containing the JWT token."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_kubernetes_interaction",
+      "description": "Verify the agent interacted with the actual Kubernetes cluster.",
+      "visual_evidence": "Look for genuine usage of the Rancher UI in the browser or valid `kubectl` commands in the terminal being executed and returning standard Kubernetes system responses, rather than just typing text into an editor."
+    },
+    {
+      "id": "no_fake_success_messages",
+      "description": "Verify the agent did not just print fake success messages.",
+      "visual_evidence": "Ensure that terminal outputs showing success (e.g., 'secret created') come from the actual `kubectl` binary or Rancher UI notifications, not from `echo` commands or scripts created by the agent to mock success."
+    },
+    {
+      "id": "used_provided_files",
+      "description": "Verify the agent used the provided specification and TLS files.",
+      "visual_evidence": "Look for commands reading from `/home/ga/Desktop/secrets_spec.md` and `/home/ga/Desktop/tls/` (like `cat`, `less`, or `kubectl create secret tls ... --cert=... --key=...`), proving the agent didn't hallucinate the values."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct payment database password is 'Kj8mP2vL9nQ4xR!#'. The Stripe public key is 'pk_test_51NxGPKJ2e1BxPmEabc123def456ghi789jkl012mno345' and secret key is 'sk_test_51NxGPKJ2e1BxPmEzyx987wvu654tsr321qpo098nml765'. The JWT token is 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJwYXltZW50LXBsYXRmb3JtIiwic3ViIjoiaW50ZXItc2VydmljZSIsImF1ZCI6WyJwYXltZW50Iiwid2ViIl0sImV4cCI6MTczNTY4OTYwMH0.placeholder_signature_do_not_use_in_production'. Note that in kubectl yaml outputs, these values will appear as base64 encoded strings unless explicitly decoded or viewed in the Rancher UI."
+}

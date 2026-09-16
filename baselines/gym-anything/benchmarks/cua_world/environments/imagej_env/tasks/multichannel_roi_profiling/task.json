@@ -1,0 +1,36 @@
+{
+  "id": "multichannel_roi_profiling@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Multi-Channel ROI Profiling",
+  "description": "Perform a multi-channel intensity analysis on the 'Fluorescent Cells' sample image to measure the signal intensity of the Red, Green, and Blue channels within three distinct nuclei. Record the 'Area' and 'Mean Gray Value' for each nucleus across all three channels and save the resulting table as 'nuclei_stack_profiles.csv' to '~/ImageJ_Data/results/'.",
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "roi-manager",
+    "stack-analysis",
+    "fluorescence",
+    "multi-channel"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multichannel_roi_profiling/setup_task.sh",
+    "post_task": "/workspace/tasks/multichannel_roi_profiling/export_result.sh"
+  },
+  "metadata": {
+    "expected_roi_count": 3,
+    "expected_slices": 3,
+    "min_roi_area": 500,
+    "output_path": "/home/ga/ImageJ_Data/results/nuclei_stack_profiles.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multichannel_roi_profiling"
+    }
+  }
+}

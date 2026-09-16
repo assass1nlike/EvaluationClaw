@@ -1,0 +1,34 @@
+{
+  "id": "venetoclax_cyp3a4_induction_risk_assessment@1",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are a clinical pharmacologist in the drug safety team at a pharmaceutical company conducting a systematic interaction risk assessment for venetoclax. Using the Liverpool Cancer iChart Archive app, look up the interaction ratings for warfarin, fluconazole, and carbamazepine against venetoclax. Identify which of these co-medications represents a pharmacokinetic interaction mechanism of CYP3A4 enzyme induction, which poses a critical risk of sub-therapeutic venetoclax exposure. Navigate to and remain on the Interaction Details screen for the co-medication that represents this enzyme-induction mechanism.",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/venetoclax_cyp3a4_induction_risk_assessment/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/venetoclax_cyp3a4_induction_risk_assessment/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_venetoclax_cyp3a4_induction_risk_assessment"
+    }
+  },
+  "metadata": {
+    "occupation": "Clinical Pharmacologist",
+    "industry": "Pharmaceutical Drug Safety / Haematology Oncology",
+    "cancer_drug": "Venetoclax",
+    "co_medications_to_screen": [
+      "Warfarin",
+      "Fluconazole",
+      "Carbamazepine"
+    ],
+    "expected_target_comedication": "Carbamazepine",
+    "expected_mechanism": "CYP3A4/CYP2C8 induction reduces venetoclax AUC leading to sub-therapeutic levels",
+    "clinical_context": "Pharmacokinetic interaction profile assessment for venetoclax drug safety dossier"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "rib_vertebral_localization@1",
+  "task_completion": [
+    {
+      "id": "reference_fiducials_placed",
+      "description": "Place reference fiducials at the centers of the T1, T6, and T12 vertebral bodies.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a medical imaging application (e.g., 3D Slicer) with a chest CT loaded and fiducial markers placed on the spine, specifically at the T1, T6, and T12 vertebral levels."
+    },
+    {
+      "id": "fiducials_saved",
+      "description": "Save the fiducials to ~/Documents/SlicerData/LIDC/vertebral_landmarks.mrk.json.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a save dialog, terminal command, or file explorer confirming the creation of 'vertebral_landmarks.mrk.json' in the '~/Documents/SlicerData/LIDC/' directory."
+    },
+    {
+      "id": "rib_count_and_variants_documented",
+      "description": "Count the ribs and check for anatomical variants (cervical, lumbar, or bifid ribs).",
+      "points": 25,
+      "visual_evidence": "Screenshots of the generated 'rib_count_report.json' file (opened in a text editor or terminal) showing the 'total_rib_pairs' field populated (expected 12) and the 'anatomical_variants' object/fields filled out."
+    },
+    {
+      "id": "nodule_level_documented",
+      "description": "Determine the vertebral level of the pre-placed 'Nodule' fiducial.",
+      "points": 35,
+      "visual_evidence": "Screenshots of the generated 'rib_count_report.json' file showing the 'nodule_vertebral_level' field populated with a specific vertebral level (e.g., T4, T8)."
+    },
+    {
+      "id": "report_fully_exported",
+      "description": "Export the complete report to ~/Documents/SlicerData/LIDC/rib_count_report.json with all required fields.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing 'rib_count_report.json' saved in '~/Documents/SlicerData/LIDC/' and containing all remaining required fields: 'first_rib_identified', 'twelfth_rib_identified', and 'confidence'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_software_interaction",
+      "description": "Verify the agent actually used a medical imaging viewer to inspect the CT scan.",
+      "visual_evidence": "Screenshots should show the agent interacting with the CT scan in a viewer (like 3D Slicer), scrolling through axial/coronal/sagittal slices, rather than just writing a script to generate dummy JSON files."
+    },
+    {
+      "id": "no_hallucinated_fiducials",
+      "description": "Verify the fiducial coordinates were derived from the image.",
+      "visual_evidence": "The agent should be seen clicking on the image to place fiducials or using a specialized script that reads the image data, rather than hardcoding arbitrary 3D coordinates into the .mrk.json file."
+    },
+    {
+      "id": "no_hardcoded_report",
+      "description": "Verify the agent did not copy-paste a pre-computed report.",
+      "visual_evidence": "The agent should construct the JSON report based on its visual findings from the imaging software, rather than immediately creating the final JSON file using a single echo/cat command without prior image inspection."
+    }
+  ],
+  "privileged_info_for_vlm": "Standard human anatomy expects 12 pairs of ribs. The thoracic spine length (T1 to T12) is constrained between a minimum of 200mm and a maximum of 320mm based on standard morphometric data."
+}

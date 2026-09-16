@@ -1,0 +1,53 @@
+{
+  "task_id": "analyze_fixed_rpm_stall@1",
+  "task_completion": [
+    {
+      "id": "open_project",
+      "description": "Open the NREL 5MW Reference project file",
+      "points": 10,
+      "visual_evidence": "The QBlade application is open with 'NREL_5MW_Reference' visible in the project tree or application title bar."
+    },
+    {
+      "id": "configure_simulation",
+      "description": "Configure the HAWT BEM Range Simulation with specified parameters",
+      "points": 20,
+      "visual_evidence": "A simulation setup or definition window in QBlade showing a wind speed range from 5 to 25 m/s with a 1 m/s step size, fixed rotational speed set to 9 RPM, and pitch set to 0 degrees."
+    },
+    {
+      "id": "export_simulation_data",
+      "description": "Export the simulation results to stall_simulation_data.txt",
+      "points": 20,
+      "visual_evidence": "A file manager showing 'stall_simulation_data.txt' in the /home/ga/Documents/projects/ directory, or a text editor displaying the file with tabular simulation data (wind speed, power, etc.)."
+    },
+    {
+      "id": "create_stall_report",
+      "description": "Identify peak power and wind speed, and record them in stall_report.txt",
+      "points": 30,
+      "visual_evidence": "A text editor open showing 'stall_report.txt' containing recorded values for both the peak power and the specific wind speed at which it occurs."
+    },
+    {
+      "id": "save_completed_project",
+      "description": "Save the completed project as stall_analysis.wpa",
+      "points": 20,
+      "visual_evidence": "The QBlade application title bar shows 'stall_analysis.wpa' or a file manager shows 'stall_analysis.wpa' successfully saved in the /home/ga/Documents/projects/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the QBlade GUI to perform the simulation",
+      "visual_evidence": "Screenshots must show the QBlade graphical interface being actively used to set up and run the simulation, rather than just terminal commands creating text files."
+    },
+    {
+      "id": "data_authenticity",
+      "description": "The exported simulation data appears genuine",
+      "visual_evidence": "The contents of stall_simulation_data.txt should look like standard software-generated tabular data with appropriate headers and multiple rows corresponding to the 5-25 m/s range, not manually typed dummy data."
+    },
+    {
+      "id": "report_consistency",
+      "description": "The reported peak power and wind speed are derived from the simulation",
+      "visual_evidence": "The values in stall_report.txt should logically match the peak values visible in the QBlade graphs/tables or the exported data file."
+    }
+  ],
+  "privileged_info_for_vlm": "The NREL 5MW Reference turbine has a rated power of 5 MW and rated wind speed of 11.4 m/s. The task simulates a sub-rated fixed rotational speed of 9 RPM. Due to stall effects at this lower RPM, the expected peak wind speed for maximum power is approximately 10 m/s. The VLM should verify that the reported peak wind speed in stall_report.txt is around 10 m/s, and that the exported data file contains realistic simulation columns."
+}

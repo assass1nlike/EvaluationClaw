@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_data_migration@1",
+  "task_completion": [
+    {
+      "id": "update_invoice_billing",
+      "description": "Update Invoice records with NULL BillingAddress using the Customer Address",
+      "points": 15,
+      "visual_evidence": "Look for a MySQL client (terminal or GUI like DBeaver) showing the execution of an UPDATE statement on the Invoice table (joining or using a subquery with the Customer table), or a success message indicating exactly 15 rows were updated."
+    },
+    {
+      "id": "update_invoiceline_price",
+      "description": "Update InvoiceLine records with inconsistent UnitPrice using the Track UnitPrice",
+      "points": 15,
+      "visual_evidence": "Look for the execution of an UPDATE statement on the InvoiceLine table (joining with the Track table), or a success message indicating exactly 3 rows were updated."
+    },
+    {
+      "id": "create_sales_view",
+      "description": "Create a database view named v_sales_by_genre",
+      "points": 25,
+      "visual_evidence": "Look for a CREATE VIEW v_sales_by_genre statement being executed, or the view 'v_sales_by_genre' appearing in the database schema explorer. The query should show joins between Genre, Track, InvoiceLine, and Invoice, and calculate SUM(UnitPrice * Quantity)."
+    },
+    {
+      "id": "create_index",
+      "description": "Add a non-unique index named idx_invoiceline_trackid on InvoiceLine(TrackId)",
+      "points": 15,
+      "visual_evidence": "Look for a CREATE INDEX idx_invoiceline_trackid ON InvoiceLine(TrackId) statement being executed, or the index appearing in the table properties/schema tree for the InvoiceLine table."
+    },
+    {
+      "id": "export_csv",
+      "description": "Export the v_sales_by_genre results to the specified CSV file",
+      "points": 30,
+      "visual_evidence": "Look for a terminal command (like mysql -e ... > file.csv), a GUI export wizard, or a file manager/text editor showing the file '/home/ga/Documents/exports/chinook_genre_sales.csv' containing the exported data (which should list genres and their total sales, sorted descending)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Agent executed commands against the actual MySQL database",
+      "visual_evidence": "Check that the agent used a MySQL client (like the 'mysql' CLI or a database GUI) to run the queries, rather than just typing SQL statements into a text editor without executing them."
+    },
+    {
+      "id": "genuine_export",
+      "description": "CSV file was generated from the database query, not manually typed",
+      "visual_evidence": "Look for an export command, script execution, or GUI export action. The file should contain exactly 25 genres with precise decimal values for sales, which would be highly improbable to type manually."
+    },
+    {
+      "id": "correct_export_path",
+      "description": "Export file is in the exact requested directory",
+      "visual_evidence": "Verify in the terminal or file manager that the path is exactly '/home/ga/Documents/exports/chinook_genre_sales.csv' and not a generic or temporary directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is 'chinook'. The agent must fix exactly 15 Invoice records with NULL BillingAddress and 3 InvoiceLine records with incorrect UnitPrices. The expected view is 'v_sales_by_genre' and should aggregate data across exactly 25 genres. The expected index is 'idx_invoiceline_trackid'. The final output must be located exactly at '/home/ga/Documents/exports/chinook_genre_sales.csv'."
+}

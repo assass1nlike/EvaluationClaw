@@ -1,0 +1,34 @@
+{
+  "id": "survival_kaplan_meier_lung@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a survival analysis on the lung cancer dataset located at ~/Documents/JASP/lung.csv. Conduct a Kaplan-Meier analysis using 'time' as the time variable, 'status' as the event status (with 2 indicating the event), and 'sex' as the strata. Save the completed analysis to ~/Documents/JASP/LungSurvival.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/survival_kaplan_meier_lung/setup_task.sh",
+    "post_task": "/workspace/tasks/survival_kaplan_meier_lung/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/LungSurvival.jasp",
+    "dataset_url": "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/survival/lung.csv",
+    "dataset_path": "/home/ga/Documents/JASP/lung.csv",
+    "analysis_type": "KaplanMeier",
+    "required_vars": {
+      "time": "time",
+      "event": "status",
+      "strata": "sex"
+    },
+    "event_level": "2"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_survival_analysis"
+    }
+  }
+}

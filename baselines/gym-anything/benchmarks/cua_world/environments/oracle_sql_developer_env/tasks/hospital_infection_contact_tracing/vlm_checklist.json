@@ -1,0 +1,59 @@
+{
+  "task_id": "hospital_infection_contact_tracing@1",
+  "task_completion": [
+    {
+      "id": "create_index_infections_vw",
+      "description": "Create the INDEX_INFECTIONS_VW view to identify primary infected cases.",
+      "points": 15,
+      "visual_evidence": "Look for a SQL query executing 'CREATE VIEW INDEX_INFECTIONS_VW' with logic subtracting 48 hours from chartdate, and a success message (e.g., 'View created') or the view appearing in the database client's schema navigator."
+    },
+    {
+      "id": "create_patient_exposures_vw",
+      "description": "Create the PATIENT_EXPOSURES_VW view to calculate temporal overlap between infected and other patients.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query executing 'CREATE VIEW PATIENT_EXPOSURES_VW' containing the temporal overlap math (LEAST/GREATEST) and a filter for >= 12 hours, followed by a success message."
+    },
+    {
+      "id": "create_ward_hotspot_mv",
+      "description": "Create the WARD_HOTSPOT_MV materialized view for aggregating exposure data.",
+      "points": 15,
+      "visual_evidence": "Look for a SQL query executing 'CREATE MATERIALIZED VIEW WARD_HOTSPOT_MV' grouping by careunit and org_name, followed by a success message."
+    },
+    {
+      "id": "create_isolation_orders_table",
+      "description": "Create the ISOLATION_ORDERS table with an identity column.",
+      "points": 10,
+      "visual_evidence": "Look for a SQL query executing 'CREATE TABLE ISOLATION_ORDERS' where 'order_id' is defined as an identity column or uses a sequence, followed by a success message."
+    },
+    {
+      "id": "create_proc_flag_isolation",
+      "description": "Develop and compile the PROC_FLAG_ISOLATION PL/SQL procedure.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query executing 'CREATE OR REPLACE PROCEDURE PROC_FLAG_ISOLATION' containing logic to filter for 'dischtime IS NULL' and insert into ISOLATION_ORDERS, followed by a 'Procedure compiled' or similar success message."
+    },
+    {
+      "id": "execute_procedure_and_verify",
+      "description": "Execute the PL/SQL procedure to populate the ISOLATION_ORDERS table.",
+      "points": 20,
+      "visual_evidence": "Look for the execution of the procedure (e.g., 'EXEC PROC_FLAG_ISOLATION' or 'BEGIN PROC_FLAG_ISOLATION; END;') and a success message. Ideally, a subsequent 'SELECT * FROM ISOLATION_ORDERS' should show exactly 2 rows inserted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent must interact with a real database client or terminal.",
+      "visual_evidence": "Check that the SQL commands are executed in a database tool (like DBeaver, SQL Developer, or sqlplus in a terminal) and not just typed into a text editor without execution."
+    },
+    {
+      "id": "no_hardcoded_inserts",
+      "description": "The agent must not bypass the PL/SQL procedure by manually inserting the expected answers.",
+      "visual_evidence": "Ensure there are no direct 'INSERT INTO ISOLATION_ORDERS VALUES (..., 200, ...)' statements with hardcoded subject_ids. The inserts must be driven by the PL/SQL procedure's internal SELECT logic."
+    },
+    {
+      "id": "actual_procedure_execution",
+      "description": "The PL/SQL procedure must actually be executed, not just compiled.",
+      "visual_evidence": "Look for explicit execution commands (EXEC, CALL, or BEGIN...END block) and a confirmation message like 'PL/SQL procedure successfully completed'."
+    }
+  ],
+  "privileged_info_for_vlm": "The synthetic data contains exactly 3 exposed patients (subject_ids 200, 202, 400) who meet the >12-hour exposure criteria. Out of these, exactly 2 patients (subject_ids 200 and 400) are currently admitted (dischtime IS NULL). Therefore, a correct execution of the PROC_FLAG_ISOLATION procedure will result in exactly 2 rows being inserted into the ISOLATION_ORDERS table."
+}

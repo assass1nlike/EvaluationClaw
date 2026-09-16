@@ -1,0 +1,28 @@
+{
+  "id": "generate_access_token@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Generate an access token for the 'admin' user in JFrog Artifactory (http://localhost:8082) using the credentials admin/password. Save the resulting token string to /home/ga/ci_access_token.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_access_token/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_access_token/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/ci_access_token.txt",
+    "artifactory_url": "http://localhost:8082",
+    "admin_user": "admin",
+    "admin_pass": "password"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_access_token"
+    }
+  }
+}

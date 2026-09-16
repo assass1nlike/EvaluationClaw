@@ -1,0 +1,28 @@
+{
+  "id": "create_maven_project@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Create a Java Maven project named 'gs-maven' (groupId: 'org.springframework') in Eclipse that demonstrates the use of the joda-time library. The project must include a package named 'hello' under src/main/java containing two classes: 'Greeter.java' with a 'sayHello()' method returning a greeting, and 'HelloWorld.java' with a main method that displays the current time using joda-time. Ensure the project builds successfully with the files located at src/main/java/hello/HelloWorld.java and src/main/java/hello/Greeter.java.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_maven_project/setup_task.sh",
+    "post_task": "/workspace/tasks/create_maven_project/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/gs-maven",
+    "expected_groupId": "org.springframework",
+    "expected_artifactId": "gs-maven",
+    "source_repo": "https://github.com/spring-attic/gs-maven"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_maven_project"
+    }
+  }
+}

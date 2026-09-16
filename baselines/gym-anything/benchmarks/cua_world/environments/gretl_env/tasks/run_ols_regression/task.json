@@ -1,0 +1,31 @@
+{
+  "id": "run_ols_regression@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Using the 'food.gdt' dataset open in Gretl, perform an Ordinary Least Squares (OLS) regression with 'food_exp' (weekly food expenditure) as the dependent variable and 'income' (weekly income) as the independent variable. Export the model results to /home/ga/Documents/gretl_output/ols_results.txt.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/run_ols_regression/setup_task.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "dependent_var": "food_exp",
+    "regressors": [
+      "income"
+    ],
+    "expected_output": "/home/ga/Documents/gretl_output/ols_results.txt",
+    "data_source": "Hill, Griffiths, Lim - Principles of Econometrics 5th ed, household survey data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_run_ols_regression"
+    }
+  }
+}

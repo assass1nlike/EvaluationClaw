@@ -1,0 +1,31 @@
+{
+  "id": "record_loan_repayment_split@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "Configure the Chart of Accounts for Northwind Traders by adding a Liability account named 'Business Loan' and an Expense account named 'Loan Interest'. Record a split loan repayment of 1,250.00 dated 2025-02-15 from the 'Cash on Hand' account, allocating 1,000.00 to 'Business Loan' and 250.00 to 'Loan Interest'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_loan_repayment_split/setup_task.sh",
+    "post_task": "/workspace/tasks/record_loan_repayment_split/export_result.sh"
+  },
+  "metadata": {
+    "expected_liability_account": "Business Loan",
+    "expected_expense_account": "Loan Interest",
+    "expected_total_amount": 1250.0,
+    "expected_principal_amount": 1000.0,
+    "expected_interest_amount": 250.0,
+    "expected_date": "2025-02-15",
+    "business_name": "Northwind Traders"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_loan_repayment_split"
+    }
+  }
+}

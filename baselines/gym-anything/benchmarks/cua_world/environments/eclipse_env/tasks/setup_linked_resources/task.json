@@ -1,0 +1,35 @@
+{
+  "id": "setup_linked_resources@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "You are a developer on the 'TreatmentPlanner' system. You need access to a shared directory of treatment protocols located at '/opt/hospital/protocols' for a file listing feature, but you are not allowed to copy these files into the workspace due to compliance rules. Create a linked folder named 'protocols' in the 'TreatmentPlanner' project root that points to '/opt/hospital/protocols'. Implement a Java class 'com.hospital.planning.ProtocolIndexer' that lists the names of all files in the 'protocols' folder (using the relative path \"protocols\") and writes them to 'protocol_index.txt' in the project root. Run the class to generate the index file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_linked_resources/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_linked_resources/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "TreatmentPlanner",
+    "project_path": "/home/ga/eclipse-workspace/TreatmentPlanner",
+    "external_path": "/opt/hospital/protocols",
+    "link_name": "protocols",
+    "output_file": "protocol_index.txt",
+    "expected_files": [
+      "Brain_SRS_Protocol_v3.0.pdf",
+      "HeadNeck_IMRT_Protocol_v1.2.pdf",
+      "Lung_SBRT_Protocol_v2.1.pdf",
+      "Prostate_VMAT_Protocol_v4.5.pdf"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_linked_resources"
+    }
+  }
+}

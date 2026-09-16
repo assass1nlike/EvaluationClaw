@@ -1,0 +1,53 @@
+{
+  "task_id": "perspective_painting_extraction@1",
+  "task_completion": [
+    {
+      "id": "perspective_correction",
+      "description": "Correct the perspective distortion so the painting appears as a proper rectangle.",
+      "points": 30,
+      "visual_evidence": "Look for the use of GIMP's Perspective Tool (grid overlay with 4 corner handles being dragged) or the resulting image where the painting's edges are perfectly vertical and horizontal, no longer appearing as a trapezoid."
+    },
+    {
+      "id": "crop_to_content",
+      "description": "Crop tightly to just the painting, removing all visible wall area.",
+      "points": 20,
+      "visual_evidence": "Look for the use of the Crop Tool or the resulting canvas showing only the painting. The warm beige wall and the gold frame must be completely removed from the image boundaries."
+    },
+    {
+      "id": "scale_to_width",
+      "description": "Scale the result to exactly 1200 pixels wide while maintaining the aspect ratio.",
+      "points": 15,
+      "visual_evidence": "Look for the 'Scale Image' dialog box showing a width of 1200 pixels (and a height of 900 pixels, maintaining the 4:3 ratio), or ruler indicators matching these dimensions."
+    },
+    {
+      "id": "color_cast_correction",
+      "description": "Correct the warm color cast so the painting's colors appear neutral.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Curves' or 'Color Balance' dialog being used to reduce the red channel and boost the blue channel. The resulting painting should lose its yellow-orange tint (e.g., the girl's collar and pearl should look white/neutral rather than yellow)."
+    },
+    {
+      "id": "export_final_result",
+      "description": "Export the final result as painting_corrected.png to the Desktop.",
+      "points": 15,
+      "visual_evidence": "Look for the GIMP 'Export Image' dialog with the Name field set to 'painting_corrected.png' and the Save in folder set to 'Desktop', or the file appearing on the desktop background/file manager."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the GIMP graphical user interface to perform the edits.",
+      "visual_evidence": "Screenshots should show interaction with GIMP's menus, dialogs, and canvas. The agent must not use terminal commands (like ImageMagick) to bypass the GUI."
+    },
+    {
+      "id": "genuine_tool_interaction",
+      "description": "The agent manually manipulated the image tools rather than running a pre-written script.",
+      "visual_evidence": "Look for the mouse cursor interacting with tool handles (especially the 4 corners of the perspective tool), crop boundaries, or curve graphs."
+    },
+    {
+      "id": "correct_export_process",
+      "description": "The exported file was created through the GIMP export dialog.",
+      "visual_evidence": "The GIMP 'Export Image' dialog must be visible at some point with the correct filename and path, proving the image was exported from the editor and not just created via a terminal touch command."
+    }
+  ],
+  "privileged_info_for_vlm": "The source image is a photograph of Vermeer's 'Girl with a Pearl Earring' with a gold frame on a warm beige wall. The original image has a strong perspective distortion making it a trapezoid (the left side is significantly shorter than the right side). The target dimensions after cropping and scaling are exactly 1200x900 pixels (4:3 aspect ratio). The original image has a warm color cast (excess red, deficient blue); the corrected image should have neutral colors (e.g., white collar and pearl). The final file must be named 'painting_corrected.png' and saved to the Desktop."
+}

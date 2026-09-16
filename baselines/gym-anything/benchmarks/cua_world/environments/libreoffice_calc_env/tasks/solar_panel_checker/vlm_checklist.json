@@ -1,0 +1,53 @@
+{
+  "task_id": "solar_panel_checker@1",
+  "task_completion": [
+    {
+      "id": "open_production_data",
+      "description": "Agent opens and views the solar panel production dataset",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent opening a CSV or spreadsheet file containing solar panel production data for January 2024, with visible messy data (e.g., ERROR, blank, or 0.0 entries)."
+    },
+    {
+      "id": "calculate_average_production",
+      "description": "Agent calculates the average production excluding errors",
+      "points": 25,
+      "visual_evidence": "Screenshots show a calculation or output displaying the average production as approximately 6.18 kWh (derived from 24 valid days)."
+    },
+    {
+      "id": "flag_underperforming_days",
+      "description": "Agent identifies the 80% threshold and flags underperforming days",
+      "points": 25,
+      "visual_evidence": "Screenshots show the agent calculating the 80% threshold (approximately 4.94 kWh) and identifying or flagging the 4 specific days that fall below this threshold."
+    },
+    {
+      "id": "compute_total_output",
+      "description": "Agent computes the total valid production output",
+      "points": 20,
+      "visual_evidence": "Screenshots show a calculation or final output displaying the total production output as 148.30 kWh."
+    },
+    {
+      "id": "compute_total_savings",
+      "description": "Agent computes the total savings based on the output",
+      "points": 20,
+      "visual_evidence": "Screenshots show a calculation or final output displaying the total savings as $17.80 (calculated at $0.12 per kWh)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation_method",
+      "description": "Agent actually performs the calculations using a tool rather than hallucinating the answers",
+      "visual_evidence": "Screenshots should show the use of spreadsheet formulas, a Python script, a calculator, or a data analysis tool to derive the numbers, rather than just typing the final answers directly into a text file."
+    },
+    {
+      "id": "data_filtering_visible",
+      "description": "Agent actively filters out the messy data",
+      "visual_evidence": "Screenshots should show the agent applying filters, writing code to exclude, or manually deleting the ERROR, blank, and zero entries before calculating the final metrics."
+    },
+    {
+      "id": "authentic_data_source",
+      "description": "Agent uses the provided dataset rather than generating mock data",
+      "visual_evidence": "The data being processed must match the January 2024 30-day dataset provided in the environment, not a newly created or hallucinated dataset."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 30 days of data with 24 valid entries (excluding 3 ERRORs, 2 blanks, and 1 zero). The correct calculated values are: Average production = 6.18 kWh. 80% threshold = 4.94 kWh. Number of days below threshold = 4. Total valid output = 148.30 kWh. Total savings at $0.12/kWh = $17.80."
+}

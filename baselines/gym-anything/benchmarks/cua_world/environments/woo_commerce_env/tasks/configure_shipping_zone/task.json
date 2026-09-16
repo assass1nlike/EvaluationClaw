@@ -1,0 +1,29 @@
+{
+  "id": "configure_shipping_zone@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "You are an online merchant setting up your WooCommerce store for launch. Your fulfillment partner charges a flat $8.50 per shipment anywhere in the United States. Create a new shipping zone named 'Continental US' for the 'United States (US)' region. Add a 'Flat rate' shipping method to this zone with a cost of 8.50.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_shipping_zone/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_shipping_zone/export_result.sh"
+  },
+  "metadata": {
+    "expected_zone_name": "Continental US",
+    "expected_region_code": "US",
+    "expected_method_id": "flat_rate",
+    "expected_cost": "8.50",
+    "expected_cost_alt": "8.5"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_shipping_zone"
+    }
+  }
+}

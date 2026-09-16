@@ -1,0 +1,53 @@
+{
+  "task_id": "bulk_agent_cleanup@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_agents",
+      "description": "Navigate to the Wazuh Agents inventory or management screen.",
+      "points": 10,
+      "visual_evidence": "The Wazuh dashboard is visible, specifically showing the 'Agents' list or inventory page."
+    },
+    {
+      "id": "filter_stale_agents",
+      "description": "Filter or search for the stale agents matching the 'temp-test-' pattern.",
+      "points": 20,
+      "visual_evidence": "The search bar or filter criteria contains 'temp-test-' and the agent list displays the matching ephemeral agents."
+    },
+    {
+      "id": "select_agents_for_deletion",
+      "description": "Select the stale agents and initiate the deletion process.",
+      "points": 20,
+      "visual_evidence": "Checkboxes next to the 'temp-test-' agents are selected, and a 'Delete' or 'Remove' action is being triggered."
+    },
+    {
+      "id": "confirm_deletion",
+      "description": "Confirm the deletion of the selected stale agents.",
+      "points": 20,
+      "visual_evidence": "A confirmation dialog for deleting the agents is visible, or a success notification/toast indicating the agents have been removed."
+    },
+    {
+      "id": "verify_remaining_agents",
+      "description": "Ensure only the manager and production agents remain.",
+      "points": 30,
+      "visual_evidence": "The final agent inventory list shows exactly 3 agents ('production-web', 'production-db', and the manager/agent 000). No 'temp-test-' agents are visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Wazuh web GUI to perform the cleanup.",
+      "visual_evidence": "Screenshots show interaction with the Wazuh web interface in a browser, rather than just executing terminal commands."
+    },
+    {
+      "id": "genuine_application",
+      "description": "The agent interacted with the actual Wazuh application.",
+      "visual_evidence": "The interface matches the standard Wazuh dashboard (Kibana/OpenSearch) and is not a text editor or static mock page."
+    },
+    {
+      "id": "no_developer_tools",
+      "description": "The agent did not use browser developer tools to fake the final state.",
+      "visual_evidence": "The browser developer tools (Inspect Element, Console) are not open in the screenshots showing the final agent count."
+    }
+  ],
+  "privileged_info_for_vlm": "The environment starts with exactly 28 agents: 1 manager (ID 000), 2 production agents ('production-web' and 'production-db'), and 25 stale agents named 'temp-test-01' through 'temp-test-25'. The correct final state must show exactly 3 agents remaining in the inventory."
+}

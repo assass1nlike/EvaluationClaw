@@ -1,0 +1,39 @@
+{
+  "id": "ols_forecast_intervals@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "You are an economist preparing food expenditure projections for households at three specific income levels using the food expenditure dataset (/home/ga/Documents/gretl_data/food.gdt). Estimate an OLS regression of food expenditure (food_exp) on weekly income (income). Extend the dataset to include three new observations with income values of 15, 20, and 25 ($100 units) and generate forecasts with 95% prediction intervals for these observations based on the model estimated from the original sample (observations 1-40). Save the execution script to /home/ga/Documents/gretl_output/forecast_script.inp and the complete regression and forecast output to /home/ga/Documents/gretl_output/forecast_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ols_forecast_intervals/setup_task.sh",
+    "post_task": "/workspace/tasks/ols_forecast_intervals/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "script_path": "/home/ga/Documents/gretl_output/forecast_script.inp",
+    "results_path": "/home/ga/Documents/gretl_output/forecast_results.txt",
+    "dataset_path": "/home/ga/Documents/gretl_data/food.gdt",
+    "expected_values": {
+      "intercept": 83.416,
+      "slope": 10.2096,
+      "forecast_15": 236.56,
+      "forecast_20": 287.61,
+      "forecast_25": 338.66
+    },
+    "tolerances": {
+      "coeff": 1.0,
+      "forecast": 5.0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ols_forecast_intervals"
+    }
+  }
+}

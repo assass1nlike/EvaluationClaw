@@ -1,0 +1,30 @@
+{
+  "id": "agricultural_pathogen_classification@1",
+  "version": "1.0",
+  "env_id": "ugene_env@0.1",
+  "description": "You are a plant pathologist at an agricultural extension laboratory. Classify an unknown wheat pathogen by comparing its ITS sequence (~/UGENE_Data/agriculture/unknown_pathogen_ITS.fasta) against reference sequences (~/UGENE_Data/agriculture/reference_wheat_pathogens_ITS.fasta) in UGENE. Use a ClustalW multiple sequence alignment (gap open penalty: 10, gap extension penalty: 0.2) and a Maximum Likelihood phylogenetic tree (PhyML, HKY85 model, 100 bootstrap replicates) to identify the pathogen. Export the alignment to ~/UGENE_Data/agriculture/results/pathogen_alignment.phy (PHYLIP) and ~/UGENE_Data/agriculture/results/path",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/agricultural_pathogen_classification/setup_task.sh",
+    "post_task": "/workspace/tasks/agricultural_pathogen_classification/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "Real ITS sequences from NCBI GenBank: PZ014411.1 (F. graminearum), PV098983.1 (P. triticina), PV416552.1 (B. graminis), MH862992.1 (Z. tritici), OQ257148.1 (P. tritici-repentis), MH855829.1 (T. caries), PV827756.1 (U. tritici), PV849335.1 (R. cerealis), MH855056.1 (G. tritici), PZ027992.1 (B. sorokiniana). Unknown sample is a modified F. graminearum ITS with 3 SNPs.",
+    "occupation": "Plant Pathologist",
+    "industry": "Agriculture / Crop Protection",
+    "difficulty": "very_hard",
+    "alignment_algorithm": "ClustalW",
+    "tree_method": "PhyML Maximum Likelihood",
+    "unknown_pathogen_identity": "Fusarium_graminearum"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_agricultural_pathogen_classification"
+    }
+  }
+}

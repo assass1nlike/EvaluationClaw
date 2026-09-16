@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_tracker_backtracking_gcr@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_initialization",
+      "description": "The agent creates a Python script that imports PySAM.Pvsamv1 and loads the 'FlatPlatePVSingleOwner' default configuration.",
+      "points": 15,
+      "visual_evidence": "A code editor showing a Python script with imports for PySAM (e.g., `import PySAM.Pvsamv1`) and a line loading the default config (e.g., `Pvsamv1.default('FlatPlatePVSingleOwner')`)."
+    },
+    {
+      "id": "system_parameters_set",
+      "description": "The agent configures the system for 1-axis tracking at 0 tilt.",
+      "points": 15,
+      "visual_evidence": "The Python script contains assignments setting `subarray1_track_mode = 1` and `subarray1_tilt = 0`."
+    },
+    {
+      "id": "weather_file_configured",
+      "description": "The agent configures the simulation to use a Phoenix TMY weather file from SAM's bundled solar_resource directory.",
+      "points": 10,
+      "visual_evidence": "The Python script sets the solar resource file path (e.g., `solar_resource_file = ...`) pointing to a Phoenix weather file within the SAM installation directory."
+    },
+    {
+      "id": "gcr_and_backtrack_sweep",
+      "description": "The agent implements a parameter sweep over the specified GCRs and backtracking states.",
+      "points": 20,
+      "visual_evidence": "The Python script contains loops or iterations over the GCR values [0.3, 0.4, 0.5] and backtracking states [0, 1], calculating the percentage gain for each GCR."
+    },
+    {
+      "id": "json_file_created",
+      "description": "The agent saves the output to the specified JSON file path.",
+      "points": 10,
+      "visual_evidence": "A terminal command, file explorer, or script execution output showing the creation of `/home/ga/Documents/SAM_Projects/backtracking_impact.json`."
+    },
+    {
+      "id": "json_content_structure",
+      "description": "The resulting JSON file contains the correct structure, metadata, and results for the evaluated GCRs.",
+      "points": 30,
+      "visual_evidence": "The contents of `backtracking_impact.json` are visible (e.g., via `cat` or in an editor) showing keys: 'location_description', 'weather_file_used', 'system_capacity_kw' (~100,000), and a 'results' array containing entries for GCRs 0.3, 0.4, and 0.5 with their respective energy yields and backtrack gain percentages."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_calculation",
+      "description": "The agent dynamically calculates the energy yields using PySAM rather than hardcoding the results.",
+      "visual_evidence": "The Python script calls the PySAM execute method (e.g., `module.execute()`) inside the loop and extracts `annual_energy` rather than printing a hardcoded JSON string with fabricated numbers."
+    },
+    {
+      "id": "actual_script_execution",
+      "description": "The agent actually runs the Python script to generate the JSON file.",
+      "visual_evidence": "The terminal shows the command used to execute the Python script (e.g., `python script.py`) without throwing fatal errors before the JSON file is checked."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "The agent saves the file in the exact requested directory.",
+      "visual_evidence": "The file path in the script or terminal explicitly points to `/home/ga/Documents/SAM_Projects/backtracking_impact.json` and not just a local workspace directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected filename: 'backtracking_impact.json'. Expected GCRs in the results: [0.3, 0.4, 0.5]. The default capacity for 'FlatPlatePVSingleOwner' is approximately 100 MW (100,000 kW). Physics check for the JSON results: Without backtracking, a high GCR (0.5) should show a lower absolute energy yield compared to a low GCR (0.3) due to shading. Enabling backtracking at a high GCR (0.5) must strictly increase the yield (positive backtrack_gain_percent)."
+}

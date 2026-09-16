@@ -1,0 +1,53 @@
+{
+  "task_id": "create_custom_viewtemplate@1",
+  "task_completion": [
+    {
+      "id": "template_tiddler_created",
+      "description": "Create a new tiddler to serve as the custom ViewTemplate.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a new tiddler being created and opened in edit mode."
+    },
+    {
+      "id": "apply_system_tag",
+      "description": "Apply the required system tag to the template tiddler.",
+      "points": 20,
+      "visual_evidence": "The tag '$:/tags/ViewTemplate' is visibly added to the tag input area of the new template tiddler."
+    },
+    {
+      "id": "add_conditional_logic",
+      "description": "Configure the template to only render for tiddlers with the 'Paper' tag.",
+      "points": 20,
+      "visual_evidence": "The text area of the template tiddler contains TiddlyWiki conditional logic targeting the 'Paper' tag (e.g., `<$list filter=\"[all[current]tag[Paper]]\">` or similar)."
+    },
+    {
+      "id": "add_field_transclusions",
+      "description": "Add transclusions for the required fields (author, journal, year, doi).",
+      "points": 20,
+      "visual_evidence": "The text area of the template tiddler contains syntax referencing the four required fields (e.g., `{{!!author}}`, `{{!!journal}}`, `{{!!year}}`, `{{!!doi}}` or `<$transclude field=\"...\"/>`)."
+    },
+    {
+      "id": "verify_rendered_output",
+      "description": "Verify the template automatically displays the fields on a Paper tiddler.",
+      "points": 30,
+      "visual_evidence": "A tiddler tagged 'Paper' (e.g., 'Attention Is All You Need', 'MapReduce', or 'ResNet') is open in view (read) mode, and the author, journal, year, and doi values are successfully displayed on the page."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "The agent used the TiddlyWiki web interface to complete the task.",
+      "visual_evidence": "Screenshots show interaction with the TiddlyWiki browser GUI (creating tiddlers, typing in text areas) rather than using terminal commands to bypass the UI."
+    },
+    {
+      "id": "no_manual_paper_edits",
+      "description": "The agent did not manually edit the text bodies of the existing Paper tiddlers.",
+      "visual_evidence": "The edit mode of the existing Paper tiddlers (e.g., 'Attention Is All You Need') is not used to manually type or paste the author, journal, year, and doi values into their main text bodies."
+    },
+    {
+      "id": "template_driven_rendering",
+      "description": "The displayed fields are genuinely rendered by the ViewTemplate.",
+      "visual_evidence": "The field values appear on the Paper tiddlers automatically when viewed, confirming they are injected via the '$:/tags/ViewTemplate' mechanism and not hardcoded."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected system tag for the ViewTemplate is exactly '$:/tags/ViewTemplate'. The template must conditionally target tiddlers with the 'Paper' tag. The template must transclude exactly four fields: 'author', 'journal', 'year', and 'doi'. Seed tiddlers tagged 'Paper' (e.g., 'Attention Is All You Need', 'MapReduce', 'ResNet') already contain these fields and should automatically display them once the template is correctly saved."
+}

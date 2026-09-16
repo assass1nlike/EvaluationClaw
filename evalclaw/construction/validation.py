@@ -71,7 +71,7 @@ def _has_environment_evaluator(task: TaskDefinition) -> bool:
     if env is None:
         return False
     if env.type == AgentEnvironmentType.docker_workspace:
-        return _has_text(env.test_command)
+        return bool(env.judge) or _has_text(env.test_command)
     if env.type == AgentEnvironmentType.vm:
         evaluation = env.evaluation
         return bool(
@@ -1087,7 +1087,7 @@ def task_structure_issues(
             issues.append("Environment actors cannot be combined with workflow stages.")
         if env.actors and env.runtime_files:
             issues.append(
-                "Environment actor tasks run through the OpenClaw harness and cannot use "
+                "Environment actor tasks run through external shell harnesses and cannot use "
                 "runner-private runtime_files. Express actor behavior in each system_prompt, "
                 "use shared visible files for interaction state, and keep evaluator-only "
                 "material in hidden_files."
@@ -1100,8 +1100,10 @@ def task_structure_issues(
             issues.append(
                 "TaskDesign requests environment actors, but the environment defines none."
             )
-        if not _has_text(env.test_command):
-            issues.append("docker_workspace tasks must include a deterministic test_command.")
+        if env.judge and task.workflow is not None:
+            issues.append("Environment judge agents cannot be combined with workflow stages.")
+        if not env.judge and not _has_text(env.test_command):
+            issues.append("docker_workspace tasks must include test_command or environment.judge.")
         task_text = f"{task.prompt} {' '.join(task.tags)}".lower()
         browser_enabled = bool(env.browser.get("enabled"))
         planned_designs = (

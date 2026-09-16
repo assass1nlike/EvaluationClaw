@@ -1,0 +1,47 @@
+{
+  "task_id": "infer_favorite_destination@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Access the OrientDB Studio and connect to the demodb database.",
+      "points": 10,
+      "visual_evidence": "The OrientDB Studio web interface is visible, showing a successful connection to the 'demodb' database."
+    },
+    {
+      "id": "add_property",
+      "description": "Add a new STRING property named 'FavoriteDestination' to the 'Profiles' class.",
+      "points": 20,
+      "visual_evidence": "The Schema manager or query editor shows the creation of the 'FavoriteDestination' property of type STRING on the 'Profiles' class (e.g., via 'CREATE PROPERTY Profiles.FavoriteDestination STRING')."
+    },
+    {
+      "id": "execute_update_query",
+      "description": "Execute a query or script to calculate the most visited country for each profile and update the FavoriteDestination property.",
+      "points": 40,
+      "visual_evidence": "The query editor shows a SQL query, batch script, or function that traverses 'HasStayed' edges to 'Hotels', groups by 'Hotels.Country' to find the most frequent, and updates the 'Profiles' class. There should be evidence of execution (e.g., a success message or number of records updated)."
+    },
+    {
+      "id": "verify_results",
+      "description": "Verify that the FavoriteDestination property has been correctly populated for the profiles.",
+      "points": 30,
+      "visual_evidence": "A query result or data browser view showing 'Profiles' records where the 'FavoriteDestination' field is populated with country names (e.g., Italy, France, United States) or left empty for those without history."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacts with the OrientDB Studio GUI or executes a genuine script to interact with the database.",
+      "visual_evidence": "Screenshots show the OrientDB Studio interface or a terminal executing a script, rather than just text typed in a text editor."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "The agent dynamically calculates the favorite destination rather than hardcoding answers.",
+      "visual_evidence": "The query or script uses database traversal and aggregation (e.g., COUNT(), MAX(), GROUP BY) to determine the destination, rather than hardcoding specific profile IDs and country names."
+    },
+    {
+      "id": "execution_confirmed",
+      "description": "The agent actually executes the queries/scripts and does not just type them.",
+      "visual_evidence": "Screenshots show execution results, such as success notifications, updated record counts, or result tables in the OrientDB Studio."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is OrientDB running at http://localhost:2480. The database name is 'demodb'. The target class is 'Profiles' and the new property must be 'FavoriteDestination' (STRING). The calculation relies on 'HasStayed' edges connecting 'Profiles' to 'Hotels', where 'Hotels' have a 'Country' property containing real country names (e.g., Italy, Germany, France, United Kingdom, United States, Japan, Australia, Brazil, Spain, Greece, Netherlands). Profiles with no booking history should have a NULL or empty FavoriteDestination."
+}

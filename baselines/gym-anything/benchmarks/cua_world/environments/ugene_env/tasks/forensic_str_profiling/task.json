@@ -1,0 +1,38 @@
+{
+  "id": "forensic_str_profiling@1",
+  "version": "1.0",
+  "env_id": "ugene_env@0.1",
+  "description": "You are a forensic DNA analyst at a crime lab processing genomic sequence data for three CODIS (Combined DNA Index System) STR loci: D13S317, vWA, and TH01. Annotate the largest tandem repeat region (minimum 2bp, minimum 5 repeats) for each locus in the reference files (~/UGENE_Data/forensic/) as 'STR_core_repeat' within the 'forensic_markers' group. Determine the allele repeat counts for the evidence sample (evidence_sample_alleles.fasta) and save the annotated GenBank files to ~/UGENE_Data/forensic/results/ as D13S317_annotated.gb, vWA_annotated.gb, and TH01_annotated.gb. Create a summary report at ~/UGENE_Data/forensic/results/str_profile_report.txt containing the locus name, identified repeat motif, evidence sample repeat count, and annotation coordinates for each marker.",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/forensic_str_profiling/setup_task.sh",
+    "post_task": "/workspace/tasks/forensic_str_profiling/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "NCBI GenBank: D13S317 microsatellite (MH167239, 206bp), vWA/VWF gene (M25858.1, 5285bp), TH01/tyrosine hydroxylase (D00269, 2838bp) - real CODIS STR locus sequences",
+    "occupation": "Forensic DNA Analyst",
+    "industry": "Criminal Justice / Forensic Science",
+    "difficulty": "very_hard",
+    "target_loci": [
+      "D13S317",
+      "vWA",
+      "TH01"
+    ],
+    "expected_outputs": [
+      "~/UGENE_Data/forensic/results/D13S317_annotated.gb",
+      "~/UGENE_Data/forensic/results/vWA_annotated.gb",
+      "~/UGENE_Data/forensic/results/TH01_annotated.gb",
+      "~/UGENE_Data/forensic/results/str_profile_report.txt"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_forensic_str_profiling"
+    }
+  }
+}

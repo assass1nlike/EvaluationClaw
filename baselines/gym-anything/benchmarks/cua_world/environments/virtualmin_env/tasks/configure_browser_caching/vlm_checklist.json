@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_browser_caching@1",
+  "task_completion": [
+    {
+      "id": "navigate_apache_modules",
+      "description": "Navigate to the Apache Webserver configuration in Webmin/Virtualmin to manage global modules.",
+      "points": 10,
+      "visual_evidence": "Webmin/Virtualmin interface is visible, showing the 'Apache Webserver' section or 'Configure Apache Modules' page."
+    },
+    {
+      "id": "enable_expires_module",
+      "description": "Enable the Apache 'expires' module globally.",
+      "points": 20,
+      "visual_evidence": "A checkbox for 'expires' or 'mod_expires' is checked in the global Apache modules list, or a success message indicates the module was enabled."
+    },
+    {
+      "id": "select_virtual_server",
+      "description": "Access the Apache configuration specifically for the 'acmecorp.test' virtual server.",
+      "points": 10,
+      "visual_evidence": "The Virtualmin interface shows 'acmecorp.test' selected, or the Apache Webserver page shows configuration for the virtual host 'acmecorp.test'."
+    },
+    {
+      "id": "configure_expiration_policy",
+      "description": "Set a default expiration policy of 1 month for the 'acmecorp.test' virtual server.",
+      "points": 30,
+      "visual_evidence": "A form field or directive setting in the Webmin/Virtualmin GUI showing an expiration default set to '1 month' (or 30 days) for the acmecorp.test virtual server."
+    },
+    {
+      "id": "verify_http_headers",
+      "description": "Check the HTTP headers of http://acmecorp.test/cache_test.css to verify the caching configuration.",
+      "points": 30,
+      "visual_evidence": "A terminal showing a `curl -I http://acmecorp.test/cache_test.css` command (or similar) OR a browser's Developer Tools Network tab showing the response headers for `cache_test.css`. The headers must include `Cache-Control: max-age=...` or `Expires: ...`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_virtualmin_gui",
+      "description": "Verify the agent used Virtualmin/Webmin to perform the configuration.",
+      "visual_evidence": "Screenshots show the agent navigating and clicking through the Virtualmin/Webmin web interface, rather than exclusively editing Apache configuration files in a terminal."
+    },
+    {
+      "id": "genuine_header_verification",
+      "description": "Verify the agent actually checked the HTTP headers of the live URL.",
+      "visual_evidence": "Screenshots show a real HTTP client (like curl, wget, or a web browser's network inspector) making a request to `http://acmecorp.test/cache_test.css` and displaying the returned headers."
+    },
+    {
+      "id": "no_mocked_responses",
+      "description": "Verify the agent didn't fake the test file to artificially inject headers.",
+      "visual_evidence": "The agent requests the exact `.css` file specified, without modifying the file extension or replacing it with a script (e.g., PHP) that manually injects headers."
+    }
+  ],
+  "privileged_info_for_vlm": "Target domain: acmecorp.test. Test file: cache_test.css. Expected caching duration: 1 month. When verifying the HTTP headers, look for a Cache-Control max-age value of approximately 2592000 seconds (acceptable range is 2400000 to 2800000 seconds)."
+}

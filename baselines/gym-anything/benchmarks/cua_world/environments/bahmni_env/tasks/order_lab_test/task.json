@@ -1,0 +1,36 @@
+{
+  "id": "order_lab_test@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Log in to Bahmni using the credentials superman/Admin123. Place a lab order for patient 'Michael Brown' (Identifier: BAH000012) containing the tests 'Haemoglobin' and 'Erythrocyte Sedimentation Rate'. Ensure the tests are ordered within an active OPD visit.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/order_lab_test/setup_task.sh",
+    "post_task": "/workspace/tasks/order_lab_test/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "patient_identifier": "BAH000012",
+    "patient_name": "Michael Brown",
+    "required_tests": [
+      "Haemoglobin",
+      "Erythrocyte Sedimentation Rate"
+    ],
+    "alternative_test_names": {
+      "Erythrocyte Sedimentation Rate": [
+        "ESR"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_order_lab_test"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "create_saved_case_filter@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Log in to ArkCase (admin/ArkCase1234!) and navigate to the Complaints module. Create and execute a saved search named 'Urgent Safety Queue' that filters for cases with 'High' priority. List the Case Numbers of all results found in a text file at /home/ga/urgent_cases.txt (one per line).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_saved_case_filter/setup_task.sh",
+    "post_task": "/workspace/tasks/create_saved_case_filter/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/home/ga/urgent_cases.txt",
+    "saved_search_name": "Urgent Safety Queue",
+    "priority_filter": "High"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_saved_case_filter"
+    }
+  }
+}

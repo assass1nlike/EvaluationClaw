@@ -1,0 +1,38 @@
+{
+  "id": "federated_npm_registry_setup@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "You are the frontend platform engineer at GlobalRetail Inc. To comply with InfoSec mandates for secure npm package consumption, configure the Artifactory instance at http://localhost:8082 (admin/password) with a complete registry infrastructure. Create a local npm repository named 'npm-internal' (description: 'Internal npm packages - GlobalRetail') and a remote npm repository named 'npmjs-mirror' that proxies https://registry.npmjs.org. Establish a virtual npm repository named 'npm-all' that aggregates both sources, ensuring 'npm-internal' is listed before 'npmjs-mirror'. Additionally, set up a non-admin user 'frontend-lead' (email: frontend-lead@globalretail.com) and a group 'frontend-developers' that includes this user. Finally, create a permission target named 'frontend-npm-perms' that grants the 'frontend-developers' group Deploy and Read access on 'npm-internal'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/federated_npm_registry_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/federated_npm_registry_setup/export_result.sh"
+  },
+  "metadata": {
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082",
+    "occupation": "Frontend Platform Engineer",
+    "industry": "Retail / E-Commerce",
+    "target_repos": [
+      "npm-internal",
+      "npmjs-mirror",
+      "npm-all"
+    ],
+    "target_user": "frontend-lead",
+    "target_user_email": "frontend-lead@globalretail.com",
+    "target_group": "frontend-developers",
+    "target_permission": "frontend-npm-perms"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_federated_npm_registry_setup"
+    }
+  }
+}

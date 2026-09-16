@@ -1,0 +1,26 @@
+{
+  "id": "process_hl7_message@1",
+  "version": "1.0",
+  "env_id": "nextgen_connect_integration_engine_env@0.1",
+  "description": "Process the HL7 ADT^A01 message located at /home/ga/sample_adt_message.hl7 through the 'HL7 Message Processor' channel in NextGen Connect. The channel is listening on TCP port 6661 for MLLP-framed messages. Verify the message receipt in the channel statistics using the web dashboard or REST API at https://localhost:8443 (credentials: admin/admin, required header for API: X-Requested-With: OpenAPI).",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/process_hl7_message/setup_task.sh",
+    "post_task": "/workspace/tasks/process_hl7_message/export_result.sh"
+  },
+  "metadata": {
+    "message_type": "ADT",
+    "message_event": "A01",
+    "patient_name": "KLEINSAMPLE"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_process_hl7_message"
+    }
+  }
+}

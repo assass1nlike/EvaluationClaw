@@ -1,0 +1,42 @@
+{
+  "task_id": "object_erase@1",
+  "task_completion": [
+    {
+      "id": "open_target_image",
+      "description": "GIMP is open and displays the target image.",
+      "points": 20,
+      "visual_evidence": "The GIMP interface is visible, showing an image with a lightblue-lightgreen plasma background and a red circle in the bottom right (southeast) area."
+    },
+    {
+      "id": "select_eraser_tool",
+      "description": "The Eraser tool is selected in GIMP.",
+      "points": 20,
+      "visual_evidence": "The Eraser tool icon is highlighted or selected in the GIMP toolbox."
+    },
+    {
+      "id": "erase_object_to_transparent",
+      "description": "The red circle is erased, creating transparency.",
+      "points": 40,
+      "visual_evidence": "The red circle is no longer visible on the canvas, and the area where it was located now shows GIMP's default checkerboard pattern, indicating transparency."
+    },
+    {
+      "id": "preserve_background",
+      "description": "The surrounding background is preserved.",
+      "points": 20,
+      "visual_evidence": "The lightblue-lightgreen plasma background outside the erased circle area remains intact and is not erased or significantly modified."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gimp_gui",
+      "description": "The agent used the GIMP graphical interface to perform the edits.",
+      "visual_evidence": "Screenshots show mouse movements, tool selections, and active editing within the GIMP window."
+    },
+    {
+      "id": "no_cli_image_manipulation",
+      "description": "The agent did not use terminal commands to bypass the GUI task.",
+      "visual_evidence": "Terminal windows do not show commands like ImageMagick's `convert` or `mogrify` being used to process the image directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The target image has a lightblue-lightgreen plasma background with a red circle (radius ~30px) in the southeast corner. The agent must use GIMP's Eraser tool to remove the red circle, creating genuine transparency (indicated by GIMP's checkerboard pattern) in its place. The surrounding background must be preserved (at least 85% similarity). The final result should have between 0.5% and 25% transparent pixels."
+}

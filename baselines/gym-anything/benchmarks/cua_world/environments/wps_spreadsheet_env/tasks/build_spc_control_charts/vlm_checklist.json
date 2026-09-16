@@ -1,0 +1,59 @@
+{
+  "task_id": "build_spc_control_charts@1",
+  "task_completion": [
+    {
+      "id": "raw_data_calculations",
+      "description": "Calculate Xbar and R in the 'Raw Data' sheet",
+      "points": 15,
+      "visual_evidence": "In the 'Raw Data' sheet, Column G should have the header 'Xbar' (or similar) and Column H should have 'R', with numerical values calculated for the rows below them."
+    },
+    {
+      "id": "control_limits_sheet",
+      "description": "Establish the 'Control Limits' sheet with required statistics",
+      "points": 15,
+      "visual_evidence": "A sheet named 'Control Limits' exists and contains labels and numerical values for X-double-bar, R-bar, UCL_Xbar, LCL_Xbar, UCL_R, and LCL_R."
+    },
+    {
+      "id": "x_bar_chart_sheet",
+      "description": "Generate the 'X-bar Chart' sheet",
+      "points": 20,
+      "visual_evidence": "A sheet named 'X-bar Chart' exists and displays a line chart showing the subgroup Xbar values along with horizontal reference lines for the control limits (UCL, LCL)."
+    },
+    {
+      "id": "r_chart_sheet",
+      "description": "Generate the 'R Chart' sheet",
+      "points": 20,
+      "visual_evidence": "A sheet named 'R Chart' exists and displays a line chart showing the subgroup R (range) values along with horizontal reference lines for the control limits."
+    },
+    {
+      "id": "summary_sheet_calculations",
+      "description": "Create the 'Summary' sheet with capability indices",
+      "points": 20,
+      "visual_evidence": "A sheet named 'Summary' exists and contains labels and calculated numerical values for Sigma_hat, Cp, and Cpk."
+    },
+    {
+      "id": "workbook_saved",
+      "description": "Save the updated workbook",
+      "points": 10,
+      "visual_evidence": "The WPS Spreadsheet window shows the file name 'piston_ring_measurements.xlsx' without an unsaved changes indicator (like a '*' next to the name), or a save action is visible in the final screenshots."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the WPS Spreadsheet GUI to perform the task",
+      "visual_evidence": "Screenshots should show interaction with the WPS Spreadsheet application interface (menus, formula bar, chart tools) rather than terminal commands or Python scripts manipulating the Excel file."
+    },
+    {
+      "id": "native_charts",
+      "description": "Charts are generated natively within the spreadsheet",
+      "visual_evidence": "The X-bar and R charts should appear as native WPS Spreadsheet chart objects, not as images pasted from an external program."
+    },
+    {
+      "id": "formula_usage",
+      "description": "Calculations appear to be done via spreadsheet formulas",
+      "visual_evidence": "When a calculated cell is selected, the formula bar should ideally show a spreadsheet formula (e.g., =AVERAGE(...), =MAX(...)-MIN(...)) rather than hardcoded final numbers typed manually."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected file is /home/ga/Documents/piston_ring_measurements.xlsx. The data consists of 25 subgroups of 5 measurements (n=5). The USL is 74.035 and LSL is 73.965. The VLM should verify that the calculations use the standard SPC constants for n=5: d2=2.326, a2=0.577, and d4=2.114. Specifically, UCL_Xbar = X-double-bar + 0.577 * R-bar, LCL_Xbar = X-double-bar - 0.577 * R-bar, UCL_R = 2.114 * R-bar, and Sigma_hat = R-bar / 2.326."
+}

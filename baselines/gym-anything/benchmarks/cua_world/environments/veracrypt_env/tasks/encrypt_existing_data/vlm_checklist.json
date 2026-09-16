@@ -1,0 +1,65 @@
+{
+  "task_id": "encrypt_existing_data@1",
+  "task_completion": [
+    {
+      "id": "create_veracrypt_volume",
+      "description": "Create a new VeraCrypt volume at the specified path with the correct parameters.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the VeraCrypt Volume Creation Wizard or terminal commands creating a volume at '/home/ga/Volumes/sensitive_encrypted.hc'. Evidence should ideally show the selection of AES encryption, SHA-512 hash, FAT filesystem, and a size of at least 5MB."
+    },
+    {
+      "id": "mount_volume",
+      "description": "Mount the newly created volume to the correct mount point.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI with the volume mounted at '/home/ga/MountPoints/slot1', or terminal output showing a successful mount command to that directory."
+    },
+    {
+      "id": "copy_sensitive_files",
+      "description": "Copy all files from the SensitiveData directory into the mounted volume.",
+      "points": 20,
+      "visual_evidence": "Screenshots of a file manager or terminal (e.g., 'ls /home/ga/MountPoints/slot1') showing the 4 expected files ('SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', 'backup_authorized_keys', 'data_manifest.sha256') present inside the mounted volume."
+    },
+    {
+      "id": "verify_file_integrity",
+      "description": "Verify the integrity of the copied files using the provided manifest.",
+      "points": 10,
+      "visual_evidence": "Screenshots of a terminal showing a checksum verification command (e.g., 'sha256sum -c data_manifest.sha256') being executed inside the mounted volume and outputting 'OK' for the files."
+    },
+    {
+      "id": "create_transfer_report",
+      "description": "Create a transfer report text file inside the volume with specific text.",
+      "points": 15,
+      "visual_evidence": "Screenshots of a text editor or terminal command (e.g., 'echo' or 'cat') creating '/home/ga/MountPoints/slot1/transfer_report.txt' containing exactly 'FILES TRANSFERRED: 4' and 'INTEGRITY: VERIFIED'."
+    },
+    {
+      "id": "dismount_volume",
+      "description": "Dismount the VeraCrypt volume after operations are complete.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI with no volumes mounted (slot 1 is empty), or a terminal showing a successful dismount command (e.g., 'veracrypt -d')."
+    },
+    {
+      "id": "securely_delete_originals",
+      "description": "Securely delete the original files from the source directory.",
+      "points": 15,
+      "visual_evidence": "Screenshots of a terminal showing a secure deletion command (e.g., 'shred -u', 'wipe', or 'srm') being executed on the files in '/home/ga/SensitiveData/', or the directory being securely wiped."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_veracrypt_usage",
+      "description": "Verify that the agent actually used VeraCrypt to create and mount the container.",
+      "visual_evidence": "Look for the VeraCrypt GUI application or 'veracrypt' CLI commands in the terminal. The agent should not just create a standard folder named 'sensitive_encrypted.hc'."
+    },
+    {
+      "id": "genuine_secure_deletion",
+      "description": "Verify that the agent used a secure deletion method rather than standard deletion.",
+      "visual_evidence": "Look for commands like 'shred', 'wipe', or 'srm'. Standard 'rm' commands or moving files to the GUI Trash do not qualify as secure deletion."
+    },
+    {
+      "id": "report_location_check",
+      "description": "Verify the transfer report was created inside the encrypted volume.",
+      "visual_evidence": "Check the file path in the text editor or terminal when 'transfer_report.txt' is created. It must be inside '/home/ga/MountPoints/slot1', not on the Desktop or in the original source directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected volume path is '/home/ga/Volumes/sensitive_encrypted.hc'. The mount point is '/home/ga/MountPoints/slot1'. The password is 'SecureEncrypt2024!'. The 4 expected files to be transferred are 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', 'backup_authorized_keys', and 'data_manifest.sha256'. The report file must be named 'transfer_report.txt' and placed inside the mounted volume."
+}

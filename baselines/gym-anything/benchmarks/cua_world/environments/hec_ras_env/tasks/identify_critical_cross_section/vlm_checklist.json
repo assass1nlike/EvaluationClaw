@@ -1,0 +1,48 @@
+{
+  "task_id": "identify_critical_cross_section@1",
+  "task_completion": [
+    {
+      "id": "hdf5_file_accessed",
+      "description": "Agent accessed or attempted to read the Muncie.p04.hdf or Muncie.p04.tmp.hdf file.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a Python script, HDFView, or terminal commands opening or reading the HDF5 file."
+    },
+    {
+      "id": "csv_report_created",
+      "description": "Agent created the critical_section_report.csv file in the results directory.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the creation or existence of critical_section_report.csv in /home/ga/Documents/hec_ras_results/."
+    },
+    {
+      "id": "csv_report_columns",
+      "description": "The CSV report contains the required columns.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the contents or generation script for the CSV including columns: River_Station, Peak_WSE_ft, Left_Bank_Elev_ft, Right_Bank_Elev_ft, Min_Bank_Elev_ft, and Freeboard_ft."
+    },
+    {
+      "id": "summary_file_created",
+      "description": "Agent created the critical_section_summary.txt file in the results directory.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the creation or existence of critical_section_summary.txt in /home/ga/Documents/hec_ras_results/."
+    },
+    {
+      "id": "summary_file_content",
+      "description": "The summary file contains the required fields.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the contents or generation script for the summary file including Critical_River_Station, Freeboard_ft, Overtopping status, Num_Overtopped_Sections, and Total_Cross_Sections."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_data_extraction",
+      "description": "Agent extracted data from the HDF5 file rather than hardcoding answers.",
+      "visual_evidence": "Screenshots show the agent using a script (e.g., Python with h5py) or a tool (e.g., HDFView) to read the actual HDF5 file, rather than just typing out a file with guessed or hardcoded content."
+    },
+    {
+      "id": "no_hallucination",
+      "description": "Agent did not invent numbers if the HDF5 dataset was missing or inaccessible.",
+      "visual_evidence": "If the agent encountered an error reading the HDF5 file, it did not proceed to generate a fake report with fabricated numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/Documents/hec_ras_projects/Muncie and results should be saved in /home/ga/Documents/hec_ras_results. If successfully extracted, the correct critical section is River Station 1174.213 with a minimum freeboard of -14.4631 ft. There are 61 total cross-sections, and all 61 overtop (Overtopping status: YES)."
+}

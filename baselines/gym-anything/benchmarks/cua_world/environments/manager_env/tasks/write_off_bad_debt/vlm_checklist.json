@@ -1,0 +1,53 @@
+{
+  "task_id": "write_off_bad_debt@1",
+  "task_completion": [
+    {
+      "id": "expense_account_created",
+      "description": "Verify that a new Expense account named 'Bad Debts' was created.",
+      "points": 20,
+      "visual_evidence": "In the Manager.io interface (Settings -> Chart of Accounts, or in an account dropdown), an expense account named 'Bad Debts' is visible."
+    },
+    {
+      "id": "credit_note_customer",
+      "description": "Verify a credit note is issued for the correct customer.",
+      "points": 20,
+      "visual_evidence": "A Credit Note creation or view screen shows 'Alfreds Futterkiste' selected as the Customer."
+    },
+    {
+      "id": "credit_note_date",
+      "description": "Verify the credit note is dated today.",
+      "points": 10,
+      "visual_evidence": "The Date field on the Credit Note matches the current system date (typically pre-filled as today's date in the UI)."
+    },
+    {
+      "id": "credit_note_allocation",
+      "description": "Verify the credit note amount is allocated to the 'Bad Debts' account.",
+      "points": 20,
+      "visual_evidence": "In the line items of the Credit Note, the 'Account' column is set to 'Bad Debts'."
+    },
+    {
+      "id": "credit_note_details",
+      "description": "Verify the credit note line item has the correct description and amount.",
+      "points": 30,
+      "visual_evidence": "The line item on the Credit Note shows the description 'Write off uncollectible invoice' and the amount '500.00'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_browser",
+      "description": "The agent interacted with the Manager.io web interface.",
+      "visual_evidence": "Screenshots show a web browser navigating Manager.io at localhost:8080, rather than terminal curl/API commands."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "The agent did not fake the output in a text editor.",
+      "visual_evidence": "The data is entered into the actual Manager.io form fields, not written in a text editor like Notepad or gedit."
+    },
+    {
+      "id": "genuine_submission",
+      "description": "The agent actually created/saved the records.",
+      "visual_evidence": "There is evidence of clicking 'Create' or viewing the saved Credit Note/Account, rather than just filling out the form and abandoning it."
+    }
+  ],
+  "privileged_info_for_vlm": "The accounting software is Manager.io at http://localhost:8080. The target customer is 'Alfreds Futterkiste'. The target invoice to write off is 'INV-BAD-001' for an amount of 500.00. The agent must create an expense account exactly named 'Bad Debts' and allocate a 500.00 Credit Note to it with the description 'Write off uncollectible invoice'."
+}

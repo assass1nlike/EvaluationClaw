@@ -1,0 +1,43 @@
+{
+  "id": "desk_lamp_armature_rig@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You have a simple desk lamp model made of 4 mesh parts: LampBase, LampLowerArm, LampUpperArm, and LampHead. Create a bone armature for the lamp consisting of four bones named 'Base', 'LowerArm', 'UpperArm', and 'Head'. Establish a parent hierarchy where 'Base' is the root, followed by 'LowerArm', 'UpperArm', and 'Head'. Position the bones to follow the lamp's structure and parent the mesh objects to the armature. Save the project to /home/ga/BlenderProjects/lamp_rigged.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/desk_lamp_armature_rig/setup_task.sh",
+    "post_task": "/workspace/tasks/desk_lamp_armature_rig/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/BlenderProjects/lamp_rigged.blend",
+    "required_bones": [
+      "Base",
+      "LowerArm",
+      "UpperArm",
+      "Head"
+    ],
+    "required_meshes": [
+      "LampBase",
+      "LampLowerArm",
+      "LampUpperArm",
+      "LampHead"
+    ],
+    "parent_chain": {
+      "Base": null,
+      "LowerArm": "Base",
+      "UpperArm": "LowerArm",
+      "Head": "UpperArm"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_desk_lamp_armature_rig"
+    }
+  }
+}

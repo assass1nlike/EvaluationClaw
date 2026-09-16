@@ -1,0 +1,59 @@
+{
+  "task_id": "customize_branding@1",
+  "task_completion": [
+    {
+      "id": "config_files_edited",
+      "description": "Agent updated custom-interface_config.js and custom-config.js with the required parameters.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a text editor or terminal commands modifying /home/ga/.jitsi-meet-cfg/web/custom-interface_config.js (setting APP_NAME, DEFAULT_REMOTE_DISPLAY_NAME, SHOW_JITSI_WATERMARK, SHOW_WATERMARK_FOR_GUESTS) and custom-config.js (setting defaultSubject)."
+    },
+    {
+      "id": "jitsi_room_joined",
+      "description": "Agent joined the 'BrandingTest' room on the local Jitsi instance.",
+      "points": 10,
+      "visual_evidence": "A web browser is open and navigated to http://localhost:8080/BrandingTest."
+    },
+    {
+      "id": "app_name_updated",
+      "description": "The Jitsi Meet application name is updated to 'FitConnect Pro'.",
+      "points": 20,
+      "visual_evidence": "In the browser viewing the Jitsi room, the browser tab title or UI elements display 'FitConnect Pro' instead of the default 'Jitsi Meet'."
+    },
+    {
+      "id": "watermarks_removed",
+      "description": "The Jitsi watermarks are disabled in the interface.",
+      "points": 20,
+      "visual_evidence": "In the browser viewing the Jitsi room, there is no Jitsi logo/watermark visible in the corners of the video conferencing interface."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "A screenshot of the interface was saved to the specified path.",
+      "points": 10,
+      "visual_evidence": "A file named 'branding_verification.png' is visible in the /home/ga/Documents directory (e.g., via file manager, terminal ls command, or an image viewer)."
+    },
+    {
+      "id": "report_created",
+      "description": "A report was created listing the APP_NAME and defaultSubject values.",
+      "points": 20,
+      "visual_evidence": "A text file named 'branding_report.txt' in /home/ga/Documents is shown containing the values 'FitConnect Pro' and 'FitConnect Session'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_browser_used",
+      "description": "The agent used a real web browser to verify the branding changes.",
+      "visual_evidence": "The screenshots should show a genuine web browser (like Chromium or Firefox) rendering the Jitsi Meet interface, not just a curl output or text-based browser."
+    },
+    {
+      "id": "genuine_screenshot_capture",
+      "description": "The agent actually captured a screenshot of the customized interface.",
+      "visual_evidence": "The branding_verification.png file should appear to be a legitimate screenshot of the desktop or browser window showing the active Jitsi session, rather than a generic downloaded image."
+    },
+    {
+      "id": "config_actually_modified",
+      "description": "The agent modified the configuration files rather than just writing the final report.",
+      "visual_evidence": "There should be evidence of the agent editing the files in /home/ga/.jitsi-meet-cfg/web/ before creating the report or taking the screenshot."
+    }
+  ],
+  "privileged_info_for_vlm": "Jitsi Meet is hosted on localhost:8080. Configuration files are located at /home/ga/.jitsi-meet-cfg/web/. Setting APP_NAME changes the application name (visible in the browser tab). SHOW_JITSI_WATERMARK and SHOW_WATERMARK_FOR_GUESTS control watermark visibility. CRITICAL: The task specifies setting 'config.defaultSubject', but the actual valid Jitsi parameter is 'subject'. The agent should not be penalized if the room subject in the UI does not change to 'FitConnect Session', as long as they correctly set 'defaultSubject' in custom-config.js and listed it in the report as instructed."
+}

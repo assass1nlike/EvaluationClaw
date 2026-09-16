@@ -1,0 +1,59 @@
+{
+  "task_id": "ccam_procedure_report@1",
+  "task_completion": [
+    {
+      "id": "access_ccamtest_db",
+      "description": "Agent connects to the CCAMTest MySQL database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a successful MySQL connection command like `mysql -u root CCAMTest` or the `mysql>` prompt after selecting the database."
+    },
+    {
+      "id": "query_schema_info",
+      "description": "Agent queries the database to retrieve table names and column information.",
+      "points": 15,
+      "visual_evidence": "Terminal showing SQL queries such as `SHOW TABLES`, `DESCRIBE <table_name>`, or queries to `information_schema.columns`."
+    },
+    {
+      "id": "save_schema_file",
+      "description": "Agent saves the schema summary to /home/ga/ccam_schema.txt.",
+      "points": 15,
+      "visual_evidence": "A text editor (like nano or vim) or terminal command (like `cat > /home/ga/ccam_schema.txt` or `mysql ... > /home/ga/ccam_schema.txt`) showing the schema information being written to the correct file path."
+    },
+    {
+      "id": "query_procedure_data",
+      "description": "Agent queries the database for procedure codes, descriptions, and row counts.",
+      "points": 20,
+      "visual_evidence": "Terminal showing SQL queries retrieving the first 20 procedure codes (e.g., `ORDER BY ... LIMIT 20`), counting total codes, or counting rows in tables."
+    },
+    {
+      "id": "format_report_headers",
+      "description": "Agent formats the top section of the report file with the correct headers and counts.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the creation of `/home/ga/ccam_report.txt` with Lines 1-3 matching: 'CCAM Procedure Code Report - MedinTux CCAMTest Database', 'Total procedure codes: <N>', and 'Number of tables: <N>'."
+    },
+    {
+      "id": "format_report_content",
+      "description": "Agent formats the sample procedures and schema summary sections of the report file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing `/home/ga/ccam_report.txt` containing '=== Sample Procedures (first 20 alphabetically) ===' followed by a list of codes (4 letters + 3 digits) and descriptions, and '=== Schema Summary ===' followed by table row counts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "The agent must execute actual SQL queries to extract the data.",
+      "visual_evidence": "Look for executed SQL commands and their tabular output in the terminal, ensuring the agent didn't just guess or hallucinate the database structure."
+    },
+    {
+      "id": "authentic_ccam_codes",
+      "description": "The CCAM codes in the report must be authentic and derived from the database.",
+      "visual_evidence": "Ensure the codes in the report match the 7-character format (4 letters + 3 digits, e.g., AAFA001) and correspond to the SQL query outputs shown in the terminal."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The agent must save the files to the exact requested paths.",
+      "visual_evidence": "Look for explicit file paths `/home/ga/ccam_schema.txt` and `/home/ga/ccam_report.txt` in the text editor's status bar, save dialog, or terminal redirection commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'CCAMTest' MySQL database contains real French CCAM medical procedure codes. CCAM codes have a strict 7-character format: 4 letters followed by 3 digits (e.g., AAFA001). The database contains approximately 7,500+ procedure codes. The agent must save the schema to '/home/ga/ccam_schema.txt' and the report to '/home/ga/ccam_report.txt'."
+}

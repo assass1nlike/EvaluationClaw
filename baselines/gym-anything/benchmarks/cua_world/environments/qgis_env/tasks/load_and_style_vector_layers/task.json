@@ -1,0 +1,29 @@
+{
+  "id": "load_and_style_vector_layers@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Load the GeoJSON layers from /home/ga/GIS_Data/sample_polygon.geojson and /home/ga/GIS_Data/sample_points.geojson into a new QGIS project. Style the polygon layer with a semi-transparent blue fill (50-70% opacity). Style the point layer with red markers at a size of 4.0 mm. Save the project to /home/ga/GIS_Data/projects/styled_layers.qgz.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/load_and_style_vector_layers/setup_task.sh",
+    "post_task": "/workspace/tasks/load_and_style_vector_layers/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_name": "styled_layers.qgz",
+    "expected_project_dir": "/home/ga/GIS_Data/projects",
+    "expected_polygon_layer": "sample_polygon",
+    "expected_point_layer": "sample_points",
+    "polygon_source": "/home/ga/GIS_Data/sample_polygon.geojson",
+    "point_source": "/home/ga/GIS_Data/sample_points.geojson"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_load_and_style_vector_layers"
+    }
+  }
+}

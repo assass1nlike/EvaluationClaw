@@ -1,0 +1,59 @@
+{
+  "task_id": "netpol_dns_deadlock_debugging@1",
+  "task_completion": [
+    {
+      "id": "login_rancher",
+      "description": "Login to Rancher at https://localhost",
+      "points": 10,
+      "visual_evidence": "The Rancher dashboard is visible in the browser, indicating successful login with the provided admin credentials."
+    },
+    {
+      "id": "inspect_data_fetcher",
+      "description": "Inspect the 'data-fetcher' deployment in the 'app-tier' namespace",
+      "points": 10,
+      "visual_evidence": "The Rancher UI or terminal shows the 'data-fetcher' workload in the 'app-tier' namespace, initially displaying a CrashLoopBackOff state."
+    },
+    {
+      "id": "preserve_default_deny",
+      "description": "Preserve the existing default-deny NetworkPolicies",
+      "points": 15,
+      "visual_evidence": "The Network Policies list in the Rancher UI or terminal output shows that the original default-deny policies for 'app-tier' and 'cache-tier' are still present and have not been deleted."
+    },
+    {
+      "id": "apply_github_dns_policy",
+      "description": "Apply least-privilege NetworkPolicy for api.github.com and DNS",
+      "points": 20,
+      "visual_evidence": "A NetworkPolicy YAML or UI configuration is visible showing egress rules specifically allowing DNS (port 53) and HTTPS (port 443) or explicit FQDN rules for api.github.com for the 'data-fetcher' pods."
+    },
+    {
+      "id": "apply_redis_policy",
+      "description": "Apply least-privilege NetworkPolicy for redis-cache connectivity",
+      "points": 20,
+      "visual_evidence": "A NetworkPolicy YAML or UI configuration is visible showing egress from 'data-fetcher' to 'redis-cache' (port 6379) and/or ingress on 'redis-cache' from 'data-fetcher'."
+    },
+    {
+      "id": "verify_running_state",
+      "description": "Verify the 'data-fetcher' deployment is running",
+      "points": 25,
+      "visual_evidence": "The 'data-fetcher' pod or deployment is shown in a 'Running' or 'Active' state (e.g., 1/1 ready) in the Rancher UI or via kubectl, indicating the CrashLoopBackOff is successfully resolved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_kubernetes_interaction",
+      "description": "Agent interacted with the actual Kubernetes environment (Rancher UI or kubectl)",
+      "visual_evidence": "Screenshots show genuine interaction with the Rancher web interface or a terminal running kubectl commands, not just a text editor."
+    },
+    {
+      "id": "no_allow_all_shortcut",
+      "description": "Agent did not use an 'allow-all' shortcut to bypass least-privilege constraints",
+      "visual_evidence": "The applied NetworkPolicies contain specific podSelectors, namespaceSelectors, or ports, rather than empty `{}` ingress/egress rules that allow all traffic."
+    },
+    {
+      "id": "no_policy_deletion_shortcut",
+      "description": "Agent did not delete the default-deny policies",
+      "visual_evidence": "There are no commands like `kubectl delete networkpolicy default-deny` or UI actions deleting the pre-existing deny policies."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespaces are 'app-tier' and 'cache-tier'. Associated workloads are 'data-fetcher' and 'redis-cache'. The task requires resolving a CrashLoopBackOff by adding least-privilege NetworkPolicies for DNS, api.github.com, and redis-cache, strictly without deleting the existing default-deny policies."
+}

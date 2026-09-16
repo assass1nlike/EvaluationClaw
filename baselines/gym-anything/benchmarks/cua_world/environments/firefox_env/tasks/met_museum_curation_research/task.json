@@ -1,0 +1,38 @@
+{
+  "id": "met_museum_curation_research@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "Document three 'Open Access' paintings by 'Vincent van Gogh' from The Metropolitan Museum of Art (metmuseum.org). Create a bookmark folder named 'Met Van Gogh' containing the three painting pages. Download one high-resolution image to '~/Documents/met_images/' and generate a JSON catalog at '~/Documents/exhibition_catalog.json' with the following keys for each painting: 'title', 'date', 'medium', 'accession_number', and 'url'.",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "json",
+    "digital-asset-management",
+    "met-museum"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/met_museum_curation_research/setup_task.sh",
+    "post_task": "/workspace/tasks/met_museum_curation_research/export_result.sh"
+  },
+  "metadata": {
+    "target_artist": "Vincent van Gogh",
+    "required_medium_keyword": "Oil",
+    "required_url_domain": "metmuseum.org",
+    "min_image_size_kb": 500,
+    "bookmark_folder_name": "Met Van Gogh",
+    "catalog_path": "/home/ga/Documents/exhibition_catalog.json",
+    "images_dir": "/home/ga/Documents/met_images"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_met_curation"
+    }
+  }
+}

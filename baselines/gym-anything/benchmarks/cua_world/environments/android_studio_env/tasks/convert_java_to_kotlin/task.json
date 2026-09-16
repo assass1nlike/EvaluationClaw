@@ -1,0 +1,37 @@
+{
+  "id": "convert_java_to_kotlin@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Convert the following Java files to Kotlin: app/src/main/java/com/example/roomwordsample/Word.java, app/src/main/java/com/example/roomwordsample/WordDao.java, and app/src/main/java/com/example/roomwordsample/WordViewModel.java. Ensure the resulting Kotlin files preserve Room annotations, resolve any nullability issues, and that the project builds successfully. Do not convert other Java files in the project.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/convert_java_to_kotlin/setup_task.sh",
+    "post_task": "/workspace/tasks/convert_java_to_kotlin/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/RoomWordSample",
+    "target_files": [
+      "Word",
+      "WordDao",
+      "WordViewModel"
+    ],
+    "untouched_files": [
+      "WordRepository",
+      "WordRoomDatabase",
+      "MainActivity"
+    ],
+    "package_path": "app/src/main/java/com/example/roomwordsample"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_convert_java_to_kotlin"
+    }
+  }
+}

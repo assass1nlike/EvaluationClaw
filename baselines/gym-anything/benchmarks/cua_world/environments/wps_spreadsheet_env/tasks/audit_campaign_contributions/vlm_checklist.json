@@ -1,0 +1,59 @@
+{
+  "task_id": "audit_campaign_contributions@1",
+  "task_completion": [
+    {
+      "id": "import_csv_data",
+      "description": "Open or import the raw FEC contributions CSV data into a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open, displaying raw data with columns typical of FEC contributions (e.g., TRANSACTION_DT, TRANSACTION_AMT, STATE)."
+    },
+    {
+      "id": "contributions_sheet_and_year",
+      "description": "Rename the primary sheet to 'Contributions' and create a 'Year' column extracted from TRANSACTION_DT.",
+      "points": 15,
+      "visual_evidence": "The active sheet tab at the bottom is named 'Contributions'. A new column labeled 'Year' is visible, containing year values (e.g., '2023', '2024') derived from the date column."
+    },
+    {
+      "id": "violation_and_refund_columns",
+      "description": "Create 'Limit_Violation' and 'Refund_Due' columns with correct logic.",
+      "points": 20,
+      "visual_evidence": "Columns named 'Limit_Violation' and 'Refund_Due' exist. 'Limit_Violation' shows 'FLAG' for amounts over 3300 and 'OK' otherwise. 'Refund_Due' shows the mathematical difference (amount - 3300) for flagged rows."
+    },
+    {
+      "id": "formatting_applied",
+      "description": "Format TRANSACTION_AMT and Refund_Due as currency, and apply conditional formatting to 'FLAG' entries.",
+      "points": 15,
+      "visual_evidence": "Values in the TRANSACTION_AMT and Refund_Due columns display currency symbols (e.g., $). Cells containing 'FLAG' in the Limit_Violation column have distinct visual highlighting (e.g., colored background or text)."
+    },
+    {
+      "id": "state_summary_sheet",
+      "description": "Create a second sheet named 'State Summary' listing unique states and their total contribution amounts.",
+      "points": 20,
+      "visual_evidence": "A second sheet tab named 'State Summary' is visible. The sheet contains a table (likely a Pivot Table or formula-driven list) with a column for States and a column for total amounts."
+    },
+    {
+      "id": "sorted_summary_and_saved",
+      "description": "Sort the 'State Summary' totals in descending order and save the file as campaign_audit.xlsx.",
+      "points": 20,
+      "visual_evidence": "The amounts in the 'State Summary' sheet are ordered from highest to lowest. The application title bar or save dialog shows the file name as 'campaign_audit.xlsx' located in /home/ga/Documents/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_spreadsheet_used",
+      "description": "Agent used the GUI spreadsheet application to perform the task, not terminal commands or Python scripts to generate the output.",
+      "visual_evidence": "Screenshots show interaction with a spreadsheet GUI (e.g., LibreOffice Calc menus, formula bar, pivot table dialogs) rather than a terminal window executing a script."
+    },
+    {
+      "id": "genuine_data_processing",
+      "description": "Agent processed the actual dataset rather than manually typing a few fake rows to mimic completion.",
+      "visual_evidence": "The spreadsheet shows a large number of rows consistent with an imported dataset, and formula bars show actual formulas (e.g., IF statements, YEAR extraction) or Pivot Table UI elements."
+    },
+    {
+      "id": "no_text_editor_mockup",
+      "description": "Agent did not use a text editor to mock the CSV/Excel output.",
+      "visual_evidence": "The interface is clearly a grid-based spreadsheet application, not a text editor (like gedit or nano) with comma-separated values."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be saved exactly at '/home/ga/Documents/campaign_audit.xlsx'. The workbook must contain exactly two sheets named 'Contributions' and 'State Summary'. The data source is simulated FEC individual contributions, so expect to see typical FEC columns populated with random data."
+}

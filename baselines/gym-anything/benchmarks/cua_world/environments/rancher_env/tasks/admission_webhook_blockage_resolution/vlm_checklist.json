@@ -1,0 +1,53 @@
+{
+  "task_id": "admission_webhook_blockage_resolution@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Log in to the Rancher UI",
+      "points": 10,
+      "visual_evidence": "The Rancher dashboard is visible, indicating successful login using the provided admin credentials."
+    },
+    {
+      "id": "navigate_to_webhooks",
+      "description": "Locate the admission webhooks in the cluster",
+      "points": 10,
+      "visual_evidence": "The Rancher UI shows the AdmissionRegistration section (MutatingWebhookConfigurations or ValidatingWebhookConfigurations) or a terminal shows a 'kubectl get' command for webhooks."
+    },
+    {
+      "id": "delete_orphaned_webhooks",
+      "description": "Delete or disable the broken/orphaned admission webhooks",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the deletion of the problematic webhooks in the Rancher UI (e.g., clicking delete on a webhook) or a terminal showing a successful 'kubectl delete' command for the webhooks."
+    },
+    {
+      "id": "configure_test_deployment",
+      "description": "Create the 'webhook-test' deployment with the specified configuration",
+      "points": 20,
+      "visual_evidence": "The Rancher workload creation screen or a terminal command showing the creation of a deployment named 'webhook-test' in the 'staging' namespace, using the 'nginx:alpine' image with 1 replica."
+    },
+    {
+      "id": "verify_deployment_running",
+      "description": "Verify the deployment successfully runs, proving the blockage is resolved",
+      "points": 30,
+      "visual_evidence": "The Rancher workloads list shows 'webhook-test' in the 'staging' namespace with a green 'Active' or 'Running' status, or a terminal shows 'kubectl get pods -n staging' with the pod in a 'Running' state."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_cluster_interaction",
+      "description": "Agent interacted with the actual Rancher UI or Kubernetes cluster",
+      "visual_evidence": "Actions are performed in the web browser (Rancher) or a real terminal emulator, not mocked in a text editor or notes app."
+    },
+    {
+      "id": "no_inspect_element_faking",
+      "description": "Agent did not use browser developer tools to fake the deployment status",
+      "visual_evidence": "The browser developer tools (F12) are not open to manipulate the DOM to show an 'Active' status for the deployment."
+    },
+    {
+      "id": "no_manual_text_faking",
+      "description": "Agent did not manually type out a fake success message",
+      "visual_evidence": "Terminal outputs or UI states are genuine system responses, not manually typed text echoing the expected success state."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace: 'staging'. Test deployment name: 'webhook-test'. Test image: 'nginx:alpine'. The task requires the agent to resolve broken admission webhooks and successfully deploy the test deployment in the staging namespace to prove the blockage is removed. A running 'webhook-test' pod in 'staging' is the ultimate proof of success."
+}

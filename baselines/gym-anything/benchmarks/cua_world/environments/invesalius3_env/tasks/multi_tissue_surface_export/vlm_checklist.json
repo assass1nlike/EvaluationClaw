@@ -1,0 +1,53 @@
+{
+  "task_id": "multi_tissue_surface_export@1",
+  "task_completion": [
+    {
+      "id": "dicom_loaded",
+      "description": "Verify that the CT Cranium DICOM series is loaded into InVesalius 3.",
+      "points": 10,
+      "visual_evidence": "The InVesalius 3 interface displays medical imaging views (axial, coronal, sagittal) of a human head or skull."
+    },
+    {
+      "id": "masks_created",
+      "description": "Verify that the three required segmentation masks are created with the correct Hounsfield Unit (HU) thresholds.",
+      "points": 20,
+      "visual_evidence": "The masks panel in InVesalius shows multiple masks. Look for threshold settings corresponding to the task requirements: min 226 HU (bone), min 662 HU (compact bone), and max 225 HU (soft tissue)."
+    },
+    {
+      "id": "surfaces_generated",
+      "description": "Verify that 3D surface meshes have been generated from the segmentation masks.",
+      "points": 20,
+      "visual_evidence": "The 3D viewer or the 'Surfaces' panel in InVesalius shows generated 3D models of the skull and tissues."
+    },
+    {
+      "id": "stl_exported",
+      "description": "Verify that the 3D surfaces are exported as STL files to the correct directory.",
+      "points": 30,
+      "visual_evidence": "File save dialogs, a file manager window, or terminal output showing 'bone_tissue.stl', 'compact_bone.stl', and 'soft_tissue.stl' being saved to or present in the '/home/ga/Documents/tissue_exports/' directory."
+    },
+    {
+      "id": "project_saved",
+      "description": "Verify that the complete InVesalius project is saved.",
+      "points": 20,
+      "visual_evidence": "A file save dialog, file manager window, or terminal output showing 'tissue_analysis.inv3' being saved to or present in the '/home/ga/Documents/tissue_exports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the InVesalius 3 GUI to process the data and export files.",
+      "visual_evidence": "Screenshots show active interaction with the InVesalius interface (e.g., adjusting sliders, clicking export buttons) rather than relying solely on terminal commands or scripts to mock the outputs."
+    },
+    {
+      "id": "genuine_medical_data",
+      "description": "The generated masks and 3D surfaces correspond to actual anatomical structures.",
+      "visual_evidence": "The 3D viewer displays recognizable human cranial anatomy (skull, facial bones, soft tissue) rather than random noise, simple geometric shapes, or empty space."
+    },
+    {
+      "id": "no_dummy_files",
+      "description": "The agent did not bypass the application by creating empty or dummy files.",
+      "visual_evidence": "There is no evidence of the agent using terminal commands like 'touch' or a text editor to create the .stl or .inv3 files without actually generating them through InVesalius."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses a real CT Cranium DICOM dataset. The agent must use InVesalius 3 to create three masks with specific Hounsfield Unit (HU) thresholds: full bone (\u2265226 HU), compact cortical bone (\u2265662 HU), and soft tissue (\u2264225 HU). These masks must be converted to 3D surfaces and exported as STL files (bone_tissue.stl, compact_bone.stl, soft_tissue.stl) to /home/ga/Documents/tissue_exports/. The project must be saved as tissue_analysis.inv3 in the same directory. The 3D viewer should display recognizable human cranial anatomy."
+}

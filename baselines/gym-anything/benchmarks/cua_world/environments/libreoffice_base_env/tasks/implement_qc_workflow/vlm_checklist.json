@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_qc_workflow@1",
+  "task_completion": [
+    {
+      "id": "qc_status_column_added",
+      "description": "Verify that the 'QC_Status' column has been added to the 'Track' table.",
+      "points": 15,
+      "visual_evidence": "Look at the Table Design view or the Table Data view for the 'Track' table in LibreOffice Base. A new column named 'QC_Status' should be visible."
+    },
+    {
+      "id": "qc_status_approved_updated",
+      "description": "Verify that 'MPEG audio file' tracks are marked as 'Approved'.",
+      "points": 15,
+      "visual_evidence": "Look at the 'Track' table data view or an executed SQL UPDATE statement. Rows corresponding to 'MPEG audio file' (MediaTypeId 1) should have the value 'Approved' in the 'QC_Status' column."
+    },
+    {
+      "id": "qc_status_pending_review_updated",
+      "description": "Verify that 'Protected AAC audio file' tracks are marked as 'Pending Review'.",
+      "points": 15,
+      "visual_evidence": "Look at the 'Track' table data view or an executed SQL UPDATE statement. Rows corresponding to 'Protected AAC audio file' (MediaTypeId 2) should have the value 'Pending Review' in the 'QC_Status' column."
+    },
+    {
+      "id": "qc_status_legacy_updated",
+      "description": "Verify that 'Purchased AAC audio file' tracks are marked as 'Legacy'.",
+      "points": 15,
+      "visual_evidence": "Look at the 'Track' table data view or an executed SQL UPDATE statement. Rows corresponding to 'Purchased AAC audio file' (MediaTypeId 4) should have the value 'Legacy' in the 'QC_Status' column."
+    },
+    {
+      "id": "query_v_qc_pending_list_created",
+      "description": "Verify that a query named 'v_QC_Pending_List' has been created.",
+      "points": 15,
+      "visual_evidence": "Look at the main LibreOffice Base window. Under the 'Queries' section, there should be a query listed with the exact name 'v_QC_Pending_List'."
+    },
+    {
+      "id": "query_v_qc_pending_list_correctness",
+      "description": "Verify the 'v_QC_Pending_List' query selects the correct columns and filters for 'Pending Review'.",
+      "points": 25,
+      "visual_evidence": "Look at the Query Design view, SQL view, or the executed query results for 'v_QC_Pending_List'. It must select exactly 'TrackId', 'Name', 'Composer', and 'QC_Status'. The results or criteria must show that it filters for 'QC_Status' = 'Pending Review'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_libreoffice_base",
+      "description": "Verify that the agent used LibreOffice Base to perform the task.",
+      "visual_evidence": "The screenshots should show the LibreOffice Base graphical user interface (menus, table views, query designer, or Tools > SQL window), not just a terminal window executing sqlite3 commands."
+    },
+    {
+      "id": "genuine_query_creation",
+      "description": "Verify that the query was actually created in the database.",
+      "visual_evidence": "The query 'v_QC_Pending_List' should appear in the LibreOffice Base Queries pane, rather than just being typed into a text editor or a standalone script."
+    },
+    {
+      "id": "no_hardcoded_mock_data",
+      "description": "Verify that the agent updated the actual Track table rather than creating a fake table with a few hardcoded rows.",
+      "visual_evidence": "The table being modified should be the main 'Track' table with thousands of rows (e.g., 3503 tracks), not a newly created mock table."
+    }
+  ],
+  "privileged_info_for_vlm": "The target table is 'Track'. The new column must be named 'QC_Status'. The media type mappings are: MediaTypeId 1 ('MPEG audio file') = 'Approved' (3034 tracks), MediaTypeId 2 ('Protected AAC audio file') = 'Pending Review' (237 tracks), and MediaTypeId 4 ('Purchased AAC audio file') = 'Legacy' (7 tracks). The query must be named 'v_QC_Pending_List' and filter for 'Pending Review' status."
+}

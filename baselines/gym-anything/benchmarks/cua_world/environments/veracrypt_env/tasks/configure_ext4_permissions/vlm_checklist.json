@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_ext4_permissions@1",
+  "task_completion": [
+    {
+      "id": "volume_created_ext4",
+      "description": "VeraCrypt volume created at /home/ga/Volumes/sysadmin_vault.hc with 100MB size and Ext4 filesystem.",
+      "points": 20,
+      "visual_evidence": "VeraCrypt creation wizard showing 100MB size and Ext4 format, or terminal output (like 'ls -lh' and 'df -T' or 'lsblk -f') confirming the file size and filesystem type."
+    },
+    {
+      "id": "script_created_with_content",
+      "description": "A shell script named deploy_fix.sh is created inside the mounted volume with the correct content.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., 'cat deploy_fix.sh') or a text editor showing the file contains exactly 'echo \"Deploying critical fix...\"'."
+    },
+    {
+      "id": "script_executable",
+      "description": "The deploy_fix.sh script is made executable.",
+      "points": 15,
+      "visual_evidence": "Terminal output of 'ls -l' showing executable bits (e.g., '-rwxr-xr-x' or '-rwx------') for deploy_fix.sh, or a GUI file properties window showing the executable checkbox is ticked."
+    },
+    {
+      "id": "directory_created",
+      "description": "A directory named ssh_keys is created inside the mounted volume.",
+      "points": 10,
+      "visual_evidence": "Terminal output of 'ls' or a file manager window showing the 'ssh_keys' directory exists within the mounted volume path."
+    },
+    {
+      "id": "directory_permissions_restricted",
+      "description": "The ssh_keys directory has its permissions restricted to 700 (drwx------).",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'ls -l' showing exactly 'drwx------' for the ssh_keys directory."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "The VeraCrypt volume is dismounted at the end of the task.",
+      "points": 15,
+      "visual_evidence": "VeraCrypt GUI showing the volume is no longer in the mounted list, or terminal output confirming the unmount action (e.g., 'veracrypt -d' or 'umount')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "The agent used VeraCrypt to create and mount the volume.",
+      "visual_evidence": "Screenshots should show the VeraCrypt GUI or valid 'veracrypt' CLI commands being executed, not just the creation of a standard dummy file named .hc."
+    },
+    {
+      "id": "genuine_mount_interaction",
+      "description": "Files and directories were created inside the actual mounted VeraCrypt volume.",
+      "visual_evidence": "The path where deploy_fix.sh and ssh_keys are created should be the VeraCrypt mount point (e.g., /media/veracrypt1 or a custom mount directory), not a regular local folder."
+    },
+    {
+      "id": "genuine_permission_modification",
+      "description": "Permissions were genuinely modified using system commands.",
+      "visual_evidence": "Screenshots should show 'chmod' commands being executed (e.g., 'chmod +x' and 'chmod 700') or GUI permission changes, rather than the agent printing fake 'ls -l' text to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

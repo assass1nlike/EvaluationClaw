@@ -1,0 +1,30 @@
+{
+  "id": "customize_code_templates@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Configure Eclipse's Java Code Templates to enforce strict corporate coding standards. Update the 'Files' comment template to:\n/*\n * Copyright (c) 2026 SecureBank Inc.\n * All rights reserved.\n * Confidential and Proprietary.\n */\nUpdate the 'Types' comment template to:\n/**\n * @author ${user}\n */\nCreate a new Java class named 'BankAccount' in package 'com.securebank.core' within the 'BankSystem' project, ensuring these templates are applied and the file is saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/customize_code_templates/setup_task.sh",
+    "post_task": "/workspace/tasks/customize_code_templates/export_result.sh"
+  },
+  "metadata": {
+    "project_name": "BankSystem",
+    "class_path": "src/com/securebank/core/BankAccount.java",
+    "expected_copyright_text": "Copyright (c) 2026 SecureBank Inc.",
+    "expected_confidential_text": "Confidential and Proprietary",
+    "expected_author_tag": "@author",
+    "preference_file": ".metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.jdt.ui.prefs"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_customize_code_templates"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "data_quality_cleanup@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "The Chinook digital media store database (chinook.odb) has been corrupted by a failed batch import. Restore the database by removing the anomalous records: duplicate customers (IDs 60, 61, and 62), orphan invoices (IDs 413 and 414), and orphan invoice lines (IDs 2241, 2242, and 2243). Save all SQL DELETE statements used for the cleanup to /home/ga/cleanup_queries.sql and save the changes to the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/data_quality_cleanup/setup_task.sh",
+    "post_task": "/workspace/tasks/data_quality_cleanup/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/chinook.odb",
+    "sql_log_path": "/home/ga/cleanup_queries.sql",
+    "anomalies": {
+      "customers": [
+        60,
+        61,
+        62
+      ],
+      "invoices": [
+        413,
+        414
+      ],
+      "invoice_lines": [
+        2241,
+        2242,
+        2243
+      ]
+    },
+    "expected_counts": {
+      "Customer": 59,
+      "Invoice": 412,
+      "InvoiceLine": 2240
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_data_quality_cleanup"
+    }
+  }
+}

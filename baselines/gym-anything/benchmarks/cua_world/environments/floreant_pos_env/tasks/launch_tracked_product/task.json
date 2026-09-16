@@ -1,0 +1,31 @@
+{
+  "id": "launch_tracked_product@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Configure a new inventory-tracked menu item in Floreant POS and verify the system's automated deduction by processing a sale. Create two inventory items, 'Wagyu Patty' and 'Brioche Bun', each with an initial stock of 100. Create a menu item named 'Wagyu Burger' priced at $25.00 and configure its recipe to use one 'Wagyu Patty' and one 'Brioche Bun'. Complete the task by processing a 'Dine In' order for one 'Wagyu Burger' and settling the transaction with cash.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/launch_tracked_product/setup_task.sh",
+    "post_task": "/workspace/tasks/launch_tracked_product/export_result.sh"
+  },
+  "metadata": {
+    "target_menu_item": "Wagyu Burger",
+    "target_inventory_items": [
+      "Wagyu Patty",
+      "Brioche Bun"
+    ],
+    "initial_stock": 100,
+    "expected_final_stock": 99
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_launch_tracked_product"
+    }
+  }
+}

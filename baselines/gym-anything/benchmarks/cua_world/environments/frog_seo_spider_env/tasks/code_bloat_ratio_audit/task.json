@@ -1,0 +1,30 @@
+{
+  "id": "code_bloat_ratio_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a technical SEO audit to identify code bloat on https://books.toscrape.com/ using Screaming Frog SEO Spider. Export the internal HTML data including text-to-code ratios to ~/Documents/SEO/exports/code_bloat_data.csv. Create a text report at ~/Documents/SEO/reports/bloat_analysis.txt listing the top 5 pages with the lowest text-to-code ratios and the approximate average ratio for the site.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/code_bloat_ratio_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/code_bloat_ratio_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://books.toscrape.com/",
+    "target_domain": "books.toscrape.com",
+    "export_path": "/home/ga/Documents/SEO/exports/code_bloat_data.csv",
+    "report_path": "/home/ga/Documents/SEO/reports/bloat_analysis.txt",
+    "required_column": "Text to Code Ratio",
+    "min_urls_expected": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_code_bloat_ratio_audit"
+    }
+  }
+}

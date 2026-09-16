@@ -1,0 +1,59 @@
+{
+  "task_id": "enterprise_hl7_router@1",
+  "task_completion": [
+    {
+      "id": "create_db_tables",
+      "description": "Create the required PostgreSQL tables",
+      "points": 15,
+      "visual_evidence": "Terminal showing execution of SQL CREATE TABLE statements for 'dead_letter_queue', 'lab_results_inbox', and 'adt_events_inbox' in the mirthdb database (e.g., via psql or a script)."
+    },
+    {
+      "id": "create_router_channel",
+      "description": "Create the 'Enterprise HL7 Router' channel listening on port 6668",
+      "points": 15,
+      "visual_evidence": "API request/response or script showing the creation of a channel named 'Enterprise HL7 Router' with a source connector configured for TCP/MLLP on port 6668."
+    },
+    {
+      "id": "create_lab_channel",
+      "description": "Create the 'Lab Results Processor' channel",
+      "points": 15,
+      "visual_evidence": "API request/response or script showing the creation of a channel named 'Lab Results Processor' configured to insert data into the 'lab_results_inbox' table."
+    },
+    {
+      "id": "create_adt_channel",
+      "description": "Create the 'ADT Event Handler' channel",
+      "points": 15,
+      "visual_evidence": "API request/response or script showing the creation of a channel named 'ADT Event Handler' configured to insert data into the 'adt_events_inbox' table."
+    },
+    {
+      "id": "configure_routing_logic",
+      "description": "Configure routing logic based on MSH-3 and MSH-9",
+      "points": 20,
+      "visual_evidence": "API payload or script showing destination filters/rules in the 'Enterprise HL7 Router' that check MSH-3 for 'Lab' or MSH-9 for 'ORU' (routing to Lab channel), MSH-9 for 'ADT' (routing to ADT channel), and a fallback to 'dead_letter_queue'."
+    },
+    {
+      "id": "deploy_channels",
+      "description": "Deploy all channels to make them functional",
+      "points": 20,
+      "visual_evidence": "Terminal showing an API request to deploy the channels (e.g., POST to /channels/_deploy or similar) and a successful response, or an API status check showing the channels are deployed/started."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Verify the agent actually executed the database commands",
+      "visual_evidence": "Look for psql command prompts, successful 'CREATE TABLE' output messages, or script execution logs, rather than just SQL code written in a text editor."
+    },
+    {
+      "id": "genuine_api_interaction",
+      "description": "Verify the agent interacted with the NextGen Connect REST API",
+      "visual_evidence": "Look for curl commands, Python requests, or similar HTTP clients targeting https://localhost:8443/api with the 'X-Requested-With: OpenAPI' header, along with genuine JSON responses from the server."
+    },
+    {
+      "id": "no_mocked_success",
+      "description": "Verify the agent did not just print success messages",
+      "visual_evidence": "Ensure the outputs showing channel creation and deployment come from actual API responses (e.g., JSON containing channel IDs and metadata) and not simple echo statements or mocked script outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating three specific channels: 'Enterprise HL7 Router' (listening on TCP port 6668), 'Lab Results Processor', and 'ADT Event Handler'. Three PostgreSQL tables must be created in the 'mirthdb' database: 'dead_letter_queue', 'lab_results_inbox', and 'adt_events_inbox'. The agent must interact with the NextGen Connect REST API at https://localhost:8443/api using the 'X-Requested-With: OpenAPI' header. Routing logic must evaluate MSH-3 (Sending Application) and MSH-9 (Message Type)."
+}

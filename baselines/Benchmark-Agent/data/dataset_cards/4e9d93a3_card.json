@@ -1,0 +1,74 @@
+{
+  "dataset_id": "4e9d93a3",
+  "name": "Ethical-Reasoning",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Ethical-Reasoning dataset consists of multiple-choice questions where each question presents a brief scenario about a person's behavior or character, and the model must select the most appropriate adjective from five options. It evaluates the model's ability to infer personality traits and make ethical/personality judgments.",
+  "card_text": "The Ethical-Reasoning dataset is a text-only multiple-choice QA benchmark with 200 samples. Each sample contains a short, single-sentence scenario describing a person's actions or demeanor (e.g., 'Mark was an unpredictable character, you never knew when he might explode again.'). Five single-word adjective options are provided, and the task is to choose the one that best characterizes the person in the scenario. The answer is given as a single letter (A–E) corresponding to the correct option. The dataset targets ethical reasoning and personality trait inference, requiring models to understand nuanced descriptions and map them to appropriate descriptors. The content is narrative in style and covers everyday situations, making it a test of commonsense psychological reasoning.",
+  "tasks": [
+    "multiple_choice_qa"
+  ],
+  "domain": "ethical reasoning",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "A short sentence describing a person's behavior or situation, serving as the question stem for selecting the most appropriate adjective from the options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of five single-word adjectives that are candidate descriptions for the person mentioned in the question; the model must choose the best fit.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A single letter (e.g., 'A', 'B') indicating the correct option from the list, corresponding to the adjective that best matches the scenario.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with two fields: 'question' (a short narrative sentence describing a person's behavior) and 'options' (a list of five single-word adjectives), and an output object with a single field 'answer' (a letter indicating the correct option). The question provides the scenario, the options are candidate descriptions, and the answer specifies the best-fitting adjective. There is no separate context passage; the question itself serves as the prompt."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Ethical-Reasoning/annotation.json",
+    "existing_tags": {
+      "task": "Ethical Reasoning",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

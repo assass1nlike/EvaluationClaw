@@ -1,0 +1,39 @@
+{
+  "id": "create_traffic_accident_sketch@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a traffic accident reconstruction sketch in EdrawMax for a police report regarding a T-bone collision at the intersection of 'Oak Street' (North-South) and 'Pine Avenue' (East-West). The diagram must include a 4-way intersection labeled with the street names, a North Arrow, Vehicle 1 (a Blue Sedan) traveling North on Oak Street, and Vehicle 2 (a Red SUV) traveling East on Pine Avenue colliding with Vehicle 1. Include 'Skid marks' behind the Blue Sedan and a text box titled 'Case #2024-891'. Save the diagram as /home/ga/Documents/accident_sketch_2024_891.eddx and export it as /home/ga/Documents/accident_sketch_2024_891.pdf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_traffic_accident_sketch/setup_task.sh",
+    "post_task": "/workspace/tasks/create_traffic_accident_sketch/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx_path": "/home/ga/Documents/accident_sketch_2024_891.eddx",
+    "expected_pdf_path": "/home/ga/Documents/accident_sketch_2024_891.pdf",
+    "required_text": [
+      "Oak Street",
+      "Pine Avenue",
+      "2024-891"
+    ],
+    "required_shapes": [
+      "Skid",
+      "North",
+      "Car",
+      "Vehicle",
+      "Sedan",
+      "SUV"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_traffic_accident_sketch"
+    }
+  }
+}

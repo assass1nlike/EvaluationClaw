@@ -1,0 +1,27 @@
+{
+  "id": "anova_bp_by_bmi@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "You are an epidemiologist analyzing the 2017-2018 National Health and Nutrition Examination Survey (NHANES) data. Using Epi Info 7 Classic Analysis, perform a one-way ANOVA to determine if there is a significant difference in mean Systolic BP (BPXSY1) across four BMI categories (BMICAT: 1=Underweight, 2=Normal, 3=Overweight, 4=Obese) using the dataset at C:\\Users\\Docker\\Documents\\EpiProjects\\NhanesExam\\BPStudy.csv. Create a summary text file at C:\\Users\\Docker\\Documents\\anova_results.txt containing exactly five lines with the following numeric values: Line 1: The ANOVA F-statistic; Line 2: The ANOVA p-value; Line 3: The Kruskal-Wallis H statistic; Line 4: The mean systolic BP for the Obese group (BMICAT=4); Line 5: The total number of valid observations used.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\anova_bp_by_bmi\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\anova_bp_by_bmi\\export_result.ps1"
+  },
+  "metadata": {
+    "data_path": "C:\\Users\\Docker\\Documents\\EpiProjects\\NhanesExam\\BPStudy.csv",
+    "output_path": "C:\\Users\\Docker\\Documents\\anova_results.txt",
+    "ground_truth_path": "C:\\Users\\Docker\\Documents\\EpiProjects\\NhanesExam\\ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_anova_bp_by_bmi"
+    }
+  }
+}

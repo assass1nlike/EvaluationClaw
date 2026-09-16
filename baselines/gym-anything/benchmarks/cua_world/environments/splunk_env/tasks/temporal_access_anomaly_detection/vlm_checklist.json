@@ -1,0 +1,59 @@
+{
+  "task_id": "temporal_access_anomaly_detection@1",
+  "task_completion": [
+    {
+      "id": "splunk_accessed",
+      "description": "Verify the agent successfully accessed the Splunk web interface.",
+      "points": 10,
+      "visual_evidence": "The Splunk Web UI is visible in the browser, showing the user is logged in (likely as 'admin')."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "Verify the creation of the required dashboard.",
+      "points": 10,
+      "visual_evidence": "A dashboard titled exactly 'Authentication_Temporal_Heatmap' is visible in the Dashboards list or is currently open."
+    },
+    {
+      "id": "dashboard_visualization_configured",
+      "description": "Verify the dashboard contains a 2D visualization of authentication events across days and hours.",
+      "points": 25,
+      "visual_evidence": "The dashboard contains a panel (heatmap, table, or 2D chart) that displays data with 'days of the week' on one axis/column and 'hours of the day' on the other. The underlying search should reference the 'security_logs' index."
+    },
+    {
+      "id": "alert_created",
+      "description": "Verify the creation of the required alert.",
+      "points": 10,
+      "visual_evidence": "An alert named exactly 'Off_Hours_Success_Alert' is visible in the Alerts list or its configuration screen is open."
+    },
+    {
+      "id": "alert_condition_configured",
+      "description": "Verify the alert triggers on successful logins during weekends or late night hours (00:00 to 05:00).",
+      "points": 25,
+      "visual_evidence": "The alert's search query or trigger conditions explicitly filter for successful authentications AND include logic/filters for weekends (e.g., Saturday/Sunday) or hours between 00:00 and 05:00."
+    },
+    {
+      "id": "alert_schedule_configured",
+      "description": "Verify the alert is scheduled to run hourly.",
+      "points": 20,
+      "visual_evidence": "The alert schedule settings show it is set to run hourly, either via a GUI dropdown ('Run every hour') or specifically showing the cron expression '0 * * * *'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Splunk Web GUI to create the dashboard and alert.",
+      "visual_evidence": "Screenshots show interaction with the Splunk web interface (e.g., clicking through menus, filling out alert/dashboard forms) rather than just running curl commands in a terminal."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Verify the agent interacted with the actual Splunk application.",
+      "visual_evidence": "The standard Splunk interface elements (navigation bar, Splunk logo, standard CSS/layout) are present, not a text editor or mock interface."
+    },
+    {
+      "id": "no_spoofing",
+      "description": "Verify the agent did not simply copy-paste the expected answers into a text file.",
+      "visual_evidence": "Configurations and queries are entered into actual Splunk search bars, dashboard panels, and alert dialogs."
+    }
+  ],
+  "privileged_info_for_vlm": "The dashboard must be named exactly 'Authentication_Temporal_Heatmap'. The alert must be named exactly 'Off_Hours_Success_Alert'. The target index for the data is 'security_logs'. The Splunk credentials are admin / SplunkAdmin1!."
+}

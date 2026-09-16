@@ -1,0 +1,33 @@
+{
+  "id": "traffic_calming_zone_design@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "You are a civil engineer at a transportation consulting firm hired by the City of Bologna to design a traffic calming zone in the Acosta corridor residential area. Using the SUMO scenario at /home/ga/SUMO_Scenarios/bologna_acosta/, evaluate the impact of implementing a 30 km/h (8.33 m/s) speed limit on at least 8 residential edges. Record baseline simulation metrics (average speed, travel times, and total throughput) to /home/ga/SUMO_Output/baseline_tripinfos.xml. After modifying the network to include the new speed limits and any optional traffic calming features—such as 20 km/h speed bumps on at least 2 edges or turn restrictions—save the modified simulation results to /home/ga/SUMO_Output/calming_tripinfos.xml. Produce a comparison report at /home/ga/SUMO_Output/traffic_calming_report.csv with columns for metric, baseline_value, calming_value, and change_pct, covering zone_avg_speed, corridor_avg_travel_time, total_throughput, zone_85th_percentile_speed, and corridor_avg_speed. Document the zone design and its impacts in a professional engineering summary at /home/ga/SUMO_Output/traffic_calming_summary.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/traffic_calming_zone_design/setup_task.sh",
+    "post_task": "/workspace/tasks/traffic_calming_zone_design/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Civil Engineers (17-2051.00)",
+    "industry": "Architecture and Engineering",
+    "scenario": "bologna_acosta",
+    "min_calmed_edges": 8,
+    "zone_speed_limit_ms": 8.33,
+    "baseline_tripinfo_path": "/home/ga/SUMO_Output/baseline_tripinfos.xml",
+    "calming_tripinfo_path": "/home/ga/SUMO_Output/calming_tripinfos.xml",
+    "report_path": "/home/ga/SUMO_Output/traffic_calming_report.csv",
+    "summary_path": "/home/ga/SUMO_Output/traffic_calming_summary.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_traffic_calming_zone_design"
+    }
+  }
+}

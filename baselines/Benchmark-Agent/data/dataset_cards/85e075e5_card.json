@@ -1,0 +1,92 @@
+{
+  "dataset_id": "85e075e5",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset contains 200 multi-image visual question answering examples based on NLVR2-style paired images. Each item asks whether a natural-language statement about the left and/or right image is true or false, with answer choices A and B. It evaluates fine-grained visual reasoning over two images.",
+  "card_text": "The dataset is a small, open-set collection of image-pair comprehension questions. Each sample provides two images and a prompt asking the model to judge a statement about them. Questions cover attributes, counts, colors, objects, and spatial relations across the left and right images. Answer options are embedded in the question text (A/B), and the expected output is the option letter. The data uses natural photographs with everyday scenes and objects, and the model must perform fine-grained visual comparison and reasoning rather than relying on single-image cues. Evaluation is exact-match on the answer letter. The dataset is useful for testing multi-image visual question answering and true/false visual entailment.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "visual reasoning",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction that tells the model to evaluate the visual statement against the paired images and return 'A' for True or 'B' for False.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Contains the true/false question, the statement about the left and/or right images, and the embedded answer options (A/B).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A pair of images (left and right) that the statement refers to; the model must inspect visual attributes and compare them.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The expected answer as a single option letter (A or B), corresponding to the true/false judgment.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object containing a prompt, a question with an embedded true/false statement and A/B options, and two image file references (left and right), plus an output object with the answer letter. The images provide the visual context, the question asks about their attributes, and the answer indicates the correct option."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Image_Pair_Multi-Attribute_Question_Answering/annotation_open.json",
+    "existing_tags": {
+      "task": "Image_Pair_Multi-Attribute_Question_Answering",
+      "type": "comprehension",
+      "skill": "Multi-image Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

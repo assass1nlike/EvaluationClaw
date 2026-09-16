@@ -1,0 +1,33 @@
+{
+  "id": "statcalc_diagnostic_accuracy@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Evaluate a Rapid Fever Test using the Epi Info 7 StatCalc 'Diagnostic Test' calculator. Based on a study of 1000 patients (200 Disease Positive, 800 Disease Negative) where the test identified 180 True Positives and 40 False Positives, determine the Sensitivity, Specificity, PPV, and NPV. Additionally, determine the PPV for an airport screening scenario with a 2.0% Prevalence. Save all results in 'Key: Value%' format to C:\\Users\\Docker\\Documents\\diagnostic_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\statcalc_diagnostic_accuracy\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\statcalc_diagnostic_accuracy\\export_result.ps1"
+  },
+  "metadata": {
+    "output_path": "C:\\Users\\Docker\\Documents\\diagnostic_report.txt",
+    "expected_values": {
+      "Sensitivity": 90.0,
+      "Specificity": 95.0,
+      "Baseline_PPV": 81.8,
+      "Baseline_NPV": 97.4,
+      "Airport_PPV_at_2_percent": 26.9
+    },
+    "tolerance": 0.2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_statcalc_diagnostic_accuracy"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "tag_exercise_equipment@1",
+  "task_completion": [
+    {
+      "id": "login_successful",
+      "description": "Verify the agent successfully logged into the wger application.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the wger dashboard or authenticated user interface (e.g., user profile icon or 'admin' visible) after navigating away from the login page."
+    },
+    {
+      "id": "locate_target_exercise",
+      "description": "Verify the agent navigated to and located the specific target exercise.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the exercise list or search results with 'Barbell Hip Thrust (Sports Science)' visible, or the specific detail page for this exercise."
+    },
+    {
+      "id": "access_equipment_edit",
+      "description": "Verify the agent opened the interface to edit the equipment for the target exercise.",
+      "points": 20,
+      "visual_evidence": "Screenshots show an edit form, modal, or dropdown menu specifically for modifying the equipment of 'Barbell Hip Thrust (Sports Science)'."
+    },
+    {
+      "id": "select_bench_equipment",
+      "description": "Verify the agent selected 'Bench' to be added to the exercise.",
+      "points": 20,
+      "visual_evidence": "Screenshots show 'Bench' being checked, highlighted, or selected within the equipment edit form or dropdown menu."
+    },
+    {
+      "id": "verify_final_equipment_list",
+      "description": "Verify the final state of the exercise has exactly 'Barbell' and 'Bench' as its equipment.",
+      "points": 30,
+      "visual_evidence": "Screenshots of the saved exercise detail page show the equipment list containing exactly two items: 'Barbell' and 'Bench'. No other equipment should be listed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_only",
+      "description": "Ensure the agent used the web browser GUI to complete the task.",
+      "visual_evidence": "The agent interacts with the wger web interface in a browser. There should be no terminal windows showing curl commands, Python scripts, or direct database queries (like sqlite3 or psql) being used to modify the exercise."
+    },
+    {
+      "id": "genuine_navigation",
+      "description": "Ensure the agent actually navigated through the application to make the change.",
+      "visual_evidence": "Screenshots should show intermediate steps like searching for the exercise, opening the edit form, and saving, rather than just a sudden appearance of the final success screen (which might indicate HTML tampering via DevTools)."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Ensure the agent did not use browser developer tools to fake the final output.",
+      "visual_evidence": "The browser's Developer Tools (Elements tab, Console, etc.) should not be open and used to manually edit the DOM text to say 'Bench'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target exercise is strictly 'Barbell Hip Thrust (Sports Science)'. It is initialized with only 'Barbell'. The agent must add 'Bench' and retain 'Barbell'. The final verified state must show exactly 2 equipment items ('Barbell' and 'Bench') for this specific exercise."
+}

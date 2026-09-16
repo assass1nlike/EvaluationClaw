@@ -1,0 +1,93 @@
+{
+  "dataset_id": "9778267f",
+  "name": "Person-Hair-Matting",
+  "modalities": [
+    "image"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Person-Hair-Matting dataset is designed for hair matting/segmentation, where the goal is to generate a precise mask for a person's hair from a given image, optionally assisted by a sketch. It evaluates a model's ability to perform fine-grained image segmentation on portrait images.",
+  "card_text": "This dataset contains 200 samples for the task of person hair matting. Each sample includes an input photograph of a person, an optional sketch of the hair region, a textual instruction asking to generate a mask, and the corresponding ground-truth hair mask. The images are portrait photographs with varying hair styles and backgrounds, while sketches are simplified line drawings highlighting hair contours. The dataset is intended for evaluating image-to-image segmentation models, particularly those that can leverage auxiliary sketch inputs. The modality is purely visual, with text only serving as task instructions. The masks are binary or grayscale images indicating the hair region. The dataset assumes that models can process visual inputs and produce pixel-level masks.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "image matting",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.instruction",
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Textual instructions that ask the model to generate a hair mask for the provided image, optionally using the sketch. They are short imperative sentences directing the segmentation task.",
+        "path_types": [
+          "str",
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "The main input photograph showing a person's head and hair. The image serves as the primary visual context for the hair matting task. Its complexity varies across samples.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_files"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ground-truth segmentation mask of the hair region, provided as a binary or grayscale image. It is the target output that the model should generate.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "other_aux": {
+        "paths": [
+          "input.sketch_files"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "illustration",
+        "semantics": "An auxiliary sketch image that roughly outlines the hair region. It is provided as optional guidance to assist the model in generating the mask. The sketch is a simplified line drawing.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image (photograph), an optional sketch image, two short textual instructions (instruction and prompt), and an output mask image. The main image is the primary visual context, the sketch serves as auxiliary guidance, the instructions specify the task, and the mask is the target output. The mask represents the hair region to be segmented."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/person-hair-matting/json/annotation.json",
+    "existing_tags": {
+      "task": "hair mask detection",
+      "type": "comprehension",
+      "skill": "Object Matting",
+      "domain": "General-domain",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General-domain"
+  }
+}

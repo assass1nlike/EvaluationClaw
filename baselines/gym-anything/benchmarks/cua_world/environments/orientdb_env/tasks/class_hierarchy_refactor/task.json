@@ -1,0 +1,45 @@
+{
+  "id": "class_hierarchy_refactor@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "The travel agency's development team has decided to restructure the Hotels schema to support tiered pricing. Refactor the 'Hotels' class in the 'demodb' database (User: admin, Pass: admin) into a three-tier inheritance hierarchy: 'BudgetHotels' (extends Hotels for Stars <= 2), 'MidRangeHotels' (extends Hotels for Stars = 3), and 'LuxuryHotels' (extends Hotels for Stars >= 4). Add a 'Tier' property (String) to the Hotels class and update all records to 'Budget', 'MidRange', or 'Luxury' based on their star rating. Migrate all existing records into the correct subclass and add boolean properties set to true for each: 'HasFreeWifi' for BudgetHotels, 'HasPool' for MidRangeHotels, and 'HasSpa' for LuxuryHotels. Generate a report at /home/ga/hotel_hierarchy_report.txt containing the total polymorphic count of all hotels, the count of hotels in each specific subclass, and a list of names of all LuxuryHotels.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/class_hierarchy_refactor/setup_task.sh",
+    "post_task": "/workspace/tasks/class_hierarchy_refactor/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/hotel_hierarchy_report.txt",
+    "db_name": "demodb",
+    "classes": [
+      "BudgetHotels",
+      "MidRangeHotels",
+      "LuxuryHotels"
+    ],
+    "properties": {
+      "Hotels": [
+        "Tier"
+      ],
+      "BudgetHotels": [
+        "HasFreeWifi"
+      ],
+      "MidRangeHotels": [
+        "HasPool"
+      ],
+      "LuxuryHotels": [
+        "HasSpa"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_class_hierarchy_refactor"
+    }
+  }
+}

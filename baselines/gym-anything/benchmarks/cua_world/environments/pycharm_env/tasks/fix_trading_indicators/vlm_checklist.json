@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_trading_indicators@1",
+  "task_completion": [
+    {
+      "id": "fix_ema_bug",
+      "description": "Fix the EMA smoothing factor bug.",
+      "points": 20,
+      "visual_evidence": "In the PyCharm editor, the EMA calculation should show the smoothing factor 'k' calculated as '2 / (period + 1)' instead of '1 / period'."
+    },
+    {
+      "id": "fix_rsi_bug",
+      "description": "Fix the RSI calculation bug.",
+      "points": 20,
+      "visual_evidence": "In the PyCharm editor, the RSI calculation should show 'rs' calculated using division (e.g., 'ag / al') instead of subtraction ('ag - al')."
+    },
+    {
+      "id": "fix_sharpe_ratio_bug",
+      "description": "Fix the Sharpe ratio calculation bug.",
+      "points": 20,
+      "visual_evidence": "In the PyCharm editor, the Sharpe ratio calculation should show division by standard deviation (e.g., using .std()) instead of variance (e.g., .var())."
+    },
+    {
+      "id": "fix_max_drawdown_bug",
+      "description": "Fix the max drawdown calculation bug.",
+      "points": 20,
+      "visual_evidence": "In the PyCharm editor, the max drawdown calculation should show the running max computed using a global running peak (like .cummax() or equivalent logic) instead of an adjacent pair max."
+    },
+    {
+      "id": "test_suite_passes",
+      "description": "The test suite passes successfully.",
+      "points": 20,
+      "visual_evidence": "The PyCharm test runner or terminal shows that the test suite for the trading indicators has passed (e.g., green checkmarks, 'OK', or 'passed' messages)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_test_file_modification",
+      "description": "The agent did not modify the test files to force tests to pass.",
+      "visual_evidence": "There should be no evidence in the editor tabs or terminal that the test files (e.g., test_*.py) were altered."
+    },
+    {
+      "id": "no_function_signature_change",
+      "description": "The agent did not change the function signatures.",
+      "visual_evidence": "The function definitions (names and parameters) for the indicators in the implementation file remain unchanged."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "The test results are from genuine execution.",
+      "visual_evidence": "The test output in the terminal or PyCharm run tool window appears to be standard test runner output (like pytest or unittest), not a manually typed text file or echo command."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory is /home/ga/PycharmProjects/trading_indicators. There are 4 specific bugs to fix: 1) EMA smoothing factor should use k = 2 / (period + 1) instead of k = 1 / period. 2) RSI should use rs = ag / al instead of rs = ag - al. 3) Sharpe ratio should divide by standard deviation instead of variance. 4) Max drawdown should compute the running max using a global running peak (cummax) instead of an adjacent pair max. The test suite must pass without modifying test files, function signatures, or input data."
+}

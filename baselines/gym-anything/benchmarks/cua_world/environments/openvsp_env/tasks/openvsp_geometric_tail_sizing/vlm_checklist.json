@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_geometric_tail_sizing@1",
+  "task_completion": [
+    {
+      "id": "open_initial_model",
+      "description": "Open the initial aircraft configuration model in OpenVSP.",
+      "points": 10,
+      "visual_evidence": "The OpenVSP application window is open and displays the loaded 'aircraft_configuration.vsp3' model (visible in the title bar or the 3D geometry view)."
+    },
+    {
+      "id": "inspect_wing_parameters",
+      "description": "Select the Wing component and inspect its Plan and Design parameters.",
+      "points": 10,
+      "visual_evidence": "The 'Wing' component is highlighted in the Geometry Browser. The Plan and/or Design tabs are open, displaying the Wing Area, Mean Aerodynamic Chord (MAC), and X-Location."
+    },
+    {
+      "id": "inspect_tail_parameters",
+      "description": "Select the Horiz_Tail component and inspect its X-Location.",
+      "points": 10,
+      "visual_evidence": "The 'Horiz_Tail' component is highlighted in the Geometry Browser. The Design tab is open, displaying the Tail X-Location."
+    },
+    {
+      "id": "update_tail_area_locked_ar",
+      "description": "Update the Horizontal Tail Area while keeping the Aspect Ratio (AR) locked.",
+      "points": 30,
+      "visual_evidence": "In the OpenVSP window with 'Horiz_Tail' selected, the 'Plan' tab is visible. The Aspect Ratio (AR) lock toggle/checkbox is visibly engaged, and the Area field contains a newly entered numerical value."
+    },
+    {
+      "id": "save_sized_model",
+      "description": "Save the modified model as aircraft_configuration_sized.vsp3.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog box in OpenVSP or a terminal/file manager window shows the new file 'aircraft_configuration_sized.vsp3' being saved to /home/ga/Documents/OpenVSP/."
+    },
+    {
+      "id": "write_sizing_report",
+      "description": "Write the sizing report with the required format and calculated values.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window shows the contents of '/home/ga/Desktop/sizing_report.txt'. It must contain exactly the six required lines (Wing Area, Wing MAC, Wing X-Loc, Tail X-Loc, Moment Arm, Required Tail Area) with numerical values filled in."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent interacted with the OpenVSP GUI to modify the model.",
+      "visual_evidence": "Screenshots show the agent clicking through the OpenVSP graphical interface to change the tail area and lock the aspect ratio, rather than modifying the .vsp3 file directly in a text editor."
+    },
+    {
+      "id": "actual_values_in_report",
+      "description": "The report contains actual calculated numbers, not template placeholders.",
+      "visual_evidence": "The sizing_report.txt file contains real numbers (e.g., 'Wing Area (Sw): 150.5') instead of the literal string '[value]' copied from the prompt."
+    },
+    {
+      "id": "report_file_actually_created",
+      "description": "The sizing report was saved to the correct file path on the system.",
+      "visual_evidence": "The file '/home/ga/Desktop/sizing_report.txt' is visible in a text editor being saved, or via terminal commands (like 'cat' or 'ls'), proving it exists on the file system and wasn't just output to the chat."
+    }
+  ],
+  "privileged_info_for_vlm": "The target Horizontal Tail Volume Coefficient (target_vh) is exactly 1.10. The initial geometry parameters (Wing Span, Tail X-Location) are randomized at runtime, so the exact numerical values for Sw, MACw, Xw, Xt, lh, and St will vary per session. To verify correctness, check that the math in the report follows the formulas: Moment Arm (lh) = Xt - Xw, and Required Tail Area (St) = (1.10 * Sw * MACw) / lh."
+}

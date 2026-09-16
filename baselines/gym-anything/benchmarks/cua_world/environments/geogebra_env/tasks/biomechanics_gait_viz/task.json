@@ -1,0 +1,33 @@
+{
+  "id": "biomechanics_gait_viz@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create a biomechanical gait animation using motion capture data from '~/Documents/GeoGebra/data/gait_kinematics.csv'. Construct a 2-segment leg model with a thigh and shank (each 4 units long) starting from a fixed Hip point (H) at (0, 5). The positions of the Knee (K) and Ankle (A) must be driven by the 'HipAngle' and 'KneeAngle' data columns from the file, synchronized by an integer slider 'n' (range 1 to 51). Connect the joints with segments H-K and K-A. Save the final project as 'gait_viz.ggb' in '~/Documents/GeoGebra/projects/'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/biomechanics_gait_viz/setup_task.sh",
+    "post_task": "/workspace/tasks/biomechanics_gait_viz/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "gait_viz.ggb",
+    "data_path": "/home/ga/Documents/GeoGebra/data/gait_kinematics.csv",
+    "min_list_size": 50,
+    "expected_structure": [
+      "slider",
+      "lists",
+      "dynamic_points",
+      "segments"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_biomechanics_gait_viz"
+    }
+  }
+}

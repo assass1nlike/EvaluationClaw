@@ -1,0 +1,28 @@
+{
+  "id": "agrivoltaics_canopy_design@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Convert the existing ground-mounted solar array into an agrivoltaics installation (solar panels over agricultural land).\n\n1. Select all solar panel racks in the scene.\n2. Modify their 'Pole Height' to exactly 3.5 meters (to allow tractor clearance).\n3. Modify their 'Tilt Angle' to 20 degrees (to allow more diffuse sunlight to reach the ground).\n4. Save the modified project as 'agrivoltaics_array.ng3' in '~/Documents/Energy3D/'.\n5. Run a 'Daily Yield' analysis (via the Analysis menu > Solar Panels > Daily Yield Analysis).\n6. Export the resulting yield data graph as a CSV file to '~/Documents/Energy3D/agrivoltaics_yield.csv'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/agrivoltaics_canopy_design/setup_task.sh",
+    "post_task": "/workspace/tasks/agrivoltaics_canopy_design/export_result.sh"
+  },
+  "metadata": {
+    "expected_project": "/home/ga/Documents/Energy3D/agrivoltaics_array.ng3",
+    "expected_csv": "/home/ga/Documents/Energy3D/agrivoltaics_yield.csv",
+    "target_pole_height": 3.5,
+    "target_tilt_angle": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_agrivoltaics_design"
+    }
+  }
+}

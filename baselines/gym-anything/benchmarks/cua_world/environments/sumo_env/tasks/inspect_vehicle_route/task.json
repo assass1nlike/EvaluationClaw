@@ -1,0 +1,25 @@
+{
+  "id": "inspect_vehicle_route@1",
+  "version": "1.0",
+  "env_id": "sumo_env@0.1",
+  "description": "Inspect a vehicle's route and properties in the Bologna Acosta traffic simulation using sumo-gui. Run the simulation, then pause it to interact with the vehicles. Highlight the current route for any visible vehicle and open its parameter dialog window so that its speed, position, and route properties are visible.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/inspect_vehicle_route/setup_task.sh",
+    "post_task": "/workspace/tasks/inspect_vehicle_route/export_result.sh"
+  },
+  "metadata": {
+    "scenario": "bologna_acosta"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_inspect_vehicle_route"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "view_interaction_details@1",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "difficulty": "medium",
+  "description": "In the Cancer iChart Archive app, navigate from the Welcome screen to the Interaction Details page for the drug interaction between Ibrutinib and Fluconazole. The final view should display the drug names, quality of evidence, and the detailed interaction description.",
+  "init": {
+    "timeout_sec": 150,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/view_interaction_details/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/view_interaction_details/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_interaction_details"
+    }
+  },
+  "metadata": {
+    "cancer_drug": "Ibrutinib",
+    "co_medication": "Fluconazole",
+    "expected_page": "Interaction Details"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "create_portfolio_with_transaction@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Create a new portfolio named 'Retirement Fund' and record a buy transaction for Tesla (TSLA) in it. The transaction details are: Date: Mar 15, 2024, Units: 40, and Price: 171.05. Ensure the existing 'My Portfolio' remains unchanged.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_portfolio_with_transaction/setup_task.sh",
+    "post_task": "/workspace/tasks/create_portfolio_with_transaction/export_result.sh"
+  },
+  "metadata": {
+    "expected_portfolio_name": "Retirement Fund",
+    "expected_symbol": "TSLA",
+    "expected_units": 40.0,
+    "expected_price": 171.05,
+    "expected_date_str": "Mar 15, 2024",
+    "default_portfolio_name": "My Portfolio",
+    "jstock_data_path": "/home/ga/.jstock/1.0.7/UnitedState/portfolios"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_portfolio_with_transaction"
+    }
+  }
+}

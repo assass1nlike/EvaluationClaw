@@ -1,0 +1,33 @@
+{
+  "id": "cookie_consent_compliance@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Configure the store for privacy compliance. In the Default Cookie Settings, set 'Cookie Restriction Mode' to Yes, 'Cookie Lifetime' to 86400, and 'Use HTTP Only' to Yes. Create an enabled CMS Page titled 'Privacy Policy 2026' with the URL Key 'privacy-policy-2026' and include some content. Update the footer copyright for the default store view to: 'Copyright © 2026 Acme Corp. All Rights Reserved.' If not logged in, use admin/Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cookie_consent_compliance/setup_task.sh",
+    "post_task": "/workspace/tasks/cookie_consent_compliance/export_result.sh"
+  },
+  "metadata": {
+    "expected_page_identifier": "privacy-policy-2026",
+    "expected_cookie_lifetime": "86400",
+    "expected_footer_fragment": "2026 Acme Corp",
+    "config_paths": {
+      "restriction": "web/cookie/cookie_restriction",
+      "lifetime": "web/cookie/cookie_lifetime",
+      "httponly": "web/cookie/cookie_httponly",
+      "footer": "design/footer/copyright"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cookie_consent"
+    }
+  }
+}

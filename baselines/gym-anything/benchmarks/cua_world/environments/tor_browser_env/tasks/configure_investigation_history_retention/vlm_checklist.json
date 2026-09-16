@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_investigation_history_retention@1",
+  "task_completion": [
+    {
+      "id": "open_tor_settings",
+      "description": "Open Tor Browser settings or about:config",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Tor Browser open with the 'Settings' (Privacy & Security section) or 'about:config' page displayed."
+    },
+    {
+      "id": "disable_private_browsing_autostart",
+      "description": "Disable 'Always use private browsing mode'",
+      "points": 25,
+      "visual_evidence": "In the Tor Browser settings, the checkbox for 'Always use private browsing mode' is unchecked, OR in about:config, 'browser.privatebrowsing.autostart' is set to 'false'."
+    },
+    {
+      "id": "disable_sanitize_on_shutdown",
+      "description": "Disable 'Clear history when Tor Browser closes'",
+      "points": 25,
+      "visual_evidence": "In the Tor Browser settings, the checkbox for 'Clear history when Tor Browser closes' is unchecked, OR in about:config, 'privacy.sanitize.sanitizeOnShutdown' is set to 'false'."
+    },
+    {
+      "id": "visit_check_torproject",
+      "description": "Navigate to check.torproject.org",
+      "points": 15,
+      "visual_evidence": "The Tor Browser address bar shows 'check.torproject.org' (or https://check.torproject.org/) and the webpage content is visibly loaded."
+    },
+    {
+      "id": "visit_duckduckgo",
+      "description": "Navigate to duckduckgo.com",
+      "points": 15,
+      "visual_evidence": "The Tor Browser address bar shows 'duckduckgo.com' (or https://duckduckgo.com/) and the DuckDuckGo search engine page is visibly loaded."
+    },
+    {
+      "id": "close_tor_browser",
+      "description": "Close the Tor Browser",
+      "points": 10,
+      "visual_evidence": "The final screenshots show that the Tor Browser window has been closed and is no longer visible on the desktop."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Tor Browser GUI to change settings",
+      "visual_evidence": "Settings were changed via the Tor Browser's graphical interface (Settings menu or about:config) rather than by editing configuration files (like prefs.js) via a terminal or text editor."
+    },
+    {
+      "id": "genuine_tor_browser",
+      "description": "Agent used the actual Tor Browser",
+      "visual_evidence": "The browser being used has Tor Browser branding (e.g., the Onion logo, Tor-specific UI elements) and is not a standard Firefox, Chrome, or other browser."
+    },
+    {
+      "id": "actual_web_navigation",
+      "description": "Agent genuinely navigated to the required websites",
+      "visual_evidence": "The websites are rendered inside the Tor Browser window, not just typed out as text in a terminal, script, or search bar without hitting enter."
+    }
+  ],
+  "privileged_info_for_vlm": "To successfully retain history across sessions, the agent must disable two specific features in Tor Browser. Look for evidence that 'Always use private browsing mode' (underlying preference: browser.privatebrowsing.autostart) is set to false, AND 'Clear history when Tor Browser closes' (underlying preference: privacy.sanitize.sanitizeOnShutdown) is set to false. The required domains to test history retention are exactly 'check.torproject.org' and 'duckduckgo.com'."
+}

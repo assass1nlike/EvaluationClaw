@@ -1,0 +1,28 @@
+{
+  "id": "change_reporting_currency@1",
+  "version": "1.0",
+  "env_id": "portfolio_performance_env@0.1",
+  "description": "Change the reporting currency of the portfolio located at /home/ga/Documents/PortfolioData/us_portfolio.xml from USD to EUR. Import the 2024 historical exchange rate data from /home/ga/Documents/PortfolioData/eur_usd_rates.csv for the EUR currency pair. Update the portfolio's Reference Currency to EUR and save the changes so that the Statement of Assets reflects values in Euros.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/change_reporting_currency/setup_task.sh",
+    "post_task": "/workspace/tasks/change_reporting_currency/export_result.sh"
+  },
+  "metadata": {
+    "portfolio_path": "/home/ga/Documents/PortfolioData/us_portfolio.xml",
+    "csv_path": "/home/ga/Documents/PortfolioData/eur_usd_rates.csv",
+    "expected_currency": "EUR",
+    "min_rates_count": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_change_reporting_currency"
+    }
+  }
+}

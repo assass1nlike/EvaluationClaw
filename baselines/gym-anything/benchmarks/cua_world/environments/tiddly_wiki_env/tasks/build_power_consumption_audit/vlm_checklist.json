@@ -1,0 +1,53 @@
+{
+  "task_id": "build_power_consumption_audit@1",
+  "task_completion": [
+    {
+      "id": "tiddler_title_and_tags",
+      "description": "Verify the tiddler is created with the correct title and tags.",
+      "points": 20,
+      "visual_evidence": "Look for a tiddler titled 'Power Consumption Audit' with the tags 'Audit' and 'Solar' clearly visible in the TiddlyWiki interface."
+    },
+    {
+      "id": "table_headers_present",
+      "description": "Verify the table is constructed with the required headers.",
+      "points": 15,
+      "visual_evidence": "Look for a rendered table within the tiddler containing exactly the headers: 'Appliance', 'Watts', 'Hours/Day', and 'Daily Wh'."
+    },
+    {
+      "id": "table_rows_populated",
+      "description": "Verify the table lists the appliances with their power and usage duration.",
+      "points": 20,
+      "visual_evidence": "Look for table rows containing appliance names (e.g., Refrigerator, LED Lights, Laptop) along with their respective power_watts and hours_per_day values."
+    },
+    {
+      "id": "daily_wh_calculated",
+      "description": "Verify the 'Daily Wh' is correctly calculated for each appliance row.",
+      "points": 20,
+      "visual_evidence": "Check the 'Daily Wh' column to ensure the values are the mathematical product of the 'Watts' and 'Hours/Day' columns for each respective row."
+    },
+    {
+      "id": "grand_total_displayed",
+      "description": "Verify the 'Grand Total' section dynamically calculates the sum of all daily Watt-hours.",
+      "points": 25,
+      "visual_evidence": "Look for a 'Grand Total' section or row that displays the correct sum of the 'Daily Wh' column. The expected value is 3240 (or 3440 if the Microwave was injected)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_interaction",
+      "description": "Verify the agent used the web browser to interact with TiddlyWiki.",
+      "visual_evidence": "Look for the TiddlyWiki interface rendered in a web browser, rather than raw files being edited in a text editor or terminal."
+    },
+    {
+      "id": "dynamic_rendering",
+      "description": "Verify the table and total appear to be dynamically rendered by TiddlyWiki.",
+      "visual_evidence": "The table should look like a standard HTML/TiddlyWiki table. It should not be a plain text block or a pre-formatted markdown code block."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verify the agent didn't just hardcode the final numbers into a static table.",
+      "visual_evidence": "If the tiddler edit view is visible in any screenshot, ensure it contains TiddlyWiki widget/filter code (e.g., <$list>, :map, multiply, sum[]) rather than hardcoded text like '3240'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected title is 'Power Consumption Audit' and expected tags are 'Audit' and 'Solar'. The initial total of all appliances is 3240 Wh (Refrigerator: 150W*8h=1200, LED Lights: 40W*5h=200, Laptop: 60W*4h=240, Starlink Router: 50W*24h=1200, Water Pump: 800W*0.5h=400). If a Microwave (1000W*0.2h=200) was injected during evaluation, the total will be 3440 Wh. The tiddler source code must use ':map', 'multiply', and 'sum[]' operators to calculate the Grand Total dynamically."
+}

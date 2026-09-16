@@ -1,0 +1,59 @@
+{
+  "task_id": "identify_diverse_customers@1",
+  "task_completion": [
+    {
+      "id": "db_opened",
+      "description": "The Chinook database is opened in a database application.",
+      "points": 10,
+      "visual_evidence": "A database application (e.g., LibreOffice Base) is open, showing the Chinook database tables (Customer, Invoice, Track, Genre, etc.)."
+    },
+    {
+      "id": "query_columns_defined",
+      "description": "The query defines the 'CustomerName' and 'DiversityRating' columns with correct formatting.",
+      "points": 20,
+      "visual_evidence": "The SQL statement or query design includes concatenation for 'CustomerName' (e.g., FirstName || ' ' || LastName) and for 'DiversityRating' (e.g., COUNT(DISTINCT GenreId) || ' Genres')."
+    },
+    {
+      "id": "query_filter_defined",
+      "description": "The query filters for customers with 5 or more distinct genres.",
+      "points": 20,
+      "visual_evidence": "The SQL statement includes a HAVING clause or filter condition checking that the count of distinct genres is >= 5."
+    },
+    {
+      "id": "query_sort_defined",
+      "description": "The query sorts the results by genre count in descending order.",
+      "points": 10,
+      "visual_evidence": "The SQL statement includes an ORDER BY clause sorting by the genre count DESC."
+    },
+    {
+      "id": "query_saved_correct_name",
+      "description": "The query is saved with the name 'DiverseCustomerReport'.",
+      "points": 10,
+      "visual_evidence": "The query list, window title, or save dialog shows the query named exactly 'DiverseCustomerReport'."
+    },
+    {
+      "id": "query_results_displayed",
+      "description": "The query executes successfully and displays the correct results.",
+      "points": 30,
+      "visual_evidence": "A result table is visible showing two columns: 'CustomerName' and 'DiversityRating'. Rows should display names (e.g., 'Luis Rojas') and ratings (e.g., '12 Genres'), ordered from highest to lowest genre count."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_app_used",
+      "description": "The agent used a genuine database GUI application.",
+      "visual_evidence": "Screenshots show LibreOffice Base or a similar database tool, not just a text editor or mocked interface."
+    },
+    {
+      "id": "query_not_hardcoded",
+      "description": "The query dynamically calculates the results rather than hardcoding them.",
+      "visual_evidence": "The SQL query uses actual table references, JOINs, and aggregate functions (COUNT), rather than SELECTing literal strings like 'Luis Rojas', '12 Genres'."
+    },
+    {
+      "id": "results_from_execution",
+      "description": "The results are generated from actual query execution.",
+      "visual_evidence": "The results appear in the database application's native query result data grid, matching the executed SQL."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is Chinook (chinook.odb connected to Chinook_Sqlite.sqlite). The query must be named 'DiverseCustomerReport'. It requires joining Customer, Invoice, InvoiceLine, Track, and Genre tables. The minimum threshold is 5 distinct genres. The expected columns are 'CustomerName' (e.g., 'Latoya Mitchell') and 'DiversityRating' (e.g., '6 Genres'). There are exactly 57 customers who meet this criteria. The maximum genre count is 12 (Luis Rojas), and the minimum displayed should be 5."
+}

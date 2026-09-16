@@ -1,0 +1,29 @@
+{
+  "id": "clone_adapt_risk@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "As a Risk Manager expanding the risk register to cover the contractor workforce, clone the existing risk titled 'Phishing Attacks on Employees' to create a new entry. The new risk must be titled 'Phishing Attacks on Remote Contractors' with the description adapted to refer to 'Remote Contractors' instead of 'Employees'. Set the Risk Mitigation Strategy to 'Transfer'. Ensure the original 'Phishing Attacks on Employees' risk remains unmodified.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clone_adapt_risk/setup_task.sh",
+    "post_task": "/workspace/tasks/clone_adapt_risk/export_result.sh"
+  },
+  "metadata": {
+    "source_risk_title": "Phishing Attacks on Employees",
+    "target_risk_title": "Phishing Attacks on Remote Contractors",
+    "required_string": "Remote Contractors",
+    "required_strategy_id": 4,
+    "strategy_name": "Transfer"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clone_adapt_risk"
+    }
+  }
+}

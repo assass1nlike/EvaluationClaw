@@ -1,0 +1,53 @@
+{
+  "task_id": "hiv_drug_target_extraction@1",
+  "task_completion": [
+    {
+      "id": "open_reference_genome",
+      "description": "Verify that the agent opens the HIV1_reference.gb file to inspect the genome.",
+      "points": 10,
+      "visual_evidence": "Screenshot showing a bioinformatics tool (e.g., UGENE) with 'HIV1_reference.gb' open, displaying the sequence or its annotations."
+    },
+    {
+      "id": "save_protease_fasta",
+      "description": "Verify that the agent saves the translated protease sequence as protease.fasta in the targets directory.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing a file save dialog, terminal command, or file manager confirming the creation of 'protease.fasta' in '~/UGENE_Data/virology/targets/'."
+    },
+    {
+      "id": "save_rt_fasta",
+      "description": "Verify that the agent saves the translated reverse transcriptase sequence as reverse_transcriptase.fasta in the targets directory.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the creation or existence of 'reverse_transcriptase.fasta' in '~/UGENE_Data/virology/targets/'."
+    },
+    {
+      "id": "save_integrase_fasta",
+      "description": "Verify that the agent saves the translated integrase sequence as integrase.fasta in the targets directory.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the creation or existence of 'integrase.fasta' in '~/UGENE_Data/virology/targets/'."
+    },
+    {
+      "id": "verify_target_lengths",
+      "description": "Verify that the agent creates target_lengths.txt containing the correct lengths for the three enzymes.",
+      "points": 30,
+      "visual_evidence": "Screenshot of a text editor or terminal output showing the contents of 'target_lengths.txt'. It must list the three enzymes with their correct amino acid lengths: protease (or aspartic peptidase) as 99, reverse transcriptase (or p66 subunit) as 560, and integrase as 288."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used a sequence viewer/editor GUI to inspect the .gb file.",
+      "visual_evidence": "Screenshots should show the agent navigating the GUI of a bioinformatics application (like UGENE) to view the sequence annotations, rather than exclusively using terminal commands or scripts to bypass the GUI."
+    },
+    {
+      "id": "authentic_extraction",
+      "description": "Verify the agent actually located the correct mature peptides despite the naming discrepancy in the GenBank file.",
+      "visual_evidence": "Screenshots should show the agent selecting, viewing, or exporting the 'aspartic peptidase' and 'p66 subunit' features, proving it discovered the true names in the file rather than hallucinating sequences based on the prompt's exact wording."
+    },
+    {
+      "id": "no_hallucinated_summary",
+      "description": "Verify the agent didn't just create the target_lengths.txt file from prior knowledge.",
+      "visual_evidence": "The agent should be seen checking the sequence lengths in the GUI or inspecting the generated .fasta files before writing the target_lengths.txt file."
+    }
+  ],
+  "privileged_info_for_vlm": "The reference genome is NC_001802.1. In the GenBank file, the mature peptides for protease and reverse transcriptase are actually named 'aspartic peptidase' and 'p66 subunit' respectively. The expected lengths to be recorded in target_lengths.txt are: protease (aspartic peptidase) = 99, reverse transcriptase (p66 subunit) = 560, and integrase = 288."
+}

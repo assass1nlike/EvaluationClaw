@@ -1,0 +1,53 @@
+{
+  "task_id": "tune_picker_sensitivity@1",
+  "task_completion": [
+    {
+      "id": "access_scautopick_config",
+      "description": "Access the configuration for the scautopick module.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the SeisComp configuration GUI (scconfig) open with the 'scautopick' module selected, or a terminal editing the scautopick configuration/bindings files."
+    },
+    {
+      "id": "locate_highthreshold_profile",
+      "description": "Locate the 'HighThreshold' binding profile.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the 'HighThreshold' profile selected under the scautopick bindings in the GUI, or the corresponding section in a text editor."
+    },
+    {
+      "id": "update_trigon_parameter",
+      "description": "Update the 'trigOn' parameter to 3.0.",
+      "points": 30,
+      "visual_evidence": "Screenshots show the 'trigOn' value explicitly set to '3.0' for the HighThreshold profile."
+    },
+    {
+      "id": "apply_system_configuration",
+      "description": "Apply the configuration changes to the system.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the agent saving the configuration and applying it (e.g., clicking 'Save' and 'Update Configuration' in scconfig, or running 'seiscomp update-config' in the terminal)."
+    },
+    {
+      "id": "run_playback_verification",
+      "description": "Run the scautopick playback command to verify the fix.",
+      "points": 20,
+      "visual_evidence": "Screenshots show a terminal where the agent executes a command like 'scautopick --playback /home/ga/seiscomp/var/lib/archive/2024/GE/KWP/BHZ.D/GE.KWP..BHZ.D.2024.001 -d mysql://sysop:sysop@localhost/seiscomp'. Note: The command will likely fail due to a missing file, but the attempt with the correct arguments must be visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_configuration_edit",
+      "description": "Verify the configuration was changed in the actual system files or SeisComp GUI.",
+      "visual_evidence": "The changes to 'trigOn' should be made in the official 'scconfig' tool or the actual SeisComp configuration files, not just written as notes in a generic text document."
+    },
+    {
+      "id": "genuine_terminal_execution",
+      "description": "Verify the playback command was executed in a real terminal.",
+      "visual_evidence": "The scautopick command should be typed and executed in a standard terminal emulator, showing standard shell prompts and output."
+    },
+    {
+      "id": "no_hallucinated_success",
+      "description": "Ensure the agent does not fake a successful playback output.",
+      "visual_evidence": "Because the waveform file is missing from the system, the scautopick command should result in an error (e.g., file not found). The agent should not display a mocked success message or fake generated picks."
+    }
+  ],
+  "privileged_info_for_vlm": "Target station: GE.KWP. Target profile: HighThreshold. Expected trigOn value: 3.0. Target waveform file: /home/ga/seiscomp/var/lib/archive/2024/GE/KWP/BHZ.D/GE.KWP..BHZ.D.2024.001. Database URL: mysql://sysop:sysop@localhost/seiscomp. NOTE: The target waveform file is completely missing from the environment. The agent cannot successfully generate picks, but should still attempt to execute the `scautopick --playback` command with the correct arguments. Score the attempt to run the command, even if it results in an error."
+}

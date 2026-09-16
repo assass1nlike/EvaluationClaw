@@ -1,0 +1,44 @@
+{
+  "id": "design_linked_household_forms@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Create an Epi Info 7 project named 'HouseholdSurvey' that structures a one-to-many relationship between households and family members. The parent form 'Household' must contain fields for 'Address' (Text), 'CensusTract' (Number), and 'VisitDate' (Date). Establish a link to a child form named 'Member' using a button labeled 'Add Family Member'. The 'Member' form should include fields for 'FullName' (Text), 'Age' (Number), and 'Sex' (Legal Values: 'Male', 'Female').",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\design_linked_household_forms\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\design_linked_household_forms\\export_result.ps1"
+  },
+  "metadata": {
+    "project_path": "C:\\Users\\Docker\\Documents\\Epi Info 7\\Projects\\HouseholdSurvey\\HouseholdSurvey.prj",
+    "expected_views": [
+      "Household",
+      "Member"
+    ],
+    "expected_fields_household": [
+      "Address",
+      "CensusTract",
+      "VisitDate"
+    ],
+    "expected_fields_member": [
+      "FullName",
+      "Age",
+      "Sex"
+    ],
+    "legal_values_field": "Sex",
+    "legal_values_source": [
+      "Male",
+      "Female"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_design_linked_household_forms"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "knn_regression_exam@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a K-Nearest Neighbors (KNN) regression analysis on the Exam Anxiety dataset located at /home/ga/Documents/JASP/ExamAnxiety.csv. Set 'Exam' as the target variable and 'Anxiety' and 'Revise' as the feature variables. Configure the model with 5 nearest neighbors, an 80% training/20% test data split, and a seed of 42. Include a 'Predicted vs. Observed' plot in the output and save the analysis to /home/ga/Documents/JASP/knn_exam_results.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/knn_regression_exam/setup_task.sh",
+    "post_task": "/workspace/tasks/knn_regression_exam/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/knn_exam_results.jasp",
+    "dataset_path": "/home/ga/Documents/JASP/ExamAnxiety.csv",
+    "target_variable": "Exam",
+    "feature_variables": [
+      "Anxiety",
+      "Revise"
+    ],
+    "neighbors_k": 5,
+    "seed": 42,
+    "training_split": 0.8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_knn_regression_exam"
+    }
+  }
+}

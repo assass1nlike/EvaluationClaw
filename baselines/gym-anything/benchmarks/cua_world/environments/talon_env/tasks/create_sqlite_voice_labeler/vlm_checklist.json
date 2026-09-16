@@ -1,0 +1,59 @@
+{
+  "task_id": "create_sqlite_voice_labeler@1",
+  "task_completion": [
+    {
+      "id": "module_directory_visible",
+      "description": "The db_labeler directory is created in the Talon user directory.",
+      "points": 10,
+      "visual_evidence": "A file explorer, terminal, or IDE file tree showing the path C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\db_labeler."
+    },
+    {
+      "id": "labeler_py_state_init",
+      "description": "labeler.py is created and initializes the CURRENT_REPORT_ID state.",
+      "points": 10,
+      "visual_evidence": "Code in labeler.py showing a Talon Module declaration (e.g., Module()) and a variable like CURRENT_REPORT_ID initialized to track the state."
+    },
+    {
+      "id": "labeler_py_get_next_action",
+      "description": "labeler.py implements db_get_next() to fetch a pending report and insert its narrative.",
+      "points": 20,
+      "visual_evidence": "Code in labeler.py defining db_get_next() that connects to C:\\workspace\\data\\incidents.db, queries for a 'PENDING' report, updates CURRENT_REPORT_ID, and inserts the narrative (e.g., using actions.insert)."
+    },
+    {
+      "id": "labeler_py_label_record_action",
+      "description": "labeler.py implements db_label_record(offense) to update the report and reset state.",
+      "points": 20,
+      "visual_evidence": "Code in labeler.py defining db_label_record(offense) that executes an UPDATE query to set offense_type to the passed offense and status to 'REVIEWED' for the CURRENT_REPORT_ID, and then resets the state variable."
+    },
+    {
+      "id": "labeler_talon_fetch_command",
+      "description": "labeler.talon maps the 'report fetch' command.",
+      "points": 20,
+      "visual_evidence": "Code in labeler.talon showing the exact mapping: `report fetch: user.db_get_next()`."
+    },
+    {
+      "id": "labeler_talon_tag_commands",
+      "description": "labeler.talon maps the tag commands with uppercase offenses.",
+      "points": 20,
+      "visual_evidence": "Code in labeler.talon showing mappings for `tag assault`, `tag burglary`, `tag fraud`, and `tag theft` calling `user.db_label_record()` with uppercase string arguments (e.g., \"ASSAULT\")."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_code_editor_used",
+      "description": "The code is written and saved in a real text editor or IDE.",
+      "visual_evidence": "Screenshots show an editor like VS Code, Notepad, or Vim being used to edit and save the files, rather than just echoing text to the console."
+    },
+    {
+      "id": "no_mock_database",
+      "description": "The code connects to the actual specified SQLite database path.",
+      "visual_evidence": "The Python code explicitly connects to C:\\workspace\\data\\incidents.db rather than a mock, temporary, or in-memory database."
+    },
+    {
+      "id": "dynamic_sql_execution",
+      "description": "The Python code uses proper SQL execution methods.",
+      "visual_evidence": "The code uses a library like sqlite3 to execute actual SQL queries, rather than just printing SQL strings or hardcoding the expected output."
+    }
+  ],
+  "privileged_info_for_vlm": "The database path is C:\\workspace\\data\\incidents.db. The Talon module directory is C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\db_labeler. The expected voice commands in labeler.talon are 'report fetch', 'tag assault', 'tag burglary', 'tag fraud', and 'tag theft'."
+}

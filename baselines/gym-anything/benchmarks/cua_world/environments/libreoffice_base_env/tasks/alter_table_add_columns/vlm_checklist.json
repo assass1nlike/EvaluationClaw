@@ -1,0 +1,47 @@
+{
+  "task_id": "alter_table_add_columns@1",
+  "task_completion": [
+    {
+      "id": "open_customer_table",
+      "description": "The agent opened the 'Customer' table in the chinook.odb database to modify its structure.",
+      "points": 20,
+      "visual_evidence": "A database tool (like LibreOffice Base) is open showing the chinook.odb database, and the 'Customer' table is open in Design View, or an SQL command window is open targeting this database."
+    },
+    {
+      "id": "add_loyalty_points_column",
+      "description": "The agent added the 'LoyaltyPoints' column with the correct data type and default value.",
+      "points": 30,
+      "visual_evidence": "In the table design view, a field named 'LoyaltyPoints' is added with type 'Integer' (or INTEGER) and a default value of '0' in the field properties. Alternatively, an SQL command like `ALTER TABLE \"Customer\" ADD COLUMN \"LoyaltyPoints\" INTEGER DEFAULT 0` is visible."
+    },
+    {
+      "id": "add_membership_tier_column",
+      "description": "The agent added the 'MembershipTier' column with the correct data type, length, and default value.",
+      "points": 30,
+      "visual_evidence": "In the table design view, a field named 'MembershipTier' is added with type 'VARCHAR' (or Text), length '20', and default value 'Bronze' (or 'Bronze') in the field properties. Alternatively, an SQL command like `ALTER TABLE \"Customer\" ADD COLUMN \"MembershipTier\" VARCHAR(20) DEFAULT 'Bronze'` is visible."
+    },
+    {
+      "id": "save_table_changes",
+      "description": "The agent saved the changes made to the 'Customer' table.",
+      "points": 20,
+      "visual_evidence": "The save button/icon is clicked in the GUI, the table design window is closed after saving without prompts, or an SQL command execution shows a success message indicating the changes were applied."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_tool_used",
+      "description": "The agent used a genuine database management tool or SQL client to modify the database.",
+      "visual_evidence": "Screenshots show the interface of a database application (like LibreOffice Base) or a terminal running an SQL client, not just a text editor with SQL text."
+    },
+    {
+      "id": "no_script_execution",
+      "description": "The agent performed the database modifications directly rather than running a pre-made script to solve the task.",
+      "visual_evidence": "The agent is seen interacting with the database GUI or typing SQL commands, rather than executing a script like `python solve.py` or `bash script.sh`."
+    },
+    {
+      "id": "correct_database_file",
+      "description": "The agent modified the correct database file.",
+      "visual_evidence": "The window title, file path, or connection details explicitly show the database being edited is '/home/ga/chinook.odb'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is an ODF/HSQLDB embedded database located at /home/ga/chinook.odb. The 'Customer' table originally has 13 columns. The task requires adding two new columns: 'LoyaltyPoints' (Type: INTEGER, Default: 0) and 'MembershipTier' (Type: VARCHAR, Length: 20, Default: 'Bronze'). The VLM should accept either GUI-based table design modifications (e.g., in LibreOffice Base) or SQL ALTER TABLE commands that achieve these exact specifications."
+}

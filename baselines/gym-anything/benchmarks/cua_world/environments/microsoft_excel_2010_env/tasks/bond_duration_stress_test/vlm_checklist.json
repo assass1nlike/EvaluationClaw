@@ -1,0 +1,59 @@
+{
+  "task_id": "bond_duration_stress_test@1",
+  "task_completion": [
+    {
+      "id": "ytm_and_market_value",
+      "description": "Calculate Years to Maturity and Market Value for the 10 bonds on the 'Duration_Analysis' sheet.",
+      "points": 10,
+      "visual_evidence": "On the 'Duration_Analysis' sheet, the columns for 'Years to Maturity' and 'Market Value' should be populated with numerical values for all 10 bonds."
+    },
+    {
+      "id": "duration_and_convexity_metrics",
+      "description": "Calculate Macaulay Duration, Modified Duration, DV01, and Convexity for the 10 bonds.",
+      "points": 25,
+      "visual_evidence": "On the 'Duration_Analysis' sheet, the columns for Macaulay Duration, Modified Duration, DV01, and Convexity should be populated with calculated numerical values for all 10 bonds."
+    },
+    {
+      "id": "duration_breach_flags",
+      "description": "Mark bonds with Modified Duration exceeding 7.0 years with the flag 'DURATION_BREACH'.",
+      "points": 15,
+      "visual_evidence": "On the 'Duration_Analysis' sheet, the text 'DURATION_BREACH' should appear in a flag/status column specifically for rows where the calculated Modified Duration is greater than 7.0."
+    },
+    {
+      "id": "portfolio_totals",
+      "description": "Determine the market-value-weighted average Modified Duration, total portfolio DV01, and total portfolio market value.",
+      "points": 20,
+      "visual_evidence": "On the 'Duration_Analysis' sheet, the 'Portfolio Totals' section at the bottom should show calculated values for weighted-average Modified Duration (expect ~6.9884), total DV01 (expect ~$3,000), and total Market Value."
+    },
+    {
+      "id": "shock_scenario_pl",
+      "description": "Calculate the P&L impact for each bond and portfolio totals under +100bps, -100bps, and +50bps parallel rate shocks on the 'Shock_Scenario' sheet.",
+      "points": 20,
+      "visual_evidence": "On the 'Shock_Scenario' sheet, there should be populated columns for +100bps, -100bps, and +50bps showing P&L impacts for each bond, along with a total row at the bottom (expect the +100bps total to be approximately -$298,951)."
+    },
+    {
+      "id": "file_saved",
+      "description": "Save the completed workbook to C:\\Users\\Docker\\Desktop\\ExcelTasks\\bond_portfolio.xlsx.",
+      "points": 10,
+      "visual_evidence": "The Excel title bar should show 'bond_portfolio.xlsx' and there should be evidence (like a 'Save As' dialog or file explorer view) confirming it is saved in the C:\\Users\\Docker\\Desktop\\ExcelTasks\\ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_excel_application",
+      "description": "The agent used the Microsoft Excel GUI to perform the calculations.",
+      "visual_evidence": "Screenshots should show the Microsoft Excel application interface being interacted with, rather than a text editor or a Python script generating a CSV."
+    },
+    {
+      "id": "used_formulas",
+      "description": "The agent used Excel formulas rather than hardcoding the final answers.",
+      "visual_evidence": "The Excel formula bar should show formulas (e.g., =MDURATION(...), =IF(...)) being entered or selected, rather than typed static numbers."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "The agent did not use terminal commands or scripts to bypass the manual Excel work.",
+      "visual_evidence": "There should be no terminal windows open showing Python scripts, pandas operations, or openpyxl commands modifying the workbook."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected portfolio market-value-weighted average Modified Duration is approximately 6.9884 years. The total portfolio DV01 should be around $3,000 (ignore any metadata claiming 30,000-50,000). The +100bp shock P&L total on the Shock_Scenario sheet should be approximately -$298,951. The task requires using Excel functions like DURATION, MDURATION, and IF."
+}

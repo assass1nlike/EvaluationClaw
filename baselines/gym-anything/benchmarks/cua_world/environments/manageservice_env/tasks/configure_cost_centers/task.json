@@ -1,0 +1,42 @@
+{
+  "id": "configure_cost_centers@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Configure financial tracking for the organization in ManageEngine ServiceDesk Plus by creating three Cost Centers: 'Engineering CC' (Code: 'CC-ENG-01'), 'Sales CC' (Code: 'CC-SAL-01'), and 'Marketing CC' (Code: 'CC-MKT-01'). Associate the 'Engineering' department with 'Engineering CC', the 'Sales' department with 'Sales CC', and the 'Marketing' department with 'Marketing CC'. Log in with username: administrator, password: administrator.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_cost_centers/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_cost_centers/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_ccs": [
+      {
+        "name": "Engineering CC",
+        "code": "CC-ENG-01",
+        "dept": "Engineering"
+      },
+      {
+        "name": "Sales CC",
+        "code": "CC-SAL-01",
+        "dept": "Sales"
+      },
+      {
+        "name": "Marketing CC",
+        "code": "CC-MKT-01",
+        "dept": "Marketing"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_cost_centers"
+    }
+  }
+}

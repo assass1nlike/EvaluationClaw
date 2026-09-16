@@ -1,0 +1,31 @@
+{
+  "id": "import_csv_data@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Import the airport dataset from /home/ga/airports.csv into the OrientDB 'demodb' database (user: admin, pass: admin). The 'Airports' vertex class must include properties for IataCode (STRING with a UNIQUE index), Name (STRING), City (STRING), Country (STRING), Latitude (DOUBLE), Longitude (DOUBLE), and Altitude (INTEGER). Additionally, create an edge class named 'IsInCountry' and link each Airport vertex to the existing Country vertex that matches its 'Country' field.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_csv_data/setup_task.sh",
+    "post_task": "/workspace/tasks/import_csv_data/export_result.sh"
+  },
+  "metadata": {
+    "csv_path": "/home/ga/airports.csv",
+    "db_name": "demodb",
+    "expected_count": 20,
+    "credentials": {
+      "db_user": "admin",
+      "db_pass": "admin"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_csv_data"
+    }
+  }
+}

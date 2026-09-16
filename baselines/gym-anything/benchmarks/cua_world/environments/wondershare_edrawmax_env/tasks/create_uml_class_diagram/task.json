@@ -1,0 +1,35 @@
+{
+  "id": "create_uml_class_diagram@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a UML class diagram for a Patient Portal system in Wondershare EdrawMax. Model the following classes: Patient (attributes: patientId: int, firstName: String, lastName: String, dateOfBirth: Date, email: String; methods: getFullName(): String, getAge(): int), Doctor (attributes: doctorId: int, name: String, specialty: String, licenseNumber: String; methods: getAvailableSlots(date: Date): List), Appointment (attributes: appointmentId: int, dateTime: DateTime, status: String, notes: String; methods: cancel(): void, reschedule(newDate: DateTime): void), Prescription (attributes: prescriptionId: int, medication: String, dosage: String, startDate: Date, endDate: Date; methods: isActive(): boolean), and MedicalRecord (attributes: recordId: int, diagnosis: String, treatmentPlan: String, createdDate: Date; methods: addNote(note: String): void). Establish relationships: Patient (1) to Appointment (*), Doctor (1) to Appointment (*), Patient (1) to MedicalRecord (*), Doctor (1) to Prescription (*), and Patient (1) to Prescription (*). Save the project to /home/ga/Documents/patient_portal_class_diagram.eddx and export the diagram to /home/ga/Documents/patient_portal_class_diagram.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_uml_class_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/create_uml_class_diagram/export_result.sh"
+  },
+  "metadata": {
+    "output_eddx_path": "/home/ga/Documents/patient_portal_class_diagram.eddx",
+    "output_png_path": "/home/ga/Documents/patient_portal_class_diagram.png",
+    "required_classes": [
+      "Patient",
+      "Doctor",
+      "Appointment",
+      "Prescription",
+      "MedicalRecord"
+    ],
+    "min_eddx_size_bytes": 10000,
+    "min_png_size_bytes": 20000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_uml_class_diagram"
+    }
+  }
+}

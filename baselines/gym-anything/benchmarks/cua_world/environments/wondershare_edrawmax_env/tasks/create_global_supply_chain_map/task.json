@@ -1,0 +1,39 @@
+{
+  "id": "create_global_supply_chain_map@1",
+  "version": "1.0",
+  "env_id": "wondershare_edrawmax_env@0.1",
+  "description": "Create a global supply chain map for 'Project Phoenix' in EdrawMax using a World Map diagram. Place location markers and labels for Seoul ('Supplier A (Display)'), Hsinchu ('Supplier B (Chipset)'), Shenzhen ('Assembly Plant'), and Memphis ('Global Distribution Hub'). Draw dashed directional connectors from Seoul and Hsinchu to Shenzhen, and a solid directional connector from Shenzhen to Memphis. Add the title 'Project Phoenix Logistics Network' at the top. Save the diagram to /home/ga/Documents/phoenix_supply_chain.eddx and export it as a PNG to /home/ga/Documents/phoenix_supply_chain.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_global_supply_chain_map/setup_task.sh",
+    "post_task": "/workspace/tasks/create_global_supply_chain_map/export_result.sh"
+  },
+  "metadata": {
+    "expected_eddx": "/home/ga/Documents/phoenix_supply_chain.eddx",
+    "expected_png": "/home/ga/Documents/phoenix_supply_chain.png",
+    "required_text": [
+      "Supplier A",
+      "Supplier B",
+      "Assembly Plant",
+      "Global Distribution Hub",
+      "Project Phoenix"
+    ],
+    "required_locations": [
+      "Seoul",
+      "Hsinchu",
+      "Shenzhen",
+      "Memphis"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_global_supply_chain_map"
+    }
+  }
+}

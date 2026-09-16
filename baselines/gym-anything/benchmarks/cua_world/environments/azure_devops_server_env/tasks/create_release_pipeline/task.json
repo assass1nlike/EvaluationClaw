@@ -1,0 +1,30 @@
+{
+  "id": "create_release_pipeline@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "Create a Classic Release Pipeline named 'Tailwind-CD' in the TailwindTraders project. Link the pipeline to the 'Tailwind-CI' build artifact and enable the Continuous Deployment trigger. The pipeline must consist of two sequential stages, 'Staging' followed by 'Production'. Each stage must include a PowerShell task running the inline script \"Write-Host 'Deploying...'\". Additionally, configure a pre-deployment approval for the 'Production' stage with the user 'Docker' assigned as the approver.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_release_pipeline\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_release_pipeline\\export_result.ps1"
+  },
+  "metadata": {
+    "project_name": "TailwindTraders",
+    "pipeline_name": "Tailwind-CD",
+    "build_source_name": "Tailwind-CI",
+    "stage1_name": "Staging",
+    "stage2_name": "Production",
+    "required_approver": "Docker"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_release_pipeline"
+    }
+  }
+}

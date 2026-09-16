@@ -1,0 +1,74 @@
+{
+  "dataset_id": "8595ada0",
+  "name": "Location-Recognition",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Location-Recognition dataset evaluates a model's ability to identify and extract location names from short text snippets. Given raw text, the model must output each location followed by '=> LOC', separated by commas, testing fine-grained entity recognition of geographic and political entities.",
+  "card_text": "This dataset contains 200 examples for location recognition in text. Each sample includes a raw text snippet (such as a news headline or a location-date string) and an instruction prompt asking to extract all location names and format them as 'location => LOC', with multiple locations separated by commas. The output is the formatted extraction. The data appears to be derived from news or general text, with short, factual snippets. The task evaluates a model's ability to perform named entity recognition for the location type in a controlled output format, likely measuring precision and recall of location spans.",
+  "tasks": [
+    "entity_recognition"
+  ],
+  "domain": "news",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "The raw text snippet from which location names must be extracted. It can be a short phrase, a date-location pair, or a news headline. This is the primary input content the model analyzes.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The instruction prompt that tells the model to extract all location names from the raw text and format each as 'location => LOC', separating multiple locations with commas. It uses a placeholder for the raw text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The extracted locations in a structured format: each location name followed by '=> LOC', with multiple locations separated by commas. It represents the target output of the location recognition task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with two text fields (raw_text and prompt) and an output object with a text field. The raw_text field holds the source text to be analyzed, the prompt field contains an instruction for extracting location names with a specified output format, and the output.text field holds the extracted locations formatted as 'location => LOC'. The prompt references the raw_text via a placeholder, linking the instruction to the content."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Location-Recognition/annotation.json",
+    "existing_tags": {
+      "task": "location_recognition",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

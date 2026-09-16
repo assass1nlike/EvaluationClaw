@@ -1,0 +1,61 @@
+{
+  "id": "add_ongoing_concerns@1",
+  "version": "1.0",
+  "env_id": "oscar_emr_env@0.1",
+  "description": "Log in to OSCAR EMR (username: oscardoc, password: oscar, PIN: 1117) and add Type 2 Diabetes Mellitus, Essential Hypertension, and Major Depressive Disorder, Recurrent as active ongoing concerns to patient Maria Santos's problem list. All three conditions should be saved as active and visible in her ongoing concerns list.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_ongoing_concerns/setup_task.sh",
+    "post_task": "/workspace/tasks/add_ongoing_concerns/export_result.sh"
+  },
+  "metadata": {
+    "patient_fname": "Maria",
+    "patient_lname": "Santos",
+    "conditions": [
+      {
+        "name": "Type 2 Diabetes",
+        "keywords": [
+          "diabetes",
+          "dm",
+          "type 2",
+          "t2dm"
+        ],
+        "points": 25
+      },
+      {
+        "name": "Hypertension",
+        "keywords": [
+          "hypertension",
+          "htn",
+          "blood pressure"
+        ],
+        "points": 25
+      },
+      {
+        "name": "Depression",
+        "keywords": [
+          "depress",
+          "mdd",
+          "mood"
+        ],
+        "points": 25
+      }
+    ],
+    "credentials": {
+      "username": "oscardoc",
+      "password": "oscar",
+      "pin": "1117"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_ongoing_concerns"
+    }
+  }
+}

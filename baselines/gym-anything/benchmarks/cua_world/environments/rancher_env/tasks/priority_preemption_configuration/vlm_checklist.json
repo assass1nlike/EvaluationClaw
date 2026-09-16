@@ -1,0 +1,53 @@
+{
+  "task_id": "priority_preemption_configuration@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Log in to the Rancher dashboard",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Rancher UI dashboard successfully loaded in the web browser."
+    },
+    {
+      "id": "create_high_priority_classes",
+      "description": "Create 'platform-critical' and 'business-critical' PriorityClasses",
+      "points": 20,
+      "visual_evidence": "Rancher UI showing the creation form or a list view containing PriorityClasses 'platform-critical' with value 1000000 and 'business-critical' with value 750000."
+    },
+    {
+      "id": "create_low_priority_classes",
+      "description": "Create 'standard' and 'batch-low' PriorityClasses",
+      "points": 20,
+      "visual_evidence": "Rancher UI showing the creation form or a list view containing PriorityClasses 'standard' with value 500000 and 'batch-low' with value 100000."
+    },
+    {
+      "id": "assign_redis_priority",
+      "description": "Assign 'business-critical' priority to the 'redis-primary' workload",
+      "points": 25,
+      "visual_evidence": "Rancher UI workload edit screen, pod scheduling form, or YAML view for 'redis-primary' in the 'staging' namespace showing the PriorityClass explicitly set to 'business-critical'."
+    },
+    {
+      "id": "assign_nginx_priority",
+      "description": "Assign 'standard' priority to the 'nginx-web' workload",
+      "points": 25,
+      "visual_evidence": "Rancher UI workload edit screen, pod scheduling form, or YAML view for 'nginx-web' in the 'staging' namespace showing the PriorityClass explicitly set to 'standard'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "rancher_gui_used",
+      "description": "Agent interacted with the Rancher GUI to perform the tasks",
+      "visual_evidence": "Screenshots show navigation, form filling, and resource management within the Rancher web interface, rather than exclusively using a terminal."
+    },
+    {
+      "id": "changes_saved",
+      "description": "Agent actually saved or applied the configurations",
+      "visual_evidence": "Screenshots show the agent clicking 'Create' or 'Save' buttons, or show the final list views confirming the resources actively exist in the cluster."
+    },
+    {
+      "id": "no_local_mocking",
+      "description": "Agent did not just mock the answers in a local text file",
+      "visual_evidence": "The configurations are visible in the actual Rancher cluster interface, not just typed into a local text editor or the spec file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace: 'staging'. Priority Classes to create: 'platform-critical' (1000000), 'business-critical' (750000), 'standard' (500000), 'batch-low' (100000). Workload assignments: 'redis-primary' must be assigned 'business-critical', and 'nginx-web' must be assigned 'standard'."
+}

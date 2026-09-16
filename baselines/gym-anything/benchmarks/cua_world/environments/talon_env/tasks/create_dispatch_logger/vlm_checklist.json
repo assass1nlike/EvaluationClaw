@@ -1,0 +1,53 @@
+{
+  "task_id": "create_dispatch_logger@1",
+  "task_completion": [
+    {
+      "id": "module_directory_created",
+      "description": "Verify the dispatch_system directory was created in the correct Talon user folder.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command (e.g., mkdir), File Explorer window, or IDE file tree showing the 'dispatch_system' folder located exactly at 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\'."
+    },
+    {
+      "id": "dispatch_lists_implemented",
+      "description": "Verify dispatch_lists.py contains the required Module, Context, and list mappings.",
+      "points": 25,
+      "visual_evidence": "Look for the contents of 'dispatch_lists.py' in an editor or terminal output. It must define a Module/Context and include mappings for user.call_priority ('code one' to '1', etc.), user.incident_type ('burglary' to '459', 'robbery' to '211', 'homicide' to '187', 'assault' to '240', 'grand theft' to '487'), and user.unit_designator ('adam' to 'A', etc.)."
+    },
+    {
+      "id": "dispatch_logger_implemented",
+      "description": "Verify dispatch_logger.py implements the log_dispatch action with correct formatting and file appending.",
+      "points": 30,
+      "visual_evidence": "Look for 'dispatch_logger.py' containing a 'user.log_dispatch(priority: str, incident: str, unit: str, zone: int)' action. The code must show generation of an ISO-8601 timestamp, formatting of the unit_id with a zero-padded zone (e.g., f'{unit}-{zone:02d}'), and appending a JSON dictionary to 'C:\\Users\\Docker\\Documents\\dispatch_log.json'."
+    },
+    {
+      "id": "dispatch_talon_command",
+      "description": "Verify dispatch.talon defines the exact required voice command.",
+      "points": 20,
+      "visual_evidence": "Look for 'dispatch.talon' containing the exact voice command definition: 'dispatch {user.call_priority} {user.incident_type} to unit {user.unit_designator} zone <number>:'."
+    },
+    {
+      "id": "dispatch_talon_action",
+      "description": "Verify dispatch.talon calls the log_dispatch action with the captured variables.",
+      "points": 15,
+      "visual_evidence": "Look for the body of the command in 'dispatch.talon' calling 'user.log_dispatch()' and passing the captured variables (call_priority, incident_type, unit_designator, number) in the correct order."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_creation",
+      "description": "Verify that the files were actually saved to the file system.",
+      "visual_evidence": "Look for evidence that the files were saved, such as no 'unsaved' indicators in the text editor (e.g., no white dot on the VS Code tab), or terminal commands like 'cat' or 'Get-Content' successfully reading the files."
+    },
+    {
+      "id": "correct_paths_used",
+      "description": "Verify the agent used the exact required paths and did not use mock directories.",
+      "visual_evidence": "Check the file paths in the editor, terminal prompt, or file explorer to ensure the agent is working in 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\dispatch_system\\' and referencing 'C:\\Users\\Docker\\Documents\\dispatch_log.json', not a temporary or desktop folder."
+    },
+    {
+      "id": "genuine_code_generation",
+      "description": "Verify the agent generated the code rather than copying a pre-existing solution.",
+      "visual_evidence": "Look for terminal history, editor typing, or file creation commands (like 'echo' or 'New-Item') that show the agent actively writing the Python and Talon scripts."
+    }
+  ],
+  "privileged_info_for_vlm": "The Talon module must be created exactly at C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\dispatch_system\\. The log file must be appended exactly to C:\\Users\\Docker\\Documents\\dispatch_log.json."
+}

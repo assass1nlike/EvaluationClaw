@@ -1,0 +1,53 @@
+{
+  "task_id": "mac_oui_inventory@1",
+  "task_completion": [
+    {
+      "id": "access_capture_files",
+      "description": "Access and analyze the packet capture files",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the agent opening the .cap and .pcap files in ~/Documents/captures/ using a tool like Wireshark, tshark, tcpdump, or a Python script."
+    },
+    {
+      "id": "identify_summary_stats",
+      "description": "Identify the total unique MAC addresses and the most active sender",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the agent calculating or noting 12 total unique MAC addresses and identifying 00:a0:cc:3b:bf:fa (Lite-OnU) as the most active sender with 48 packets."
+    },
+    {
+      "id": "compile_per_device_inventory",
+      "description": "Compile the per-device inventory with required details",
+      "points": 30,
+      "visual_evidence": "Screenshots of terminal output, script results, or a text editor showing MAC addresses paired with their hardware vendors, packets sent/received, and the specific files they appear in."
+    },
+    {
+      "id": "format_report",
+      "description": "Format the report with the specified headers",
+      "points": 20,
+      "visual_evidence": "Screenshots of the report content showing the exact headers '=== MAC Address Network Inventory Report ===' and '--- Per-Device Inventory ---' with colon-separated MAC addresses."
+    },
+    {
+      "id": "save_report",
+      "description": "Save the findings to the specified text file",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the file being saved to or existing at ~/Documents/captures/mac_inventory_report.txt (e.g., via a text editor save dialog, or terminal commands like 'ls' or 'cat')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis",
+      "description": "The agent actually analyzed the capture files using appropriate tools or scripts",
+      "visual_evidence": "Look for execution of network analysis tools (e.g., tshark, Wireshark) or scripts (e.g., Python with scapy) processing the files, rather than just echoing hardcoded text into a file."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not copy-paste expected answers without deriving them",
+      "visual_evidence": "Ensure the agent's steps show a logical progression of extracting data from the PCAP files before writing the final report."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The report is saved in the exact requested directory",
+      "visual_evidence": "Check terminal commands or editor paths to confirm the file is strictly at ~/Documents/captures/mac_inventory_report.txt and not in another location."
+    }
+  ],
+  "privileged_info_for_vlm": "The packet captures contain exactly 12 unique MAC addresses. The most active sender is MAC 00:a0:cc:3b:bf:fa (vendor: Lite-OnU) with 48 packets sent. The report must be saved to ~/Documents/captures/mac_inventory_report.txt and follow the exact format specified in the task description."
+}

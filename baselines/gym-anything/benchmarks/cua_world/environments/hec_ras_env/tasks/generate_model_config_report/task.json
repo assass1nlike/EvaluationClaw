@@ -1,0 +1,26 @@
+{
+  "id": "generate_model_config_report@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Create a Python script to parse the HEC-RAS Muncie project files in /home/ga/Documents/hec_ras_projects/Muncie and generate a configuration report. Extract the Project Title from the .prj file, and the Plan Title, Simulation Start Date, Simulation End Date, Computation Interval, and Geometry File extension from the .p04 file. Save the results to /home/ga/Documents/hec_ras_results/model_config.json with the keys: project_title, plan_title, simulation_start_date, simulation_end_date, computation_interval, and geometry_file_extension. Note that the 'Simulation Date' line in the .p04 file is comma-separated and requires splitting to extract the start and end dates.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_model_config_report/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_model_config_report/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/hec_ras_results/model_config.json",
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_model_config_report"
+    }
+  }
+}

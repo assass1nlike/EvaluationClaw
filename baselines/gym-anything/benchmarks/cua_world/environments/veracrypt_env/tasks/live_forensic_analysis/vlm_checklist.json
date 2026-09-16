@@ -1,0 +1,53 @@
+{
+  "task_id": "live_forensic_analysis@1",
+  "task_completion": [
+    {
+      "id": "view_volume_properties",
+      "description": "Open the VeraCrypt volume properties to identify the container path, encryption algorithm, and hash algorithm.",
+      "points": 20,
+      "visual_evidence": "The VeraCrypt 'Volume Properties' dialog box is open for the volume mounted at '/home/ga/MountPoints/slot2', displaying details like Location, Encryption Algorithm, and Hash Algorithm."
+    },
+    {
+      "id": "view_mounted_volume_contents",
+      "description": "Access the mounted volume to count the number of files inside.",
+      "points": 15,
+      "visual_evidence": "A file manager window or terminal is open showing the contents of the directory '/home/ga/MountPoints/slot2'."
+    },
+    {
+      "id": "create_json_report",
+      "description": "Create the forensic report JSON file at the specified path.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal command is visible creating or editing a file explicitly named '/home/ga/Documents/forensic_report.json'."
+    },
+    {
+      "id": "populate_json_report",
+      "description": "Populate the JSON report with the correct structure and extracted forensic data.",
+      "points": 30,
+      "visual_evidence": "The text editor shows a JSON object containing the exact keys: 'container_path', 'encryption_algorithm', 'hash_algorithm', and 'file_count', with corresponding values filled in."
+    },
+    {
+      "id": "dismount_volume",
+      "description": "Safely dismount the VeraCrypt volume.",
+      "points": 20,
+      "visual_evidence": "The VeraCrypt GUI shows that slot 2 is empty or no longer mounted, or a terminal command successfully dismounting the volume is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_interaction",
+      "description": "Verify the agent actually interacted with VeraCrypt to obtain the forensic details.",
+      "visual_evidence": "The VeraCrypt GUI (specifically the properties window) must be visible in the screenshots to extract the algorithms and container path, rather than the agent hallucinating the JSON values."
+    },
+    {
+      "id": "no_volume_modification",
+      "description": "Verify the agent did not modify the contents of the mounted volume.",
+      "visual_evidence": "There should be no terminal commands (like touch, rm, mv) or file manager actions creating, deleting, or modifying files inside '/home/ga/MountPoints/slot2'."
+    },
+    {
+      "id": "correct_report_path",
+      "description": "Verify the report was saved to the exact requested path.",
+      "visual_evidence": "The file path '/home/ga/Documents/forensic_report.json' must be clearly visible in the editor's title bar, save dialog, or terminal command. It should not be saved elsewhere or only printed to standard output."
+    }
+  ],
+  "privileged_info_for_vlm": "The required report path is explicitly verified as '/home/ga/Documents/forensic_report.json'. The VLM should ensure the JSON file is saved exactly at this location with the exact requested keys."
+}

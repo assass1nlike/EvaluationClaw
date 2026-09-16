@@ -1,0 +1,25 @@
+{
+  "id": "cartographic_reprojection@1",
+  "version": "1.0",
+  "env_id": "snap_env@0.1",
+  "description": "As a GIS technologist, prepare the Sentinel-2 RGB imagery (/home/ga/snap_data/sentinel2_b432.tif) for a topographic mapping project. Reproject the imagery into a projected coordinate system with metric units and create a spatial subset of a region of interest within the scene. Save the processed product in BEAM-DIMAP format and export the final map-ready GeoTIFF to /home/ga/snap_exports/.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cartographic_reprojection/setup_task.sh",
+    "post_task": "/workspace/tasks/cartographic_reprojection/export_result.sh"
+  },
+  "metadata": {
+    "data_file": "/home/ga/snap_data/sentinel2_b432.tif",
+    "data_source": "Sentinel-2 B4,B3,B2 bands from leftfield-geospatial/homonim"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cartographic_reprojection"
+    }
+  }
+}

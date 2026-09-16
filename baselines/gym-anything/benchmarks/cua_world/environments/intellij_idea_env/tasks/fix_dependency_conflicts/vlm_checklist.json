@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_dependency_conflicts@1",
+  "task_completion": [
+    {
+      "id": "open_pom_xml",
+      "description": "Open the pom.xml file of the data-pipeline project",
+      "points": 10,
+      "visual_evidence": "An editor (like IntelliJ IDEA, VS Code, nano, or vim) showing the contents of the pom.xml file located in ~/IdeaProjects/data-pipeline."
+    },
+    {
+      "id": "fix_jackson_dependency",
+      "description": "Resolve the Jackson dependency conflict",
+      "points": 30,
+      "visual_evidence": "The pom.xml file is modified so that the jackson-core version is either updated to 2.16.0 or higher, or the explicit 2.9.0 version pin is removed entirely."
+    },
+    {
+      "id": "fix_lang3_dependency",
+      "description": "Resolve the commons-lang3 dependency conflict",
+      "points": 30,
+      "visual_evidence": "The pom.xml file is modified so that the commons-lang3 version is either updated to 3.5 or higher, or the explicit 3.1 version pin is removed entirely."
+    },
+    {
+      "id": "run_maven_build",
+      "description": "Run Maven to compile the project and execute tests",
+      "points": 10,
+      "visual_evidence": "A terminal or IDE run window showing a Maven command being executed (e.g., 'mvn test', 'mvn clean install', or 'mvn compile')."
+    },
+    {
+      "id": "build_success",
+      "description": "Verify the project compiles and tests pass successfully",
+      "points": 20,
+      "visual_evidence": "The terminal or IDE output shows 'BUILD SUCCESS' along with test results indicating no failures or errors (e.g., 'Failures: 0, Errors: 0')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_java_source_modifications",
+      "description": "Ensure no Java source code files were modified to bypass the errors",
+      "visual_evidence": "The agent must not have edited any .java files to remove or comment out the usages of StreamWriteConstraints or StringUtils.truncate(). The fix must be entirely within pom.xml."
+    },
+    {
+      "id": "genuine_maven_execution",
+      "description": "Ensure the Maven build was genuinely executed",
+      "visual_evidence": "The 'BUILD SUCCESS' output should appear in a real terminal or IDE build tool window with standard Maven logging prefixes (e.g., '[INFO]'), not just typed into a text file or echoed."
+    },
+    {
+      "id": "correct_project_directory",
+      "description": "Ensure the agent is working in the correct project directory",
+      "visual_evidence": "The terminal prompt, IDE project explorer, or file paths should clearly show the agent is working within '/home/ga/IdeaProjects/data-pipeline'."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory is /home/ga/IdeaProjects/data-pipeline. The original pom.xml has jackson-core pinned to 2.9.0 and commons-lang3 pinned to 3.1. To fix the compilation errors without modifying Java source code, jackson-core must be updated to at least 2.16 (or the 2.9.0 override removed) and commons-lang3 must be updated to at least 3.5 (or the 3.1 override removed). The final state should show a successful Maven build ('BUILD SUCCESS')."
+}

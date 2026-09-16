@@ -1,0 +1,31 @@
+{
+  "id": "implement_after_hours_routing@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Configure time-based routing for the 'Priority Support' inbound group (ID: PRISUP). Create a Call Time definition with ID 'PRISUP_HRS' and description 'Priority Support M-F 9-6' scheduled for Monday-Friday 09:00 to 18:00 (Closed Saturday/Sunday). Update the 'PRISUP' inbound group to use this call time, setting the after-hours action to 'VOICEMAIL' with mailbox '1000' and message 'vm-goodbye'. Starting credentials: User 6666 / Password 'andromeda'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_after_hours_routing/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_after_hours_routing/export_result.sh"
+  },
+  "metadata": {
+    "expected_call_time_id": "PRISUP_HRS",
+    "expected_group_id": "PRISUP",
+    "expected_start_time": "0900",
+    "expected_stop_time": "1800",
+    "expected_action": "VOICEMAIL",
+    "expected_voicemail": "1000",
+    "expected_message": "vm-goodbye"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_implement_after_hours_routing"
+    }
+  }
+}

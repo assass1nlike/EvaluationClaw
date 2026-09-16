@@ -1,0 +1,35 @@
+{
+  "id": "add_billing_code@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Log in to LibreHealth EHR (admin/password) and add a new active CPT4 billing code (99458) to the fee sheet configuration. Use the description \"Remote physiologic monitoring treatment mgmt, each addl 20 min\" and set the fee to $42.00.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_billing_code/setup_task.sh",
+    "post_task": "/workspace/tasks/add_billing_code/export_result.sh"
+  },
+  "metadata": {
+    "expected_code": "99458",
+    "expected_type_key": "CPT4",
+    "expected_fee": 42.0,
+    "fee_tolerance": 0.5,
+    "required_keywords": [
+      "remote",
+      "physiologic",
+      "monitoring",
+      "20"
+    ],
+    "documentation_url": "https://www.ama-assn.org/practice-management/cpt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_billing_code"
+    }
+  }
+}

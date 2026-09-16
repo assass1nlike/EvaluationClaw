@@ -1,0 +1,59 @@
+{
+  "task_id": "reset_functional_form@1",
+  "task_completion": [
+    {
+      "id": "load_dataset",
+      "description": "Verify the food.gdt dataset is loaded into the econometrics software.",
+      "points": 10,
+      "visual_evidence": "The main software window (e.g., gretl) shows 'food.gdt' as the active dataset, listing variables like 'food_exp' and 'income'."
+    },
+    {
+      "id": "estimate_linear_model",
+      "description": "Estimate the linear OLS model of food expenditure on a constant and income.",
+      "points": 15,
+      "visual_evidence": "A model output window showing an OLS regression with dependent variable 'food_exp' and independent variable 'income'."
+    },
+    {
+      "id": "perform_reset_test",
+      "description": "Perform Ramsey's RESET test using squared and cubed fitted values on the linear model.",
+      "points": 20,
+      "visual_evidence": "A test results window showing 'RESET test' or 'Ramsey's RESET' applied to the linear model, displaying test statistics and p-values."
+    },
+    {
+      "id": "generate_log_variables",
+      "description": "Generate log transformations for both food expenditure and income.",
+      "points": 15,
+      "visual_evidence": "The main variable list shows new log-transformed variables, typically named 'l_food_exp' and 'l_income' (or similar)."
+    },
+    {
+      "id": "estimate_log_linear_model",
+      "description": "Estimate the log-linear OLS model using the newly generated log variables.",
+      "points": 15,
+      "visual_evidence": "A model output window showing an OLS regression with dependent variable 'l_food_exp' and independent variable 'l_income'."
+    },
+    {
+      "id": "save_results_to_file",
+      "description": "Save the estimation results for both models and the RESET test to the specified text file.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal window showing the contents of 'reset_comparison.txt' at '/home/ga/Documents/gretl_output/', containing coefficients, standard errors, R-squared, and RESET test results for both models."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_software_usage",
+      "description": "Verify the agent used actual econometrics software (like gretl) to compute the results.",
+      "visual_evidence": "Screenshots should show the software's GUI or CLI being actively used to run the regressions and tests, rather than the agent just typing numbers into a text editor."
+    },
+    {
+      "id": "no_hardcoded_incorrect_metadata",
+      "description": "Verify the agent did not copy-paste incorrect metadata values for the log-linear model.",
+      "visual_evidence": "The final output file must contain the actual computed values for the log-linear model (intercept ~3.964, slope ~0.556, R-squared ~0.445) and NOT the incorrect metadata values (intercept 3.69, slope 0.38, R-squared 0.36)."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "Verify the output file is saved in the exact requested directory.",
+      "visual_evidence": "A file manager, terminal, or text editor title bar shows the file is explicitly saved at '/home/ga/Documents/gretl_output/reset_comparison.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "Dataset: food.gdt (40 observations). Linear model correct values: intercept = 83.42, slope = 10.21, R-squared = 0.385. Log-linear model correct values: intercept = 3.964, slope (elasticity) = 0.556, R-squared = 0.445. The agent must output these actual computed values. If the agent outputs an elasticity of 0.38 or an intercept of 3.69 for the log-linear model, it has hallucinated or copied incorrect metadata."
+}

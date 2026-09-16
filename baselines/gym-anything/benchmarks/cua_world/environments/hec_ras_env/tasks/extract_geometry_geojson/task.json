@@ -1,0 +1,26 @@
+{
+  "id": "extract_geometry_geojson@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Create a Python script to parse the HEC-RAS geometry file at /home/ga/Documents/hec_ras_projects/Muncie/Muncie.g04 and extract the spatial definition of the river network and cross-sections. The script should extract 'Reach XY' coordinates for River Reach LineStrings and 'XS GIS Cut Line' coordinates for Cross-Section LineStrings. Each feature in the output must include properties for 'type' ('reach' or 'cross_section'), 'river_name', 'reach_name', and 'station' (for cross-sections). Save the resulting valid GeoJSON file to /home/ga/Documents/hec_ras_results/model_geometry.geojson, preserving the native coordinate system.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/extract_geometry_geojson/setup_task.sh",
+    "post_task": "/workspace/tasks/extract_geometry_geojson/export_result.sh"
+  },
+  "metadata": {
+    "input_file_path": "/home/ga/Documents/hec_ras_projects/Muncie/Muncie.g04",
+    "output_file_path": "/home/ga/Documents/hec_ras_results/model_geometry.geojson"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_extract_geometry_geojson"
+    }
+  }
+}

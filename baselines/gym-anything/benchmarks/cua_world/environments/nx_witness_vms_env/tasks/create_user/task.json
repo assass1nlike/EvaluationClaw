@@ -1,0 +1,20 @@
+{
+  "id": "create_user@1",
+  "version": "1.0",
+  "env_id": "nx_witness_vms_env@0.1",
+  "description": "Create a new user account in the Nx Witness VMS Web Admin at https://localhost:7001/static/index.html (credentials: admin/Admin1234!). The new user must have the login 'mike.chen', full name 'Mike Chen', email 'mike.chen@security.local', password 'SecureVMS2024!', and the role 'Viewer'. Verify that the user 'mike.chen' is successfully created and appears in the user list.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_user/setup_task.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_user"
+    }
+  }
+}

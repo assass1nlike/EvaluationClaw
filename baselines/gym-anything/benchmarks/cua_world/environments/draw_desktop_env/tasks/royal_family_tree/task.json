@@ -1,0 +1,55 @@
+{
+  "id": "royal_family_tree@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a family tree diagram of the British Royal House of Windsor (25 members, 4 generations) in draw.io using the data from ~/Desktop/windsor_family_data.csv. The diagram must include a shape for each member labeled with their Name and Birth Year (e.g., 'Queen Elizabeth II\\nb. 1926') arranged in a hierarchical layout. Use solid lines for parent-child relationships and dashed lines for marriage/spouse relationships. The project must contain two pages: a 'Family Tree' page and a 'Legend' page explaining the line styles. Save the diagram as ~/Desktop/royal_family_tree.drawio and export the first page as ~/Desktop/royal_family_tree.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/royal_family_tree/setup_task.sh",
+    "post_task": "/workspace/tasks/royal_family_tree/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "royal_family_tree.drawio",
+    "expected_png": "royal_family_tree.png",
+    "member_count": 25,
+    "min_edges": 20,
+    "expected_names": [
+      "Elizabeth",
+      "Philip",
+      "Charles",
+      "Camilla",
+      "Anne",
+      "Timothy",
+      "Andrew",
+      "Sarah",
+      "Edward",
+      "Sophie",
+      "William",
+      "Catherine",
+      "Harry",
+      "Meghan",
+      "Peter",
+      "Zara",
+      "Beatrice",
+      "Eugenie",
+      "Louise",
+      "James",
+      "George",
+      "Charlotte",
+      "Louis",
+      "Archie",
+      "Lilibet"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_royal_family_tree"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "simulate_signal_power_outage@1",
+  "task_completion": [
+    {
+      "id": "generate_outage_network",
+      "description": "Generate the modified network file without traffic lights.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command (e.g., netconvert with a flag like --tls.discard) creating pasubio_outage.net.xml in /home/ga/SUMO_Output/ from the original pasubio_buslanes.net.xml, or an 'ls' command confirming the file exists in the output directory."
+    },
+    {
+      "id": "create_baseline_config",
+      "description": "Save the baseline simulation configuration.",
+      "points": 15,
+      "visual_evidence": "Terminal or text editor showing the creation, editing, or existence of /home/ga/SUMO_Output/run_baseline.sumocfg."
+    },
+    {
+      "id": "create_outage_config",
+      "description": "Save the outage simulation configuration.",
+      "points": 15,
+      "visual_evidence": "Terminal or text editor showing the creation or existence of /home/ga/SUMO_Output/run_outage.sumocfg. The file contents or creation command should show it references the modified network and does not include pasubio_tls.add.xml."
+    },
+    {
+      "id": "run_simulations",
+      "description": "Run both the baseline and outage simulations.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of the 'sumo' command for both run_baseline.sumocfg and run_outage.sumocfg, or a script actively running these simulations and outputting simulation step logs."
+    },
+    {
+      "id": "generate_resilience_report",
+      "description": "Save the final results to resilience_report.txt with the required format.",
+      "points": 30,
+      "visual_evidence": "Terminal showing 'cat /home/ga/SUMO_Output/resilience_report.txt' or a text editor displaying the file with the exact four required lines: 'Baseline Average Waiting Time: [value]', 'Baseline Teleports: [value]', 'Outage Average Waiting Time: [value]', and 'Outage Teleports: [value]'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_run",
+      "description": "Verify the agent actually executed the SUMO simulations to get the results.",
+      "visual_evidence": "Look for SUMO execution logs, terminal output showing simulation steps, or a script that explicitly calls the SUMO executable. The agent should not just guess or hallucinate the waiting times and teleports."
+    },
+    {
+      "id": "genuine_network_modification",
+      "description": "Verify the agent properly modified the network rather than just copying the file.",
+      "visual_evidence": "Look for the use of a SUMO network editing tool (like netconvert) or an XML parsing script to remove the traffic lights. A simple 'cp' command to create pasubio_outage.net.xml without modifying its contents is a violation."
+    },
+    {
+      "id": "no_hardcoded_report",
+      "description": "Verify the resilience report is generated from actual simulation data.",
+      "visual_evidence": "The values in resilience_report.txt should correspond to the parsed outputs of the simulation runs. The agent should not use 'echo' to write arbitrary or hardcoded numbers into the text file without deriving them from the simulation outputs."
+    }
+  ],
+  "privileged_info_for_vlm": "The scenario files are located in /home/ga/SUMO_Scenarios/bologna_pasubio. All generated configurations, modified networks, and the final resilience_report.txt must be saved to /home/ga/SUMO_Output."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "debug_robotic_arm_controller@1",
+  "task_completion": [
+    {
+      "id": "fix_pid_controller",
+      "description": "Fix the PID controller to avoid derivative kick.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the PID controller derivative calculated on the process variable (PV) instead of error, or terminal output showing the PID test passing."
+    },
+    {
+      "id": "fix_ema_filter",
+      "description": "Correct the EMAFilter's inverted alpha calculation.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the formula 'alpha * raw_value + (1 - alpha) * self.value' in the EMAFilter, or terminal output showing the filter test passing."
+    },
+    {
+      "id": "fix_inverse_kinematics",
+      "description": "Fix the inverse kinematics calculation by swapping arguments in atan2.",
+      "points": 20,
+      "visual_evidence": "Code editor showing 'math.atan2(y, x)' instead of '(x, y)' in the kinematics module, or terminal output showing the kinematics test passing."
+    },
+    {
+      "id": "fix_trapezoidal_planner",
+      "description": "Fix the TrapezoidalPlanner deceleration distance calculation.",
+      "points": 20,
+      "visual_evidence": "Code editor showing division by '2.0 * self.amax' in the planner module, or terminal output showing the trajectory planner test passing."
+    },
+    {
+      "id": "fix_safety_monitor",
+      "description": "Fix the SafetyMonitor to enforce velocity limits before position calculation.",
+      "points": 20,
+      "visual_evidence": "Code editor showing velocity limits applied before the new position is calculated, or terminal output showing the safety monitor test passing and all pytest tests succeeding."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_pytest_execution",
+      "description": "The agent ran the actual pytest suite to verify the fixes.",
+      "visual_evidence": "Terminal showing the command 'pytest tests/' and its genuine output, not just a text file or echoed string."
+    },
+    {
+      "id": "actual_code_modification",
+      "description": "The agent modified the simulator source code files.",
+      "visual_evidence": "A text editor (e.g., VS Code, vim, nano) open with the source files being edited, or valid terminal commands (e.g., sed) altering the files."
+    },
+    {
+      "id": "no_test_bypass",
+      "description": "The agent did not modify the test files to force them to pass.",
+      "visual_evidence": "The files being edited are the main source code files, and there is no evidence of the agent altering files inside the 'tests/' directory to remove assertions."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific bugs in a robotic arm simulator to pass the test suite. The expected fixes are: 1) PID controller: calculate derivative on the process variable (PV) instead of error to avoid derivative kick. 2) EMAFilter: correct inverted alpha to `alpha * raw_value + (1 - alpha) * self.value`. 3) Inverse kinematics: swap arguments to `math.atan2(y, x)`. 4) TrapezoidalPlanner: divide by `2.0 * self.amax` for deceleration distance. 5) SafetyMonitor: enforce velocity limits before calculating new position. The pass threshold is 60 points (3 out of 5 bugs fixed)."
+}

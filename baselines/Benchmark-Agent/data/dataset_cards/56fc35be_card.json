@@ -1,0 +1,106 @@
+{
+  "dataset_id": "56fc35be",
+  "name": "Openset Textual Document Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A visual question answering dataset where models must analyze pairs of book cover images and answer multiple-choice questions about their publication years or authors.",
+  "card_text": "The Openset Textual Document VQA dataset contains 200 samples of book cover images paired with textual prompts. Each sample provides a list of one or more book cover images (typically two) and a prompt that instructs the model to analyze the graphics and answer a question. The question is embedded within the prompt and is followed by a multiple-choice list of candidate answers. The expected output is the correct choice as a short text string. The dataset evaluates a model's ability to extract information from book cover images, such as publication year or author names, and to reason over multiple images to compare attributes. The questions require cross-image comparison (e.g., same year, same author) and selection from provided options. The data is in English and covers general trade books.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "book covers",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The prompt is the main text input; it contains an instruction to analyze the provided book cover images, a specific question about the books, and a multiple-choice list of answers.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The question portion of the prompt asks about a relationship or attribute of the two book covers (e.g., whether they share authors or publication years).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The multiple-choice list embedded in the prompt provides candidate answers that the model must choose from.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The answer is the correct choice from the provided list, given as a short text string.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of image file paths (typically two) showing book covers that the model must analyze in conjunction with the textual prompt.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a list of book cover images, a text prompt that embeds a task instruction, a question, and a multiple-choice list, and a textual answer. The prompt is the sole textual input and combines instruction, question, and options. The images are referenced by filenames, and the answer is a single string selected from the choices."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/TextualDocumentVQA/openset_textual_document_vqa.json",
+    "existing_tags": {
+      "task": "Textual Document VQA",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "generate_customer_usernames@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "The Chinook music store database is open in LibreOffice Base. Provision usernames for all customers in the 'Customer' table by adding a new VARCHAR column named 'Username'. Populate this column for all records by extracting the text before the '@' symbol from the 'Email' field and converting it to lowercase (e.g., 'Bjorn.Hansen@google.com' becomes 'bjorn.hansen'). Save the changes to the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_customer_usernames/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_customer_usernames/export_result.sh"
+  },
+  "metadata": {
+    "odb_path": "/home/ga/chinook.odb",
+    "table_name": "Customer",
+    "expected_row_count": 59,
+    "target_column": "Username",
+    "source_column": "Email"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_customer_usernames"
+    }
+  }
+}

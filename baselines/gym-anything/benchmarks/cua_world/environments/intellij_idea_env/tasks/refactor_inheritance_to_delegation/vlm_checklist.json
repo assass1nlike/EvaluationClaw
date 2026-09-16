@@ -1,0 +1,59 @@
+{
+  "task_id": "refactor_inheritance_to_delegation@1",
+  "task_completion": [
+    {
+      "id": "open_target_file",
+      "description": "Open the SecureDataTransmitter.java file in an editor.",
+      "points": 10,
+      "visual_evidence": "The file 'SecureDataTransmitter.java' is visible in the active tab of a code editor or IDE."
+    },
+    {
+      "id": "remove_inheritance",
+      "description": "Remove the 'extends LegacySocket' clause from the class declaration.",
+      "points": 20,
+      "visual_evidence": "The class declaration for SecureDataTransmitter no longer contains 'extends LegacySocket'."
+    },
+    {
+      "id": "add_delegate_field",
+      "description": "Add a delegate field of type LegacySocket.",
+      "points": 20,
+      "visual_evidence": "A field declaration of type 'LegacySocket' (e.g., 'private LegacySocket legacySocket;') is present inside the SecureDataTransmitter class."
+    },
+    {
+      "id": "delegate_send_data",
+      "description": "Implement the sendData method using the delegate.",
+      "points": 20,
+      "visual_evidence": "A 'sendData' method is defined in SecureDataTransmitter that calls the 'sendData' method on the LegacySocket delegate field."
+    },
+    {
+      "id": "delegate_close",
+      "description": "Implement the close method using the delegate.",
+      "points": 20,
+      "visual_evidence": "A 'close' method is defined in SecureDataTransmitter that calls the 'close' method on the LegacySocket delegate field."
+    },
+    {
+      "id": "forbidden_methods_absent",
+      "description": "Ensure unsafe methods are not exposed.",
+      "points": 10,
+      "visual_evidence": "The methods 'connectInsecure' and 'getRawStream' are not defined or exposed in the SecureDataTransmitter class."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_code_editor",
+      "description": "The agent used a code editor or IDE to modify the files.",
+      "visual_evidence": "Screenshots show an IDE (like IntelliJ IDEA) or a text editor (like VS Code, nano, vim) being used to edit the Java code, rather than just terminal echo/cat commands."
+    },
+    {
+      "id": "legacy_socket_unmodified",
+      "description": "The agent did not modify the LegacySocket.java file to remove the forbidden methods.",
+      "visual_evidence": "There is no evidence of LegacySocket.java being edited to delete 'connectInsecure' or 'getRawStream'. The refactoring must happen in SecureDataTransmitter.java."
+    },
+    {
+      "id": "genuine_refactoring",
+      "description": "The agent actually wrote the refactored code rather than pasting a pre-computed solution block.",
+      "visual_evidence": "The screenshots show the progression of editing the file, such as removing the 'extends' keyword and typing out the delegate methods."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: src/main/java/com/network/SecureDataTransmitter.java. Legacy file: src/main/java/com/network/LegacySocket.java. The refactoring must replace inheritance ('extends LegacySocket') with delegation (a field of type 'LegacySocket'). Required methods to delegate: 'sendData' and 'close'. Forbidden methods that must not be exposed: 'connectInsecure' and 'getRawStream'."
+}

@@ -1,0 +1,26 @@
+{
+  "id": "configure_mailbox_permissions@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are the IT manager of an AV equipment installation company that uses FreeScout for managing field service tickets. Log in as admin (admin@helpdesk.local, password: Admin123!) and configure user access permissions for the 'Field Service' mailbox. Grant access to Sarah Chen (tech_sarah@helpdesk.local), a senior technician who needs to handle escalated repair tickets, and ensure Marcus Rivera (tech_marcus@helpdesk.local), who was reassigned to warehouse operations, does not have access to the mailbox.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_mailbox_permissions/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_mailbox_permissions/export_result.sh"
+  },
+  "metadata": {
+    "mailbox_name": "Field Service",
+    "target_user_email": "tech_sarah@helpdesk.local",
+    "restricted_user_email": "tech_marcus@helpdesk.local"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_mailbox_permissions"
+    }
+  }
+}

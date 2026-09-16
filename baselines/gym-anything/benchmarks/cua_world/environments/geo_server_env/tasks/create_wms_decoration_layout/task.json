@@ -1,0 +1,28 @@
+{
+  "id": "create_wms_decoration_layout@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Create a WMS decoration layout named 'report_map' in the GeoServer data directory of the 'gs-app' container. The layout file at 'layouts/report_map.xml' must include a 'scaleline' decoration at the bottom-left (10px offset) and a 'text' decoration at the top-right (10px offset) with the message '© Natural Earth Data'. Generate and save an undecorated map image of 'ne:ne_countries' (EPSG:4326, 800x400) to '/home/ga/map_undecorated.png'. Additionally, generate a decorated map image using the 'report_map' layout with the same parameters and save it to '/home/ga/map_decorated.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_wms_decoration_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/create_wms_decoration_layout/export_result.sh"
+  },
+  "metadata": {
+    "layout_filename": "report_map.xml",
+    "expected_text": "© Natural Earth Data",
+    "undecorated_path": "/home/ga/map_undecorated.png",
+    "decorated_path": "/home/ga/map_decorated.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_wms_decoration_layout"
+    }
+  }
+}

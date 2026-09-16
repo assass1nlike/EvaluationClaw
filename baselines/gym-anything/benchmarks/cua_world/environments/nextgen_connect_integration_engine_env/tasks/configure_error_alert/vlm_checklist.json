@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_error_alert@1",
+  "task_completion": [
+    {
+      "id": "api_request_setup",
+      "description": "Verify the API request targets the correct endpoint with required authentication and headers.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command (e.g., curl), script, or API client targeting 'https://localhost:8443/api' with credentials 'admin:admin', the header 'X-Requested-With: OpenAPI', and the '-k' flag (or equivalent for ignoring SSL warnings)."
+    },
+    {
+      "id": "alert_name_and_status",
+      "description": "Verify the alert is named correctly and is enabled.",
+      "points": 15,
+      "visual_evidence": "Look for the exact string 'ADT Critical Error Monitor' and an indication that the alert is enabled (e.g., '\"enabled\": true' or similar) in the request payload."
+    },
+    {
+      "id": "channel_assignment",
+      "description": "Verify the alert is assigned to the correct channel.",
+      "points": 15,
+      "visual_evidence": "Look for the channel name 'ADT_Inbound_Processor' or its fixed ID 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' in the request payload."
+    },
+    {
+      "id": "error_trigger_types",
+      "description": "Verify the alert triggers on the correct error types with the specified regex.",
+      "points": 20,
+      "visual_evidence": "Look for 'SOURCE_CONNECTOR' and 'DESTINATION_CONNECTOR' error types, along with the regex pattern '.*' in the request payload."
+    },
+    {
+      "id": "action_group_details",
+      "description": "Verify the action group subject and template are configured correctly.",
+      "points": 20,
+      "visual_evidence": "Look for an action group configuration in the payload containing a subject with 'ADT' and a template/body containing the exact variable '${error}'."
+    },
+    {
+      "id": "recipient_details",
+      "description": "Verify the recipient email and protocol are configured correctly.",
+      "points": 20,
+      "visual_evidence": "Look for the recipient 'ops-team@hospital.example.org' and the protocol 'EMAIL' in the request payload."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "api_execution_evidence",
+      "description": "Verify the API request was actually executed and returned a response.",
+      "visual_evidence": "Look for terminal output showing a successful HTTP response (e.g., HTTP 200 OK or a JSON response body) from the server, confirming the command was run and not just typed."
+    },
+    {
+      "id": "no_gui_configuration",
+      "description": "Verify the agent used the REST API rather than the GUI.",
+      "visual_evidence": "Ensure the configuration was done via terminal commands, scripts, or an API client (like Postman), and NOT through the NextGen Connect Administrator graphical user interface."
+    },
+    {
+      "id": "genuine_payload",
+      "description": "Verify the payload is part of a genuine API request.",
+      "visual_evidence": "Look for proper JSON/XML formatting within a curl command or script, rather than just echoing or copy-pasting the task description text into a file."
+    }
+  ],
+  "privileged_info_for_vlm": "The alert must be named exactly 'ADT Critical Error Monitor' and be enabled. It must monitor the channel 'ADT_Inbound_Processor' (fixed ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890). The trigger must include 'SOURCE_CONNECTOR' and 'DESTINATION_CONNECTOR' error types with regex '.*'. The action group must have a subject containing 'ADT', a template containing '${error}', and a recipient 'ops-team@hospital.example.org' using the 'EMAIL' protocol. The API endpoint is https://localhost:8443/api, requiring credentials admin:admin, the header 'X-Requested-With: OpenAPI', and the -k flag."
+}

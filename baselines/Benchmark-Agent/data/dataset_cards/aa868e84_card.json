@@ -1,0 +1,75 @@
+{
+  "dataset_id": "aa868e84",
+  "name": "Math-Question-Answering",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A collection of 200 multiple-choice mathematics word problems covering arithmetic, geometry, averages, and other quantitative reasoning topics. Each item presents a natural-language math problem with five candidate answers, and the model must select the single correct option letter.",
+  "card_text": "This dataset is a text-only multiple-choice question answering benchmark focused on mathematics. Each sample contains a word problem written in everyday English (e.g., average temperatures, combining spheres, arithmetic reasoning), followed by a list of five answer options that include numeric values or a 'none of these' alternative. The expected output is a single option letter (A-E) indicating the correct choice. Problems are short and self-contained, requiring arithmetic or basic algebra and geometry reasoning rather than external context. The data assumes single-correct-answer grading with fixed candidate lists, and no rationales, passages, or supporting documents are provided.",
+  "tasks": [
+    "multiple_choice_qa",
+    "question_answering"
+  ],
+  "domain": "mathematics word problems",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The natural-language math word problem that the model must solve. It states the scenario, quantities, and the target value to be computed, and it is the sole source of information for selecting among the options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "An ordered list of five candidate answers (labeled A through E implicitly by position), containing numeric values and sometimes a 'none of these' fallback. One of these options must be selected as the answer to the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A single uppercase letter identifying the correct entry in the options list for the corresponding question. It is the supervision target and is meaningless without the paired question and options.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object holding a 'question' (a self-contained math word problem) and an 'options' list of five candidate answer strings, plus an output object holding a single-letter 'answer' that indexes the correct option. There is no separate passage, document, dialog, table, or rationale: the question alone supplies all problem context, and the answer is a compact label that must be resolved against the option list."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Math-Question-Answering/annotation.json",
+    "existing_tags": {
+      "task": "Math Question Answering",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "renovation_material_package@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "You are an interior designer preparing a renovation proposal for the Contemporary House project currently open in DreamPlan. Update the house with the following material finishes: hardwood flooring (warm wood finish — not carpet, not tile) in the living room and at least one bedroom (matching the living room), and ceramic or stone tile flooring (not wood) in the kitchen. Additionally, update the wall color or material in at least one room to complement the new floors. Export a 3D rendered view of the updated interior to C:\\Users\\Docker\\Desktop\\renovation_3d_view.jpg, a 2D floor plan view to C:\\Users\\Docker\\Desktop\\renovation_floor_plan.jpg, and save the modified project file to C:\\Users\\Docker\\Documents\\renovation",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 540,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\renovation_material_package\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\renovation_material_package\\export_result.ps1"
+  },
+  "metadata": {
+    "required_files": [
+      "C:\\Users\\Docker\\Desktop\\renovation_3d_view.jpg",
+      "C:\\Users\\Docker\\Desktop\\renovation_floor_plan.jpg",
+      "C:\\Users\\Docker\\Documents\\renovation_proposal.dpn"
+    ],
+    "result_json_path": "C:\\Users\\Docker\\renovation_material_package_result.json",
+    "start_ts_path": "C:\\Users\\Docker\\task_start_ts_renovation_material.txt",
+    "min_3d_size_bytes": 30000,
+    "min_floorplan_size_bytes": 10000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_renovation_material_package"
+    }
+  }
+}

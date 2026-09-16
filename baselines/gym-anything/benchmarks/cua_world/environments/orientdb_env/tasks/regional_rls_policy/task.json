@@ -1,0 +1,40 @@
+{
+  "id": "regional_rls_policy@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Implement Record-Level Security (RLS) on the 'demodb' database to restrict customer profile access by region. Create a role named 'RegionalManager' that extends the 'reader' role and create two users, 'manager_eu' and 'manager_na', with the password 'management_access' assigned to this role. Configure the '_allowRead' property on the 'Profiles' class so that 'manager_eu' can only access profiles with European nationalities (Italian, German, French, Spanish, Dutch, British, Greek) and 'manager_na' can only access profiles with North American nationalities (American, Canadian, Mexican, Brazilian). Access the database at http://localhost:2480/studio/index.html using credentials root / GymAnything123!.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/regional_rls_policy/setup_task.sh",
+    "post_task": "/workspace/tasks/regional_rls_policy/export_result.sh"
+  },
+  "metadata": {
+    "eu_nationalities": [
+      "Italian",
+      "German",
+      "French",
+      "Spanish",
+      "Dutch",
+      "British",
+      "Greek"
+    ],
+    "na_nationalities": [
+      "American",
+      "Canadian",
+      "Mexican",
+      "Brazilian"
+    ],
+    "manager_password": "management_access"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_regional_rls_policy"
+    }
+  }
+}

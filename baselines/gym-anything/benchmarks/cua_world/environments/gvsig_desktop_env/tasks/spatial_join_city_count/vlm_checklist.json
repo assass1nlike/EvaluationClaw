@@ -1,0 +1,59 @@
+{
+  "task_id": "spatial_join_city_count@1",
+  "task_completion": [
+    {
+      "id": "add_cities_layer",
+      "description": "Add the populated places layer to the project",
+      "points": 15,
+      "visual_evidence": "The layer 'ne_110m_populated_places' should be visible in the Table of Contents (layer list) on the left side of the gvSIG interface."
+    },
+    {
+      "id": "open_spatial_join_tool",
+      "description": "Open the Spatial Join or Geoprocessing tool",
+      "points": 10,
+      "visual_evidence": "A dialog box for 'Spatial Join' or 'Geoprocessing' should be open on the screen."
+    },
+    {
+      "id": "configure_spatial_join_layers",
+      "description": "Set the correct target and source layers for the spatial join",
+      "points": 25,
+      "visual_evidence": "Inside the spatial join dialog, the target layer (or layer to be joined to) must be set to 'ne_110m_admin_0_countries' and the source/join layer must be set to 'ne_110m_populated_places'."
+    },
+    {
+      "id": "configure_spatial_join_count",
+      "description": "Configure the spatial join to count the features",
+      "points": 20,
+      "visual_evidence": "Inside the spatial join dialog, an option for 'Count' (or a similar summary statistic for counting intersecting features) must be selected."
+    },
+    {
+      "id": "set_export_path",
+      "description": "Set the correct output path for the resulting layer",
+      "points": 15,
+      "visual_evidence": "The output file path text box in the spatial join or export dialog must show exactly '/home/ga/gvsig_data/exports/countries_city_count.shp'."
+    },
+    {
+      "id": "execute_and_verify_output",
+      "description": "Execute the spatial join and generate the output",
+      "points": 15,
+      "visual_evidence": "A progress bar completing, a success message, or the new 'countries_city_count' layer appearing in the Table of Contents, indicating the operation finished."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_geoprocessing",
+      "description": "The agent used the gvSIG Desktop GUI to perform the spatial join.",
+      "visual_evidence": "Screenshots should show interaction with gvSIG's graphical geoprocessing tools, rather than a terminal window running command-line GIS tools (like ogr2ogr or python scripts)."
+    },
+    {
+      "id": "actual_application_interaction",
+      "description": "The agent interacted with the actual gvSIG application.",
+      "visual_evidence": "Visuals of clicking through gvSIG menus, opening dialogs, and selecting layers, rather than just viewing a text file or a static image."
+    },
+    {
+      "id": "genuine_export_process",
+      "description": "The output file was generated via the spatial join tool, not faked.",
+      "visual_evidence": "The export path should be entered within the gvSIG geoprocessing or save dialog. The agent should not be seen creating a dummy file with the 'touch' command or simply renaming an existing file in the file manager."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file must be saved exactly to '/home/ga/gvsig_data/exports/countries_city_count.shp'. The source cities layer is located at '/home/ga/gvsig_data/cities/ne_110m_populated_places.shp'. A correct spatial join using the countries layer as the target will deterministically produce an output shapefile with exactly 177 features."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "export_timeseries_csv@1",
+  "task_completion": [
+    {
+      "id": "hdf_file_accessed",
+      "description": "Verify that the agent accesses or reads the Muncie.p04.hdf file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a Python script (e.g., using h5py or pandas), terminal command, or HDF viewer opening or reading '/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.hdf'."
+    },
+    {
+      "id": "flow_csv_created",
+      "description": "Verify that the flow_timeseries.csv file is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing 'flow_timeseries.csv' listed in '/home/ga/Documents/hec_ras_results/' via a terminal command like 'ls' or a file manager."
+    },
+    {
+      "id": "wse_csv_created",
+      "description": "Verify that the wse_timeseries.csv file is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing 'wse_timeseries.csv' listed in '/home/ga/Documents/hec_ras_results/' via a terminal command like 'ls' or a file manager."
+    },
+    {
+      "id": "flow_csv_content_correct",
+      "description": "Verify the contents of the flow_timeseries.csv file meet the header and data requirements.",
+      "points": 35,
+      "visual_evidence": "Screenshots showing the contents of 'flow_timeseries.csv' (e.g., via 'cat', 'head', or a CSV viewer). The first row must start with 'Time' followed by River Station IDs (e.g., '16404', '15696.8'). Subsequent rows must contain valid datetime/hour strings in the first column and numeric flow data in the rest."
+    },
+    {
+      "id": "wse_csv_content_correct",
+      "description": "Verify the contents of the wse_timeseries.csv file meet the header and data requirements.",
+      "points": 35,
+      "visual_evidence": "Screenshots showing the contents of 'wse_timeseries.csv' (e.g., via 'cat', 'head', or a CSV viewer). The first row must start with 'Time' followed by River Station IDs. Subsequent rows must contain valid datetime/hour strings in the first column and numeric water surface elevation data in the rest."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_extraction_performed",
+      "description": "Verify that the agent actually extracted data from the HDF file rather than mocking the output.",
+      "visual_evidence": "Look for a script (e.g., Python) or terminal commands that programmatically read the HDF5 structure. The agent should not be manually typing fake data into a CSV file."
+    },
+    {
+      "id": "dynamic_station_ids",
+      "description": "Verify that the agent did not hardcode the River Station IDs.",
+      "visual_evidence": "The script or method used should dynamically extract the cross-section IDs from the HDF file's internal groups/datasets rather than having a hardcoded list of expected IDs in the code."
+    },
+    {
+      "id": "genuine_csv_files",
+      "description": "Verify that the CSV files are genuinely saved to the filesystem.",
+      "visual_evidence": "Look for terminal outputs (like 'ls -l' or 'cat') showing the files exist on disk, rather than just displaying unsaved text in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The HEC-RAS unsteady simulation results are located at '/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.hdf'. The agent must generate two files: '/home/ga/Documents/hec_ras_results/flow_timeseries.csv' and '/home/ga/Documents/hec_ras_results/wse_timeseries.csv'. Both CSV files must contain a 'Time' column followed by columns for each River Station ID, containing numeric data for flow and water surface elevation respectively."
+}

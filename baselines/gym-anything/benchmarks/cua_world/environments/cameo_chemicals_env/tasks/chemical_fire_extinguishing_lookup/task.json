@@ -1,0 +1,45 @@
+{
+  "id": "chemical_fire_extinguishing_lookup@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "You are a fire safety officer updating the emergency response plan for a chemical storage facility. Research fire-fighting response information for Sodium, Acetone, and Magnesium on the CAMEO Chemicals website (https://cameochemicals.noaa.gov/). For each chemical, identify the recommended fire extinguishing agents and determine if water is safe or contraindicated. Compile a report at ~/Documents/fire_response_report.txt that includes the fire extinguishing recommendations for each chemical, identifies which are water-reactive, and provides a summary statement listing the chemicals where water must never be used.",
+  "difficulty": "medium",
+  "category": "safety_research",
+  "tags": [
+    "fire-safety",
+    "water-reactivity",
+    "extinguishing-agents",
+    "response-recommendations",
+    "cameo-chemicals"
+  ],
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chemical_fire_extinguishing_lookup/setup_task.sh",
+    "post_task": "/workspace/tasks/chemical_fire_extinguishing_lookup/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/home/ga/Documents/fire_response_report.txt",
+    "chemicals": [
+      "Sodium",
+      "Acetone",
+      "Magnesium"
+    ],
+    "water_reactive": [
+      "Sodium",
+      "Magnesium"
+    ],
+    "water_safe": [
+      "Acetone"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chemical_fire_extinguishing_lookup"
+    }
+  }
+}

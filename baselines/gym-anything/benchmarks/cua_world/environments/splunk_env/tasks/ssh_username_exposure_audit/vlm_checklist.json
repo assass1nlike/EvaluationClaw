@@ -1,0 +1,59 @@
+{
+  "task_id": "ssh_username_exposure_audit@1",
+  "task_completion": [
+    {
+      "id": "search_correct_index",
+      "description": "The agent initiated a search in the correct security logs index.",
+      "points": 10,
+      "visual_evidence": "The Splunk search bar contains a query starting with `index=\"security_logs\"` or `index=security_logs`."
+    },
+    {
+      "id": "calculate_user_length",
+      "description": "The agent calculated the length of the 'user' field.",
+      "points": 15,
+      "visual_evidence": "The SPL query in the search bar includes an evaluation function to calculate length, such as `eval len=len(user)` or `eval user_length=len(user)`."
+    },
+    {
+      "id": "filter_length_threshold",
+      "description": "The agent filtered the events for username lengths strictly greater than 15.",
+      "points": 15,
+      "visual_evidence": "The SPL query includes a filtering command for the calculated length, such as `where len > 15` or `search user_length > 15`."
+    },
+    {
+      "id": "group_and_count_events",
+      "description": "The agent computed the count of events grouped by source IP and username length.",
+      "points": 20,
+      "visual_evidence": "The SPL query includes a statistics command like `stats count by src_ip, len` (using whatever variable name was assigned to the length)."
+    },
+    {
+      "id": "format_privacy_compliant_table",
+      "description": "The final output table contains only 'src_ip', the calculated length, and the event 'count', excluding 'user' and '_raw'.",
+      "points": 20,
+      "visual_evidence": "The SPL query uses a command like `table src_ip, len, count` or `fields src_ip, len, count`, AND the visible results table in the UI shows exactly these three columns with no 'user' or '_raw' columns present."
+    },
+    {
+      "id": "save_report_with_correct_name",
+      "description": "The agent saved the search as a report named 'SSH_Username_Exposure_Audit'.",
+      "points": 20,
+      "visual_evidence": "A 'Save As Report' modal dialog is visible with 'SSH_Username_Exposure_Audit' entered in the Title field, or a success confirmation screen shows the report was saved with this exact name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_splunk_web_gui",
+      "description": "The agent used the Splunk web interface to perform the task.",
+      "visual_evidence": "Screenshots show the Splunk web GUI running in a web browser, rather than the agent just executing curl commands or Python scripts in a terminal."
+    },
+    {
+      "id": "genuine_data_interaction",
+      "description": "The agent interacted with actual log data in Splunk.",
+      "visual_evidence": "The Splunk search results show a populated statistics table or actual log events, indicating the index exists and contains real data, rather than empty results or a mocked text file."
+    },
+    {
+      "id": "spl_query_execution",
+      "description": "The agent generated the report using a genuine SPL query rather than hardcoding the output.",
+      "visual_evidence": "The final report or search results are clearly backed by the SPL query visible in the search bar, not a manually created static dashboard or text document."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected report name is exactly 'SSH_Username_Exposure_Audit'. The search must target the 'security_logs' index. The length threshold for the 'user' field must be strictly greater than 15 (e.g., > 15)."
+}

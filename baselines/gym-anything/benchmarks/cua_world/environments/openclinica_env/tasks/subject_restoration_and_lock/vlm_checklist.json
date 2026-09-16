@@ -1,0 +1,59 @@
+{
+  "task_id": "subject_restoration_and_lock@1",
+  "task_completion": [
+    {
+      "id": "login_success",
+      "description": "Verify the agent successfully logged into OpenClinica.",
+      "points": 10,
+      "visual_evidence": "The OpenClinica dashboard or home screen is visible, indicating a successful login (typically showing 'root' or 'Admin' in the user session area)."
+    },
+    {
+      "id": "study_selected",
+      "description": "Verify the correct study is active.",
+      "points": 10,
+      "visual_evidence": "The active study context in the OpenClinica interface (usually at the top or in a sidebar) displays 'DM-TRIAL-2024'."
+    },
+    {
+      "id": "subject_restored",
+      "description": "Verify subject DM-105 has been restored to 'Available' (Active) status.",
+      "points": 30,
+      "visual_evidence": "In the Subject Matrix or View Subject page, DM-105's status is shown as 'Available' or 'Active' (often indicated by a specific icon like a green checkmark or person icon, and no longer marked as 'Removed' or a red 'X')."
+    },
+    {
+      "id": "event_locked",
+      "description": "Verify the 'Baseline Assessment' event for DM-105 is locked.",
+      "points": 30,
+      "visual_evidence": "In the Subject Matrix or event details for DM-105, the specific 'Baseline Assessment' event column/row displays a locked status (typically a padlock icon)."
+    },
+    {
+      "id": "subject_not_locked",
+      "description": "Verify the entire subject record for DM-105 was NOT locked.",
+      "points": 10,
+      "visual_evidence": "The global subject status for DM-105 does not show a global lock icon; only the specific event should be locked."
+    },
+    {
+      "id": "collateral_unmodified",
+      "description": "Verify the collateral subject DM-101 was not modified.",
+      "points": 10,
+      "visual_evidence": "If visible in the Subject Matrix, DM-101 does not have any new lock icons or removed statuses applied; it remains in its default state."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "Verify the agent interacted with the OpenClinica web interface.",
+      "visual_evidence": "Screenshots should show a web browser navigating the OpenClinica GUI. There should be no terminal windows executing psql or curl commands to modify the database directly."
+    },
+    {
+      "id": "no_html_tampering",
+      "description": "Verify the agent did not use browser developer tools to fake the results.",
+      "visual_evidence": "No browser developer tools (Inspect Element, Console) should be visible in the screenshots used to alter the DOM text or icons."
+    },
+    {
+      "id": "logical_workflow",
+      "description": "Verify the agent followed a genuine sequence of UI interactions.",
+      "visual_evidence": "The trajectory should show intermediate steps like viewing the removed subjects, clicking a restore button, confirming restoration, and navigating to the event to lock it."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Study: DM-TRIAL-2024. Target Subject: DM-105 (initially in 'Removed' status). Target Event: 'Baseline Assessment' (initially 'Completed'). Collateral Subject: DM-101. The agent must restore DM-105 to 'Available' and lock ONLY the 'Baseline Assessment' event for DM-105. DM-105's overall record must not be locked, and DM-101 must remain untouched."
+}

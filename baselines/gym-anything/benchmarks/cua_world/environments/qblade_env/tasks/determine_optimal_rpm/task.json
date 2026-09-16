@@ -1,0 +1,38 @@
+{
+  "id": "determine_optimal_rpm@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Design a horizontal-axis wind turbine (HAWT) rotor and determine its optimal operational RPM for a wind speed of 12 m/s. The design must utilize a NACA 4412 airfoil (analyzed at Re=1,000,000 with 360-degree polar extrapolation) for a 3-bladed rotor with a 10m radius. The rotor geometry should follow a linear distribution from Root (Chord=1.5m, Twist=10°) to Tip (Chord=0.5m, Twist=0°). Identify the optimal Tip Speed Ratio (TSR) and maximum Power Coefficient (Cp) through BEM simulation to calculate the optimal RPM at 12 m/s. Save the project to /home/ga/Documents/projects/rpm_study.wpa and record the Optimal TSR, Max Cp, and Optimal RPM in a report at /home/ga/Documents/projects/optimal_rpm_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/determine_optimal_rpm/setup_task.sh",
+    "post_task": "/workspace/tasks/determine_optimal_rpm/export_result.sh"
+  },
+  "metadata": {
+    "target_wind_speed": 12.0,
+    "target_radius": 10.0,
+    "expected_project_path": "/home/ga/Documents/projects/rpm_study.wpa",
+    "expected_report_path": "/home/ga/Documents/projects/optimal_rpm_report.txt",
+    "airfoil": "NACA 4412",
+    "min_tsr": 4.0,
+    "max_tsr": 9.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_determine_optimal_rpm"
+    }
+  },
+  "tags": [
+    "qblade",
+    "aerodynamics",
+    "calculation",
+    "optimization",
+    "engineering-workflow"
+  ]
+}

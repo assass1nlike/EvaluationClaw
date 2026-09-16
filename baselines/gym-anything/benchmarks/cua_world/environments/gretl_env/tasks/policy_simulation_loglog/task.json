@@ -1,0 +1,28 @@
+{
+  "id": "policy_simulation_loglog@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform a counterfactual policy simulation using a double-log Engel curve model with the 'food.gdt' dataset. Estimate an OLS model of ln(food_exp) on ln(income) and simulate a scenario where every household's income increases by 15%. Calculate the predicted food expenditure in dollars for both the baseline and the new scenario using simple exponentiation to convert log predictions back to levels. Compute the Total Aggregate Increase in food expenditure for the sample. Save the hansl script to /home/ga/Documents/gretl_output/simulation_script.inp and the numeric value of the Total Aggregate Increase to /home/ga/Documents/gretl_output/aggregate_impact.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/policy_simulation_loglog/setup_task.sh",
+    "post_task": "/workspace/tasks/policy_simulation_loglog/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "script_path": "/home/ga/Documents/gretl_output/simulation_script.inp",
+    "result_path": "/home/ga/Documents/gretl_output/aggregate_impact.txt",
+    "ground_truth_tolerance": 10.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_policy_simulation"
+    }
+  }
+}

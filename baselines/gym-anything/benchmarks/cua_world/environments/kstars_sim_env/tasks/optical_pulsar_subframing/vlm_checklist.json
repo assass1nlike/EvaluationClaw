@@ -1,0 +1,59 @@
+{
+  "task_id": "optical_pulsar_subframing@1",
+  "task_completion": [
+    {
+      "id": "read_observation_plan",
+      "description": "Verify the agent opens and reads the observation plan.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of 'pulsar_observation_plan.txt'."
+    },
+    {
+      "id": "target_crab_pulsar",
+      "description": "Verify the agent targets the Crab Pulsar in KStars/Ekos.",
+      "points": 15,
+      "visual_evidence": "KStars sky map centered on the Crab Pulsar, or the Ekos Mount module showing the target as Crab Pulsar (or coordinates RA ~05h 34m, Dec ~+22d 00m)."
+    },
+    {
+      "id": "configure_subframe_binning",
+      "description": "Verify the agent configures the correct subframing and binning settings.",
+      "points": 20,
+      "visual_evidence": "Ekos Capture module showing Binning set to '2x2' (or X:2, Y:2) and Subframe/ROI settings configured to Width: 256, Height: 256, X: 512, Y: 512."
+    },
+    {
+      "id": "configure_exposure_sequence",
+      "description": "Verify the agent configures the correct exposure time, sequence count, and filter.",
+      "points": 20,
+      "visual_evidence": "Ekos Capture module showing Exposure set to 0.5 (seconds), Count set to 30, and Filter set to Luminance (or Slot 1) in the sequence queue."
+    },
+    {
+      "id": "execute_observation_sequence",
+      "description": "Verify the agent executes the observation sequence to capture the FITS files.",
+      "points": 20,
+      "visual_evidence": "Ekos Capture module showing a running or completed capture sequence (progress bar, captured frame count reaching 30), or a file manager showing multiple FITS files in the target directory."
+    },
+    {
+      "id": "capture_context_image",
+      "description": "Verify the agent captures the DSS2 field context image using the provided shell script.",
+      "points": 15,
+      "visual_evidence": "A terminal window showing the execution of a shell script (e.g., 'capture_sky_view.sh') or a file manager/image viewer displaying 'crab_context.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_ekos_gui",
+      "description": "Verify the agent used the KStars/Ekos GUI to configure the camera and sequence.",
+      "visual_evidence": "The KStars/Ekos graphical interface must be visible with the settings actively entered into the Capture module, rather than the agent using terminal commands to generate fake FITS files."
+    },
+    {
+      "id": "executed_shell_script",
+      "description": "Verify the agent executed the shell script for the context image.",
+      "visual_evidence": "A terminal window showing the execution of the shell script, rather than the agent opening a web browser to manually download an image."
+    },
+    {
+      "id": "genuine_subframing_input",
+      "description": "Verify the subframing and binning parameters were genuinely entered into the application.",
+      "visual_evidence": "The specific values (256x256, X=512, Y=512, Binning 2x2) should be visible in the Ekos Capture module input fields, not just highlighted in the text plan."
+    }
+  ],
+  "privileged_info_for_vlm": "Target: Crab Pulsar (PSR B0531+21) at RA 5.5755h (05h 34m 32s), Dec 22.0144 deg (+22d 00m 52s). Required settings in Ekos Capture: Filter = Luminance (Slot 1), Binning = 2x2, Subframe = 256x256 at X=512, Y=512, Exposure = 0.5s, Sequence Count = 30 frames. Output FITS files should be saved to /home/ga/Images/pulsar_data/crab. The context image must be captured via shell script and saved to /home/ga/Images/pulsar_data/crab_context.png."
+}

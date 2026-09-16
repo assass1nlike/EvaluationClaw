@@ -1,0 +1,52 @@
+{
+  "id": "test_coverage_remediation@1",
+  "version": "1.0",
+  "env_id": "reqview_env@0.1",
+  "description": "You are a QA manager preparing for a v1.1 release. The project requires complete test coverage for the 'File Operations' section of the SRS document. Create new test suites in the 'Test Cases > File Operations' section of the TESTS document for SRS-61 (Document Template - creating template from document), SRS-72 (Import - importing from MS Word), and SRS-76 (Export - exporting to HTML). Each test suite must be set to 'Draft' status, follow the established naming convention (e.g., 'Open Local File'), and include a verification traceability link to its corresponding SRS requirement. The application is already open with the project loaded.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/test_coverage_remediation/setup_task.sh",
+    "pre_task_timeout": 180
+  },
+  "metadata": {
+    "required_test_suites": [
+      {
+        "srs_target": "SRS-61",
+        "srs_text_contains": "document template",
+        "expected_heading_contains": [
+          "template",
+          "document template"
+        ]
+      },
+      {
+        "srs_target": "SRS-72",
+        "srs_text_contains": "import a MS Word",
+        "expected_heading_contains": [
+          "import",
+          "word"
+        ]
+      },
+      {
+        "srs_target": "SRS-76",
+        "srs_text_contains": "export the displayed document view to HTML",
+        "expected_heading_contains": [
+          "export",
+          "html"
+        ]
+      }
+    ],
+    "target_document": "TESTS",
+    "baseline_test_count": null
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_test_coverage_remediation"
+    }
+  }
+}

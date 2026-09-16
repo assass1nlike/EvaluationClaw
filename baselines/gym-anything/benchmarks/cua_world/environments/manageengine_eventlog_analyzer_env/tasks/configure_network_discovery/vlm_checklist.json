@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_network_discovery@1",
+  "task_completion": [
+    {
+      "id": "open_eventlog_analyzer",
+      "description": "Navigate to the network device discovery or scan configuration page in EventLog Analyzer.",
+      "points": 10,
+      "visual_evidence": "The EventLog Analyzer web interface is visible in a browser, specifically on a page for adding a new network scan, discovering devices, or configuring log sources."
+    },
+    {
+      "id": "enter_ip_range",
+      "description": "Input the required IP range for the server subnet.",
+      "points": 25,
+      "visual_evidence": "The values '10.0.1.1' (start) and '10.0.1.254' (end) are visible in the IP range input fields within the EventLog Analyzer scan configuration form."
+    },
+    {
+      "id": "enter_localhost",
+      "description": "Include localhost in the scan configuration.",
+      "points": 25,
+      "visual_evidence": "The IP address '127.0.0.1' is visible in an input field (e.g., as an additional IP, a comma-separated value, or a specific device addition field) within the scan configuration form."
+    },
+    {
+      "id": "save_configuration",
+      "description": "Save the new network discovery scan configuration.",
+      "points": 20,
+      "visual_evidence": "A success message, confirmation dialog, or the newly created scan appearing in the list of configured scans/devices in the EventLog Analyzer interface."
+    },
+    {
+      "id": "create_summary_file",
+      "description": "Create the required summary text file with the configuration details.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor window showing the creation or content of '/home/ga/discovery_config_summary.txt', which includes the IP range (10.0.1.1 to 10.0.1.254) and a status message indicating the operation was successful."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gui_usage",
+      "description": "Verify the agent used the EventLog Analyzer web interface to configure the scan.",
+      "visual_evidence": "A web browser showing the EventLog Analyzer UI is used to input the IP addresses, rather than terminal commands like curl or direct database modifications."
+    },
+    {
+      "id": "authentic_summary_creation",
+      "description": "Verify the summary file was created as a genuine summary of the task.",
+      "visual_evidence": "The summary file is created or edited in a terminal/text editor after the GUI configuration steps are shown, not just blindly created at the start of the trajectory."
+    },
+    {
+      "id": "no_html_tampering",
+      "description": "Verify the success message or configuration list wasn't faked using browser developer tools.",
+      "visual_evidence": "Browser developer tools (Inspect Element) are not open and being used to modify the DOM to show a fake success message or fake scan entry."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected IP range to be configured is 10.0.1.1 to 10.0.1.254. Localhost (127.0.0.1) must also be included in the scan configuration. The summary file must be saved exactly at /home/ga/discovery_config_summary.txt and contain the IP range and operation status."
+}

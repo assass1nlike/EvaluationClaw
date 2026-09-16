@@ -1,0 +1,59 @@
+{
+  "task_id": "provision_bi_database_views@1",
+  "task_completion": [
+    {
+      "id": "create_bi_user_export_view",
+      "description": "Create the bi_user_export view excluding the password column",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query creating the 'bi_user_export' view (e.g., CREATE VIEW bi_user_export AS SELECT...) that explicitly selects columns from a user accounts table while omitting the password column, followed by a success message like 'Query OK'."
+    },
+    {
+      "id": "create_bi_social_export_view",
+      "description": "Create the bi_social_export view excluding token and secret columns",
+      "points": 20,
+      "visual_evidence": "Look for a SQL query creating the 'bi_social_export' view that selects columns from a social media accounts table but omits any columns with 'token' or 'secret' in their names, followed by a success message."
+    },
+    {
+      "id": "create_bi_viewer_user",
+      "description": "Create the bi_viewer user with the specified password",
+      "points": 15,
+      "visual_evidence": "Look for a SQL query creating the user 'bi_viewer'@'localhost' identified by the password 'SecureBI#2025', followed by a success message."
+    },
+    {
+      "id": "grant_select_privileges",
+      "description": "Grant SELECT privileges on the two views to the bi_viewer user",
+      "points": 15,
+      "visual_evidence": "Look for SQL queries granting SELECT privileges specifically on 'bi_user_export' and 'bi_social_export' to 'bi_viewer'@'localhost', followed by a success message."
+    },
+    {
+      "id": "query_as_bi_viewer",
+      "description": "Verify configuration by querying as the bi_viewer user",
+      "points": 15,
+      "visual_evidence": "Look for a terminal command showing the agent logging into MariaDB as the new user (e.g., 'mysql -u bi_viewer -p') and executing a SELECT query on the 'bi_user_export' view."
+    },
+    {
+      "id": "save_extract_csv",
+      "description": "Save the query output to the specified CSV file path",
+      "points": 15,
+      "visual_evidence": "Look for evidence that the query results were saved to '/home/ga/bi_initial_extract.csv', such as a terminal redirection ('> /home/ga/bi_initial_extract.csv'), an 'INTO OUTFILE' SQL clause, or an 'ls'/'cat' command confirming the file's creation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Ensure the agent interacted with the MariaDB database",
+      "visual_evidence": "Check that SQL commands were executed in a genuine database client (like the mysql command-line tool or a GUI like DBeaver) and not just typed into a text editor."
+    },
+    {
+      "id": "no_direct_file_creation",
+      "description": "Ensure the CSV file was generated from a query, not manually created",
+      "visual_evidence": "Verify that the CSV file was created as a direct result of a database query or command-line redirection, rather than the agent manually creating the file and typing/pasting mock data into it."
+    },
+    {
+      "id": "correct_user_login",
+      "description": "Ensure the verification query was performed by the correct user",
+      "visual_evidence": "Check the terminal prompt or connection details to confirm the agent actually logged in as 'bi_viewer' to perform the final verification query, rather than executing it as 'root' or 'socioboard'."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected user: bi_viewer. Expected password: SecureBI#2025. Expected views: bi_user_export, bi_social_export. Expected extract path: /home/ga/bi_initial_extract.csv."
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "load_balancer_fairness_analysis@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "The agent created and saved a dashboard named 'Load Balancer Fairness'.",
+      "points": 10,
+      "visual_evidence": "The Graphite web interface shows a dashboard with the main title 'Load Balancer Fairness'."
+    },
+    {
+      "id": "network_graph_title",
+      "description": "The dashboard contains a graph titled 'Network Traffic Share'.",
+      "points": 10,
+      "visual_evidence": "A graph panel exists on the dashboard with the exact title 'Network Traffic Share'."
+    },
+    {
+      "id": "network_graph_data",
+      "description": "The 'Network Traffic Share' graph is configured to display the percentage share of network inbound bytes using the wildcard query.",
+      "points": 20,
+      "visual_evidence": "The graph's query editor or legend shows the use of 'servers.ec2_instance_*.network.bytes_in' and a percentage function (e.g., asPercent). Note: Due to a system defect, it is acceptable if only one instance's data is visible on the graph, provided the query is correct."
+    },
+    {
+      "id": "disk_graph_title",
+      "description": "The dashboard contains a graph titled 'Disk Write Share'.",
+      "points": 10,
+      "visual_evidence": "A graph panel exists on the dashboard with the exact title 'Disk Write Share'."
+    },
+    {
+      "id": "disk_graph_data",
+      "description": "The 'Disk Write Share' graph displays the percentage share of disk write bytes for each instance with legends showing instance names.",
+      "points": 20,
+      "visual_evidence": "The graph shows disk write data, utilizing 'servers.ec2_instance_*.disk.write_bytes' with a percentage function (e.g., asPercent). The legend below the graph must display the instance names."
+    },
+    {
+      "id": "cpu_graph_title",
+      "description": "The dashboard contains a graph titled 'CPU Imbalance Magnitude'.",
+      "points": 10,
+      "visual_evidence": "A graph panel exists on the dashboard with the exact title 'CPU Imbalance Magnitude'."
+    },
+    {
+      "id": "cpu_graph_data",
+      "description": "The 'CPU Imbalance Magnitude' graph displays the absolute difference in CPU utilization with the series named 'CPU Gap'.",
+      "points": 20,
+      "visual_evidence": "The graph shows a single metric line representing the absolute difference between the two instances' CPU utilization (e.g., using absolute() and diffSeries() functions). The legend for this graph must explicitly name the series 'CPU Gap' (e.g., using the alias() function)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "The agent interacted with the Graphite web interface to create the dashboard.",
+      "visual_evidence": "Screenshots show the Graphite web UI loaded in a web browser, with the agent clicking through the interface or query builder."
+    },
+    {
+      "id": "genuine_metric_queries",
+      "description": "The agent constructed the graphs using actual Graphite metric queries rather than faking the output.",
+      "visual_evidence": "The Graphite query editor tree or function list is visible in the screenshots, showing genuine interaction with the metric paths (servers.ec2_instance_...)."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not simply write a mock JSON file to bypass the UI.",
+      "visual_evidence": "The visual trajectory shows the dashboard being built visually in the browser, not just a text editor modifying a .json dashboard file directly."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected Dashboard Name: 'Load Balancer Fairness'. Expected Graph Titles: 'Network Traffic Share', 'Disk Write Share', 'CPU Imbalance Magnitude'. CRITICAL NOTE: Due to an environment defect, the metric 'servers.ec2_instance_2.network.bytes_in' is permanently missing from the database. The 'Network Traffic Share' graph will only display data for instance 1 even if the correct wildcard query ('servers.ec2_instance_*.network.bytes_in') is used. Do NOT penalize the agent if the second instance is missing from the Network Traffic Share graph or its legend, as long as the graph is properly titled and the agent attempted to query the wildcard or both instances."
+}

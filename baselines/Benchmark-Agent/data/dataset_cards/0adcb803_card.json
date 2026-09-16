@@ -1,0 +1,109 @@
+{
+  "dataset_id": "0adcb803",
+  "name": "Geography Vqa",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 237,
+  "description": "A visual question answering dataset about geography, where each item pairs an image with a multiple-choice question about capitals and locations. It evaluates a model's ability to use visual information and geographical knowledge to select the correct answer.",
+  "card_text": "Geography VQA is a small benchmark of 237 image-text samples for visual question answering in the geography domain. Each item includes an image file (likely a map or geographic visualization), a prompt instructing the model to answer based on the image and choose from given options, and a question that embeds the candidate answers as a Python-style list string. The expected output is a short text answer such as a capital city name. The dataset tests combined visual reasoning and factual geographic knowledge, with a focus on multiple-choice selection. Samples are independent, single-turn, and do not contain bounding boxes, masks, or multi-turn dialog.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "geography",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic task instruction that asks the model to answer the question based on the image and select one of the provided choices. It sets the response format and grounds the question in the visual input.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "diagram",
+        "semantics": "A reference to the visual input, likely a map or geographic diagram showing state boundaries, capitals, or other location cues needed to answer the question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A geography question about a capital or location, with the candidate answers listed as a Python-style list embedded in the text. It is the core query to be answered using the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The candidate answer choices (e.g., city names) embedded as a string list within the question text. These options constrain the answer to one of the listed candidates.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct answer text, typically a single word (e.g., a capital city name), corresponding to one of the options and derived from the image and question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image file reference, a prompt instruction, a question text that includes both the query and a list of answer candidates, and a short answer text. The image and question are the main inputs; the options are embedded in the question string; the answer is the selected option. No bounding boxes, masks, or multi-turn dialog are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/geography_vqa/json/annotation.json",
+    "existing_tags": {
+      "task": "geography vqa",
+      "type": "comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": [
+        "Geography"
+      ],
+      "general_capability": [
+        "Reasoning Ability"
+      ]
+    },
+    "original_raw_domain": [
+      "Geography"
+    ]
+  }
+}

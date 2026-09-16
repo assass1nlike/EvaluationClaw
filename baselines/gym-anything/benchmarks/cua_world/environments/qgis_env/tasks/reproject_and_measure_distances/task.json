@@ -1,0 +1,32 @@
+{
+  "id": "reproject_and_measure_distances@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Reproject the road network layer from /home/ga/GIS_Data/sample_lines.geojson (EPSG:4326) to EPSG:32610 and save it to /home/ga/GIS_Data/exports/roads_utm.geojson. Calculate the length of each road in kilometers in a new decimal field named 'length_km'. Export the resulting data to /home/ga/GIS_Data/exports/road_measurements.csv.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 55
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reproject_and_measure_distances/setup_task.sh",
+    "post_task": "/workspace/tasks/reproject_and_measure_distances/export_result.sh"
+  },
+  "metadata": {
+    "source_file": "/home/ga/GIS_Data/sample_lines.geojson",
+    "expected_csv_output": "/home/ga/GIS_Data/exports/road_measurements.csv",
+    "expected_geojson_output": "/home/ga/GIS_Data/exports/roads_utm.geojson",
+    "expected_road_count": 2,
+    "expected_crs": "EPSG:32610",
+    "road_names": [
+      "Road 1",
+      "Road 2"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reproject_and_measure_distances"
+    }
+  }
+}

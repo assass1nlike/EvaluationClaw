@@ -1,0 +1,28 @@
+{
+  "id": "debug_runtime_crash@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "The NotepadApp project is open in Android Studio. The project compiles without errors, but the app crashes immediately on launch. A colleague reports the following from logcat: 'FATAL EXCEPTION: main — java.lang.UninitializedPropertyAccessException: lateinit property formatter has not been initialized'. Investigate the source code to identify and fix all runtime issues causing crashes so the app runs correctly. Login credentials: user 'ga', password 'password123'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 540,
+    "max_steps": 90,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/debug_runtime_crash/setup_task.sh",
+    "post_task": "/workspace/tasks/debug_runtime_crash/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/NotepadApp",
+    "data_source": "/workspace/data/NotepadApp",
+    "package_path": "com/example/notepad",
+    "num_bugs": 4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_debug_runtime_crash"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "pose_repeatability_study@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_running",
+      "description": "CoppeliaSim is running and the ZMQ Remote API is active.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the CoppeliaSim GUI open with a robot arm, or terminal logs indicating CoppeliaSim was launched and the ZMQ Remote API is listening on port 23000."
+    },
+    {
+      "id": "script_execution",
+      "description": "A script is executed to programmatically drive the robot arm.",
+      "points": 20,
+      "visual_evidence": "Terminal shows a Python (or similar) script being executed (e.g., 'python3 repeatability_test.py') that connects to the simulation."
+    },
+    {
+      "id": "cycle_logging",
+      "description": "The script executes and logs the homing-and-return cycles for multiple poses.",
+      "points": 20,
+      "visual_evidence": "Terminal output shows progress of the simulation, such as printing trial numbers, pose IDs, or Cartesian coordinates as the robot moves through the required 30 trials for 3 distinct poses."
+    },
+    {
+      "id": "csv_content_verified",
+      "description": "The repeatability_data.csv file is generated with the correct columns and data.",
+      "points": 25,
+      "visual_evidence": "Terminal shows the contents of '/home/ga/Documents/CoppeliaSim/exports/repeatability_data.csv' (e.g., via 'cat', 'head', or 'less') containing headers: pose_id, trial_id, target_x, target_y, target_z, measured_x, measured_y, measured_z, and deviation_mm, along with multiple rows of floating-point data."
+    },
+    {
+      "id": "json_report_verified",
+      "description": "The repeatability_report.json file is generated with the required summary metrics.",
+      "points": 25,
+      "visual_evidence": "Terminal shows the contents of '/home/ga/Documents/CoppeliaSim/exports/repeatability_report.json' containing the fields: total_poses, trials_per_pose, worst_rp_mm, best_rp_mm, mean_rp_mm, overall_rp_mm, and iso_compliant."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_simulation_run",
+      "description": "The data appears to be generated from an actual physics simulation rather than being mocked or hardcoded.",
+      "visual_evidence": "The measured_x, measured_y, measured_z, and deviation_mm values in the CSV show realistic, slight floating-point variations typical of a simulated robot, rather than perfectly identical numbers or manually typed integers."
+    },
+    {
+      "id": "programmatic_generation",
+      "description": "The output files were generated programmatically by a script.",
+      "visual_evidence": "The agent runs a script file to produce the outputs. There should be no evidence of the agent manually typing the JSON content or CSV rows using a text editor or 'echo' commands."
+    },
+    {
+      "id": "correct_export_paths",
+      "description": "The output files are saved in the exact required directory.",
+      "visual_evidence": "Commands like 'cat' or 'ls' explicitly reference the '/home/ga/Documents/CoppeliaSim/exports/' directory, confirming the files were not created in a different location."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires exactly a minimum of 3 poses, 30 trials per pose, and 0.05m spatial separation. The output CSV must be located at '/home/ga/Documents/CoppeliaSim/exports/repeatability_data.csv' and contain at least 90 trials (rows). The output JSON must be located at '/home/ga/Documents/CoppeliaSim/exports/repeatability_report.json' and contain the specific fields: total_poses, trials_per_pose, worst_rp_mm, best_rp_mm, mean_rp_mm, overall_rp_mm, and iso_compliant."
+}

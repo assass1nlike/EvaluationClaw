@@ -1,0 +1,53 @@
+{
+  "task_id": "search_security_events@1",
+  "task_completion": [
+    {
+      "id": "access_splunk_login",
+      "description": "Access the Splunk login page at http://localhost:8000",
+      "points": 10,
+      "visual_evidence": "A web browser showing the Splunk Enterprise login screen with the address bar pointing to localhost:8000 or 127.0.0.1:8000."
+    },
+    {
+      "id": "login_successful",
+      "description": "Log into Splunk using the provided credentials",
+      "points": 10,
+      "visual_evidence": "The Splunk home dashboard or app launcher is visible, indicating a successful login (often showing 'Administrator' or 'admin' in the user menu)."
+    },
+    {
+      "id": "open_search_app",
+      "description": "Navigate to the Search & Reporting application",
+      "points": 10,
+      "visual_evidence": "The Splunk 'Search & Reporting' interface is open, displaying the main search bar and time range picker."
+    },
+    {
+      "id": "enter_search_query",
+      "description": "Enter a search query for failed SSH logins in the security_logs index",
+      "points": 30,
+      "visual_evidence": "The search bar contains a query specifying the index (e.g., index=security_logs or index=\"security_logs\") and the keyword 'failed'."
+    },
+    {
+      "id": "view_search_results",
+      "description": "Execute the search and view the results",
+      "points": 40,
+      "visual_evidence": "The search results area displays log events matching the query, with an event count indicating at least 10 events found."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_used",
+      "description": "The agent used a web browser to interact with Splunk",
+      "visual_evidence": "A standard web browser (like Chrome or Firefox) is visible in the screenshots, rather than terminal windows executing curl commands or API requests."
+    },
+    {
+      "id": "genuine_splunk_ui",
+      "description": "The agent interacted with the genuine Splunk web interface",
+      "visual_evidence": "The visual elements match the standard Splunk Enterprise UI, not a text editor, mock HTML page, or raw JSON output."
+    },
+    {
+      "id": "actual_search_execution",
+      "description": "The search was actually executed in the UI",
+      "visual_evidence": "The search results correspond to the query in the search bar, and UI elements like the timeline or event count reflect the executed search."
+    }
+  ],
+  "privileged_info_for_vlm": "The target search index is 'security_logs'. The search query must contain the substring 'failed'. The expected sourcetype is 'linux_secure'. The minimum expected event count in the search results is 10. The Splunk credentials are admin / SplunkAdmin1!."
+}

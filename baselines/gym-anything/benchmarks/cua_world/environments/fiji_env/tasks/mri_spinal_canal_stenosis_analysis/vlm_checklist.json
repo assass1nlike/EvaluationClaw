@@ -1,0 +1,59 @@
+{
+  "task_id": "mri_spinal_canal_stenosis_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_t1_head_dataset",
+      "description": "Open the 'T1 Head' MRI dataset in Fiji",
+      "points": 10,
+      "visual_evidence": "Fiji application window is open displaying the 'T1 Head' image stack."
+    },
+    {
+      "id": "segment_target_slices",
+      "description": "Segment the spinal canal on slices 10 through 19",
+      "points": 20,
+      "visual_evidence": "Visible ROI (Region of Interest) outlines on the spinal canal for slices in the 10-19 range, or the ROI Manager window populated with multiple selections."
+    },
+    {
+      "id": "measure_slice_areas",
+      "description": "Measure the cross-sectional area for each segmented slice",
+      "points": 15,
+      "visual_evidence": "Fiji 'Results' window is open and displays 'Area' measurements corresponding to the segmented slices."
+    },
+    {
+      "id": "export_measurements_csv",
+      "description": "Export a CSV file containing 'Slice_ID' and 'Area' measurements",
+      "points": 20,
+      "visual_evidence": "A file named 'canal_measurements.csv' is visible in a file browser, text editor, or terminal at ~/Fiji_Data/results/stenosis/, containing 'Slice_ID' and 'Area' columns."
+    },
+    {
+      "id": "record_diagnosis_txt",
+      "description": "Record the slice number with the smallest area in diagnosis.txt",
+      "points": 15,
+      "visual_evidence": "A file named 'diagnosis.txt' is visible at ~/Fiji_Data/results/stenosis/ containing a single slice number (between 10 and 19)."
+    },
+    {
+      "id": "save_segmentation_screenshot",
+      "description": "Save a screenshot showing the segmentation of the narrowest slice",
+      "points": 20,
+      "visual_evidence": "An image file named 'segmentation_evidence.png' is visible at ~/Fiji_Data/results/stenosis/ and shows the Fiji interface with a segmentation outline on the spinal canal."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_fiji",
+      "description": "Agent used the Fiji GUI to perform the analysis rather than bypassing it with terminal commands",
+      "visual_evidence": "Screenshots show active interaction with Fiji's ROI tools, ROI Manager, and Results window."
+    },
+    {
+      "id": "genuine_measurements",
+      "description": "Measurements are physiologically reasonable and not fabricated",
+      "visual_evidence": "The 'Area' values shown in the Results table or CSV file fall within the valid physiological range of 20 to 1500."
+    },
+    {
+      "id": "consistent_diagnosis",
+      "description": "The diagnosis matches the actual measured data",
+      "visual_evidence": "The slice number recorded in 'diagnosis.txt' correctly corresponds to the slice with the lowest 'Area' value in the 'canal_measurements.csv' or Fiji Results table."
+    }
+  ],
+  "privileged_info_for_vlm": "The 'T1 Head' sample is a 256x256 pixel, 129-slice 16-bit TIFF image. Valid target slices for segmentation are 10 through 19. The expected output files are 'canal_measurements.csv', 'diagnosis.txt', and 'segmentation_evidence.png'. Valid cross-sectional area measurements should fall within the physiological range of 20 to 1500."
+}

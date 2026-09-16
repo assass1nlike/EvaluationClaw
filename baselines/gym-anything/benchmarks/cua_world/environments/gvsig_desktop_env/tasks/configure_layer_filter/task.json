@@ -1,0 +1,27 @@
+{
+  "id": "configure_layer_filter@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Configure the 'ne_110m_admin_0_countries' layer in gvSIG Desktop to show only South American countries by applying a filter where the 'CONTINENT' field equals 'South America'. Do not create a new shapefile; filter the existing layer in place. Save the project to /home/ga/gvsig_data/projects/sa_regional.gvsproj.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_layer_filter/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_layer_filter/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/gvsig_data/projects/sa_regional.gvsproj",
+    "required_filter_text": "South America",
+    "original_shapefile": "ne_110m_admin_0_countries.shp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_layer_filter"
+    }
+  }
+}

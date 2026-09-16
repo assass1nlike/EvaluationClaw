@@ -1,0 +1,42 @@
+{
+  "id": "poisson_fertility_modeling@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Estimate a Poisson regression model using the Mroz dataset (~/Documents/gretl_data/mroz.gdt) to explain the number of children under age 6 ('kidslt6') using 'const', 'educ', 'age', 'exper', and 'nwifeinc' as regressors. Save the full model estimation output to '~/Documents/gretl_output/poisson_results.txt', export the fitted values to '~/Documents/gretl_output/poisson_fitted.csv', and save the results of an overdispersion test to '~/Documents/gretl_output/dispersion_test.txt'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/poisson_fertility_modeling/setup_task.sh",
+    "post_task": "/workspace/tasks/poisson_fertility_modeling/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "mroz.gdt",
+    "dependent_var": "kidslt6",
+    "regressors": [
+      "const",
+      "educ",
+      "age",
+      "exper",
+      "nwifeinc"
+    ],
+    "expected_files": {
+      "results": "/home/ga/Documents/gretl_output/poisson_results.txt",
+      "fitted": "/home/ga/Documents/gretl_output/poisson_fitted.csv",
+      "test": "/home/ga/Documents/gretl_output/dispersion_test.txt"
+    },
+    "ground_truth": {
+      "mean_fitted_value": 0.2377,
+      "educ_coeff_sign": "negative"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_poisson_fertility_modeling"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "urban_architectural_obj_export@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are preparing a 3D architectural model for an external rendering engine. The project 'city-block.ng3' is open in Energy3D and contains an existing city block with multiple buildings and trees. Do the following: 1) Draw a new rectangular building footprint in the central open plaza area of the block. 2) Set the height of this new building to exactly 50 meters. 3) Hide or remove all existing trees in the scene so they do not export (e.g., uncheck View -> Trees, or manually delete them). 4) Export the clean 3D geometry to an OBJ file (File -> Export -> OBJ...) and save it as '~/Documents/Energy3D/proposed_city_block.obj'. 5) Save the updated Energy3D project as '~/Documents/Energy3D/proposed_city_block.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/urban_architectural_obj_export/setup_task.sh",
+    "post_task": "/workspace/tasks/urban_architectural_obj_export/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Architectural Visualizer",
+    "industry": "Architecture & Urban Planning",
+    "starter_file": "city-block.ng3",
+    "expected_obj": "/home/ga/Documents/Energy3D/proposed_city_block.obj",
+    "expected_ng3": "/home/ga/Documents/Energy3D/proposed_city_block.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_urban_architectural_obj_export"
+    }
+  }
+}

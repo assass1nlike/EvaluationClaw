@@ -1,0 +1,53 @@
+{
+  "task_id": "local_blast_outbreak_surveillance@1",
+  "task_completion": [
+    {
+      "id": "launch_ugene_and_load_data",
+      "description": "Open the UGENE graphical interface and load the sequence files.",
+      "points": 10,
+      "visual_evidence": "The UGENE application window is open, and the input files (environmental_swabs.fasta and/or mcr_1_reference.fasta) are visible in the project view or sequence viewer."
+    },
+    {
+      "id": "create_local_blast_db",
+      "description": "Create a local BLAST database named 'swabs_db' using the UGENE GUI.",
+      "points": 20,
+      "visual_evidence": "UGENE's 'Make BLAST database' dialog is visible with the output path set to ~/UGENE_Data/outbreak/blast_db/swabs_db, or a UGENE task/log window shows successful creation of the database."
+    },
+    {
+      "id": "run_blast_query",
+      "description": "Query the newly created local BLAST database with mcr_1_reference.fasta in UGENE.",
+      "points": 20,
+      "visual_evidence": "UGENE's 'Query with BLAST' dialog is visible targeting the 'swabs_db' database, or the BLAST results table/view is shown displaying hits for the mcr-1 reference."
+    },
+    {
+      "id": "export_gff_annotation",
+      "description": "Export the BLAST annotation track to mcr1_hits.gff.",
+      "points": 20,
+      "visual_evidence": "UGENE's 'Export Annotations' dialog is visible saving to ~/UGENE_Data/outbreak/results/mcr1_hits.gff, or a terminal/file manager shows the mcr1_hits.gff file exists in the correct directory."
+    },
+    {
+      "id": "create_surveillance_report",
+      "description": "Create a surveillance report explicitly identifying the contaminated swab.",
+      "points": 30,
+      "visual_evidence": "A text editor (e.g., nano, gedit) or terminal output (e.g., cat) showing the contents of ~/UGENE_Data/outbreak/results/surveillance_report.txt, which explicitly names 'Hospital_Swab_A' (or 'Hospital_Swab_A_Isolate') as the contaminated swab."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_cli_blast_tools",
+      "description": "The agent must use the UGENE GUI for BLAST operations, not command-line tools.",
+      "visual_evidence": "Terminal windows should NOT show the direct execution of commands like 'makeblastdb' or 'blastn'. All BLAST operations should be visible within the UGENE interface."
+    },
+    {
+      "id": "genuine_gui_interaction",
+      "description": "The agent actually used UGENE to determine the result rather than guessing.",
+      "visual_evidence": "Screenshots must show the UGENE BLAST results pointing to Hospital_Swab_A before the surveillance report is created."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "The agent saved the files to the exact requested directories.",
+      "visual_evidence": "Save dialogs, file managers, or terminal commands should confirm the files are in ~/UGENE_Data/outbreak/blast_db/ and ~/UGENE_Data/outbreak/results/ respectively, not just dumped in the home directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The contaminated swab that contains the mcr-1 gene is 'Hospital_Swab_A' (specifically 'Hospital_Swab_A_Isolate'). The expected BLAST database path is /home/ga/UGENE_Data/outbreak/blast_db/swabs_db. The expected GFF export path is /home/ga/UGENE_Data/outbreak/results/mcr1_hits.gff. The expected report path is /home/ga/UGENE_Data/outbreak/results/surveillance_report.txt."
+}

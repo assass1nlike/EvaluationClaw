@@ -1,0 +1,30 @@
+{
+  "id": "parabolic_trough_solar_plant@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a solar thermal engineer designing a Concentrating Solar Power (CSP) facility. Energy3D is open with a blank scene. Perform the following steps:\n1. Set the site location to Phoenix, AZ.\n2. Draw a Foundation on the ground.\n3. Add Parabolic Troughs onto the foundation.\n4. Using the properties panel/context menu, configure the troughs to have: Width = 6.0m, Reflectance = 0.95 (95%), and Absorptance = 0.92 (92%).\n5. Orient the troughs North-South (Azimuth 0 or 180).\n6. Expand the array so there are at least 20 parabolic troughs.\n7. Save the project to ~/Documents/Energy3D/trough_plant.ng3.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/parabolic_trough_solar_plant/setup_task.sh",
+    "post_task": "/workspace/tasks/parabolic_trough_solar_plant/export_result.sh"
+  },
+  "metadata": {
+    "expected_output": "/home/ga/Documents/Energy3D/trough_plant.ng3",
+    "location": "Phoenix",
+    "trough_width": 6.0,
+    "reflectance": 0.95,
+    "absorptance": 0.92,
+    "min_trough_count": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_parabolic_trough_plant"
+    }
+  }
+}

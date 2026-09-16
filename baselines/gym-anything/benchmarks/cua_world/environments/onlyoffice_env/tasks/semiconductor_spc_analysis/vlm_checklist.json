@@ -1,0 +1,59 @@
+{
+  "task_id": "semiconductor_spc_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_input_data",
+      "description": "Open the wafer thickness data in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "Spreadsheet application (e.g., LibreOffice Calc) is open, displaying 'wafer_thickness_data.csv' with 30 lots and 5 measurement columns."
+    },
+    {
+      "id": "calculate_subgroup_statistics",
+      "description": "Calculate Subgroup Means and Subgroup Ranges for each lot.",
+      "points": 20,
+      "visual_evidence": "New columns added to the spreadsheet showing the calculated Mean (average of the 5 wafers) and Range (max minus min of the 5 wafers) for each of the 30 lots."
+    },
+    {
+      "id": "calculate_process_statistics",
+      "description": "Calculate the process Grand Mean and Average Range.",
+      "points": 15,
+      "visual_evidence": "Cells displaying the overall average of the Subgroup Means (Grand Mean) and the overall average of the Subgroup Ranges (Average Range)."
+    },
+    {
+      "id": "calculate_control_limits",
+      "description": "Calculate Upper and Lower Control Limits for Mean (X-bar) and Range (R).",
+      "points": 20,
+      "visual_evidence": "Cells showing the calculated UCL and LCL for both X-bar and R. The calculations should use the constants A2=0.577, D3=0.0, and D4=2.114."
+    },
+    {
+      "id": "create_out_of_control_flag",
+      "description": "Include an 'Out of Control Flag' column.",
+      "points": 20,
+      "visual_evidence": "A specific column labeled 'Out of Control Flag' (or similar) that evaluates whether each lot's Subgroup Mean is strictly greater than the X-bar UCL or strictly less than the X-bar LCL."
+    },
+    {
+      "id": "save_analysis_file",
+      "description": "Save the completed analysis as an Excel file.",
+      "points": 15,
+      "visual_evidence": "The 'Save As' dialog or application title bar shows the file saved as 'wafer_spc_analysis.xlsx' in the '~/Documents/Spreadsheets/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_spreadsheet",
+      "description": "The agent used a GUI spreadsheet application to perform the analysis.",
+      "visual_evidence": "Screenshots show interaction with a spreadsheet GUI (like LibreOffice Calc) rather than a terminal running Python/Pandas scripts to generate the output."
+    },
+    {
+      "id": "used_formulas",
+      "description": "The agent used spreadsheet formulas for calculations.",
+      "visual_evidence": "The formula bar in the spreadsheet shows actual formulas (e.g., =AVERAGE(), =MAX()-MIN()) rather than hardcoded numbers."
+    },
+    {
+      "id": "genuine_save_operation",
+      "description": "The agent saved the file using the application's native save functionality.",
+      "visual_evidence": "The 'Save As' dialog is visible with the correct .xlsx format selected, ensuring it's not just a renamed CSV file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is exactly /home/ga/Documents/Spreadsheets/wafer_spc_analysis.xlsx. The dataset contains 30 lots with 5 measurements (n=5) per lot. The standard SPC constants to be used for n=5 are A2=0.577, D3=0.0, and D4=2.114."
+}

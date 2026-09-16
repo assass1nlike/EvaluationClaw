@@ -1,0 +1,29 @@
+{
+  "id": "simulate_edentulous_mandible@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "A maxillofacial surgeon needs a 3D model of the skull with the lower anterior teeth digitally extracted to plan for immediate dentures. Using the loaded CT Cranium DICOM scan, create a 3D surface of the skull with the lower incisors and canines (approximately 6 front teeth) removed, ensuring the mandibular bone remains intact. Export a screenshot showing the front of the mandible to /home/ga/Documents/edentulous_view.png and export the modified 3D surface as an STL file to /home/ga/Documents/edentulous_skull.stl.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/simulate_edentulous_mandible/setup_task.sh",
+    "post_task": "/workspace/tasks/simulate_edentulous_mandible/export_result.sh"
+  },
+  "metadata": {
+    "stl_output_path": "/home/ga/Documents/edentulous_skull.stl",
+    "png_output_path": "/home/ga/Documents/edentulous_view.png",
+    "min_triangles": 10000,
+    "min_volume_mm3": 100000,
+    "max_volume_mm3": 600000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_simulate_edentulous_mandible"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "hanoi_puzzle@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Navigate to the 'Simplified Tower of Hanoi' activity in GCompris and solve the first level (4 discs). To complete the task, move all discs from the left peg to the right peg following the standard rules: move only one disc at a time and never place a larger disc on top of a smaller disc.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hanoi_puzzle/setup_task.sh",
+    "post_task": "/workspace/tasks/hanoi_puzzle/export_result.sh"
+  },
+  "metadata": {
+    "activity_name": "hanoi",
+    "category": "Puzzle/Strategy",
+    "min_moves_level1": 15,
+    "expected_final_state": "All discs on rightmost peg"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hanoi_puzzle"
+    }
+  }
+}

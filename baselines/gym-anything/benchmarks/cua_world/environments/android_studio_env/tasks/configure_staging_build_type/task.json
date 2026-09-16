@@ -1,0 +1,29 @@
+{
+  "id": "configure_staging_build_type@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Configure a new 'staging' build type for the Unscramble Android app. The build type must inherit from 'debug', include an applicationIdSuffix of \".staging\", a versionNameSuffix of \"-STAGING\", and a String BuildConfig field named \"BASE_URL\" with the value \"https://staging.api.unscramble.com\". Verify the configuration by successfully building the staging variant.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_staging_build_type/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_staging_build_type/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/Unscramble",
+    "build_file_path": "app/build.gradle.kts",
+    "expected_url": "https://staging.api.unscramble.com",
+    "expected_app_id_suffix": ".staging",
+    "expected_version_suffix": "-STAGING"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_staging_build_type"
+    }
+  }
+}

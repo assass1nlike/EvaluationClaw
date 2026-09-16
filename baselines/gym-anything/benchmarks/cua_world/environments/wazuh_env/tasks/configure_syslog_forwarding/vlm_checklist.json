@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_syslog_forwarding@1",
+  "task_completion": [
+    {
+      "id": "access_ossec_conf",
+      "description": "Verify the agent accesses the ossec.conf file inside the correct container.",
+      "points": 10,
+      "visual_evidence": "Terminal screenshot showing the agent executing a command to view or edit '/var/ossec/etc/ossec.conf' (e.g., using nano, vim, cat, or sed) inside the 'wazuh-wazuh.manager-1' container."
+    },
+    {
+      "id": "configure_splunk_syslog",
+      "description": "Verify the Splunk syslog output configuration is added correctly.",
+      "points": 30,
+      "visual_evidence": "Screenshot showing the ossec.conf file containing a <syslog_output> XML block with the exact values: <server>10.50.20.100</server>, <port>9514</port>, <format>json</format>, and <level>10</level>."
+    },
+    {
+      "id": "configure_graylog_syslog",
+      "description": "Verify the Graylog syslog output configuration is added correctly.",
+      "points": 30,
+      "visual_evidence": "Screenshot showing the ossec.conf file containing a second <syslog_output> XML block with the exact values: <server>10.50.20.101</server>, <port>1514</port>, <format>default</format>, and <level>7</level>."
+    },
+    {
+      "id": "apply_configuration",
+      "description": "Verify the agent applies the configuration changes.",
+      "points": 10,
+      "visual_evidence": "Terminal screenshot showing a command executed to restart the Wazuh manager or the specific daemon (e.g., '/var/ossec/bin/wazuh-control restart', 'systemctl restart wazuh-manager', or restarting the docker container) to apply the new ossec.conf settings."
+    },
+    {
+      "id": "verify_daemon_running",
+      "description": "Verify the wazuh-csyslogd daemon is running.",
+      "points": 20,
+      "visual_evidence": "Terminal screenshot showing the output of a status check (e.g., 'ps aux | grep wazuh-csyslogd' or '/var/ossec/bin/wazuh-control status') confirming that the 'wazuh-csyslogd' process is actively running."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Ensure the agent actually modified the configuration file rather than just printing the expected text.",
+      "visual_evidence": "The configuration changes should be visible inside a legitimate text editor (nano, vim) or via standard file reading commands (cat, less) targeting /var/ossec/etc/ossec.conf, not just echoed to the terminal."
+    },
+    {
+      "id": "genuine_service_restart",
+      "description": "Ensure the agent genuinely restarted the service to apply changes.",
+      "visual_evidence": "The restart command should produce authentic system output (e.g., Wazuh control scripts showing stopping and starting of various daemons) rather than returning instantly without output or showing mocked text."
+    },
+    {
+      "id": "genuine_daemon_status",
+      "description": "Ensure the agent genuinely checked the daemon status.",
+      "visual_evidence": "The status check must use real system commands (like ps, top, or wazuh-control) and display standard system output, with no evidence of the agent echoing a fake success message like 'echo wazuh-csyslogd is running'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target configurations for syslog forwarding must exactly match: Splunk (Server: 10.50.20.100, Port: 9514, Format: json, Level: 10) and Graylog (Server: 10.50.20.101, Port: 1514, Format: default, Level: 7). The specific daemon responsible for syslog output that must be verified as running is 'wazuh-csyslogd'."
+}

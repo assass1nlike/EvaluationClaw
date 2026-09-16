@@ -1,0 +1,59 @@
+{
+  "task_id": "macro_recording_automation@1",
+  "task_completion": [
+    {
+      "id": "open_blobs_image",
+      "description": "Open the 'Blobs' sample image in Fiji.",
+      "points": 10,
+      "visual_evidence": "A window titled 'blobs.gif' (or similar) displaying the standard ImageJ blobs sample image is visible within the Fiji interface."
+    },
+    {
+      "id": "macro_recorder_active",
+      "description": "Start the Fiji Macro Recorder.",
+      "points": 10,
+      "visual_evidence": "The 'Recorder' window is open in Fiji, ready to capture or actively capturing commands."
+    },
+    {
+      "id": "subtract_background_recorded",
+      "description": "Perform and record Background Subtraction with a 50-pixel rolling ball radius.",
+      "points": 20,
+      "visual_evidence": "The Recorder window or Fiji Script Editor contains the command `run(\"Subtract Background\", \"rolling=50\")` (or similar syntax showing background subtraction with rolling=50)."
+    },
+    {
+      "id": "median_filter_recorded",
+      "description": "Perform and record a Median filter with a 2-pixel radius.",
+      "points": 20,
+      "visual_evidence": "The Recorder window or Fiji Script Editor contains the command `run(\"Median...\", \"radius=2\")` (or similar syntax showing median filter with radius=2)."
+    },
+    {
+      "id": "otsu_threshold_recorded",
+      "description": "Perform and record Otsu thresholding.",
+      "points": 20,
+      "visual_evidence": "The Recorder window or Fiji Script Editor contains commands related to Otsu thresholding, such as `setAutoThreshold(\"Otsu dark\")` or `run(\"Convert to Mask\")`."
+    },
+    {
+      "id": "macro_saved",
+      "description": "Save the recorded macro as 'clean_and_segment.ijm' in the specified directory.",
+      "points": 20,
+      "visual_evidence": "A save dialog, Fiji Script Editor tab, file manager, or terminal showing the file `clean_and_segment.ijm` saved in or being saved to `/home/ga/Fiji_Data/results/macros/`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "fiji_gui_used",
+      "description": "The agent interacted with the Fiji GUI to record the macro.",
+      "visual_evidence": "Screenshots show the Fiji application menus, toolbars, and dialog boxes being used, rather than just terminal commands."
+    },
+    {
+      "id": "visual_image_changes",
+      "description": "The Blobs image was actually processed during recording.",
+      "visual_evidence": "The 'blobs.gif' image window shows visual changes corresponding to the steps, such as becoming a binary (black and white) mask after thresholding."
+    },
+    {
+      "id": "no_terminal_shortcut",
+      "description": "The agent did not simply use `echo` or a terminal text editor to create the file directly without opening Fiji.",
+      "visual_evidence": "The macro creation process is visible within the Fiji environment (Recorder or Script Editor)."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires recording a Fiji macro with specific commands: 1) Subtract Background (rolling=50), 2) Median filter (radius=2), 3) AutoThreshold (Otsu) and Convert to Mask. The macro must be saved as 'clean_and_segment.ijm' in '/home/ga/Fiji_Data/results/macros/'. The 'Blobs' image is a built-in sample accessible via File > Open Samples > Blobs."
+}

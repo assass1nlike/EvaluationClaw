@@ -1,0 +1,65 @@
+{
+  "task_id": "osint_full_page_capture@1",
+  "task_completion": [
+    {
+      "id": "directory_created",
+      "description": "Verify the OSINT_Evidence directory was created.",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window shows the directory /home/ga/Documents/OSINT_Evidence/ exists."
+    },
+    {
+      "id": "tor_browser_used",
+      "description": "Verify Tor Browser was used to navigate to the target URLs.",
+      "points": 10,
+      "visual_evidence": "Tor Browser is open on the desktop and shows navigation to either community.torproject.org or check.torproject.org."
+    },
+    {
+      "id": "full_screenshot_saved",
+      "description": "Verify the full-page screenshot file was saved in the correct location.",
+      "points": 15,
+      "visual_evidence": "The file onion_services_full.png is visible inside the /home/ga/Documents/OSINT_Evidence/ directory."
+    },
+    {
+      "id": "full_screenshot_content",
+      "description": "Verify the full-page screenshot contains the correct, unfragmented content.",
+      "points": 25,
+      "visual_evidence": "The image onion_services_full.png is opened or previewed, showing the Tor Onion Services Overview page. The image proportions should appear very tall, indicating a full-page capture (greater than 2000px in height)."
+    },
+    {
+      "id": "viewport_screenshot_saved",
+      "description": "Verify the viewport screenshot file was saved in the correct location.",
+      "points": 10,
+      "visual_evidence": "The file tor_check_viewport.png is visible inside the /home/ga/Documents/OSINT_Evidence/ directory."
+    },
+    {
+      "id": "viewport_screenshot_content",
+      "description": "Verify the viewport screenshot contains the correct content.",
+      "points": 15,
+      "visual_evidence": "The image tor_check_viewport.png is opened or previewed, showing the Tor Check page. The image proportions should match a standard screen viewport (not elongated, less than 1200px in height)."
+    },
+    {
+      "id": "log_file_created_and_accurate",
+      "description": "Verify the capture log text file was created and contains the correct URLs.",
+      "points": 15,
+      "visual_evidence": "The file capture_log.txt is visible in the target directory and, when opened in a text editor or terminal (e.g., via cat), contains both community.torproject.org and check.torproject.org URLs."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_interaction",
+      "description": "Check that the agent interacted with the Tor Browser GUI.",
+      "visual_evidence": "Screenshots should show the Tor Browser application open and rendering the web pages, rather than the agent exclusively using terminal commands (like curl or wget) to download page contents."
+    },
+    {
+      "id": "genuine_image_captures",
+      "description": "Check that the saved PNG files are genuine web page screenshots.",
+      "visual_evidence": "The PNG files should look like actual rendered web pages (with proper CSS, layout, and images), not just plain text pasted into an image editor or a blank screen."
+    },
+    {
+      "id": "authentic_log_creation",
+      "description": "Check that the log file was genuinely created by the agent.",
+      "visual_evidence": "The agent should be seen typing, echoing, or pasting the URLs into the log file using a text editor or terminal, rather than copying a pre-made file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Directory: /home/ga/Documents/OSINT_Evidence/\nFull Capture: onion_services_full.png (Must be a tall image, >2000px height, showing community.torproject.org/onion-services/overview/)\nViewport Capture: tor_check_viewport.png (Must be standard screen height, <1200px, showing check.torproject.org)\nLog File: capture_log.txt (Must contain both URLs)."
+}

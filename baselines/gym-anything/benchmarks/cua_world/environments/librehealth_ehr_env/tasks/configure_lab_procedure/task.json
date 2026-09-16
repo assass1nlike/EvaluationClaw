@@ -1,0 +1,42 @@
+{
+  "id": "configure_lab_procedure@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Configure a new laboratory procedure in LibreHealth EHR by building a hierarchy starting with a top-level Order Group named 'In-House Lab'. Within this group, create a Procedure Order named 'Comprehensive Metabolic Panel' using Procedure Code '80053' and Standard Code 'CPT4:80053'. Include three Discrete Results within the order: 'Glucose' (Code: 'GLU'), 'Creatinine' (Code: 'CREAT'), and 'Sodium' (Code: 'NA').",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_lab_procedure/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_lab_procedure/export_result.sh"
+  },
+  "metadata": {
+    "group_name": "In-House Lab",
+    "order_name": "Comprehensive Metabolic Panel",
+    "order_code": "80053",
+    "standard_code": "CPT4:80053",
+    "results": [
+      {
+        "name": "Glucose",
+        "code": "GLU"
+      },
+      {
+        "name": "Creatinine",
+        "code": "CREAT"
+      },
+      {
+        "name": "Sodium",
+        "code": "NA"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_lab_procedure"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "select_by_location_export@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Using the project at /home/ga/gvsig_data/projects/countries_base.gvsproj and the populated places layer at /home/ga/gvsig_data/cities/ne_110m_populated_places.shp, identify all cities located within African countries (where CONTINENT = 'Africa'). Export the resulting selection as a new shapefile named 'african_cities.shp' to /home/ga/gvsig_data/exports/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/select_by_location_export/setup_task.sh",
+    "post_task": "/workspace/tasks/select_by_location_export/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/gvsig_data/exports/african_cities.shp",
+    "min_features": 15,
+    "max_features": 55,
+    "bbox_africa": [
+      -26.0,
+      -36.0,
+      56.0,
+      38.0
+    ],
+    "required_cities": [
+      "Cairo",
+      "Lagos",
+      "Kinshasa",
+      "Nairobi",
+      "Johannesburg"
+    ],
+    "forbidden_cities": [
+      "Paris",
+      "London",
+      "New York",
+      "Tokyo",
+      "Beijing"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_select_by_location_export"
+    }
+  }
+}

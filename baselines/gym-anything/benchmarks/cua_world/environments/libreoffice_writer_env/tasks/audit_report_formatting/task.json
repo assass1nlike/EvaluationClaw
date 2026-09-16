@@ -1,0 +1,42 @@
+{
+  "id": "audit_report_formatting@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "You are an internal audit specialist at NorthBridge Financial Group. Finalize the Q3 2024 Internal Audit Report (/home/ga/Documents/audit_draft.docx) for the Audit Committee according to IIA standards and firm requirements. Enclose the 'Executive Summary' section, including the heading and summary text, within a single-cell table with a visible border. Format the five audit findings headings using 'Heading 2' style, prefixing each with 'Finding [N]: ' (e.g., 'Finding 1: Access Control Deficiencies'). In the Risk Ratings Summary table, format the header row with bold text on a dark gray (#404040) background, and color the 'High', 'Medium', and 'Low' text in the Risk Rating column red, orange/amber, and green respectively. Add a footer to every page with 'Internal Audit Report — Q3 2024 | DRAFT' left-aligned and 'NorthBridge Financial Group' right-aligned. On the last page, include a 'Report Sign-Off' section featuring a single-cell bordered table with signature lines for 'Chief Audit Executive:', 'Date:', and 'Audit Committee Chair:'. Save the final document as /home/ga/Documents/audit_final.docx.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 120,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_report_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_report_formatting/export_result.sh"
+  },
+  "metadata": {
+    "source_doc": "/home/ga/Documents/audit_draft.docx",
+    "output_doc": "/home/ga/Documents/audit_final.docx",
+    "finding_count": 5,
+    "finding_titles": [
+      "Access Control Deficiencies",
+      "Segregation of Duties Gaps",
+      "Vendor Due Diligence Failures",
+      "Data Retention Policy Violations",
+      "IT Change Management Weaknesses"
+    ],
+    "risk_ratings": [
+      "High",
+      "High",
+      "Medium",
+      "Low",
+      "Medium"
+    ],
+    "footer_fragment": "Internal Audit Report"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_report_formatting"
+    }
+  }
+}

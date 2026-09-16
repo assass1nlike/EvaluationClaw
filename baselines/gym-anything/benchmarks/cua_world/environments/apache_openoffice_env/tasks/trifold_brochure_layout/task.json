@@ -1,0 +1,34 @@
+{
+  "id": "trifold_brochure_layout@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "Create a professional tri-fold brochure for the 'Spring 2026 Wellness Expo' using Apache OpenOffice Writer. Configure the document in landscape orientation with three columns and at least 0.5 inches of spacing between columns. Incorporate the text from /home/ga/Documents/brochure_assets/content.txt and use the images provided in /home/ga/Documents/brochure_assets/: place 'wellness_logo.png' on the front panel (right column) and 'photo_activity.jpg' in the center panel. Format headings such as 'Event Schedule' and 'About Us' to be bold and distinct. Save the final document as /home/ga/Documents/wellness_expo_brochure.odt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/trifold_brochure_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/trifold_brochure_layout/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/wellness_expo_brochure.odt",
+    "required_orientation": "landscape",
+    "required_columns": 3,
+    "required_images_count": 2,
+    "content_strings": [
+      "Spring 2026 Wellness Expo",
+      "Mercy General Health System",
+      "Healthy Cooking Demonstration",
+      "outreach@mercygeneral.org"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_trifold_brochure"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "detect_port_scan_recon@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "...\n\n    *   Wait, I'll keep the field descriptions exactly as they were to ensure the agent knows what to calculate.\n\n    *   Final check on \"No Expected Answers\".\n    *   \"OPEN_PORTS: <Comma-separated list of ports that responded as OPEN (SYN-ACK), sorted ascending>\"\n    *   This is a definition of the field, not the answer.\n\n    *   Okay, ready.\n\n    *   Wait, the prompt says \"Return ONLY the rewritten description text — no analysis, no explanation, no markdown formatting, no quotes around it. Just the raw description string.\"\n    *   Does \"no markdown formatting\" mean I shouldn't use newlines? No, it means don't wrap the whole thing in a code block or",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/detect_port_scan_recon/setup_task.sh",
+    "post_task": "/workspace/tasks/detect_port_scan_recon/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Documents/scan_forensic_report.txt",
+    "capture_path": "/home/ga/Documents/captures/recon_investigation.pcapng"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_detect_port_scan_recon"
+    }
+  }
+}

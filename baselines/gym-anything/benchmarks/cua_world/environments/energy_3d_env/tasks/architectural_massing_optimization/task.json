@@ -1,0 +1,27 @@
+{
+  "id": "architectural_massing_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an energy consultant evaluating architectural concepts. The project 'building-shape.ng3' is open and shows several conceptual building shapes. Perform the following steps:\n1. Change the geographic location to Anchorage, AK to simulate a harsh cold climate.\n2. Run an Annual Energy Analysis for the buildings in the scene to compare them.\n3. Export the analysis results to a CSV file at `~/Documents/Energy3D/anchorage_energy.csv`.\n4. Create a text file at `~/Documents/Energy3D/best_massing.txt` and write the name or ID of the building with the LOWEST annual heating energy (the most compact, efficient shape).\n5. Identify the building with the HIGHEST annual heating energy (the most sprawling, inefficient shape) and add a roof solar panel array ONLY to that specific building to offset its inefficiency.\n6. Save the modified project as `~/Documents/Energy3D/anchorage-optimized.ng3`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/architectural_massing_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/architectural_massing_optimization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Energy Consultant",
+    "industry": "Architecture / Environmental Design",
+    "starter_file": "building-shape.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_architectural_massing_optimization"
+    }
+  }
+}

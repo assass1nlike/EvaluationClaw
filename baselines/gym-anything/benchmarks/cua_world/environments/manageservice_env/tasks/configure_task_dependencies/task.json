@@ -1,0 +1,50 @@
+{
+  "id": "configure_task_dependencies@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "Configure the task execution order for the service request 'Deploy HA Web Cluster - Project Alpha'. Establish a workflow where 'Provision Infrastructure' is the initial task, followed by the parallel execution of 'Configure Database Cluster' and 'Configure Web Server Nodes'. Ensure 'Deploy Application Artifacts' only begins once both the database and web server tasks are finished.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_task_dependencies/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_task_dependencies/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "request_subject": "Deploy HA Web Cluster - Project Alpha",
+    "task_titles": {
+      "T1": "Provision Infrastructure",
+      "T2": "Configure Database Cluster",
+      "T3": "Configure Web Server Nodes",
+      "T4": "Deploy Application Artifacts"
+    },
+    "expected_dependencies": [
+      [
+        "Provision Infrastructure",
+        "Configure Database Cluster"
+      ],
+      [
+        "Provision Infrastructure",
+        "Configure Web Server Nodes"
+      ],
+      [
+        "Configure Database Cluster",
+        "Deploy Application Artifacts"
+      ],
+      [
+        "Configure Web Server Nodes",
+        "Deploy Application Artifacts"
+      ]
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_task_dependencies"
+    }
+  }
+}

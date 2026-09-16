@@ -1,0 +1,53 @@
+{
+  "task_id": "reschedule_appointment@1",
+  "task_completion": [
+    {
+      "id": "login_successful",
+      "description": "Verify the agent successfully logged into the application.",
+      "points": 10,
+      "visual_evidence": "The OpenEMR dashboard or main calendar interface is visible, indicating a successful login with the provided credentials."
+    },
+    {
+      "id": "locate_original_appointment",
+      "description": "Verify the agent located the original appointment for Jayson Fadel.",
+      "points": 15,
+      "visual_evidence": "The calendar or patient record shows an existing appointment for 'Jayson Fadel' scheduled for tomorrow (1 day from the current system date) at 10:00 AM."
+    },
+    {
+      "id": "open_edit_dialog",
+      "description": "Verify the agent opened the appointment edit interface.",
+      "points": 15,
+      "visual_evidence": "An 'Edit Appointment' or similar dialog box is open for Jayson Fadel, showing the appointment details."
+    },
+    {
+      "id": "modify_appointment_time",
+      "description": "Verify the agent changed the appointment date and time to the target values.",
+      "points": 30,
+      "visual_evidence": "Inside the edit dialog, the date field is set to 2 days from the current system date, and the time field is set to 14:30 or 2:30 PM. The duration should remain unchanged (30 minutes)."
+    },
+    {
+      "id": "verify_rescheduled_appointment",
+      "description": "Verify the appointment was successfully saved at the new time slot.",
+      "points": 30,
+      "visual_evidence": "The calendar view for the date 2 days from today shows Jayson Fadel's appointment scheduled at 2:30 PM (14:30) and ending at 3:00 PM (15:00), confirming the 30-minute duration."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the web browser GUI to reschedule the appointment.",
+      "visual_evidence": "Screenshots show interaction with the OpenEMR web interface (clicking calendar slots, typing in form fields) rather than using terminal commands or API scripts."
+    },
+    {
+      "id": "no_terminal_database_manipulation",
+      "description": "Verify the agent did not use direct database queries to alter the appointment.",
+      "visual_evidence": "No terminal windows showing MySQL commands, curl requests, or script executions modifying the OpenEMR database directly."
+    },
+    {
+      "id": "genuine_record_update",
+      "description": "Verify the appointment was actually updated in the system.",
+      "visual_evidence": "The final calendar view genuinely reflects the updated appointment slot within the OpenEMR interface, rather than just text typed into a notepad or a mocked HTML page."
+    }
+  ],
+  "privileged_info_for_vlm": "Patient: Jayson Fadel (PID: 3). Original appointment time: 10:00:00, 1 day from the current date. Target appointment time: 14:30:00 (2:30 PM), 2 days from the current date. Expected appointment duration: 1800 seconds (30 minutes)."
+}

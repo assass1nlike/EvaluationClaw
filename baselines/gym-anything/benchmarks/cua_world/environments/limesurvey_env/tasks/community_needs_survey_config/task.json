@@ -1,0 +1,38 @@
+{
+  "id": "community_needs_survey_config@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create and activate a community needs assessment survey in LimeSurvey titled 'Riverside County Community Needs Assessment 2024'. The welcome message must include 'Riverside County' and 'voluntary', while the end message must include 'thank' and either 'resource' or 'support'. Configure the survey with an end URL of 'https://www.riversidecounty.gov/community-resources', group-by-group presentation format, and enabled progress bar and back button. Privacy settings must have date stamping enabled, but IP address logging and referrer URL saving disabled. Set the admin notification email to 'dr.martinez@riverside-sociology.edu'. The survey must include at least two question groups with at least one question in each. Login credentials: admin / Admin123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/community_needs_survey_config/setup_task.sh",
+    "post_task": "/workspace/tasks/community_needs_survey_config/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Riverside County Community Needs Assessment 2024",
+    "expected_end_url": "https://www.riversidecounty.gov/community-resources",
+    "expected_admin_email": "dr.martinez@riverside-sociology.edu",
+    "required_welcome_keywords": [
+      "riverside",
+      "voluntary"
+    ],
+    "required_end_keywords": [
+      "thank"
+    ],
+    "required_end_keywords_alt": [
+      "resource",
+      "support"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_community_needs_config"
+    }
+  }
+}

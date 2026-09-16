@@ -1,0 +1,29 @@
+{
+  "id": "fault_tolerance_test@1",
+  "version": "1.0",
+  "env_id": "openice_env@0.1",
+  "description": "You are a biomedical engineer conducting fault tolerance validation for OpenICE at General Hospital. Demonstrate that the ICU monitoring system maintains patient safety when a device adapter fails by setting up a redundant dual-monitor configuration with two Simulated Multiparameter Monitor device adapters. Using the Vital Signs application, verify simultaneous data streaming, simulate a device failure, and then restore full redundancy. Document the system's response to the failure—including detection, monitoring continuity, and visual indicators—in a validation report saved to /home/ga/Desktop/fault_tolerance_report.txt. OpenICE Supervisor is already running on the desktop.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 85
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fault_tolerance_test/setup_task.sh",
+    "post_task": "/workspace/tasks/fault_tolerance_test/export_result.sh"
+  },
+  "metadata": {
+    "required_initial_devices": 2,
+    "device_type": "Multiparameter Monitor",
+    "required_app": "Vital Signs",
+    "required_file": "/home/ga/Desktop/fault_tolerance_report.txt",
+    "clinical_context": "Device fault tolerance validation for ICU deployment",
+    "pass_threshold": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fault_tolerance_test"
+    }
+  }
+}

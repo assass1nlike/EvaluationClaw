@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_user_agent_whitelist@1",
+  "task_completion": [
+    {
+      "id": "create_authorized_list_file",
+      "description": "Create the authorized User-Agents list file with the required agents.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor showing the creation or contents of '/var/ossec/etc/lists/authorized_user_agents' containing 'InternalTool/1.0', 'HealthCheck-Monitor/2.5', and 'BackupService-API-Client'."
+    },
+    {
+      "id": "compile_cdb_list",
+      "description": "Compile the authorized list into a CDB file.",
+      "points": 10,
+      "visual_evidence": "A terminal showing the execution of a command like 'ossec-makelists' or 'wazuh-makelists', or an 'ls' command showing the existence of '/var/ossec/etc/lists/authorized_user_agents.cdb'."
+    },
+    {
+      "id": "create_custom_rule",
+      "description": "Create a custom rule with ID 100200 and Level 10.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor showing a Wazuh custom rules XML file (e.g., in /var/ossec/etc/rules/) containing a rule definition with '<rule id=\"100200\" level=\"10\">'."
+    },
+    {
+      "id": "rule_logic",
+      "description": "Configure the rule to depend on web server logs and use the not_match_key lookup for the authorized list.",
+      "points": 20,
+      "visual_evidence": "The rule XML definition showing an '<if_sid>' tag with 31100 or 31101, and a '<list lookup=\"not_match_key\">' tag pointing to the authorized_user_agents list."
+    },
+    {
+      "id": "test_rule_unauthorized_agent",
+      "description": "Ensure the rule is active and correctly identifies unauthorized agents like 'curl/7.68.0'.",
+      "points": 30,
+      "visual_evidence": "A terminal showing the output of a testing tool like 'wazuh-logtest' where a simulated log containing 'curl/7.68.0' successfully triggers rule 100200."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_creation",
+      "description": "Verify that the agent actually created and saved the configuration files.",
+      "visual_evidence": "The files should be saved in the correct '/var/ossec/etc/' directories, visible via commands like 'cat' or 'ls', rather than just being typed in an unsaved text editor buffer."
+    },
+    {
+      "id": "genuine_test_output",
+      "description": "Verify that the rule testing output is genuine.",
+      "visual_evidence": "The output should come from an actual execution of 'wazuh-logtest' or 'ossec-logtest' showing the full phase 1, 2, and 3 analysis, not just a manually printed or echoed string."
+    },
+    {
+      "id": "no_direct_alert_manipulation",
+      "description": "Ensure the agent did not manually fake an alert.",
+      "visual_evidence": "There should be no commands appending text directly to '/var/ossec/logs/alerts/alerts.log' or similar log files to simulate a triggered rule."
+    }
+  ],
+  "privileged_info_for_vlm": "The target list path is exactly '/var/ossec/etc/lists/authorized_user_agents', which must be compiled into a CDB file at '/var/ossec/etc/lists/authorized_user_agents.cdb'. The required agents are exactly 'InternalTool/1.0', 'HealthCheck-Monitor/2.5', and 'BackupService-API-Client'. The custom rule ID must be 100200 with level 10, and the rule must use the 'not_match_key' lookup operator."
+}

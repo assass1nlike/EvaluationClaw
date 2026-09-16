@@ -1,0 +1,85 @@
+{
+  "dataset_id": "c5241b0b",
+  "name": "Abnormal Heartbeat Patients",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 666,
+  "description": "A medical image-text dataset for binary classification of heartbeat abnormality. Given an ECG/heartbeat image and a prompt asking to recognize abnormal heartbeat, the model must output 'normal' or 'abnormal heartbeat'.",
+  "card_text": "The dataset contains 666 samples, each pairing an ECG or heartbeat recording image with a short instruction prompt. The images are referenced by filenames such as 'Normal(71) - Copy.jpg' or 'HB(319) - Copy.jpg', suggesting they depict normal and abnormal heartbeat patterns. The prompt is fixed: 'Recognize whether the patient has abnormal heartbeat'. The target output is a short text label: either 'normal' or 'abnormal heartbeat'. This evaluates visual recognition and binary classification in the cardiology domain. The dataset assumes the image alone contains sufficient diagnostic information and that the model can interpret ECG-style plots. It is an openset medical recognition benchmark focused on disease detection from physiological signals.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "medical",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "diagram",
+        "semantics": "Reference to an ECG/heartbeat recording image of a patient, used as the primary visual input for determining heartbeat normality.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed instruction asking the model to recognize whether the patient has an abnormal heartbeat, directing the classification task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target label indicating the classification result: either 'normal' or 'abnormal heartbeat'.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image reference (input.image_file), a fixed textual instruction (input.prompt) asking to recognize abnormal heartbeat, and a textual output label (output.text) that is either 'normal' or 'abnormal heartbeat'. The image carries the ECG/heartbeat signal, the prompt specifies the classification task, and the answer provides the diagnostic label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Abnormal_Heartbeat_Patients/json/annotation.json",
+    "existing_tags": {
+      "task": "abnormal heartbeat recognition",
+      "type": "comprehension",
+      "skill": "Disease Recognition",
+      "domain": [
+        "Medicine"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Medicine"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_daemon_bridge_subnet@1",
+  "task_completion": [
+    {
+      "id": "open_docker_desktop",
+      "description": "Open the Docker Desktop application",
+      "points": 10,
+      "visual_evidence": "The Docker Desktop application window is visible on the screen."
+    },
+    {
+      "id": "open_settings_menu",
+      "description": "Open the Docker Desktop Settings",
+      "points": 10,
+      "visual_evidence": "The Settings window (usually accessed via a gear icon) is open and visible."
+    },
+    {
+      "id": "navigate_docker_engine",
+      "description": "Navigate to the Docker Engine configuration section",
+      "points": 15,
+      "visual_evidence": "The 'Docker Engine' tab is selected in the left-hand navigation menu of the Settings window, displaying a JSON editor."
+    },
+    {
+      "id": "bip_key_added",
+      "description": "Add the 'bip' key to the JSON configuration",
+      "points": 20,
+      "visual_evidence": "The string \"bip\" is visible as a key within the JSON configuration editor."
+    },
+    {
+      "id": "bip_value_set",
+      "description": "Set the 'bip' value to the required CIDR",
+      "points": 25,
+      "visual_evidence": "The value \"192.168.200.1/24\" is assigned to the \"bip\" key in the JSON configuration."
+    },
+    {
+      "id": "apply_and_restart",
+      "description": "Apply the changes and restart Docker Engine",
+      "points": 20,
+      "visual_evidence": "The 'Apply & restart' button is clicked, or a loading indicator shows Docker is restarting to apply the new configuration."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_desktop",
+      "description": "Verify the configuration is edited inside Docker Desktop",
+      "visual_evidence": "The JSON editing must occur within the Docker Desktop Settings GUI, not in a standalone text editor (like Notepad or VS Code) modifying a local daemon.json file."
+    },
+    {
+      "id": "valid_json_syntax",
+      "description": "Verify the JSON configuration syntax remains valid",
+      "visual_evidence": "The JSON object must have correct syntax, including proper quotes around keys and values, colons, and commas separating multiple key-value pairs without trailing commas."
+    },
+    {
+      "id": "no_unrelated_modifications",
+      "description": "Verify no unrelated settings were destructively modified",
+      "visual_evidence": "Pre-existing keys in the Docker Engine JSON configuration should remain intact unless they conflict with the 'bip' setting."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct configuration requires adding or modifying the 'bip' (Bridge IP) key in the Docker Engine JSON settings. The expected value is exactly '192.168.200.1/24'. This CIDR notation inherently satisfies the task requirement to set the subnet to '192.168.200.0/24' and the gateway to '192.168.200.1'."
+}

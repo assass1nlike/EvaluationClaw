@@ -1,0 +1,28 @@
+{
+  "id": "parametric_window_retrofit_analysis@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "Create a scenario to analyze high-performance windows in the 4StoreyBuilding model without overwriting the baseline design. Configure a Parametric Run named 'Low-E Retrofit' that modifies all glass types by setting SHADING-COEF to 0.35 and GLASS-CONDUCTANCE to 0.28. Execute the simulation for both the baseline and the 'Low-E Retrofit' run and save the project.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\parametric_window_retrofit_analysis\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\parametric_window_retrofit_analysis\\export_result.ps1"
+  },
+  "metadata": {
+    "project_path": "C:\\Users\\Docker\\Documents\\eQUEST 3-65 Projects\\4StoreyBuilding\\4StoreyBuilding.inp",
+    "target_shgc": 0.35,
+    "target_conductance": 0.28,
+    "tolerance": 0.02
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_parametric_window_retrofit_analysis"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "legacy_game_cinematic_modding@1",
+  "task_completion": [
+    {
+      "id": "read_engine_specs",
+      "description": "Agent opens and reads the engine specifications file.",
+      "points": 10,
+      "visual_evidence": "A text editor (like gedit, nano, or cat command in terminal) displaying the contents of /home/ga/Documents/engine_specs.txt."
+    },
+    {
+      "id": "process_video_format_and_trim",
+      "description": "Agent processes the master video to trim the first 5 seconds, scale to 800x600, and convert to AVI format with the correct codecs.",
+      "points": 30,
+      "visual_evidence": "Terminal showing an ffmpeg command (or similar tool) with arguments for trimming (e.g., -ss 5), scaling (e.g., -s 800x600 or -vf scale=800:600), and outputting an .avi file. The command should ideally specify mpeg4 and mp3 codecs."
+    },
+    {
+      "id": "extract_loading_screen_snapshot",
+      "description": "Agent extracts a snapshot image from the video to serve as a loading screen.",
+      "points": 20,
+      "visual_evidence": "Terminal showing an ffmpeg command extracting a frame (e.g., -vframes 1) to an image file (like .jpg or .png), or a video player GUI being used to save a snapshot."
+    },
+    {
+      "id": "generate_json_manifest",
+      "description": "Agent creates a JSON mod manifest with the required metadata keys.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing a JSON formatted file containing keys such as 'filename', 'container', 'video_codec', 'audio_codec', 'resolution', and 'target_fps'."
+    },
+    {
+      "id": "deliverables_in_target_directory",
+      "description": "Agent saves all deliverables (video, snapshot, JSON manifest) to the mod_build directory.",
+      "points": 20,
+      "visual_evidence": "A file manager window or terminal 'ls' command showing the newly created .avi file, the extracted image file, and the .json manifest file all located inside /home/ga/Videos/mod_build/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Verify the agent actually processed the video rather than just renaming the extension.",
+      "visual_evidence": "Look for actual execution logs of a video processing tool like ffmpeg showing frame processing, bitrate, and speed, rather than a simple 'mv' or 'cp' command changing .mp4 to .avi."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "Verify the agent manually created or scripted the JSON manifest.",
+      "visual_evidence": "Look for a text editor being used to type out the JSON, or a script/echo command generating it, rather than copying a pre-existing file from elsewhere."
+    },
+    {
+      "id": "no_execution_errors",
+      "description": "Verify that the commands used to process the video and extract the image completed successfully.",
+      "visual_evidence": "Terminal output should not show fatal errors, unrecognized option errors, or abort messages during the ffmpeg execution."
+    }
+  ],
+  "privileged_info_for_vlm": "The target video must be an AVI container with 'mpeg4' video codec, 'mp3' audio codec, 44100 Hz sample rate, and exactly 800x600 resolution. The final video duration should be approximately 25 seconds (original is 30s, first 5s trimmed). The JSON manifest must contain exactly these keys: 'filename', 'container', 'video_codec', 'audio_codec', 'resolution', and 'target_fps'."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "disable_anonymous_access@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Disable anonymous access in JFrog Artifactory at http://localhost:8082 (Username: 'admin', Password: 'password') to secure the artifact repository. Currently, unauthenticated users can browse and download artifacts, which is a security risk. Modify the security configuration so that anonymous access is disabled and unauthenticated requests are rejected.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/disable_anonymous_access/setup_task.sh",
+    "post_task": "/workspace/tasks/disable_anonymous_access/export_result.sh"
+  },
+  "metadata": {
+    "admin_user": "admin",
+    "admin_pass": "password",
+    "artifactory_url": "http://localhost:8082"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_disable_anonymous_access"
+    }
+  }
+}

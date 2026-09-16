@@ -1,0 +1,36 @@
+{
+  "id": "create_swept_arch_handle@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "You are a merchandise displayer designing a custom arched door handle for a glass display case. Model a solid arched handle in FreeCAD consisting of a circular cross-section (radius 6 mm) swept along a semicircular arc path (radius 50 mm) in the XZ plane. The path is centered at the origin and spans from (-50, 0, 0) through (0, 0, 50) to (50, 0, 0). Save the FreeCAD document to ~/Documents/FreeCAD/display_handle.FCStd and export the solid to ~/Documents/FreeCAD/display_handle.step.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_swept_arch_handle/setup_task.sh",
+    "post_task": "/workspace/tasks/create_swept_arch_handle/export_result.sh"
+  },
+  "metadata": {
+    "expected_fcstd": "/home/ga/Documents/FreeCAD/display_handle.FCStd",
+    "expected_step": "/home/ga/Documents/FreeCAD/display_handle.step",
+    "ground_truth": {
+      "volume_mm3": 17765.3,
+      "volume_tolerance": 0.2,
+      "bbox_dims_mm": [
+        112,
+        12,
+        62
+      ],
+      "bbox_tolerance": 0.25
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_swept_arch_handle"
+    }
+  }
+}

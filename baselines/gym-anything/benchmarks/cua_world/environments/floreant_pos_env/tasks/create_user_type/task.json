@@ -1,0 +1,27 @@
+{
+  "id": "create_user_type@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "You are a restaurant owner restructuring staff roles in Floreant POS. Create a new user type named 'Shift Supervisor' in the Back Office administration using PIN 1111. Ensure the new user type is saved to the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_user_type/setup_task.sh",
+    "post_task": "/workspace/tasks/create_user_type/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Shift Supervisor",
+    "db_table": "USER_TYPE",
+    "success_threshold": 55
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_user_type"
+    }
+  }
+}

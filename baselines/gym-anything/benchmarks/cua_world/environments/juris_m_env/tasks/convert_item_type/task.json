@@ -1,0 +1,30 @@
+{
+  "id": "convert_item_type@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "A reference for 'Roe v. Wade' was incorrectly added to the library as a Journal Article. Update the item to a 'Case' type with the following metadata: Case Name 'Roe v. Wade', Court 'United States Supreme Court', Reporter 'U.S.', Volume '410', First Page '113', and Date Decided '1973'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/convert_item_type/setup_task.sh",
+    "post_task": "/workspace/tasks/convert_item_type/export_result.sh"
+  },
+  "metadata": {
+    "expected_case_name": "Roe v. Wade",
+    "expected_court": "United States Supreme Court",
+    "expected_reporter": "U.S.",
+    "expected_volume": "410",
+    "expected_page": "113",
+    "expected_date": "1973"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_convert_item_type"
+    }
+  }
+}

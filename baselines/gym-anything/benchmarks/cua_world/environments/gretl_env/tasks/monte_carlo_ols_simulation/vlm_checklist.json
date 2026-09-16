@@ -1,0 +1,53 @@
+{
+  "task_id": "monte_carlo_ols_simulation@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "The Gretl script file is created at the specified path.",
+      "points": 10,
+      "visual_evidence": "A file named 'monte_carlo.inp' is visible in the directory '/home/ga/Documents/gretl_output/' in a file manager, terminal, or text editor."
+    },
+    {
+      "id": "script_dgp_and_seed",
+      "description": "The script correctly sets up the Data Generating Process and random seed.",
+      "points": 20,
+      "visual_evidence": "The script content shows 'set seed 54321', a sample size of 50 (e.g., 'nulldata 50'), and the correct DGP: x generated as Uniform(0,10), e as Normal(0, variance=4 or sd=2), and y = 2 + 3*x + e."
+    },
+    {
+      "id": "script_simulation_loop",
+      "description": "The script contains a loop for 1000 replications to estimate OLS.",
+      "points": 30,
+      "visual_evidence": "The script shows a loop running 1000 times (e.g., 'loop 1000'). Inside or associated with the loop, there is an OLS regression of y on a constant and x (e.g., 'ols y const x' or 'ols y 0 x'), and the slope coefficient is stored."
+    },
+    {
+      "id": "results_file_created",
+      "description": "The results text file is created at the specified path.",
+      "points": 10,
+      "visual_evidence": "A file named 'monte_carlo_results.txt' is visible in the directory '/home/ga/Documents/gretl_output/'."
+    },
+    {
+      "id": "results_format_and_values",
+      "description": "The results file contains the correct format and reasonable simulated values.",
+      "points": 30,
+      "visual_evidence": "The contents of 'monte_carlo_results.txt' show exactly three lines: 'mean_b1 = <value>', 'sd_b1 = <value>', and 'true_b1 = 3.0'. The computed mean value is between 2.85 and 3.15, and the computed sd value is between 0.05 and 0.25."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_calculation",
+      "description": "The script calculates the statistics from the simulation rather than hardcoding them.",
+      "visual_evidence": "The script uses functions like 'mean()' and 'sd()' on the stored coefficients to generate the output, rather than printing fixed numbers to the text file."
+    },
+    {
+      "id": "realistic_simulation_results",
+      "description": "The output values look like genuine Monte Carlo results.",
+      "visual_evidence": "The mean and sd in the results file are floating-point numbers with multiple decimal places (e.g., 2.995, 0.102) and not exactly the theoretical values (3.0, 0.098) or simple integers."
+    },
+    {
+      "id": "script_execution_evidence",
+      "description": "There is evidence that the script was actually executed in Gretl.",
+      "visual_evidence": "A terminal showing the execution of the script via 'gretlcli' or the Gretl GUI showing the script running/completed, ensuring the agent didn't just write the results file using a bash echo or python script."
+    }
+  ],
+  "privileged_info_for_vlm": "The true OLS slope estimator is unbiased, so the expected mean of b1 is 3.0. The theoretical standard deviation of b1 for this DGP (n=50, x~U(0,10), e~N(0,4)) is approximately 0.098. Acceptable ranges for the 1000-replication Monte Carlo simulation are [2.85, 3.15] for the mean and [0.05, 0.25] for the SD. The script must use seed 54321."
+}

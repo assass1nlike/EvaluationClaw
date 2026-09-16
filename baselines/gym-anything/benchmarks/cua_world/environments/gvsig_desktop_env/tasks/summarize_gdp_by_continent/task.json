@@ -1,0 +1,48 @@
+{
+  "id": "summarize_gdp_by_continent@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Calculate the total Gross Domestic Product (GDP) for each continent using the loaded 'ne_110m_admin_0_countries' layer. Sum the 'GDP_MD_EST' field for each unique value in the 'CONTINENT' field and export the resulting summary to a CSV file at /home/ga/gvsig_data/exports/continent_gdp_summary.csv. The output CSV must contain at least two columns: the continent name and the summed GDP value.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/summarize_gdp_by_continent/setup_task.sh",
+    "post_task": "/workspace/tasks/summarize_gdp_by_continent/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/gvsig_data/exports/continent_gdp_summary.csv",
+    "expected_continents": [
+      "Africa",
+      "Asia",
+      "Europe",
+      "North America",
+      "South America",
+      "Oceania"
+    ],
+    "gdp_ranges": {
+      "Africa": [
+        1000000,
+        10000000
+      ],
+      "South America": [
+        2000000,
+        10000000
+      ],
+      "Asia": [
+        20000000,
+        80000000
+      ]
+    },
+    "note": "GDP values in the dataset are usually in millions of US dollars. Ranges are broad to accommodate dataset versions."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_summarize_gdp"
+    }
+  }
+}

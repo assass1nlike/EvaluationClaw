@@ -1,0 +1,21 @@
+{
+  "id": "export_to_csv@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "Vital Recorder 1.16.6 is open on the Windows desktop with the file '0002.vital' from the VitalDB open dataset already loaded. The track window shows waveform traces from a noncardiac surgery at Seoul National University Hospital. Export the loaded vital signs data to CSV format and save the file as 'case_0002_export.csv' to C:\\Users\\Docker\\Desktop\\case_0002_export.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\export_to_csv\\setup_task.ps1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_to_csv"
+    }
+  }
+}

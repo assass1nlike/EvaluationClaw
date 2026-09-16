@@ -1,0 +1,46 @@
+{
+  "id": "chinook_fraud_investigation@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a forensic data analyst investigating potential billing irregularities in the Chinook digital media store. Audit the 'invoices' table in the database at /home/ga/Documents/databases/chinook_fraud.db against 'invoice_items' and 'customers' to identify two types of fraud: Financial Mismatch (where 'Total' does not equal the sum of UnitPrice * Quantity, allowing for $0.01 tolerance) and Geo Mismatch (where 'BillingCountry' does not match the 'Country' of the linked Customer). Export all suspicious records to /home/ga/Documents/exports/fraud_audit.csv. The CSV must include the following columns: InvoiceId, ViolationType (text description), InvoiceTotal, CalculatedTotal, BillingCountry, and CustomerCountry.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_fraud_investigation/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_fraud_investigation/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_fraud.db",
+    "output_path": "/home/ga/Documents/exports/fraud_audit.csv",
+    "connection_name": "ChinookFraud",
+    "ground_truth": {
+      "financial_mismatch_ids": [
+        99,
+        128,
+        256
+      ],
+      "geo_mismatch_ids": [
+        44,
+        300
+      ]
+    },
+    "required_columns": [
+      "InvoiceId",
+      "ViolationType",
+      "InvoiceTotal",
+      "CalculatedTotal",
+      "BillingCountry",
+      "CustomerCountry"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_fraud_investigation"
+    }
+  }
+}

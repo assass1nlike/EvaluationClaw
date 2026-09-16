@@ -1,0 +1,53 @@
+{
+  "task_id": "housing_affordability_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_created",
+      "description": "The Jupyter notebook is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "Look for a Jupyter Notebook interface (e.g., JupyterLab or VS Code Jupyter extension) open with the filename 'affordability_analysis.ipynb' in the '/home/ga/urbansim_projects/notebooks/' directory."
+    },
+    {
+      "id": "data_processing_code",
+      "description": "The notebook contains code to process the UrbanSim HDF5 data according to the instructions.",
+      "points": 20,
+      "visual_evidence": "Look for pandas/python code reading 'sanfran_public.h5', filtering for price > 0 and >= 10 households, and calculating median income, median price, and price-to-income ratio."
+    },
+    {
+      "id": "extreme_zones_identified",
+      "description": "The 5 most affordable and 5 least affordable zones are identified in the notebook outputs.",
+      "points": 20,
+      "visual_evidence": "Look for executed cell outputs (e.g., printed dataframes or lists) explicitly showing the top 5 and bottom 5 zones based on the calculated price-to-income ratio."
+    },
+    {
+      "id": "csv_exported",
+      "description": "The full results are exported to a CSV file with the correct columns.",
+      "points": 20,
+      "visual_evidence": "Look for code executing a CSV export (e.g., `to_csv`) to '/home/ga/urbansim_projects/output/affordability_by_zone.csv' and ensuring the columns 'zone_id', 'median_income', 'median_price', 'price_to_income_ratio', and 'num_households' are included."
+    },
+    {
+      "id": "chart_generated",
+      "description": "A bar chart showing the price-to-income ratio for all qualifying zones, sorted ascending, is generated and saved.",
+      "points": 30,
+      "visual_evidence": "Look for a bar chart displayed in the notebook outputs or an image viewer showing sorted bars (ascending order). The code should show it being saved to '/home/ga/urbansim_projects/output/affordability_chart.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "real_code_execution",
+      "description": "The agent actually executed code in the Jupyter Notebook to get results.",
+      "visual_evidence": "Look for execution numbers in the Jupyter Notebook cells (e.g., `[1]`, `[2]`) and corresponding outputs, rather than just markdown text or unexecuted code."
+    },
+    {
+      "id": "authentic_chart_generation",
+      "description": "The chart was generated via code, not copied or downloaded.",
+      "visual_evidence": "Look for plotting code (e.g., matplotlib, seaborn, plotly) in the notebook that corresponds directly to the generated bar chart."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "The CSV was generated programmatically from the processed dataframe.",
+      "visual_evidence": "Look for a `.to_csv()` method call in the notebook targeting the exact required output path, rather than manual file creation."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected Notebook Path: /home/ga/urbansim_projects/notebooks/affordability_analysis.ipynb. Expected CSV Path: /home/ga/urbansim_projects/output/affordability_by_zone.csv. Expected Plot Path: /home/ga/urbansim_projects/output/affordability_chart.png. Expected CSV Columns: ['zone_id', 'median_income', 'median_price', 'price_to_income_ratio', 'num_households']. Ground Truth Data: There should be exactly 187 qualifying zones (>= 10 households). The median price-to-income ratio across these zones is approximately 0.00841 (this unusually low value is correct and expected, as 'residential_sales_price' reflects price per square foot in this dataset)."
+}

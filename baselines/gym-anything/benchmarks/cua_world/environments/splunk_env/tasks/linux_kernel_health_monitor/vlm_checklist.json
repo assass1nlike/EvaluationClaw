@@ -1,0 +1,53 @@
+{
+  "task_id": "linux_kernel_health_monitor@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Log into Splunk Web UI",
+      "points": 10,
+      "visual_evidence": "The Splunk Web interface is visible, indicating successful login with the provided credentials."
+    },
+    {
+      "id": "event_types_created",
+      "description": "Create the three specified event types with correct search strings",
+      "points": 25,
+      "visual_evidence": "The Settings > Event types page shows 'linux_oom_event', 'linux_hardware_fault', and 'linux_disk_error' created with their respective index=system_logs search queries."
+    },
+    {
+      "id": "tags_applied",
+      "description": "Apply the 'system_failure' tag to the event types",
+      "points": 20,
+      "visual_evidence": "The Settings > Tags page or the Event types configuration shows the tag 'system_failure' applied to the three newly created event types."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "Construct a Classic Dashboard named 'Linux_Kernel_Health'",
+      "points": 15,
+      "visual_evidence": "A Splunk dashboard titled 'Linux_Kernel_Health' is visible in the UI."
+    },
+    {
+      "id": "panels_configured",
+      "description": "Configure at least two visualization panels utilizing the 'system_failure' tag",
+      "points": 30,
+      "visual_evidence": "The dashboard contains at least two visualization panels, and their underlying SPL searches (visible in edit mode or search view) include the 'system_failure' tag (e.g., tag=system_failure)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Splunk Web UI to configure the settings",
+      "visual_evidence": "Screenshots show interaction with the Splunk web interface rather than terminal curl commands to the REST API."
+    },
+    {
+      "id": "genuine_dashboard",
+      "description": "The dashboard is a genuine Splunk dashboard",
+      "visual_evidence": "The dashboard is viewed within the Splunk application, not as a static HTML file or mockup in a text editor."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "Agent did not bypass the UI by directly editing Splunk .conf files",
+      "visual_evidence": "No terminal windows showing the editing of savedsearches.conf, eventtypes.conf, or tags.conf using nano/vim."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected Dashboard Name: 'Linux_Kernel_Health'. Expected Tag: 'system_failure'. Expected Event Types: 'linux_oom_event', 'linux_hardware_fault', 'linux_disk_error'. Splunk Credentials: admin / SplunkAdmin1!"
+}

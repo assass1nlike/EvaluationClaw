@@ -1,0 +1,59 @@
+{
+  "task_id": "cinematic_aspect_ratio_pipeline@1",
+  "task_completion": [
+    {
+      "id": "source_video_accessed",
+      "description": "Verify the agent accessed the source video file.",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands referencing '/home/ga/Videos/source_clip.mp4' (e.g., ffmpeg input) or the file opened in a video editing application."
+    },
+    {
+      "id": "output_directory_created",
+      "description": "Verify the output directory was created or accessed.",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands like 'mkdir -p /home/ga/Videos/aspect_ratios' or the folder visible in a file manager."
+    },
+    {
+      "id": "cinemascope_and_academy_generated",
+      "description": "Verify the creation of the cinemascope and academy flat videos.",
+      "points": 20,
+      "visual_evidence": "Look for 'cinemascope.mp4' and 'academy_flat.mp4' in the output directory, or terminal output showing ffmpeg/processing commands generating these specific files."
+    },
+    {
+      "id": "classic_square_vertical_generated",
+      "description": "Verify the creation of the classic TV, square social, and vertical mobile videos.",
+      "points": 20,
+      "visual_evidence": "Look for 'classic_tv.mp4', 'square_social.mp4', and 'vertical_mobile.mp4' in the output directory, or terminal output showing their generation."
+    },
+    {
+      "id": "video_properties_correct",
+      "description": "Verify the videos were encoded with the correct resolutions and codecs.",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands (like ffmpeg arguments '-c:v libx264', '-c:a aac', and crop filters) or file property dialogs confirming H.264/AAC codecs and the specific target resolutions (e.g., 1920x804, 1920x1038, 1440x1080, 1080x1080, 608x1080)."
+    },
+    {
+      "id": "catalog_file_created",
+      "description": "Verify the aspect catalog JSON file was created.",
+      "points": 20,
+      "visual_evidence": "Look for 'aspect_catalog.json' visible in the output directory, or terminal commands/text editors showing the creation and editing of this file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_video_processing",
+      "description": "Ensure the agent actually processed the videos rather than creating empty or fake files.",
+      "visual_evidence": "Look for genuine video processing commands (e.g., ffmpeg with crop filters) or GUI rendering progress, rather than 'touch' commands or simple file renaming."
+    },
+    {
+      "id": "independent_execution",
+      "description": "Ensure the agent executed the task independently without downloading a pre-made solution.",
+      "visual_evidence": "Look for the agent typing out the ffmpeg commands, writing a script, or using a GUI manually, rather than downloading a script from the internet to do the work."
+    },
+    {
+      "id": "genuine_catalog_creation",
+      "description": "Ensure the catalog file was generated or written by the agent.",
+      "visual_evidence": "Look for the agent writing the JSON content in a text editor or using a script to generate it, rather than copying it from an external unauthorized source."
+    }
+  ],
+  "privileged_info_for_vlm": "The source video is located at /home/ga/Videos/source_clip.mp4. The output directory must be /home/ga/Videos/aspect_ratios/. The expected output files and their resolutions are: cinemascope.mp4 (1920x804), academy_flat.mp4 (1920x1038), classic_tv.mp4 (1440x1080), square_social.mp4 (1080x1080), and vertical_mobile.mp4 (608x1080). The videos must use the H.264 video codec and AAC audio codec. A catalog file named aspect_catalog.json must also be created in the output directory."
+}

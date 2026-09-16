@@ -1,0 +1,38 @@
+{
+  "id": "create_standalone_research_notes@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Create a collection named 'Dissertation Notes' containing two standalone notes. Note 1 must include the phrase 'Research Questions', the keywords 'transformer', 'attention', and 'scalability', and be at least 100 characters long. Note 2 must include the phrase 'Key Findings', the keywords 'pre-training', 'fine-tuning', and 'benchmark', and be at least 100 characters long.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_standalone_research_notes/setup_task.sh",
+    "post_task": "/workspace/tasks/create_standalone_research_notes/export_result.sh"
+  },
+  "metadata": {
+    "target_collection": "Dissertation Notes",
+    "note1_phrase": "Research Questions",
+    "note1_keywords": [
+      "transformer",
+      "attention",
+      "scalability"
+    ],
+    "note2_phrase": "Key Findings",
+    "note2_keywords": [
+      "pre-training",
+      "fine-tuning",
+      "benchmark"
+    ],
+    "min_length": 100
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_standalone_research_notes"
+    }
+  }
+}

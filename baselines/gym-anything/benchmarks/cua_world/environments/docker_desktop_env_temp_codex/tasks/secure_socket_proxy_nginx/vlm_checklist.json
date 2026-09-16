@@ -1,0 +1,59 @@
+{
+  "task_id": "secure_socket_proxy_nginx@1",
+  "task_completion": [
+    {
+      "id": "remove_monitor_socket_mount",
+      "description": "Remove the direct Docker socket mount from the 'monitor' service",
+      "points": 10,
+      "visual_evidence": "Look at the docker-compose.yml file in a text editor or terminal output. The 'monitor' service should no longer have '/var/run/docker.sock' listed under its 'volumes' section."
+    },
+    {
+      "id": "add_proxy_service",
+      "description": "Implement a new 'proxy' service using nginx:alpine",
+      "points": 15,
+      "visual_evidence": "Look at the docker-compose.yml file. There should be a new 'proxy' service defined under 'services', specifying 'image: nginx:alpine'."
+    },
+    {
+      "id": "proxy_socket_mount",
+      "description": "Mount the Docker socket to the 'proxy' service",
+      "points": 15,
+      "visual_evidence": "Look at the docker-compose.yml file. The 'proxy' service must have a 'volumes' section that includes '/var/run/docker.sock' (e.g., '- /var/run/docker.sock:/var/run/docker.sock')."
+    },
+    {
+      "id": "nginx_config_get_only",
+      "description": "Configure Nginx to proxy to the unix socket and restrict to GET requests",
+      "points": 20,
+      "visual_evidence": "Look for an Nginx configuration file (e.g., nginx.conf or default.conf) being edited or viewed. It must contain a proxy_pass directive pointing to the unix socket (e.g., 'proxy_pass http://unix:/var/run/docker.sock:/;') and logic to restrict access to GET requests only (e.g., 'limit_except GET { deny all; }' or an 'if ($request_method != GET)' block)."
+    },
+    {
+      "id": "monitor_docker_host_env",
+      "description": "Update the 'monitor' service to connect to the proxy via TCP",
+      "points": 20,
+      "visual_evidence": "Look at the docker-compose.yml file. The 'monitor' service must have an 'environment' section that includes 'DOCKER_HOST=tcp://proxy:2375'."
+    },
+    {
+      "id": "stack_running",
+      "description": "Ensure the re-architected stack is up and running",
+      "points": 20,
+      "visual_evidence": "Look at the terminal for the execution of 'docker compose up' or 'docker ps'. The output should show both the 'monitor' and 'proxy' containers successfully created and in an 'Up' state."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_edits",
+      "description": "Agent genuinely edited the configuration files in the correct directory",
+      "visual_evidence": "Screenshots should show the agent using a text editor (like nano, vim, or VS Code) or valid shell commands to modify docker-compose.yml and the nginx configuration file within /home/ga/Documents/docker-projects/monitor-stack."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "Agent actually executed Docker commands to start the stack",
+      "visual_evidence": "The terminal should show genuine Docker CLI output (e.g., pulling images, creating networks, starting containers) rather than just echoing success messages."
+    },
+    {
+      "id": "no_fake_success_echo",
+      "description": "Agent did not fake success by printing expected output",
+      "visual_evidence": "Ensure the terminal does not contain commands like 'echo \"monitor and proxy running\"' or simply printing the task description to bypass verification."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/Documents/docker-projects/monitor-stack. The expected running services are 'monitor' and 'proxy'. The 'monitor' service must NOT have /var/run/docker.sock mounted. The 'proxy' service must expose the Docker socket on TCP port 2375."
+}

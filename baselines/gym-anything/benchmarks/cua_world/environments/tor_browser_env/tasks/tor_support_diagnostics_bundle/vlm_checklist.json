@@ -1,0 +1,59 @@
+{
+  "task_id": "tor_support_diagnostics_bundle@1",
+  "task_completion": [
+    {
+      "id": "open_about_support",
+      "description": "Navigate to the Troubleshooting Information page in Tor Browser",
+      "points": 10,
+      "visual_evidence": "Tor Browser window is visible, displaying the 'about:support' page (Troubleshooting Information)."
+    },
+    {
+      "id": "save_about_support",
+      "description": "Save the troubleshooting data to about_support.txt",
+      "points": 20,
+      "visual_evidence": "A file named 'about_support.txt' is visible in a file manager, text editor, or terminal within the /home/ga/Documents directory, containing the extracted troubleshooting data."
+    },
+    {
+      "id": "open_tor_logs",
+      "description": "Access the Tor daemon logs in Tor Browser",
+      "points": 10,
+      "visual_evidence": "Tor Browser window is visible, displaying the Tor daemon logs (usually accessed via Settings -> Connection -> View Logs)."
+    },
+    {
+      "id": "save_tor_logs",
+      "description": "Save the Tor daemon logs to tor_logs.txt",
+      "points": 20,
+      "visual_evidence": "A file named 'tor_logs.txt' is visible in a file manager, text editor, or terminal within the /home/ga/Documents directory, containing the extracted Tor daemon logs."
+    },
+    {
+      "id": "filter_bootstrap_logs",
+      "description": "Filter the logs for 'Bootstrapped' and save to bootstrap_phases.txt",
+      "points": 20,
+      "visual_evidence": "A file named 'bootstrap_phases.txt' is visible, or a terminal command (e.g., grep) is shown filtering 'tor_logs.txt' for the exact word 'Bootstrapped' and saving the output."
+    },
+    {
+      "id": "create_zip_archive",
+      "description": "Compress the three text files into tor_diagnostics.zip",
+      "points": 20,
+      "visual_evidence": "A file named 'tor_diagnostics.zip' is visible in the /home/ga/Documents directory, or a terminal command or GUI archive manager is shown creating the zip archive containing the three text files."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tor_browser_interaction",
+      "description": "Verify the agent extracted data from the Tor Browser UI",
+      "visual_evidence": "Screenshots should show the agent interacting with the Tor Browser UI (about:support and Connection Settings) to copy the data, rather than generating fake data or fetching it via background scripts."
+    },
+    {
+      "id": "genuine_data_content",
+      "description": "Verify the extracted data appears genuine",
+      "visual_evidence": "The contents of the text files (if visible) should look like real Tor logs and browser troubleshooting information, not manually typed placeholder text."
+    },
+    {
+      "id": "case_sensitive_filtering",
+      "description": "Verify the filtering for 'Bootstrapped' was performed correctly",
+      "visual_evidence": "The filtering method (e.g., grep command) or the resulting bootstrap_phases.txt file should show that the exact case-sensitive word 'Bootstrapped' was used."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output is a zip archive at /home/ga/Documents/tor_diagnostics.zip containing exactly three files: about_support.txt (minimum size 2000 bytes), tor_logs.txt (minimum size 500 bytes), and bootstrap_phases.txt."
+}

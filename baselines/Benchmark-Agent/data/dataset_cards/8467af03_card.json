@@ -1,0 +1,74 @@
+{
+  "dataset_id": "8467af03",
+  "name": "Humor-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A binary humor detection dataset of 200 text samples where the model must classify a given text as 'Humorous' or 'Not Humorous'.",
+  "card_text": "This dataset contains 200 text-only samples for binary humor detection. Each sample includes a raw_text field holding a joke, one-liner, anecdote, or other short piece of everyday text, and a prompt that instructs the model to classify the text as either 'Humorous' or 'Not Humorous' and output only the category name. The output field topic stores the gold label. Content lengths vary from single-sentence puns to multi-paragraph humorous stories involving dialogue. The dataset assumes that humor is a binary property of the provided text and does not require explanation or rationale. It evaluates straightforward classification ability on informal, everyday humor.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "humor",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "The raw_text field contains the main text to be classified. It consists of jokes, puns, humorous anecdotes, or non-humorous texts; lengths vary from one-liners to multi-paragraph stories. It is referenced by the placeholder <<<raw_text>>> in the prompt.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The prompt field is a fixed instruction asking the model to classify the referenced raw_text as either 'Humorous' or 'Not Humorous' and to return only the category name. It contains a placeholder that is replaced by the context text before classification.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.topic"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The output.topic field holds the binary gold label for the input text, either 'Humorous' or 'Not Humorous'. It is the target category the model must predict.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object containing raw_text (the text to classify) and prompt (a classification instruction with a placeholder for raw_text), plus an output object containing topic (the binary label 'Humorous' or 'Not Humorous'). No dialog, options, bounding boxes, or other auxiliary annotations are present; the prompt references the raw_text through a placeholder, and the answer is a single category name."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Humor-Detection/annotation.json",
+    "existing_tags": {
+      "task": "humor_detection",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

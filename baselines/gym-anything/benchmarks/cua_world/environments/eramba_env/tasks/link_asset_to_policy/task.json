@@ -1,0 +1,27 @@
+{
+  "id": "link_asset_to_policy@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "You are a Compliance Manager preparing for an audit. The auditors require evidence that the organization's security policies explicitly cover critical business assets. Associate the business asset 'Core Banking Application' with the security policy 'Information Security Policy' in Eramba GRC. The application is accessible at http://localhost:8080 with credentials admin / Admin2024!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/link_asset_to_policy/setup_task.sh",
+    "post_task": "/workspace/tasks/link_asset_to_policy/export_result.sh"
+  },
+  "metadata": {
+    "policy_name": "Information Security Policy",
+    "asset_name": "Core Banking Application",
+    "expected_association_table": "business_assets_security_policies"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_link_asset_to_policy"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "spatial_grid_indexing@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Create a spatial grid index for hotels in the 'demodb' database. Define a 'GeographicZone' vertex class with a unique 'ZoneID' string property and an 'InZone' edge class. Link each hotel to a 'GeographicZone' vertex (Hotel -> GeographicZone) where the 'ZoneID' is the integer part of the hotel's latitude and longitude formatted as '{Lat}_{Lon}' (e.g., 41.89, 12.49 results in '41_12'). Export a report to '~/zone_density_report.txt' listing the top 5 zones by hotel count in the format 'ZoneID: <ID>, Count: <N>'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/spatial_grid_indexing/setup_task.sh",
+    "post_task": "/workspace/tasks/spatial_grid_indexing/export_result.sh"
+  },
+  "metadata": {
+    "expected_report_path": "/home/ga/zone_density_report.txt",
+    "db_name": "demodb",
+    "zone_class": "GeographicZone",
+    "edge_class": "InZone",
+    "zone_id_prop": "ZoneID",
+    "sample_hotel_1": "Hotel Artemide",
+    "expected_zone_1": "41_12",
+    "sample_hotel_2": "Four Seasons Sydney",
+    "expected_zone_2": "-33_151"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_spatial_grid_indexing"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "packaging_die_cut@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a production die-line for a 60mm x 60mm x 100mm packaging box in LibreCAD using millimeters. The drawing must feature two layers: 'CUT' (Red, Continuous) for cut lines and 'FOLD' (Blue, Dashed) for crease lines. The box net requires four 60mm x 100mm main panels, top and bottom flaps extending 30mm from the body, and a 15mm wide glue tab with chamfered corners on the right side of the fourth panel. Ensure the bottom-left corner of the first panel is positioned at coordinates (0,0). Save the file to /home/ga/Documents/LibreCAD/box_dieline.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/packaging_die_cut/setup_task.sh",
+    "post_task": "/workspace/tasks/packaging_die_cut/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "box_dieline.dxf",
+    "layer_cut_name": "CUT",
+    "layer_cut_color": 1,
+    "layer_fold_name": "FOLD",
+    "layer_fold_color": 5,
+    "box_width": 60,
+    "box_height": 100,
+    "flap_height": 30
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_packaging_die_cut"
+    }
+  }
+}

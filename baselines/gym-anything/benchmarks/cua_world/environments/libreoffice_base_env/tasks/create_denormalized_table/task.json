@@ -1,0 +1,50 @@
+{
+  "id": "create_denormalized_table@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "The accounting department needs a single flat table containing all invoice line item details for their legacy reporting tool. Create a new table named \"InvoiceReport\" in the Chinook music store database. The table must include these 14 columns: \"InvoiceLineId\" (INTEGER), \"InvoiceId\" (INTEGER), \"InvoiceDate\" (TIMESTAMP), \"CustomerName\" (VARCHAR(80), Customer.FirstName || ' ' || Customer.LastName), \"CustomerCountry\" (VARCHAR(40)), \"SupportRepName\" (VARCHAR(80), Employee.FirstName || ' ' || Employee.LastName), \"TrackName\" (VARCHAR(200)), \"AlbumTitle\" (VARCHAR(160)), \"ArtistName\" (VARCHAR(120)), \"GenreName\" (VARCHAR(120)), \"MediaTypeName\" (VARCHAR(120)), \"UnitPrice\" (NUMERIC(10,2)), \"Quantity\" (INTEGER), and \"LineTotal\" (NUMERIC(10,2), UnitPrice * Quantity). Populate the table by joining the InvoiceLine, Invoice, Customer, Employee, Track, Album, Artist, Genre, and MediaType tables using their standard relationships. Save the database to persist the changes.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_denormalized_table/setup_task.sh",
+    "post_task": "/workspace/tasks/create_denormalized_table/export_result.sh"
+  },
+  "metadata": {
+    "odb_path": "/home/ga/chinook.odb",
+    "expected_table_name": "InvoiceReport",
+    "expected_row_count": 2240,
+    "min_row_count": 2200,
+    "max_row_count": 2280,
+    "required_columns": [
+      "InvoiceLineId",
+      "InvoiceId",
+      "InvoiceDate",
+      "CustomerName",
+      "CustomerCountry",
+      "SupportRepName",
+      "TrackName",
+      "AlbumTitle",
+      "ArtistName",
+      "GenreName",
+      "MediaTypeName",
+      "UnitPrice",
+      "Quantity",
+      "LineTotal"
+    ],
+    "spot_check_values": [
+      "Iron Maiden",
+      "Rock",
+      "MPEG audio file"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_denormalized_table"
+    }
+  }
+}

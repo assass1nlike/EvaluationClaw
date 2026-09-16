@@ -1,0 +1,33 @@
+{
+  "id": "configure_price_alerts@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is running with pre-loaded daily OHLCV data for SPY and AAPL from January 2023 to December 2024. As a swing trader, configure price alerts to be notified when key levels are hit. Create an alert for SPY that triggers when the Last price crosses above 480.00 and an alert for AAPL that triggers when the Last price crosses below 170.00. Both alerts must be active and configured with a message action. Save the workspace as 'Alerts' or save over the current workspace to persist these settings.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_price_alerts\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_price_alerts\\export_result.ps1"
+  },
+  "metadata": {
+    "instruments": [
+      "SPY",
+      "AAPL"
+    ],
+    "spy_target": 480.0,
+    "aapl_target": 170.0,
+    "spy_condition": "CrossAbove",
+    "aapl_condition": "CrossBelow",
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_price_alerts"
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "dataset_id": "0c358496",
+  "name": "Scientific-Relation-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates scientific relation extraction: given a sentence from a scientific paper and a pair of entities, the model must predict the relation type between them from a predefined set (e.g., Compare-With, Used-For). It focuses on method-related relations in NLP/ML research text.",
+  "card_text": "The dataset contains 200 text-only samples for scientific relation extraction. Each sample provides a short raw sentence from a scientific paper, often about machine learning or NLP methods, and an instruction prompt that names two entities and lists the nine candidate relation types: Benchmark-For, Compare-With, Evaluated-With, Part-Of, SubClass-Of, SubTask-Of, Synonym-Of, Trained-With, and Used-For. The model must output only the correct relation type as a short label. The data is in English, factual and technical in style, and assumes the entity mentions are already identified and given in the prompt. It is suitable for evaluating relation classification in scientific text.",
+  "tasks": [
+    "relation_extraction"
+  ],
+  "domain": "scientific papers (NLP/ML methods)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A short sentence from a scientific paper that mentions two entities (e.g., methods like 'strided CNN' and 'GLYNN CNN'). It serves as the textual context for determining the relation between those entities.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction prompt that presents the entities extracted from the raw text and asks for their relationship, listing the possible relation types (e.g., Compare-With, Used-For) and requesting only the relation type.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The single relation label indicating the semantic relationship between the two specified entities in the given scientific sentence.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three text components: the raw scientific sentence (input.raw_text) as context, an instruction prompt (input.prompt) that specifies the entity pair and the candidate relation types and asks for the relation, and the output relation label (output.text). Entities and relation options are embedded in the prompt text rather than stored as separate structured fields."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Scientific-Relation-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "scientific_relation_extraction",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

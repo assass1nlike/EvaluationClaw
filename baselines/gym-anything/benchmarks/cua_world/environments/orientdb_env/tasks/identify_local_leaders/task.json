@@ -1,0 +1,30 @@
+{
+  "id": "identify_local_leaders@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "The marketing team wants to find 'Local Leaders' in the user base—people who have more friends than any of the people they follow. Using the 'demodb' database (user: root, pass: GymAnything123!), update the 'Profiles' schema to include 'FriendCount' (INTEGER) and 'IsLocalLeader' (BOOLEAN) properties. Calculate 'FriendCount' for every profile based on the number of outgoing 'HasFriend' edges. Set 'IsLocalLeader' to true for profiles where FriendCount is greater than zero and greater than the FriendCount of every person they follow (outgoing edges), and false otherwise. Export a list of these leaders including their Name, Surname, and FriendCount to /home/ga/local_leaders.json, ordered by FriendCount descending.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/identify_local_leaders/setup_task.sh",
+    "post_task": "/workspace/tasks/identify_local_leaders/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/local_leaders.json",
+    "database": "demodb",
+    "credentials": {
+      "user": "root",
+      "password": "GymAnything123!"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_identify_local_leaders"
+    }
+  }
+}

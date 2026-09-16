@@ -1,0 +1,65 @@
+{
+  "task_id": "configure_coloring_rules@1",
+  "task_completion": [
+    {
+      "id": "wireshark_pcap_loaded",
+      "description": "Open Wireshark and load the specified PCAP file",
+      "points": 10,
+      "visual_evidence": "Wireshark window is visible with '200722_tcp_anon.pcapng' loaded (visible in the title bar or recent files)."
+    },
+    {
+      "id": "rst_rule_created",
+      "description": "Create the Alert_High_RST coloring rule",
+      "points": 15,
+      "visual_evidence": "In the Wireshark Coloring Rules dialog OR in a terminal/text editor modifying the coloringrules file, a rule named 'Alert_High_RST' is created with filter 'tcp.flags.reset == 1', a Red background, and White text."
+    },
+    {
+      "id": "syn_rule_created",
+      "description": "Create the Alert_Medium_SYN coloring rule",
+      "points": 15,
+      "visual_evidence": "In the Wireshark Coloring Rules dialog OR in a terminal/text editor modifying the coloringrules file, a rule named 'Alert_Medium_SYN' is created with filter 'tcp.flags.syn == 1 && tcp.flags.ack == 0', a Yellow background, and Black text."
+    },
+    {
+      "id": "rules_prioritized",
+      "description": "Enable and prioritize the new rules at the top",
+      "points": 15,
+      "visual_evidence": "The two new rules are checked (enabled) and placed at the very top of the list in the GUI dialog, OR at the top of the coloringrules file, ensuring they have the highest priority."
+    },
+    {
+      "id": "packet_list_colored",
+      "description": "Apply the coloring rules to the packet list",
+      "points": 15,
+      "visual_evidence": "The main Wireshark window shows the packet list with the new colors applied. Specifically, SYN packets (like Frame 1) should be highlighted with a Yellow background and Black text."
+    },
+    {
+      "id": "rst_frame_number_saved",
+      "description": "Identify the first RST packet frame number and save it",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal shows the creation of '~/Documents/rst_frame_number.txt'. Since there are no RST packets in the capture, the file should be empty, or contain '0', 'None', or a similar indication of absence."
+    },
+    {
+      "id": "screenshot_exported",
+      "description": "Export a screenshot of the colored packet list",
+      "points": 15,
+      "visual_evidence": "The agent uses a screenshot tool or Wireshark's export function to save an image of the colored packet list to '~/Documents/colored_packets.png'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_packet_list",
+      "description": "The packet list reflects the actual capture file",
+      "visual_evidence": "The packet list shown in Wireshark genuinely reflects the '200722_tcp_anon.pcapng' capture (35 packets, first is a SYN packet), not a mocked or different capture file."
+    },
+    {
+      "id": "no_fake_rst_packet",
+      "description": "The agent does not falsely claim to find an RST packet",
+      "visual_evidence": "The agent does not write a random positive integer (e.g., '5' or '12') to 'rst_frame_number.txt', as the capture contains exactly zero RST packets."
+    },
+    {
+      "id": "screenshot_actually_taken",
+      "description": "The agent actually captures and saves the screenshot",
+      "visual_evidence": "The agent actively captures a screenshot of the Wireshark window and saves it to the specified path, rather than downloading an existing image or renaming a random file."
+    }
+  ],
+  "privileged_info_for_vlm": "The PCAP file '200722_tcp_anon.pcapng' contains exactly 35 packets. Crucially, it contains ZERO RST packets. All packets are SYN, SYN-ACK, ACK, PSH-ACK, or FIN-ACK. The first packet (Frame 1) is a SYN packet and should be highlighted by the 'Alert_Medium_SYN' rule (Yellow background, Black text). Because there are no RST packets, the 'Alert_High_RST' rule will not highlight any packets, and the correct content for 'rst_frame_number.txt' is empty, '0', 'None', or a similar indication of absence. The Wireshark coloring rules use 16-bit RGB, but visually in the GUI they will appear as standard Red (RST) and Yellow (SYN)."
+}

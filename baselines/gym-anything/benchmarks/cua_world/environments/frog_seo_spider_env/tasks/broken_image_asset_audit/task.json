@@ -1,0 +1,37 @@
+{
+  "id": "broken_image_asset_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform a technical audit to identify broken image assets on https://crawler-test.com/. Identify all image resources returning a Client Error (4xx) status code and export the results as a CSV file to ~/Documents/SEO/exports/. The exported filename must include 'broken_images'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/broken_image_asset_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/broken_image_asset_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "expected_extensions": [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".webp"
+    ],
+    "expected_status_codes": [
+      "404",
+      "403"
+    ],
+    "export_dir": "/home/ga/Documents/SEO/exports"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_broken_image_asset_audit"
+    }
+  }
+}

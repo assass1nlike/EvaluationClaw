@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_custom_app_brute_force@1",
+  "task_completion": [
+    {
+      "id": "configure_log_ingestion",
+      "description": "Configure Wazuh to ingest logs from the legacy application.",
+      "points": 15,
+      "visual_evidence": "A screenshot showing the modification of a Wazuh configuration file (e.g., ossec.conf) adding a <localfile> block with <location>/var/log/finconnect/app.log</location> and <log_format>syslog</log_format> (or text)."
+    },
+    {
+      "id": "create_custom_decoder",
+      "description": "Create a custom decoder to extract User, IP, and Status fields for the 'FinConnect' program.",
+      "points": 20,
+      "visual_evidence": "A screenshot showing a custom decoder XML configuration (e.g., in local_decoder.xml) that matches the program 'FinConnect' and uses regex to extract fields, with an <order> tag specifying user, srcip (or ip), and status."
+    },
+    {
+      "id": "create_base_rule",
+      "description": "Implement Rule 100205 with alert level 3 for 'Status=Failed'.",
+      "points": 20,
+      "visual_evidence": "A screenshot showing a custom rule XML configuration (e.g., in local_rules.xml) defining <rule id=\"100205\" level=\"3\"> and a condition that matches the 'Failed' status."
+    },
+    {
+      "id": "create_brute_force_rule",
+      "description": "Implement Rule 100210 with alert level 10 to trigger on 5 occurrences of Rule 100205 within 30 seconds from the same IP.",
+      "points": 25,
+      "visual_evidence": "A screenshot showing a custom rule XML configuration defining <rule id=\"100210\" level=\"10\" frequency=\"5\" timeframe=\"30\">. It must include <if_matched_sid>100205</if_matched_sid> and <same_source_ip />."
+    },
+    {
+      "id": "verify_detection",
+      "description": "Verify the detection by simulating an attack.",
+      "points": 20,
+      "visual_evidence": "A screenshot showing the simulated attack (e.g., appending multiple failed login logs to /var/log/finconnect/app.log) AND the resulting Wazuh alert for Rule 100210 or 100205 in the Wazuh dashboard, alerts.log, alerts.json, or wazuh-logtest output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_editing",
+      "description": "Verify the agent actually edited the Wazuh configuration files.",
+      "visual_evidence": "Screenshots should show the agent using a text editor (like nano or vim) or file manipulation commands (echo, sed) to modify ossec.conf, local_decoder.xml, and local_rules.xml, rather than just printing the expected XML to the terminal."
+    },
+    {
+      "id": "authentic_attack_simulation",
+      "description": "Verify the agent simulated the attack properly rather than faking the alert.",
+      "visual_evidence": "The agent should append log entries directly to /var/log/finconnect/app.log or use a script to generate them, rather than manually editing Wazuh's alert log files."
+    },
+    {
+      "id": "genuine_alert_output",
+      "description": "Verify the alert output comes from the actual Wazuh system.",
+      "visual_evidence": "The final verification should show authentic Wazuh output, such as the wazuh-logtest tool interface, the Wazuh web GUI, or properly formatted JSON/text in /var/ossec/logs/alerts/alerts.log."
+    }
+  ],
+  "privileged_info_for_vlm": "The target log file must be exactly '/var/log/finconnect/app.log'. The custom rules must use IDs 100205 and 100210. Rule 100210 must explicitly contain frequency='5' and timeframe='30'. The live fire verification will inject 6 failed login attempts using IP '10.254.254.254' and user 'verifier_bot'."
+}

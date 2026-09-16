@@ -1,0 +1,33 @@
+{
+  "id": "configure_document_expiry_alert@1",
+  "version": "1.0",
+  "env_id": "attendhrm_env@0.1",
+  "description": "Add a 'Passport' document record for employee Elena Rossi (EMP-2050) using the following details: Document Name: Passport, Document Number: YT8822119, Issue Date: 15-Jan-2023, Expiry Date: 14-Jan-2030, and an enabled alert for 60 days before expiry. Attach the file located at C:\\workspace\\data\\passport_sample.pdf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_document_expiry_alert\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_document_expiry_alert\\export_result.ps1",
+    "pre_task_timeout": 180
+  },
+  "metadata": {
+    "target_employee_id": "EMP-2050",
+    "target_employee_name": "Elena Rossi",
+    "expected_doc_number": "YT8822119",
+    "expected_expiry_date": "2030-01-14",
+    "expected_alert_days": 60,
+    "sample_file_path": "C:\\workspace\\data\\passport_sample.pdf",
+    "db_user": "SYSDBA",
+    "db_pass": "masterkey"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_document_expiry_alert"
+    }
+  }
+}

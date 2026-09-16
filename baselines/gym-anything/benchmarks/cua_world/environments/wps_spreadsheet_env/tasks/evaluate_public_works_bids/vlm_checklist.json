@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_public_works_bids@1",
+  "task_completion": [
+    {
+      "id": "file_and_sheets_created",
+      "description": "Verify the workbook is saved as bid_evaluation.xlsx and contains the three required sheets.",
+      "points": 10,
+      "visual_evidence": "The WPS Spreadsheet title bar should show 'bid_evaluation.xlsx' and the bottom sheet tabs should display 'Bid Tab', 'Summary', and 'Unbalanced Analysis'."
+    },
+    {
+      "id": "bid_tab_extended_costs",
+      "description": "Verify the 'Bid Tab' sheet contains the required extended cost columns.",
+      "points": 20,
+      "visual_evidence": "In the 'Bid Tab' sheet, look for columns explicitly named 'Eng_Extended', 'Apex_Extended', 'Titan_Extended', and 'Horizon_Extended' populated with calculated cost data."
+    },
+    {
+      "id": "summary_table_metrics",
+      "description": "Verify the 'Summary' sheet contains a table with total bids and variances for all parties.",
+      "points": 20,
+      "visual_evidence": "In the 'Summary' sheet, look for a table listing the Engineer, Apex, Titan, and Horizon, with columns for 'Total Bid' (e.g., Titan = 708300), 'Variance from Eng ($)', and 'Variance (%)'."
+    },
+    {
+      "id": "summary_low_bidder",
+      "description": "Verify the 'Summary' sheet correctly identifies the apparent low bidder in the specified cells.",
+      "points": 15,
+      "visual_evidence": "In the 'Summary' sheet, cell A8 must contain the exact text 'Apparent Low Bidder:' and cell B8 must contain 'Titan'."
+    },
+    {
+      "id": "unbalanced_analysis_columns",
+      "description": "Verify the 'Unbalanced Analysis' sheet contains the required column headers.",
+      "points": 15,
+      "visual_evidence": "In the 'Unbalanced Analysis' sheet, look for columns named 'Item_No', 'Description', 'Unit Price Ratio', and 'Audit Flag'."
+    },
+    {
+      "id": "unbalanced_analysis_flags",
+      "description": "Verify the 'Audit Flag' column correctly identifies unbalanced items.",
+      "points": 20,
+      "visual_evidence": "In the 'Unbalanced Analysis' sheet's 'Audit Flag' column, exactly two items ('Clearing and Grubbing' and 'Construction Staking') should be marked as 'UNBALANCED', while the rest should be marked 'OK'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_wps_spreadsheet_gui",
+      "description": "Verify the agent used the WPS Spreadsheet graphical interface to perform the task.",
+      "visual_evidence": "Screenshots should show the WPS Spreadsheet application open with the data being manipulated in the grid, rather than just a terminal window."
+    },
+    {
+      "id": "no_scripting_bypass",
+      "description": "Verify the agent did not use a Python script or terminal command to generate the Excel file entirely in the background.",
+      "visual_evidence": "Look for evidence of manual interaction with the spreadsheet software (e.g., typing formulas, formatting cells, renaming sheets) rather than a terminal executing a script like 'python generate_bids.py'."
+    },
+    {
+      "id": "genuine_formulas_used",
+      "description": "Verify the agent used spreadsheet features rather than manually typing in the final expected answers.",
+      "visual_evidence": "The formula bar in WPS Spreadsheet should ideally show formulas (e.g., `=SUM(...)`, `=IF(...)`, or multiplication) when cells are selected, indicating actual calculation rather than hardcoded text."
+    }
+  ],
+  "privileged_info_for_vlm": "Target file: /home/ga/Documents/bid_evaluation.xlsx. Required sheets: 'Bid Tab', 'Summary', 'Unbalanced Analysis'. Lowest bidder: Titan. Total Bids: Engineer = $756,500, Apex = $876,000, Titan = $708,300, Horizon = $815,300. Unbalanced items: Exactly 2 items ('Clearing and Grubbing' and 'Construction Staking') should be flagged as 'UNBALANCED' in the Unbalanced Analysis sheet."
+}

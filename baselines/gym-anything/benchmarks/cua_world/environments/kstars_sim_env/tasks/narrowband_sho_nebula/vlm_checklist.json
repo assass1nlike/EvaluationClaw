@@ -1,0 +1,53 @@
+{
+  "task_id": "narrowband_sho_nebula@1",
+  "task_completion": [
+    {
+      "id": "read_imaging_plan",
+      "description": "Verify the agent opened the imaging plan to read the requirements.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '~/Documents/imaging_plan.txt'."
+    },
+    {
+      "id": "target_selected",
+      "description": "Verify the agent selected the correct target (NGC 7000) in the planetarium or capture software.",
+      "points": 20,
+      "visual_evidence": "KStars or Ekos GUI showing 'NGC 7000' as the target, or coordinates matching RA ~20h58m and Dec ~+44\u00b020'."
+    },
+    {
+      "id": "sequence_configured",
+      "description": "Verify the agent configured the capture sequence for the required narrowband filters.",
+      "points": 20,
+      "visual_evidence": "Ekos capture module (or similar sequence planner) showing a queue with Ha, OIII, and SII filters, set to capture at least 5 frames per filter."
+    },
+    {
+      "id": "fits_captured",
+      "description": "Verify the agent successfully executed the sequence and captured the FITS files.",
+      "points": 20,
+      "visual_evidence": "Ekos capture module showing completed progress, or a file manager/terminal showing FITS files populated in '/home/ga/Images/ngc7000/narrowband'."
+    },
+    {
+      "id": "composite_saved",
+      "description": "Verify the agent produced and saved the final SHO composite image.",
+      "points": 30,
+      "visual_evidence": "A file manager, terminal, or image viewer showing the file 'composite_sho.png' successfully saved in '/home/ga/Images/ngc7000/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_kstars_ekos",
+      "description": "Verify the agent used the actual KStars/Ekos application to perform the capture sequence.",
+      "visual_evidence": "The KStars/Ekos GUI is visible in the screenshots and actively interacted with, rather than the agent mocking the FITS files via terminal commands."
+    },
+    {
+      "id": "actual_composite_process",
+      "description": "Verify the agent genuinely processed the FITS files into a composite image.",
+      "visual_evidence": "Presence of an image processing tool (like Siril, GIMP) or a Python script being executed to combine the Ha, OIII, and SII channels, rather than downloading a pre-existing image."
+    },
+    {
+      "id": "valid_output_file",
+      "description": "Verify the final composite image is a legitimate image file.",
+      "visual_evidence": "The 'composite_sho.png' file displays a valid image thumbnail in the file manager or is shown successfully opened in an image viewer."
+    }
+  ],
+  "privileged_info_for_vlm": "Target: NGC 7000 (North America Nebula) at RA 20.979h (20:58:47), Dec 44.334\u00b0 (+44:19:48). Required filters: Ha (slot 5), OIII (slot 6), SII (slot 4). Minimum 5 FITS frames per filter. Output composite must be saved to '/home/ga/Images/ngc7000/composite_sho.png'. Imaging plan is located at '/home/ga/Documents/imaging_plan.txt'."
+}

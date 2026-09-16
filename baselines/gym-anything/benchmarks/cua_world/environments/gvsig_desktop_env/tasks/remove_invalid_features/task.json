@@ -1,0 +1,27 @@
+{
+  "id": "remove_invalid_features@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Clean up the dataset 'countries_cleaning.shp' located at '/home/ga/gvsig_data/projects/countries_cleaning.shp' in gvSIG Desktop. Identify and delete all features where the 'POP_EST' field is equal to -99, then save the changes to the shapefile so it contains only valid records.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/remove_invalid_features/setup_task.sh",
+    "post_task": "/workspace/tasks/remove_invalid_features/export_result.sh"
+  },
+  "metadata": {
+    "target_file": "/home/ga/gvsig_data/projects/countries_cleaning.shp",
+    "invalid_value": -99,
+    "approx_features_to_remove": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_remove_invalid_features"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "dual_axis_macro_plot@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Load the US macroeconomic dataset 'usa.gdt' containing 'gdp' and 'inf'. Create a new variable 'g_gdp' representing the annualized quarterly growth rate of Real GDP using the formula 400 * diff(log(gdp)). Generate a dual-axis time series plot comparing 'g_gdp' on the left axis and 'inf' on the right axis. Save the plot as a PNG image to /home/ga/Documents/gretl_output/growth_inflation_plot.png and as a Gnuplot script to /home/ga/Documents/gretl_output/growth_inflation_plot.plt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dual_axis_macro_plot/setup_task.sh",
+    "post_task": "/workspace/tasks/dual_axis_macro_plot/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "usa.gdt",
+    "expected_png": "/home/ga/Documents/gretl_output/growth_inflation_plot.png",
+    "expected_plt": "/home/ga/Documents/gretl_output/growth_inflation_plot.plt",
+    "required_vars": [
+      "g_gdp",
+      "inf"
+    ],
+    "formula": "400 * diff(log(gdp))"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dual_axis_macro_plot"
+    }
+  }
+}

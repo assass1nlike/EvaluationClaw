@@ -1,0 +1,53 @@
+{
+  "task_id": "canary_release_resource_validation@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created_and_named",
+      "description": "The dashboard is created and named 'Canary v2 Validation'.",
+      "points": 10,
+      "visual_evidence": "Look for the dashboard title 'Canary v2 Validation' at the top of the Graphite web interface."
+    },
+    {
+      "id": "cpu_regression_graph",
+      "description": "A graph titled 'CPU Regression Checker' is present with the required aliased targets.",
+      "points": 25,
+      "visual_evidence": "Look for a graph with the title 'CPU Regression Checker'. The legend below or inside the graph must show exactly three aliases: 'Stable CPU', 'Canary CPU', and 'CPU Penalty'."
+    },
+    {
+      "id": "disk_io_graph",
+      "description": "A graph titled 'Disk I/O Multiplier' is present with the required aliased target.",
+      "points": 25,
+      "visual_evidence": "Look for a graph with the title 'Disk I/O Multiplier'. The legend must show the alias 'Canary I/O Ratio'."
+    },
+    {
+      "id": "cumulative_cpu_graph",
+      "description": "A graph titled 'Cumulative CPU Cost' is present with the required aliased targets.",
+      "points": 25,
+      "visual_evidence": "Look for a graph with the title 'Cumulative CPU Cost'. The legend must show the aliases 'Cumulative Stable CPU' and 'Cumulative Canary CPU'."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "The dashboard has been successfully saved.",
+      "points": 15,
+      "visual_evidence": "Look for a 'Dashboard Saved' notification, or check if the browser URL reflects the saved dashboard name (e.g., /dashboard/Canary%20v2%20Validation) rather than a new unsaved state."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "The agent used the Graphite web interface to construct the dashboard.",
+      "visual_evidence": "Screenshots should show interaction with the Graphite browser UI (e.g., adding graphs, editing metrics, applying functions like diffSeries, divideSeries, and integral) rather than just writing a JSON file in a terminal or text editor."
+    },
+    {
+      "id": "real_data_rendered",
+      "description": "The graphs display actual data lines.",
+      "visual_evidence": "The graphs should show plotted lines or curves representing the real EC2 metrics, not empty charts or error messages, proving the metrics were correctly queried."
+    },
+    {
+      "id": "no_text_editor_mocking",
+      "description": "The agent did not mock the results in a text editor.",
+      "visual_evidence": "Ensure the final result is a functional Graphite dashboard in the browser, not a text file containing the expected graph titles and aliases."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Canary v2 Validation'. It must contain exactly three graphs with the titles: 'CPU Regression Checker', 'Disk I/O Multiplier', and 'Cumulative CPU Cost'. The data used is real-world EC2 CPU utilization and disk write metrics, so the graphs should display actual plotted data lines, not empty charts."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_canvas_extraction_exception@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_local_tool",
+      "description": "Verify that Tor Browser is open and navigated to the local chart tool.",
+      "points": 10,
+      "visual_evidence": "Tor Browser is visible with 'file:///home/ga/Documents/OfflineTools/chart_tool.html' in the address bar."
+    },
+    {
+      "id": "trigger_canvas_prompt",
+      "description": "Verify that the agent triggers the canvas extraction warning in Tor Browser.",
+      "points": 15,
+      "visual_evidence": "A prompt or icon in the Tor Browser address bar or viewport indicating an attempt to extract HTML5 canvas image data."
+    },
+    {
+      "id": "grant_permanent_exception",
+      "description": "Verify that a permanent exception is granted for canvas extraction.",
+      "points": 30,
+      "visual_evidence": "The Tor Browser permissions popup shows canvas extraction is allowed with a 'Remember my decision' or 'Always Allow' option selected, or the Page Info/Settings shows the permission explicitly allowed for the local file."
+    },
+    {
+      "id": "export_base64_data",
+      "description": "Verify that the chart data is exported as a Base64 string in the tool.",
+      "points": 20,
+      "visual_evidence": "The chart tool UI displays a long Base64 string (often starting with 'data:image/png;base64,') after the permission is granted."
+    },
+    {
+      "id": "save_exported_chart",
+      "description": "Verify that the Base64 string is saved to the correct text file.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal shows the Base64 string being saved to '/home/ga/Documents/OfflineTools/exported_chart.txt'. The string should appear long and dense (representing >1000 bytes of data)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_tor",
+      "description": "Verify the agent used the Tor Browser GUI to grant permissions.",
+      "visual_evidence": "Screenshots show interaction with the Tor Browser UI and permission popups, rather than terminal commands modifying SQLite permission databases directly."
+    },
+    {
+      "id": "genuine_base64_output",
+      "description": "Verify the saved data is actual Base64 image data.",
+      "visual_evidence": "The content saved to the text file is a dense, continuous block of alphanumeric characters typical of Base64, not a short placeholder or manually typed string."
+    },
+    {
+      "id": "correct_file_saving",
+      "description": "Verify the agent interacted with a real text editor or terminal to save the file.",
+      "visual_evidence": "The file '/home/ga/Documents/OfflineTools/exported_chart.txt' is seen being written to in a text editor (e.g., gedit, nano) or via standard output redirection in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The local HTML tool is located at /home/ga/Documents/OfflineTools/chart_tool.html. The expected output file is /home/ga/Documents/OfflineTools/exported_chart.txt. The extracted Base64 string must be larger than 1000 bytes. The permission granted in Tor Browser must be for 'canvas/extractData'."
+}

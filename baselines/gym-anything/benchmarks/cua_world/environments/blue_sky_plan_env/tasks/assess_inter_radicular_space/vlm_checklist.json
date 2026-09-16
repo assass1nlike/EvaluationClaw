@@ -1,0 +1,65 @@
+{
+  "task_id": "assess_inter_radicular_space@1",
+  "task_completion": [
+    {
+      "id": "screenshot_shows_dental_software",
+      "description": "Verify the screenshot root_space_analysis.png shows a dental imaging software (like Blue Sky Plan) displaying a CBCT scan.",
+      "points": 10,
+      "visual_evidence": "The image should show a medical/dental imaging interface with cross-sectional or panoramic views of a jaw/teeth."
+    },
+    {
+      "id": "measurement_at_crest",
+      "description": "Verify there is a measurement of the mesial-distal distance between adjacent roots at the alveolar crest.",
+      "points": 20,
+      "visual_evidence": "A measurement line with a numerical value drawn horizontally between two tooth roots near the top of the bone (alveolar crest)."
+    },
+    {
+      "id": "measurement_at_6mm_depth",
+      "description": "Verify there is a second measurement of the mesial-distal distance at approximately 6mm apical to (below) the crest.",
+      "points": 20,
+      "visual_evidence": "A second measurement line with a numerical value drawn horizontally between the same two tooth roots, positioned deeper (apical) in the bone compared to the crest measurement."
+    },
+    {
+      "id": "report_file_exists",
+      "description": "Verify the feasibility_report.txt file is created and its contents are visible.",
+      "points": 10,
+      "visual_evidence": "A text editor showing the file feasibility_report.txt or terminal output displaying its contents."
+    },
+    {
+      "id": "report_header_and_site",
+      "description": "Verify the report contains the SITE_ANALYSIS header and Selected Site.",
+      "points": 10,
+      "visual_evidence": "The text must include 'SITE_ANALYSIS' and 'Selected Site: [Tooth Number]' (e.g., #19, #30, #18, or #31)."
+    },
+    {
+      "id": "report_measurements_recorded",
+      "description": "Verify the report records the distances at the crest and at 6mm depth.",
+      "points": 15,
+      "visual_evidence": "The text must include 'Distance at Crest: [value] mm' and 'Distance at 6mm Depth: [value] mm'. The values should ideally match the measurements shown in the screenshot."
+    },
+    {
+      "id": "report_feasibility_conclusion",
+      "description": "Verify the report concludes whether a 4.0mm implant is feasible based on the 7.0mm requirement.",
+      "points": 15,
+      "visual_evidence": "The text must include '4.0mm Implant Feasible: YES' if BOTH measurements are >= 7.0mm, or 'NO' if either measurement is < 7.0mm."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_software_usage",
+      "description": "Verify the agent used the actual dental imaging software to view and measure the CBCT scan.",
+      "visual_evidence": "The screenshot should show the UI of Blue Sky Plan or similar DICOM viewer, not a generic image viewer or a web browser showing a static image."
+    },
+    {
+      "id": "authentic_measurement_tools",
+      "description": "Verify the measurements were made using the software's built-in measurement tools.",
+      "visual_evidence": "Measurement lines and text should look like native software overlays (e.g., colored lines with distance labels), not text/lines MS-Painted onto the screenshot."
+    },
+    {
+      "id": "dynamic_report_values",
+      "description": "Verify the agent did not just copy-paste the prompt template.",
+      "visual_evidence": "The feasibility_report.txt should contain actual numerical values and a specific YES/NO, not the literal placeholder strings '[X.X]', '[Y.Y]', or '[YES/NO]'."
+    }
+  ],
+  "privileged_info_for_vlm": "The required inter-radicular space for a 4.0mm implant is 7.0mm (4.0mm implant + 1.5mm safety buffer on each side). The feasibility conclusion in the report must be 'YES' ONLY if both the crest measurement and the 6mm depth measurement are 7.0mm or greater. If either is less than 7.0mm, it must be 'NO'. The task uses synthetic DICOM data (patient 'DENTAL^PHANTOM') viewed in Blue Sky Plan software. Note: The task description uses the Universal Numbering System where 18, 19, 30, and 31 are valid posterior mandibular molars."
+}

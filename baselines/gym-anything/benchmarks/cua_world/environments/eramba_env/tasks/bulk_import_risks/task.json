@@ -1,0 +1,59 @@
+{
+  "id": "bulk_import_risks@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "You are processing risks from a recent clinic acquisition. Import the 4 legacy risks from /home/ga/Desktop/legacy_clinic_risks.csv into the Eramba Business Risks register. Map 'Risk Name' to 'Title', 'Risk Detail' to 'Description', 'Threat Agent' to 'Threats', and 'Weakness' to 'Vulnerabilities'. For any Impact or Likelihood scores, select the lowest available values (e.g., 1 or 'Very Low').",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bulk_import_risks/setup_task.sh",
+    "post_task": "/workspace/tasks/bulk_import_risks/export_result.sh"
+  },
+  "metadata": {
+    "csv_path": "/home/ga/Desktop/legacy_clinic_risks.csv",
+    "expected_risks": [
+      {
+        "title": "Unpatched Legacy MRI Systems",
+        "keywords": [
+          "Windows XP",
+          "Ransomware",
+          "End-of-life"
+        ]
+      },
+      {
+        "title": "Clinic WiFi Guest Access",
+        "keywords": [
+          "VLAN",
+          "Guest",
+          "segmentation"
+        ]
+      },
+      {
+        "title": "Paper Records Storage",
+        "keywords": [
+          "cabinet",
+          "Physical",
+          "access controls"
+        ]
+      },
+      {
+        "title": "Third-Party Lab Interface",
+        "keywords": [
+          "API",
+          "Interception",
+          "authentication"
+        ]
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bulk_import_risks"
+    }
+  }
+}

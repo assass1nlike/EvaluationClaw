@@ -1,0 +1,53 @@
+{
+  "task_id": "tax_configuration@1",
+  "task_completion": [
+    {
+      "id": "product_tax_class_created",
+      "description": "Verify the creation of the 'Industrial Machinery' Product Tax Class.",
+      "points": 15,
+      "visual_evidence": "Look for a success message or a row in the Tax Classes grid showing 'Industrial Machinery' with the Class Type set to 'Product'."
+    },
+    {
+      "id": "ca_tax_rate_created",
+      "description": "Verify the creation of the California State Tax rate.",
+      "points": 20,
+      "visual_evidence": "Look for a row in the Tax Zones and Rates grid showing the Identifier 'California State Tax', Country 'US', State/Region 'CA' (or California), Zip/Post Code '*', and Rate '7.25'."
+    },
+    {
+      "id": "ny_tax_rate_created",
+      "description": "Verify the creation of the New York State Tax rate.",
+      "points": 20,
+      "visual_evidence": "Look for a row in the Tax Zones and Rates grid showing the Identifier 'New York State Tax', Country 'US', State/Region 'NY' (or New York), Zip/Post Code '*', and Rate '4.00'."
+    },
+    {
+      "id": "tax_rule_created",
+      "description": "Verify the creation of the 'Industrial Equipment Tax Rule' with priority 0.",
+      "points": 15,
+      "visual_evidence": "Look for the Tax Rules grid or the rule's edit page showing the Name 'Industrial Equipment Tax Rule' and Priority '0'."
+    },
+    {
+      "id": "tax_rule_associations",
+      "description": "Verify the Tax Rule correctly links the customer class, product class, and both tax rates.",
+      "points": 30,
+      "visual_evidence": "Look at the Tax Rule configuration page. 'Taxable Goods' must be selected under Customer Tax Class, 'Industrial Machinery' must be selected under Product Tax Class, and both 'California State Tax' and 'New York State Tax' must be selected under Tax Rate."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the web browser GUI to configure the tax settings.",
+      "visual_evidence": "Screenshots should show the agent navigating the Magento Admin panel in a web browser, rather than executing CLI commands or database queries in a terminal."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Verify the agent interacted with the actual Magento application.",
+      "visual_evidence": "The interface should be the standard Magento Admin UI (Stores > Taxes), not a text editor, mock HTML page, or API testing tool like Postman."
+    },
+    {
+      "id": "no_script_execution",
+      "description": "Verify the agent did not use a pre-written script to bypass manual configuration.",
+      "visual_evidence": "The trajectory should show step-by-step form filling and saving in the browser, rather than a single terminal command executing a script that completes the task instantly."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a Product Tax Class named 'Industrial Machinery'. Two tax rates must be created: 'California State Tax' (Country: US, State: CA, Rate: 7.25, Zip: *) and 'New York State Tax' (Country: US, State: NY, Rate: 4.00, Zip: *). A Tax Rule named 'Industrial Equipment Tax Rule' must be created with Priority 0, linking the 'Taxable Goods' customer class, 'Industrial Machinery' product class, and both the CA and NY tax rates."
+}

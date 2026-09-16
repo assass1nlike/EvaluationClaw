@@ -1,0 +1,59 @@
+{
+  "task_id": "interactive_geo_dashboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Verify the dashboard named 'Geospatial_Auth_Activity' is created in the Search & Reporting app.",
+      "points": 10,
+      "visual_evidence": "Look for the dashboard title 'Geospatial_Auth_Activity' at the top of the Splunk Web UI within the Search & Reporting app context."
+    },
+    {
+      "id": "time_picker_present",
+      "description": "Verify a Time Picker input is present on the dashboard.",
+      "points": 10,
+      "visual_evidence": "Look for a time range dropdown (e.g., 'Last 24 hours', 'All time') located in the dashboard's input form section."
+    },
+    {
+      "id": "auth_status_input_present",
+      "description": "Verify a dropdown or radio input to filter by authentication status is present.",
+      "points": 15,
+      "visual_evidence": "Look for a dropdown or radio button input in the dashboard form that contains options related to authentication status, such as 'Failed password' and 'Accepted password'."
+    },
+    {
+      "id": "map_visualization_present",
+      "description": "Verify a map visualization panel is included on the dashboard.",
+      "points": 15,
+      "visual_evidence": "Look for a panel displaying a world map (Cluster Map or Choropleth) rendering the geospatial data."
+    },
+    {
+      "id": "query_index_and_commands",
+      "description": "Verify the panel's search query uses the correct index and required commands.",
+      "points": 25,
+      "visual_evidence": "Look at the search string for the map panel (visible in edit mode, inline search, or source XML). It must explicitly contain 'index=security_logs', 'iplocation', and 'geostats'."
+    },
+    {
+      "id": "query_uses_input_token",
+      "description": "Verify the panel's search query uses an input token for dynamic filtering.",
+      "points": 25,
+      "visual_evidence": "Look at the search string for the map panel. It must contain a token enclosed in dollar signs (e.g., $status_token$) that corresponds to the authentication status input."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_splunk_gui_used",
+      "description": "Verify the agent interacted with the actual Splunk web interface in a browser.",
+      "visual_evidence": "Look for the Splunk Web UI (typically at localhost:8000) in a web browser window, rather than a text editor mocking an XML file."
+    },
+    {
+      "id": "genuine_map_rendering",
+      "description": "Verify the map visualization is genuinely rendered by Splunk.",
+      "visual_evidence": "The map should appear as a standard Splunk visualization with typical UI controls (zoom, pan) and not a pasted static image."
+    },
+    {
+      "id": "no_direct_xml_injection",
+      "description": "Verify the agent used the Splunk UI to build the dashboard rather than solely bypassing the UI via terminal commands.",
+      "visual_evidence": "Look for screenshots showing the Splunk dashboard editor, input configuration menus, or search panel configuration."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Geospatial_Auth_Activity'. The search query must query the 'security_logs' index and explicitly use the 'iplocation' and 'geostats' commands. The Splunk credentials are admin / SplunkAdmin1!."
+}

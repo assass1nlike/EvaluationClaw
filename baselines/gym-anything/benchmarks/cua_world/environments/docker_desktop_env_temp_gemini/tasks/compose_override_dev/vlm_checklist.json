@@ -1,0 +1,59 @@
+{
+  "task_id": "compose_override_dev@1",
+  "task_completion": [
+    {
+      "id": "override_file_created",
+      "description": "Create docker-compose.override.yml in the project directory.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output showing the creation or editing of a file named `docker-compose.override.yml` in `/home/ga/Documents/docker-projects/webapp/`."
+    },
+    {
+      "id": "api_env_vars_configured",
+      "description": "Configure API service environment variables in the override file.",
+      "points": 15,
+      "visual_evidence": "The contents of `docker-compose.override.yml` show the `api` service with `environment:` containing `FLASK_DEBUG=1` and `FLASK_ENV=development`."
+    },
+    {
+      "id": "api_mount_and_command_configured",
+      "description": "Configure API service bind mount and command in the override file.",
+      "points": 15,
+      "visual_evidence": "The contents of `docker-compose.override.yml` show the `api` service with `volumes:` mapping `./api` to `/app` and `command:` set to `flask run --host=0.0.0.0 --port=5000 --reload`."
+    },
+    {
+      "id": "ports_configured",
+      "description": "Configure port mappings for API and DB services in the override file.",
+      "points": 15,
+      "visual_evidence": "The contents of `docker-compose.override.yml` show `ports:` mappings of `5678:5678` for the `api` service and `5432:5432` for the `db` service."
+    },
+    {
+      "id": "services_running",
+      "description": "Start the web, api, and db services.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing a successful `docker compose up` command or `docker compose ps` / `docker ps` listing the `web`, `api`, and `db` containers as running."
+    },
+    {
+      "id": "overrides_active",
+      "description": "Verify that the services are running with the overrides active.",
+      "points": 25,
+      "visual_evidence": "Terminal output (e.g., from `docker ps` or `docker compose ps`) showing the `api` container exposing port 5678 and running the `flask run` command, and the `db` container exposing port 5432."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "original_file_unmodified",
+      "description": "The agent did not modify the original docker-compose.yml file.",
+      "visual_evidence": "The agent only edits `docker-compose.override.yml` and does not open or modify `docker-compose.yml` to apply the configurations."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "The agent executed genuine docker compose commands.",
+      "visual_evidence": "Standard docker compose startup logs, pull logs, or status tables are visible in the terminal, rather than simulated or echoed text."
+    },
+    {
+      "id": "no_manual_docker_run",
+      "description": "The agent used docker compose to apply the changes, not manual docker run commands.",
+      "visual_evidence": "The agent uses `docker compose up` or similar to start the services, relying on the override file, rather than starting containers individually with `docker run`."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/Documents/docker-projects/webapp. Required API environment variables: FLASK_DEBUG=1, FLASK_ENV=development. Required API port: 5678. Required DB port: 5432. Required API mount destination: /app. Required API command must contain 'flask run'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "archive_mongodb_old_posts@1",
+  "task_completion": [
+    {
+      "id": "access_database",
+      "description": "Access the 'socioboard' database and the 'published_posts' collection.",
+      "points": 10,
+      "visual_evidence": "Terminal showing connection to MongoDB (e.g., 'mongosh' or 'mongo') and the command 'use socioboard', or a GUI MongoDB client (like Compass) connected to the 'socioboard' database and viewing 'published_posts'."
+    },
+    {
+      "id": "query_old_posts",
+      "description": "Filter records where 'published_date' is prior to January 1, 2023.",
+      "points": 20,
+      "visual_evidence": "A MongoDB query or mongoexport command containing a date filter such as '{ published_date: { $lt: ISODate(\"2023-01-01T00:00:00.000Z\") } }' or equivalent."
+    },
+    {
+      "id": "export_records",
+      "description": "Export the filtered historical records to a JSON format.",
+      "points": 20,
+      "visual_evidence": "Execution of a 'mongoexport' command specifying the socioboard database, published_posts collection, the pre-2023 query, and an output file, OR a GUI export dialog configured to export the queried results to JSON."
+    },
+    {
+      "id": "archive_created",
+      "description": "Save the exported records as a compressed JSON archive at ~/Archives/posts_pre_2023.json.gz.",
+      "points": 20,
+      "visual_evidence": "Terminal commands showing 'gzip' being used on the exported JSON file, or an 'ls' command / file manager explicitly showing the file 'posts_pre_2023.json.gz' located in the '~/Archives/' (or '/home/ga/Archives/') directory."
+    },
+    {
+      "id": "records_deleted",
+      "description": "Permanently delete the historical records from the 'published_posts' collection.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a 'db.published_posts.deleteMany(...)' command using the pre-2023 date filter, with output confirming deletion (ideally showing deletedCount: 432), or a subsequent query for pre-2023 posts returning 0 results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with a real MongoDB client or command-line tools rather than faking the output.",
+      "visual_evidence": "Screenshots should show actual MongoDB shell (mongosh), mongoexport tool, or a recognized MongoDB GUI being used, not just a text editor creating mock database outputs."
+    },
+    {
+      "id": "actual_export_and_compress",
+      "description": "The agent actually exported and compressed the data rather than creating a dummy file.",
+      "visual_evidence": "Look for the execution of export and compression commands (like mongoexport and gzip) rather than commands like 'touch ~/Archives/posts_pre_2023.json.gz' or 'echo > ...'."
+    },
+    {
+      "id": "actual_deletion_performed",
+      "description": "The agent executed a deletion command rather than just claiming the task is complete.",
+      "visual_evidence": "Look for the explicit execution of a 'deleteMany' or equivalent deletion command in the MongoDB shell or GUI, rather than the agent just stopping after the export."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected number of old posts (prior to 2023) to be exported and deleted is exactly 432. The expected number of recent posts remaining in the database is exactly 568. The target archive path must be exactly '/home/ga/Archives/posts_pre_2023.json.gz'."
+}

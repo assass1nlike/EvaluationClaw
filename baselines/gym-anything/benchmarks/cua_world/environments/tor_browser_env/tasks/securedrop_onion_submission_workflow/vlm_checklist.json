@@ -1,0 +1,53 @@
+{
+  "task_id": "securedrop_onion_submission_workflow@1",
+  "task_completion": [
+    {
+      "id": "read_onion_address",
+      "description": "Agent opens and reads the .onion address file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Desktop/securedrop_address.txt."
+    },
+    {
+      "id": "access_securedrop_site",
+      "description": "Agent navigates to the SecureDrop .onion service.",
+      "points": 15,
+      "visual_evidence": "Tor Browser (or another browser configured for Tor) open and displaying the SecureDrop web interface with a .onion URL in the address bar."
+    },
+    {
+      "id": "obtain_pgp_key",
+      "description": "Agent obtains the organization's PGP public key.",
+      "points": 15,
+      "visual_evidence": "The agent viewing the PGP public key on the SecureDrop site, copying it, or importing it into a GPG keyring (e.g., via terminal or a GUI like Kleopatra) for the identity secure@drop.local."
+    },
+    {
+      "id": "encrypt_evidence",
+      "description": "Agent encrypts the evidence file using the obtained PGP key.",
+      "points": 25,
+      "visual_evidence": "Terminal commands (e.g., gpg -e -a -r secure@drop.local /home/ga/Documents/evidence_tip.txt) or a GUI encryption tool actively encrypting the specific evidence_tip.txt file."
+    },
+    {
+      "id": "submit_ciphertext",
+      "description": "Agent submits the ASCII-armored ciphertext through the SecureDrop form.",
+      "points": 35,
+      "visual_evidence": "The SecureDrop submission text area filled with an ASCII-armored PGP message (starting with '-----BEGIN PGP MESSAGE-----') and the agent clicking the submit button or showing a successful submission confirmation screen."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Agent interacted with the actual SecureDrop web interface over Tor.",
+      "visual_evidence": "The browser address bar should show a .onion address, and the interface should be a genuine web page, not a local HTML file or text document."
+    },
+    {
+      "id": "genuine_encryption_process",
+      "description": "Agent used actual GPG/PGP software to encrypt the file.",
+      "visual_evidence": "Presence of GPG terminal commands or a legitimate encryption GUI being used, rather than the agent hallucinating or pasting a fake PGP block directly from an LLM output."
+    },
+    {
+      "id": "no_plaintext_submission",
+      "description": "Agent did not submit the evidence in plaintext.",
+      "visual_evidence": "The submission box must contain a PGP ciphertext block, not the readable plaintext contents of the evidence_tip.txt file."
+    }
+  ],
+  "privileged_info_for_vlm": "The evidence file is located at /home/ga/Documents/evidence_tip.txt. The SecureDrop .onion URL is stored in /home/ga/Desktop/securedrop_address.txt. The target PGP key email to use for encryption is secure@drop.local."
+}

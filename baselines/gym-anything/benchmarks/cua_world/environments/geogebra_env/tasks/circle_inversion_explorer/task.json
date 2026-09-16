@@ -1,0 +1,30 @@
+{
+  "id": "circle_inversion_explorer@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create an interactive GeoGebra applet to demonstrate circle inversion. Construct a circle centered at the origin (0,0) with radius 3 and a free point P. Construct the inverse of point P with respect to the circle. Create a line that does not pass through the origin (e.g., x = 4) and construct its inverse with respect to the circle. Include a text annotation showing the product of distances OP * OP'. Save the project as 'circle_inversion.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/circle_inversion_explorer/setup_task.sh",
+    "post_task": "/workspace/tasks/circle_inversion_explorer/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "circle_inversion.ggb",
+    "circle_radius": 3.0,
+    "circle_center_x": 0.0,
+    "circle_center_y": 0.0,
+    "inversion_constant": 9.0,
+    "tolerance": 0.2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_circle_inversion_explorer"
+    }
+  }
+}

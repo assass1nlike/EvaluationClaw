@@ -1,0 +1,59 @@
+{
+  "task_id": "debug_react_dashboard_state@1",
+  "task_completion": [
+    {
+      "id": "ide_usage",
+      "description": "Agent opened the React project in an IDE or text editor.",
+      "points": 20,
+      "visual_evidence": "Screenshots show an IDE (such as VS Code) open with the /home/ga/workspace/ecommerce_dashboard/ directory loaded in the file explorer."
+    },
+    {
+      "id": "fix_revenue_ticker",
+      "description": "Agent fixed the stale closure bug in the live revenue ticker component.",
+      "points": 16,
+      "visual_evidence": "Code editor shows modifications to a setInterval within a useEffect hook, such as using a functional state update (e.g., setRevenue(prev => ...)) or correctly adding dependencies to the dependency array."
+    },
+    {
+      "id": "fix_customer_search",
+      "description": "Agent fixed the fetch race condition in the customer search component.",
+      "points": 16,
+      "visual_evidence": "Code editor shows modifications to an asynchronous fetch call within a useEffect, specifically adding an AbortController or a boolean ignore/cleanup flag (e.g., let ignore = false;) to prevent out-of-order state updates."
+    },
+    {
+      "id": "fix_metrics_chart",
+      "description": "Agent fixed the reference equality infinite loop in the metrics chart component.",
+      "points": 16,
+      "visual_evidence": "Code editor shows the implementation of useMemo or useCallback to stabilize object, array, or function references that are being passed as props or used in useEffect dependency arrays."
+    },
+    {
+      "id": "fix_window_resize",
+      "description": "Agent fixed the memory leak in the window resize listener.",
+      "points": 16,
+      "visual_evidence": "Code editor shows a useEffect hook being updated to return a cleanup function that explicitly calls removeEventListener for the 'resize' event."
+    },
+    {
+      "id": "fix_order_status",
+      "description": "Agent fixed the direct state mutation bug for order status updates.",
+      "points": 16,
+      "visual_evidence": "Code editor shows state being updated immutably (e.g., using the spread operator like {...prev} or array mapping) instead of directly modifying state object properties (e.g., removing state.status = 'shipped')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_ide_interaction",
+      "description": "Agent manually interacted with the code via an IDE rather than using terminal commands to blindly overwrite files.",
+      "visual_evidence": "Screenshots show the agent navigating files and typing/editing code within the IDE interface, not just running sed/echo commands in the terminal."
+    },
+    {
+      "id": "no_external_script_execution",
+      "description": "Agent did not run a pre-written external script to automatically solve the task.",
+      "visual_evidence": "Terminal history does not show the execution of unauthorized python or bash scripts that instantly patch the React components."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "Agent actually modified and saved the files, rather than just viewing them.",
+      "visual_evidence": "The IDE shows the files in an edited state (e.g., unsaved indicator turning into a saved state) and the final code reflects the required fixes."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific React hooks anti-patterns in the src/components/ directory of the ecommerce_dashboard project. The bugs are: 1) Stale closure in setInterval (revenue ticker), 2) Fetch race condition (customer search), 3) Reference equality infinite loop (metrics chart), 4) Missing unmounted cleanup causing memory leaks (window resize), and 5) Direct state mutation (order status). The scoring system awards 20 points for demonstrating IDE usage and 16 points for each successfully fixed file. The agent must fix at least 3 files and use an IDE to pass."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "nback_adaptive_experiment@1",
+  "version": "1.0",
+  "env_id": "psychopy_env@0.1",
+  "difficulty": "very_hard",
+  "description": "A cognitive neuroscience lab needs a PsychoPy Builder experiment for an adaptive n-back working memory study (Kirchner, 1958). Participants must respond when the current stimulus matches the one presented n positions back. Implement an adaptive difficulty mechanism starting at n=2 that increases n if accuracy is greater than 85% on the last 10 trials and decreases n if accuracy is less than 55%. This adaptive version is used in clinical populations to maintain the task within the individual's zone of proximal development.\n\nCreate the PsychoPy Builder experiment and a conditions file according to these specifications:\n- Stimulus sequence: Consonants only (B, C, D, F, G, H, J, K, L, M, N, P, Q,",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nback_adaptive_experiment/setup_task.sh",
+    "post_task": "/workspace/tasks/nback_adaptive_experiment/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/PsychoPyExperiments/nback_experiment.psyexp",
+    "conditions_file": "/home/ga/PsychoPyExperiments/conditions/nback_conditions.csv",
+    "min_conditions_rows": 30,
+    "required_columns": [
+      "letter",
+      "is_target"
+    ],
+    "target_rate_min": 0.25,
+    "target_rate_max": 0.45
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nback_adaptive_experiment"
+    }
+  }
+}

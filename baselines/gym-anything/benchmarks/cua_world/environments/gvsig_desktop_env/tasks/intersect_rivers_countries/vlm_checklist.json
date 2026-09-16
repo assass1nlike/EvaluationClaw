@@ -1,0 +1,59 @@
+{
+  "task_id": "intersect_rivers_countries@1",
+  "task_completion": [
+    {
+      "id": "load_countries_layer",
+      "description": "Verify that the countries shapefile is loaded into the gvSIG project.",
+      "points": 10,
+      "visual_evidence": "Look for 'ne_110m_admin_0_countries' listed in the gvSIG Table of Contents (TOC) on the left side of the screen, or visible as a polygon layer in the map view."
+    },
+    {
+      "id": "load_rivers_layer",
+      "description": "Verify that the rivers shapefile is loaded into the gvSIG project.",
+      "points": 10,
+      "visual_evidence": "Look for 'ne_110m_rivers_lake_centerlines' listed in the gvSIG Table of Contents (TOC) or visible as a line layer in the map view."
+    },
+    {
+      "id": "open_intersection_tool",
+      "description": "Verify that the spatial Intersection geoprocessing tool is opened.",
+      "points": 15,
+      "visual_evidence": "Look for a Geoprocessing tool dialog window titled 'Intersection' (or similar spatial overlay tool) open in the gvSIG interface."
+    },
+    {
+      "id": "configure_intersection_inputs",
+      "description": "Verify that the rivers and countries layers are selected as the inputs for the intersection operation.",
+      "points": 20,
+      "visual_evidence": "Inside the Intersection tool dialog, look for dropdowns or lists where 'ne_110m_rivers_lake_centerlines' and 'ne_110m_admin_0_countries' are selected as the input layer and the overlay/intersect layer."
+    },
+    {
+      "id": "set_output_path",
+      "description": "Verify that the output file path is correctly specified.",
+      "points": 20,
+      "visual_evidence": "Look at the output file path text box in the Intersection tool dialog. It must show exactly '/home/ga/gvsig_data/exports/rivers_by_country.shp'."
+    },
+    {
+      "id": "verify_intersection_result",
+      "description": "Verify that the intersection operation was completed and the new layer is generated.",
+      "points": 25,
+      "visual_evidence": "Look for a new layer (e.g., 'rivers_by_country') added to the gvSIG TOC. If the attribute table is visible, it should show combined fields from both inputs (e.g., 'NAME' from countries and 'name' from rivers)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gvsig_gui",
+      "description": "Verify the agent used the gvSIG Desktop GUI for the geoprocessing task.",
+      "visual_evidence": "The screenshots should show interaction with the gvSIG Desktop application windows, menus, and dialogs, not just a terminal window."
+    },
+    {
+      "id": "no_terminal_geoprocessing",
+      "description": "Verify the agent did not use command-line GIS tools to bypass the GUI.",
+      "visual_evidence": "Check that terminal windows do not show commands like 'ogr2ogr', 'geopandas', or 'qgis_process' being used to perform the intersection."
+    },
+    {
+      "id": "genuine_result_layer",
+      "description": "Verify the resulting layer is actually loaded or visible in gvSIG.",
+      "visual_evidence": "The final output layer should appear in the gvSIG Table of Contents, indicating it was genuinely created and loaded by the software, rather than just a text file renamed to .shp."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output path is exactly '/home/ga/gvsig_data/exports/rivers_by_country.shp'. The input countries layer contains fields: 'NAME', 'ADMIN', 'CONTINENT', and 'POP_EST'. The input rivers layer contains fields: 'name', 'scalerank', and 'featurecla'. A successful intersection will produce a layer whose attribute table contains fields from both of these sets."
+}

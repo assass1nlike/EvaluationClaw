@@ -1,0 +1,53 @@
+{
+  "task_id": "export_disaster_recovery_config@1",
+  "task_completion": [
+    {
+      "id": "api_authentication",
+      "description": "Agent authenticates with the Nx Witness REST API.",
+      "points": 20,
+      "visual_evidence": "Terminal commands (e.g., curl) or script code (e.g., Python requests) showing a request to https://localhost:7001/rest/v1/login/sessions with credentials admin/Admin1234! or using basic/bearer token authentication."
+    },
+    {
+      "id": "query_api_endpoints",
+      "description": "Agent queries the required REST API endpoints for system configuration.",
+      "points": 20,
+      "visual_evidence": "Code in a text editor or terminal commands showing HTTP GET requests to endpoints such as /rest/v1/system/info, /rest/v1/servers, /rest/v1/devices, /rest/v1/users, /rest/v1/layouts, /rest/v1/rules, and /rest/v1/system/settings."
+    },
+    {
+      "id": "compile_json_structure",
+      "description": "Agent structures the retrieved data into a single JSON object with the required top-level keys.",
+      "points": 20,
+      "visual_evidence": "A script or terminal output showing the assembly of a JSON object or dictionary containing the keys: systemInfo, servers, devices, users, layouts, eventRules, and systemSettings."
+    },
+    {
+      "id": "include_metadata",
+      "description": "Agent includes the specified metadata block in the JSON structure.",
+      "points": 20,
+      "visual_evidence": "Code or terminal output showing the construction of a 'metadata' key containing 'exportTimestamp' (ISO8601 format), 'systemName', and 'exportVersion' (set to '1.0')."
+    },
+    {
+      "id": "save_json_file",
+      "description": "Agent saves the compiled JSON data to the specified file path.",
+      "points": 20,
+      "visual_evidence": "Code (e.g., Python 'with open(...)') or terminal command (e.g., redirect '>') showing the final JSON data being written to the exact path '/home/ga/dr_export/disaster_recovery_config.json'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_api_interaction",
+      "description": "Agent dynamically fetches data from the API rather than hardcoding a mock JSON file.",
+      "visual_evidence": "The agent's script or commands should use variables to store API responses and dump them to JSON, without hardcoding specific test data like camera names ('Parking Lot Camera') or user names ('john.smith')."
+    },
+    {
+      "id": "no_gui_export",
+      "description": "Agent uses the REST API as requested, not a graphical interface.",
+      "visual_evidence": "The agent must use terminal commands, scripts, or an API client to perform the export. They should not use the Nx Witness Desktop GUI client to generate the backup."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "Agent saves the file to the exact requested path.",
+      "visual_evidence": "The file path '/home/ga/dr_export/disaster_recovery_config.json' must be explicitly visible in the save command or script, not a generic or temporary path."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires querying the Nx Witness VMS REST API at https://localhost:7001. Authentication uses a bearer token obtained via POST to /rest/v1/login/sessions with admin/Admin1234!. The required endpoints are: /rest/v1/system/info, /rest/v1/servers, /rest/v1/devices, /rest/v1/users, /rest/v1/layouts, /rest/v1/rules, and /rest/v1/system/settings. The final JSON must be saved to /home/ga/dr_export/disaster_recovery_config.json and contain the exact top-level keys: metadata, systemInfo, servers, devices, users, layouts, eventRules, systemSettings. The system name is 'GymAnythingVMS'."
+}

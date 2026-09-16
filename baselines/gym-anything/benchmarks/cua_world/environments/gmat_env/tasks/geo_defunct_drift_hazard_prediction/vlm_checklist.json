@@ -1,0 +1,53 @@
+{
+  "task_id": "geo_defunct_drift_hazard_prediction@1",
+  "task_completion": [
+    {
+      "id": "load_mission_script",
+      "description": "The agent opened the specified mission script in GMAT.",
+      "points": 10,
+      "visual_evidence": "The GMAT GUI is open with 'defunct_geo_hazard.script' visible in the Resources tree, script editor, or window title."
+    },
+    {
+      "id": "configure_gravity_model",
+      "description": "The agent configured the Earth gravity model to at least Degree 8 and Order 8.",
+      "points": 20,
+      "visual_evidence": "The GMAT Force Model properties dialog or the script editor shows the Earth gravity 'Degree' and 'Order' parameters set to 8 (or a higher number)."
+    },
+    {
+      "id": "run_propagation",
+      "description": "The agent ran the mission to propagate the satellite's orbit.",
+      "points": 20,
+      "visual_evidence": "The GMAT message window indicates a successful mission run, or output windows (such as 3D graphics, XY plots, or report files) are actively displaying the 730-day propagation."
+    },
+    {
+      "id": "determine_crossing_date",
+      "description": "The agent identified the UTC date when the satellite's longitude crosses -35.0 degrees (325.0 degrees East).",
+      "points": 30,
+      "visual_evidence": "A GMAT report file, plot data tooltip, or command line output is visible showing the satellite's longitude reaching -35.0 (or 325.0) alongside the corresponding UTC date."
+    },
+    {
+      "id": "save_prediction_output",
+      "description": "The agent saved the crossing date in DD Mon YYYY format to the specified output file.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal window shows the file '~/GMAT_output/hazard_prediction.txt' containing a date formatted as DD Mon YYYY (e.g., 14 Oct 2025)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gmat_usage",
+      "description": "The agent used GMAT to perform the simulation rather than guessing or using an external unapproved tool.",
+      "visual_evidence": "Screenshots must show the GMAT application interface being used to load, modify, and run the script."
+    },
+    {
+      "id": "actual_simulation_execution",
+      "description": "The agent actually executed the mission to obtain the results.",
+      "visual_evidence": "The GMAT interface should show signs of execution, such as 'Mission Run Completed' in the message window or generated output plots/reports, rather than just editing the script."
+    },
+    {
+      "id": "plausible_output_format",
+      "description": "The agent wrote the final answer to the text file without including conversational filler.",
+      "visual_evidence": "The contents of 'hazard_prediction.txt' should strictly contain the date (or a very brief statement of it), not an AI-style conversational response."
+    }
+  ],
+  "privileged_info_for_vlm": "The mission script is located at /home/ga/Documents/missions/defunct_geo_hazard.script. The agent must modify the Earth gravity model to have a degree and order of at least 8. The agent must output the crossing date to /home/ga/GMAT_output/hazard_prediction.txt. The verifier allows a maximum tolerance of 7 days between the agent's reported date and the ground truth date."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "measure_signal_to_background_ratio@1",
+  "task_completion": [
+    {
+      "id": "dicom_image_loaded",
+      "description": "The agent has opened a DICOM viewer and loaded a medical image (CT scan or synthetic phantom).",
+      "points": 10,
+      "visual_evidence": "A DICOM viewer application (like Weasis, Aeskulap, or similar) is open and displaying a cross-sectional medical image or synthetic phantom."
+    },
+    {
+      "id": "bone_roi_measured",
+      "description": "An ROI (Region of Interest) is drawn over a high-density 'Bone' structure to measure its mean HU value.",
+      "points": 25,
+      "visual_evidence": "A graphical ROI tool (ellipse, rectangle, or polygon) is drawn over a bright white area of the image (bone or high-density synthetic structure). The viewer UI must display the statistics for this ROI, specifically the 'Mean' value."
+    },
+    {
+      "id": "air_roi_measured",
+      "description": "An ROI is drawn over the 'Air' background to measure its mean HU value.",
+      "points": 25,
+      "visual_evidence": "A second graphical ROI tool is drawn over a dark black area of the image (background air, outside the main subject). The viewer UI must display the statistics for this ROI, specifically the 'Mean' value."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "A screenshot of the interface showing both ROIs is saved to the expected path.",
+      "points": 15,
+      "visual_evidence": "A file manager, image viewer, or terminal shows the existence of 'qa_rois.png' in the ~/DICOM/exports/ directory, and the image clearly depicts the DICOM viewer interface with both the Bone and Air ROIs visible."
+    },
+    {
+      "id": "results_recorded",
+      "description": "The Bone Mean, Air Mean, and calculated Ratio are recorded in the expected text file.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output displays the contents of 'bone_air_ratio.txt' in the ~/DICOM/exports/ directory, clearly listing the Bone Mean, Air Mean, and the calculated Ratio (Bone Mean / Air Mean)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used a graphical DICOM viewer to draw ROIs and obtain measurements rather than relying solely on terminal scripts to extract values.",
+      "visual_evidence": "Screenshots show a GUI-based DICOM viewer with manually or programmatically drawn ROI overlays, rather than just a terminal window running a Python script."
+    },
+    {
+      "id": "authentic_interface_screenshot",
+      "description": "The saved screenshot is an authentic capture of the application interface.",
+      "visual_evidence": "The 'qa_rois.png' image shows the full or partial DICOM viewer application window (including menus, toolbars, or panels), not just a cropped export of the raw DICOM pixel data."
+    },
+    {
+      "id": "consistent_measurements",
+      "description": "The values recorded in the text file match the measurements shown in the DICOM viewer.",
+      "visual_evidence": "The Mean values written in 'bone_air_ratio.txt' exactly match the Mean values displayed in the ROI statistics panels within the DICOM viewer screenshots."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output files are /home/ga/DICOM/exports/bone_air_ratio.txt and /home/ga/DICOM/exports/qa_rois.png. A valid Bone Mean measurement should be between 100 and 3000. The recorded ratio must be mathematically consistent with the formula (Bone Mean / Air Mean) using the recorded values, within a tolerance of 0.05."
+}

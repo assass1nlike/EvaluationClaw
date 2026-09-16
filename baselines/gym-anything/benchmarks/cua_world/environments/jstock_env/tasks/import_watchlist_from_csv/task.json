@@ -1,0 +1,36 @@
+{
+  "id": "import_watchlist_from_csv@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "A CSV file containing 8 healthcare sector stock symbols is located at `~/Documents/healthcare_stocks.csv`. The file is pre-formatted in JStock's native watchlist format. Import this file into JStock and verify that the watchlist displays these 8 stocks: JNJ, PFE, UNH, ABT, TMO, ABBV, MRK, and LLY. Close the application once the stocks are visible to ensure the watchlist is saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_watchlist_from_csv/setup_task.sh",
+    "post_task": "/workspace/tasks/import_watchlist_from_csv/export_result.sh"
+  },
+  "metadata": {
+    "import_file_path": "/home/ga/Documents/healthcare_stocks.csv",
+    "target_stocks": [
+      "JNJ",
+      "PFE",
+      "UNH",
+      "ABT",
+      "TMO",
+      "ABBV",
+      "MRK",
+      "LLY"
+    ],
+    "watchlist_dir": "/home/ga/.jstock/1.0.7/UnitedState/watchlist"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_watchlist"
+    }
+  }
+}

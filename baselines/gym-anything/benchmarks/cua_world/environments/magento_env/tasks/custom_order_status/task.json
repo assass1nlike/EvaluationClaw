@@ -1,0 +1,44 @@
+{
+  "id": "custom_order_status@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create three custom order statuses in Magento to support a specific fulfillment workflow. Configure the status 'quality_check' (Label: 'Quality Inspection') assigned to the 'Processing' state and visible on the storefront. Configure 'ready_pickup' (Label: 'Ready for Pickup') assigned to the 'Complete' state and visible on the storefront. Configure 'supplier_delay' (Label: 'Awaiting Supplier') assigned to the 'On Hold' state and hidden from the storefront. Ensure none of these are set as the default status for their assigned states.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/custom_order_status/setup_task.sh",
+    "post_task": "/workspace/tasks/custom_order_status/export_result.sh"
+  },
+  "metadata": {
+    "statuses": [
+      {
+        "code": "quality_check",
+        "label": "Quality Inspection",
+        "state": "processing",
+        "visible": "1"
+      },
+      {
+        "code": "ready_pickup",
+        "label": "Ready for Pickup",
+        "state": "complete",
+        "visible": "1"
+      },
+      {
+        "code": "supplier_delay",
+        "label": "Awaiting Supplier",
+        "state": "holded",
+        "visible": "0"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_custom_order_status"
+    }
+  }
+}

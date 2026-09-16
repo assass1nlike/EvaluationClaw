@@ -1,0 +1,53 @@
+{
+  "task_id": "crop_points_to_boundary@1",
+  "task_completion": [
+    {
+      "id": "import_dataset",
+      "description": "Import the regional topographic dataset from the specified path.",
+      "points": 20,
+      "visual_evidence": "Look for an import dialog, file browser, or application workspace showing the file 'C:\\workspace\\data\\regional_topo.xyz' being loaded, ideally with settings for space-delimited 'PointNumber X Y Z' format."
+    },
+    {
+      "id": "define_boundary",
+      "description": "Define a 300m x 300m rectangular project boundary using the specified coordinates.",
+      "points": 20,
+      "visual_evidence": "Look for a boundary creation tool, coordinate input dialog, or drawn rectangle showing the coordinates: X from 5000.00 to 5300.00 and Y from 4900.00 to 5200.00."
+    },
+    {
+      "id": "delete_outside_points",
+      "description": "Delete all survey points located outside the defined boundary.",
+      "points": 20,
+      "visual_evidence": "Look for a selection of points outside the boundary being deleted, or the workspace updating to show only the points strictly within the 300m x 300m rectangular area."
+    },
+    {
+      "id": "export_interior_points",
+      "description": "Export the remaining interior points to the specified .xyz file.",
+      "points": 20,
+      "visual_evidence": "Look for an export dialog or save prompt showing the remaining points being saved to 'C:\\workspace\\data\\site_aoi_points.xyz'."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the project to the specified .tcp file.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save As' dialog or the application title bar indicating the project is being saved to 'C:\\workspace\\data\\site_aoi.tcp'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_app",
+      "description": "The agent used a topography or CAD application GUI to perform the tasks.",
+      "visual_evidence": "Check that the agent is interacting with a graphical application (e.g., TopoCal or similar) rather than writing scripts in a terminal or manually editing files in a text editor."
+    },
+    {
+      "id": "actual_spatial_cropping",
+      "description": "The points were cropped using spatial tools within the application.",
+      "visual_evidence": "Ensure the agent used the application's selection or boundary tools to remove points, rather than manually deleting lines in a text editor."
+    },
+    {
+      "id": "genuine_file_generation",
+      "description": "The exported points and saved project were generated via the application's built-in functions.",
+      "visual_evidence": "Look for the application's native export and save dialogs being used to create the .xyz and .tcp files."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: C:\\workspace\\data\\regional_topo.xyz. Expected points file: C:\\workspace\\data\\site_aoi_points.xyz. Expected project file: C:\\workspace\\data\\site_aoi.tcp. Boundary bounds: x_min=5000.0, x_max=5300.0, y_min=4900.0, y_max=5200.0."
+}

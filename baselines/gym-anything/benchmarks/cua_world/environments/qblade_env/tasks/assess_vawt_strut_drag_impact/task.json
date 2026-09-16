@@ -1,0 +1,30 @@
+{
+  "id": "assess_vawt_strut_drag_impact@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Quantify the parasitic power loss caused by support struts on a Vertical Axis Wind Turbine (VAWT). Compare the performance of a baseline H-Rotor VAWT (3 blades, Radius=2m, Blade Height=4m, Chord=0.25m, NACA 0018 airfoil) against the same rotor with added support struts (2 per blade, Strut Chord=0.05m, Strut Cd=1.2). Use DMS simulations (TSR 1-6, Step 0.5, Wind Speed 12m/s) to determine the maximum power coefficient (Cp) for both configurations. Save the project to /home/ga/Documents/projects/vawt_strut_study.wpa and create a report at /home/ga/Documents/projects/strut_loss_report.txt showing the Baseline Max Cp, Strutted Max Cp, and the percentage of Cp Reduction.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/assess_vawt_strut_drag_impact/setup_task.sh",
+    "post_task": "/workspace/tasks/assess_vawt_strut_drag_impact/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/Documents/projects/vawt_strut_study.wpa",
+    "report_path": "/home/ga/Documents/projects/strut_loss_report.txt",
+    "min_cp_baseline": 0.3,
+    "max_cp_baseline": 0.55,
+    "min_loss_percent": 1.0,
+    "max_loss_percent": 40.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_strut_impact_assessment"
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "task_id": "radiometric_cal_field_setup@1",
+  "task_completion": [
+    {
+      "id": "ground_station_configuration",
+      "description": "Verify the Railroad_Valley ground station is created with correct coordinates and altitude.",
+      "points": 20,
+      "visual_evidence": "Look for a 'New ground station' or 'Edit ground station' window, or a ground station list in GPredict showing Name: 'Railroad_Valley', Latitude: 38.504, Longitude: -115.694 (or 115.694 W), and Altitude: 1435."
+    },
+    {
+      "id": "global_time_utc",
+      "description": "Verify the global display time is set to UTC.",
+      "points": 10,
+      "visual_evidence": "Look for the GPredict Preferences window (General tab) with 'UTC' selected for time format, or the main GPredict window clock explicitly displaying 'UTC' instead of local time."
+    },
+    {
+      "id": "global_min_elevation",
+      "description": "Verify the global pass prediction minimum elevation is set to 15 degrees.",
+      "points": 10,
+      "visual_evidence": "Look for the GPredict Preferences window (Predict -> Passes tab) showing the 'Minimum elevation' field set to '15'."
+    },
+    {
+      "id": "module_creation_and_qth",
+      "description": "Verify a tracking module named Vicarious_Cal is created and assigned to the Railroad_Valley ground station.",
+      "points": 15,
+      "visual_evidence": "Look for the 'Configure module' window showing the Name as 'Vicarious_Cal' and the Ground Station dropdown set to 'Railroad_Valley', or a main module tab named 'Vicarious_Cal' displaying 'Railroad_Valley' in its header."
+    },
+    {
+      "id": "module_satellites",
+      "description": "Verify the Vicarious_Cal module tracks SUOMI NPP, FENGYUN 3A, and FENGYUN 3B.",
+      "points": 25,
+      "visual_evidence": "Look for the 'Configure module' window's satellite selection list, or the main module view, showing exactly these three satellites: SUOMI NPP, FENGYUN 3A, and FENGYUN 3B."
+    },
+    {
+      "id": "module_list_layout",
+      "description": "Verify the Vicarious_Cal module uses a List-only layout.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Configure module' window showing the Layout option set to a list-only view (e.g., 'List', 'List only', or a layout icon showing only rows), or the main module view displaying only a textual list of satellites without any map or polar plot."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent interacted with the GPredict GUI rather than directly editing configuration files via terminal.",
+      "points": 0,
+      "visual_evidence": "Screenshots should show GPredict application windows, preference dialogs, and module configuration screens being actively used."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Verify the agent didn't just type the required settings into a text editor to simulate completion.",
+      "points": 0,
+      "visual_evidence": "The settings must be visible within the actual GPredict application interface, not in a generic text editor like nano, vim, or gedit."
+    },
+    {
+      "id": "no_scripted_config_injection",
+      "description": "Verify the agent did not use shell commands to bypass the UI.",
+      "points": 0,
+      "visual_evidence": "Terminal windows, if visible, should not show 'echo', 'sed', or 'cat' commands directly writing to '~/.config/Gpredict/' files."
+    }
+  ],
+  "privileged_info_for_vlm": "Ground Station: Name must be 'Railroad_Valley', Latitude: 38.504, Longitude: -115.694 (or 115.694 W), Altitude: 1435. Module: Name must be 'Vicarious_Cal'. Satellites: SUOMI NPP (NORAD 37849), FENGYUN 3A (NORAD 32958), and FENGYUN 3B (NORAD 37214). Settings: Minimum elevation for passes must be 15 degrees. Time display must be UTC. Layout must be List-only."
+}

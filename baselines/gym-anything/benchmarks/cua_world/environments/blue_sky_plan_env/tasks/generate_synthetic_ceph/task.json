@@ -1,0 +1,27 @@
+{
+  "id": "generate_synthetic_ceph@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Blue Sky Plan 5.0 is open with a Head/Neck CBCT scan loaded. Generate a synthetic Lateral Cephalogram (a standard 2D orthodontic X-ray projection) from this 3D volume. The final image must simulate a traditional lateral cephalometric radiograph—rather than a 3D surface render or a thin slice—and must clearly display both bony landmarks (skull base, jaws) and the soft tissue profile (nose, lips, chin). Save the resulting Sagittal view as a high-resolution image named 'lateral_ceph.jpg' to 'C:\\Users\\Docker\\Documents\\BlueSkyPlan\\'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\generate_synthetic_ceph\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\generate_synthetic_ceph\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "lateral_ceph.jpg",
+    "expected_dir": "C:\\Users\\Docker\\Documents\\BlueSkyPlan",
+    "min_file_size_kb": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_synthetic_ceph"
+    }
+  }
+}

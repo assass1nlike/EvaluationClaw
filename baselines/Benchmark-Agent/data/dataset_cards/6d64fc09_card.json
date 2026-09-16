@@ -1,0 +1,90 @@
+{
+  "dataset_id": "6d64fc09",
+  "name": "Traffic Signs Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 253,
+  "description": "Traffic Signs Detection is a visual object detection dataset of road-scene images paired with instructions to detect traffic signs. It evaluates the model's ability to localize and classify traffic signs by outputting category-specific bounding boxes.",
+  "card_text": "The dataset contains 253 image-text samples for traffic sign detection. Each sample has an input image showing a road scene, accompanied by a short natural-language prompt: 'Detect the traffic signs in the given image'. The expected output is a structured dictionary mapping traffic sign category names (e.g., 'Speed Limit 110', 'Speed Limit 60') to lists of bounding boxes, where each box is a four-number coordinate list. The images are typical outdoor scenes with one or more traffic signs, and the task requires both recognition and spatial localization. The dataset is useful for evaluating object detection models in the autonomous driving and intelligent transportation domains.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "traffic sign detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "scenery",
+        "semantics": "Road-scene images containing traffic signs, referenced by file path. These images are the visual context for detection and may contain one or more signs of varying categories and visibility.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed natural-language instruction asking the model to detect traffic signs in the provided image. It directs the model to produce bounding boxes for all visible traffic signs.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "category": {
+        "paths": [
+          "output.category2bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Traffic sign category labels that serve as keys in the output mapping, such as 'Speed Limit 110' or 'Speed Limit 60'. Each key corresponds to a detected traffic sign type.",
+        "path_types": [
+          "dict"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.category2bbox"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "Bounding box coordinates associated with each detected traffic sign category. The values are lists of four numbers (e.g., x, y, width, height) indicating the spatial extent of each sign in the image, nested under the category key in the category2bbox mapping.",
+        "path_types": [
+          "dict"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input with an image file path and a short instruction prompt, and an output dictionary mapping traffic sign category names to lists of bounding boxes. The image serves as the visual context, the prompt acts as the question/instruction, and the output couples category labels with spatial bounding box coordinates, forming a detection annotation per traffic sign instance."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/traffic_signs_detection/json/annotation.json",
+    "existing_tags": {
+      "task": "traffic signs detection",
+      "type": "comprehension",
+      "skill": "Object Detection (Object Det)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

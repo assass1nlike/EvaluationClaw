@@ -1,0 +1,35 @@
+{
+  "id": "build_strategy_via_builder@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Use the NinjaTrader 8 Strategy Builder to create and compile a fully automated trading strategy named 'MACrossover'. The strategy must enter a long position when the SMA(10) crosses above the SMA(30) and enter a short position when the SMA(10) crosses below the SMA(30). The final compiled strategy must be saved in the custom strategies folder.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\build_strategy_via_builder\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\build_strategy_via_builder\\export_result.ps1"
+  },
+  "metadata": {
+    "strategy_name": "MACrossover",
+    "expected_file_path": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\bin\\Custom\\Strategies\\MACrossover.cs",
+    "code_patterns": {
+      "class_name": "class MACrossover",
+      "fast_sma": "SMA\\(.*10\\)",
+      "slow_sma": "SMA\\(.*30\\)",
+      "cross_above": "CrossAbove",
+      "cross_below": "CrossBelow",
+      "enter_long": "EnterLong",
+      "enter_short": "EnterShort"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_build_strategy"
+    }
+  }
+}

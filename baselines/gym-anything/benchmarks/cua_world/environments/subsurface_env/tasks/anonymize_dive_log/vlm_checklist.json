@@ -1,0 +1,53 @@
+{
+  "task_id": "anonymize_dive_log@1",
+  "task_completion": [
+    {
+      "id": "open_subsurface_logbook",
+      "description": "Open the dive logbook in the Subsurface application.",
+      "points": 10,
+      "visual_evidence": "The Subsurface application window is visible on the screen, displaying a populated list of dive entries."
+    },
+    {
+      "id": "select_dives_for_editing",
+      "description": "Select the dives in the logbook to prepare for editing.",
+      "points": 10,
+      "visual_evidence": "Multiple or all dives are highlighted in the dive list panel (indicating a bulk edit selection), or the agent is seen systematically clicking through individual dives."
+    },
+    {
+      "id": "clear_buddy_field",
+      "description": "Clear the 'Buddy' field for the selected dives.",
+      "points": 30,
+      "visual_evidence": "The 'Buddy' input field in the dive details/notes panel is completely empty for the selected dive(s)."
+    },
+    {
+      "id": "clear_divemaster_field",
+      "description": "Clear the 'Divemaster' field for the selected dives.",
+      "points": 30,
+      "visual_evidence": "The 'Divemaster' input field in the dive details/notes panel is completely empty for the selected dive(s)."
+    },
+    {
+      "id": "save_logbook",
+      "description": "Save the updated logbook to preserve the anonymized changes.",
+      "points": 20,
+      "visual_evidence": "The agent clicks 'Save' in the File menu, clicks the save icon on the toolbar, or the window title bar no longer shows an unsaved changes indicator (such as an asterisk next to the filename)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "The agent used the Subsurface GUI to edit the logbook rather than bypassing it with terminal commands.",
+      "visual_evidence": "Screenshots show the Subsurface graphical interface being actively used to clear fields, rather than a terminal window using text-editing tools (e.g., sed, awk, vim, nano) or scripts to modify the underlying XML file."
+    },
+    {
+      "id": "preserved_dive_entries",
+      "description": "The dive entries themselves were preserved and not accidentally deleted.",
+      "visual_evidence": "The dive list panel still shows the full list of dives (29 dives) with their original metadata (date, depth, duration) intact; the list has not been emptied or shortened."
+    },
+    {
+      "id": "genuine_field_clearing",
+      "description": "The agent actually interacted with the input fields to remove the data.",
+      "visual_evidence": "The text cursor is visible in the 'Buddy' or 'Divemaster' fields, or the text is seen highlighted before being deleted, confirming genuine UI interaction."
+    }
+  ],
+  "privileged_info_for_vlm": "The logbook actually contains 29 dives, not 8 as stated in the task description. The setup script populates the 'buddy' and 'divemaster' fields for all 29 dives. To fully complete the task, the agent must clear these fields across the entire dataset. Verify that the agent clears the 'Buddy' and 'Divemaster' fields for all 29 dives, either by bulk-selecting all of them in the UI or by iterating through every single dive."
+}

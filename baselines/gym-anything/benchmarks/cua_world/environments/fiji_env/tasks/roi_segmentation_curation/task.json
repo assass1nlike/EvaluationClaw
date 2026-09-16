@@ -1,0 +1,32 @@
+{
+  "id": "roi_segmentation_curation@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Curate a set of automated nuclear segmentations for a training dataset. Using the microscopy image (~/Fiji_Data/curation/training_image.tif) and the preliminary ROIs in ~/Fiji_Data/curation/automated_segmentation.zip, correct the segmentation errors by removing the ROI labeled 'False_Positive_Noise' and replacing the 'Merged_Error' ROI with two distinct ROIs covering the individual nuclei. Save the final corrected set of ROIs to ~/Fiji_Data/curation/curated_ground_truth.zip.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/roi_segmentation_curation/setup_task.sh",
+    "post_task": "/workspace/tasks/roi_segmentation_curation/export_result.sh"
+  },
+  "metadata": {
+    "image_path": "~/Fiji_Data/curation/training_image.tif",
+    "input_rois": "~/Fiji_Data/curation/automated_segmentation.zip",
+    "output_rois": "~/Fiji_Data/curation/curated_ground_truth.zip",
+    "noise_location": [
+      15,
+      15
+    ],
+    "merge_search_radius": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_roi_curation"
+    }
+  }
+}

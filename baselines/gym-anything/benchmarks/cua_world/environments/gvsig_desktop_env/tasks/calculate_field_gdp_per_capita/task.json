@@ -1,0 +1,32 @@
+{
+  "id": "calculate_field_gdp_per_capita@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Add a numeric field named 'GDP_PCAP' (Type: Double, Length: 20, Precision: 2) to the 'ne_110m_admin_0_countries' layer. Calculate the GDP per capita for each country using the formula (GDP_MD_EST * 1000000) / POP_EST, where GDP_MD_EST represents the estimated GDP in millions of dollars and POP_EST is the population count. Save the calculated values to the layer.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/calculate_field_gdp_per_capita/setup_task.sh",
+    "post_task": "/workspace/tasks/calculate_field_gdp_per_capita/export_result.sh"
+  },
+  "metadata": {
+    "layer_name": "ne_110m_admin_0_countries",
+    "target_field": "GDP_PCAP",
+    "source_fields": [
+      "GDP_MD_EST",
+      "POP_EST"
+    ],
+    "formula_description": "GDP_MD_EST * 1000000 / POP_EST",
+    "data_path": "/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.dbf"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_calculate_field_gdp_per_capita"
+    }
+  }
+}

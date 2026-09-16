@@ -1,0 +1,53 @@
+{
+  "task_id": "srtt_implicit_learning_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_input_data",
+      "description": "Access the SRTT data file.",
+      "points": 10,
+      "visual_evidence": "Code, terminal command, or spreadsheet application opening or reading '~/pebl/data/srtt_data.csv'."
+    },
+    {
+      "id": "filter_correct_trials",
+      "description": "Filter the data to include only correct trials.",
+      "points": 20,
+      "visual_evidence": "Code, spreadsheet filter, or command showing a condition to keep only trials where 'correct == 1' or 'correct = 1'."
+    },
+    {
+      "id": "exclude_invalid_participant",
+      "description": "Identify and exclude the invalid participant with zero RT variance.",
+      "points": 25,
+      "visual_evidence": "Code or spreadsheet logic calculating RT variance/standard deviation per participant to find the anomaly, or explicitly filtering out participant 'p99' after identifying them."
+    },
+    {
+      "id": "compute_learning_metrics",
+      "description": "Compute mean RT per block, Sequence-specific learning score, and General motor speed.",
+      "points": 25,
+      "visual_evidence": "Code or spreadsheet formulas calculating mean RT grouped by block, the difference between Block 6 and Block 5 mean RTs, and a calculation for general motor speed."
+    },
+    {
+      "id": "save_output_report",
+      "description": "Save the analysis results to the specified JSON report file.",
+      "points": 20,
+      "visual_evidence": "Code writing to '/home/ga/pebl/analysis/srtt_report.json' or a terminal command/file explorer showing the creation of this specific JSON file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "computations_performed",
+      "description": "The agent performs actual calculations to derive the metrics.",
+      "visual_evidence": "Presence of a script (e.g., Python, R) or spreadsheet formulas performing the math, rather than manually typing out a JSON file with guessed or hardcoded numbers."
+    },
+    {
+      "id": "data_exploration_for_anomaly",
+      "description": "The agent discovers the contaminated participant through data analysis.",
+      "visual_evidence": "The agent writes code to check for anomalies (like zero variance or fixed 250ms RTs) before excluding 'p99', rather than magically hardcoding the exclusion of 'p99' without prior checks."
+    },
+    {
+      "id": "genuine_output_format",
+      "description": "The output is generated programmatically or properly exported.",
+      "visual_evidence": "The JSON file is created by a script's output function (e.g., json.dump) or a proper export tool, not manually typed in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The input data contains 16 participants. Participant 'p99' is contaminated with zero RT variance (all trials fixed at 250.0 ms) and must be excluded. The final output must be saved to '/home/ga/pebl/analysis/srtt_report.json'."
+}

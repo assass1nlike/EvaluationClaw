@@ -1,0 +1,63 @@
+{
+  "id": "create_custom_form@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Create a custom form in HospitalRun's Administration section named 'Fall Risk Assessment' with the form type 'Visit'. The form must include the following fields in order: 'Age Group' (property: 'ageGroup', type: 'Text'), 'Fall History' (property: 'fallHistory', type: 'Select', values: 'None,One fall in past 6 months,Multiple falls'), 'Mobility Status' (property: 'mobilityStatus', type: 'Select', values: 'Independent,Uses assistive device,Requires assistance'), 'Cognitive Impairment' (property: 'cognitiveImpairment', type: 'Checkbox'), and 'Assessment Notes' (property: 'assessmentNotes', type: 'Text Area'). Save the completed form.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_custom_form/setup_task.sh",
+    "post_task": "/workspace/tasks/create_custom_form/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Fall Risk Assessment",
+    "expected_type": "visit",
+    "fields": [
+      {
+        "property": "ageGroup",
+        "label": "Age Group",
+        "type": "text"
+      },
+      {
+        "property": "fallHistory",
+        "label": "Fall History",
+        "type": "select",
+        "options": [
+          "None",
+          "One fall in past 6 months",
+          "Multiple falls"
+        ]
+      },
+      {
+        "property": "mobilityStatus",
+        "label": "Mobility Status",
+        "type": "select",
+        "options": [
+          "Independent",
+          "Uses assistive device",
+          "Requires assistance"
+        ]
+      },
+      {
+        "property": "cognitiveImpairment",
+        "label": "Cognitive Impairment",
+        "type": "checkbox"
+      },
+      {
+        "property": "assessmentNotes",
+        "label": "Assessment Notes",
+        "type": "textarea"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_custom_form"
+    }
+  }
+}

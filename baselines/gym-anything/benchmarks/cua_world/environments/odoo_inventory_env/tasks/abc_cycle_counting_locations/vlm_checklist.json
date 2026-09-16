@@ -1,0 +1,65 @@
+{
+  "task_id": "abc_cycle_counting_locations@1",
+  "task_completion": [
+    {
+      "id": "enable_storage_locations",
+      "description": "Enable the Storage Locations feature in the inventory settings.",
+      "points": 10,
+      "visual_evidence": "In the Inventory Configuration/Settings page, the checkbox for 'Storage Locations' should be checked and saved."
+    },
+    {
+      "id": "create_zone_a",
+      "description": "Create Zone A under WH/Stock with a 15-day cycle counting frequency.",
+      "points": 10,
+      "visual_evidence": "A location named 'Zone A' with parent location 'WH/Stock'. The 'Inventory Frequency' or 'Cyclic Counting' field must be set to 15 days."
+    },
+    {
+      "id": "create_zone_b",
+      "description": "Create Zone B under WH/Stock with a 30-day cycle counting frequency.",
+      "points": 10,
+      "visual_evidence": "A location named 'Zone B' with parent location 'WH/Stock'. The 'Inventory Frequency' or 'Cyclic Counting' field must be set to 30 days."
+    },
+    {
+      "id": "create_zone_c",
+      "description": "Create Zone C under WH/Stock with a 90-day cycle counting frequency.",
+      "points": 10,
+      "visual_evidence": "A location named 'Zone C' with parent location 'WH/Stock'. The 'Inventory Frequency' or 'Cyclic Counting' field must be set to 90 days."
+    },
+    {
+      "id": "transfer_sku_a",
+      "description": "Transfer all 10 units of SKU ABC-A-001 to Zone A, leaving none in WH/Stock.",
+      "points": 20,
+      "visual_evidence": "Inventory report or stock list shows exactly 10 units of ABC-A-001 (NVIDIA RTX 4090 GPU) located in 'WH/Stock/Zone A', with no remaining units listed in the parent 'WH/Stock' location."
+    },
+    {
+      "id": "transfer_sku_b",
+      "description": "Transfer all 50 units of SKU ABC-B-001 to Zone B, leaving none in WH/Stock.",
+      "points": 20,
+      "visual_evidence": "Inventory report or stock list shows exactly 50 units of ABC-B-001 (ASUS ROG Crosshair X670E Hero) located in 'WH/Stock/Zone B', with no remaining units listed in the parent 'WH/Stock' location."
+    },
+    {
+      "id": "transfer_sku_c",
+      "description": "Transfer all 200 units of SKU ABC-C-001 to Zone C, leaving none in WH/Stock.",
+      "points": 20,
+      "visual_evidence": "Inventory report or stock list shows exactly 200 units of ABC-C-001 (Southwire Cat6 CMP Plenum 1000ft) located in 'WH/Stock/Zone C', with no remaining units listed in the parent 'WH/Stock' location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent must use the application's graphical user interface to configure locations and transfer stock.",
+      "visual_evidence": "Screenshots should show the agent navigating the Odoo web interface (e.g., Settings, Locations, Internal Transfers, or Inventory Adjustments) rather than executing terminal commands or scripts."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "The agent must not use browser developer tools to fake the completion state.",
+      "visual_evidence": "Browser developer tools (Elements tab, Console) should not be open and used to modify the DOM text to simulate the correct locations or quantities."
+    },
+    {
+      "id": "genuine_transfers",
+      "description": "The agent must perform actual stock movements or adjustments.",
+      "visual_evidence": "Screenshots should show evidence of forms being filled out for internal transfers, operations, or inventory adjustments, rather than just a text file or notes app with the expected answers."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected quantities for the SKUs are: ABC-A-001 = 10 units, ABC-B-001 = 50 units, ABC-C-001 = 200 units. The zones must be created exactly as 'Zone A' (15 days), 'Zone B' (30 days), and 'Zone C' (90 days) under the parent location 'WH/Stock'."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "create_print_ready_chart_and_export@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Configure a high-contrast 'White Mode' chart for SPY (Daily) for professional publication. The chart must feature a white background, black axis labels, and hidden or transparent grid lines. Include a 50-period Simple Moving Average (SMA) indicator styled in dark blue. Save this configuration as a chart template named 'PrintReady' and export the resulting chart as a PNG file to C:\\Users\\Docker\\Desktop\\SPY_Report.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_print_ready_chart_and_export\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_print_ready_chart_and_export\\export_result.ps1"
+  },
+  "metadata": {
+    "template_path": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\templates\\Chart\\PrintReady.xml",
+    "image_path": "C:\\Users\\Docker\\Desktop\\SPY_Report.png",
+    "expected_background": "#FFFFFFFF",
+    "forbidden_sma_colors": [
+      "#FFDAA520",
+      "#FFFFFF00",
+      "#FFFFD700"
+    ],
+    "required_sma_period": "50"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_print_ready_chart"
+    }
+  }
+}

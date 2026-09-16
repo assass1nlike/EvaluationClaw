@@ -1,0 +1,42 @@
+# Model Configuration for Benchmark Generation Pipeline
+# This file centralizes all model settings for agents and tools
+
+api:
+  # Loaded from LLM_API_KEY in the repository-local .env file.
+  api_key: ""
+  base_url: "https://api.deepseek.com"
+
+# Agent Models (used by Agent instances for decision-making)
+agents:
+  analyst: "openai/deepseek-flash"       # Analyst Agent
+  planner: "openai/deepseek-flash"       # Planner Agent
+  generator: "openai/deepseek-flash"     # Generator Agent
+  design: "openai/deepseek-flash"        # Design Agent
+  grounding: "openai/deepseek-flash"     # Grounding Agent
+  allocation: "openai/deepseek-flash"    # Allocation Agent
+
+# Tool Models (used by individual tools for specific tasks)
+tools:
+  # Initialization & Parsing
+  parse_subtasks: "openai/deepseek-flash"   # Parse topic to subtasks
+  
+  # Analyst Tools
+  analyst_model: "openai/deepseek-flash"    # Used by llm_revise_one_subtask, llm_replan_subtasks
+  
+  # Scoring & Evaluation
+  transformability_check: "openai/deepseek-flash"  # Check dataset transformability
+  scoring: "openai/deepseek-flash"          # Score dataset candidates
+  
+  # Planning
+  importance_and_quota: "openai/deepseek-flash"  # Calculate importance and quota
+  diagnose_allocation: "openai/deepseek-flash"      # Diagnose allocation failures (uses DEFAULT_MODEL)
+  
+  # Generation & Transformation
+  transform_stage1: "openai/deepseek-flash"  # Stage 1: Sample-level planning
+  transform_stage2: "openai/deepseek-flash"  # Stage 2: Execute transformation
+  
+  # Verification
+  verify: "openai/deepseek-flash"            # Verify transformed samples
+  
+  # Default model for tools that don't specify (used by llm_caller)
+  default: "openai/deepseek-flash"

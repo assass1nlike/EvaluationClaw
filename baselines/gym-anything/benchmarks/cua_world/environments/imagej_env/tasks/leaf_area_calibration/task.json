@@ -1,0 +1,39 @@
+{
+  "id": "leaf_area_calibration@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Calibrated Leaf Area Measurement",
+  "description": "Calculate the specific leaf area (SLA) proxy by measuring the total projected area of the 'Leaf' sample image. Calibrate the spatial scale using the known physical width of 10 cm for the image field of view. The measurement must represent the solid leaf blade, requiring internal holes to be filled before calculating the area. Save the measurement results in square centimeters (cm^2) to ~/ImageJ_Data/results/leaf_area.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "calibration",
+    "morphometry",
+    "plants",
+    "thresholding",
+    "binary-operations",
+    "measurement"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/leaf_area_calibration/setup_task.sh",
+    "post_task": "/workspace/tasks/leaf_area_calibration/export_result.sh"
+  },
+  "metadata": {
+    "image_source": "Leaf (36K)",
+    "physical_width_cm": 10,
+    "expected_area_min": 45.0,
+    "expected_area_max": 65.0,
+    "unfilled_area_max": 40.0,
+    "result_file": "/home/ga/ImageJ_Data/results/leaf_area.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_leaf_area_calibration"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "energy_portfolio_milestone_tracker@1",
+  "task_completion": [
+    {
+      "id": "connect_oracle_db",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQL*Plus, VS Code SQL extension) showing an active connection to localhost:1521/XEPDB1 with the user 'energy_mgr'."
+    },
+    {
+      "id": "identify_milestone_anomalies",
+      "description": "Query the MILESTONES table to identify projects with out-of-order dates.",
+      "points": 15,
+      "visual_evidence": "A SELECT query or result grid showing milestone dates for the contaminated projects (Shepherds Flat, Alta Wind, Roscoe, Horse Hollow) revealing the sequence violations."
+    },
+    {
+      "id": "fix_shepherds_alta_milestones",
+      "description": "Correct the out-of-order dates for Shepherds Flat and Alta Wind while preserving the timeline span.",
+      "points": 20,
+      "visual_evidence": "UPDATE statements modifying the MILESTONES table for Shepherds Flat (fixing Construction Complete/Permitting) and Alta Wind (fixing Commercial Operation/Grid Interconnection), along with execution success messages."
+    },
+    {
+      "id": "fix_roscoe_horse_milestones",
+      "description": "Correct the out-of-order dates for Roscoe and Horse Hollow while preserving the timeline span.",
+      "points": 20,
+      "visual_evidence": "UPDATE statements modifying the MILESTONES table for Roscoe (fixing Financial Close/Environmental Review) and Horse Hollow (fixing Grid Interconnection/Construction Start), along with execution success messages."
+    },
+    {
+      "id": "create_hierarchy_view",
+      "description": "Create a hierarchical view named PROJECT_HIERARCHY_VW showing the organizational hierarchy.",
+      "points": 35,
+      "visual_evidence": "A SQL statement starting with 'CREATE [OR REPLACE] VIEW PROJECT_HIERARCHY_VW AS' that includes hierarchical query keywords like 'CONNECT BY', 'LEVEL', and a 'SYS' function (e.g., 'SYS_CONNECT_BY_PATH'), followed by a success message indicating the view was created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sql_execution",
+      "description": "Verify that the SQL commands were actually executed against the database.",
+      "visual_evidence": "Look for database client execution feedback, such as 'View created', 'X rows updated', execution time metrics, or query result grids, rather than just SQL text written in an editor."
+    },
+    {
+      "id": "no_hardcoded_view",
+      "description": "Ensure the hierarchical view is built dynamically from the underlying tables.",
+      "visual_evidence": "The CREATE VIEW statement must query the actual project/milestone tables using CONNECT BY logic, rather than hardcoding the expected output rows using SELECT ... FROM DUAL or UNION ALL."
+    },
+    {
+      "id": "authentic_tool_usage",
+      "description": "Verify the agent used appropriate tools for database interaction.",
+      "visual_evidence": "The screenshots should show a genuine database management tool (CLI or GUI) being used to interact with Oracle, not just a text file being edited without execution."
+    }
+  ],
+  "privileged_info_for_vlm": "The database contains 4 specific contaminated projects with out-of-order dates that must be fixed: 1) Shepherds Flat: 'Construction Complete' is earlier than 'Permitting Approved'. 2) Alta Wind: 'Commercial Operation' is earlier than 'Grid Interconnection'. 3) Roscoe: 'Financial Close' is earlier than 'Environmental Review'. 4) Horse Hollow: 'Grid Interconnection' is earlier than 'Construction Start'. The agent must fix these while preserving the overall timeline span. The agent must also create a view named PROJECT_HIERARCHY_VW using Oracle's hierarchical query features, specifically requiring 'CONNECT BY', 'LEVEL', and a 'SYS' function (likely 'SYS_CONNECT_BY_PATH')."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "issue_financial_credit_note@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "In the Northwind Traders business, issue a credit note for a volume rebate to customer 'Alfreds Futterkiste'. Create a new expense account named 'Volume Discounts' and issue a credit note for 500.00 dated today with the description 'Q1 Volume Rebate'. The credit note should be recorded against the 'Volume Discounts' account rather than an inventory item.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/issue_financial_credit_note/setup_task.sh",
+    "post_task": "/workspace/tasks/issue_financial_credit_note/export_result.sh"
+  },
+  "metadata": {
+    "customer_name": "Alfreds Futterkiste",
+    "account_name": "Volume Discounts",
+    "amount": 500.0,
+    "forbidden_item": "Inventory Item"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_issue_financial_credit_note"
+    }
+  }
+}

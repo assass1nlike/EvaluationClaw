@@ -1,0 +1,53 @@
+{
+  "task_id": "scenario_library_maintenance@1",
+  "task_completion": [
+    {
+      "id": "quarantine_fatal_scenario",
+      "description": "Verify that the scenario with the missing ownship model (Legacy_Fatal_Error) was moved to the Quarantine directory.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a file manager or terminal command (e.g., `ls /home/ga/Quarantine`) confirming that the `Legacy_Fatal_Error` directory is now located in `/home/ga/Quarantine/`."
+    },
+    {
+      "id": "repair_tug_scenario",
+      "description": "Verify that the missing tug model in the othership.ini file of Legacy_Missing_Tug was replaced with 'Tug'.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the contents of `Legacy_Missing_Tug/othership.ini` (via text editor, `cat`, or script output) with a ship type set to 'Tug'."
+    },
+    {
+      "id": "repair_generic_scenario",
+      "description": "Verify that the missing generic model in the othership.ini file of Legacy_Unknown_Ship was replaced with 'Coaster'.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the contents of `Legacy_Unknown_Ship/othership.ini` (via text editor, `cat`, or script output) with a ship type set to 'Coaster'."
+    },
+    {
+      "id": "add_description_files",
+      "description": "Verify that a description.txt file with the text 'Legacy scenario restored by automated audit.' was added to all remaining scenarios.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the creation or contents of `description.txt` in the remaining scenario directories (`Legacy_Missing_Tug`, `Legacy_Unknown_Ship`, `Legacy_Valid_Archive`), containing the exact required text."
+    },
+    {
+      "id": "generate_audit_report",
+      "description": "Verify that an audit report was generated at /home/ga/Documents/audit_report.txt.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a text editor or terminal output displaying the contents of `/home/ga/Documents/audit_report.txt`, which should detail the actions taken during the audit."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_file_modification",
+      "description": "Verify that the agent actually modified the files and directories rather than just printing the expected output.",
+      "visual_evidence": "Look for commands like `mv`, `sed`, `echo`, or a script being executed that performs file operations, rather than just `echo`ing the final report."
+    },
+    {
+      "id": "dynamic_validation",
+      "description": "Verify that the agent checked the Models directory to determine which models were missing, rather than hardcoding the scenario names.",
+      "visual_evidence": "Look for commands like `ls /opt/bridgecommand/Models` or script logic that compares ship names against the contents of the Models directory."
+    },
+    {
+      "id": "report_authenticity",
+      "description": "Verify that the audit report reflects the actual actions taken.",
+      "visual_evidence": "The report contents should match the operations performed on the specific scenarios, not just a generic copy-paste of the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "The Models directory contains exactly four valid models: Coaster, Ferry, Tug, and Yacht. There are four scenarios initially: Legacy_Fatal_Error (missing ownship, must be quarantined), Legacy_Missing_Tug (missing othership tug, must be changed to 'Tug'), Legacy_Unknown_Ship (missing othership generic, must be changed to 'Coaster'), and Legacy_Valid_Archive (all models valid). The quarantine directory is /home/ga/Quarantine/."
+}

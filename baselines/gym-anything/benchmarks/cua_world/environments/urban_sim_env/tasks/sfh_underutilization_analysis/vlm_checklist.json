@@ -1,0 +1,59 @@
+{
+  "task_id": "sfh_underutilization_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_and_data_loading",
+      "description": "Open the correct Jupyter notebook and load the required HDF5 data.",
+      "points": 10,
+      "visual_evidence": "The Jupyter notebook 'sfh_underutilization.ipynb' is open. Code cells show pandas (or similar) reading 'households', 'buildings', and 'parcels' from '/home/ga/urbansim_projects/data/sanfran_public.h5'."
+    },
+    {
+      "id": "sfh_classification_logic",
+      "description": "Define Large SFHs and classify them as underutilized.",
+      "points": 20,
+      "visual_evidence": "Code cells show filtering logic for Large SFHs (e.g., residential units == 1, square footage >= 2000, persons >= 1) and a condition for 'Underutilized' (persons <= 2)."
+    },
+    {
+      "id": "zone_aggregation_and_filtering",
+      "description": "Calculate metrics per zone, filter for zones with at least 20 large SFHs, and identify the top 20 by underutilization rate.",
+      "points": 20,
+      "visual_evidence": "Code shows grouping by 'zone_id', calculating total large SFHs and underutilized SFHs, computing the rate, filtering totals >= 20, and sorting/selecting the top 20 zones."
+    },
+    {
+      "id": "csv_export",
+      "description": "Export the resulting dataframe to the specified CSV path with correct columns.",
+      "points": 20,
+      "visual_evidence": "Code shows a dataframe being exported to '/home/ga/urbansim_projects/output/underutilized_zones.csv'. The code or dataframe preview must show the columns: 'zone_id', 'total_large_sfh', 'underutilized_sfh', and 'underutilization_rate'."
+    },
+    {
+      "id": "plot_generation_and_save",
+      "description": "Generate a bar chart of the underutilization rates and save it to the specified path.",
+      "points": 20,
+      "visual_evidence": "Code shows plotting a bar chart (e.g., using matplotlib or pandas .plot.bar) of the underutilization rates and saving it using a command like savefig('/home/ga/urbansim_projects/output/underutilization_plot.png')."
+    },
+    {
+      "id": "notebook_cells_executed",
+      "description": "Ensure all notebook cells are executed.",
+      "points": 10,
+      "visual_evidence": "The code cells in the Jupyter notebook have execution numbers (e.g., In [5]:) and display corresponding outputs (like dataframe previews or inline plots), indicating they were actually run."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "jupyter_interface_used",
+      "description": "The agent used the Jupyter Notebook or JupyterLab interface to write and execute code.",
+      "visual_evidence": "Screenshots show the web-based Jupyter interface, not just a plain text editor or terminal running a python script."
+    },
+    {
+      "id": "genuine_computation",
+      "description": "The agent computed the results using pandas/python rather than hardcoding the expected outputs.",
+      "visual_evidence": "The notebook contains actual data manipulation code (merges, groupbys, filters) rather than manually typed arrays or hardcoded strings of the final answers."
+    },
+    {
+      "id": "no_file_mocking",
+      "description": "The agent did not use terminal commands to create empty or fake output files.",
+      "visual_evidence": "There are no terminal windows showing commands like 'touch /home/ga/urbansim_projects/output/underutilization_plot.png' or 'echo ... > underutilized_zones.csv'."
+    }
+  ],
+  "privileged_info_for_vlm": "The notebook must be located at /home/ga/urbansim_projects/notebooks/sfh_underutilization.ipynb. The data source is /home/ga/urbansim_projects/data/sanfran_public.h5. The expected CSV output path is /home/ga/urbansim_projects/output/underutilized_zones.csv and must contain exactly these columns: zone_id, total_large_sfh, underutilized_sfh, underutilization_rate. The plot must be saved to /home/ga/urbansim_projects/output/underutilization_plot.png. There are exactly 132 zones containing at least 20 large single-family homes before filtering for the top 20."
+}

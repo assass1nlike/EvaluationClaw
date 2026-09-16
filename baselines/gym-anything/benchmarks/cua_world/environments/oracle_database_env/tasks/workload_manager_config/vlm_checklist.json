@@ -1,0 +1,59 @@
+{
+  "task_id": "workload_manager_config@1",
+  "task_completion": [
+    {
+      "id": "consumer_groups_created",
+      "description": "Verify that the consumer groups 'CRITICAL_APP_CG' and 'BATCH_REPORT_CG' were created.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing SQL commands (e.g., DBMS_RESOURCE_MANAGER.CREATE_CONSUMER_GROUP) executed successfully for both 'CRITICAL_APP_CG' and 'BATCH_REPORT_CG', or the groups appearing in a GUI list of Oracle consumer groups."
+    },
+    {
+      "id": "resource_plan_created",
+      "description": "Verify that the resource plan named 'STABILITY_PLAN' was created.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the successful execution of a CREATE_PLAN command for 'STABILITY_PLAN', or the plan visible in an Oracle management GUI."
+    },
+    {
+      "id": "cpu_allocations_configured",
+      "description": "Verify that CPU allocations are set to 60% for CRITICAL_APP_CG, 20% for BATCH_REPORT_CG, and 20% for OTHER_GROUPS at Management Level 1.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing plan directives being created (DBMS_RESOURCE_MANAGER.CREATE_PLAN_DIRECTIVE) with 'mgmt_p1' values of 60, 20, and 20 for the respective groups, or a GUI configuration screen showing these exact percentages."
+    },
+    {
+      "id": "switch_rule_configured",
+      "description": "Verify that a switch rule is configured for CRITICAL_APP_CG to switch to BATCH_REPORT_CG after 60 seconds.",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the plan directive for CRITICAL_APP_CG with 'switch_group' set to 'BATCH_REPORT_CG' and 'switch_time' (or execution time limit) set to 60 seconds."
+    },
+    {
+      "id": "users_mapped_and_privileged",
+      "description": "Verify that APP_USER is mapped to CRITICAL_APP_CG, RPT_USER is mapped to BATCH_REPORT_CG, and both are granted switch privileges.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing SET_CONSUMER_GROUP_MAPPING commands mapping the users to their respective groups, and GRANT_SWITCH_PRIVILEGE commands executed successfully for both users."
+    },
+    {
+      "id": "plan_activated",
+      "description": "Verify that 'STABILITY_PLAN' is enabled as the active resource plan.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the execution of 'ALTER SYSTEM SET RESOURCE_MANAGER_PLAN = STABILITY_PLAN' or a GUI setting applying the plan to the system."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Verify that the agent interacted with a genuine Oracle Database client (e.g., SQL*Plus, SQL Developer, or Enterprise Manager).",
+      "visual_evidence": "The interface shown in the screenshots should be a real database terminal or GUI, not a generic text editor or mock environment."
+    },
+    {
+      "id": "commands_executed",
+      "description": "Verify that the configuration commands were actually executed and not just typed out.",
+      "visual_evidence": "Look for success confirmation messages from the database, such as 'PL/SQL procedure successfully completed.', 'System altered.', or GUI success dialogs."
+    },
+    {
+      "id": "no_copy_paste_spoofing",
+      "description": "Verify that the agent did not simply copy-paste the expected output or task description into a file to fake completion.",
+      "visual_evidence": "The terminal or GUI history should show a logical sequence of commands and database responses, rather than a static text file containing the task requirements."
+    }
+  ],
+  "privileged_info_for_vlm": "Plan Name: STABILITY_PLAN. Consumer Groups: CRITICAL_APP_CG, BATCH_REPORT_CG. Users: APP_USER, RPT_USER. CPU Allocations: CRITICAL_APP_CG (60%), BATCH_REPORT_CG (20%), OTHER_GROUPS (20%) at Management Level 1. Switch Rule: CRITICAL_APP_CG switches to BATCH_REPORT_CG if a call exceeds 60 seconds."
+}

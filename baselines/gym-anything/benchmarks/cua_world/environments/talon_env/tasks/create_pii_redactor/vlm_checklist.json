@@ -1,0 +1,59 @@
+{
+  "task_id": "create_pii_redactor@1",
+  "task_completion": [
+    {
+      "id": "directory_created",
+      "description": "Create the pii_redactor directory in the Talon user folder.",
+      "points": 10,
+      "visual_evidence": "File explorer or code editor file tree shows a folder named 'pii_redactor' located at C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\."
+    },
+    {
+      "id": "talon_list_file",
+      "description": "Create redact_types.talon-list with the required list mappings.",
+      "points": 15,
+      "visual_evidence": "An open file named 'redact_types.talon-list' containing 'list: user.redact_types' and mappings for 'emails', 'phones', and 'socials'."
+    },
+    {
+      "id": "python_imports",
+      "description": "Create pii_redactor.py with the required imports.",
+      "points": 10,
+      "visual_evidence": "An open file named 'pii_redactor.py' containing import statements for 're', 'Module', 'actions', and 'clip'."
+    },
+    {
+      "id": "python_redact_text",
+      "description": "Define the redact_text method in pii_redactor.py with regex replacements.",
+      "points": 25,
+      "visual_evidence": "In 'pii_redactor.py', a method 'redact_text(text: str, pii_type: str)' is defined, containing regex patterns to replace emails, phone numbers, and SSNs with placeholders like [EMAIL REDACTED], [PHONE REDACTED], and [SSN REDACTED]."
+    },
+    {
+      "id": "python_redact_clipboard",
+      "description": "Define the redact_clipboard method in pii_redactor.py.",
+      "points": 20,
+      "visual_evidence": "In 'pii_redactor.py', a method 'redact_clipboard(pii_type: str)' is defined that reads the clipboard, calls redact_text, updates the clipboard, and pastes the result."
+    },
+    {
+      "id": "talon_script_file",
+      "description": "Create pii_redactor.talon with the voice command.",
+      "points": 20,
+      "visual_evidence": "An open file named 'pii_redactor.talon' containing the voice command 'redact {user.redact_types}:' which calls the clipboard redaction action."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "files_saved",
+      "description": "Verify that the created files are saved to disk.",
+      "visual_evidence": "No unsaved file indicators (like a dot or asterisk on the tab) in the code editor for the required files."
+    },
+    {
+      "id": "genuine_code_creation",
+      "description": "Verify that the agent typed or constructed the code rather than just downloading a pre-existing solution.",
+      "visual_evidence": "Screenshots show the agent progressively writing the code in an editor."
+    },
+    {
+      "id": "correct_path_used",
+      "description": "Verify that the files are in the exact requested directory.",
+      "visual_evidence": "The file path visible in the editor or terminal matches C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\pii_redactor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target directory: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\pii_redactor. Test strings for regex validation: 'Contact me at test.user@example.com today.', 'Call 555-123-4567 now.', 'My SSN is 123-45-6789.' Note: The automated verifier for this task is defective due to missing scripts, so rely entirely on visual confirmation of the code and file structure."
+}

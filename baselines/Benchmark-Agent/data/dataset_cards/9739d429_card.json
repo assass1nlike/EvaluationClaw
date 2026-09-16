@@ -1,0 +1,74 @@
+{
+  "dataset_id": "9739d429",
+  "name": "Temporal-Event-Reasoning",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Temporal-Event-Reasoning dataset contains news articles paired with instructions asking for the temporal relation between two specified events. Each sample requires selecting one of 13 relation types (e.g., BEFORE, AFTER, DURING) that best describes how the events are ordered in the text. It evaluates temporal event reasoning and relation classification.",
+  "card_text": "The dataset consists of 200 text samples drawn from news articles. Each sample includes a long raw_text passage (multi-paragraph financial or general news), a prompt that embeds a placeholder for the passage and names two events with their types (e.g., OCCURRENCE, STATE), and asks for their temporal relation from a closed set of 13 labels: AFTER, BEFORE, BEGINS, BEGUN_BY, DURING, ENDED_BY, ENDS, IAFTER, IBEFORE, IDENTITY, INCLUDES, IS_INCLUDED, SIMULTANEOUS. The output is a single label. The task combines reading comprehension with temporal ordering of events, often in corporate or economic news contexts.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "news",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "factual",
+        "semantics": "A multi-paragraph news article, often from financial or corporate reporting, that provides the narrative and event descriptions needed to infer temporal relations. It is the main source text referenced by the prompt.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "An instruction prompt that references the raw text via a placeholder, names two events with their semantic types, and lists the closed set of 13 possible temporal relation labels. It tells the model what to determine and how to answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A single temporal relation label from the closed set of 13 options, indicating how the two events mentioned in the prompt are ordered or related in the context passage.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a long news passage (input.raw_text) that serves as context, an instruction prompt (input.prompt) that references the passage, names two events with their types, and lists candidate temporal relation labels, and a single output label (output.text) indicating the temporal relation between the two events. The prompt uses a placeholder for the raw text and asks the model to select the correct relation from the closed set."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Temporal-Event-Reasoning/annotation.json",
+    "existing_tags": {
+      "task": "temporal_event_reasoning",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

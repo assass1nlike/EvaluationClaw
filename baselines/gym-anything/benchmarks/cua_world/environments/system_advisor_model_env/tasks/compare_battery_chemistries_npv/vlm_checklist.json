@@ -1,0 +1,59 @@
+{
+  "task_id": "compare_battery_chemistries_npv@1",
+  "task_completion": [
+    {
+      "id": "verify_location_and_pv_size",
+      "description": "Verify the location is set to Phoenix, AZ and the PV system size is configured to 5.0 kW.",
+      "points": 15,
+      "visual_evidence": "Look for the SAM interface showing 'Phoenix' in the Location and Resource page, and '5.0' (or very close to it) for the System Nameplate Capacity on the System Design page."
+    },
+    {
+      "id": "verify_battery_capacity_and_power",
+      "description": "Verify the battery capacity is set to 10.0 kWh and the power rating is 5.0 kW.",
+      "points": 15,
+      "visual_evidence": "Look for the SAM Battery Storage page showing a total battery capacity of approximately 10.0 kWh and a maximum power/inverter rating of 5.0 kW."
+    },
+    {
+      "id": "verify_battery_replacement_config",
+      "description": "Verify the battery replacement is configured at an 80% capacity threshold with a cost of $300 per kWh.",
+      "points": 20,
+      "visual_evidence": "Look for the SAM Battery Life or System Costs pages showing 'Replace at capacity threshold' set to 80%, and battery replacement costs set to 300 $/kWh."
+    },
+    {
+      "id": "verify_scenarios_created",
+      "description": "Verify the creation of two distinct scenarios or cases for Lead-Acid (AGM) and Lithium-Ion (LFP).",
+      "points": 20,
+      "visual_evidence": "Look for multiple case tabs in the SAM interface (e.g., 'Lead-Acid' and 'Lithium-Ion') or a PySAM script defining two distinct battery chemistry models."
+    },
+    {
+      "id": "verify_json_output",
+      "description": "Verify the creation and content of the required JSON file containing the NPV and replacement costs.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing 'battery_chemistry_comparison.json' with the required structure: 'system_size_kw', 'battery_capacity_kwh', and a 'scenarios' object containing 'lead_acid' and 'lithium_ion_lfp' with their respective 'npv_dollars' and 'pv_battery_replacement_cost_dollars'."
+    },
+    {
+      "id": "verify_project_file_saved",
+      "description": "Verify the SAM project file or PySAM script is saved to the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal, or save dialog showing 'battery_comparison.sam' or 'compare_batteries.py' located in the '/home/ga/Documents/SAM_Projects/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sam_interaction",
+      "description": "Verify the agent actually used the NREL System Advisor Model (SAM) GUI or wrote a functional PySAM script to generate the results.",
+      "visual_evidence": "Look for screenshots showing the SAM application open with the relevant parameters entered, or a Python script importing and using PySAM modules, rather than just a text editor mocking the final JSON."
+    },
+    {
+      "id": "realistic_simulation_values",
+      "description": "Verify the NPV and battery replacement costs in the JSON file appear to be genuine simulation results.",
+      "visual_evidence": "Look at the JSON file contents; the 'npv_dollars' and 'pv_battery_replacement_cost_dollars' should be specific, non-zero numerical values (likely with decimals) rather than placeholder text like '<value>' or generic round numbers."
+    },
+    {
+      "id": "no_hardcoded_json_script",
+      "description": "Verify the agent did not write a script that simply prints hardcoded JSON without running a simulation.",
+      "visual_evidence": "If a Python script is used, ensure it contains simulation logic (e.g., executing a model, reading outputs) and not just a 'json.dump()' of manually typed values."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected JSON filename: battery_chemistry_comparison.json. Expected SAM project filename: battery_comparison.sam OR PySAM script: compare_batteries.py. Expected PV system size: 5.0 kW (acceptable range 4.9-5.1). Expected battery capacity: 10.0 kWh (acceptable range 9.5-10.5)."
+}

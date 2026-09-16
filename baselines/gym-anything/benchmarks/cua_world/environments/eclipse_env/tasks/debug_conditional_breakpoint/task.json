@@ -1,0 +1,28 @@
+{
+  "id": "debug_conditional_breakpoint@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Identify the corrupted transaction in a financial batch process (~/eclipse-workspace/FinancialAudit) where one of 5,000 transactions causes the 'currentBalance' to drop below zero. Without modifying the source code (source file integrity will be verified), use the Eclipse Debugger to find the Transaction ID of this record. Save the Transaction ID (e.g., 'TX-9999') to /home/ga/solution.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/debug_conditional_breakpoint/setup_task.sh",
+    "post_task": "/workspace/tasks/debug_conditional_breakpoint/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/FinancialAudit",
+    "solution_path": "/home/ga/solution.txt",
+    "correct_transaction_id": "TX-3842",
+    "main_class": "com.audit.FinancialBatchProcessor"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_debug_conditional_breakpoint"
+    }
+  }
+}

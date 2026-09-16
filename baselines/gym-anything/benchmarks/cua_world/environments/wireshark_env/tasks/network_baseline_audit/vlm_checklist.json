@@ -1,0 +1,59 @@
+{
+  "task_id": "network_baseline_audit@1",
+  "task_completion": [
+    {
+      "id": "pcap_analysis_tool_opened",
+      "description": "Agent opens and analyzes the baseline_audit.pcapng file.",
+      "points": 10,
+      "visual_evidence": "Screenshots show Wireshark open with baseline_audit.pcapng loaded, or terminal commands like 'tshark -r baseline_audit.pcapng' or 'capinfos' being executed."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Agent creates the baseline_audit_report.txt file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A text editor (nano, vim, gedit) is open editing '/home/ga/Documents/captures/baseline_audit_report.txt', or terminal commands show the file being created/written to this exact path."
+    },
+    {
+      "id": "protocols_section_present",
+      "description": "The report includes a clearly labeled section for all unique protocols observed.",
+      "points": 20,
+      "visual_evidence": "The text report contains a heading like 'Unique Protocols' and lists the 10 protocols (eth, ethertype, ip, tcp, udp, http, dns, data, data-text-lines, xml)."
+    },
+    {
+      "id": "ips_section_present",
+      "description": "The report includes a clearly labeled section for all unique source and destination IP addresses.",
+      "points": 20,
+      "visual_evidence": "The text report contains a heading for 'Unique IP Addresses' (or similar) and lists exactly 10 distinct IP addresses."
+    },
+    {
+      "id": "ports_section_present",
+      "description": "The report includes a clearly labeled section for all unique destination TCP/UDP ports.",
+      "points": 20,
+      "visual_evidence": "The text report contains a heading for 'Unique Destination Ports' and lists exactly 16 distinct port numbers."
+    },
+    {
+      "id": "counts_section_present",
+      "description": "The report includes the count of TCP retransmissions, total packets, and total bytes.",
+      "points": 20,
+      "visual_evidence": "The text report explicitly states '1 TCP retransmission', '116 packets', and '40,320 bytes' (or very similar phrasing)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tool_based_extraction",
+      "description": "Agent extracted the data using actual network analysis tools rather than guessing or hallucinating.",
+      "visual_evidence": "Presence of Wireshark GUI interactions, tshark/tcpdump commands, or Python scapy scripts that were actually executed to parse the PCAP file."
+    },
+    {
+      "id": "file_actually_saved",
+      "description": "The report was saved to the filesystem, not just displayed on screen.",
+      "visual_evidence": "Commands like 'cat baseline_audit_report.txt', 'ls -l', or a text editor showing the file is saved at the correct path without unsaved changes indicators."
+    },
+    {
+      "id": "authentic_values",
+      "description": "The agent did not hallucinate generic network data.",
+      "visual_evidence": "The values in the report exactly match the privileged info (116 packets, 40320 bytes, 1 retransmission) rather than generic placeholder examples like '1000 packets'."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline_audit.pcapng file contains exactly 116 packets and 40,320 bytes. It has 10 unique protocols (eth, ethertype, ip, tcp, udp, http, dns, data, data-text-lines, xml), 10 unique IP endpoints, 16 unique destination ports, and exactly 1 TCP retransmission. The final report must be located at /home/ga/Documents/captures/baseline_audit_report.txt."
+}

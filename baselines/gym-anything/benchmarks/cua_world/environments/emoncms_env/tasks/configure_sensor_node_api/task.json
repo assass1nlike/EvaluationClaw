@@ -1,0 +1,36 @@
+{
+  "id": "configure_sensor_node_api@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "Using the Emoncms HTTP API and the API keys provided in '/home/ga/emoncms_apikeys.sh', set up a monitoring node named 'office_env' with three sensor channels: 'temperature', 'humidity', and 'co2'. Create and configure PHPFina feeds (engine 5, 10s interval) for each channel using the names 'office_env_temperature' (Unit: °C), 'office_env_humidity' (Unit: %), and 'office_env_co2' (Unit: ppm), all with the tag 'office_env'. Ensure the inputs are configured to log to these feeds. Verify the setup by posting two sets of data (Set 1: 21.5, 45.2, 620; Set 2: 22.1, 44.8, 635) and document the configuration, including feed IDs and the last recorded values, in a JSON file at '/home/ga/sensor_config.json'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_sensor_node_api/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_sensor_node_api/export_result.sh"
+  },
+  "metadata": {
+    "target_node": "office_env",
+    "required_inputs": [
+      "temperature",
+      "humidity",
+      "co2"
+    ],
+    "required_feeds": [
+      "office_env_temperature",
+      "office_env_humidity",
+      "office_env_co2"
+    ],
+    "output_file": "/home/ga/sensor_config.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_sensor_node_api"
+    }
+  }
+}

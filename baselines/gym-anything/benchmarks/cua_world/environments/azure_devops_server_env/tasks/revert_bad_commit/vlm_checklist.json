@@ -1,0 +1,53 @@
+{
+  "task_id": "revert_bad_commit@1",
+  "task_completion": [
+    {
+      "id": "access_repository",
+      "description": "Access the TailwindTraders repository.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent logged into the Azure DevOps web interface (or using git in the terminal) and viewing the 'TailwindTraders' repository."
+    },
+    {
+      "id": "locate_bad_commit",
+      "description": "Locate the offending commit containing the sensitive data.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the commit history or commit details specifically displaying the message 'Add API keys and database credentials for deployment'."
+    },
+    {
+      "id": "revert_commit",
+      "description": "Revert the offending commit.",
+      "points": 25,
+      "visual_evidence": "Screenshots show the agent initiating and completing a revert action (e.g., clicking 'Revert' in the Azure DevOps UI, creating a revert branch/PR, or running 'git revert' in the terminal)."
+    },
+    {
+      "id": "merge_fix_to_main",
+      "description": "Merge the reverted changes into the 'main' branch.",
+      "points": 25,
+      "visual_evidence": "Screenshots show a completed/merged Pull Request targeting the 'main' branch, or terminal output confirming a successful push of the revert commit to 'main'."
+    },
+    {
+      "id": "verify_file_removed",
+      "description": "Ensure 'config/secrets.json' is removed from the repository.",
+      "points": 25,
+      "visual_evidence": "Screenshots show the repository file explorer on the 'main' branch with the 'config/secrets.json' file no longer present, or the final commit diff explicitly showing the deletion of 'config/secrets.json'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_platform_interaction",
+      "description": "Verify the agent interacted with the actual Azure DevOps platform or a genuine terminal.",
+      "visual_evidence": "Screenshots should show a real web browser navigating Azure DevOps or a real terminal executing git commands, rather than a text editor or mock interface."
+    },
+    {
+      "id": "proper_revert_procedure",
+      "description": "Verify the agent used a standard revert procedure rather than just manually deleting the file.",
+      "visual_evidence": "Look for evidence of a 'revert' action (UI button or git command) that references the original bad commit hash, rather than a manual file deletion and a new disconnected commit."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Ensure the final success state was not faked using browser developer tools.",
+      "visual_evidence": "The UI elements for the merged PR or the file explorer should look consistent with Azure DevOps styling, with no visible developer console open modifying the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "The repository name is 'TailwindTraders'. The Azure DevOps Server API base URL is 'http://localhost/DefaultCollection' (or 'http://localhost:8080/tfs/DefaultCollection')."
+}

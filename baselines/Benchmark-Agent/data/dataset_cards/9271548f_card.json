@@ -1,0 +1,94 @@
+{
+  "dataset_id": "9271548f",
+  "name": "Openset Property Coherence Reasoning",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset evaluates property coherence reasoning across images: given one or more images, the model must decide whether they share a specified property (e.g., same adjective or category). It is a visual multiple-choice question answering task with binary True/False answers.",
+  "card_text": "This dataset contains 200 multimodal samples, each pairing a set of images with a natural language question. The question asks about a relational property between the images, such as whether two similar images share the same adjective, or whether four pictures belong to the same category. The model must respond with one of the provided choices, typically True or False. Images are provided as file paths, and the question embeds the choice list. The dataset tests multimodal reasoning, requiring the model to visually inspect the images, understand the linguistic query, and make a coherence judgment. It is an openset benchmark designed to assess general visual property reasoning.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "general visual reasoning",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "A list of one or more image file identifiers (e.g., '0183_0.jpg') that depict the visual content being compared. The images are the subject of the question, and the model must inspect them to judge whether they share a property (e.g., same adjective or category).",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A textual prompt that asks a yes/no question about the provided images, such as whether they share an adjective or fall into the same category. It explicitly instructs the model to choose an answer from the given choice list.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The set of answer choices embedded at the end of the prompt, typically ['True', 'False']. The model must select one of these options as its answer.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ground-truth answer to the question, which is one of the provided choices (e.g., 'True' or 'False'). It indicates whether the images satisfy the queried property.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a list of image files, a natural language prompt that contains a question and an embedded multiple-choice list (True/False), and a short text answer. The prompt and images together form the model input; the answer is the target label."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/PropertyCoherenceReasoning/openset_property_coherence_reasoning.json",
+    "existing_tags": {
+      "task": "Property Coherence Reasoning",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

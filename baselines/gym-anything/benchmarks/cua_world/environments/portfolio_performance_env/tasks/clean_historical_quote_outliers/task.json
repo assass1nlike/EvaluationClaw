@@ -1,0 +1,29 @@
+{
+  "id": "clean_historical_quote_outliers@1",
+  "version": "1.0",
+  "env_id": "portfolio_performance_env@0.1",
+  "description": "The historical price data for Amazon.com Inc. (AMZN) contains a data error that is distorting the performance chart. Using the portfolio file provided at /home/ga/Documents/PortfolioData/amzn_glitch.xml, identify and remove the erroneous low-price outlier from July 2023 in the security's history. Save the updated data to the same file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clean_historical_quote_outliers/setup_task.sh",
+    "post_task": "/workspace/tasks/clean_historical_quote_outliers/export_result.sh"
+  },
+  "metadata": {
+    "target_file": "/home/ga/Documents/PortfolioData/amzn_glitch.xml",
+    "security_ticker": "AMZN",
+    "glitch_date_approx": "2023-07-14",
+    "price_threshold_low": 5000000000,
+    "expected_min_price": 120.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clean_historical_quote_outliers"
+    }
+  }
+}

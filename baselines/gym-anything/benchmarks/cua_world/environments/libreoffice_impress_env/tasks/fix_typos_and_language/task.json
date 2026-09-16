@@ -1,0 +1,40 @@
+{
+  "id": "fix_typos_and_language@1",
+  "version": "1.0",
+  "env_id": "libreoffice_impress_env@0.1",
+  "description": "You are finalizing a presentation for the Global Health Summit. In the file /home/ga/Documents/Presentations/global_health_summit.odp, correct the spelling errors on Slide 2 ('Key Challenges') by changing 'distrubution' to 'distribution', 'paitents' to 'patients', and 'barriar' to 'barrier'. On Slide 3 ('Partenariat Stratégique'), set the language for the paragraph starting with 'Nous devons collaborer...' to French (France or Canada) to resolve the language marking error. Save the changes to the file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fix_typos_and_language/setup_task.sh",
+    "post_task": "/workspace/tasks/fix_typos_and_language/export_result.sh"
+  },
+  "metadata": {
+    "presentation_path": "/home/ga/Documents/Presentations/global_health_summit.odp",
+    "typos": [
+      "distrubution",
+      "paitents",
+      "barriar"
+    ],
+    "corrections": [
+      "distribution",
+      "patients",
+      "barrier"
+    ],
+    "french_fragment": "Nous devons collaborer",
+    "expected_language_codes": [
+      "fr",
+      "fra"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_typos_and_language"
+    }
+  }
+}

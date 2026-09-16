@@ -1,0 +1,47 @@
+{
+  "id": "apt_package_management_dfd@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a multi-page Data Flow Diagram (DFD) for the Linux APT package management system based on the reference architecture provided in 'apt_architecture_ref.txt' on the Desktop. The diagram must include a Context Diagram (Level 0) on the first page and a Level 1 DFD on the second page using standard DFD notation. The Context Diagram should feature the central APT System process and four external entities: System Administrator, Package Repository, GPG Keyserver, and Installed System. The Level 1 DFD must decompose the system into five processes ('Parse Sources', 'Fetch Metadata', 'Resolve Dependencies', 'Download Packages', and 'Verify & Install') and four data stores ('Sources List', 'Package Lists', 'Package Cache', and 'dpkg Status'). Save the complete diagram as 'apt_dfd.drawio' on the Desktop and export the Level 1 DFD page as 'apt_dfd.png' to the Desktop.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/apt_package_management_dfd/setup_task.sh",
+    "post_task": "/workspace/tasks/apt_package_management_dfd/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "apt_dfd.drawio",
+    "expected_png": "apt_dfd.png",
+    "min_pages": 2,
+    "required_processes": [
+      "Parse",
+      "Fetch",
+      "Resolve",
+      "Download",
+      "Install"
+    ],
+    "required_datastores": [
+      "Sources",
+      "Lists",
+      "Cache",
+      "dpkg",
+      "Status"
+    ],
+    "required_entities": [
+      "Administrator",
+      "Repository",
+      "Keyserver"
+    ],
+    "min_edges": 12
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_apt_package_management_dfd"
+    }
+  }
+}

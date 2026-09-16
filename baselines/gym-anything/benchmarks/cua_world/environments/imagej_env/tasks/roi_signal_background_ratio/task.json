@@ -1,0 +1,42 @@
+{
+  "id": "roi_signal_background_ratio@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Multi-ROI Fluorescence Signal-to-Background Ratio",
+  "description": "Perform a quantitative signal-to-background ratio (SBR) analysis on the 'Fluorescent Cells' sample image in Fiji. Define and name at least two ROIs for bright cell structures (including 'signal' or 'cell' in the name), at least one ROI for a dim cytoplasmic region (including 'cytoplasm' or 'dim'), and at least one ROI for the dark background (including 'background' or 'bg'). Measure the Mean, Standard Deviation, and Area for these regions. Calculate the SBR using the formula: (Average Mean of Signal ROIs) / (Mean of Background ROI). Save the ROI set to ~/ImageJ_Data/results/roi_set.zip and the measurements table to ~/ImageJ_Data/results/roi_measurements.csv. The CSV file must include the calculated SBR value labeled as 'SBR' or 'Ratio'.",
+  "difficulty": "medium",
+  "tags": [
+    "roi-manager",
+    "quantification",
+    "fluorescence",
+    "sbr",
+    "microscopy"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/roi_signal_background_ratio/setup_task.sh",
+    "post_task": "/workspace/tasks/roi_signal_background_ratio/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/ImageJ_Data/results/roi_measurements.csv",
+    "expected_zip_path": "/home/ga/ImageJ_Data/results/roi_set.zip",
+    "min_rois": 4,
+    "required_columns": [
+      "Label",
+      "Mean",
+      "Area"
+    ],
+    "sbr_min": 1.5,
+    "sbr_max": 100.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_roi_signal_background_ratio"
+    }
+  }
+}

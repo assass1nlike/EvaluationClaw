@@ -1,0 +1,41 @@
+{
+  "id": "catalog_arxiv_preprints@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Update the metadata for three machine learning papers in your Zotero library to catalog them as arXiv preprints. For each paper, set the 'Library Catalog' field to 'arXiv' and the 'Call Number' field to the specified ID:\n\n- 'Attention Is All You Need': Call Number '1706.03762'\n- 'BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding': Call Number '1810.04805'\n- 'Generative Adversarial Nets': Call Number '1406.2661'",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/catalog_arxiv_preprints/setup_task.sh",
+    "post_task": "/workspace/tasks/catalog_arxiv_preprints/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "title_snippet": "Attention Is All You Need",
+        "expected_catalog": "arXiv",
+        "expected_call_number": "1706.03762"
+      },
+      {
+        "title_snippet": "BERT: Pre-training of Deep Bidirectional",
+        "expected_catalog": "arXiv",
+        "expected_call_number": "1810.04805"
+      },
+      {
+        "title_snippet": "Generative Adversarial Nets",
+        "expected_catalog": "arXiv",
+        "expected_call_number": "1406.2661"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_catalog_arxiv_preprints"
+    }
+  }
+}

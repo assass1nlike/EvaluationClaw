@@ -1,0 +1,30 @@
+{
+  "id": "process_partial_refund@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "A customer named Emily Davis has contacted support about her most recent order ($114.98). The 'USB-C Laptop Charger 65W' ($34.99) she received arrived with physical damage and is non-functional, though she is satisfied with the Wireless Bluetooth Headphones in the same order. Process a partial refund for only the 'USB-C Laptop Charger 65W' ($34.99) on Emily Davis's most recent completed order. Use the refund reason: 'Customer reported item arrived damaged'. Do not refund the Wireless Bluetooth Headphones.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/process_partial_refund/setup_task.sh",
+    "post_task": "/workspace/tasks/process_partial_refund/export_result.sh"
+  },
+  "metadata": {
+    "target_customer_email": "emily.davis@example.com",
+    "target_product_sku": "USBC-065",
+    "target_product_name": "USB-C Laptop Charger 65W",
+    "refund_amount": "34.99",
+    "refund_reason_keyword": "damaged",
+    "other_product_sku": "WBH-001"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_process_partial_refund"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "finalizer_stuck_resource_cleanup@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Verify the agent successfully logged into the Rancher UI.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Rancher dashboard interface loaded in a web browser, indicating successful login."
+    },
+    {
+      "id": "old_project_namespace_deleted",
+      "description": "Verify the 'old-project' namespace has been successfully deleted by removing its finalizers.",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI Namespaces list (or via 'kubectl get ns' in terminal), the 'old-project' namespace is no longer listed or visible."
+    },
+    {
+      "id": "data_vol_pvc_deleted",
+      "description": "Verify the 'data-vol' PersistentVolumeClaim in the 'staging' namespace has been successfully deleted.",
+      "points": 20,
+      "visual_evidence": "In the Rancher UI Storage/PVCs list for the 'staging' namespace (or via 'kubectl get pvc -n staging'), the 'data-vol' PVC is no longer present."
+    },
+    {
+      "id": "legacy_config_deleted",
+      "description": "Verify the 'legacy-config' ConfigMap in the 'staging' namespace has been successfully deleted.",
+      "points": 15,
+      "visual_evidence": "In the Rancher UI ConfigMaps list for the 'staging' namespace (or via 'kubectl get cm -n staging'), the 'legacy-config' ConfigMap is no longer present."
+    },
+    {
+      "id": "orphaned_svc_deleted",
+      "description": "Verify the 'orphaned-svc' Service in the 'staging' namespace has been successfully deleted.",
+      "points": 15,
+      "visual_evidence": "In the Rancher UI Services list for the 'staging' namespace (or via 'kubectl get svc -n staging'), the 'orphaned-svc' Service is no longer present."
+    },
+    {
+      "id": "healthy_workloads_preserved",
+      "description": "Verify that the healthy workloads ('nginx-web' and 'redis-primary') in the 'staging' namespace were not damaged or deleted.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the 'staging' namespace workloads/pods show 'nginx-web' and 'redis-primary' are still present, active, and healthy."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_cluster_interaction",
+      "description": "Ensure the agent actually interacted with the Kubernetes cluster via Rancher UI or kubectl.",
+      "visual_evidence": "Screenshots show genuine navigation and interaction within the Rancher web interface or valid kubectl commands executed in a terminal, not just a text editor with typed out expected results."
+    },
+    {
+      "id": "no_namespace_nuke",
+      "description": "Ensure the agent did not simply delete and recreate the entire 'staging' namespace to clear the resources.",
+      "visual_evidence": "The 'staging' namespace remains intact throughout the trajectory, and the agent specifically targets the finalizers of the individual stuck resources."
+    },
+    {
+      "id": "no_inspect_element_faking",
+      "description": "Ensure the agent did not use browser developer tools to fake the disappearance of resources.",
+      "visual_evidence": "There is no evidence of the browser's Developer Tools (Inspect Element) being used to manually delete HTML nodes from the Rancher UI."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespaces are 'old-project' and 'staging'. The resources stuck in the 'Terminating' state due to finalizers (e.g., 'custom.io/cleanup-handler', 'legacy.io/config-finalizer') are the 'old-project' namespace itself, and the 'data-vol' PVC, 'legacy-config' ConfigMap, and 'orphaned-svc' Service in the 'staging' namespace. Healthy workloads that must be preserved in 'staging' are 'nginx-web' and 'redis-primary'."
+}

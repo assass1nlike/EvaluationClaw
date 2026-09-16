@@ -1,0 +1,27 @@
+{
+  "id": "compile_investigation_report@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Perform an investigation search in ArkCase to identify all active complaint cases related to the covert project 'Operation Nightshade'. Compile a report including the Case Number, Complaint Title, and Priority for each matching case, excluding unrelated projects such as 'Project Bluebook'. Export the results as a JSON array of objects to /home/ga/Documents/nightshade_report.json.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compile_investigation_report/setup_task.sh",
+    "post_task": "/workspace/tasks/compile_investigation_report/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/nightshade_report.json",
+    "target_keyword": "Operation Nightshade",
+    "ground_truth_path": "/root/validation/ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_investigation_report"
+    }
+  }
+}

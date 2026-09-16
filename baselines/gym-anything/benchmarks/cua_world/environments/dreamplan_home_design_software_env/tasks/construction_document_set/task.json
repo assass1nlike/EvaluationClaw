@@ -1,0 +1,34 @@
+{
+  "id": "construction_document_set@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "You are a general contractor preparing a complete construction document set for the Contemporary House renovation project. Export the following views as JPEGs: front elevation to C:\\Users\\Docker\\Desktop\\elevation_front.jpg, side elevation to C:\\Users\\Docker\\Desktop\\elevation_side.jpg, 2D ground floor plan to C:\\Users\\Docker\\Desktop\\construction_floor_plan.jpg, and a 3D overview perspective to C:\\Users\\Docker\\Desktop\\construction_overview.jpg. Save the project to C:\\Users\\Docker\\Documents\\construction_docs.dpn.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 660,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\construction_document_set\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\construction_document_set\\export_result.ps1"
+  },
+  "metadata": {
+    "required_files": [
+      "C:\\Users\\Docker\\Desktop\\elevation_front.jpg",
+      "C:\\Users\\Docker\\Desktop\\elevation_side.jpg",
+      "C:\\Users\\Docker\\Desktop\\construction_floor_plan.jpg",
+      "C:\\Users\\Docker\\Desktop\\construction_overview.jpg",
+      "C:\\Users\\Docker\\Documents\\construction_docs.dpn"
+    ],
+    "result_json_path": "C:\\Users\\Docker\\construction_document_set_result.json",
+    "start_ts_path": "C:\\Users\\Docker\\task_start_ts_construction.txt",
+    "min_image_size_bytes": 10000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_construction_document_set"
+    }
+  }
+}

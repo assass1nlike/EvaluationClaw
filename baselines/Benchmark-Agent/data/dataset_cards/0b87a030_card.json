@@ -1,0 +1,75 @@
+{
+  "dataset_id": "0b87a030",
+  "name": "Dialogue-Level-Sentiment-Quadruple-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 78,
+  "description": "A small text dataset for dialogue-level sentiment quadruple extraction, where models must extract target-aspect-opinion-polarity tuples from conversational smartphone discussions. It evaluates structured sentiment extraction and relation/attribute identification in noisy user-generated dialogues.",
+  "card_text": "The dataset consists of 78 text samples for dialogue-level sentiment quadruple extraction. Each sample contains a raw dialogue-like block of user comments, often about Xiaomi smartphone models and features, and an instruction prompt. The target output is a comma-separated list of quadruplets in the format target => aspect => opinion => polarity. Polarity values include positive and negative, and any element may be NULL if absent. The underlying dialogues are noisy, informal user-generated content. The task requires identifying all sentiment-bearing target-aspect-opinion groups at the dialogue level, making it related to aspect-based sentiment analysis and relation or attribute extraction. The dataset is small and open-set, with varied dialogue lengths and multiple quadruplets per sample.",
+  "tasks": [
+    "attribute_extraction",
+    "relation_extraction"
+  ],
+  "domain": "consumer electronics (smartphone) reviews/dialogue",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "dialog",
+        "semantics": "The main input content is a dialogue-like block of user-generated comments or utterances, typically about smartphone models and features. It contains the raw text from which sentiment quadruplets must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction prompt that asks the model to extract all target-aspect-opinion-polarity quadruplets from the raw dialogue and specifies the output format.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A comma-separated list of extracted sentiment quadruplets, each formatted as 'target => aspect => opinion => polarity'. It provides the gold structured labels for the dialogue.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three text components: a raw dialogue-like context (input.raw_text), an extraction instruction (input.prompt), and a structured answer (output.text). The context holds the user-generated conversational text; the instruction specifies the quadruple extraction task and format; the answer lists the target-aspect-opinion-polarity tuples found in the context. There are no images, options, tables, or other auxiliary annotations."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Dialogue-Level-Sentiment-Quadruple-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "dialogue_level_sentiment_quadruple_extraction",
+      "type": "multi label classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

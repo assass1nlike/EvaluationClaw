@@ -1,0 +1,41 @@
+{
+  "id": "fred_labor_market_analysis@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a Junior Economist. Create a custom graph on the St. Louis Fed's FRED database (fred.stlouisfed.org) comparing the 'Unemployment Rate' (UNRATE) and 'Labor Force Participation Rate' (CIVPART) on a single chart for the period from 2019-01-01 to the present. Export the graph image to '~/Documents/labor_market_chart.png', the underlying data to '~/Documents/labor_market_data.csv', and bookmark the resulting page as 'Labor Market Dashboard'.",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "fred",
+    "economics",
+    "data-visualization",
+    "csv",
+    "graphing"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fred_labor_market_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/fred_labor_market_analysis/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "fred.stlouisfed.org",
+    "required_series": [
+      "UNRATE",
+      "CIVPART"
+    ],
+    "required_start_year": 2019,
+    "output_csv_path": "/home/ga/Documents/labor_market_data.csv",
+    "output_img_path": "/home/ga/Documents/labor_market_chart.png",
+    "bookmark_title": "Labor Market Dashboard"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fred_labor_market_analysis"
+    }
+  }
+}

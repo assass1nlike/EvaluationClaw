@@ -1,0 +1,59 @@
+{
+  "task_id": "container_timezone_locale_fix@1",
+  "task_completion": [
+    {
+      "id": "docker_config_opened",
+      "description": "Agent opens a Docker configuration file for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim, VS Code) is open showing either 'Dockerfile' or 'docker-compose.yml' located in the '/home/ga/scheduler-bot/' directory."
+    },
+    {
+      "id": "timezone_configured",
+      "description": "Agent configures the correct timezone in the Docker setup.",
+      "points": 20,
+      "visual_evidence": "The configuration file shows an environment variable setting for the timezone, such as 'TZ=America/New_York' or 'ENV TZ=America/New_York'."
+    },
+    {
+      "id": "encoding_configured",
+      "description": "Agent configures the correct locale/encoding in the Docker setup.",
+      "points": 20,
+      "visual_evidence": "The configuration file shows an environment variable setting for UTF-8 encoding, such as 'LANG=C.UTF-8', 'LC_ALL=C.UTF-8', or 'PYTHONIOENCODING=utf-8'."
+    },
+    {
+      "id": "container_rebuilt",
+      "description": "Agent rebuilds or restarts the Docker container to apply changes.",
+      "points": 10,
+      "visual_evidence": "Terminal shows commands like 'docker compose up -d --build', 'docker compose restart', or 'docker build' being executed in the project directory."
+    },
+    {
+      "id": "timezone_verified",
+      "description": "Agent verifies the timezone fix in the container logs.",
+      "points": 20,
+      "visual_evidence": "Terminal shows the output of 'docker logs scheduler-bot' (or similar) with timestamps reflecting the 'America/New_York' timezone (e.g., EST/EDT or the correct UTC offset) instead of UTC."
+    },
+    {
+      "id": "encoding_verified",
+      "description": "Agent verifies the encoding fix by checking that the user 'Rapha\u00ebl' is processed successfully.",
+      "points": 20,
+      "visual_evidence": "Terminal shows the output of 'docker logs scheduler-bot' containing the text 'PROCESSING_USER: Rapha\u00ebl' and 'STATUS: SUCCESS', with no UnicodeEncodeError visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_interaction",
+      "description": "Verify that the logs shown are actually from the Docker container.",
+      "visual_evidence": "The success logs should clearly follow a 'docker logs' or 'docker compose logs' command, rather than the agent running 'python3 bot.py' directly on the host machine."
+    },
+    {
+      "id": "no_echo_spoofing",
+      "description": "Verify that the agent did not fake the verification output.",
+      "visual_evidence": "The terminal should not show the agent using 'echo' commands to print 'PROCESSING_USER: Rapha\u00ebl' or faking log lines manually."
+    },
+    {
+      "id": "configuration_saved",
+      "description": "Verify that the configuration file was actually saved.",
+      "visual_evidence": "The agent must exit the text editor and save the file (or use a command like 'sed'/'echo' to write to the file) before running the docker build/restart commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/scheduler-bot'. The container name is 'scheduler-bot'. The target timezone is 'America/New_York'. The target user that must be processed successfully without Unicode errors is 'Rapha\u00ebl'. Successful processing will output 'PROCESSING_USER: Rapha\u00ebl' and 'STATUS: SUCCESS' in the container logs."
+}

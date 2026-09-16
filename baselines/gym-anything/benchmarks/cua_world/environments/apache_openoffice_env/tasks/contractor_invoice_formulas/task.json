@@ -1,0 +1,38 @@
+{
+  "id": "contractor_invoice_formulas@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "GreenLeaf Landscaping Services needs a professional invoice created for the 'Henderson Backyard Renovation' project using Apache OpenOffice Writer. Using the job details, client info, tax rate, and billable line items provided in /home/ga/Documents/job_data.json, create an invoice document including the company and client details. The document must feature a table for line items with columns for Description, Quantity, Unit Price, and Total. Use Writer's native table formulas to dynamically calculate the Line Totals, Subtotal, Tax, and Grand Total. Format all monetary values as currency and save the final document as /home/ga/Documents/GreenLeaf_Invoice_1024.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/contractor_invoice_formulas/setup_task.sh",
+    "post_task": "/workspace/tasks/contractor_invoice_formulas/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/GreenLeaf_Invoice_1024.odt",
+    "input_file": "/home/ga/Documents/job_data.json",
+    "expected_values": {
+      "subtotal": 3350.5,
+      "tax": 184.28,
+      "grand_total": 3534.78,
+      "tolerance": 0.05
+    },
+    "required_strings": [
+      "GreenLeaf",
+      "Henderson",
+      "1024"
+    ],
+    "min_formulas_count": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_contractor_invoice_formulas"
+    }
+  }
+}

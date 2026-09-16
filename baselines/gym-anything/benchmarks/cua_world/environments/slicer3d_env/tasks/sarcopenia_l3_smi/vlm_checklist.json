@@ -1,0 +1,53 @@
+{
+  "task_id": "sarcopenia_l3_smi@1",
+  "task_completion": [
+    {
+      "id": "l3_level_identification",
+      "description": "Navigate to and select the correct axial slice corresponding to the L3 vertebral level on the abdominal CT.",
+      "points": 20,
+      "visual_evidence": "Medical imaging software (e.g., 3D Slicer) displaying an axial slice centered on the L3 vertebra, identifiable by its morphology and position."
+    },
+    {
+      "id": "muscle_thresholding",
+      "description": "Apply appropriate Hounsfield Unit (HU) thresholding to isolate skeletal muscle.",
+      "points": 15,
+      "visual_evidence": "Thresholding tool active in the GUI with the range set to approximately -29 to 150 HU, highlighting the muscle tissue on the scan."
+    },
+    {
+      "id": "muscle_segmentation_accuracy",
+      "description": "Create an accurate segmentation mask of all skeletal muscles at the L3 level without including internal organs or fat.",
+      "points": 35,
+      "visual_evidence": "A clean segmentation overlay on the L3 axial slice that covers the psoas, paraspinal, and abdominal wall muscles, strictly excluding the intestines, liver, kidneys, and subcutaneous/visceral fat."
+    },
+    {
+      "id": "smi_and_classification_calculation",
+      "description": "Calculate the Skeletal Muscle Area, Skeletal Muscle Index (SMI), and determine the sarcopenia classification.",
+      "points": 20,
+      "visual_evidence": "A calculator, terminal, or script output showing the calculation of SMI (Muscle Area / 1.68^2) and comparison against the male threshold (52.4 cm2/m2)."
+    },
+    {
+      "id": "report_and_file_saving",
+      "description": "Save the segmentation to l3_muscle_segmentation.nii.gz and the JSON report to sarcopenia_report.json with all required fields.",
+      "points": 10,
+      "visual_evidence": "File explorer, terminal, or text editor showing the saved 'l3_muscle_segmentation.nii.gz' file and the 'sarcopenia_report.json' file containing fields: l3_slice_index, skeletal_muscle_area_cm2, patient_height_m, patient_sex, smi_cm2_m2, sarcopenia_threshold_cm2_m2, and sarcopenia_classification."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_segmentation_usage",
+      "description": "The agent used the medical imaging software's GUI to perform the segmentation rather than mocking or downloading a pre-made file.",
+      "visual_evidence": "Screenshots showing active interaction with segmentation tools (e.g., Segment Editor, Threshold, Paint) inside the imaging application."
+    },
+    {
+      "id": "genuine_area_measurement",
+      "description": "The agent actually measured the muscle area using the software rather than guessing or hardcoding a value.",
+      "visual_evidence": "Segment Statistics module or a similar measurement tool visible in the GUI, displaying the calculated area in cm2 or mm2 for the segmented muscle."
+    },
+    {
+      "id": "authentic_report_values",
+      "description": "The JSON report was generated based on the actual measured and calculated values.",
+      "visual_evidence": "The values in the final 'sarcopenia_report.json' logically match the measurements seen in the imaging software's statistics module and the subsequent SMI math."
+    }
+  ],
+  "privileged_info_for_vlm": "The clinical threshold for sarcopenia in males is a Skeletal Muscle Index (SMI) of 52.4 cm2/m2. The standard Hounsfield Unit (HU) range for skeletal muscle segmentation on CT scans is -29 to 150."
+}

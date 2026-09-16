@@ -1,0 +1,85 @@
+{
+  "dataset_id": "7e688668",
+  "name": "Screw Anomaly Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 47,
+  "description": "A small industrial anomaly detection dataset of screw images, where the task is to segment anomalous regions based on a text prompt.",
+  "card_text": "This dataset contains 47 samples for screw anomaly detection. Each sample pairs an input image of a screw with a short text prompt instructing the model to detect the anomaly region. The expected output is a binary mask image that localizes the anomalous area on the screw. The data is intended for industrial visual inspection, where the goal is to identify defects or irregularities at the pixel level. Images are close-up photographs of screws, and masks are aligned with the input images. The dataset assumes that anomalies exist and that their regions can be segmented. It is small and focused, suitable for evaluating segmentation-based anomaly detection methods in an industrial context.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "industrial anomaly detection",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction that tells the model to detect the anomaly region of the screw shown in the input image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "A close-up photograph of a single screw that serves as the item to be inspected for anomalies.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A binary segmentation mask image that marks the anomalous region on the corresponding input screw image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample has an input object with an image_file (a photograph of a screw) and a prompt (a text instruction to detect the anomaly region), and an output object with a mask_file (a binary segmentation mask). The prompt specifies the task, the input image is the item to inspect, and the output mask localizes the anomalous region on that image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/ScrewAnomalyDetection/screw_anomaly_detection.json",
+    "existing_tags": {
+      "task": "screw anomaly detection",
+      "type": "image comprehension",
+      "skill": "Industrial Anomaly Detection",
+      "domain": [
+        "Engineering"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Engineering"
+    ]
+  }
+}

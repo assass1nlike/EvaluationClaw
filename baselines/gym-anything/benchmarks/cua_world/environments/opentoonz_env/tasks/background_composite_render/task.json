@@ -1,0 +1,32 @@
+{
+  "id": "background_composite_render@1",
+  "version": "1.0",
+  "env_id": "opentoonz_env@0.1",
+  "difficulty": "very_hard",
+  "description": "You are a layout artist at an animation studio. Create a complete shot by compositing the character animation at /home/ga/OpenToonz/samples/dwanko_run.tnz with the background image at /home/ga/OpenToonz/backgrounds/scene_background.jpg. Render the final 1920x1080 composite as a PNG frame sequence of at least 20 frames to /home/ga/OpenToonz/output/composite_frames/.",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/background_composite_render/setup_task.sh",
+    "post_task": "/workspace/tasks/background_composite_render/export_result.sh"
+  },
+  "metadata": {
+    "source_scene": "/home/ga/OpenToonz/samples/dwanko_run.tnz",
+    "background_image": "/home/ga/OpenToonz/backgrounds/scene_background.jpg",
+    "output_dir": "/home/ga/OpenToonz/output/composite_frames",
+    "expected_width": 1920,
+    "expected_height": 1080,
+    "min_frame_count": 20,
+    "min_total_size_kb": 200,
+    "background_source": "https://www.ghibli.jp/gallery/chihiro050.jpg"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_background_composite_render"
+    }
+  }
+}

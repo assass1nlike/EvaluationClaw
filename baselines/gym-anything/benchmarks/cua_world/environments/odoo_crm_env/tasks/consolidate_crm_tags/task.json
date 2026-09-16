@@ -1,0 +1,34 @@
+{
+  "id": "consolidate_crm_tags@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "The sales team has been inconsistent with tags, using 'urgent' and 'ASAP' alongside the official 'Urgent' tag. This is messing up our reports. Standardize the records for 'Emergency Generators - Apex Corp', 'Rush Order - Beta Industries', and 'Expedited Shipping - Gamma Inc' by ensuring they use only the official 'Urgent' tag. Remove the 'urgent' and 'ASAP' tags from these opportunities and permanently delete those two tags from the system configuration to prevent future use.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/consolidate_crm_tags/setup_task.sh",
+    "post_task": "/workspace/tasks/consolidate_crm_tags/export_result.sh"
+  },
+  "metadata": {
+    "target_tag": "Urgent",
+    "bad_tags": [
+      "urgent",
+      "ASAP"
+    ],
+    "target_opportunities": [
+      "Emergency Generators - Apex Corp",
+      "Rush Order - Beta Industries",
+      "Expedited Shipping - Gamma Inc"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_consolidate_crm_tags"
+    }
+  }
+}

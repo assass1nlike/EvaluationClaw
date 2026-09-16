@@ -1,0 +1,59 @@
+{
+  "task_id": "ecommerce_rfm_segmentation@1",
+  "task_completion": [
+    {
+      "id": "db_connection_established",
+      "description": "Connect to the Oracle database",
+      "points": 10,
+      "visual_evidence": "Look for a database client (like Oracle SQL Developer) or terminal (sqlplus) showing a successful connection to the Oracle database (XEPDB1 / RETAIL_BI)."
+    },
+    {
+      "id": "clean_transactions_vw_created",
+      "description": "Create CLEAN_TRANSACTIONS_VW view",
+      "points": 15,
+      "visual_evidence": "Look for a SQL script or execution output showing 'CREATE VIEW CLEAN_TRANSACTIONS_VW' with conditions filtering out null CustomerIDs, non-positive Quantity/UnitPrice, and InvoiceNo starting with 'C'."
+    },
+    {
+      "id": "rfm_metrics_vw_created",
+      "description": "Create RFM_METRICS_VW view",
+      "points": 15,
+      "visual_evidence": "Look for a SQL script or execution output showing 'CREATE VIEW RFM_METRICS_VW' with aggregations calculating Recency, Frequency, and Monetary values per CustomerID."
+    },
+    {
+      "id": "rfm_scores_vw_created",
+      "description": "Create RFM_SCORES_VW view",
+      "points": 20,
+      "visual_evidence": "Look for a SQL script or execution output showing 'CREATE VIEW RFM_SCORES_VW' utilizing NTILE(5) or similar logic to assign 1-5 scores for R, F, and M metrics."
+    },
+    {
+      "id": "customer_segments_table_created",
+      "description": "Create CUSTOMER_SEGMENTS physical table",
+      "points": 20,
+      "visual_evidence": "Look for a SQL script or execution output showing 'CREATE TABLE CUSTOMER_SEGMENTS' with a CASE statement classifying customers into segments like 'Champions', 'At Risk VIPs', etc."
+    },
+    {
+      "id": "at_risk_vips_exported",
+      "description": "Export 'At Risk VIPs' to CSV",
+      "points": 20,
+      "visual_evidence": "Look for a file manager, terminal, or text editor showing the file `at_risk_vips.csv` located in `/home/ga/Documents/exports/` containing the exported data with headers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent interacted with the actual database client",
+      "visual_evidence": "Verify that the agent used a database client (e.g., Oracle SQL Developer) or command-line tool (e.g., sqlplus) to interact with the database, rather than just typing SQL into a text editor without running it."
+    },
+    {
+      "id": "actual_sql_execution",
+      "description": "SQL queries were actually executed",
+      "visual_evidence": "Ensure there is visual evidence of the SQL statements being successfully executed, such as 'View created', 'Table created' messages, or query result grids."
+    },
+    {
+      "id": "authentic_export",
+      "description": "CSV export was generated authentically",
+      "visual_evidence": "Check that the CSV export was generated via a tool's export feature or a script, rather than manually typing the data into a file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected export path: /home/ga/Documents/exports/at_risk_vips.csv. Required Oracle features include NTILE Window Function, Data Cleansing, CASE Statements, and Materialized Physical Tables. The task involves creating three views (CLEAN_TRANSACTIONS_VW, RFM_METRICS_VW, RFM_SCORES_VW) and one physical table (CUSTOMER_SEGMENTS)."
+}

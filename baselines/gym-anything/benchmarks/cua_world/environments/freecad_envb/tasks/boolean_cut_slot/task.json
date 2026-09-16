@@ -1,0 +1,33 @@
+{
+  "id": "boolean_cut_slot@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "You are an electronics technician designing a cable gland body. Create a cylinder with a radius of 15 mm and a height of 40 mm, positioned at the origin (0, 0, 0) with its axis along Z. Create a rectangular through-slot in the cylinder using a box with dimensions 40 mm (X), 5 mm (Y), and 20 mm (Z), positioned so the slot passes through the center of the cylinder from Z=10 to Z=30. Save the document to ~/Documents/FreeCAD/slotted_cylinder.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/boolean_cut_slot/setup_task.sh",
+    "post_task": "/workspace/tasks/boolean_cut_slot/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_file": "/home/ga/Documents/FreeCAD/slotted_cylinder.FCStd",
+    "expected_volume_min": 24400,
+    "expected_volume_max": 26200,
+    "full_cylinder_volume": 28274,
+    "min_face_count": 7,
+    "bbox_z_min": 39.0,
+    "bbox_z_max": 41.0,
+    "bbox_xy_min": 29.0,
+    "bbox_xy_max": 31.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_boolean_cut_slot"
+    }
+  }
+}

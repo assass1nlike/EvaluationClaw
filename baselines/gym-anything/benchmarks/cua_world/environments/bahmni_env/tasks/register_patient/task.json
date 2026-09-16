@@ -1,0 +1,28 @@
+{
+  "id": "register_patient@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Log in to Bahmni (Username: superman, Password: Admin123) and register a new patient in the clinic with the following details:\n- First name: Kwame\n- Last name: Mensah\n- Gender: Male\n- Age: 34 years old",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/register_patient/setup_task.sh",
+    "pre_task_timeout": 900
+  },
+  "metadata": {
+    "target_first_name": "Kwame",
+    "target_last_name": "Mensah",
+    "target_gender": "Male",
+    "target_age": 34
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_register_patient"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "line_profile_fwhm@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Line Profile FWHM Measurement",
+  "description": "Perform a quantitative Full Width at Half Maximum (FWHM) analysis on at least 5 cell nuclei from the 'Fluorescent Cells' sample image, specifically using the blue (DAPI) channel. Record the Nucleus ID, Peak Intensity, Background Intensity, FWHM (in pixels), and Line Length (in pixels) for each nucleus. Save these measurements to ~/ImageJ_Data/results/fwhm_measurements.csv. The CSV must include a summary row at the bottom with the Mean and Standard Deviation of the FWHM values.",
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "quantitative-imaging",
+    "line-profile",
+    "fwhm",
+    "resolution",
+    "quality-control"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/line_profile_fwhm/setup_task.sh",
+    "post_task": "/workspace/tasks/line_profile_fwhm/export_result.sh"
+  },
+  "metadata": {
+    "expected_min_nuclei": 5,
+    "expected_fwhm_min_px": 8.0,
+    "expected_fwhm_max_px": 60.0,
+    "expected_peak_min": 50,
+    "expected_peak_max": 255,
+    "output_file": "/home/ga/ImageJ_Data/results/fwhm_measurements.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_line_profile_fwhm"
+    }
+  }
+}

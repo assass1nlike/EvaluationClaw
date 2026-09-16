@@ -1,0 +1,26 @@
+{
+  "id": "set_channel_topic@1",
+  "version": "1.0",
+  "env_id": "rocket_chat_env@0.1",
+  "description": "Log in to Rocket.Chat (Username: admin, Password: Admin1234!) and set the topic for the #release-updates channel to exactly: Official Rocket.Chat release tracker - GitHub source: https://github.com/RocketChat/Rocket.Chat/releases",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 45,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/set_channel_topic/setup_task.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_channel": "release-updates",
+    "target_topic": "Official Rocket.Chat release tracker - GitHub source: https://github.com/RocketChat/Rocket.Chat/releases"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_set_channel_topic"
+    }
+  }
+}

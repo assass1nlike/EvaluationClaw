@@ -1,0 +1,53 @@
+{
+  "task_id": "subtract_segment_boolean@1",
+  "task_completion": [
+    {
+      "id": "target_segment_selected",
+      "description": "Verify that the 'WholeTumor' segment is selected as the target for modification in the segmentation module.",
+      "points": 20,
+      "visual_evidence": "In the Segment Editor (or equivalent module), the 'WholeTumor' segment is highlighted or selected in the segment list within the 'TumorSegmentation' node."
+    },
+    {
+      "id": "logical_operator_configured",
+      "description": "Verify that a boolean subtraction operation is configured with 'NecroticCore' as the modifier segment.",
+      "points": 25,
+      "visual_evidence": "The 'Logical operators' effect is selected, the Operation is set to 'Subtract', and the Modifier segment is explicitly set to 'NecroticCore'."
+    },
+    {
+      "id": "subtraction_applied",
+      "description": "Verify that the subtraction operation was applied to the 'WholeTumor' segment.",
+      "points": 25,
+      "visual_evidence": "The 'Apply' button under the Logical operators effect has been clicked, or the UI shows the operation is processing/completed."
+    },
+    {
+      "id": "no_overlap_visible",
+      "description": "Verify that the 'WholeTumor' segment no longer overlaps with the 'NecroticCore' region.",
+      "points": 20,
+      "visual_evidence": "In the 2D slice views, the color mask for 'WholeTumor' has a visible hole or empty space exactly where the 'NecroticCore' mask is located."
+    },
+    {
+      "id": "viable_tissue_isolated",
+      "description": "Confirm the final visual state shows the isolated viable tumor tissue.",
+      "points": 10,
+      "visual_evidence": "The 3D view or overall 2D slice views display the 'WholeTumor' segment as a hollowed-out or ring-like structure, clearly missing the inner necrotic core."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the application GUI to perform the boolean operations.",
+      "visual_evidence": "The Segment Editor UI and Logical Operators tools are visible and interacted with, rather than terminal commands or Python console scripts."
+    },
+    {
+      "id": "genuine_data_used",
+      "description": "Verify the operation was performed on the provided 'TumorSegmentation' node.",
+      "visual_evidence": "The segment list contains the original BraTS segments ('WholeTumor', 'NecroticCore', etc.) and no dummy segments were created to fake the result."
+    },
+    {
+      "id": "no_manual_erasing",
+      "description": "Verify the agent used the exact boolean subtraction tool rather than manual approximations.",
+      "visual_evidence": "The 'Logical operators' tool is used. The Eraser, Scissors, or Paint tools are NOT used to manually remove the necrotic core."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses synthetic data based on the BraTS 2021 dataset. The target segment 'WholeTumor' corresponds to the 'Whole Tumor (WT)' sub-region, and the modifier segment 'NecroticCore' corresponds to the 'Necrotic tumor core (NCR)' (label 1)."
+}

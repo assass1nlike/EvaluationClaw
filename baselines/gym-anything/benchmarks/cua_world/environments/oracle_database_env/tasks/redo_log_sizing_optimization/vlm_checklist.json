@@ -1,0 +1,53 @@
+{
+  "task_id": "redo_log_sizing_optimization@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Verify the agent connected to the Oracle Database as the System user or SYSDBA.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a database client (e.g., SQL*Plus, SQL Developer, terminal) with a successful connection message for user SYSTEM or AS SYSDBA."
+    },
+    {
+      "id": "add_new_redo_logs",
+      "description": "Verify the agent added new redo log groups with the target size of 512MB.",
+      "points": 30,
+      "visual_evidence": "Screenshots show the execution of 'ALTER DATABASE ADD LOGFILE...' commands specifying 'SIZE 512M' (or 536870912 bytes) followed by a 'Database altered' success message."
+    },
+    {
+      "id": "switch_log_files",
+      "description": "Verify the agent forced a log switch to make the new redo logs active and clear the old ones.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the execution of 'ALTER SYSTEM SWITCH LOGFILE' or 'ALTER SYSTEM CHECKPOINT' commands to ensure the original 50MB logs are no longer 'CURRENT' or 'ACTIVE'."
+    },
+    {
+      "id": "drop_old_redo_logs",
+      "description": "Verify the agent removed the original 50MB redo log groups.",
+      "points": 25,
+      "visual_evidence": "Screenshots show the execution of 'ALTER DATABASE DROP LOGFILE GROUP...' commands targeting the original groups, followed by a 'Database altered' success message."
+    },
+    {
+      "id": "verify_final_configuration",
+      "description": "Verify the final state shows exactly three redo log groups, all sized at 512MB.",
+      "points": 20,
+      "visual_evidence": "Screenshots show a query against 'v$log' (or similar dictionary view) returning exactly 3 rows, where the 'BYTES' column shows 536870912 (or size shows 512MB) for all groups, and no 50MB (52428800 bytes) groups remain."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_client",
+      "description": "Ensure the agent interacted with a real database client and not a text editor.",
+      "visual_evidence": "The interface should be a genuine terminal running SQL*Plus/SQLcl or a GUI like Oracle SQL Developer, not Notepad or a generic text editor."
+    },
+    {
+      "id": "actual_command_execution",
+      "description": "Ensure the agent actually executed the SQL commands.",
+      "visual_evidence": "Commands must be followed by system responses like 'Database altered.' or formatted query result tables, rather than just being typed into a prompt without execution."
+    },
+    {
+      "id": "no_mocked_outputs",
+      "description": "Ensure the agent did not fake the verification output.",
+      "visual_evidence": "The final verification query should look like genuine SQL output (e.g., standard SQL*Plus formatting) and not a manually typed or echoed string."
+    }
+  ],
+  "privileged_info_for_vlm": "The target configuration must have exactly 3 redo log groups (target_group_count = 3). The new redo log size must be exactly 512MB, which is 536870912 bytes (target_size_bytes). The original redo log size of 50MB, which is 52428800 bytes (undesired_size_bytes), must no longer exist in the database configuration."
+}

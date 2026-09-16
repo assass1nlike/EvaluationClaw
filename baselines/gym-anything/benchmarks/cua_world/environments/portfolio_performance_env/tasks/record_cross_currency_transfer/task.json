@@ -1,0 +1,32 @@
+{
+  "id": "record_cross_currency_transfer@1",
+  "version": "1.0",
+  "env_id": "portfolio_performance_env@0.1",
+  "description": "Record a cross-currency wire transfer in the open portfolio file from 'Sparkasse Giro' (EUR) to 'Interactive Brokers' (USD) dated October 15, 2024. The transfer must be recorded as a single linked Transfer event with 2,500.00 EUR sent and 2,725.00 USD received. Save the portfolio file when finished.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_cross_currency_transfer/setup_task.sh",
+    "post_task": "/workspace/tasks/record_cross_currency_transfer/export_result.sh"
+  },
+  "metadata": {
+    "portfolio_file": "/home/ga/Documents/PortfolioData/forex_portfolio.xml",
+    "source_account": "Sparkasse Giro",
+    "target_account": "Interactive Brokers",
+    "expected_date": "2024-10-15",
+    "source_amount": 250000,
+    "target_amount": 272500,
+    "source_currency": "EUR",
+    "target_currency": "USD"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_cross_currency_transfer"
+    }
+  }
+}

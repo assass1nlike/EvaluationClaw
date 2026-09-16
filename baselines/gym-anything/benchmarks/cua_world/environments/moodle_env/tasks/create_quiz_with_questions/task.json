@@ -1,0 +1,30 @@
+{
+  "id": "create_quiz_with_questions@1",
+  "version": "1.0",
+  "env_id": "moodle_env@0.1",
+  "description": "As an administrator (username: admin, password: Admin1234!), configure a quiz in the \"Introduction to Biology\" (BIO101) course at http://localhost/moodle. The quiz, named \"Midterm Exam: Cell Biology\", requires the description \"This exam covers topics from the cell biology unit including organelles, cell processes, and cellular structures.\", a 60-minute time limit, and 1 allowed attempt. The quiz must include two multiple-choice questions: \"Powerhouse of the Cell\" (Question: \"Which organelle is known as the powerhouse of the cell?\"; Choices: Nucleus, Mitochondria [100%], Ribosome, Golgi apparatus; Default mark: 1) and \"Basic Unit of Life\" (Question: \"What is the basic unit of life?\"; Choices: Atom, Molecule, Cell [100%], Organ; Default mark: 1).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_quiz_with_questions/setup_task.sh",
+    "post_task": "/workspace/tasks/create_quiz_with_questions/export_result.sh"
+  },
+  "metadata": {
+    "course_shortname": "BIO101",
+    "course_fullname": "Introduction to Biology",
+    "quiz_name": "Midterm Exam: Cell Biology",
+    "expected_question_count": 2,
+    "expected_time_limit": 3600,
+    "expected_attempts": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_quiz_with_questions"
+    }
+  }
+}

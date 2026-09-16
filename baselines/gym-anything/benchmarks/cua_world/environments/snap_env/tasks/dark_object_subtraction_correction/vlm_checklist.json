@@ -1,0 +1,53 @@
+{
+  "task_id": "dark_object_subtraction_correction@1",
+  "task_completion": [
+    {
+      "id": "open_source_image",
+      "description": "Open the original Landsat multispectral image in the GIS software.",
+      "points": 10,
+      "visual_evidence": "Look for SNAP (or similar GIS software) open with '/home/ga/snap_data/landsat_multispectral.tif' loaded and visible in the Product Explorer or layer manager."
+    },
+    {
+      "id": "create_red_corrected",
+      "description": "Create the 'Red_Corrected' band using dark object subtraction and clamping to zero.",
+      "points": 30,
+      "visual_evidence": "Look for a new band named 'Red_Corrected' in the product tree, or a Band Math dialog showing an expression that subtracts a constant from band_3 and prevents negative values (e.g., 'max(0, band_3 - constant)' or an if/then statement)."
+    },
+    {
+      "id": "create_green_corrected",
+      "description": "Create the 'Green_Corrected' band using dark object subtraction and clamping to zero.",
+      "points": 30,
+      "visual_evidence": "Look for a new band named 'Green_Corrected' in the product tree, or a Band Math dialog showing an expression that subtracts a constant from band_4 and prevents negative values (e.g., 'max(0, band_4 - constant)')."
+    },
+    {
+      "id": "save_dim_format",
+      "description": "Save the resulting product as a .dim file in the specified exports directory.",
+      "points": 15,
+      "visual_evidence": "Look for a 'Save Product' dialog targeting '/home/ga/snap_exports/landsat_dos_corrected.dim', or the Product Explorer showing the product name updated to 'landsat_dos_corrected'."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the corrected product as a GeoTIFF to the specified exports directory.",
+      "points": 15,
+      "visual_evidence": "Look for an Export dialog specifically selecting the GeoTIFF format targeting '/home/ga/snap_exports/landsat_dos_corrected.tif', or a file manager/terminal verifying the creation of this .tif file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the GIS software GUI to perform the operations.",
+      "visual_evidence": "Look for interactions with the SNAP GUI (e.g., Band Math dialogs, Export menus) rather than the agent exclusively using terminal commands like 'gpt' or Python scripts to generate the outputs."
+    },
+    {
+      "id": "genuine_software_used",
+      "description": "Verify the agent interacted with the actual image processing application.",
+      "visual_evidence": "Look for the SNAP application interface being actively used to process the imagery, ensuring the agent didn't just use a text editor to mock file contents."
+    },
+    {
+      "id": "authentic_export",
+      "description": "Verify the outputs were generated through genuine save/export processes.",
+      "visual_evidence": "Look for the software's native Save and Export progress bars or dialogs, ensuring the agent didn't just use 'touch' or rename existing files in the terminal to fake the output paths."
+    }
+  ],
+  "privileged_info_for_vlm": "The target image is /home/ga/snap_data/landsat_multispectral.tif. The task explicitly instructs using band_3 for Red and band_4 for Green (even though band_4 is technically NIR, the agent must follow the prompt's naming/band mapping). The expected outputs are /home/ga/snap_exports/landsat_dos_corrected.dim and /home/ga/snap_exports/landsat_dos_corrected.tif. The correction requires subtracting a constant and clamping to zero, typically achieved using a max(0, band - constant) function in Band Math."
+}

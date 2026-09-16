@@ -1,0 +1,53 @@
+{
+  "task_id": "transfer_region_accounts@1",
+  "task_completion": [
+    {
+      "id": "open_database",
+      "description": "Open the chinook.odb database in LibreOffice Base",
+      "points": 10,
+      "visual_evidence": "A LibreOffice Base window is open showing 'chinook.odb' in the title bar or recent files."
+    },
+    {
+      "id": "create_transferlog_table",
+      "description": "Create the TransferLog table with required columns",
+      "points": 20,
+      "visual_evidence": "The 'TransferLog' table is visible in the Tables pane, or a Table Design/SQL execution window shows the creation of 'TransferLog' with columns CustomerId, OldRepId, NewRepId, and TransferDate."
+    },
+    {
+      "id": "update_customer_table",
+      "description": "Update SupportRepId to 4 for USA and Canada customers previously assigned to 3",
+      "points": 30,
+      "visual_evidence": "An SQL execution window showing an UPDATE statement for the Customer table (changing SupportRepId to 4 where Country is USA/Canada and old RepId is 3) with a 'Command successfully executed' message, or a data view of the Customer table showing the updated SupportRepId for the 8 affected customers."
+    },
+    {
+      "id": "insert_transferlog_records",
+      "description": "Log the transfers in the TransferLog table",
+      "points": 30,
+      "visual_evidence": "An SQL execution window showing an INSERT statement into TransferLog with a success message, or a data view of the TransferLog table showing 8 rows with OldRepId=3, NewRepId=4, and the corresponding CustomerIds."
+    },
+    {
+      "id": "save_database",
+      "description": "Save the database changes",
+      "points": 10,
+      "visual_evidence": "The save icon in LibreOffice Base is clicked or greyed out (indicating no unsaved changes), or a 'File -> Save' action is visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_database_interaction",
+      "description": "Agent used LibreOffice Base to interact with the database",
+      "visual_evidence": "Screenshots show the LibreOffice Base GUI (either Table Design, Query Design, or Tools -> SQL window) being used, rather than just terminal sqlite3 commands."
+    },
+    {
+      "id": "genuine_execution",
+      "description": "Agent actually executed the SQL commands or GUI actions",
+      "visual_evidence": "SQL execution windows show 'Command successfully executed' or table data views reflect the actual modified data, rather than just typed but unexecuted text."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Agent did not simply type the expected answers into a text editor",
+      "visual_evidence": "The modifications and logs are visible within the database application's interface, not just written in a text file or notes app."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/chinook.odb. Jane Peacock is SupportRepId 3 and Margaret Park is SupportRepId 4. The target countries are USA and Canada. There are exactly 8 customers in USA/Canada assigned to Jane Peacock (IDs 3, 15, 18, 19, 24, 29, 30, 33). The agent must transfer ONLY these 8 customers to SupportRepId 4. Jane Peacock has 13 other customers in different countries that must NOT be transferred. The new table must be named 'TransferLog' with columns CustomerId, OldRepId, NewRepId, and TransferDate."
+}

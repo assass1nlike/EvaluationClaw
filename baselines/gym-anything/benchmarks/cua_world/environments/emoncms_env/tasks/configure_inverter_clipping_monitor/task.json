@@ -1,0 +1,53 @@
+{
+  "id": "configure_inverter_clipping_monitor@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "Configure an input processing chain for the 'solar_pv' input (node: 'home') to monitor inverter clipping at 3600W. The processing chain must log the raw generation to 'solar_raw_W', isolate and log the power exceeding 3600W to 'solar_excess_W', and convert that excess power into energy (kWh) logged to 'solar_lost_kwh'. All feeds should be created using the PHPFina engine with a 10s interval.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_inverter_clipping_monitor/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_inverter_clipping_monitor/export_result.sh"
+  },
+  "metadata": {
+    "input_name": "solar_pv",
+    "node_name": "home",
+    "clipping_limit": 3600,
+    "feeds": {
+      "raw": "solar_raw_W",
+      "excess": "solar_excess_W",
+      "energy": "solar_lost_kwh"
+    },
+    "process_logic": [
+      {
+        "type": "log_to_feed",
+        "target": "solar_raw_W"
+      },
+      {
+        "type": "add_offset",
+        "value": -3600
+      },
+      {
+        "type": "allow_positive"
+      },
+      {
+        "type": "log_to_feed",
+        "target": "solar_excess_W"
+      },
+      {
+        "type": "power_to_kwh",
+        "target": "solar_lost_kwh"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clipping_monitor"
+    }
+  }
+}

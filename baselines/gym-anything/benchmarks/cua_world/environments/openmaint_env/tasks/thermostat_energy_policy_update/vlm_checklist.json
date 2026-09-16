@@ -1,0 +1,53 @@
+{
+  "task_id": "thermostat_energy_policy_update@1",
+  "task_completion": [
+    {
+      "id": "read_policy_memo",
+      "description": "The agent opened and read the energy policy memo.",
+      "points": 10,
+      "visual_evidence": "A text editor, terminal, or file viewer displaying the contents of '/home/ga/Desktop/energy_policy_memo.txt'."
+    },
+    {
+      "id": "access_openmaint",
+      "description": "The agent logged into the OpenMaint application.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the OpenMaint dashboard or UI, indicating successful login with the admin account."
+    },
+    {
+      "id": "navigate_thermostat_assets",
+      "description": "The agent navigated to the thermostat asset records within OpenMaint.",
+      "points": 20,
+      "visual_evidence": "The OpenMaint UI displaying a list, table, or search interface specifically for thermostat assets."
+    },
+    {
+      "id": "update_smart_thermostats",
+      "description": "The agent updated the Notes field of Smart thermostats in the Headquarters building.",
+      "points": 30,
+      "visual_evidence": "The OpenMaint UI showing a thermostat record identified as 'Smart' and located in 'Headquarters' being edited, with 'Profile: Eco-2026' entered into the Notes field."
+    },
+    {
+      "id": "update_manual_thermostats",
+      "description": "The agent updated the Notes field of Manual or legacy digital thermostats in the Headquarters building.",
+      "points": 30,
+      "visual_evidence": "The OpenMaint UI showing a thermostat record identified as 'Manual' (or legacy digital) and located in 'Headquarters' being edited, with 'Action: Replace' entered into the Notes field."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the OpenMaint web GUI to update the records.",
+      "visual_evidence": "Browser windows showing the OpenMaint UI with form fields being filled and saved, rather than terminal commands executing database updates, curl commands, or API calls."
+    },
+    {
+      "id": "no_out_of_scope_modifications",
+      "description": "The agent did not modify assets outside the Headquarters building (e.g., Warehouse).",
+      "visual_evidence": "No screenshots show the agent editing or saving records for thermostats located in the 'Warehouse' building or any location other than 'Headquarters'."
+    },
+    {
+      "id": "genuine_application_used",
+      "description": "The agent interacted with the actual OpenMaint application.",
+      "visual_evidence": "The browser URL bar shows 'http://localhost:8090/cmdbuild/ui/' and the interface matches a genuine web application, not a mocked local HTML file or text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Target building: Headquarters. Contamination building: Warehouse. Smart thermostats must be updated with 'Profile: Eco-2026' in their Notes field. Manual/Legacy thermostats must be updated with 'Action: Replace' in their Notes field. These strings should be checked case-insensitively. Modifications to Warehouse assets are out-of-scope and incorrect."
+}

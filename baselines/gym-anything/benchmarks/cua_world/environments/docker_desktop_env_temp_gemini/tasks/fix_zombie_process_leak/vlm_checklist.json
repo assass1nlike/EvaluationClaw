@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_zombie_process_leak@1",
+  "task_completion": [
+    {
+      "id": "access_project_directory",
+      "description": "Navigate to the specified project directory.",
+      "points": 10,
+      "visual_evidence": "Terminal prompt or file explorer showing the current directory is '/home/ga/zombie-debug'."
+    },
+    {
+      "id": "open_docker_compose_file",
+      "description": "Open the docker-compose.yml file for editing.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) or terminal output showing the contents of 'docker-compose.yml'."
+    },
+    {
+      "id": "modify_docker_compose_init",
+      "description": "Modify docker-compose.yml to handle zombie processes (e.g., adding 'init: true').",
+      "points": 30,
+      "visual_evidence": "The 'docker-compose.yml' file is shown with 'init: true' added under the 'job-worker' service definition, or an equivalent init process wrapper (like tini) added to the command/entrypoint."
+    },
+    {
+      "id": "apply_docker_changes",
+      "description": "Restart or recreate the Docker container to apply the compose file changes.",
+      "points": 20,
+      "visual_evidence": "Terminal showing execution of commands like 'docker-compose up -d', 'docker-compose up --force-recreate', or 'docker-compose restart' in the project directory."
+    },
+    {
+      "id": "verify_service_running",
+      "description": "Ensure the job-worker service remains running after the changes.",
+      "points": 10,
+      "visual_evidence": "Terminal showing 'docker ps' or 'docker-compose ps' with the 'job-worker' container in an 'Up' state."
+    },
+    {
+      "id": "verify_zombie_count",
+      "description": "Verify that defunct/zombie processes are no longer accumulating.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a process list command (e.g., 'ps aux | grep defunct', 'top', or 'docker exec job-worker ps') with 2 or fewer '<defunct>' processes present."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "worker_py_unmodified",
+      "description": "Ensure the application code (worker.py) was not modified.",
+      "visual_evidence": "The file 'worker.py' is never shown being edited in a text editor, and no terminal commands (like sed or echo) are used to alter its contents."
+    },
+    {
+      "id": "genuine_docker_interaction",
+      "description": "Ensure the agent actually interacted with the Docker daemon.",
+      "visual_evidence": "The terminal shows genuine output from Docker commands (like container IDs, pull/recreate logs) rather than simulated or echoed text."
+    },
+    {
+      "id": "no_manual_kill_workaround",
+      "description": "Ensure the agent did not just manually kill the zombies as a temporary workaround.",
+      "visual_evidence": "The agent does not use 'kill -9' or similar commands on the defunct processes or their parent process in a loop to artificially lower the zombie count."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/zombie-debug'. The Docker Compose service and container are both named 'job-worker'. The task strictly forbids modifying 'worker.py'. The correct solution involves modifying 'docker-compose.yml' (typically by adding 'init: true' to the job-worker service). The success condition requires the zombie process count (<defunct>) to be 2 or fewer."
+}

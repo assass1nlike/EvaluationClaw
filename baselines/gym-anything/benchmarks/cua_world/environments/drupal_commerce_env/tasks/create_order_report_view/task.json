@@ -1,0 +1,42 @@
+{
+  "id": "create_order_report_view@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create an administrative report page for Commerce Orders using Drupal Views. The view must be named 'Order Report' and configured as a page with the title 'Order Report' at the path '/admin/commerce/order-report'. The display should be a table showing 25 items per page. Include fields for Order ID, Customer (User), State, Total Price, and Created date. Provide exposed filters for State and Created, and sort the results by Created date in descending order. Access must be restricted to the 'Administrator' role or the 'Access commerce administration pages' permission.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_order_report_view/setup_task.sh",
+    "post_task": "/workspace/tasks/create_order_report_view/export_result.sh"
+  },
+  "metadata": {
+    "expected_machine_name": "order_report",
+    "expected_path": "/admin/commerce/order-report",
+    "expected_base_table": "commerce_order_field_data",
+    "required_fields": [
+      "order_id",
+      "state",
+      "total_price",
+      "created"
+    ],
+    "required_filters": [
+      "state",
+      "created"
+    ],
+    "required_sort": {
+      "field": "created",
+      "order": "DESC"
+    },
+    "required_items_per_page": 25
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_order_report_view"
+    }
+  }
+}

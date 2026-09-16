@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_practitioner_accounts@1",
+  "task_completion": [
+    {
+      "id": "dr_lefebvre_inserted",
+      "description": "Verify Dr Marie LEFEBVRE was added to the database with correct details.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL INSERT statement or a SELECT query result in the terminal or database client showing the login 'mlefebvre', MD5 password 'c5d643931609c392c1396a037228ea5d', RPPS '10003456789', ADELI '693456789', and Specialty 'Cardiologie'."
+    },
+    {
+      "id": "mme_martin_inserted",
+      "description": "Verify Mme Sophie MARTIN was added to the database with correct details.",
+      "points": 20,
+      "visual_evidence": "Look for a SQL INSERT statement or a SELECT query result in the terminal or database client showing the login 'smartin', MD5 password 'cbd1ddf72f9680363bdba7920190d44c', RPPS '10009876543', ADELI '691234567', and Specialty 'Infirmi\u00e8re'."
+    },
+    {
+      "id": "report_table_schema",
+      "description": "Verify the report contains the practitioner table name and column structure.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of '/home/ga/practitioner_report.txt' (e.g., open in a text editor or displayed via 'cat' in the terminal). It must mention the practitioner table name and list its columns (e.g., output from a 'DESCRIBE' or 'SHOW COLUMNS' command)."
+    },
+    {
+      "id": "report_select_query",
+      "description": "Verify the report contains a SELECT query showing the new users.",
+      "points": 20,
+      "visual_evidence": "The report file '/home/ga/practitioner_report.txt' must contain a SQL SELECT query and its output explicitly displaying the two newly added accounts ('mlefebvre' and 'smartin')."
+    },
+    {
+      "id": "report_user_count",
+      "description": "Verify the report contains the total user count.",
+      "points": 20,
+      "visual_evidence": "The report file '/home/ga/practitioner_report.txt' must contain the total number of users in the practitioner table (e.g., the numerical result of a 'SELECT COUNT(*)' query)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_queried",
+      "description": "Check that the agent actually interacted with the MySQL database.",
+      "visual_evidence": "Look for evidence of the agent using the 'mysql' CLI tool or a database GUI to explore the DrTuxTest database, rather than just hallucinating the schema or writing a text file directly."
+    },
+    {
+      "id": "passwords_hashed",
+      "description": "Ensure the agent used MD5 hashes for passwords, not plain text.",
+      "visual_evidence": "Check the SQL INSERT commands or database records to confirm the passwords are stored as the MD5 hashes ('c5d643931609c392c1396a037228ea5d' and 'cbd1ddf72f9680363bdba7920190d44c'), not the plain text strings 'Cardio2024!' and 'Infirm2024!'."
+    },
+    {
+      "id": "authentic_report_creation",
+      "description": "Ensure the report contains genuine database output.",
+      "visual_evidence": "The schema, SELECT query results, and user count in the report should look like authentic MySQL output (e.g., ascii tables or standard query formatting), not manually typed generic placeholders."
+    }
+  ],
+  "privileged_info_for_vlm": "The MedinTux database is 'DrTuxTest'. The MD5 hash for 'Cardio2024!' is 'c5d643931609c392c1396a037228ea5d'. The MD5 hash for 'Infirm2024!' is 'cbd1ddf72f9680363bdba7920190d44c'. The agent must insert these MD5 hashes into the database, not the plain text passwords. The final report must be located at /home/ga/practitioner_report.txt."
+}

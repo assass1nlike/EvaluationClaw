@@ -1,0 +1,59 @@
+{
+  "task_id": "register_aftershock_scsendorigin@1",
+  "task_completion": [
+    {
+      "id": "input_parameters",
+      "description": "Agent prepares the command or script to register the aftershock with the correct parameters.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the agent typing a terminal command (e.g., scsendorigin) or an SQL insert statement containing the specific values: Latitude 37.29, Longitude 136.78, Depth 12.0, and Time '2024-01-01 16:18:47'."
+    },
+    {
+      "id": "register_origin",
+      "description": "Agent successfully executes the registration command to add the origin to the SeisComP system.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the successful execution of the command (e.g., message sent to scmaster, or a successful MySQL insert confirmation)."
+    },
+    {
+      "id": "retrieve_public_id",
+      "description": "Agent retrieves the newly generated public ID for the registered origin.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a MySQL query to the seiscomp database or log output being read to find the generated public ID (e.g., a string starting with 'Origin#') for the new event."
+    },
+    {
+      "id": "create_report",
+      "description": "Agent creates the required report file at the specified path.",
+      "points": 10,
+      "visual_evidence": "Use of a text editor (like nano or vim) or terminal commands (like echo or cat) writing to the file path '/home/ga/aftershock_report.txt'."
+    },
+    {
+      "id": "report_format_and_id",
+      "description": "The report file contains exactly 5 lines, with the first line being the public ID.",
+      "points": 15,
+      "visual_evidence": "The contents of '/home/ga/aftershock_report.txt' are visible, showing exactly 5 lines of text. Line 1 contains the public ID retrieved from the database."
+    },
+    {
+      "id": "report_parameters",
+      "description": "The report file contains the correct parameters on lines 2 through 5.",
+      "points": 15,
+      "visual_evidence": "The contents of the report file show Line 2: 37.29, Line 3: 136.78, Line 4: 12.0, Line 5: 2024-01-01 16:18:47 (or closely matching formats as stored in the DB)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_registration",
+      "description": "Verifies the agent actually interacted with SeisComP or its database to register the event.",
+      "visual_evidence": "Look for actual execution of SeisComP CLI tools (like scsendorigin) or MySQL commands, rather than the agent just creating the text file without registering the event."
+    },
+    {
+      "id": "genuine_public_id",
+      "description": "Verifies the public ID in the report is genuine and retrieved from the system.",
+      "visual_evidence": "The public ID written to the report file must match the ID seen in the database query or command output, proving it was not hallucinated or fabricated."
+    },
+    {
+      "id": "correct_file_path",
+      "description": "Verifies the report is saved exactly at the requested path.",
+      "visual_evidence": "The file path '/home/ga/aftershock_report.txt' must be explicitly visible in the editor or command line, not just printed to standard output or saved elsewhere."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires registering an aftershock with exactly these parameters: Latitude: 37.29, Longitude: 136.78, Depth: 12.0 km, Origin Time: 2024-01-01 16:18:47. The final output must be a file located exactly at '/home/ga/aftershock_report.txt' containing exactly 5 lines: 1) public ID, 2) latitude, 3) longitude, 4) depth, 5) origin time."
+}

@@ -1,0 +1,54 @@
+{
+  "task_id": "hl7_adt_message_generation@1",
+  "task_completion": [
+    {
+      "id": "database_extraction",
+      "description": "Extract patient records from the MedinTux 'DrTuxTest' MySQL database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a MySQL query (e.g., `SELECT * FROM ...`) or a script (e.g., Python, Bash) connecting to the 'DrTuxTest' database with user 'root'."
+    },
+    {
+      "id": "hl7_message_type_and_segments",
+      "description": "Generate HL7 v2.4 ADT^A04 messages with MSH, EVN, PID, and PV1 segments.",
+      "points": 20,
+      "visual_evidence": "The generated file content or script logic shows the creation of MSH, EVN, PID, and PV1 segments, and specifies the message type as ADT^A04."
+    },
+    {
+      "id": "patient_moreau_details",
+      "description": "Include patient MOREAU Claire with correct formatting.",
+      "points": 15,
+      "visual_evidence": "The HL7 output or script shows MOREAU^Claire (or similar HL7 formatting) along with her details like DOB (19870422) and Sex (F) in the PID segment."
+    },
+    {
+      "id": "patient_bernard_details",
+      "description": "Include patient BERNARD Philippe with correct formatting.",
+      "points": 15,
+      "visual_evidence": "The HL7 output or script shows BERNARD^Philippe along with his details like DOB (19551103) and Sex (M) in the PID segment."
+    },
+    {
+      "id": "patient_petit_details",
+      "description": "Include patient PETIT Isabelle with correct formatting.",
+      "points": 15,
+      "visual_evidence": "The HL7 output or script shows PETIT^Isabelle along with her details like DOB (20010815) and Sex (F) in the PID segment."
+    },
+    {
+      "id": "output_file_saved",
+      "description": "Save the output to ~/hl7_output/adt_messages.hl7.",
+      "points": 25,
+      "visual_evidence": "Terminal command (e.g., writing to `~/hl7_output/adt_messages.hl7`), script output path, or a file explorer showing the file saved at `/home/ga/hl7_output/adt_messages.hl7`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_extraction",
+      "description": "The agent must extract data from the database rather than hardcoding the patient names provided in the prompt.",
+      "visual_evidence": "Look for SQL queries or database connection code. The agent should not simply create a text file or script with hardcoded patient names."
+    },
+    {
+      "id": "programmatic_generation",
+      "description": "The agent should generate the HL7 messages programmatically or via a database export, rather than manually typing the HL7 segments.",
+      "visual_evidence": "Look for a script (e.g., Python, Bash) or a SQL query that formats the output, rather than a text editor where the agent manually typed the entire HL7 messages."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires generating HL7 v2.4 ADT^A04 messages. The encoding characters are ^~\\&. The sending application is MEDINTUX. The output must be saved to /home/ga/hl7_output/adt_messages.hl7. The database contains three patients with the following details: 1) MOREAU Claire (DOB: 19870422, Sex: F, City: Paris, NIR starts with 2870475). 2) BERNARD Philippe (DOB: 19551103, Sex: M, City: Lyon, NIR starts with 1551169). 3) PETIT Isabelle (DOB: 20010815, Sex: F, City: Marseille, NIR starts with 2010813). The generated HL7 messages should reflect these details in the PID segment."
+}

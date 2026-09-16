@@ -1,0 +1,53 @@
+{
+  "task_id": "team_name_moderation_trigger@1",
+  "task_completion": [
+    {
+      "id": "banned_keywords_table_created",
+      "description": "The banned_keywords table is created with a word column.",
+      "points": 10,
+      "visual_evidence": "A SQL client or terminal showing the creation of the `banned_keywords` table or its schema (e.g., via `DESCRIBE banned_keywords;`), explicitly including a `word` column."
+    },
+    {
+      "id": "banned_keywords_populated",
+      "description": "The banned_keywords table is populated with data from the provided CSV file.",
+      "points": 20,
+      "visual_evidence": "A SQL query result showing rows from the `banned_keywords` table, a successful `LOAD DATA INFILE` command, or a `SELECT COUNT(*)` query returning at least 300."
+    },
+    {
+      "id": "trigger_created",
+      "description": "The enforce_clean_team_names trigger is created on the team_informations table.",
+      "points": 20,
+      "visual_evidence": "A SQL client or terminal showing the successful execution of the `CREATE TRIGGER enforce_clean_team_names` command, or a `SHOW TRIGGERS` output listing it for the `team_informations` table."
+    },
+    {
+      "id": "trigger_logic_correct",
+      "description": "The trigger is configured to signal SQLSTATE '45000' with the message 'Profanity detected'.",
+      "points": 30,
+      "visual_evidence": "The SQL script or `SHOW CREATE TRIGGER` output visible in the screenshot contains the exact phrases `SIGNAL SQLSTATE '45000'` and `'Profanity detected'`."
+    },
+    {
+      "id": "trigger_functionality_verified",
+      "description": "The trigger is tested to ensure it blocks profanity or allows valid team names.",
+      "points": 20,
+      "visual_evidence": "A terminal or SQL client showing an `INSERT` command into `team_informations` either failing with the 'Profanity detected' error or succeeding with a clean team name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_client",
+      "description": "The agent used a genuine database client to execute the SQL commands.",
+      "visual_evidence": "Commands are executed in a real database interface like the `mysql` command-line client, DBeaver, or a script executed in the terminal, rather than just writing SQL in a text editor without running it."
+    },
+    {
+      "id": "no_faked_errors",
+      "description": "The 'Profanity detected' error appears as a genuine database error output.",
+      "visual_evidence": "The error message should be formatted as a standard MariaDB error (e.g., `ERROR 1644 (45000): Profanity detected`), not manually typed or printed as a simple string in a script."
+    },
+    {
+      "id": "real_csv_import",
+      "description": "The agent imported the actual banned_words.csv file.",
+      "visual_evidence": "Evidence of using the `/home/ga/banned_words.csv` file for import (e.g., via `LOAD DATA INFILE` or a Python script), rather than manually inserting a few fake words."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database objects: expected table is 'banned_keywords' (must contain at least 300 words from the CSV), expected trigger is 'enforce_clean_team_names', and target table is 'team_informations'."
+}

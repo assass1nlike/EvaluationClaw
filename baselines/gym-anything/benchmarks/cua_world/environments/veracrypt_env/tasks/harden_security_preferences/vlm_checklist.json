@@ -1,0 +1,59 @@
+{
+  "task_id": "harden_security_preferences@1",
+  "task_completion": [
+    {
+      "id": "open_veracrypt_preferences",
+      "description": "Open the VeraCrypt Preferences dialog",
+      "points": 10,
+      "visual_evidence": "The VeraCrypt 'Preferences' window is visible on the screen, typically accessed via Settings > Preferences."
+    },
+    {
+      "id": "disable_password_caching",
+      "description": "Disable password caching in driver memory",
+      "points": 15,
+      "visual_evidence": "In the VeraCrypt Preferences window, the checkbox for 'Cache passwords in driver memory' is unchecked."
+    },
+    {
+      "id": "configure_auto_dismount_timeout",
+      "description": "Enable auto-dismount on inactivity and set the timeout to exactly 15 minutes",
+      "points": 20,
+      "visual_evidence": "The checkbox for 'Auto-dismount volume after no data has been read/written to it for' is checked, and the text input box next to it contains the number '15'."
+    },
+    {
+      "id": "force_dismount_and_wipe_cache",
+      "description": "Force auto-dismount and wipe cache on auto-dismount",
+      "points": 15,
+      "visual_evidence": "The checkboxes for 'Force auto-dismount even if volume contains open files or directories' and 'Wipe cached passwords on auto-dismount' are both checked."
+    },
+    {
+      "id": "wipe_cache_on_exit",
+      "description": "Wipe cached passwords when VeraCrypt exits",
+      "points": 15,
+      "visual_evidence": "The checkbox for 'Wipe cached passwords on exit' is checked."
+    },
+    {
+      "id": "create_compliance_report",
+      "description": "Create a compliance report file listing the 6 policy requirements",
+      "points": 25,
+      "visual_evidence": "A text editor (e.g., gedit, nano) or terminal window shows the creation and saving of a file named 'security_compliance_report.txt' in the '~/Documents' directory. The file content must contain at least a few sentences and explicitly list or confirm the 6 configured policy requirements."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_veracrypt",
+      "description": "The agent used the VeraCrypt GUI to configure settings",
+      "visual_evidence": "Screenshots should show the agent interacting with the actual VeraCrypt graphical interface (Preferences dialog) rather than directly editing the Configuration.xml file in a text editor."
+    },
+    {
+      "id": "saved_preferences",
+      "description": "The agent saved the configured preferences",
+      "visual_evidence": "The agent must be seen clicking the 'OK' button in the Preferences dialog to save the changes, rather than just checking the boxes and closing the window or leaving it open indefinitely."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The compliance report was genuinely created and saved to the correct path",
+      "visual_evidence": "The text editor or terminal should clearly show the file being saved to '/home/ga/Documents/security_compliance_report.txt', not just typed out without saving or saved to a temporary/incorrect directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected VeraCrypt settings map to the following internal values: CachePasswords=0 (unchecked), DismountOnInactivity=1 (checked), MaxVolumeIdleTime=15, ForceAutoDismount=1 (checked), WipeCacheOnAutoDismount=1 (checked), WipeCacheOnClose=1 (checked). These are saved in ~/.config/VeraCrypt/Configuration.xml or ~/.VeraCrypt/Configuration.xml. The compliance report must be saved exactly at /home/ga/Documents/security_compliance_report.txt."
+}

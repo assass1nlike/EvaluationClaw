@@ -1,0 +1,53 @@
+{
+  "task_id": "add_keyfile_auth@1",
+  "task_completion": [
+    {
+      "id": "keyfile_generated",
+      "description": "Generate a new random keyfile named 'security_audit.key' in the Keyfiles directory.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager window or terminal output (e.g., 'ls /home/ga/Keyfiles/') showing the existence of 'security_audit.key'. Terminal history might show commands like 'dd', 'openssl rand', or the VeraCrypt keyfile generator being used."
+    },
+    {
+      "id": "volume_auth_modified",
+      "description": "Modify the volume's authentication to require the new keyfile in addition to the existing password.",
+      "points": 30,
+      "visual_evidence": "Look for VeraCrypt 'Volume Password Change' dialogs, success messages indicating the volume header was updated, or terminal commands (e.g., 'veracrypt --change /home/ga/Volumes/data_volume.hc') showing the keyfile being added."
+    },
+    {
+      "id": "volume_mounted",
+      "description": "Mount the volume at the specified slot using the new credentials and leave it mounted.",
+      "points": 25,
+      "visual_evidence": "Look for the VeraCrypt GUI main window showing '/home/ga/Volumes/data_volume.hc' mounted at '/home/ga/MountPoints/slot1', or terminal output from commands like 'df -h', 'mount', or 'lsblk' confirming the active mount."
+    },
+    {
+      "id": "listing_file_created",
+      "description": "Create a text file to save the list of the volume's contents.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor or terminal showing the creation or existence of '/home/ga/Documents/volume_contents.txt'."
+    },
+    {
+      "id": "correct_files_listed",
+      "description": "Verify the listing file contains the names of the 3 sensitive documents.",
+      "points": 20,
+      "visual_evidence": "Look at the contents of 'volume_contents.txt' (via text editor or terminal 'cat' output) and verify it contains exactly: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_keyfile_generation",
+      "description": "Verify the keyfile was generated with random data, not just created as an empty file.",
+      "visual_evidence": "Check terminal history for random generation commands (e.g., 'dd if=/dev/urandom', 'openssl rand') or the use of VeraCrypt's built-in Keyfile Generator. An empty file ('touch') is a shortcut."
+    },
+    {
+      "id": "genuine_mount_interaction",
+      "description": "Ensure the volume was genuinely mounted and the agent didn't just create a fake directory.",
+      "visual_evidence": "Look for evidence of VeraCrypt actually running and mounting the volume (GUI active, or 'veracrypt' CLI commands executed). The files should be read from the mounted volume, not manually created."
+    },
+    {
+      "id": "dynamic_content_listing",
+      "description": "Verify the agent actually read the contents of the mounted volume to create the list.",
+      "visual_evidence": "Look for commands like 'ls /home/ga/MountPoints/slot1 > /home/ga/Documents/volume_contents.txt' or the agent opening the mount point in a file manager. The agent should not just echo hardcoded filenames into the text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The volume is located at '/home/ga/Volumes/data_volume.hc'. The new keyfile must be at '/home/ga/Keyfiles/security_audit.key'. The mount point must be '/home/ga/MountPoints/slot1'. The output listing file must be '/home/ga/Documents/volume_contents.txt' and must contain exactly these three files: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'."
+}

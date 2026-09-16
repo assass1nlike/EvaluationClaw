@@ -1,0 +1,53 @@
+{
+  "task_id": "post_insurance_eob@1",
+  "task_completion": [
+    {
+      "id": "patient_record_accessed",
+      "description": "Verify the agent accessed the correct patient record.",
+      "points": 10,
+      "visual_evidence": "The NOSH ChartingSystem is open and the active patient chart belongs to Oliver Queen (DOB: 1985-05-15)."
+    },
+    {
+      "id": "billing_section_accessed",
+      "description": "Verify the agent navigated to the billing or ledger section to locate the outstanding balance.",
+      "points": 10,
+      "visual_evidence": "The billing, ledger, or payments screen is visible, showing an outstanding charge (likely $250.00) associated with the service date 2025-03-01."
+    },
+    {
+      "id": "payment_details_entered",
+      "description": "Verify the agent entered the correct insurance payment details.",
+      "points": 30,
+      "visual_evidence": "A payment entry form or modal is visible with the following details filled in: Payer as 'Star City Health', Check/Ref Number as '556677', and Amount as '180' or '$180.00'."
+    },
+    {
+      "id": "payment_applied_to_encounter",
+      "description": "Verify the agent applied the payment to the specific encounter.",
+      "points": 30,
+      "visual_evidence": "The $180.00 payment is shown being explicitly allocated or linked to the specific charge/encounter from 2025-03-01 (e.g., via a checkbox, dropdown, or allocation input field next to the charge)."
+    },
+    {
+      "id": "payment_saved_successfully",
+      "description": "Verify the payment transaction was saved and the balance was updated.",
+      "points": 20,
+      "visual_evidence": "A confirmation message indicating the payment was saved, or the patient's ledger/billing screen reflects the $180.00 payment with the outstanding balance for the 2025-03-01 encounter appropriately reduced (e.g., from $250.00 to $70.00)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the graphical user interface to complete the task.",
+      "visual_evidence": "The agent interacted with the NOSH web interface in a browser. There should be no terminal windows showing direct SQL database inserts or cURL commands to API endpoints."
+    },
+    {
+      "id": "actual_application_used",
+      "description": "Verify the agent interacted with the real NOSH ChartingSystem.",
+      "visual_evidence": "The browser address bar should show a valid local or remote URL for the NOSH application, not a local file path to a static HTML mockup."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Verify the agent did not use browser developer tools to fake the outcome.",
+      "visual_evidence": "The browser's Developer Tools (Inspect Element, Console) should not be open and used to manually alter the displayed text or balances."
+    }
+  ],
+  "privileged_info_for_vlm": "Patient: Oliver Queen (DOB: 1985-05-15). Service Date: 2025-03-01. Original Charge Amount: $250.00 (CPT 99214). Payer: Star City Health. Check/Ref Number: 556677. Payment Amount: $180.00. The final balance for this specific charge should be reduced by $180.00 (e.g., to $70.00) after the payment is successfully applied."
+}

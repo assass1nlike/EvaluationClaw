@@ -1,0 +1,53 @@
+{
+  "task_id": "gpt_batch_netcdf_conversion@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "Verify the bash script was created at ~/batch_convert.sh with the correct batch-processing logic.",
+      "points": 20,
+      "visual_evidence": "Terminal output of `cat ~/batch_convert.sh` or a text editor showing a loop over `sentinel2*.tif`, calling the `gpt` command, and specifying the `NetCDF4-CF` format."
+    },
+    {
+      "id": "script_executable",
+      "description": "Verify the bash script was made executable.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a `chmod +x ~/batch_convert.sh` command, or `ls -l ~/batch_convert.sh` displaying execute permissions (e.g., `-rwxr-xr-x`)."
+    },
+    {
+      "id": "output_dir_exists",
+      "description": "Verify the target export directory was created.",
+      "points": 10,
+      "visual_evidence": "Terminal showing `mkdir -p ~/snap_exports/netcdf_batch` or the directory being listed in an `ls` command."
+    },
+    {
+      "id": "script_executed",
+      "description": "Verify the bash script was executed to perform the batch conversion.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the command `./batch_convert.sh` or `bash ~/batch_convert.sh` being run, followed by SNAP gpt processing logs."
+    },
+    {
+      "id": "outputs_generated",
+      "description": "Verify the NetCDF4-CF output files were successfully generated in the target directory.",
+      "points": 40,
+      "visual_evidence": "Terminal showing `ls ~/snap_exports/netcdf_batch/` listing exactly 5 `.nc` files, confirming all files matching the glob pattern were processed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gpt_usage",
+      "description": "Verify that ESA SNAP's gpt tool was actually used to convert the files.",
+      "visual_evidence": "Look for SNAP gpt execution logs (e.g., 'INFO: org.esa.snap...', 'done.') in the terminal. The agent must not use `touch` or `cp` to create fake .nc files."
+    },
+    {
+      "id": "script_driven_execution",
+      "description": "Verify the batch conversion was driven by the bash script.",
+      "visual_evidence": "The terminal should show the script being executed, which then triggers the multiple gpt commands. The agent must not manually run the gpt command 5 separate times in the terminal."
+    },
+    {
+      "id": "dynamic_glob_matching",
+      "description": "Verify the script uses a glob pattern to find files rather than hardcoding filenames.",
+      "visual_evidence": "The script contents should show a loop like `for file in ~/snap_data/sentinel2*.tif`. It should not hardcode the names of 4 or 5 specific files."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct script path is `/home/ga/batch_convert.sh`. The target export directory is `/home/ga/snap_exports/netcdf_batch/`. The required output format is `NetCDF4-CF`. Crucially, there are exactly 5 input files matching the `sentinel2*.tif` pattern in the data directory (`sentinel2a_sample.tif` and `sentinel2_batch_01.tif` through `04`). The VLM should look for exactly 5 `.nc` output files generated in the target directory, proving the glob pattern was used correctly and processed all matching files."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "export_event_bulletin_scbulletin@1",
+  "version": "1.0",
+  "env_id": "seiscomp_env@0.1",
+  "description": "The observatory director has requested a formatted seismicity bulletin from the local SeisComP database for submission to the International Seismological Centre (ISC). Generate a bulletin for the full year 2024 (2024-01-01T00:00:00 to 2024-12-31T23:59:59) including all available phase arrivals and magnitudes, ensuring the Noto Peninsula earthquake details (origin time, coordinates, depth, and magnitude) are captured. Use the scbulletin tool (/home/ga/seiscomp/bin/scbulletin) with the database connection mysql://sysop:sysop@localhost/seiscomp and export the output to /home/ga/Desktop/noto_bulletin.txt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 55,
+    "reward_type": "partial"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_event_bulletin_scbulletin/setup_task.sh",
+    "post_task": "/workspace/tasks/export_event_bulletin_scbulletin/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Desktop/noto_bulletin.txt",
+    "tool": "scbulletin",
+    "time_window": "2024-01-01T00:00:00 to 2024-12-31T23:59:59",
+    "occupation": "Geoscientists (SOC 19-2042.00)",
+    "task_type": "data_export_cli"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_event_bulletin_scbulletin"
+    }
+  }
+}

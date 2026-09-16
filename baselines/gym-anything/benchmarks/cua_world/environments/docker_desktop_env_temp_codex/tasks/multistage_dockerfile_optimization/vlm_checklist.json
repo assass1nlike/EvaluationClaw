@@ -1,0 +1,53 @@
+{
+  "task_id": "multistage_dockerfile_optimization@1",
+  "task_completion": [
+    {
+      "id": "edit_dockerfile_multistage",
+      "description": "Modify the Dockerfile to use a multi-stage build.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output (e.g., cat) showing the contents of /home/ga/todo-app/Dockerfile with at least two 'FROM' statements and a 'COPY --from=' instruction."
+    },
+    {
+      "id": "build_optimized_image",
+      "description": "Build the new Docker image and tag it as 'todo-app:optimized'.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing a 'docker build' command executing and successfully completing with the tag 'todo-app:optimized'."
+    },
+    {
+      "id": "verify_image_size",
+      "description": "Verify the optimized image size is significantly reduced (under 250 MB).",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'docker images' or 'docker image ls' showing 'todo-app:optimized' with a listed size of less than 250MB."
+    },
+    {
+      "id": "run_optimized_container",
+      "description": "Run a container using the optimized image on port 3000.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing a 'docker run' command starting 'todo-app:optimized' with port mapping for port 3000 (e.g., -p 3000:3000)."
+    },
+    {
+      "id": "verify_app_serving",
+      "description": "Verify the application is fully functional and serving on port 3000.",
+      "points": 20,
+      "visual_evidence": "A web browser showing the Todo app loaded at localhost:3000, or terminal output from 'curl localhost:3000' showing the HTML response of the application."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_build",
+      "description": "Ensure the agent actually built the image rather than just renaming the original.",
+      "visual_evidence": "The terminal should show the step-by-step layer execution of the 'docker build' command, not just a 'docker tag' command."
+    },
+    {
+      "id": "genuine_multistage_logic",
+      "description": "Ensure the Dockerfile genuinely uses multi-stage logic to reduce size.",
+      "visual_evidence": "The Dockerfile should show artifacts being copied from the builder stage to a minimal runtime base image (e.g., alpine or slim), rather than just appending a second FROM statement without copying."
+    },
+    {
+      "id": "real_app_verification",
+      "description": "Ensure the app verification is hitting the live container.",
+      "visual_evidence": "The curl or browser request to localhost:3000 should happen after the 'docker run' command for the optimized image has been executed."
+    }
+  ],
+  "privileged_info_for_vlm": "The application directory is /home/ga/todo-app. The original image is tagged 'todo-app:original'. The optimized image must be built with a multi-stage Dockerfile, tagged 'todo-app:optimized', and its final size must be under 250 MB. The application must be successfully served and accessible on port 3000."
+}

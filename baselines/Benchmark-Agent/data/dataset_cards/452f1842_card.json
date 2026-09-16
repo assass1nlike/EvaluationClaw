@@ -1,0 +1,81 @@
+{
+  "dataset_id": "452f1842",
+  "name": "Fire-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates fire detection in images. Given an image and a text prompt, the model must output bounding boxes around fire regions. It measures visual object detection capabilities for safety-critical scenarios.",
+  "card_text": "Fire-Detection is a multimodal dataset of 200 image samples annotated with fire bounding boxes. Each item contains an input image path, a short user- or model-specific prompt, and an output annotation list. The output list holds one or more fire instances, where each instance is a dictionary mapping the class label 'fire' to coordinates [x, y, width, height]. Images cover real-world scenes and vary in complexity, with some samples containing single fire regions and others multiple. The text prompt serves as a detection instruction, though many entries use a generic placeholder. The dataset is designed for assessing fire localization and detection, assuming that fire is the only target class and that the model can handle varying numbers of instances.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "fire safety",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short user- or model-specific prompt that instructs the system to detect fire in the accompanying image. It serves as the textual task specification for the visual detection task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "The input image path referencing a real-world scene that may contain one or more fire regions. It is the visual context the model must analyze to produce bounding box annotations.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A list of fire instance annotations. Each element is a dictionary with the class label 'fire' as key and a bounding box [x, y, width, height] as value. These boxes localize fire regions in the input image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three semantic components: a text prompt (input.prompt) that gives the detection instruction, an image reference (input.image_file) that provides the visual scene, and a list of fire bounding boxes (output.bbox) that gives the target spatial annotations. The prompt is a short instruction, the image is the visual context, and each bounding box entry is an object with the class name 'fire' as key and a four-number coordinate array as value. The components relate as an instruction-image-to-annotation triple for object detection."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/fire-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "fire-detection",
+      "type": "comprehension",
+      "skill": "Safety Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

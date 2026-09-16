@@ -1,0 +1,53 @@
+{
+  "task_id": "renal_cyst_bosniak@1",
+  "task_completion": [
+    {
+      "id": "cyst_located",
+      "description": "Locate the renal cyst in the right kidney on the abdominal CT.",
+      "points": 15,
+      "visual_evidence": "Medical imaging software (e.g., 3D Slicer) is open, displaying an abdominal CT scan with the right kidney in view, and initial markups or crosshairs are placed on a cyst."
+    },
+    {
+      "id": "diameter_measured",
+      "description": "Measure the maximum diameter of the cyst.",
+      "points": 20,
+      "visual_evidence": "A ruler or length measurement markup is visible across the cyst in the imaging software, displaying the diameter in millimeters."
+    },
+    {
+      "id": "hu_measured",
+      "description": "Measure the internal HU density of the cyst and the reference parenchyma HU.",
+      "points": 25,
+      "visual_evidence": "Region of Interest (ROI) or probe tools are placed both inside the cyst and on the surrounding normal kidney tissue, displaying Hounsfield Unit (HU) statistics (mean/range)."
+    },
+    {
+      "id": "files_saved",
+      "description": "Save the measurement markups and the structural Bosniak report JSON files.",
+      "points": 10,
+      "visual_evidence": "A terminal, file explorer, or text editor shows that `cyst_measurements.mrk.json` and `bosniak_report.json` have been created in `~/Documents/SlicerData/AMOS/`. The report contains the required fields (cyst_location, max_diameter_mm, internal_hu_mean, internal_hu_range, reference_parenchyma_hu, wall_thickness_mm, septations, calcification, soft_tissue_nodule)."
+    },
+    {
+      "id": "bosniak_classification",
+      "description": "Assign a Bosniak category and provide a clinical recommendation based on the findings.",
+      "points": 30,
+      "visual_evidence": "The `bosniak_report.json` file is visible and explicitly contains a valid `bosniak_category` (I, II, IIF, III, or IV) and a populated `recommendation` field."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used medical imaging software to view and measure the CT scan.",
+      "visual_evidence": "Screenshots must show the GUI of a medical imaging application (like 3D Slicer) with the CT scan loaded and interacted with, rather than the agent solely using terminal commands or scripts to guess values."
+    },
+    {
+      "id": "authentic_measurements",
+      "description": "Verify the measurements in the JSON report match the visual markups.",
+      "visual_evidence": "The diameter and HU values written in the `bosniak_report.json` should logically correspond to the values visible on the measurement markups in the imaging software screenshots."
+    },
+    {
+      "id": "no_hallucinated_files",
+      "description": "Verify the agent did not bypass the task by creating the JSON files without examining the image.",
+      "visual_evidence": "There should be a clear visual progression from opening the CT scan, actively placing markups, to finally generating the JSON files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the AMOS 2022 (Abdominal Multi-Organ Segmentation) dataset. The valid Bosniak categories for the classification are: I, II, IIF, III, and IV."
+}

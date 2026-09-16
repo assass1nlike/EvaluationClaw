@@ -1,0 +1,53 @@
+{
+  "task_id": "workload_burstiness_index@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Create and save a dashboard named 'Workload Burstiness Index'.",
+      "points": 10,
+      "visual_evidence": "The Graphite dashboard UI should be visible with the title 'Workload Burstiness Index' displayed at the top."
+    },
+    {
+      "id": "compute_thrashing_graph",
+      "description": "Create the 'Compute Thrashing' graph with the required raw metric and alias.",
+      "points": 15,
+      "visual_evidence": "A graph panel titled 'Compute Thrashing' is visible. Its legend must display the raw metric 'servers.ec2_instance_1.cpu.utilization' and the alias 'CPU Volatility'."
+    },
+    {
+      "id": "database_thrashing_graph",
+      "description": "Create the 'Database Thrashing' graph with the required raw metric and alias.",
+      "points": 15,
+      "visual_evidence": "A graph panel titled 'Database Thrashing' is visible. Its legend must display the raw metric 'servers.rds_database.cpu.utilization' and the alias 'DB Volatility'."
+    },
+    {
+      "id": "network_burstiness_graph",
+      "description": "Create the 'Network Burstiness' graph with the required raw metric and alias.",
+      "points": 15,
+      "visual_evidence": "A graph panel titled 'Network Burstiness' is visible. Its legend must display the raw metric 'servers.ec2_instance_1.network.bytes_in' and the alias 'Network Volatility'."
+    },
+    {
+      "id": "functions_applied",
+      "description": "Apply derivative, absolute, and movingAverage (window 10) functions to the volatility metrics.",
+      "points": 45,
+      "visual_evidence": "In the metric composer or graph edit dialog (visible in trajectory screenshots), the metric definition must show the nested functions 'absolute(derivative(...))' and 'movingAverage(..., 10)' applied to the respective raw metrics."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "The agent used the Graphite web interface to construct the dashboard.",
+      "visual_evidence": "Screenshots should show interaction with the Graphite web UI (browser window, clicking through metric trees, using the composer), rather than just writing a JSON file in a terminal or text editor."
+    },
+    {
+      "id": "genuine_data_plotted",
+      "description": "The graphs display actual plotted time-series data.",
+      "visual_evidence": "The graph panels should show actual lines/curves representing the data, confirming the metrics are successfully querying the backend, not just empty graphs or mock images."
+    },
+    {
+      "id": "no_direct_json_copy_paste",
+      "description": "The agent did not simply copy-paste a pre-made JSON dashboard definition.",
+      "visual_evidence": "Trajectory screenshots should show the step-by-step construction of the graphs, adding metrics, and applying functions in the UI."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Workload Burstiness Index'. It must contain exactly three graphs: 1) 'Compute Thrashing' plotting 'servers.ec2_instance_1.cpu.utilization' and an alias 'CPU Volatility'. 2) 'Database Thrashing' plotting 'servers.rds_database.cpu.utilization' and an alias 'DB Volatility'. 3) 'Network Burstiness' plotting 'servers.ec2_instance_1.network.bytes_in' and an alias 'Network Volatility'. Each volatility metric must be constructed using the nested functions 'absolute(derivative(metric))' smoothed by a 'movingAverage' with a window of exactly 10."
+}

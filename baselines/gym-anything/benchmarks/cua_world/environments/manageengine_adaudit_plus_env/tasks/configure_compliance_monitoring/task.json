@@ -1,0 +1,40 @@
+{
+  "id": "configure_compliance_monitoring@1",
+  "version": "1.0",
+  "env_id": "manageengine_adaudit_plus_env@0.1",
+  "description": "ADAudit Plus is running at http://localhost:8081/ (login: admin/Admin@2024). Configure ADAudit Plus to support your organization's compliance program by implementing the following requirements. Configure the SMTP mail server using server smtp.internal.corp, port 465, SSL security, from address adaudit-noreply@internal.corp, and admin email itadmin@internal.corp. Create a compliance auditor technician account with username gdpr_auditor, full name GDPR Compliance Auditor, email gdpr.audit@internal.corp, password GDPR@2025!, and the Auditor role. Schedule a daily PDF report named 'User Account Changes - Daily' sent to it-team@internal.corp and a weekly PDF report named 'Privileged Access Weekly' sent to security@internal.corp every Wednesday. Configure Event Collection Status alerts to be sent to noc@internal.corp every 4 hours.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 540,
+    "max_steps": 55,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_compliance_monitoring\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_compliance_monitoring\\export_result.ps1",
+    "pre_task_timeout": 900
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_compliance_monitoring"
+    }
+  },
+  "metadata": {
+    "smtp_server": "smtp.internal.corp",
+    "smtp_port": "465",
+    "smtp_security": "SSL",
+    "smtp_from": "adaudit-noreply@internal.corp",
+    "smtp_admin": "itadmin@internal.corp",
+    "tech_username": "gdpr_auditor",
+    "tech_role": "Auditor",
+    "tech_email": "gdpr.audit@internal.corp",
+    "report1_name": "User Account Changes - Daily",
+    "report1_frequency": "Daily",
+    "report2_name": "Privileged Access Weekly",
+    "report2_frequency": "Weekly",
+    "notification_email": "noc@internal.corp",
+    "notification_frequency": "4 Hours",
+    "result_file": "C:\\Users\\Docker\\configure_compliance_monitoring_result.json"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "nuclei_motility_trackmate@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Perform automated particle tracking on the 5D microscopy hyperstack `~/Fiji_Data/raw/tracking/mitosis.tif` using the TrackMate plugin to track dividing nuclei/chromosomes. Use a Max Intensity Z-Projection of the chromosome channel for tracking. Configure the tracking pipeline using a LoG or DoG detector with an estimated blob diameter of ~8.0 microns and a threshold between 2.0-5.0. Use a Simple LAP tracker with a linking max distance of 10.0 microns, a gap-closing max distance of 10.0 microns, and a max frame gap of 2. Export the track statistics to `~/Fiji_Data/results/tracking/track_statistics.csv` and save a visual overlay of the tracks to `~/Fiji_Data/results/tracking/tracks_visual.png`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nuclei_motility_trackmate/setup_task.sh",
+    "post_task": "/workspace/tasks/nuclei_motility_trackmate/export_result.sh"
+  },
+  "metadata": {
+    "data_source": "ImageJ Sample (mitosis.tif)",
+    "expected_csv": "~/Fiji_Data/results/tracking/track_statistics.csv",
+    "expected_visual": "~/Fiji_Data/results/tracking/tracks_visual.png",
+    "min_tracks": 5,
+    "min_speed": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nuclei_motility"
+    }
+  },
+  "tags": [
+    "tracking",
+    "microscopy",
+    "fiji",
+    "trackmate",
+    "time-lapse",
+    "5d-image"
+  ]
+}

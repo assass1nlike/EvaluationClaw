@@ -1,0 +1,53 @@
+{
+  "task_id": "legacy_pos_rescue@1",
+  "task_completion": [
+    {
+      "id": "load_transaction_data",
+      "description": "Load the original customer transaction data.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the original CSV file opened in a spreadsheet application (like LibreOffice Calc) or a script (e.g., Python/pandas) being written to read the CSV file."
+    },
+    {
+      "id": "standardize_formats",
+      "description": "Standardize date and currency formats.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing formulas, spreadsheet operations, or code used to convert mixed date formats into a single format and strip currency symbols ('$', 'USD') to make amounts numeric."
+    },
+    {
+      "id": "deduplicate_customers",
+      "description": "Deduplicate customer records by standardizing names.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing operations (like text functions, find/replace, or script logic) to normalize customer names and handle variations (e.g., converting to title case, removing initials) to consolidate them."
+    },
+    {
+      "id": "calculate_clv_and_vips",
+      "description": "Calculate customer lifetime value and identify VIPs (top 20%).",
+      "points": 30,
+      "visual_evidence": "Screenshots showing aggregation of spending per customer (e.g., pivot tables, SUMIF, or groupby in code), calculating the 80th percentile threshold, and assigning a VIP status to the top 20%."
+    },
+    {
+      "id": "save_processed_dataset",
+      "description": "Save the cleaned dataset to the specified location.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the final dataset with columns like CustomerID, CleanedName, TransactionDate, CleanAmount, VIP_Status, PaymentMethod being saved to '/home/ga/Documents/cleaned_transactions.csv' (or 'cleaned_customer_data.csv')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_processing",
+      "description": "The agent actually processed the data using appropriate tools.",
+      "visual_evidence": "The agent used a spreadsheet application (e.g., LibreOffice Calc) or wrote a script (e.g., Python) to process the data. It should not just be a manually typed text file with a few hallucinated rows."
+    },
+    {
+      "id": "full_dataset_processed",
+      "description": "The agent processed the entire dataset.",
+      "visual_evidence": "The resulting file or processing steps should indicate that all 134 rows were processed, rather than a truncated dataset."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not hardcode the VIP threshold or results without calculating them.",
+      "visual_evidence": "The agent's script or spreadsheet should show the actual calculation of the 80th percentile or top 20% threshold, rather than hardcoding the value $359.94 directly without prior computation."
+    }
+  ],
+  "privileged_info_for_vlm": "The original dataset contains 134 transactions. After deduplication (handling exact matches and name variations like 'John Smith', 'J. Smith', 'SMITH JOHN'), there are 85 unique customers. Date formats include MM/DD/YYYY, DD-MM-YY, and YYYY-MM-DD. Currency formats include '$X.XX', 'X.XX USD', and numeric. Total revenue is $20,370.56. The VIP threshold (top 20% by spending, 80th percentile) is $359.94, which identifies exactly 17 customers as VIP. The final output should contain columns: CustomerID, CleanedName, TransactionDate, CleanAmount, VIP_Status, PaymentMethod. The task description asks to save to 'cleaned_transactions.csv', though 'cleaned_customer_data.csv' may also be accepted based on internal scripts."
+}

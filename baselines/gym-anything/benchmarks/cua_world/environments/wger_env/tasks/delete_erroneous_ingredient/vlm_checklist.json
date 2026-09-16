@@ -1,0 +1,53 @@
+{
+  "task_id": "delete_erroneous_ingredient@1",
+  "task_completion": [
+    {
+      "id": "login_wger",
+      "description": "Agent logged into the wger application.",
+      "points": 10,
+      "visual_evidence": "The wger dashboard is visible in a web browser, indicating a successful login as the admin user."
+    },
+    {
+      "id": "navigate_to_ingredients",
+      "description": "Agent navigated to the ingredients section.",
+      "points": 10,
+      "visual_evidence": "The 'Ingredients' or 'Nutrition' page is open in the wger application, showing a list or search interface for ingredients."
+    },
+    {
+      "id": "search_target_ingredient",
+      "description": "Agent searched for the target ingredient 'Gold Standard 100% Whey'.",
+      "points": 20,
+      "visual_evidence": "The search bar contains 'Gold Standard 100% Whey' and the search results display the duplicate entries for this ingredient."
+    },
+    {
+      "id": "delete_incorrect_ingredient",
+      "description": "Agent deleted the entry with the incorrect protein value (7.95).",
+      "points": 30,
+      "visual_evidence": "A delete confirmation dialog or action is visible specifically for the ingredient entry that has the incorrect protein value of 7.95, or a success message is visible immediately after deleting it."
+    },
+    {
+      "id": "verify_correct_ingredient_remains",
+      "description": "Only the correct entry for 'Gold Standard 100% Whey' remains in the system.",
+      "points": 30,
+      "visual_evidence": "The ingredients list shows exactly one entry for 'Gold Standard 100% Whey'. If the nutritional details are visible, the protein value is shown as 79.5."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the web browser GUI to complete the task.",
+      "visual_evidence": "Interactions occur within a web browser window (e.g., clicking buttons, navigating menus) rather than using terminal commands like curl or python scripts to send HTTP requests."
+    },
+    {
+      "id": "actual_application",
+      "description": "Agent interacted with the actual wger application.",
+      "visual_evidence": "The browser address bar shows 'localhost' or '127.0.0.1' and the genuine wger interface is clearly visible, not a text editor or mock interface."
+    },
+    {
+      "id": "no_database_manipulation",
+      "description": "Agent did not use direct database manipulation to delete the ingredient.",
+      "visual_evidence": "No SQL clients, sqlite3 terminal sessions, or database management tools are used to execute direct DELETE statements."
+    }
+  ],
+  "privileged_info_for_vlm": "Target ingredient: 'Gold Standard 100% Whey'. The correct entry has a protein value of 79.5. The incorrect entry (typo) has a protein value of 7.95. The task requires deleting the entry with 7.95 protein and keeping the one with 79.5."
+}

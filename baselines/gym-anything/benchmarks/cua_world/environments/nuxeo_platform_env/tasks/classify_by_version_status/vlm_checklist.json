@@ -1,0 +1,53 @@
+{
+  "task_id": "classify_by_version_status@1",
+  "task_completion": [
+    {
+      "id": "product_specs_in_drafts",
+      "description": "Verify that 'Product-Specs' has been moved to the 'Drafts' subfolder.",
+      "points": 20,
+      "visual_evidence": "In the Nuxeo web interface, the document 'Product-Specs' should be visible inside the 'Drafts' folder."
+    },
+    {
+      "id": "internal_memo_in_drafts",
+      "description": "Verify that 'Internal-Memo' has been moved to the 'Drafts' subfolder.",
+      "points": 20,
+      "visual_evidence": "In the Nuxeo web interface, the document 'Internal-Memo' should be visible inside the 'Drafts' folder."
+    },
+    {
+      "id": "user_guide_in_released",
+      "description": "Verify that 'User-Guide' has been moved to the 'Released' subfolder.",
+      "points": 20,
+      "visual_evidence": "In the Nuxeo web interface, the document 'User-Guide' should be visible inside the 'Released' folder."
+    },
+    {
+      "id": "marketing_flyer_in_released",
+      "description": "Verify that 'Marketing-Flyer' has been moved to the 'Released' subfolder.",
+      "points": 20,
+      "visual_evidence": "In the Nuxeo web interface, the document 'Marketing-Flyer' should be visible inside the 'Released' folder."
+    },
+    {
+      "id": "holding_area_root_empty",
+      "description": "Verify that no documents remain in the root of the 'Holding Area' workspace.",
+      "points": 20,
+      "visual_evidence": "The 'Holding Area' workspace view should only list the 'Drafts' and 'Released' folders, with no document files (Product-Specs, User-Guide, Marketing-Flyer, Internal-Memo) present in this root directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Nuxeo web interface to move the documents.",
+      "visual_evidence": "Screenshots should show interaction with a web browser displaying the Nuxeo application, not terminal commands or API scripts."
+    },
+    {
+      "id": "genuine_folder_movement",
+      "description": "Documents were actually moved into folders, not just renamed.",
+      "visual_evidence": "The UI should show the documents inside the respective folders (e.g., via breadcrumbs like Holding Area > Drafts), rather than documents in the root folder renamed to include 'Drafts' or 'Released'."
+    },
+    {
+      "id": "no_version_tampering",
+      "description": "The agent did not alter the document versions to bypass the logic.",
+      "visual_evidence": "If document versions are visible, they should remain at their original values (0.2, 0.5, 1.0, 2.0) and not be artificially inflated or deflated."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified document versions and their correct target folders: Product-Specs (v0.2) -> Drafts; Internal-Memo (v0.5) -> Drafts; User-Guide (v1.0) -> Released; Marketing-Flyer (v2.0) -> Released. The threshold is 1.0 (>= 1.0 goes to Released, < 1.0 goes to Drafts)."
+}

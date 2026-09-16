@@ -1,0 +1,59 @@
+{
+  "task_id": "docker_runtime_config@1",
+  "task_completion": [
+    {
+      "id": "install_gettext",
+      "description": "Verify the Dockerfile is modified to install the gettext package.",
+      "points": 10,
+      "visual_evidence": "Screenshot showing the Dockerfile open in an editor or terminal with a command adding the package, such as 'RUN apk add --no-cache gettext' or 'apk add gettext'."
+    },
+    {
+      "id": "add_placeholders",
+      "description": "Verify that config.js and nginx.conf (or their template equivalents) have been modified to include the required environment variable placeholders.",
+      "points": 15,
+      "visual_evidence": "Screenshots of the editor or terminal output showing 'apiUrl: \"${API_URL}\"' (or similar) in the config.js file and 'worker_processes ${WORKER_PROCESSES};' in the nginx.conf file."
+    },
+    {
+      "id": "create_entrypoint_script",
+      "description": "Verify the creation of a docker-entrypoint.sh script that uses envsubst to replace variables in the configuration files.",
+      "points": 20,
+      "visual_evidence": "Screenshot of docker-entrypoint.sh containing the 'envsubst' command targeting the config.js and nginx.conf files (or their templates) and redirecting the output to the final file locations."
+    },
+    {
+      "id": "preserve_nginx_vars",
+      "description": "Verify that the envsubst command is explicitly configured to preserve internal Nginx variables like $uri and $host.",
+      "points": 25,
+      "visual_evidence": "Screenshot of docker-entrypoint.sh showing envsubst with specific variable restrictions, such as 'envsubst \"${API_URL} ${WORKER_PROCESSES}\"' or 'envsubst \\$API_URL,\\$WORKER_PROCESSES', to prevent it from overwriting Nginx's internal variables."
+    },
+    {
+      "id": "update_dockerfile_entrypoint",
+      "description": "Verify the Dockerfile copies the entrypoint script and sets the correct ENTRYPOINT.",
+      "points": 10,
+      "visual_evidence": "Screenshot of the Dockerfile showing a COPY command for docker-entrypoint.sh, a RUN command making it executable (chmod +x), and 'ENTRYPOINT [\"/docker-entrypoint.sh\"]' (or the correct path)."
+    },
+    {
+      "id": "build_dynamic_image",
+      "description": "Verify the new Docker image is built and tagged as acme-dashboard:dynamic.",
+      "points": 20,
+      "visual_evidence": "Terminal screenshot showing a successful 'docker build -t acme-dashboard:dynamic .' command and its output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_directory",
+      "description": "Ensure the agent edited files in the correct project directory.",
+      "visual_evidence": "Editor file paths or terminal 'pwd' commands should match '/home/ga/projects/acme-dashboard'."
+    },
+    {
+      "id": "no_hardcoded_values",
+      "description": "Ensure the agent used placeholders and didn't hardcode specific test values into the configuration files.",
+      "visual_evidence": "The configuration files or templates should show the literal strings '${API_URL}' and '${WORKER_PROCESSES}', not actual URLs (like http://api.test) or specific numbers."
+    },
+    {
+      "id": "authentic_docker_build",
+      "description": "Ensure the Docker image was built using the Docker CLI rather than just renaming an existing image.",
+      "visual_evidence": "Terminal output showing the step-by-step Docker build process (e.g., 'Step 1/X', 'Building...') rather than just a 'docker tag' command."
+    }
+  ],
+  "privileged_info_for_vlm": "Project Directory: /home/ga/projects/acme-dashboard. Target Image Tag: acme-dashboard:dynamic. Required Package: gettext (provides envsubst in Alpine). Target Files: /usr/share/nginx/html/config.js (for API_URL) and /etc/nginx/nginx.conf (for WORKER_PROCESSES). Critical Requirement: envsubst must be restricted (e.g., envsubst '${API_URL} ${WORKER_PROCESSES}') so it does NOT replace Nginx internal variables like $uri and $host."
+}

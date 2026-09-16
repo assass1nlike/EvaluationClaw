@@ -1,0 +1,59 @@
+{
+  "task_id": "batch_redact_pii_regex@1",
+  "task_completion": [
+    {
+      "id": "target_project_accessed",
+      "description": "Agent accesses the PatientConnector project directory.",
+      "points": 10,
+      "visual_evidence": "Terminal showing navigation to /home/ga/eclipse-workspace/PatientConnector, or an IDE (like Eclipse or VS Code) with the PatientConnector project open in the file explorer."
+    },
+    {
+      "id": "ssn_pattern_targeted",
+      "description": "Agent targets the SSN pattern for search or replacement.",
+      "points": 20,
+      "visual_evidence": "A search/replace dialog in an IDE or a terminal command (e.g., sed, grep, find) containing a regex for SSNs (e.g., \\b\\d{3}-\\d{2}-\\d{4}\\b or [0-9]{3}-[0-9]{2}-[0-9]{4})."
+    },
+    {
+      "id": "ssn_replacement_applied",
+      "description": "Agent applies the replacement string for SSNs.",
+      "points": 20,
+      "visual_evidence": "Execution of a replace-all action in an IDE, a terminal command executing the replacement (e.g., sed -i), or a diff/file view showing real SSNs replaced by the exact string 'XXX-XX-XXXX'."
+    },
+    {
+      "id": "mrn_pattern_targeted",
+      "description": "Agent targets the MRN pattern for search or replacement.",
+      "points": 20,
+      "visual_evidence": "A search/replace dialog in an IDE or a terminal command containing a regex for MRNs (e.g., MRN-\\d{6} or MRN-[0-9]{6})."
+    },
+    {
+      "id": "mrn_replacement_applied",
+      "description": "Agent applies the replacement string for MRNs.",
+      "points": 20,
+      "visual_evidence": "Execution of a replace-all action in an IDE, a terminal command executing the replacement, or a diff/file view showing real MRNs replaced by the exact string 'MRN-000000'."
+    },
+    {
+      "id": "comprehensive_save_or_modification",
+      "description": "Agent ensures all modified files are saved or modified in place.",
+      "points": 10,
+      "visual_evidence": "IDE showing files are saved (no unsaved indicators), terminal output showing successful execution of in-place modification commands, or a git status/diff showing the files were modified."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_project_modified",
+      "description": "Agent modifies the files in the correct PatientConnector project directory.",
+      "visual_evidence": "File paths in the IDE or terminal commands must point to /home/ga/eclipse-workspace/PatientConnector or its subdirectories, not a dummy or copied folder."
+    },
+    {
+      "id": "bulk_replacement_used",
+      "description": "Agent uses bulk replacement or regex rather than manual edits.",
+      "visual_evidence": "Presence of regex patterns in search/replace fields or terminal commands, rather than manual cursor movements and typing over individual PII instances."
+    },
+    {
+      "id": "files_not_deleted",
+      "description": "Agent redacts the files without deleting them.",
+      "visual_evidence": "No commands like 'rm' used on the source files, and the IDE file explorer still shows the Java, XML, properties, and log files intact."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/eclipse-workspace/PatientConnector. There are exactly 15 SSNs matching the pattern \\b\\d{3}-\\d{2}-\\d{4}\\b and 10 MRNs matching MRN-\\d{6}. The replacement strings must be exactly 'XXX-XX-XXXX' for SSNs and 'MRN-000000' for MRNs. The agent should modify the files in place across Java, XML, properties, and log files."
+}

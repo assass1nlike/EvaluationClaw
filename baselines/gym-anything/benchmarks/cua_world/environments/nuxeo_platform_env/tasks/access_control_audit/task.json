@@ -1,0 +1,33 @@
+{
+  "id": "access_control_audit@1",
+  "version": "1.0",
+  "env_id": "nuxeo_platform_env@0.1",
+  "description": "You are an IT security analyst conducting a quarterly user access review for your organization's Nuxeo document management system. Following the 'Access Review Policy' note in the Templates workspace, revoke all access for user 'dpatel' (Deepak Patel) across all workspaces and downgrade any permissions that violate the principle of least privilege. Create a new user group called 'iam-auditors' and grant it Read-only access to all workspaces. Add an audit trail comment to each workspace where permissions were modified, documenting the changes made. Upload the access review report template from /home/ga/Desktop/access_review_report.csv to the Templates workspace.\n\nLogin credentials: Administrator / Administrator",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/access_control_audit/setup_task.sh"
+  },
+  "metadata": {
+    "occupation": "IT Security Analyst",
+    "industry": "Information Technology",
+    "features_tested": [
+      "permissions_acl",
+      "user_group_management",
+      "comments",
+      "document_upload"
+    ],
+    "departed_user": "dpatel",
+    "companion_ref_doc": "Access Review Policy"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_access_control_audit"
+    }
+  }
+}

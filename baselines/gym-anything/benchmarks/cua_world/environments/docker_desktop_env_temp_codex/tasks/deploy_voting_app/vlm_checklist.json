@@ -1,0 +1,59 @@
+{
+  "task_id": "deploy_voting_app@1",
+  "task_completion": [
+    {
+      "id": "deploy_command_executed",
+      "description": "Agent executes the deployment command in the correct directory.",
+      "points": 15,
+      "visual_evidence": "Terminal shows a command like 'docker compose up' or 'docker-compose up' being executed within the '/home/ga/voting-app/' directory."
+    },
+    {
+      "id": "services_running",
+      "description": "All five required Docker services are running.",
+      "points": 25,
+      "visual_evidence": "Terminal output (e.g., 'Started' logs for vote, result, worker, redis, db) or Docker Desktop UI showing 5 containers/services actively running."
+    },
+    {
+      "id": "vote_url_entered",
+      "description": "Agent navigates to the vote app URL.",
+      "points": 15,
+      "visual_evidence": "A web browser is open with the address bar showing 'http://localhost:5001' or '127.0.0.1:5001'."
+    },
+    {
+      "id": "vote_ui_displayed",
+      "description": "The vote app UI is successfully rendered.",
+      "points": 15,
+      "visual_evidence": "The browser viewport displays the Example Voting App frontend (typically a prompt to vote between two options like Cats vs Dogs)."
+    },
+    {
+      "id": "result_url_entered",
+      "description": "Agent navigates to the result app URL.",
+      "points": 15,
+      "visual_evidence": "A web browser is open with the address bar showing 'http://localhost:5002' or '127.0.0.1:5002'."
+    },
+    {
+      "id": "result_ui_displayed",
+      "description": "The result app UI is successfully rendered.",
+      "points": 15,
+      "visual_evidence": "The browser viewport displays the Example Voting App results viewer (typically showing percentages or vote counts)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_interaction",
+      "description": "The agent uses a real web browser navigating to localhost, not opening local static files.",
+      "visual_evidence": "The browser address bar must show an HTTP connection to localhost/127.0.0.1, not a 'file://' URI or a text editor preview."
+    },
+    {
+      "id": "genuine_docker_usage",
+      "description": "The agent actually deployed the application using Docker.",
+      "visual_evidence": "Presence of Docker CLI commands or Docker Desktop usage, rather than manually running Python/Node scripts outside of containers."
+    },
+    {
+      "id": "correct_source_directory",
+      "description": "The agent used the provided configuration directory.",
+      "visual_evidence": "Terminal prompts or file explorer paths should indicate the agent is working inside '/home/ga/voting-app/' and did not clone a new repository from the internet."
+    }
+  ],
+  "privileged_info_for_vlm": "The deployment must result in exactly 5 expected services running: 'vote', 'result', 'worker', 'redis', and 'db'. The 'vote' service must be mapped to port 5001 (accessible at http://localhost:5001) and the 'result' service must be mapped to port 5002 (accessible at http://localhost:5002)."
+}

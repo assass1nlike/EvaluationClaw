@@ -1,0 +1,53 @@
+{
+  "task_id": "deploy_maven_multi_artifact@1",
+  "task_completion": [
+    {
+      "id": "artifactory_accessed",
+      "description": "Verify the agent accessed the local Artifactory instance and logged in.",
+      "points": 10,
+      "visual_evidence": "The JFrog Artifactory Web UI is visible in the browser at 'http://localhost:8082' and the user is logged in (e.g., 'admin' profile visible), OR terminal commands show successful authentication with the Artifactory API."
+    },
+    {
+      "id": "commons_lang3_jar_deployed",
+      "description": "Verify the commons-lang3 JAR file was deployed to the correct repository path.",
+      "points": 25,
+      "visual_evidence": "In the Artifactory UI 'Artifacts' tree view, 'commons-lang3-3.14.0.jar' is visible under 'example-repo-local/org/apache/commons/commons-lang3/3.14.0/'. Alternatively, a terminal shows a successful HTTP 201 response for a curl upload to this exact path."
+    },
+    {
+      "id": "commons_lang3_pom_deployed",
+      "description": "Verify the commons-lang3 POM file was deployed to the correct repository path.",
+      "points": 25,
+      "visual_evidence": "In the Artifactory UI 'Artifacts' tree view, 'commons-lang3-3.14.0.pom' is visible under 'example-repo-local/org/apache/commons/commons-lang3/3.14.0/'. Alternatively, a terminal shows a successful HTTP 201 response for a curl upload to this exact path."
+    },
+    {
+      "id": "commons_io_jar_deployed",
+      "description": "Verify the commons-io JAR file was deployed to the correct repository path.",
+      "points": 25,
+      "visual_evidence": "In the Artifactory UI 'Artifacts' tree view, 'commons-io-2.15.1.jar' is visible under 'example-repo-local/commons-io/commons-io/2.15.1/'. Alternatively, a terminal shows a successful HTTP 201 response for a curl upload to this exact path."
+    },
+    {
+      "id": "commons_io_pom_deployed",
+      "description": "Verify the commons-io POM file was deployed to the correct repository path.",
+      "points": 15,
+      "visual_evidence": "In the Artifactory UI 'Artifacts' tree view, 'commons-io-2.15.1.pom' is visible under 'example-repo-local/commons-io/commons-io/2.15.1/'. Alternatively, a terminal shows a successful HTTP 201 response for a curl upload to this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_artifactory_interaction",
+      "description": "Ensure the agent interacted with the actual Artifactory server and didn't just create local folders.",
+      "visual_evidence": "The browser URL must be 'localhost:8082' showing the JFrog UI, or terminal commands must use HTTP/API requests (e.g., curl) directed at the Artifactory URL. The agent should not just be using 'mkdir' and 'cp' to a local directory named 'example-repo-local'."
+    },
+    {
+      "id": "desktop_source_files_used",
+      "description": "Verify the agent uploaded the files originating from the Desktop as instructed.",
+      "visual_evidence": "File upload dialogs in the browser should show files being selected from the 'Desktop' directory, or curl commands should reference the local Desktop file paths."
+    },
+    {
+      "id": "no_ui_manipulation",
+      "description": "Ensure the Artifactory UI was not faked using browser developer tools.",
+      "visual_evidence": "The Artifacts tree view should look like standard JFrog Artifactory UI components without signs of DOM manipulation or injected text overlays."
+    }
+  ],
+  "privileged_info_for_vlm": "1. Target paths are strict: commons-lang3 must be under 'org/apache/commons/commons-lang3/3.14.0/' and commons-io must be under 'commons-io/commons-io/2.15.1/'.\n2. Due to an environment setup error, 'commons-io-2.15.1.pom' is missing from the Desktop. The agent will likely fail to deploy it. Score the 'commons_io_pom_deployed' item strictly based on whether it is actually present in Artifactory (it will likely be false).\n3. The file 'commons-io-2.15.1.jar' on the Desktop is a synthetic ZIP file, not a real JAR, but it should still be deployed as-is."
+}

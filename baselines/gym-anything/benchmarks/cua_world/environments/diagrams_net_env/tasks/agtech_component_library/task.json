@@ -1,0 +1,33 @@
+{
+  "id": "agtech_component_library@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "You are a Systems Engineer at SmartGrow. Create a standardized custom component library named 'SmartGrow Devices' for the company's IoT hardware and use it to create a deployment diagram. Using the visual requirements in '~/Desktop/device_specs.txt', create two grouped custom symbols: 'SoilProbe-X1' (green vertical rectangle body with a brown triangle tip) and 'Hub-Gateway-Z' (blue square body with a white circle antenna and red status LED). Save the library to '~/Diagrams/SmartGrow_Lib.xml'. Create a deployment diagram named 'field_deployment.drawio' in '~/Diagrams/' featuring one Hub connected to three Soil Probes with arrows, using the symbols from your new library. All composite symbols must be properly grouped.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/agtech_component_library/setup_task.sh",
+    "post_task": "/workspace/tasks/agtech_component_library/export_result.sh"
+  },
+  "metadata": {
+    "specs_file": "/home/ga/Desktop/device_specs.txt",
+    "library_file": "/home/ga/Diagrams/SmartGrow_Lib.xml",
+    "diagram_file": "/home/ga/Diagrams/field_deployment.drawio",
+    "probe_color": "#d5e8d4",
+    "probe_tip_color": "#a0522d",
+    "hub_color": "#dae8fc",
+    "hub_led_color": "#ff0000",
+    "expected_probes": 3,
+    "expected_hubs": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_agtech_component_library"
+    }
+  }
+}

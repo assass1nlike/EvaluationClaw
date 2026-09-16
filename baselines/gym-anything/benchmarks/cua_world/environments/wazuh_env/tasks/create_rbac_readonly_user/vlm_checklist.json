@@ -1,0 +1,53 @@
+{
+  "task_id": "create_rbac_readonly_user@1",
+  "task_completion": [
+    {
+      "id": "create_security_policy",
+      "description": "Create a security policy named 'readonly_agents' with specific read permissions.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a curl command or API script sending a request to the Wazuh API (https://localhost:55000) to create a policy named 'readonly_agents'. The payload should include actions 'agent:read' and 'group:read' on resources 'agent:id:*' and 'group:id:*'."
+    },
+    {
+      "id": "create_security_role",
+      "description": "Create a security role named 'soc_analyst_readonly' linked to the policy.",
+      "points": 15,
+      "visual_evidence": "Terminal showing an API request creating a role named 'soc_analyst_readonly' and linking it to the 'readonly_agents' policy (often done via a role-policy mapping endpoint)."
+    },
+    {
+      "id": "create_user",
+      "description": "Create a user named 'analyst_jsmith'.",
+      "points": 15,
+      "visual_evidence": "Terminal showing an API request to the Wazuh API creating the user 'analyst_jsmith' with the provided password."
+    },
+    {
+      "id": "assign_role_to_user",
+      "description": "Assign the 'soc_analyst_readonly' role to the 'analyst_jsmith' user.",
+      "points": 20,
+      "visual_evidence": "Terminal showing an API request mapping the 'soc_analyst_readonly' role to the user 'analyst_jsmith'."
+    },
+    {
+      "id": "verify_authentication_file",
+      "description": "Authenticate as the new user and save the JSON response to /home/ga/rbac_verification.json.",
+      "points": 25,
+      "visual_evidence": "Terminal showing an authentication request to the Wazuh API using the credentials for 'analyst_jsmith', with the output being redirected or saved to '/home/ga/rbac_verification.json'. A 'cat' or file viewer showing the JSON token response in this file is also valid evidence."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_api_interaction",
+      "description": "Verify the agent actually interacted with the Wazuh API.",
+      "visual_evidence": "Look for actual HTTP requests (e.g., using curl, wget, or a Python requests script) targeting https://localhost:55000, rather than just echoing text or simulating output."
+    },
+    {
+      "id": "authentic_json_response",
+      "description": "Verify the verification file contains a genuine API response.",
+      "visual_evidence": "The contents of /home/ga/rbac_verification.json should look like a real Wazuh API authentication response (typically containing a JSON object with 'data' and 'token' fields), not a manually typed mock string."
+    },
+    {
+      "id": "no_direct_file_mocking",
+      "description": "Verify the agent did not just create the verification file without performing the prior RBAC setup steps.",
+      "visual_evidence": "The screenshots must show the sequence of policy, role, and user creation commands before the final authentication step is executed."
+    }
+  ],
+  "privileged_info_for_vlm": "The Wazuh API URL is explicitly configured as 'https://localhost:55000'. The target user to be created is 'analyst_jsmith'. The target role is 'soc_analyst_readonly'. The target policy is 'readonly_agents'. The final authentication response must be saved exactly to '/home/ga/rbac_verification.json'."
+}

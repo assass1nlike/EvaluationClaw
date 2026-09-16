@@ -1,0 +1,27 @@
+{
+  "id": "install_roof_solar_panels@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "Install a solar energy array of at least four solar panels on a main roof section of the 'Sample House' project in NCH DreamPlan Home Design Software. Ensure the panels are arranged in a grid or row and follow the roof's slope. Save the project as 'solar_project.dplan' to C:\\Users\\Docker\\Documents\\solar_project.dplan.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\install_roof_solar_panels\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\install_roof_solar_panels\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_output_path": "C:\\Users\\Docker\\Documents\\solar_project.dplan",
+    "min_panels": 4,
+    "object_name": "Solar Panel"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_install_roof_solar_panels"
+    }
+  }
+}

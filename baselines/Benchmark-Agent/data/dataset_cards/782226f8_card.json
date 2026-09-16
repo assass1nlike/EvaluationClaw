@@ -1,0 +1,85 @@
+{
+  "dataset_id": "782226f8",
+  "name": "Cat-Faces-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Dataset for detecting cat face regions in images. Each sample pairs an image with an instruction prompt and a bounding-box annotation for the cat face, evaluating object detection and localization capabilities.",
+  "card_text": "Cat-Faces-Detection is a small image-text benchmark for cat face localization. Each item contains an image identified by image_file, a natural-language prompt instructing the model to detect the cat face region, and a structured output with a bounding box. The output is stored under a single field named 'category: bbox', whose keys index detected objects (e.g., '0') and whose values are coordinate lists. The dataset is designed to evaluate models on visual object detection and bounding-box localization in the specific domain of cat faces. Assumptions include that each image contains at least one cat face and that the target annotation is a rectangular region. The prompts are identical across samples, making the primary variation the visual content of the images.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "cat face detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Filename reference to the input image containing one or more cat faces to be localized. It is the visual context for the detection instruction.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short instruction asking the model to detect the cat face region in the given image. It specifies the visual target for the bounding-box output.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.category: bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Bounding-box annotations for cat faces. The field maps object indices (e.g., '0') to coordinate lists, typically [x, y, width, height], indicating the cat face region in the input image.",
+        "path_types": [
+          "dict"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an image reference (input.image_file), a short instruction prompt (input.prompt) asking to detect the cat face region, and a structured bounding-box annotation (output.category: bbox). The bbox field contains a dictionary mapping object indices to coordinate lists for cat faces. The prompt and image together specify the detection task, and the bbox field provides the target spatial localization."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/cat-faces-detection/json/annotation.json",
+    "existing_tags": {
+      "task": "cat faces detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": [
+        "General"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ]
+    },
+    "original_raw_domain": [
+      "General"
+    ]
+  }
+}

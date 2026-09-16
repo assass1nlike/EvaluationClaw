@@ -1,0 +1,27 @@
+{
+  "id": "pt_primary_voltage@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "Calculate the primary voltage of a high-voltage system using the Potential Transformer (PT) calculator in the Electrical Calculations app. Given a PT Ratio of 132000 V (Primary) / 110 V (Secondary) and a measured secondary voltage of 108 V, determine the actual primary voltage. Save the resulting numeric value to /sdcard/pt_result.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/pt_primary_voltage/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/pt_primary_voltage/export_result.sh"
+  },
+  "metadata": {
+    "expected_value": 129600,
+    "tolerance": 100,
+    "output_file": "/sdcard/pt_result.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pt_primary_voltage"
+    }
+  }
+}

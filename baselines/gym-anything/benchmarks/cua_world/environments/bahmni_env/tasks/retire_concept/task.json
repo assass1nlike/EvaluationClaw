@@ -1,0 +1,28 @@
+{
+  "id": "retire_concept@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Retire the obsolete concept 'Duplicate Diagnosis Code' in the OpenMRS dictionary to prevent its use. Provide 'Administrative cleanup' as the retirement reason. Access the system at https://localhost/openmrs/admin using credentials: superman / Admin123.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/retire_concept/setup_task.sh",
+    "post_task": "/workspace/tasks/retire_concept/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_concept_name": "Duplicate Diagnosis Code",
+    "required_retire_reason": "Administrative cleanup",
+    "admin_url": "https://localhost/openmrs/admin"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_retire_concept"
+    }
+  }
+}

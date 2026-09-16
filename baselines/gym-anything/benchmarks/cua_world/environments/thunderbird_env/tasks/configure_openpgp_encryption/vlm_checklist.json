@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_openpgp_encryption@1",
+  "task_completion": [
+    {
+      "id": "open_e2e_encryption_settings",
+      "description": "Navigate to the End-To-End Encryption settings in Thunderbird",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Thunderbird Account Settings window open to the 'End-To-End Encryption' section for the account 'testuser@example.com'."
+    },
+    {
+      "id": "generate_openpgp_key",
+      "description": "Generate a native OpenPGP key pair for the specified identity",
+      "points": 25,
+      "visual_evidence": "Screenshots show the 'Generate OpenPGP Key' dialog in Thunderbird being used, or a confirmation message indicating a new OpenPGP key was successfully generated for 'testuser@example.com'."
+    },
+    {
+      "id": "enable_default_digital_signature",
+      "description": "Configure Thunderbird to add a digital signature to outgoing emails by default",
+      "points": 25,
+      "visual_evidence": "In the End-To-End Encryption settings, the checkbox labeled 'Add my digital signature by default' is visibly checked."
+    },
+    {
+      "id": "open_export_dialog",
+      "description": "Initiate the public key export process",
+      "points": 15,
+      "visual_evidence": "Screenshots show the Thunderbird OpenPGP Key Manager open, with the key for 'testuser@example.com' selected, and the 'Export Public Key' option or dialog activated."
+    },
+    {
+      "id": "save_public_key_path",
+      "description": "Export the public key to the correct file path",
+      "points": 25,
+      "visual_evidence": "A file save dialog or file manager shows the exported key being saved exactly as 'testuser_pubkey.asc' inside the '/home/ga/Documents/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "thunderbird_gui_used",
+      "description": "Agent used the Thunderbird GUI to generate the key and configure settings",
+      "visual_evidence": "The key generation and settings configuration must happen within the Thunderbird application window, not via terminal commands (e.g., bypassing Thunderbird by using standard `gpg` commands)."
+    },
+    {
+      "id": "genuine_key_export",
+      "description": "Agent used Thunderbird's export functionality to save the key",
+      "visual_evidence": "The file save dialog should originate from Thunderbird's OpenPGP Key Manager, proving an actual key is being exported rather than a dummy file being created."
+    },
+    {
+      "id": "no_fake_file_creation",
+      "description": "Agent did not create a fake file to bypass the export step",
+      "visual_evidence": "There should be no terminal windows showing commands like `touch /home/ga/Documents/testuser_pubkey.asc` or `echo '...' > /home/ga/Documents/testuser_pubkey.asc`."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected OpenPGP public key path is exactly '/home/ga/Documents/testuser_pubkey.asc'. The identity UID for the key pair must be 'testuser@example.com'."
+}

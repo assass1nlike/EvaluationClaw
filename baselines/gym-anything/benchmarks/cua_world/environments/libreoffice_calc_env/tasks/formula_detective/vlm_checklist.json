@@ -1,0 +1,53 @@
+{
+  "task_id": "formula_detective@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "Open the corrupted sales commission spreadsheet.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open displaying 'sales_commissions.ods' with columns for Sales Rep, Sales Amount, Commission, Status, and Total Payout."
+    },
+    {
+      "id": "repair_row3",
+      "description": "Repair the formulas for Bob Smith (Row 3).",
+      "points": 20,
+      "visual_evidence": "In row 3 (Bob Smith), the Commission cell (D3) displays 840 and the Total Payout cell (F3) displays 840."
+    },
+    {
+      "id": "repair_row5",
+      "description": "Repair the formulas for David Lee (Row 5).",
+      "points": 25,
+      "visual_evidence": "In row 5 (David Lee), the Commission cell (D5) displays 1540 and the Total Payout cell (F5) displays 2040."
+    },
+    {
+      "id": "repair_row7",
+      "description": "Repair the formulas for Frank Wilson (Row 7).",
+      "points": 25,
+      "visual_evidence": "In row 7 (Frank Wilson), the Commission cell (D7) displays 1050 and the Total Payout cell (F7) displays 1550."
+    },
+    {
+      "id": "formula_usage",
+      "description": "Ensure actual formulas are used instead of hardcoded values.",
+      "points": 20,
+      "visual_evidence": "When one of the repaired cells (D3, D5, D7, F3, F5, or F7) is selected, the formula bar at the top shows a spreadsheet formula (e.g., containing 'IF' statements and cell references like C3 or E3) rather than a plain number."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the spreadsheet GUI to complete the task.",
+      "visual_evidence": "Screenshots show interaction with the LibreOffice Calc interface (clicking cells, typing in the formula bar, using fill handles) rather than using terminal commands or Python scripts to modify the file."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not simply type the final calculated numbers into the cells.",
+      "visual_evidence": "The formula bar shows logical formulas (e.g., `=IF(...)`) being typed or copied into the corrupted cells, not just the raw expected numbers (840, 1540, etc.)."
+    },
+    {
+      "id": "genuine_file_modification",
+      "description": "The agent modified the existing file rather than creating a new one.",
+      "visual_evidence": "The intact rows (2, 4, 6, 8) remain unchanged and the file name remains 'sales_commissions.ods'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires repairing missing formulas in cells D3, D5, D7 (Commission) and F3, F5, F7 (Total Payout). Commission logic: \u2264$10,000 = 5%, $10,001-$25,000 = 7%, >$25,000 = 10%. Payout logic: Commission + $500 bonus IF Status is 'Premium' AND Commission > $1,000. Expected values to verify: Row 3 (Bob Smith) Commission=$840, Payout=$840. Row 5 (David Lee) Commission=$1,540, Payout=$2,040. Row 7 (Frank Wilson) Commission=$1,050, Payout=$1,550. The agent must use relative formulas (e.g., `=IF(C3<=10000...`), not hardcoded values."
+}

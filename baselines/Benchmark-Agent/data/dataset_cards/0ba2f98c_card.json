@@ -1,0 +1,75 @@
+{
+  "dataset_id": "0ba2f98c",
+  "name": "Science-Question-Answering",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A science multiple-choice question answering dataset covering topics such as energy transformations and Earth processes. Each item presents a question with four answer options, and the model must select the correct option letter.",
+  "card_text": "This dataset contains 200 text-only science questions in a multiple-choice format. Each sample consists of a single question, a list of four candidate answers, and a gold answer letter (A-D). The questions are drawn from elementary or middle-school science content, including physical science, life science, and Earth science concepts. No supporting passage or explanation is provided; the model must rely on its own scientific knowledge to choose the correct option. The task is evaluated by exact match of the predicted option letter to the gold answer. The dataset is suitable for benchmarking question answering and multiple-choice classification capabilities in the science domain.",
+  "tasks": [
+    "multiple_choice_qa",
+    "question_answering"
+  ],
+  "domain": "science education",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A science question that asks about a specific phenomenon, process, or fact. It is the main prompt that must be answered by selecting one of the provided options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of four candidate answer phrases for the question. Exactly one option is correct, and the model must choose the best matching option.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct option letter corresponding to the multiple-choice answer. It is a single uppercase letter from A to D that identifies which option in input.options is correct.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a question in input.question, a list of four answer options in input.options, and the correct option letter in output.answer. There is no supporting context, passage, rationale, or additional metadata; the question alone defines the task, and the answer is chosen from the provided options."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Science-Question-Answering/annotation.json",
+    "existing_tags": {
+      "task": "Science Question Answering",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

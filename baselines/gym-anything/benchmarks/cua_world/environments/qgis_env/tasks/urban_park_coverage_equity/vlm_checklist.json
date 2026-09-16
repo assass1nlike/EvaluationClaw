@@ -1,0 +1,59 @@
+{
+  "task_id": "urban_park_coverage_equity@1",
+  "task_completion": [
+    {
+      "id": "load_data",
+      "description": "The agent loads the portland_parks_osm and portland_census_tracts GeoJSON files into the GIS software.",
+      "points": 10,
+      "visual_evidence": "The Layers panel in the GIS software (e.g., QGIS) shows 'portland_parks_osm' and 'portland_census_tracts' loaded."
+    },
+    {
+      "id": "reproject_layers",
+      "description": "The agent reprojects the layers to a projected coordinate system (e.g., EPSG:32610 or EPSG:2269) for accurate area calculations.",
+      "points": 15,
+      "visual_evidence": "A 'Reproject Layer' dialog is visible, or new layers with names indicating reprojection appear in the Layers panel. The project or layer CRS may be set to EPSG:32610 or EPSG:2269."
+    },
+    {
+      "id": "calculate_overlap",
+      "description": "The agent performs an intersection or overlap analysis between the census tracts and parks to find the overlapping park area per tract.",
+      "points": 20,
+      "visual_evidence": "An 'Intersection', 'Clip', or 'Overlap Analysis' tool dialog is open, or a resulting layer from such an operation is visible in the Layers panel."
+    },
+    {
+      "id": "calculate_fields",
+      "description": "The agent uses the Field Calculator to compute park_area_sqm, tract_area_sqm, park_pct, and assigns the greenspace_tier based on the specified thresholds.",
+      "points": 25,
+      "visual_evidence": "The 'Field Calculator' dialog is open showing formulas for area ($area), percentage, or the CASE statement for greenspace_tier, OR the Attribute Table is open showing these newly populated columns."
+    },
+    {
+      "id": "export_geojson",
+      "description": "The agent exports the tract layer with the new fields to /home/ga/GIS_Data/exports/park_coverage_by_tract.geojson.",
+      "points": 15,
+      "visual_evidence": "A 'Save Vector Layer as...' or 'Export' dialog is open with the file path ending in 'exports/park_coverage_by_tract.geojson' and format set to GeoJSON."
+    },
+    {
+      "id": "export_csv",
+      "description": "The agent calculates summary statistics grouped by greenspace_tier and exports the results to /home/ga/GIS_Data/exports/greenspace_equity_summary.csv.",
+      "points": 15,
+      "visual_evidence": "A tool like 'Statistics by Categories', 'Group Stats', or an attribute table export dialog is visible, showing the file path ending in 'exports/greenspace_equity_summary.csv'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacts with the GIS software GUI (e.g., QGIS) to perform the spatial analysis.",
+      "visual_evidence": "Screenshots show active use of QGIS menus, toolbars, and dialogs rather than a text editor with a Python script."
+    },
+    {
+      "id": "genuine_calculations",
+      "description": "The agent uses GIS tools to derive the results rather than manually typing in hardcoded values.",
+      "visual_evidence": "Evidence of Field Calculator formulas, Intersection tools, or summary statistics tools being executed."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "The agent does not use terminal commands to directly create or mock the output files.",
+      "visual_evidence": "The terminal is not used to run commands like `echo`, `cat`, or `touch` to create the final .geojson or .csv files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses OpenStreetMap parks and US Census Bureau TIGER 2020 census tracts for Multnomah County (Portland). Area calculations must use a projected CRS like EPSG:32610 (UTM Zone 10N) or EPSG:2269. The greenspace_tier classification is: adequate (park_pct >= 10.0), marginal (5.0 <= park_pct < 10.0), deficient (park_pct < 5.0). The expected outputs are a GeoJSON at /home/ga/GIS_Data/exports/park_coverage_by_tract.geojson and a CSV at /home/ga/GIS_Data/exports/greenspace_equity_summary.csv containing greenspace_tier, tract_count, total_pop (from P1_001N), and avg_park_pct."
+}

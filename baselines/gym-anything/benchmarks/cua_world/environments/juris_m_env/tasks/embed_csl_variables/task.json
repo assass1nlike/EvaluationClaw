@@ -1,0 +1,37 @@
+{
+  "id": "embed_csl_variables@1",
+  "version": "1.0",
+  "env_id": "juris_m_env@0.1",
+  "description": "Update the 'Extra' field for three legal references in your Juris-M library with specific CSL variables to ensure correct citation formatting. Add 'original-date: 1897' to 'The Path of the Law' (Holmes), 'DOI: 10.2307/1122547' to 'Constitutional Fact Review' (Monaghan), and 'citation-key: poe_torts_1971' to 'The Due Process Clause and the Substantive Law of Torts' (Poe).",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/embed_csl_variables/setup_task.sh",
+    "post_task": "/workspace/tasks/embed_csl_variables/export_result.sh"
+  },
+  "metadata": {
+    "items": {
+      "holmes": {
+        "title_snippet": "Path of the Law",
+        "expected_extra": "original-date: 1897"
+      },
+      "monaghan": {
+        "title_snippet": "Constitutional Fact Review",
+        "expected_extra": "DOI: 10.2307/1122547"
+      },
+      "poe": {
+        "title_snippet": "Due Process Clause",
+        "expected_extra": "citation-key: poe_torts_1971"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_embed_csl_variables"
+    }
+  }
+}

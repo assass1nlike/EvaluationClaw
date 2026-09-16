@@ -1,0 +1,56 @@
+{
+  "id": "fire_safety_inspection_report@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are Captain Luis Restrepo of the Glenwood Fire Prevention Bureau. Create a formal fire safety inspection report in Apache OpenOffice Writer using the data from /home/ga/Documents/inspection_data.json and save it as /home/ga/Documents/FSI_Report_Glenwood_2024.odt. The report must include an Executive Summary, individual sections for Buildings A through E with violation tables, a Campus Compliance Summary table, and a Corrective Actions section. Format the report with 'Heading 1' and 'Heading 2' styles, an automatic Table of Contents at the beginning, and page numbers in the footer. Login: username ga, no password required.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fire_safety_inspection_report/setup_task.sh",
+    "post_task": "/workspace/tasks/fire_safety_inspection_report/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/inspection_data.json",
+    "output_file": "/home/ga/Documents/FSI_Report_Glenwood_2024.odt",
+    "min_file_size_kb": 8,
+    "required_elements": {
+      "heading1_min": 6,
+      "heading2_min": 8,
+      "tables_min": 6,
+      "paragraphs_min": 40,
+      "toc": true,
+      "footer_page_numbers": true
+    },
+    "required_content": {
+      "building_names": [
+        "Main Academic Hall",
+        "Science & Technology Center",
+        "Student Services Center",
+        "Performing Arts Center",
+        "Physical Plant"
+      ],
+      "keywords": [
+        "NFPA",
+        "violation",
+        "corrective action"
+      ],
+      "scores": [
+        "78",
+        "82",
+        "91",
+        "76",
+        "64"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fire_safety_report"
+    }
+  }
+}

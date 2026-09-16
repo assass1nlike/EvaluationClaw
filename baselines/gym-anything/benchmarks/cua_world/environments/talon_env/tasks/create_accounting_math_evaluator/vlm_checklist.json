@@ -1,0 +1,59 @@
+{
+  "task_id": "create_accounting_math_evaluator@1",
+  "task_completion": [
+    {
+      "id": "files_created_in_target_dir",
+      "description": "Verify that the required directory and files were created.",
+      "points": 10,
+      "visual_evidence": "File explorer, terminal, or code editor showing 'accounting_math.py' and 'accounting_math.talon' located in 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\accounting_math\\'."
+    },
+    {
+      "id": "module_and_action_class_declared",
+      "description": "Verify the Talon Module and action class declarations in the Python file.",
+      "points": 10,
+      "visual_evidence": "In 'accounting_math.py', look for a Talon Module instantiation (e.g., `mod = Module()`) and an action class decorator (e.g., `@mod.action_class`)."
+    },
+    {
+      "id": "parse_and_evaluate_cleaning_logic",
+      "description": "Verify the string cleaning and accounting negative conversion logic in parse_and_evaluate.",
+      "points": 20,
+      "visual_evidence": "In 'accounting_math.py', look for a `parse_and_evaluate(expression: str) -> str` function containing logic (like `replace` or `re.sub`) to remove spaces, '$', and ',', and logic to convert parenthetical numbers to negatives (e.g., replacing `(123)` with `-123`)."
+    },
+    {
+      "id": "parse_and_evaluate_math_logic",
+      "description": "Verify the math evaluation and formatting logic in parse_and_evaluate.",
+      "points": 20,
+      "visual_evidence": "In 'accounting_math.py', look for math evaluation (e.g., using `eval()`) inside `parse_and_evaluate` and a return statement that formats the result to two decimal places (e.g., `f\"{result:.2f}\"`)."
+    },
+    {
+      "id": "action_methods_implemented",
+      "description": "Verify the implementation of figure_replace and figure_append actions.",
+      "points": 25,
+      "visual_evidence": "In 'accounting_math.py' under the action class, look for `figure_replace()` using clipboard operations (`clip.set_text`, `clip.get_text`) with sleep/pauses (`actions.sleep()`), and `figure_append()` appending ' = ' plus the result to the selection."
+    },
+    {
+      "id": "talon_voice_commands_defined",
+      "description": "Verify the voice commands are defined in the .talon file.",
+      "points": 15,
+      "visual_evidence": "In 'accounting_math.talon', look for the voice commands mapped to the actions, specifically `figure replace: user.figure_replace()` and `figure append: user.figure_append()`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_evaluations",
+      "description": "Ensure the agent implemented actual parsing and math evaluation rather than hardcoding specific answers.",
+      "visual_evidence": "Check 'accounting_math.py' to ensure `parse_and_evaluate` uses dynamic evaluation (like `eval`) and does not contain hardcoded if-statements returning specific test case results."
+    },
+    {
+      "id": "genuine_file_location",
+      "description": "Ensure the files are saved in the actual Talon user directory, not a generic or temporary folder.",
+      "visual_evidence": "Look at the file path in the editor or terminal to confirm it strictly matches 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\accounting_math'."
+    },
+    {
+      "id": "no_unauthorized_external_libraries",
+      "description": "Ensure the agent did not use unauthorized third-party libraries to bypass the manual parsing requirements.",
+      "visual_evidence": "Check the imports in 'accounting_math.py'. They should only include standard Python libraries (e.g., `re`, `time`, `ast`) and Talon APIs (`talon`), with no external math parsing packages."
+    }
+  ],
+  "privileged_info_for_vlm": "The target directory for the module is strictly C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\accounting_math. The logic for converting accounting negatives must replace parentheses enclosing numbers with a minus sign (e.g., (1500.50) becomes -1500.50). If the agent tests the expression (50.00) - (25.00), the correct evaluation is -25.00 (since it becomes -50.00 - -25.00), not -75.00."
+}

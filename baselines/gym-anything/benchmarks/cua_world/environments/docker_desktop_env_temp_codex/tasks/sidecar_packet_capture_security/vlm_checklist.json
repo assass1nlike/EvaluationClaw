@@ -1,0 +1,59 @@
+{
+  "task_id": "sidecar_packet_capture_security@1",
+  "task_completion": [
+    {
+      "id": "docker_compose_edited",
+      "description": "Verify the docker-compose.yml file is opened and a new service named 'sniffer' is added.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., VS Code, nano, vim) or terminal output showing the contents of /home/ga/debug-auth/docker-compose.yml with a new 'sniffer:' service block defined."
+    },
+    {
+      "id": "sniffer_image_and_network",
+      "description": "Verify the 'sniffer' service uses the 'alpine' image and shares the network namespace of 'auth-service'.",
+      "points": 15,
+      "visual_evidence": "In the docker-compose.yml file, the 'sniffer' block contains 'image: alpine' and 'network_mode: \"service:auth-service\"' (or equivalent syntax)."
+    },
+    {
+      "id": "sniffer_command_and_volume",
+      "description": "Verify the 'sniffer' service runs tcpdump and maps the correct volume.",
+      "points": 20,
+      "visual_evidence": "In the docker-compose.yml file, the 'sniffer' block contains a 'command:' that includes 'tcpdump' and writes to '/data/capture.pcap' (e.g., -w /data/capture.pcap), and a 'volumes:' section mapping './captures:/data'."
+    },
+    {
+      "id": "sniffer_security_caps",
+      "description": "Verify the 'sniffer' service uses Linux capabilities instead of privileged mode.",
+      "points": 25,
+      "visual_evidence": "In the docker-compose.yml file, the 'sniffer' block contains 'cap_add:' with 'NET_ADMIN' and 'NET_RAW'. There must be NO 'privileged: true' directive in this block."
+    },
+    {
+      "id": "docker_compose_up",
+      "description": "Verify the updated docker-compose configuration is deployed.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing the execution of 'docker compose up' or 'docker-compose up' (possibly with -d) and indicating that the 'sniffer' container has been created/started."
+    },
+    {
+      "id": "pcap_file_populated",
+      "description": "Verify the capture file is successfully populated.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the file size of './captures/capture.pcap' (e.g., via 'ls -l' or 'ls -lh') is greater than 0 bytes, or output from a command like 'file' or 'tcpdump -r' confirming it is a valid capture file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_privileged_mode_cheat",
+      "description": "Ensure the agent did not bypass the security constraint by running a standalone privileged container.",
+      "visual_evidence": "Check terminal history to ensure the agent did not run 'docker run --privileged' or similar commands to manually capture packets outside of the docker-compose setup."
+    },
+    {
+      "id": "actual_pcap_generation",
+      "description": "Ensure the agent did not fake the pcap file creation.",
+      "visual_evidence": "Check terminal history to ensure the agent did not use commands like 'touch ./captures/capture.pcap', 'echo', or 'dd' to manually create a dummy file just to pass the file existence/size check."
+    },
+    {
+      "id": "genuine_docker_compose_edit",
+      "description": "Ensure the agent actually edited the docker-compose.yml file.",
+      "visual_evidence": "Look for genuine interaction with a text editor or valid sed/echo commands modifying the actual /home/ga/debug-auth/docker-compose.yml file, rather than just printing the expected YAML to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

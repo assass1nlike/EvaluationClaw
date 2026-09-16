@@ -1,0 +1,59 @@
+{
+  "task_id": "build_failure_triage_and_report@1",
+  "task_completion": [
+    {
+      "id": "folder_created",
+      "description": "Verify that a new folder named 'Build-Alerts' was created in the email client.",
+      "points": 10,
+      "visual_evidence": "Look at the folder pane (usually the left sidebar) of the email client. A folder exactly named 'Build-Alerts' should be visible."
+    },
+    {
+      "id": "emails_moved",
+      "description": "Verify that emails containing the specified keywords in their subjects were moved to the 'Build-Alerts' folder.",
+      "points": 20,
+      "visual_evidence": "Look inside the 'Build-Alerts' folder. The email list should display messages with subjects containing 'fail', 'error', 'bug', or 'problem' (case-insensitive)."
+    },
+    {
+      "id": "emails_marked_unread",
+      "description": "Verify that the emails in the 'Build-Alerts' folder are marked as Unread.",
+      "points": 10,
+      "visual_evidence": "Look at the emails listed in the 'Build-Alerts' folder. They should have visual indicators of being unread, such as bold text, a closed envelope icon, or an unread dot."
+    },
+    {
+      "id": "forwarded_most_recent_email",
+      "description": "Verify that the most recent email in the 'Build-Alerts' folder was forwarded to the correct recipient.",
+      "points": 20,
+      "visual_evidence": "Look for an email compose window or a message in the 'Sent' folder addressed to 'build-master@company.com'. The quoted original message should be the one with the latest timestamp from the 'Build-Alerts' folder."
+    },
+    {
+      "id": "forwarded_message_correct",
+      "description": "Verify that the forwarded email contains the exact required message.",
+      "points": 10,
+      "visual_evidence": "Look at the body of the forwarded email in the compose window or sent view. It must contain the exact text: 'Critical build failure detected. Please investigate immediately.'"
+    },
+    {
+      "id": "log_file_populated",
+      "description": "Verify that the exact Subject lines of all moved emails were logged to ~/Documents/triage_log.txt.",
+      "points": 30,
+      "visual_evidence": "Look for a text editor (e.g., gedit, nano) or a terminal output showing the file '/home/ga/Documents/triage_log.txt'. The file should contain a list of email subject lines, one per line, corresponding to the emails moved to the 'Build-Alerts' folder."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_email_client",
+      "description": "Ensure the agent used a graphical email client to manage the emails.",
+      "visual_evidence": "The screenshots should show an actual email application (like Thunderbird or Evolution) being used to create folders, move emails, and forward messages, rather than terminal scripts bypassing the UI."
+    },
+    {
+      "id": "manual_forwarding_action",
+      "description": "Ensure the forwarding action was performed via the email client interface.",
+      "visual_evidence": "Look for the email client's compose window or sent confirmation, proving the agent didn't just use a background command-line tool (like curl or mail) to send the email."
+    },
+    {
+      "id": "genuine_log_content",
+      "description": "Ensure the log file contains actual subject lines extracted from the emails.",
+      "visual_evidence": "The text in triage_log.txt should match the actual subjects of the filtered emails seen in the email client, not generic placeholders or copy-pasted instructions from the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "Target folder: 'Build-Alerts'. Keywords to filter: 'fail', 'error', 'bug', 'problem'. Escalation recipient: 'build-master@company.com'. Log file path: '/home/ga/Documents/triage_log.txt'."
+}

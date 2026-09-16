@@ -1,0 +1,45 @@
+{
+  "id": "chinook_customer_vertical_partitioning@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Database Engineer tasked with refactoring the Chinook database (/home/ga/Documents/databases/chinook_refactor.db) to improve security. Vertically partition the 'customers' table into two tables: a lean 'customers' table and a secured 'customer_contact' table. The 'customer_contact' table must include CustomerId (as a Primary Key and Foreign Key referencing the customers table), Address, City, State, Country, PostalCode, Phone, Fax, and Email. Migrate all existing contact data to this new table and remove those specific columns from the original 'customers' table, retaining only CustomerId, FirstName, LastName, Company, and SupportRepId. Create a view named 'v_customers_extended' that joins the two tables to reproduce the original schema. Save your SQL migration script to '/home/ga/Documents/scripts/partitioning.sql' and export the data from the 'v_customers_extended' view to '/home/ga/Documents/exports/refactored_customers.csv'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_customer_vertical_partitioning/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_customer_vertical_partitioning/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_refactor.db",
+    "expected_rows": 59,
+    "contact_columns": [
+      "Address",
+      "City",
+      "State",
+      "Country",
+      "PostalCode",
+      "Phone",
+      "Fax",
+      "Email"
+    ],
+    "kept_columns": [
+      "CustomerId",
+      "FirstName",
+      "LastName",
+      "Company",
+      "SupportRepId"
+    ],
+    "export_path": "/home/ga/Documents/exports/refactored_customers.csv",
+    "script_path": "/home/ga/Documents/scripts/partitioning.sql"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_partitioning"
+    }
+  }
+}

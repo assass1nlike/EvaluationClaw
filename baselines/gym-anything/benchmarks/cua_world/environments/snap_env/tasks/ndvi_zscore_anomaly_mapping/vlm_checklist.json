@@ -1,0 +1,59 @@
+{
+  "task_id": "ndvi_zscore_anomaly_mapping@1",
+  "task_completion": [
+    {
+      "id": "create_ndvi_band",
+      "description": "Verify the creation of the 'NDVI' band using the correct formula.",
+      "points": 15,
+      "visual_evidence": "Band Maths dialog showing the target band name 'NDVI' and the expression '(band_2 - band_3) / (band_2 + band_3)', or the 'NDVI' band visible under the 'Bands' folder in the Product Explorer."
+    },
+    {
+      "id": "calculate_statistics",
+      "description": "Verify the agent calculates the image-wide Mean and Standard Deviation for the NDVI band.",
+      "points": 15,
+      "visual_evidence": "The Statistics window or tool open in SNAP, specifically analyzing the 'NDVI' band, displaying the computed Mean and Standard Deviation values."
+    },
+    {
+      "id": "create_zscore_band",
+      "description": "Verify the creation of the 'NDVI_Z_Score' band using the calculated statistics.",
+      "points": 20,
+      "visual_evidence": "Band Maths dialog showing the target band name 'NDVI_Z_Score' and an expression subtracting the mean and dividing by the standard deviation (e.g., '(NDVI - 0.45) / 0.12'), or the 'NDVI_Z_Score' band visible in the Product Explorer."
+    },
+    {
+      "id": "create_stressed_mask",
+      "description": "Verify the creation of the binary 'Stressed_Mask' band using the specified conditional logic.",
+      "points": 20,
+      "visual_evidence": "Band Maths dialog showing the target band name 'Stressed_Mask' and a conditional expression such as 'if NDVI_Z_Score < -1.5 and NDVI > 0.2 then 1 else 0' (or equivalent boolean logic), or the 'Stressed_Mask' band visible in the Product Explorer."
+    },
+    {
+      "id": "save_dimap_product",
+      "description": "Verify the enriched product is saved to the specified path.",
+      "points": 15,
+      "visual_evidence": "Save Product dialog showing the file path '/home/ga/snap_exports/vegetation_anomaly.dim', or the product name updated to 'vegetation_anomaly' in the Product Explorer."
+    },
+    {
+      "id": "export_geotiff_mask",
+      "description": "Verify the 'Stressed_Mask' band is exported as a GeoTIFF to the specified path.",
+      "points": 15,
+      "visual_evidence": "Export dialog (e.g., GeoTIFF export) showing the file path '/home/ga/snap_exports/stressed_mask.tif' and subsetting settings selecting only the 'Stressed_Mask' band, or a file manager/terminal showing the saved .tif file."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_snap_gui",
+      "description": "Ensure the agent used the ESA SNAP GUI to perform the band math and exports.",
+      "visual_evidence": "Screenshots should show the ESA SNAP application interface being actively used (Band Maths dialogs, Statistics tool, Export menus), rather than terminal commands or python scripts doing the processing."
+    },
+    {
+      "id": "genuine_statistics_calculation",
+      "description": "Ensure the agent actually computed the statistics rather than guessing or hardcoding arbitrary values.",
+      "visual_evidence": "The Statistics pane or histogram tool must be visible in at least one screenshot showing the mean and standard deviation of the NDVI band before the Z-score band is created."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "Ensure the agent didn't just write a python script or text file to bypass the SNAP GUI.",
+      "visual_evidence": "Absence of text editors (like nano, vim, gedit, or VS Code) being used to write scripts (e.g., snappy or rasterio scripts) to generate the outputs directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output files are a DIMAP product at '/home/ga/snap_exports/vegetation_anomaly.dim' and a GeoTIFF at '/home/ga/snap_exports/stressed_mask.tif'. The DIMAP product must contain the custom bands 'NDVI', 'NDVI_Z_Score', and 'Stressed_Mask'. The Z-score standardization allows a tolerance of 0.15 for mean=0 and std=1."
+}

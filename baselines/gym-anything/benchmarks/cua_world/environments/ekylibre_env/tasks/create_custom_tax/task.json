@@ -1,0 +1,27 @@
+{
+  "id": "create_custom_tax@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "Create a new tax entry in the Ekylibre instance at http://demo.ekylibre.farm:3000 using the following parameters: Name: \"TVA Réduite Alimentaire 5.5%\", Rate: 5.5%, Nature: Normal VAT, and Country: France. Assign available VAT-related accounts (starting with 445...) to the collect and deduction account fields. \n\nLogin credentials:\n- Email: admin@ekylibre.org\n- Password: 12345678",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_custom_tax/setup_task.sh",
+    "post_task": "/workspace/tasks/create_custom_tax/export_result.sh"
+  },
+  "metadata": {
+    "expected_name_part": "TVA",
+    "expected_rate": 5.5,
+    "expected_country": "fr"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_custom_tax"
+    }
+  }
+}

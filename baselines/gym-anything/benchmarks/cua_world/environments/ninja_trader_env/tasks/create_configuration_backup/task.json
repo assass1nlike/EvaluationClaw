@@ -1,0 +1,35 @@
+{
+  "id": "create_configuration_backup@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Create a selective backup of NinjaTrader 8 configurations containing only 'Templates' and 'Workspaces'. Save the resulting archive as 'config_backup.zip' to 'C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_configuration_backup\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_configuration_backup\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "config_backup.zip",
+    "required_content": [
+      "templates",
+      "workspaces"
+    ],
+    "forbidden_content": [
+      "db",
+      "log",
+      "trace",
+      "ninjascript"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_configuration_backup"
+    }
+  }
+}

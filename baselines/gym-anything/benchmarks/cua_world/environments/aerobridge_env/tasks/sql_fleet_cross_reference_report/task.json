@@ -1,0 +1,38 @@
+{
+  "id": "sql_fleet_cross_reference_report@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "Generate a comprehensive fleet report by querying the Aerobridge SQLite database at /opt/aerobridge/aerobridge.sqlite3. Save the report to /home/ga/Documents/fleet_sql_report.txt. The report must contain three sections: an Aircraft Registry listing aircraft with their Manufacturer Name and Operator Name; an Operator Summary listing each Operator Company and the count of aircraft registered to them; and a Personnel section listing all registered Persons with their First Name, Last Name, and Email.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sql_fleet_cross_reference_report/setup_task.sh",
+    "post_task": "/workspace/tasks/sql_fleet_cross_reference_report/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/opt/aerobridge/aerobridge.sqlite3",
+    "report_path": "/home/ga/Documents/fleet_sql_report.txt",
+    "required_tables": [
+      "registry_aircraft",
+      "registry_company",
+      "registry_person"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sql_report"
+    }
+  },
+  "tags": [
+    "sql",
+    "database",
+    "cli",
+    "reporting",
+    "aerobridge"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "split_invoice_items@1",
+  "task_completion": [
+    {
+      "id": "invoice_1_total_updated",
+      "description": "Invoice #1's total is updated to $0.99.",
+      "points": 15,
+      "visual_evidence": "In the Invoice table view or a SQL query result, the row for InvoiceId 1 shows a 'Total' value of 0.99."
+    },
+    {
+      "id": "new_invoice_record_created",
+      "description": "A new invoice is created for Customer 2.",
+      "points": 20,
+      "visual_evidence": "In the Invoice table view or a SQL query result, there is a new row (with a new InvoiceId) where 'CustomerId' is 2."
+    },
+    {
+      "id": "new_invoice_date_and_address",
+      "description": "The new invoice has the correct date and billing address.",
+      "points": 20,
+      "visual_evidence": "The new invoice row shows 'InvoiceDate' as 2009-01-01 (or similar format) and the billing address fields match 'Theodor-Heuss-Stra\u00dfe 34', 'Stuttgart', 'BW', 'Germany', '70174'."
+    },
+    {
+      "id": "new_invoice_total_correct",
+      "description": "The new invoice has a total of $0.99.",
+      "points": 15,
+      "visual_evidence": "The new invoice row shows a 'Total' value of 0.99."
+    },
+    {
+      "id": "invoice_line_track_4_moved",
+      "description": "The line item for Track ID 4 is moved to the new invoice.",
+      "points": 15,
+      "visual_evidence": "In the InvoiceLine table or a SQL query result, the row for 'TrackId' 4 shows its 'InvoiceId' updated to the ID of the newly created invoice."
+    },
+    {
+      "id": "invoice_line_track_2_remains",
+      "description": "The line item for Track ID 2 remains on Invoice #1.",
+      "points": 15,
+      "visual_evidence": "In the InvoiceLine table or a SQL query result, the row for 'TrackId' 2 still shows its 'InvoiceId' as 1."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_database_tool",
+      "description": "The agent used a valid database tool to interact with the database.",
+      "visual_evidence": "Screenshots show LibreOffice Base, a terminal with sqlite3 commands, or a script being executed, rather than a text editor with fake output."
+    },
+    {
+      "id": "authentic_data_display",
+      "description": "The displayed table rows or query results are genuine outputs from the database tool.",
+      "visual_evidence": "The formatting of the results matches the tool used (e.g., LibreOffice Base table view, sqlite3 tabular output), without signs of manual text manipulation."
+    },
+    {
+      "id": "database_saved",
+      "description": "The agent saved the changes to the database.",
+      "visual_evidence": "If using a GUI like LibreOffice Base, the save button is clicked or there is no unsaved changes indicator. If using CLI, the changes are committed."
+    }
+  ],
+  "privileged_info_for_vlm": "Invoice 1 originally belongs to Customer 2 (Leonie K\u00f6hler) and contains two tracks: Track 2 ('Balls to the Wall') and Track 4 ('Restless and Wild'), each priced at $0.99, totaling $1.98. The task requires splitting this into two invoices for Customer 2. Invoice 1 should be updated to keep Track 2 and have a total of $0.99. A new invoice should be created for Customer 2 with date 2009-01-01, billing address 'Theodor-Heuss-Stra\u00dfe 34, Stuttgart, BW, Germany, 70174', and a total of $0.99. The InvoiceLine for Track 4 must be updated to point to the new invoice."
+}

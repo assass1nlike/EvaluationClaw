@@ -1,0 +1,35 @@
+{
+  "id": "check_statin_interaction_with_abiraterone@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Using the Liverpool Cancer iChart Archive app, determine the drug-drug interaction between the cancer drug 'Abiraterone' and the co-medication 'Atorvastatin'. Document the findings in a file at /sdcard/interaction_result.txt containing four lines: the cancer drug name, the co-medication name, the interaction traffic-light color (Red, Orange, Yellow, Green, or Grey), and a brief summary of the interaction mechanism or recommendation from the detail view.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/check_statin_interaction_with_abiraterone/setup_task.sh",
+    "post_task": "/sdcard/tasks/check_statin_interaction_with_abiraterone/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Abiraterone",
+    "co_medication": "Atorvastatin",
+    "drug_category": "Lipid Modifying Agents",
+    "expected_filename": "/sdcard/interaction_result.txt",
+    "valid_colors": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "grey"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_check_statin_interaction"
+    }
+  }
+}

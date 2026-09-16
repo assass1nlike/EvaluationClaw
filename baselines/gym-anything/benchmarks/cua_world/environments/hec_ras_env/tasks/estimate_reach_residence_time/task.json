@@ -1,0 +1,29 @@
+{
+  "id": "estimate_reach_residence_time@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Calculate the hydraulic residence time (flushing time) for the Muncie reach of the White River during peak flood conditions using the HEC-RAS HDF5 result file (Muncie.p04.hdf). Write and execute a Python script to identify the timestamp of maximum discharge at the most downstream cross-section and calculate the total water volume at that time using the Average End Area method (V = Σ Li × (Ai + Ai+1)/2). Save the integration table including columns for RiverStation_Upstream, RiverStation_Downstream, ReachLength_ft, AvgArea_sqft, and SegmentVolume_cuft to ~/Documents/hec_ras_results/volume_integration.csv. Export a summary report containing the calculated Total Reach Volume (cu ft) and Hydraulic Residence Time (hours) to ~/Documents/hec_ras_results/residence_time_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/estimate_reach_residence_time/setup_task.sh",
+    "post_task": "/workspace/tasks/estimate_reach_residence_time/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "hdf_filename": "Muncie.p04.hdf",
+    "expected_csv_path": "/home/ga/Documents/hec_ras_results/volume_integration.csv",
+    "expected_report_path": "/home/ga/Documents/hec_ras_results/residence_time_report.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_estimate_reach_residence_time"
+    }
+  }
+}

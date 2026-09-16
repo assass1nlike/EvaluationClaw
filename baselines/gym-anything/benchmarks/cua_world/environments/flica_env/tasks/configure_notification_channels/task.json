@@ -1,0 +1,35 @@
+{
+  "id": "configure_notification_channels@1",
+  "version": "1.0",
+  "env_id": "example.flica_env@0.1",
+  "description": "Configure the notification channels for the Flight Crew View app to reduce distractions while keeping critical updates. Keep only flight-critical channels enabled (related to flight status, alerts, changes, chat, and messages) and disable all non-essential channels (such as tips, promotions, and general updates). Document the final state of each channel in '/sdcard/notification_config.txt' using the format 'channel_name: enabled' or 'channel_name: disabled'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/sdcard/tasks/configure_notification_channels/setup_task.sh",
+    "post_task": "/sdcard/tasks/configure_notification_channels/export_result.sh"
+  },
+  "metadata": {
+    "critical_keywords": [
+      "flight",
+      "alert",
+      "status",
+      "change",
+      "chat",
+      "message",
+      "crew",
+      "urgent"
+    ],
+    "expected_output_file": "/sdcard/notification_config.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_notification_channels"
+    }
+  }
+}

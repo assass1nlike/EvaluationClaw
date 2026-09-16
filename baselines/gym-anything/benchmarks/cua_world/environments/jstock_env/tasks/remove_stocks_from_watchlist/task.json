@@ -1,0 +1,35 @@
+{
+  "id": "remove_stocks_from_watchlist@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "In JStock, remove the stocks GOOGL (Alphabet) and AMZN (Amazon) from the 'My Watchlist' watchlist for the United States. Ensure the changes are saved to ~/.jstock/1.0.7/UnitedState/watchlist/My Watchlist/realtimestock.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/remove_stocks_from_watchlist/setup_task.sh",
+    "post_task": "/workspace/tasks/remove_stocks_from_watchlist/export_result.sh"
+  },
+  "metadata": {
+    "watchlist_path": "/home/ga/.jstock/1.0.7/UnitedState/watchlist/My Watchlist/realtimestock.csv",
+    "stocks_to_remove": [
+      "GOOGL",
+      "AMZN"
+    ],
+    "stocks_to_retain": [
+      "AAPL",
+      "MSFT",
+      "NVDA"
+    ],
+    "expected_row_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_remove_stocks"
+    }
+  }
+}

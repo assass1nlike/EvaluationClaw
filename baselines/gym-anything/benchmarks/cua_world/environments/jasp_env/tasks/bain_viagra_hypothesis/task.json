@@ -1,0 +1,35 @@
+{
+  "id": "bain_viagra_hypothesis@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a Bayesian informative hypothesis test using the Bain module on the Viagra dataset (/home/ga/Documents/JASP/Viagra.csv). Evaluate the hypothesis that Libido increases with Dose (Placebo < Low Dose < High Dose). Save the JASP project to /home/ga/Documents/JASP/Viagra_Bain.jasp and record the resulting Posterior Probability (P(M|data)) for the hypothesis in a text file at /home/ga/Documents/JASP/bain_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bain_viagra_hypothesis/setup_task.sh",
+    "post_task": "/workspace/tasks/bain_viagra_hypothesis/export_result.sh"
+  },
+  "metadata": {
+    "expected_jasp_file": "/home/ga/Documents/JASP/Viagra_Bain.jasp",
+    "expected_text_file": "/home/ga/Documents/JASP/bain_results.txt",
+    "dataset_path": "/home/ga/Documents/JASP/Viagra.csv",
+    "ground_truth_probability": 0.92,
+    "probability_tolerance": 0.05,
+    "required_analysis_type": "BainAnova",
+    "constraint_signature": [
+      "1<2<3",
+      "dose1<dose2<dose3",
+      "dose 1 < dose 2 < dose 3"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bain_hypothesis"
+    }
+  }
+}

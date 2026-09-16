@@ -1,0 +1,55 @@
+{
+  "id": "airline_passenger_journey_map@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a UX Research Lead at a regional airline. Create a multi-page Customer Journey Map for an airline passenger experience based on the requirements in ~/Desktop/passenger_journey_requirements.txt. The diagram must include a first page named 'Journey Map' using a grid or swimlane structure with 6 vertical phases (Research & Booking, Pre-Departure, Airport Departure, In-Flight, Arrival, Post-Trip) and 6 horizontal lanes (Touchpoints, Channels, Actions, Emotions, Pain Points, Opportunities), populated with the content and flow indicators from the requirements file. A second page named 'Key Metrics' must include the Top 5 Pain Points and 3 'Moments of Truth' from the requirements. Save the diagram to ~/Desktop/passenger_journey_map.drawio and export the 'Journey Map' page to ~/Desktop/passenger_journey_map.png.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/airline_passenger_journey_map/setup_task.sh",
+    "post_task": "/workspace/tasks/airline_passenger_journey_map/export_result.sh"
+  },
+  "metadata": {
+    "requirements_file": "/home/ga/Desktop/passenger_journey_requirements.txt",
+    "output_drawio": "/home/ga/Desktop/passenger_journey_map.drawio",
+    "output_png": "/home/ga/Desktop/passenger_journey_map.png",
+    "required_phases": [
+      "Research",
+      "Booking",
+      "Pre-Departure",
+      "Airport",
+      "In-Flight",
+      "Arrival",
+      "Post-Trip"
+    ],
+    "required_lanes": [
+      "Touchpoint",
+      "Channel",
+      "Action",
+      "Emotion",
+      "Pain Point",
+      "Opportunity"
+    ],
+    "content_keywords": [
+      "hidden fees",
+      "bag drop",
+      "security",
+      "long queue",
+      "lost luggage",
+      "biometric",
+      "bag tracking",
+      "loyalty",
+      "app"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_airline_passenger_journey_map"
+    }
+  }
+}

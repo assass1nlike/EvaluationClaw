@@ -1,0 +1,39 @@
+{
+  "id": "sales_funnel_drillthrough@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "A marketing operations analyst needs a sales pipeline report. Using the data file sales_data.csv located at C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv, build a two-page Power BI report. The report must include two DAX measures: Avg_Order_Value (Average of Sales_Amount) and Total_Transactions (Count of rows). Page 1 must be named \"Pipeline Summary\" and contain a Funnel chart showing Sales_Amount by Product_Category and a Stacked Bar Chart showing Sales_Amount by Customer_Type with Payment_Method as the legend. Page 2 must be named \"Category Drillthrough\", configured as a drill-through page for the Product_Category field, and include a Card visual for the Avg_Order_Value measure and a Table visual displaying Sale_Date, Sales_Rep, Region, Sales_Amount, Quantity_Sold, and Discount. Save the final report to C:\\Users\\Docker\\Desktop\\Sales_Funnel_Report.pbix.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\sales_funnel_drillthrough\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\sales_funnel_drillthrough\\export_result.ps1"
+  },
+  "metadata": {
+    "output_file": "C:\\Users\\Docker\\Desktop\\Sales_Funnel_Report.pbix",
+    "required_pages": [
+      "Pipeline Summary",
+      "Category Drillthrough"
+    ],
+    "required_measures": [
+      "Avg_Order_Value",
+      "Total_Transactions"
+    ],
+    "required_visuals": [
+      "funnel",
+      "stackedBarChart",
+      "tableEx",
+      "card"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sales_funnel_drillthrough"
+    }
+  }
+}

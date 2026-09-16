@@ -44,7 +44,7 @@ def _environment_for_runner(task: TaskDefinition) -> dict[str, Any]:
             if value
         )
         env, _ = apply_docker_image_selection(env, task_text=task_text)
-        if not env.get("test_command"):
+        if not env.get("test_command") and not env.get("judge"):
             env["test_command"] = "pytest -q"
     if env_type == "vm":
         if not isinstance(env.get("session"), dict):
@@ -98,6 +98,9 @@ def _task_agent_metadata_for_task(task: TaskDefinition, agent_env: dict[str, Any
             "levels": levels,
         }
     )
+    if agent_env.get("judge"):
+        scoring.update(method="judge_agent" if agent_env["judge"]["mode"] == "judge" else "hybrid",
+                       environment_ref="metadata.agent_env.judge")
     is_dialogue = task.task_type == TaskType.multi_turn
     metadata = {
         "schema_version": existing.get("schema_version") or "evalclaw.task_agent.v1",
@@ -191,7 +194,7 @@ def _required_tools_for_env(agent_env: dict[str, Any]) -> list[str]:
         workspace_tools = ["list_files", "read_file", "write_file"]
         if not protected_material:
             workspace_tools.append("run_command")
-        return [*workspace_tools, *actor_tools, "run_tests"]
+        return [*workspace_tools, *actor_tools, "final" if agent_env.get("judge") else "run_tests"]
     return ["final"]
 
 
@@ -342,12 +345,14 @@ def _agent_task_package_for_task(task: TaskDefinition, agent_env: dict[str, Any]
             "environment_ref": "metadata.agent_env",
             "setup_command_count": len(setup_commands),
             "run": f"Target agent acts through the EvaluationClaw {env_type} tool environment.",
-            "evaluate": str(agent_env.get("test_command") or evaluation.get("method") or task.scoring.method),
+            "evaluate": "metadata.agent_env.judge" if agent_env.get("judge") else str(
+                agent_env.get("test_command") or evaluation.get("method") or task.scoring.method),
             "timeout_s": int(agent_env.get("timeout") or 0),
             "max_steps": int(agent_env.get("max_steps") or task.interaction.get("max_turns") or 0),
         },
         "evaluation": {
-            "method": str(evaluation.get("method") or task.scoring.method or "deterministic"),
+            "method": ("judge_agent" if agent_env["judge"]["mode"] == "judge" else "hybrid")
+            if agent_env.get("judge") else str(evaluation.get("method") or task.scoring.method or "deterministic"),
             "checks": evaluation.get("checks", []) if isinstance(evaluation.get("checks"), list) else [],
             "score_range": [0, 1],
             "pass_criteria": str(evaluation.get("pass_criteria") or task.scoring.pass_criteria),

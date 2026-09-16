@@ -1,0 +1,31 @@
+{
+  "id": "perform_user_access_review@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "You are the Security Administrator performing a quarterly User Access Review. Complete the pending 'Q3 2025 HR DB Access Review' for the 'HR Employee Database'. The HR department has notified you that the contractor 'Charlie Vendor' (charlie.vendor) has finished their contract, so their access must be revoked with the comment 'Contract ended'. All other users, including 'alice.admin' and 'bob.user', are active employees and should have their access kept. Update and save the review items accordingly.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/perform_user_access_review/setup_task.sh",
+    "post_task": "/workspace/tasks/perform_user_access_review/export_result.sh"
+  },
+  "metadata": {
+    "target_review_name": "Q3 2025 HR DB Access Review",
+    "target_user_revoke": "charlie.vendor",
+    "target_users_keep": [
+      "alice.admin",
+      "bob.user"
+    ],
+    "required_comment": "Contract ended"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_perform_user_access_review"
+    }
+  }
+}

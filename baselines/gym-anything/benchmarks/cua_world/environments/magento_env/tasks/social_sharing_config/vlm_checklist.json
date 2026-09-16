@@ -1,0 +1,59 @@
+{
+  "task_id": "social_sharing_config@1",
+  "task_completion": [
+    {
+      "id": "email_to_friend_enabled",
+      "description": "Enable the 'Email to a Friend' feature",
+      "points": 15,
+      "visual_evidence": "Look for the 'Email to a Friend' configuration section in the Magento Admin panel. Verify that the 'Enabled' dropdown is set to 'Yes'. The 'Use system value' checkbox next to it must be unchecked if the default was different."
+    },
+    {
+      "id": "email_to_friend_guest_disabled",
+      "description": "Set 'Allow for Guests' to No",
+      "points": 15,
+      "visual_evidence": "In the 'Email to a Friend' configuration section, verify that the 'Allow for Guests' dropdown is set to 'No'."
+    },
+    {
+      "id": "email_to_friend_limits",
+      "description": "Configure 'Max Recipients' and 'Max Products Sent in 1 Hour'",
+      "points": 20,
+      "visual_evidence": "In the 'Email to a Friend' configuration section, verify that the 'Max Recipients' text field contains '3' and the 'Max Products Sent in 1 Hour' text field contains '5'."
+    },
+    {
+      "id": "wishlist_sharing_limit",
+      "description": "Set Wishlist 'Max Emails Allowed to be Sent' to 5",
+      "points": 15,
+      "visual_evidence": "Look for the 'Wishlist' configuration section (under Customers > Wishlist) and expand 'Share Options'. Verify that the 'Max Emails Allowed to be Sent' text field contains '5'."
+    },
+    {
+      "id": "wishlist_email_sender",
+      "description": "Change Wishlist 'Email Sender' to 'Customer Support'",
+      "points": 15,
+      "visual_evidence": "In the 'Wishlist' configuration section under 'Share Options', verify that the 'Email Sender' dropdown is set to 'Customer Support'."
+    },
+    {
+      "id": "configuration_saved",
+      "description": "Save the configuration",
+      "points": 20,
+      "visual_evidence": "Look for a green success banner at the top of the Magento Admin page stating 'You saved the configuration.', indicating that the user clicked the 'Save Config' button and the changes were applied."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Agent used the Magento Admin GUI to make changes",
+      "visual_evidence": "Screenshots should show the agent navigating the Magento Admin panel in a web browser, rather than using terminal commands (like bin/magento config:set) or direct database queries to bypass the UI."
+    },
+    {
+      "id": "genuine_browser_usage",
+      "description": "Agent interacted with the actual application",
+      "visual_evidence": "The browser window should show the actual Magento backend interface, not a text editor, mock HTML file, or a script executing the task."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Agent did not use browser developer tools to fake the success message",
+      "visual_evidence": "The success message and configuration values should appear naturally in the page flow without the browser's Developer Tools (Inspect Element) being open and actively modifying the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires modifying Magento 2 settings. The expected configuration values correspond to the following backend paths: 'sendfriend/email/enabled' = 1 (Yes), 'sendfriend/email/allow_guest' = 0 (No), 'sendfriend/email/max_recipients' = 3, 'sendfriend/email/max_per_hour' = 5, 'wishlist/email/number_limit' = 5, and 'wishlist/email/email_identity' = 'support' (Customer Support). The VLM should verify these values are visually set in the Magento Admin Panel under Stores > Configuration (typically under Catalog > Email to a Friend and Customers > Wishlist) and that the configuration is successfully saved."
+}

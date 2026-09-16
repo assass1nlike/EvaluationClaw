@@ -1,0 +1,53 @@
+{
+  "task_id": "create_form_navigation@1",
+  "task_completion": [
+    {
+      "id": "target_directory_and_files",
+      "description": "Verify the creation of the target directory and the four required files.",
+      "points": 15,
+      "visual_evidence": "Look for a file explorer, terminal, or text editor tree showing the directory 'C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\criminal_records' containing exactly four files: 'form_nav.talon', 'form_fields.talon-list', 'formatters.py', and 'data_entry.talon'."
+    },
+    {
+      "id": "form_nav_talon_contents",
+      "description": "Verify that form_nav.talon implements the required navigation and form control commands.",
+      "points": 20,
+      "visual_evidence": "Look for the contents of 'form_nav.talon' in a text editor. It must contain voice commands matching or closely resembling: 'next field', 'previous field', 'field <user.form_field_name>', 'clear field', 'submit form', 'cancel form', 'copy field', and 'paste value'."
+    },
+    {
+      "id": "form_fields_list_contents",
+      "description": "Verify that form_fields.talon-list defines the required named-field vocabulary.",
+      "points": 15,
+      "visual_evidence": "Look for the contents of 'form_fields.talon-list' in a text editor. It must declare the list 'list: user.form_field_name' (or similar header) and contain mappings for: case number, first name, last name, date of birth, offense type, arresting officer, badge number, incident date, location, and status."
+    },
+    {
+      "id": "formatters_py_contents",
+      "description": "Verify that formatters.py defines the required Python-backed data formatters using the Talon Module.",
+      "points": 25,
+      "visual_evidence": "Look for the contents of 'formatters.py' in a text editor. It must import the Talon Module (e.g., 'from talon import Module'), use the '@mod.action_class' decorator, and define three functions: 'format_case_number', 'format_badge_number', and 'format_date_entry'."
+    },
+    {
+      "id": "data_entry_talon_contents",
+      "description": "Verify that data_entry.talon calls the Python formatters and implements the case status vocabulary.",
+      "points": 25,
+      "visual_evidence": "Look for the contents of 'data_entry.talon' in a text editor. It must contain commands that call the custom Python actions (e.g., 'user.format_case_number()') and include voice commands to enter specific case statuses: open, closed, pending, warrant issued, and dismissed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify that the agent actually created and edited the files using a text editor or valid terminal commands.",
+      "visual_evidence": "Look for screenshots showing the agent interacting with a text editor (like VS Code, Notepad, or Vim) or using standard terminal commands (like echo or cat) to write the file contents, rather than just claiming the files were created."
+    },
+    {
+      "id": "correct_file_extensions",
+      "description": "Verify that the agent used the exact requested file extensions.",
+      "visual_evidence": "Check the file tree or editor tabs to ensure the files end in '.talon', '.talon-list', and '.py', and were not accidentally saved as '.txt' or without extensions."
+    },
+    {
+      "id": "no_hallucinated_files",
+      "description": "Verify that the agent did not create unnecessary files outside the scope of the prompt.",
+      "visual_evidence": "Check the 'criminal_records' directory in the file explorer or terminal to ensure only the four requested files exist, with no extra scripts or dummy data files."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Directory: C:\\Users\\Docker\\AppData\\Roaming\\Talon\\user\\criminal_records. Required files: form_nav.talon, form_fields.talon-list, formatters.py, data_entry.talon. form_nav.talon must include commands: 'next field', 'previous field', 'field <user.form_field_name>', 'clear field', 'submit form', 'cancel form', 'copy field', 'paste value'. form_fields.talon-list must define 'user.form_field_name' with items: case number, first name, last name, date of birth, offense type, arresting officer, badge number, incident date, location, status. formatters.py must define actions: format_case_number, format_badge_number, format_date_entry. data_entry.talon must call these formatters and include statuses: open, closed, pending, warrant issued, dismissed."
+}

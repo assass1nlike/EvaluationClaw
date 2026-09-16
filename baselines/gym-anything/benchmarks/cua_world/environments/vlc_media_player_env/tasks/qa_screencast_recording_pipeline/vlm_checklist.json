@@ -1,0 +1,59 @@
+{
+  "task_id": "qa_screencast_recording_pipeline@1",
+  "task_completion": [
+    {
+      "id": "open_vlc_capture_device",
+      "description": "Verify VLC Media Player is open and configured to capture the desktop.",
+      "points": 10,
+      "visual_evidence": "VLC 'Open Media' window is visible, the 'Capture Device' tab is active, and 'Capture mode' is set to 'Desktop'."
+    },
+    {
+      "id": "set_frame_rate",
+      "description": "Verify the frame rate is set to exactly 10.00 fps.",
+      "points": 15,
+      "visual_evidence": "In the VLC Capture Device settings, the 'Desired frame rate for the capture' field shows '10.00'."
+    },
+    {
+      "id": "select_video_profile",
+      "description": "Verify the correct video profile is selected.",
+      "points": 15,
+      "visual_evidence": "In the VLC 'Convert' dialog, the Profile dropdown is set to 'Video - H.264 + MP3 (MP4)'."
+    },
+    {
+      "id": "set_destination_file",
+      "description": "Verify the destination file path is correctly entered.",
+      "points": 20,
+      "visual_evidence": "In the VLC 'Convert' dialog, the Destination file field contains exactly '/home/ga/Videos/qa_reports/jira_attachment_bug_1044.mp4'."
+    },
+    {
+      "id": "display_reference_image",
+      "description": "Verify the reference image is displayed at 100% zoom.",
+      "points": 20,
+      "visual_evidence": "An image viewer window is open displaying the 'bug_reference_ui.png' image, with UI indicators showing 100% zoom, 'Normal Size', or 'Original Size'."
+    },
+    {
+      "id": "verify_recording_saved",
+      "description": "Verify the recording file is saved to the correct location.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window shows the file 'jira_attachment_bug_1044.mp4' exists in the '/home/ga/Videos/qa_reports/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_vlc_usage",
+      "description": "Verify VLC GUI was used for configuring and starting the recording.",
+      "visual_evidence": "Screenshots show interaction with VLC's graphical menus and dialogs (Open Media, Convert), rather than terminal commands like 'ffmpeg' or 'cvlc'."
+    },
+    {
+      "id": "gui_image_viewer",
+      "description": "Verify a graphical image viewer was used to display the reference image.",
+      "visual_evidence": "The reference image is displayed in a standard GUI image viewer, not mocked via terminal output or a text editor."
+    },
+    {
+      "id": "genuine_recording_process",
+      "description": "Verify the recording was actually processed by VLC.",
+      "visual_evidence": "VLC's main window shows the streaming/recording progress (e.g., time elapsed incrementing on the playback bar), indicating a real recording rather than a dummy file creation."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be saved to '/home/ga/Videos/qa_reports/jira_attachment_bug_1044.mp4'. The frame rate must be set to 10 fps (tolerance 1.5). The template image to be displayed is located at '/home/ga/Pictures/bug_reference_ui.png'. The final file size must not exceed 2.0 MB (2097152 bytes)."
+}

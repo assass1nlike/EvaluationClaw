@@ -1,0 +1,37 @@
+{
+  "id": "bibliography_formatting@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Convert the 10 mixed-format academic citations in /home/ga/Documents/raw_citations.docx to proper APA 7th edition format. Ensure all entries use correct author formatting, parenthetical years, sentence-case article titles, and italicized publication titles. The final list must include a centered 'References' heading, be sorted alphabetically by the first author's last name, and utilize a 0.5-inch hanging indent. Save the updated document to the original path.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 55,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bibliography_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/bibliography_formatting/export_result.sh"
+  },
+  "metadata": {
+    "citation_count": 10,
+    "expected_first_authors_sorted": [
+      "Bandura",
+      "Bowlby",
+      "Erikson",
+      "Kahneman",
+      "Maslow",
+      "Milgram",
+      "Pavlov",
+      "Piaget",
+      "Skinner",
+      "Vygotsky"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bibliography_formatting"
+    }
+  }
+}

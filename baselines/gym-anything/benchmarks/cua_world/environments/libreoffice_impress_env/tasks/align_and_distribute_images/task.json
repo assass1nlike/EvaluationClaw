@@ -1,0 +1,32 @@
+{
+  "id": "align_and_distribute_images@1",
+  "version": "1.0",
+  "env_id": "libreoffice_impress_env@0.1",
+  "description": "On Slide 2 of 'product_showcase.odp', align the three product images (Watch, Camera, and Headphones) to their vertical centers and distribute them evenly horizontally. Save the updated presentation.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/align_and_distribute_images/setup_task.sh",
+    "post_task": "/workspace/tasks/align_and_distribute_images/export_result.sh"
+  },
+  "metadata": {
+    "target_file": "/home/ga/Documents/Presentations/product_showcase.odp",
+    "slide_index": 1,
+    "tolerance_cm": 0.05,
+    "image_names": [
+      "Watch",
+      "Camera",
+      "Headphones"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_alignment_and_distribution"
+    }
+  }
+}

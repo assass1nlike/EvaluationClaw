@@ -1,0 +1,43 @@
+{
+  "id": "z_stack_projection@1",
+  "name": "Create Maximum Intensity Z-Stack Projection",
+  "description": "You have access to Fiji with a Z-stack microscopy image. Your task is to generate a maximum intensity projection from the \"T1 Head\" sample image. Adjust the contrast for optimal visibility and save the resulting projection as a PNG to ~/Fiji_Data/results/max_projection.png. Additionally, perform a measurement of the projection's image statistics and export the data to ~/Fiji_Data/results/projection_stats.csv.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "metadata": {
+    "image_name": "T1 Head",
+    "stack_size": [
+      256,
+      256,
+      129
+    ],
+    "projection_type": "Max Intensity",
+    "expected_output_size": [
+      256,
+      256
+    ],
+    "data_source": "Fiji built-in sample (T1 Head CT scan)",
+    "image_type": "16-bit grayscale CT scan"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/z_stack_projection/setup_task.sh",
+    "post_task": "/workspace/tasks/z_stack_projection/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_z_projection"
+    }
+  },
+  "difficulty": "easy",
+  "tags": [
+    "microscopy",
+    "z-stack",
+    "projection",
+    "3d-imaging",
+    "ct-scan"
+  ]
+}

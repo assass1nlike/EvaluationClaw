@@ -1,0 +1,53 @@
+{
+  "task_id": "simulated_transient_anomaly@1",
+  "task_completion": [
+    {
+      "id": "openc3_cosmos_accessed",
+      "description": "OpenC3 COSMOS interface is accessed",
+      "points": 10,
+      "visual_evidence": "The OpenC3 COSMOS web interface is visible in a browser window."
+    },
+    {
+      "id": "anomaly_triggered",
+      "description": "YELLOW_HIGH limit for INST HEALTH_STATUS TEMP1 is lowered to trigger an anomaly",
+      "points": 20,
+      "visual_evidence": "Command history, Limits Monitor, or Telemetry Viewer shows the YELLOW_HIGH limit for INST HEALTH_STATUS TEMP1 was modified or an out-of-limits alarm is active."
+    },
+    {
+      "id": "counters_reset",
+      "description": "INST CLEAR command is sent to reset latched violation counters",
+      "points": 20,
+      "visual_evidence": "The Command Sender or Command History shows the INST CLEAR command was executed."
+    },
+    {
+      "id": "json_report_exists",
+      "description": "The simulated anomaly report JSON file is created at the correct location",
+      "points": 20,
+      "visual_evidence": "A file named 'simulated_anomaly_report.json' is visible on the Desktop or open in a text editor at '/home/ga/Desktop/'."
+    },
+    {
+      "id": "json_report_content",
+      "description": "The JSON report contains all required fields and correct values",
+      "points": 30,
+      "visual_evidence": "The contents of 'simulated_anomaly_report.json' show a valid JSON structure with keys: target ('INST'), item ('TEMP1'), original_yellow_high, simulated_yellow_high, anomaly_start_time, anomaly_end_time, duration_seconds (>= 5.0), peak_value, and limits_restored (true)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_cosmos_interaction",
+      "description": "The agent interacted with OpenC3 COSMOS to perform the task",
+      "visual_evidence": "Screenshots show the agent actively using the OpenC3 COSMOS interface (e.g., Command Sender, Telemetry Viewer) rather than just typing a fake report."
+    },
+    {
+      "id": "plausible_report_values",
+      "description": "The JSON report contains realistic telemetry data and timestamps",
+      "visual_evidence": "The JSON report contains realistic timestamps, temperature values, and limit values, not just placeholder text."
+    },
+    {
+      "id": "no_fake_report",
+      "description": "The agent did not copy-paste a pre-made report",
+      "visual_evidence": "The agent is seen gathering the data (e.g., observing the peak temperature, noting timestamps) before writing the report."
+    }
+  ],
+  "privileged_info_for_vlm": "Target: INST. Item: TEMP1. Output file: /home/ga/Desktop/simulated_anomaly_report.json. The task requires interacting with OpenC3 COSMOS to simulate an anomaly, send the INST CLEAR command, and document the results."
+}

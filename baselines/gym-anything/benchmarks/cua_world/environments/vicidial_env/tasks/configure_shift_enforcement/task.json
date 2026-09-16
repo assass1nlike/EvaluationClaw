@@ -1,0 +1,29 @@
+{
+  "id": "configure_shift_enforcement@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Configure strict shift enforcement for the 'Survey Team' (User Group: SURVEY). Create a new shift with ID 'SURVEY_EVE', name 'Evening Survey Block', start time 1700, and length 0500 for all weekdays. Update the 'SURVEY' user group to use 'ALL' shift enforcement and assign the 'SURVEY_EVE' shift to its allowed shifts.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_shift_enforcement/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_shift_enforcement/export_result.sh"
+  },
+  "metadata": {
+    "target_shift_id": "SURVEY_EVE",
+    "target_group_id": "SURVEY",
+    "expected_start": "1700",
+    "expected_length": "0500",
+    "expected_enforcement": "ALL"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_shift_enforcement"
+    }
+  }
+}

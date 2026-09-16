@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_volume_shadowed_dependencies@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "Open the docker-compose.yml file in a text editor.",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE is open showing the contents of /home/ga/projects/shadow-bug/docker-compose.yml."
+    },
+    {
+      "id": "add_anonymous_volume",
+      "description": "Modify docker-compose.yml to prevent the node_modules directory from being shadowed.",
+      "points": 30,
+      "visual_evidence": "The volumes section in docker-compose.yml includes an anonymous volume for node_modules (e.g., - /app/node_modules) alongside the existing bind mount."
+    },
+    {
+      "id": "start_docker_container",
+      "description": "Start the Docker container successfully without crashing.",
+      "points": 20,
+      "visual_evidence": "A terminal shows the execution of 'docker compose up' or 'docker-compose up' in the project directory, and the logs indicate the server started successfully without the 'Cannot find module express' error."
+    },
+    {
+      "id": "access_localhost_3000",
+      "description": "Access the application at http://localhost:3000.",
+      "points": 20,
+      "visual_evidence": "A web browser navigated to http://localhost:3000 or a terminal showing a 'curl http://localhost:3000' command."
+    },
+    {
+      "id": "verify_expected_response",
+      "description": "Verify the application returns the expected success message.",
+      "points": 20,
+      "visual_evidence": "The exact text 'Hello from Docker!' is visible in the web browser viewport or as the output of the curl command in the terminal."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_host_npm_install",
+      "description": "Ensure npm install was not run on the host machine.",
+      "visual_evidence": "The terminal history should not show 'npm install' being executed directly on the host. Additionally, the host's file explorer/tree in the IDE should not show a 'node_modules' folder inside /home/ga/projects/shadow-bug/."
+    },
+    {
+      "id": "maintained_bind_mount",
+      "description": "Ensure the original .:/app bind mount was not removed.",
+      "visual_evidence": "The docker-compose.yml file must still contain the '.:/app' (or equivalent) bind mount in its volumes list. The fix must be an addition, not a replacement."
+    },
+    {
+      "id": "genuine_http_request",
+      "description": "Ensure the success message comes from a real HTTP request.",
+      "visual_evidence": "The 'Hello from Docker!' string must appear as a network response in a browser or curl output, not merely echoed in the terminal or written in a text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/projects/shadow-bug. The container name is 'shadow-app'. The application must respond at http://localhost:3000 with the exact string 'Hello from Docker!'. The fix requires adding an anonymous volume for /app/node_modules in docker-compose.yml while keeping the .:/app bind mount."
+}

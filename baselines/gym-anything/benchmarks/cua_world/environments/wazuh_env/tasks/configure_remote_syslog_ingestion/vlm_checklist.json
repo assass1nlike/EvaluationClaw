@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_remote_syslog_ingestion@1",
+  "task_completion": [
+    {
+      "id": "ossec_conf_remote_syslog",
+      "description": "Configure remote syslog listener in ossec.conf",
+      "points": 25,
+      "visual_evidence": "Look for a terminal or text editor showing the 'ossec.conf' file. It must contain a '<remote>' block with '<connection>syslog</connection>', '<port>514</port>', '<protocol>udp</protocol>', and '<allowed-ips>172.16.0.0/12</allowed-ips>'."
+    },
+    {
+      "id": "local_rules_xml_id_level",
+      "description": "Create custom detection rule with correct ID and level",
+      "points": 20,
+      "visual_evidence": "Look for a terminal or text editor showing the 'local_rules.xml' file. It must contain a rule definition starting with '<rule id=\"100100\" level=\"5\">' (the level can be 5 or any number higher than 5)."
+    },
+    {
+      "id": "local_rules_xml_match",
+      "description": "Configure the detection rule to match the specific Cisco ASA string",
+      "points": 20,
+      "visual_evidence": "Within the rule 100100 block in 'local_rules.xml', look for a match condition containing the exact string: '<match>%ASA-4-106023</match>'."
+    },
+    {
+      "id": "wazuh_manager_restarted",
+      "description": "Ensure the Wazuh manager configuration is active",
+      "points": 15,
+      "visual_evidence": "Look for terminal output showing a successful restart of the Wazuh manager service, such as 'systemctl restart wazuh-manager' or '/var/ossec/bin/wazuh-control restart' completing without errors."
+    },
+    {
+      "id": "syslog_port_listening",
+      "description": "Verify the syslog port is listening",
+      "points": 20,
+      "visual_evidence": "Look for terminal output from a network command like 'ss -uln', 'netstat -uln', or 'lsof -i:514' showing that UDP port 514 is open and listening."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_edits",
+      "description": "Verify that ossec.conf and local_rules.xml were actually edited in their proper system paths",
+      "visual_evidence": "Check that the file paths shown in the editor or terminal commands correspond to the actual Wazuh installation directories (typically /var/ossec/etc/ossec.conf and /var/ossec/etc/rules/local_rules.xml), not temporary or mock files."
+    },
+    {
+      "id": "genuine_service_restart",
+      "description": "Verify that the service restart and port checks are genuine terminal commands",
+      "visual_evidence": "Look for actual shell prompts executing commands like 'systemctl' or 'ss'/'netstat' with realistic system output, rather than simply echoing text to the screen."
+    },
+    {
+      "id": "no_hardcoded_test_logs",
+      "description": "Verify the agent did not just create a fake log file with the expected output",
+      "visual_evidence": "Ensure the agent configured the Wazuh manager to ingest the logs dynamically rather than manually writing the test log string directly into Wazuh's internal alert logs."
+    }
+  ],
+  "privileged_info_for_vlm": "Target port: 514. Target protocol: UDP. Allowed IPs must include '172.16.0.0/12' (or '172.16'). Rule ID must be exactly 100100. Rule match string must be exactly '%ASA-4-106023'. If the agent tests the rule, the exact test log is: '<134>Mar 15 10:00:00 cisco-asa %ASA-4-106023: Deny tcp src outside:198.51.100.1/443 dst inside:10.0.0.5/80'."
+}

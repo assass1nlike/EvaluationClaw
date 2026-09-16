@@ -1,0 +1,81 @@
+{
+  "dataset_id": "04a07ab2",
+  "name": "Safety-Vests-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Safety-Vests-Detection dataset is an object detection benchmark for identifying safety vests in images. It evaluates a model's ability to localize vests worn by people in various workplace settings.",
+  "card_text": "The dataset consists of 200 images paired with a generic text prompt and bounding box annotations. The images depict people wearing safety vests in diverse environments, and the annotations specify the coordinates of each vest using the format [x, y, width, height]. The task is to detect all safety vests in the image, which is a critical component of workplace safety monitoring. The dataset is designed for object detection models and can be used to evaluate performance in real-world safety compliance scenarios.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "workplace safety",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic prompt placeholder instructing the model to detect safety vests in the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "The image file showing one or more persons wearing safety vests; it is the visual input for vest detection.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "A list of bounding boxes, each associated with the class label 'vest', specifying the location of safety vests in the image. Coordinates are given as [x, y, width, height].",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image file path, a generic text prompt, and a list of bounding boxes with a 'vest' class label. The image is the primary input, the prompt is a placeholder instruction, and the bounding boxes localize safety vests."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/safety-vests-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "safety-vest-detection",
+      "type": "comprehension",
+      "skill": "Safety Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

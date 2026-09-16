@@ -1,0 +1,59 @@
+{
+  "task_id": "build_system_healthcheck@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "The script file is created at the correct path.",
+      "points": 10,
+      "visual_evidence": "Terminal or text editor showing the file /usr/local/bin/socioboard-health.sh being created, edited, or listed."
+    },
+    {
+      "id": "service_status_checks",
+      "description": "The script includes logic to check the status of apache2, mariadb, and mongod.",
+      "points": 15,
+      "visual_evidence": "Script contents showing commands like 'systemctl is-active', 'systemctl status', or 'service status' for apache2, mariadb, and mongod."
+    },
+    {
+      "id": "database_connection_check",
+      "description": "The script includes a MariaDB connection check using the correct credentials and query.",
+      "points": 20,
+      "visual_evidence": "Script contents showing a mysql/mariadb command executing 'SELECT 1;' with the user 'socioboard', password 'SocioPass2024!', and database 'socioboard'."
+    },
+    {
+      "id": "frontend_http_check",
+      "description": "The script includes logic to retrieve the HTTP status code from localhost.",
+      "points": 15,
+      "visual_evidence": "Script contents showing a command like 'curl -s -o /dev/null -w \"%{http_code}\" http://localhost' or equivalent."
+    },
+    {
+      "id": "json_output_formatting",
+      "description": "The script formats the output as a strict JSON object with the required keys.",
+      "points": 20,
+      "visual_evidence": "Script contents showing echo, printf, or jq commands constructing a JSON object with keys: 'apache', 'mariadb', 'mongodb', 'database', 'frontend', and 'overall'."
+    },
+    {
+      "id": "script_execution_success",
+      "description": "The script is made executable and runs successfully, producing the expected JSON output.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'chmod +x' applied to the script (or similar) and the script being executed (e.g., './socioboard-health.sh' or '/usr/local/bin/socioboard-health.sh'), followed by a valid JSON output printed to the console."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_output",
+      "description": "The script dynamically evaluates the system state rather than printing a hardcoded JSON string.",
+      "visual_evidence": "The script uses variables, if/else statements, and command substitutions instead of just a single 'echo' with a static JSON string."
+    },
+    {
+      "id": "genuine_service_interaction",
+      "description": "The script interacts with actual system services and endpoints.",
+      "visual_evidence": "The script uses real commands (systemctl, curl, mysql) rather than reading from dummy files or using mock commands."
+    },
+    {
+      "id": "script_actually_saved",
+      "description": "The agent saved the script to the file system rather than just running commands interactively in the terminal.",
+      "visual_evidence": "Presence of a text editor (nano, vim) saving the file, or a 'cat << EOF > /usr/local/bin/socioboard-health.sh' command in the terminal history."
+    }
+  ],
+  "privileged_info_for_vlm": "The health check script must be located exactly at '/usr/local/bin/socioboard-health.sh'. The database connection check must explicitly use the user 'socioboard', the password 'SocioPass2024!', and the database name 'socioboard'."
+}

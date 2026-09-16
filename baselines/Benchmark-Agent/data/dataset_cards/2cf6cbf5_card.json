@@ -1,0 +1,106 @@
+{
+  "dataset_id": "2cf6cbf5",
+  "name": "Openset Visual Step Completion",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset pairs textual recipe tutorials with sequences of step images in which one frame is missing, and asks a model to choose the most appropriate image from a four-item candidate list. It evaluates multimodal reasoning about procedural, step-by-step cooking instructions and their visual realizations.",
+  "card_text": "Openset Visual Step Completion is an image-plus-text benchmark built from online recipe tutorials. Each sample contains a prompt that interleaves the task instruction, the recipe name, and a numbered list of textual steps (ingredients, preparation, cooking, serving) with a partially shown image series where one position is marked UNKNOWN. Alongside the prompt, every sample ships seven JPEG references: the three visible step frames of the recipe series interleaved with the four candidate images labelled Image A through Image D. The model must read the procedural text, mentally align it with the visible steps, and emit the single best-matching candidate label. Answers are short strings such as 'Image C'. The data is 'openset' in that recipes, dishes, and photographic styles vary widely, covering everyday home-cooking content rather than a fixed label taxonomy.",
+  "tasks": [
+    "multiple_choice_qa",
+    "visual_question_answering"
+  ],
+  "domain": "cooking recipes / procedural visual tutorials",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The prompt is the main input the model reads: it opens with the task instruction, then gives the recipe name, a numbered list of textual cooking steps (ingredients, prep, cooking, finishing), and a placeholder image series in which one position is marked UNKNOWN. It supplies the procedural knowledge needed to decide which visual step is missing.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Embedded at the start and end of the same prompt string, the question asks the model to select the most apt image to fill the blank in the recipe image sequence, ending with the cue 'Your answer is:'. It defines the required output format (a choice label).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The trailing 'Choice list:' segment of the prompt enumerates exactly four answer candidates as 'Image A: <ImageHere>' through 'Image D: <ImageHere>', each slot referring to one of the accompanying candidate images. The model must return one of these four labels.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A list of seven JPEG references per sample: the visible frames of the recipe step sequence interleaved with the four candidate images referenced by the choice list. They depict food ingredients, prepared dishes, and cooking actions in a home kitchen, and must be matched against the textual steps.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold label naming the correct candidate image for the missing step, e.g. 'Image C'. It is a single short string that points back to the choice list in the prompt and to one of the candidate images in input.image_file.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample is one flat record with an 'input' object and an 'output' object. 'input.prompt' is a single text block that jointly carries the instruction/question, the full textual recipe tutorial (context), and the four-item 'Choice list' of candidate images (options); 'input.image_file' is a parallel list of seven image references holding the visible recipe step frames plus the four candidate images that the choice list points to; and 'output.text' is the short gold label naming the image that completes the sequence. The text and the image list are aligned by the '<ImageHere>' slots and the 'Image A-D' labels, so resolving the answer requires cross-referencing the procedural text with the visual candidates."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/VisualStepCompletion/openset_visual_step_completion.json",
+    "existing_tags": {
+      "task": "Visual Step Completion",
+      "type": "image comprehension",
+      "skill": "Multimodal Reasoning",
+      "domain": "General",
+      "general_capability": [
+        "Reasoning Ability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

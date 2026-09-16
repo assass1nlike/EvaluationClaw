@@ -1,0 +1,76 @@
+{
+  "dataset_id": "8218ffc9",
+  "name": "Aspect-Sentiment-Triplet-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Aspect-Sentiment-Triplet-Extraction dataset evaluates models on extracting aspect-opinion-sentiment triplets from short review texts. Given a review snippet and an instruction prompt, the model must identify all aspect terms, corresponding opinion expressions, and their sentiment polarity, outputting them in a structured triplet format.",
+  "card_text": "This dataset is a text-only benchmark for aspect-sentiment triplet extraction, a fine-grained opinion mining task. Each sample contains a short user review (e.g., 'Great place , great value .') and an instruction prompt asking for all aspect-opinion-sentiment triplets. The expected output is a single string listing triplets in the format 'aspect => opinion => sentiment' (e.g., 'place => Great => POS'), with multiple triplets separated by commas. The reviews are typically short, informal, and express subjective opinions about places, products, or services. The dataset tests a model's ability to jointly extract aspect terms, opinion spans, and sentiment polarity, and to serialize them in a strict format.",
+  "tasks": [
+    "relation_extraction",
+    "attribute_extraction",
+    "span_extraction"
+  ],
+  "domain": "customer reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "A short user review snippet that expresses opinions about a place, product, or service. It serves as the main source text from which aspect-opinion-sentiment triplets must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural-language instruction that asks the model to extract all aspect-opinion-sentiment triplets from the raw_text and specifies the output format, including separator style and sentiment labels.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The extracted triplets formatted as 'aspect => opinion => sentiment', with multiple triplets separated by commas. Each triplet links an aspect term, an opinion expression, and a polarity label such as POS or NEG.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a text input and a text output. The input has two fields: raw_text, a short review snippet, and prompt, a natural-language instruction to extract aspect-opinion-sentiment triplets. The output has a single text field containing the extracted triplets formatted as 'aspect => opinion => sentiment', with multiple triplets separated by commas. No dialog, options, images, or external annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Aspect-Sentiment-Triplet-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "aspect_sentiment_triplet_extraction",
+      "type": "multi label classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

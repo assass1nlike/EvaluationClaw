@@ -1,0 +1,59 @@
+{
+  "task_id": "hl7_batch_file_splitter@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify a channel named 'Lab Batch Splitter' has been created.",
+      "points": 10,
+      "visual_evidence": "Look for a channel explicitly named 'Lab Batch Splitter' in the NextGen Connect Administrator Channels list."
+    },
+    {
+      "id": "source_configured",
+      "description": "Verify the source is configured to read from the correct input directory with the correct file pattern.",
+      "points": 20,
+      "visual_evidence": "Look at the Source tab for the channel. The connector type should be 'File Reader', the Directory should be '/var/hl7_input', and the File Name pattern should be '*.hl7'."
+    },
+    {
+      "id": "batch_splitting_configured",
+      "description": "Verify the channel is configured to process HL7 batch files.",
+      "points": 20,
+      "visual_evidence": "Look at the Summary or Data Types tab. The inbound data type should be HL7 v2.x, and batch processing must be enabled (e.g., 'Process Batch' checkbox is ticked in the HL7 v2.x properties)."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Verify the destination is configured to write to the correct output directory with unique filenames.",
+      "points": 20,
+      "visual_evidence": "Look at the Destinations tab. The connector type should be 'File Writer', the Directory should be '/var/hl7_output', and the File Name should use a variable to ensure uniqueness (e.g., ${message.messageId}.hl7, ${UUID}.hl7, or similar)."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Verify the channel is deployed and active.",
+      "points": 10,
+      "visual_evidence": "Look at the Dashboard tab. The 'Lab Batch Splitter' channel should be visible with a status of 'Started' or 'Deployed'."
+    },
+    {
+      "id": "messages_processed_and_output",
+      "description": "Verify that the batch file was successfully split into individual messages and written to the output directory.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window showing the contents of '/var/hl7_output' with 5 distinct files, OR look at the NextGen Connect Dashboard statistics showing exactly 5 messages 'Received' and 'Sent' for the 'Lab Batch Splitter' channel."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_nextgen_usage",
+      "description": "Verify the agent used the NextGen Connect Administrator GUI or API to configure the channel.",
+      "visual_evidence": "Screenshots should show the NextGen Connect Administrator interface (Java Web Start application or web dashboard) being actively configured, or API calls being made, rather than just mocking the final output files."
+    },
+    {
+      "id": "no_manual_file_splitting",
+      "description": "Verify the agent did not manually split the files using terminal commands.",
+      "visual_evidence": "Terminal history should not show commands like 'awk', 'split', 'sed', or 'echo' being used to manually extract HL7 segments and write them directly to /var/hl7_output."
+    },
+    {
+      "id": "valid_hl7_content",
+      "description": "Verify the output files contain genuine HL7 data.",
+      "visual_evidence": "If a terminal 'cat' command or NextGen Connect message viewer is visible, the message content should start with 'MSH|^~\\&|' and contain standard HL7 segments, not dummy text."
+    }
+  ],
+  "privileged_info_for_vlm": "The input batch file contains exactly 5 HL7 v2.5.1 ORU^R01 messages with IDs MSG001, MSG002, MSG003, MSG004, and MSG005. The input directory is /var/hl7_input and the output directory is /var/hl7_output. Successful execution of the NextGen Connect channel should result in exactly 5 unique files in the output directory, corresponding to these 5 messages."
+}

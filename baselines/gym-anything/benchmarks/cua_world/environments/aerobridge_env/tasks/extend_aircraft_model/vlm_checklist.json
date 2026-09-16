@@ -1,0 +1,53 @@
+{
+  "task_id": "extend_aircraft_model@1",
+  "task_completion": [
+    {
+      "id": "models_py_modified",
+      "description": "Verify that the Aircraft model in models.py was updated with the new field.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing /opt/aerobridge/registry/models.py with 'max_altitude_m = models.IntegerField(null=True, blank=True, help_text='Maximum permitted flight altitude in meters')' added to the Aircraft class."
+    },
+    {
+      "id": "admin_py_modified",
+      "description": "Verify that the Aircraft admin configuration in admin.py was updated.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing /opt/aerobridge/registry/admin.py with 'max_altitude_m' added to the Aircraft admin class (e.g., in list_display, fields, or fieldsets)."
+    },
+    {
+      "id": "migrations_executed",
+      "description": "Verify that database migrations were created and applied.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of 'python manage.py makemigrations' and 'python manage.py migrate' with successful output indicating the max_altitude_m field was added."
+    },
+    {
+      "id": "database_records_updated",
+      "description": "Verify that existing Aircraft records were populated with the default value.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a Python script, Django shell session, or SQL commands updating existing Aircraft records to set max_altitude_m to 120."
+    },
+    {
+      "id": "admin_panel_verification",
+      "description": "Verify that the new field is visible in the Django admin panel and shows the correct value.",
+      "points": 20,
+      "visual_evidence": "Web browser open to the Django admin panel (http://localhost:8000/admin/registry/aircraft/ or an individual aircraft's edit page) showing the 'max_altitude_m' column or field, with the value 120 visible."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_code_modification",
+      "description": "Ensure the agent actually modified the Python files rather than just printing the expected code.",
+      "visual_evidence": "File editor saving the changes or terminal commands like 'cat' showing the modified file contents."
+    },
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Ensure the admin panel verification is from a real browser rendering the Django admin interface.",
+      "visual_evidence": "A standard web browser UI (like Firefox or Chromium) displaying the styled Django admin page, not just HTML source code or a text dump."
+    },
+    {
+      "id": "server_running",
+      "description": "Ensure the Django development server was running to reflect the changes.",
+      "visual_evidence": "Terminal showing the 'runserver' command active, or the browser successfully loading the localhost:8000 URL without connection errors."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires adding 'max_altitude_m' to the Aircraft model. The default value for existing records must be exactly 120. The field must be visible in the Django admin panel at http://localhost:8000/admin/registry/aircraft/."
+}

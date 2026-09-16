@@ -1,0 +1,53 @@
+{
+  "task_id": "disable_channels_5_to_8@1",
+  "task_completion": [
+    {
+      "id": "openbci_gui_running",
+      "description": "Verify that the OpenBCI GUI application is open.",
+      "points": 10,
+      "visual_evidence": "The OpenBCI GUI window is visible on the screen."
+    },
+    {
+      "id": "session_running",
+      "description": "Verify that a session has been started and data is streaming.",
+      "points": 20,
+      "visual_evidence": "The Time Series widget in the OpenBCI GUI is actively displaying scrolling waveform data."
+    },
+    {
+      "id": "channels_1_to_4_active",
+      "description": "Verify that channels 1, 2, 3, and 4 are active and visible.",
+      "points": 20,
+      "visual_evidence": "In the Time Series widget, the waveform traces for channels 1, 2, 3, and 4 are visible, and their corresponding numbered channel buttons are toggled ON."
+    },
+    {
+      "id": "channels_5_to_8_disabled",
+      "description": "Verify that channels 5, 6, 7, and 8 have been disabled.",
+      "points": 30,
+      "visual_evidence": "In the Time Series widget, the waveform traces for channels 5, 6, 7, and 8 are completely hidden/removed, and their corresponding numbered channel buttons are toggled OFF."
+    },
+    {
+      "id": "screenshot_saved_correctly",
+      "description": "Verify that the screenshot was saved with the correct filename in the correct directory.",
+      "points": 20,
+      "visual_evidence": "A terminal or file manager shows the file 'four_channel_display.png' exists in the '/home/ga/Documents/OpenBCI_GUI/Screenshots' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gui_usage",
+      "description": "Verify the agent interacted with the actual OpenBCI GUI to disable the channels.",
+      "visual_evidence": "Trajectory shows the agent clicking the channel buttons (5, 6, 7, 8) within the OpenBCI GUI Time Series widget, rather than editing configuration files."
+    },
+    {
+      "id": "authentic_screenshot_capture",
+      "description": "Verify the screenshot was generated using the OpenBCI GUI.",
+      "visual_evidence": "Trajectory shows the agent using the GUI's screenshot functionality (e.g., pressing 'm' or clicking the screenshot button) and renaming the resulting file, rather than using external tools to forge the image."
+    },
+    {
+      "id": "no_file_forgery",
+      "description": "Verify the output file is a genuine image file and not a dummy text file.",
+      "visual_evidence": "The agent uses standard file manipulation commands (like mv) to rename a valid .png file, or the file manager displays a valid image thumbnail for 'four_channel_display.png'."
+    }
+  ],
+  "privileged_info_for_vlm": "The OpenBCI GUI has 8 channels by default. Channels 1, 2, 3, and 4 must remain active (waveforms visible), while channels 5, 6, 7, and 8 must be disabled (waveforms hidden, buttons toggled off). The final screenshot must be saved as 'four_channel_display.png' in '/home/ga/Documents/OpenBCI_GUI/Screenshots/'. Note: Although the task description mentions a 'synthetic session', the environment actually loads real EEG data from PhysioNet during initialization; accept the session as valid as long as data is streaming in the Time Series widget."
+}

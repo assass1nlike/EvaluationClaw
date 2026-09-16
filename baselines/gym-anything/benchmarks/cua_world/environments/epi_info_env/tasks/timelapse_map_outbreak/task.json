@@ -1,0 +1,30 @@
+{
+  "id": "timelapse_map_outbreak@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Create a time-lapse map visualization of an outbreak in Atlanta using Epi Info 7. Using the data in Documents/Atlanta_Outbreak.csv, configure a map layer to display cases as points positioned by Latitude and Longitude. Enable the Time Lapse feature using OnsetDate as the time variable. Save the resulting map configuration as Documents/outbreak_spread.map7.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\timelapse_map_outbreak\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\timelapse_map_outbreak\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "outbreak_spread.map7",
+    "data_filename": "Atlanta_Outbreak.csv",
+    "expected_dir": "C:\\Users\\Docker\\Documents",
+    "required_time_variable": "OnsetDate",
+    "required_lat_variable": "Latitude",
+    "required_lon_variable": "Longitude"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_timelapse_map_outbreak"
+    }
+  }
+}

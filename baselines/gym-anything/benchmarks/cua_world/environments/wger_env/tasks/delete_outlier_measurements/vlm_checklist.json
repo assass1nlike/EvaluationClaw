@@ -1,0 +1,59 @@
+{
+  "task_id": "delete_outlier_measurements@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_measurements",
+      "description": "Navigate to the body measurements section in the wger fitness manager.",
+      "points": 10,
+      "visual_evidence": "The browser displays the wger application with a page showing body measurements, weight, or user statistics."
+    },
+    {
+      "id": "locate_body_fat_outlier",
+      "description": "Locate the erroneous Body Fat entry of 180.0%.",
+      "points": 10,
+      "visual_evidence": "A table, list, or chart in the Body Fat section clearly showing an entry with the value 180.0."
+    },
+    {
+      "id": "delete_body_fat_outlier",
+      "description": "Delete the Body Fat outlier.",
+      "points": 25,
+      "visual_evidence": "A deletion confirmation page for the 180.0% entry, a success message indicating deletion, or the Body Fat list/chart no longer displaying the 180.0 value."
+    },
+    {
+      "id": "locate_waist_outlier",
+      "description": "Locate the erroneous Waist entry of 820.0cm.",
+      "points": 10,
+      "visual_evidence": "A table, list, or chart in the Waist measurements section clearly showing an entry with the value 820.0."
+    },
+    {
+      "id": "delete_waist_outlier",
+      "description": "Delete the Waist outlier.",
+      "points": 25,
+      "visual_evidence": "A deletion confirmation page for the 820.0cm entry, a success message indicating deletion, or the Waist list/chart no longer displaying the 820.0 value."
+    },
+    {
+      "id": "preserve_valid_entries",
+      "description": "Ensure all other historical measurement data is preserved.",
+      "points": 20,
+      "visual_evidence": "The measurement tables or charts still display multiple normal entries (at least 5 valid entries per category) after the outliers have been removed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "The agent interacted with the wger web interface to perform the deletions.",
+      "visual_evidence": "Screenshots show the agent clicking through the wger web application in a browser, rather than using terminal commands like curl or wget."
+    },
+    {
+      "id": "no_terminal_db_manipulation",
+      "description": "The agent did not bypass the UI using database commands.",
+      "visual_evidence": "The terminal does not show the execution of python scripts, Django shell commands, or direct SQL queries (e.g., sqlite3) to delete the records."
+    },
+    {
+      "id": "no_html_tampering",
+      "description": "The agent did not use browser developer tools to fake the deletion.",
+      "visual_evidence": "The browser's developer tools (Inspect Element) are not open and being used to manually delete HTML nodes from the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "The target Body Fat outlier value to be deleted is exactly 180.0. The target Waist outlier value to be deleted is exactly 820.0. There should be at least 5 valid measurements remaining in each category after the outliers are deleted."
+}

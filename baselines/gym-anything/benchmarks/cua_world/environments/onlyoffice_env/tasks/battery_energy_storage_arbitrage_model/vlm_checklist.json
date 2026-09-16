@@ -1,0 +1,59 @@
+{
+  "task_id": "battery_energy_storage_arbitrage_model@1",
+  "task_completion": [
+    {
+      "id": "open_input_data",
+      "description": "Open the input hourly price data in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open, displaying the hourly price data, with the window title or file name indicating 'caiso_sp15_2023_8760.csv'."
+    },
+    {
+      "id": "create_daily_analysis_sheet",
+      "description": "Create a sheet named 'Daily Analysis'.",
+      "points": 10,
+      "visual_evidence": "A sheet tab named 'Daily Analysis' is visible at the bottom of the spreadsheet application."
+    },
+    {
+      "id": "daily_dispatch_decisions",
+      "description": "Calculate daily dispatch decisions based on daily minimum and maximum prices for 365 days.",
+      "points": 20,
+      "visual_evidence": "The 'Daily Analysis' sheet contains columns for daily metrics (e.g., Date, Min Price, Max Price, Charge/Discharge decisions) and extends for approximately 365 rows."
+    },
+    {
+      "id": "daily_profit_calculation",
+      "description": "Calculate daily profits incorporating the 20 MWh capacity, 85% round-trip efficiency, and $200 degradation cost hurdle.",
+      "points": 30,
+      "visual_evidence": "The 'Daily Analysis' sheet contains columns calculating daily revenue, cost, or net profit. The formula bar or cell values should reflect the logic of charging at min price (requiring 20/0.85 MWh) and discharging at max price (20 MWh), only if net revenue exceeds $200."
+    },
+    {
+      "id": "total_annual_metrics",
+      "description": "Calculate the Total Annual Profit and Total Cycles for the year.",
+      "points": 20,
+      "visual_evidence": "Cells explicitly labeled 'Total Annual Profit' and 'Total Cycles' (or very similar) are visible in the spreadsheet, with corresponding calculated numerical values."
+    },
+    {
+      "id": "save_workbook",
+      "description": "Save the completed workbook as 'bess_arbitrage_model.xlsx' in the specified directory.",
+      "points": 10,
+      "visual_evidence": "The spreadsheet application's title bar shows 'bess_arbitrage_model.xlsx', or a file manager/terminal shows the file saved in '~/Documents/Spreadsheets/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_gui",
+      "description": "The agent interacted with a spreadsheet GUI to build the model.",
+      "visual_evidence": "Screenshots show a spreadsheet application (like LibreOffice Calc) open and being actively edited, rather than just terminal windows running scripts."
+    },
+    {
+      "id": "formula_based_calculations",
+      "description": "The agent used spreadsheet formulas to compute the results.",
+      "visual_evidence": "The formula bar in the spreadsheet application shows actual formulas (e.g., MAX, MIN, IF, SUM) being entered or edited, rather than hardcoded final numbers."
+    },
+    {
+      "id": "no_scripting_shortcut",
+      "description": "The agent did not write and execute a Python script to generate the Excel file directly.",
+      "visual_evidence": "There is no evidence of a Python script being written in a text editor or executed in the terminal to generate 'bess_arbitrage_model.xlsx'."
+    }
+  ],
+  "privileged_info_for_vlm": "The model must use a 20 MWh discharge capacity, 0.85 round-trip efficiency, and a $200 cycle degradation cost hurdle. The 'Daily Analysis' sheet must contain exactly 365 rows of daily data. The final workbook must be saved at '/home/ga/Documents/Spreadsheets/bess_arbitrage_model.xlsx'."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "theater_conflict_detector@1",
+  "task_completion": [
+    {
+      "id": "conflict_column_created",
+      "description": "A 'Conflict' column is added to the rehearsal schedule spreadsheet.",
+      "points": 10,
+      "visual_evidence": "In LibreOffice Calc, there should be a new column header named 'Conflict' (or similar) added adjacent to the existing rehearsal schedule data."
+    },
+    {
+      "id": "flag_r003",
+      "description": "Rehearsal R003 is correctly flagged as a conflict.",
+      "points": 15,
+      "visual_evidence": "In the row corresponding to rehearsal R003, the newly created 'Conflict' column should contain a value indicating a conflict (e.g., 'TRUE', 'Yes', 'Conflict', or '1')."
+    },
+    {
+      "id": "flag_r005",
+      "description": "Rehearsal R005 is correctly flagged as a conflict.",
+      "points": 15,
+      "visual_evidence": "In the row corresponding to rehearsal R005, the newly created 'Conflict' column should contain a value indicating a conflict."
+    },
+    {
+      "id": "flag_r008",
+      "description": "Rehearsal R008 is correctly flagged as a conflict.",
+      "points": 15,
+      "visual_evidence": "In the row corresponding to rehearsal R008, the newly created 'Conflict' column should contain a value indicating a conflict."
+    },
+    {
+      "id": "flag_r009",
+      "description": "Rehearsal R009 is correctly flagged as a conflict.",
+      "points": 15,
+      "visual_evidence": "In the row corresponding to rehearsal R009, the newly created 'Conflict' column should contain a value indicating a conflict."
+    },
+    {
+      "id": "no_false_positives",
+      "description": "Non-conflicting rehearsals are NOT flagged as conflicts.",
+      "points": 30,
+      "visual_evidence": "In the rows corresponding to rehearsals R001, R002, R004, R006, R007, and R010, the 'Conflict' column must be empty, or explicitly indicate no conflict (e.g., 'FALSE', 'No', '0')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the LibreOffice Calc graphical user interface to complete the task.",
+      "visual_evidence": "Screenshots should show the LibreOffice Calc application open with the spreadsheet loaded, rather than just a terminal window."
+    },
+    {
+      "id": "no_scripting_bypass",
+      "description": "The agent did not use terminal scripts to bypass the UI.",
+      "visual_evidence": "There should be no evidence of the agent writing and executing Python scripts or using command-line tools (like sed/awk) to directly modify the .ods file in the terminal."
+    },
+    {
+      "id": "viewed_availability_sheet",
+      "description": "The agent actually cross-referenced the data by viewing the Actor_Availability sheet or writing a cross-sheet formula.",
+      "visual_evidence": "At least one screenshot should show the 'Actor_Availability' sheet tab active, or the formula bar should show a formula referencing the 'Actor_Availability' sheet (e.g., using VLOOKUP, MATCH, or COUNTIFS)."
+    }
+  ],
+  "privileged_info_for_vlm": "The spreadsheet contains 10 rehearsals (R001-R010) and 4 actors. Based on the Actor_Availability sheet, there are exactly 4 ground truth scheduling conflicts: R003 (Alice), R005 (Diana), R008 (Bob), and R009 (Charlie). The agent must add a 'Conflict' column and correctly flag ONLY these four rows. Rows R001, R002, R004, R006, R007, and R010 do not have conflicts and must not be flagged."
+}

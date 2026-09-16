@@ -1,0 +1,41 @@
+{
+  "id": "mbta_subway_schematic@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a schematic transit map of the downtown Boston MBTA subway network in draw.io using the station list, connections, and official HEX color codes provided in ~/Desktop/mbta_data.txt. The diagram must accurately represent the following connections:\n- Red Line: South Station ↔ Downtown Crossing ↔ Park Street\n- Orange Line: Downtown Crossing ↔ State ↔ Haymarket ↔ North Station\n- Blue Line: Government Center ↔ State\n- Green Line: Park Street ↔ Government Center ↔ Haymarket ↔ North Station\n\nSave the editable diagram to ~/Desktop/mbta_map.drawio and export a PNG image to ~/Desktop/mbta_map.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mbta_subway_schematic/setup_task.sh",
+    "post_task": "/workspace/tasks/mbta_subway_schematic/export_result.sh"
+  },
+  "metadata": {
+    "output_drawio": "/home/ga/Desktop/mbta_map.drawio",
+    "output_png": "/home/ga/Desktop/mbta_map.png",
+    "colors": {
+      "red": "#DA291C",
+      "orange": "#ED8B00",
+      "blue": "#003DA5",
+      "green": "#00843D"
+    },
+    "stations": [
+      "Park Street",
+      "Downtown Crossing",
+      "State",
+      "Government Center",
+      "Haymarket",
+      "North Station",
+      "South Station"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mbta_subway_schematic"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "id": "search_synonyms_seo@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create five search synonym groups in the Magento admin panel with the scope set to 'All Store Views'. The required synonym groups are: 'laptop, notebook, ultrabook'; 'phone, smartphone, mobile, cellphone'; 'headphones, earphones, earbuds, headset'; 'tshirt, tee, t-shirt'; and 'jacket, coat, outerwear, parka'. If not logged in, use admin/Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/search_synonyms_seo/setup_task.sh",
+    "post_task": "/workspace/tasks/search_synonyms_seo/export_result.sh"
+  },
+  "metadata": {
+    "expected_groups": [
+      [
+        "laptop",
+        "notebook",
+        "ultrabook"
+      ],
+      [
+        "phone",
+        "smartphone",
+        "mobile",
+        "cellphone"
+      ],
+      [
+        "headphones",
+        "earphones",
+        "earbuds",
+        "headset"
+      ],
+      [
+        "tshirt",
+        "tee",
+        "t-shirt"
+      ],
+      [
+        "jacket",
+        "coat",
+        "outerwear",
+        "parka"
+      ]
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_search_synonyms"
+    }
+  }
+}

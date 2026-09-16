@@ -1,0 +1,53 @@
+{
+  "task_id": "r_package_dev_statkit@1",
+  "task_completion": [
+    {
+      "id": "description_file_created",
+      "description": "Verify the DESCRIPTION file is created with the correct metadata.",
+      "points": 15,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., 'cat DESCRIPTION') showing the file at '/home/ga/RProjects/statkit/DESCRIPTION' with Title: 'Statistical Utility Kit', Version: '0.1.0', and Author: 'Ga Agent'."
+    },
+    {
+      "id": "functions_implemented",
+      "description": "Verify the R/stats.R file contains the correct implementations of std_error and coef_var.",
+      "points": 20,
+      "visual_evidence": "Look for the source code of 'R/stats.R'. It must contain 'std_error' and 'coef_var' functions. Check that 'std_error' calculates sd(x)/sqrt(length(x)) and explicitly handles 'na.rm' in the length calculation (e.g., using sum(!is.na(x)) or length(na.omit(x)) instead of just length(x))."
+    },
+    {
+      "id": "dataset_and_documentation",
+      "description": "Verify the project_metrics dataset and documentation exist.",
+      "points": 15,
+      "visual_evidence": "Look for Roxygen2 comments (#' ...) above the functions in R/stats.R and documentation for 'project_metrics'. Also look for evidence of the dataset in the 'data/' directory (e.g., project_metrics.rda or project_metrics.RData) and 'man/' directory containing .Rd files."
+    },
+    {
+      "id": "package_built",
+      "description": "Verify the package was built into a source tarball.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing 'ls ~/RProjects' or a file explorer showing the file 'statkit_0.1.0.tar.gz' located in the '/home/ga/RProjects' directory."
+    },
+    {
+      "id": "verification_script_created_and_run",
+      "description": "Verify the verify_package.R script is created, loads the library, and demonstrates the functions.",
+      "points": 30,
+      "visual_evidence": "Look for the contents of '/home/ga/RProjects/verify_package.R' showing 'library(statkit)' and calls to 'std_error' and 'coef_var'. Also look for terminal output showing the script being executed (e.g., 'Rscript verify_package.R') and successfully printing the results of the functions."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_r_build",
+      "description": "Ensure the package was built using R tools rather than just creating a fake tarball.",
+      "visual_evidence": "Look for terminal logs showing standard R build commands like 'R CMD build' or 'devtools::build()' with standard R build output, rather than just a 'tar -czvf' command."
+    },
+    {
+      "id": "genuine_r_execution",
+      "description": "Ensure the verification script is actually executed in an R environment.",
+      "visual_evidence": "Look for the R console or Rscript execution output in the terminal showing actual calculated numeric results, not just a text file echoing hardcoded strings."
+    },
+    {
+      "id": "dataset_is_r_object",
+      "description": "Ensure the dataset is saved as a proper R data object in the package.",
+      "visual_evidence": "Look for the dataset being saved using 'usethis::use_data()' or 'save()' resulting in an .rda or .RData file in the 'data/' directory, rather than a raw CSV file placed there manually."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must create a package named 'statkit' with Title 'Statistical Utility Kit', Version '0.1.0', and Author 'Ga Agent'. The functions `std_error` and `coef_var` must correctly handle `na.rm=TRUE`. Crucially, for `std_error`, the denominator must adjust the length if NAs are removed (e.g., `sqrt(sum(!is.na(x)))` or `sqrt(length(na.omit(x)))`). The dataset `project_metrics` must be a data frame with >=3 columns and >=10 rows. The package must be built to `~/RProjects/statkit_0.1.0.tar.gz` and a verification script must exist at `~/RProjects/verify_package.R`."
+}

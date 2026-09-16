@@ -1,0 +1,34 @@
+{
+  "id": "create_coupon_campaign@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a new promotion campaign named 'Influencer Summer Campaign' for the 'Urban Electronics' store in Drupal Commerce. The promotion must offer 20% off the order subtotal, require a minimum order amount of $200.00, and be set to require a coupon. Create and link exactly five active coupons to this promotion with the following codes and usage limits: 'INFL-EMMA' (100), 'INFL-ALEX' (75), 'INFL-SARA' (50), 'INFL-MIKE' (150), and 'INFL-LILY' (200). Ensure both the promotion and all coupons are enabled and active.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_coupon_campaign/setup_task.sh",
+    "post_task": "/workspace/tasks/create_coupon_campaign/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Influencer Summer Campaign",
+    "expected_percentage": "0.20",
+    "expected_min_order": "200.00",
+    "coupons": {
+      "INFL-EMMA": 100,
+      "INFL-ALEX": 75,
+      "INFL-SARA": 50,
+      "INFL-MIKE": 150,
+      "INFL-LILY": 200
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_coupon_campaign"
+    }
+  }
+}

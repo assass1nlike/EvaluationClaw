@@ -1,0 +1,59 @@
+{
+  "task_id": "16s_rrna_local_blast_profiling@1",
+  "task_completion": [
+    {
+      "id": "create_blast_db",
+      "description": "Create a local BLAST database from the E. coli genome fasta file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a 'Make database' or 'Format DB' dialog in UGENE, or terminal commands (like makeblastdb) being executed on ecoli_genome.fasta."
+    },
+    {
+      "id": "run_blastn_search",
+      "description": "Perform a BLASTN search using the 16S query with an E-value threshold <= 1e-10.",
+      "points": 15,
+      "visual_evidence": "Screenshots of the BLAST search setup dialog in UGENE showing 16s_query.fasta as the query and the E-value parameter explicitly set to 1e-10 (or 1e-100, etc.)."
+    },
+    {
+      "id": "identify_hits",
+      "description": "Identify all genomic copies of the 16S rRNA sequence.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the BLAST results table or output. Based on privileged info, there should be exactly 7 hits listed."
+    },
+    {
+      "id": "save_annotations",
+      "description": "Save the identified BLAST hits as annotations on the genome sequence.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the UGENE Sequence View or Annotations tree showing the new BLAST results added as annotation tracks/regions on the E. coli genome."
+    },
+    {
+      "id": "export_genbank",
+      "description": "Export the annotated genome as a GenBank file to the specified results directory.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing an 'Export' dialog in UGENE saving as GenBank format, or a file manager/terminal showing 'ecoli_16s_annotated.gb' successfully created in ~/UGENE_Data/blast/results/."
+    },
+    {
+      "id": "create_summary_report",
+      "description": "Create a plain text summary report containing the total number of copies and their coordinates.",
+      "points": 15,
+      "visual_evidence": "Screenshots of a text editor or terminal showing the contents of '16s_blast_report.txt' in the results folder, clearly stating the total count (7) and listing the start/end coordinates for the hits."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_software_used",
+      "description": "Verify the agent used genuine bioinformatics software (like UGENE or command-line BLAST) to perform the search and annotation.",
+      "visual_evidence": "Look for the UGENE GUI or actual BLAST terminal output. The agent should not just use a text editor to manually fabricate a GenBank file."
+    },
+    {
+      "id": "consistent_coordinates",
+      "description": "Verify the coordinates in the summary report match the actual BLAST results.",
+      "visual_evidence": "Check that the start/end coordinates typed into the text report correspond to the coordinates visible in the BLAST results table or annotation view screenshots."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verify the agent did not just guess or hardcode the answer without running the search.",
+      "visual_evidence": "There must be a clear chronological progression: running the search -> viewing the 7 hits -> writing the report. The agent should not create the report with '7 copies' before the search completes."
+    }
+  ],
+  "privileged_info_for_vlm": "There are exactly 7 copies of the 16S rRNA sequence in the E. coli genome. The genome size is exactly 4,641,652 base pairs. The expected output files must be located at /home/ga/UGENE_Data/blast/results/ecoli_16s_annotated.gb and /home/ga/UGENE_Data/blast/results/16s_blast_report.txt."
+}

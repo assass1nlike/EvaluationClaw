@@ -1,0 +1,53 @@
+{
+  "task_id": "clean_standardize_outbreak_data@1",
+  "task_completion": [
+    {
+      "id": "load_messy_data",
+      "description": "Load the raw messy dataset into Epi Info 7 Classic Analysis",
+      "points": 10,
+      "visual_evidence": "Epi Info 7 Classic Analysis window showing a READ command for 'oswego_messy.csv' in the Program Editor or Output pane, or a record count indicating 75 records loaded."
+    },
+    {
+      "id": "standardize_sex",
+      "description": "Standardize the Sex variable to 'Male' and 'Female'",
+      "points": 20,
+      "visual_evidence": "A RECODE dialog box or generated code in the Program Editor showing mappings of 'm', 'M', 'Male' to 'Male' and 'f', 'F', 'Female' to 'Female'."
+    },
+    {
+      "id": "standardize_ill",
+      "description": "Standardize the Ill variable to 'Yes' and 'No'",
+      "points": 20,
+      "visual_evidence": "A RECODE dialog box or generated code in the Program Editor showing mappings of '1', 'y', 'Y', 'Yes' to 'Yes' and '0', 'n', 'N', 'No' to 'No'."
+    },
+    {
+      "id": "clean_age",
+      "description": "Clean the Age variable by converting 999 to Missing",
+      "points": 20,
+      "visual_evidence": "A RECODE dialog box or generated code in the Program Editor showing the value 999 being mapped to missing/null for the Age variable."
+    },
+    {
+      "id": "export_clean_data",
+      "description": "Export the cleaned dataset to oswego_clean.csv",
+      "points": 30,
+      "visual_evidence": "A WRITE or EXPORT dialog/command in Epi Info saving the dataset to 'C:\\Users\\Docker\\Documents\\oswego_clean.csv', or the resulting file visible in the Windows File Explorer."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_epi_info",
+      "description": "Agent used Epi Info 7 Classic Analysis for data cleaning",
+      "visual_evidence": "All data manipulation commands and actions must occur within the Epi Info 7 Classic Analysis interface. The agent should not use Python scripts, Excel, or a text editor to clean the CSV."
+    },
+    {
+      "id": "genuine_recode_operations",
+      "description": "Agent actually performed the recode operations",
+      "visual_evidence": "The screen should show the actual RECODE steps (either via GUI dialogs or typed commands in the Program Editor) rather than just loading a pre-existing clean file or skipping the cleaning steps."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Agent exported the file using Epi Info",
+      "visual_evidence": "The export must be performed via Epi Info's Write/Export functionality (generating a WRITE command), not by manually renaming or copying the original file in the file explorer."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset is based on the 1940 Oswego gastroenteritis outbreak and contains exactly 75 rows. The 'Sex' variable must be standardized to exactly 'Male' and 'Female'. The 'Ill' variable must be standardized to exactly 'Yes' and 'No'."
+}

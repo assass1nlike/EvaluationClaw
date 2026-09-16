@@ -1,0 +1,53 @@
+{
+  "task_id": "dormitory_floor_conversion@1",
+  "task_completion": [
+    {
+      "id": "walls_and_doors_placed",
+      "description": "The agent placed at least 5 new interior partition walls and at least 4 doors to subdivide the space.",
+      "points": 20,
+      "visual_evidence": "Look at the 2D floor plan or 3D view in Sweet Home 3D. There should be multiple new interior walls dividing the open shell, and at least 4 doors (or windows) placed within or along these walls."
+    },
+    {
+      "id": "rooms_defined_and_named",
+      "description": "The agent defined and named at least 5 distinct rooms (e.g., Dorm Room, Lounge, Bathroom).",
+      "points": 20,
+      "visual_evidence": "Look at the 2D floor plan. There should be at least 5 distinct areas with room name text labels (e.g., 'Dorm Room', 'Bathroom', 'Lounge', 'Kitchen') visible on the grid."
+    },
+    {
+      "id": "sleeping_quarters_furnished",
+      "description": "The sleeping quarters are furnished with 16 beds, 8 desks, 8 chairs, and 4 shelves/wardrobes.",
+      "points": 25,
+      "visual_evidence": "Look at the 2D plan, 3D view, or the furniture list panel on the bottom left. Count approximately 16 beds, 8 desks, 8 chairs, and 4 storage units (shelves/wardrobes) placed in the designated dorm room areas."
+    },
+    {
+      "id": "bathrooms_furnished",
+      "description": "The bathrooms are equipped with at least 4 toilets and 4 sinks.",
+      "points": 15,
+      "visual_evidence": "Look at the bathroom areas in the 2D or 3D view, or check the furniture list panel. There should be at least 4 toilets and 4 sinks visible."
+    },
+    {
+      "id": "common_areas_furnished",
+      "description": "The common lounge has 2 sofas, 2 tables, and 2 lamps, and the kitchen has 3 appliances and 1 dining table.",
+      "points": 20,
+      "visual_evidence": "Look at the lounge and kitchen areas or the furniture list panel. Verify the presence of at least 2 sofas, 2 tables, 2 lamps, 3 kitchen appliances (e.g., fridge, oven, stove), and 1 dining table."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the Sweet Home 3D graphical user interface to build the dormitory.",
+      "visual_evidence": "Screenshots should show the Sweet Home 3D application open with the floor plan being actively edited, rather than just terminal commands or text editors modifying the .sh3d XML directly."
+    },
+    {
+      "id": "genuine_furniture_placement",
+      "description": "The agent placed furniture items using the catalog rather than just renaming existing items.",
+      "visual_evidence": "The furniture catalog on the top left should be visible, and items in the plan should match standard Sweet Home 3D 3D models, not just text placeholders."
+    },
+    {
+      "id": "project_saved",
+      "description": "The agent saved the completed project.",
+      "visual_evidence": "The Sweet Home 3D window title should not have an asterisk (*) at the end of the filename in the final screenshots, or there should be evidence of the 'Save' dialog being used."
+    }
+  ],
+  "privileged_info_for_vlm": "The pass threshold for this task is 70/100 points. The task requires strictly quantified furniture: 16 beds, 8 desks, 8 chairs, 4 shelves/wardrobes, 4 toilets, 4 sinks, 2 sofas, 2 tables, 2 lamps, 3 kitchen appliances, and 1 dining table. For the '4 doors' requirement, placing windows also counts as valid (as they share the doorOrWindow='true' attribute in the backend). There is a wrong-target gate: if fewer than 10 total furniture items are placed across the entire file, the agent automatically fails."
+}

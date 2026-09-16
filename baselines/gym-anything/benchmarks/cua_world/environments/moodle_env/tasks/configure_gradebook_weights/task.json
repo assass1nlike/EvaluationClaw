@@ -1,0 +1,31 @@
+{
+  "id": "configure_gradebook_weights@1",
+  "version": "1.0",
+  "env_id": "moodle_env@0.1",
+  "description": "Log in to Moodle as admin (username: admin, password: Admin1234!) at http://localhost/moodle. In the \"Introduction to Biology\" (BIO101) course, configure the gradebook to use the \"Weighted mean of grades\" aggregation method. Create two grade categories: \"Lab Reports\" with a weight of 40 and \"Exams\" with a weight of 60. Ensure the final gradebook configuration reflects these weighted categories.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_gradebook_weights/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_gradebook_weights/export_result.sh"
+  },
+  "metadata": {
+    "course_shortname": "BIO101",
+    "course_fullname": "Introduction to Biology",
+    "expected_aggregation": 10,
+    "category_lab_reports": "Lab Reports",
+    "category_exams": "Exams",
+    "weight_lab_reports": 40,
+    "weight_exams": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_gradebook_weights"
+    }
+  }
+}

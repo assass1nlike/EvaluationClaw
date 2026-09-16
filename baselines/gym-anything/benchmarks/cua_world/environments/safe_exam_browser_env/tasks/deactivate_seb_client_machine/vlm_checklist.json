@@ -1,0 +1,53 @@
+{
+  "task_id": "deactivate_seb_client_machine@1",
+  "task_completion": [
+    {
+      "id": "access_seb_server",
+      "description": "Access the SEB Server login page",
+      "points": 10,
+      "visual_evidence": "A web browser is open to http://localhost:8080 showing the SEB Server login screen."
+    },
+    {
+      "id": "login_successful",
+      "description": "Log into the SEB Server",
+      "points": 10,
+      "visual_evidence": "The SEB Server dashboard or main interface is visible, indicating successful login with the provided credentials."
+    },
+    {
+      "id": "navigate_client_configs",
+      "description": "Navigate to the Client Configurations section",
+      "points": 20,
+      "visual_evidence": "The SEB Server interface shows the 'Client Configurations' or 'Clients' management page."
+    },
+    {
+      "id": "locate_target_client",
+      "description": "Locate the target client configuration",
+      "points": 20,
+      "visual_evidence": "The client configuration named 'Loaner-Laptop-22' is visible in the list of clients."
+    },
+    {
+      "id": "deactivate_client",
+      "description": "Deactivate the target client configuration",
+      "points": 40,
+      "visual_evidence": "Visual confirmation that 'Loaner-Laptop-22' is deactivated, such as a status toggle switched to off, an 'inactive' status badge, or a success message indicating the configuration was deactivated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_browser_used",
+      "description": "Agent used a web browser to interact with the SEB Server",
+      "visual_evidence": "Actions are performed within a web browser interface, not via terminal commands like curl."
+    },
+    {
+      "id": "no_database_manipulation",
+      "description": "Agent did not use direct database manipulation to bypass the UI",
+      "visual_evidence": "No terminal or database client (e.g., MySQL CLI) is used to run UPDATE queries on the seb_client_configuration table."
+    },
+    {
+      "id": "genuine_application",
+      "description": "Agent interacted with the genuine SEB Server application",
+      "visual_evidence": "The browser displays the actual SEB Server web application at localhost:8080, not a local text file or mocked HTML page."
+    }
+  ],
+  "privileged_info_for_vlm": "The target client configuration is named 'Loaner-Laptop-22'. The expected final status for this client is 'inactive'. The client is pre-injected into the system database, so the agent should find it already existing in the list and only needs to deactivate it."
+}

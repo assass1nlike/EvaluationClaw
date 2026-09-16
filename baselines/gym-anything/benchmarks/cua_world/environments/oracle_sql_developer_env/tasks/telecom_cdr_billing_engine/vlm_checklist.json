@@ -1,0 +1,53 @@
+{
+  "task_id": "telecom_cdr_billing_engine@1",
+  "task_completion": [
+    {
+      "id": "db_connection",
+      "description": "Connect to the Oracle database as the billing user.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQL Developer, or sqlplus in terminal) open and connected to localhost:1521/XEPDB1 with the user 'billing'."
+    },
+    {
+      "id": "create_rated_cdrs_table",
+      "description": "Create the BILLING.RATED_CDRS table with required columns.",
+      "points": 20,
+      "visual_evidence": "SQL execution output showing 'Table created' for RATED_CDRS, or the table structure visible in the DB client with columns: cdr_id, caller_num, called_num, billable_minutes, destination_name, and total_cost."
+    },
+    {
+      "id": "populate_rated_cdrs",
+      "description": "Calculate costs using business rules and populate the RATED_CDRS table.",
+      "points": 30,
+      "visual_evidence": "Execution of an INSERT statement applying the rating logic (CEIL for minutes, LPM for prefix, time band multipliers), or a SELECT query showing the populated RATED_CDRS table with calculated total_cost values."
+    },
+    {
+      "id": "create_customer_invoice_mv",
+      "description": "Create the CUSTOMER_INVOICE_MV materialized view.",
+      "points": 20,
+      "visual_evidence": "SQL execution output showing 'Materialized view created' for CUSTOMER_INVOICE_MV, or the MV visible in the DB client grouping by caller_num with total_calls, total_billable_minutes, and invoice_amount."
+    },
+    {
+      "id": "export_invoices_csv",
+      "description": "Export the materialized view data to customer_invoices.csv.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window showing the file 'customer_invoices.csv' exists in the '/home/ga/Documents/exports/' directory, or a DB client export dialog showing this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "The agent interacted with the actual Oracle database.",
+      "visual_evidence": "Screenshots should show a real database client (GUI or CLI) executing queries against the database, not just SQL scripts written in a text editor without execution."
+    },
+    {
+      "id": "authentic_export",
+      "description": "The CSV export was generated from the database.",
+      "visual_evidence": "The export should be the result of a database tool export function or a spool/script command, rather than manually creating and typing the CSV contents."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the final table or view data.",
+      "visual_evidence": "The SQL queries used to populate RATED_CDRS and create the MV should contain the actual logic (joins, math, grouping) rather than hardcoded INSERT statements with pre-calculated values."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

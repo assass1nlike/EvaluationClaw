@@ -1,0 +1,29 @@
+{
+  "id": "cell_polarity_eccentricity@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Quantify the structural polarity of a cell by measuring the displacement between its cell center and nuclear center using the first available single-cell image pair in ~/Fiji_Data/raw/BBBC005/ (filenames containing 'C1' and matching 'w1' for Cell Body and 'w2' for Nucleus). Set the spatial scale for the images to 0.65 µm/pixel. Create a composite image with the Cell Body in green and the Nucleus in red, then measure the straight-line distance between their centroids in microns. Annotate the composite with a white arrow or line connecting the cell center to the nuclear center and flatten the overlay. Save the annotated image to ~/Fiji_Data/results/polarity/annotated_cell.png and the measurements to ~/Fiji_Data/results/polarity/displacement_metrics.csv with columns: Cell_X, Cell_Y, Nucleus_X, Nucleus_Y, Displacement_um.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cell_polarity_eccentricity/setup_task.sh",
+    "post_task": "/workspace/tasks/cell_polarity_eccentricity/export_result.sh"
+  },
+  "metadata": {
+    "data_path": "~/Fiji_Data/raw/BBBC005/",
+    "output_image": "~/Fiji_Data/results/polarity/annotated_cell.png",
+    "output_csv": "~/Fiji_Data/results/polarity/displacement_metrics.csv",
+    "pixel_scale": 0.65,
+    "tolerance_percent": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cell_polarity_eccentricity"
+    }
+  }
+}

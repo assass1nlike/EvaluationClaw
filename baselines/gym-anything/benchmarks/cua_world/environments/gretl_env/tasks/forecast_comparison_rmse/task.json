@@ -1,0 +1,30 @@
+{
+  "id": "forecast_comparison_rmse@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Compare the out-of-sample predictive performance of an AR(1) model and an AR(4) model for US Inflation ('inf') using the 'usa.gdt' dataset. Use the training sample 1984:1 to 2005:4 to generate dynamic forecasts for the period 2006:1 to 2009:3. Calculate the Root Mean Squared Error (RMSE) for both models over the forecast period and create a report at /home/ga/Documents/gretl_output/rmse_report.txt containing the RMSE for each model and identifying which model performed better based on the lower RMSE.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/forecast_comparison_rmse/setup_task.sh",
+    "post_task": "/workspace/tasks/forecast_comparison_rmse/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "usa.gdt",
+    "variable": "inf",
+    "training_sample": "1984:1-2005:4",
+    "forecast_sample": "2006:1-2009:3",
+    "output_file": "/home/ga/Documents/gretl_output/rmse_report.txt",
+    "ground_truth_logic": "AR(1) and AR(4) RMSE comparison on POE5 USA data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_forecast_comparison_rmse"
+    }
+  }
+}

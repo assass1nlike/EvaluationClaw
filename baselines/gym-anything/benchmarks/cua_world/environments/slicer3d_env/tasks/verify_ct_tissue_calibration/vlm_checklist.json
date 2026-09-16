@@ -1,0 +1,59 @@
+{
+  "task_id": "verify_ct_tissue_calibration@1",
+  "task_completion": [
+    {
+      "id": "air_fiducial_placed",
+      "description": "Verify a fiducial marker is placed on an area representing air and named appropriately.",
+      "points": 20,
+      "visual_evidence": "A fiducial marker is visible in the CT viewer on a very dark/black region (e.g., outside the body, in lungs, or bowel gas). The Markups module list shows its name contains 'air'."
+    },
+    {
+      "id": "fat_fiducial_placed",
+      "description": "Verify a fiducial marker is placed on an area representing fat and named appropriately.",
+      "points": 20,
+      "visual_evidence": "A fiducial marker is visible in the CT viewer on a dark gray region (e.g., subcutaneous fat just under the skin or visceral fat). The Markups module list shows its name contains 'fat'."
+    },
+    {
+      "id": "liver_fiducial_placed",
+      "description": "Verify a fiducial marker is placed on the liver and named appropriately.",
+      "points": 25,
+      "visual_evidence": "A fiducial marker is visible in the CT viewer on the large, solid, medium-gray organ in the right upper quadrant of the abdomen (liver). The Markups module list shows its name contains 'liver'."
+    },
+    {
+      "id": "bone_fiducial_placed",
+      "description": "Verify a fiducial marker is placed on a bone and named appropriately.",
+      "points": 25,
+      "visual_evidence": "A fiducial marker is visible in the CT viewer on a bright white structure (e.g., spine, ribs, or pelvis). The Markups module list shows its name contains 'bone', 'spine', or 'vertebr'."
+    },
+    {
+      "id": "fiducial_spatial_spread",
+      "description": "Verify the four fiducial markers are separated by at least 20mm.",
+      "points": 5,
+      "visual_evidence": "The fiducial markers in the 2D/3D viewers are clearly spread out across different anatomical regions and are not clustered closely together (visually appearing >20mm apart based on the anatomical scale)."
+    },
+    {
+      "id": "scene_saved",
+      "description": "Verify the scene was saved to the specified AMOS directory.",
+      "points": 5,
+      "visual_evidence": "A 'Save Data' dialog box in 3D Slicer showing the target directory '~/Documents/SlicerData/AMOS/' or a terminal/file explorer window confirming the saved files exist in that path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the 3D Slicer GUI to place the fiducials.",
+      "visual_evidence": "Screenshots show the 3D Slicer interface with the Markups module active, crosshairs, or fiducials placed interactively on the image, rather than just a terminal window executing a script."
+    },
+    {
+      "id": "genuine_image_data",
+      "description": "Verify the fiducials are placed on the actual loaded abdominal CT scan.",
+      "visual_evidence": "The background of the fiducials is a genuine medical CT image showing abdominal anatomy (axial, sagittal, or coronal views), not a blank screen or a mock image."
+    },
+    {
+      "id": "authentic_saving_process",
+      "description": "Verify the agent used the application's save functionality.",
+      "visual_evidence": "The 'Save Data' dialog in 3D Slicer is visible, showing the MRML scene and/or markup files being saved, rather than an empty file being created via terminal commands like 'touch'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires placing exactly 4 fiducial markers on specific tissues in an abdominal CT. Expected visual correlates for Hounsfield Units (HU): Air is black (approx -1000 HU), Fat is dark gray (approx -150 to -50 HU), Liver is medium gray (approx 40 to 60 HU), and Bone is bright white (approx 300 to 3000 HU). The markers must be named containing 'air', 'fat', 'liver', and 'bone'/'spine'/'vertebr' respectively. They must be visually separated by at least 20mm. The scene must be saved to ~/Documents/SlicerData/AMOS/."
+}

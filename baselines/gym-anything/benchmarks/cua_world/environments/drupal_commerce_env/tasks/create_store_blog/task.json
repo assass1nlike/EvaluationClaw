@@ -1,0 +1,39 @@
+{
+  "id": "create_store_blog@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Create a 'Store Blog Post' content type and a 'Blog Categories' vocabulary to manage content for the store. Configure a Taxonomy Vocabulary named 'Blog Categories' (machine name: blog_categories) containing the terms 'Product News', 'Deals & Offers', and 'Tech Tips'. Define a Content Type named 'Store Blog Post' (machine name: store_blog_post) including a 'Featured Product' field (field_featured_product) referencing Commerce Products and a 'Blog Category' field (field_blog_category) referencing the Blog Categories vocabulary. Create and publish a blog post titled 'Top 5 Headphones for 2024' with 'Sony WH-1000XM5 Wireless Headphones' as the featured product and 'Product News' as the category. Configure a View page accessible at /store-blog that lists these blog posts.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_store_blog/setup_task.sh",
+    "post_task": "/workspace/tasks/create_store_blog/export_result.sh"
+  },
+  "metadata": {
+    "expected_content_type": "store_blog_post",
+    "expected_vocab": "blog_categories",
+    "expected_terms": [
+      "Product News",
+      "Deals & Offers",
+      "Tech Tips"
+    ],
+    "expected_fields": [
+      "field_featured_product",
+      "field_blog_category"
+    ],
+    "sample_post_title": "Top 5 Headphones for 2024",
+    "target_product_sku": "SONY-WH1000XM5",
+    "target_category_term": "Product News",
+    "view_path": "/store-blog"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_store_blog"
+    }
+  }
+}

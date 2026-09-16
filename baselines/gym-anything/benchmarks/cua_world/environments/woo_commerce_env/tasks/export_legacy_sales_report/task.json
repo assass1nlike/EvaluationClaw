@@ -1,0 +1,27 @@
+{
+  "id": "export_legacy_sales_report@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Export the WooCommerce 'Sales by Date' report for the previous month. Save the exported data as a CSV file to /home/ga/Documents/last_month_sales.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_legacy_sales_report/setup_task.sh",
+    "post_task": "/workspace/tasks/export_legacy_sales_report/export_result.sh"
+  },
+  "metadata": {
+    "expected_file_path": "/home/ga/Documents/last_month_sales.csv",
+    "required_csv_header": "Date,Orders,Gross Sales",
+    "min_data_rows": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_legacy_sales_report"
+    }
+  }
+}

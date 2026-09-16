@@ -1,0 +1,53 @@
+{
+  "task_id": "kcsa_selectivity_filter_analysis@1",
+  "task_completion": [
+    {
+      "id": "load_and_display_tetramer",
+      "description": "Load 1K4C and display the tetrameric channel architecture.",
+      "points": 20,
+      "visual_evidence": "PyMOL window showing the 1K4C structure. The view should display a tetramer (four symmetric KcsA channel subunits forming a pore). Note: Since the base PDB only has one KcsA chain (Chain C), the agent must have used symmetry operations to generate the other three subunits."
+    },
+    {
+      "id": "visualize_filter_and_ions",
+      "description": "Visualize the selectivity filter residues as sticks, K+ ions as spheres, and backbone as cartoon.",
+      "points": 20,
+      "visual_evidence": "In the PyMOL viewer, the protein backbone is shown as a cartoon. The selectivity filter residues (TVGYG, residues 75-79) are displayed as stick representations. K+ ions within the pore are displayed as spheres. The camera should be oriented to show a cross-section or side view of the pore."
+    },
+    {
+      "id": "measure_pore_diameter",
+      "description": "Measure the pore diameter between opposing backbone carbonyl oxygens.",
+      "points": 20,
+      "visual_evidence": "A distance measurement (typically a dashed line with a numerical value) is visible in the PyMOL viewer, connecting opposing backbone carbonyl oxygens across the pore at the selectivity filter. The distance should be approximately 4.5 to 5.1 \u00c5."
+    },
+    {
+      "id": "save_figure",
+      "description": "Save the publication-quality figure as a PNG.",
+      "points": 15,
+      "visual_evidence": "Evidence in the PyMOL command line, terminal, or file manager that the image was saved to exactly '/home/ga/PyMOL_Data/images/kcsa_selectivity_filter.png'."
+    },
+    {
+      "id": "write_quantitative_report",
+      "description": "Write a quantitative report containing the required analysis.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing the contents of '/home/ga/PyMOL_Data/kcsa_filter_report.txt'. The text must explicitly state the number of K+ ions, a distance measurement (between 2.0 and 8.0 \u00c5), and identify the selectivity filter residues (e.g., residues 75-79 or TVGYG)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_pymol_usage",
+      "description": "Agent used PyMOL to perform the structural analysis and visualization.",
+      "visual_evidence": "Screenshots show the PyMOL GUI or PyMOL command line being actively used to load the molecule, apply representations, and measure distances, rather than just writing a script without executing or verifying it visually."
+    },
+    {
+      "id": "genuine_measurement",
+      "description": "Agent actually measured the distance in PyMOL rather than hallucinating a value.",
+      "visual_evidence": "The distance measurement reported in the text file matches a measurement visibly taken in the PyMOL viewer."
+    },
+    {
+      "id": "handled_tetramer_trap",
+      "description": "Agent correctly handled the tetramer generation instead of blindly following the prompt's misleading chain information.",
+      "visual_evidence": "The agent does not just color chains A, B, C, D as the tetramer (since A/B are Fab fragments and D is missing). It should use symmetry operations (e.g., symexp) on chain C to build the true biological tetramer."
+    }
+  ],
+  "privileged_info_for_vlm": "The prompt contains a deliberate trap: it claims chains A, B, C, D form the KcsA tetramer. In the actual 1K4C PDB, chains A and B are Fab antibody fragments, chain C is the single KcsA subunit, and chain D is absent. The true tetramer must be formed via crystallographic symmetry operations. Diametrically opposed carbonyl oxygens (residues 75-78) across the pore span 4.5 - 5.1 \u00c5. The report must be at '/home/ga/PyMOL_Data/kcsa_filter_report.txt' and the figure at '/home/ga/PyMOL_Data/images/kcsa_selectivity_filter.png'."
+}

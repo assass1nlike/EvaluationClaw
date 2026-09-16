@@ -1,0 +1,53 @@
+{
+  "task_id": "local_registry_image_workflow@1",
+  "task_completion": [
+    {
+      "id": "registry_container_running",
+      "description": "Verify that a local Docker registry container is running on port 5000.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output of 'docker ps' or the Docker Desktop GUI showing a container using the 'registry:2' image with port 5000 mapped (e.g., '0.0.0.0:5000->5000/tcp')."
+    },
+    {
+      "id": "images_built_and_tagged",
+      "description": "Verify that the API service image has been built and tagged correctly for the local registry.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output of 'docker images' or 'docker image ls' showing the repository 'localhost:5000/api-service' with both 'v1.0.0' and 'latest' tags."
+    },
+    {
+      "id": "images_pushed_to_registry",
+      "description": "Verify that the tagged images were successfully pushed to the local registry.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output of 'docker push localhost:5000/api-service:v1.0.0' and 'docker push localhost:5000/api-service:latest' showing successful layer pushes, or a curl command to 'localhost:5000/v2/_catalog' returning the 'api-service' repository."
+    },
+    {
+      "id": "compose_file_configured",
+      "description": "Verify that the docker-compose.yml file is configured to use the registry image and exposes port 7080.",
+      "points": 20,
+      "visual_evidence": "Look for the contents of '/home/ga/api-service/docker-compose.yml' in a text editor or via 'cat'. It must contain 'image: localhost:5000/api-service:latest' (or v1.0.0), MUST NOT contain a 'build:' directive, and must have a port mapping that exposes host port 7080 (e.g., '7080:5000' or similar depending on the internal app port)."
+    },
+    {
+      "id": "api_service_deployed",
+      "description": "Verify that the API service is deployed and responding on port 7080.",
+      "points": 25,
+      "visual_evidence": "Look for terminal output of 'docker-compose up -d' succeeding, 'docker ps' showing the api-service container running with port 7080 mapped, or a successful 'curl localhost:7080' showing an HTTP response from the API."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_commands",
+      "description": "Ensure the agent actually executed Docker commands and did not just echo fake outputs.",
+      "visual_evidence": "Check the terminal history for genuine command execution, standard Docker output formatting, and absence of 'echo' commands used to fake success messages."
+    },
+    {
+      "id": "no_build_directive_in_compose",
+      "description": "Ensure the docker-compose.yml strictly uses the pre-built registry image and does not build from source.",
+      "visual_evidence": "Examine the docker-compose.yml file contents to confirm the 'build' key is completely absent for the API service."
+    },
+    {
+      "id": "actual_registry_image_used",
+      "description": "Ensure the deployed container is actually using the localhost:5000 image.",
+      "visual_evidence": "Look at 'docker ps' output to confirm the 'IMAGE' column for the API service container explicitly says 'localhost:5000/api-service:latest' or 'localhost:5000/api-service:v1.0.0', rather than just 'api-service'."
+    }
+  ],
+  "privileged_info_for_vlm": "The application directory is /home/ga/api-service. The local Docker registry must be running on port 5000. The Docker image must be named 'api-service' and tagged with both 'v1.0.0' and 'latest' under 'localhost:5000/'. The docker-compose.yml must use the image 'localhost:5000/api-service:latest' (or v1.0.0) without a build directive, and the final API service must be exposed on port 7080."
+}

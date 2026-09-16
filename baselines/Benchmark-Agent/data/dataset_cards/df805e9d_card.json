@@ -1,0 +1,76 @@
+{
+  "dataset_id": "df805e9d",
+  "name": "Counterfactual-Reasoning",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 213,
+  "description": "This dataset evaluates counterfactual reasoning by asking questions that alter historical or factual conditions and require an answer derived from world knowledge. Each sample contains a question, one or more short answers, and a supporting explanation passage.",
+  "card_text": "The Counterfactual-Reasoning dataset is a text-only collection of 213 samples designed to test open-ended question answering under counterfactual premises. Each item presents a hypothetical question that modifies a real-world fact (e.g., changing a historical decision or political structure) and asks for the resulting outcome. The expected output includes a list of acceptable short answers and a longer explanation passage that provides the factual background justifying the counterfactual reasoning. The data draws on general, encyclopedic knowledge, often from Wikipedia-style sources, and requires the model to infer consequences that are not explicitly stated.",
+  "tasks": [
+    "open_ended_qa",
+    "question_answering",
+    "explanation_required"
+  ],
+  "domain": "counterfactual reasoning & general knowledge QA",
+  "meta": {
+    "fields": {
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A counterfactual question that supposes a change to a real-world fact or historical event and asks for the resulting state. It is the sole input the model receives and directs the reasoning task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A list of one or more short strings that constitute acceptable answers to the counterfactual question. The answer is typically a brief fact, number, or title.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "rationale": {
+        "paths": [
+          "output.explanation"
+        ],
+        "modality": "text",
+        "content_extent": "long",
+        "style": "factual",
+        "semantics": "A passage of encyclopedic or factual text that provides the real-world background needed to reason about the counterfactual. It supports the answer by describing the original situation and the change implied by the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three text components: an input question, an output answer list, and an output explanation. The question poses a hypothetical scenario by modifying a known fact. The answer list gives one or more acceptable short responses. The explanation is a longer factual passage that supplies the real-world context from which the counterfactual consequence can be inferred. The answer and explanation are both outputs, with the explanation serving as a rationale for the answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Counterfactual-Reasoning/annotation.json",
+    "existing_tags": {
+      "task": "Counterfactual Reasoning",
+      "type": "OpenQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

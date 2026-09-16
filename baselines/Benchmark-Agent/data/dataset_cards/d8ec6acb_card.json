@@ -1,0 +1,106 @@
+{
+  "dataset_id": "d8ec6acb",
+  "name": "Openset Internet-Retrieved-Information Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates visual question answering over internet-retrieved image pairs with associated captions. Each sample contains two images, a textual prompt with a question and a multiple-choice list, and the model must output the correct answer choice. It tests open-set visual recognition and reasoning across various topics.",
+  "card_text": "The dataset consists of 200 samples, each with two images (input.image_file) and a text prompt (input.prompt). The prompt includes instructions, image captions for each image, a natural language question comparing or asking about the images, and a list of four multiple-choice options. The expected output (output.text) is the text of the correct choice. Images are sourced from the internet and cover diverse subjects such as fungi, buildings, etc. The task requires visual comprehension and comparison, often involving attributes like color or presence of features. It is an open-set benchmark where questions are answerable from the provided images and captions.",
+  "tasks": [
+    "visual_question_answering",
+    "multiple_choice_qa"
+  ],
+  "domain": "general visual knowledge",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "Two images per sample, provided as filenames in input.image_file. These are the visual inputs the question refers to, often compared or described in the prompt.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "mixed",
+        "semantics": "The main textual input containing instructions, image captions for each image, a question, and a multiple-choice list. It serves as the context for answering the question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The question embedded within the prompt that asks about the images, e.g., comparing attributes or checking presence of features. It requires referencing the images and captions.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of four multiple-choice answer options embedded in the prompt. The correct answer must be selected from these options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The text of the correct answer choice, exactly matching one of the options. It is the target output for the question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample comprises two image files (input.image_file) and a text prompt (input.prompt). The prompt contains instructions, image captions for the two images, a question, and a multiple-choice list of four options. The output is a single text answer (output.text) that corresponds to one of the choices."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Internet-Retrieved-InformationVisualQuestionAnswering/openset_internet-retrieved-information_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Internet-Retrieved-Information Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Image Visual Question Answering",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

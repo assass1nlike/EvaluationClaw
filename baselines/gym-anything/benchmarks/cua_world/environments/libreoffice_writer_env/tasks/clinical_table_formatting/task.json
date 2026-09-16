@@ -1,0 +1,37 @@
+{
+  "id": "clinical_table_formatting@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Format the clinical demographics table in /home/ga/Documents/draft_demographics.docx to meet academic publication standards in LibreOffice Writer. The table must feature a multi-level header with 'Placebo (N=142)' spanning the Placebo Mean/SD columns and 'Sarilumab (N=138)' spanning the Sarilumab Mean/SD columns. Ensure all numerical data in the Mean, SD, and P-value columns are aligned by decimal point. Apply APA-style formatting by removing vertical borders and using appropriate horizontal lines (thick top/bottom borders and a thin line under header rows). Save the final document to /home/ga/Documents/table1_final.docx.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/clinical_table_formatting/setup_task.sh",
+    "post_task": "/workspace/tasks/clinical_table_formatting/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/draft_demographics.docx",
+    "output_file": "/home/ga/Documents/table1_final.docx",
+    "required_merges": [
+      "Placebo",
+      "Sarilumab"
+    ],
+    "data_columns_indices": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_clinical_table_formatting"
+    }
+  }
+}

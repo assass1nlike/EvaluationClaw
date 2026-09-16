@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_inactive_purge@1",
+  "task_completion": [
+    {
+      "id": "csv_file_created",
+      "description": "The inactive_customers.csv file is created in the correct directory.",
+      "points": 15,
+      "visual_evidence": "A file named `inactive_customers.csv` is visible in the `/home/ga/Documents/exports/` directory via a file manager, terminal `ls` command, or open in a text editor."
+    },
+    {
+      "id": "csv_content_verified",
+      "description": "The CSV file contains the correct columns and data for inactive customers.",
+      "points": 25,
+      "visual_evidence": "The contents of the CSV show the header with columns like `CustomerId`, `FirstName`, `LastName`, `Email`, and `TotalSpent`. It should contain exactly 13 data rows (e.g., showing CustomerId 2, Leonie K\u00f6hler)."
+    },
+    {
+      "id": "sql_script_created",
+      "description": "The purge_process.sql script is created in the correct directory.",
+      "points": 15,
+      "visual_evidence": "A file named `purge_process.sql` is visible in the `/home/ga/Documents/scripts/` directory via a file manager, terminal `ls` command, or open in a text editor."
+    },
+    {
+      "id": "sql_script_content",
+      "description": "The SQL script contains the required logic for exporting and deleting records.",
+      "points": 25,
+      "visual_evidence": "The contents of `purge_process.sql` show a `SELECT` query joining customers and invoices to calculate TotalSpent for the export, followed by `DELETE` statements targeting the `invoice_items`, `invoices`, and `customers` tables for the inactive customers."
+    },
+    {
+      "id": "database_updated",
+      "description": "The deletion process is executed against the Chinook database.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of the SQL script (e.g., `sqlite3 /home/ga/Documents/databases/chinook.db < purge_process.sql`), an interactive sqlite3 session showing the `DELETE` commands being run, or a database browser showing the reduced number of customers (46 remaining)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent actually queries or modifies the SQLite database.",
+      "visual_evidence": "Look for the use of a tool like `sqlite3`, a Python script using `sqlite3`, or a DB browser to interact with `chinook.db`. The agent should not just create the output files from prior knowledge."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "The CSV file is generated from a database query, not manually typed.",
+      "visual_evidence": "The CSV should be the output of a script or a sqlite3 export command (e.g., using `.mode csv` and `.output`), rather than manually typed or copy-pasted into a text editor."
+    },
+    {
+      "id": "script_matches_execution",
+      "description": "The SQL script saved matches the commands actually executed to perform the task.",
+      "visual_evidence": "The commands seen in the terminal or DB client during execution should match the contents saved in `purge_process.sql`."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/Documents/databases/chinook.db. The export should be at /home/ga/Documents/exports/inactive_customers.csv and the script at /home/ga/Documents/scripts/purge_process.sql. There are exactly 13 inactive customers (who have no invoices in 2013), such as CustomerId 2 (Leonie K\u00f6hler). The CSV must contain CustomerId, FirstName, LastName, Email, and TotalSpent. Deleting these 13 customers requires cascading deletes for 90 invoices and 492 invoice_items. After deletion, 46 active customers should remain in the database."
+}

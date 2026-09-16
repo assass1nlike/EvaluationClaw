@@ -1,0 +1,59 @@
+{
+  "task_id": "court_data_quality_audit@1",
+  "task_completion": [
+    {
+      "id": "audit_table_created",
+      "description": "Create the DATA_QUALITY_ISSUES table with the specified columns.",
+      "points": 10,
+      "visual_evidence": "A SQL client (e.g., DBeaver, SQL*Plus) or script showing the CREATE TABLE statement for DATA_QUALITY_ISSUES with columns like issue_id, issue_category, table_name, etc., or the table structure visible in a database explorer."
+    },
+    {
+      "id": "issues_logged",
+      "description": "Log discovered data quality issues into the DATA_QUALITY_ISSUES table.",
+      "points": 15,
+      "visual_evidence": "INSERT statements targeting DATA_QUALITY_ISSUES, or a SELECT query result showing rows populated with issue categories (e.g., Orphaned Records, Temporal Violations)."
+    },
+    {
+      "id": "dml_fixes_applied",
+      "description": "Apply DML fixes (UPDATE/DELETE) to resolve the 5 categories of data anomalies.",
+      "points": 25,
+      "visual_evidence": "SQL scripts or execution logs showing DELETE and UPDATE statements modifying hearings, case_parties, cases, and fees tables according to the rules (e.g., setting paid_amount = amount, status = 'DUPLICATE')."
+    },
+    {
+      "id": "integrity_view_created",
+      "description": "Create the CASE_INTEGRITY_VW view to validate rules in real-time.",
+      "points": 15,
+      "visual_evidence": "A CREATE VIEW CASE_INTEGRITY_VW statement being executed, or the view visible in the database client's object explorer."
+    },
+    {
+      "id": "triggers_created",
+      "description": "Implement at least two preventive triggers to maintain integrity rules.",
+      "points": 20,
+      "visual_evidence": "CREATE TRIGGER statements being executed in the SQL client, or the triggers visible in the database object explorer."
+    },
+    {
+      "id": "summary_report_exported",
+      "description": "Export a summary report of issue categories and counts to /home/ga/court_audit_report.csv.",
+      "points": 15,
+      "visual_evidence": "A terminal showing the creation/existence of court_audit_report.csv in /home/ga/, or the file opened in a text editor or spreadsheet viewer showing issue categories and counts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "The agent interacted with the Oracle database using a genuine client or script.",
+      "visual_evidence": "Screenshots should show a database client (like DBeaver, SQL Developer, SQL*Plus) or a Python/shell script executing queries against the XEPDB1 database, not just a text file with SQL commands."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "The CSV report was generated programmatically or exported from query results.",
+      "visual_evidence": "The CSV file should contain realistic counts (totaling around 42 anomalies) derived from the database, rather than manually typed placeholder data."
+    },
+    {
+      "id": "dynamic_sql_logic",
+      "description": "The agent used SQL logic to identify issues rather than hardcoding specific record IDs.",
+      "visual_evidence": "The SQL queries should use JOINs, date arithmetic (e.g., within 30 days, > 90 days), and conditions to find anomalies, rather than WHERE id IN (...)."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database schema (COURT_ADMIN) contains ~1,200 records intentionally corrupted with exactly 42 specific data anomalies across the 5 categories. The agent must use Oracle features including Data Auditing, Triggers, Referential Integrity, and Temporal Logic to complete the task."
+}

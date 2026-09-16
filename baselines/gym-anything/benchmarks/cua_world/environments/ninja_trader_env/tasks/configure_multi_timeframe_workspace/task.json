@@ -1,0 +1,37 @@
+{
+  "id": "configure_multi_timeframe_workspace@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is open on the Windows desktop with the Control Center visible. Real daily OHLCV data for SPY (S&P 500 ETF) from January 2023 to December 2024 is available in the database. A swing trader needs a multi-timeframe analysis workspace setup for SPY. Create three separate chart windows for SPY: a Daily chart with a 14-period RSI indicator, a Weekly chart with a MACD indicator (12, 26, 9), and a Monthly chart with a 10-period SMA indicator. All three charts must be open simultaneously. Save the workspace to ensure the configuration is persisted. Window arrangement is not required.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_multi_timeframe_workspace\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_multi_timeframe_workspace\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "timeframes": [
+      "Day",
+      "Week",
+      "Month"
+    ],
+    "indicators": [
+      "RSI",
+      "MACD",
+      "SMA"
+    ],
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces",
+    "result_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\configure_multi_timeframe_workspace_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_multi_timeframe_workspace"
+    }
+  }
+}

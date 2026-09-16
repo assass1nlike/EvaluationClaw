@@ -1,0 +1,59 @@
+{
+  "task_id": "adsb_traffic_avoidance_config@1",
+  "task_completion": [
+    {
+      "id": "read_mandate_document",
+      "description": "Open and read the CAA ADS-B mandate document.",
+      "points": 10,
+      "visual_evidence": "A text editor, file viewer, or terminal window displaying the contents of /home/ga/Documents/QGC/caa_adsb_mandate.txt."
+    },
+    {
+      "id": "access_qgc_parameters",
+      "description": "Open QGroundControl and navigate to the vehicle parameters setup.",
+      "points": 10,
+      "visual_evidence": "QGroundControl application is open, and the 'Parameters' tab under Vehicle Setup (gear icon) is visible."
+    },
+    {
+      "id": "configure_adsb_avd_enable",
+      "description": "Enable ADS-B and Avoidance systems.",
+      "points": 20,
+      "visual_evidence": "QGroundControl parameter list showing ADSB_ENABLE set to 1 and AVD_ENABLE set to 1."
+    },
+    {
+      "id": "configure_avd_distances",
+      "description": "Configure Avoidance warning and fail distances.",
+      "points": 30,
+      "visual_evidence": "QGroundControl parameter list showing AVD_W_DIST_XY set to 1500, AVD_W_DIST_Z set to 300, AVD_F_DIST_XY set to 500, and AVD_F_DIST_Z set to 150."
+    },
+    {
+      "id": "configure_avd_action",
+      "description": "Configure Avoidance fail action.",
+      "points": 10,
+      "visual_evidence": "QGroundControl parameter list showing AVD_F_ACTION set to 2."
+    },
+    {
+      "id": "export_parameters",
+      "description": "Export the configured parameters to the specified file.",
+      "points": 20,
+      "visual_evidence": "A 'Save Parameters' dialog in QGroundControl or a file manager/terminal showing the creation of adsb_configured.params in /home/ga/Documents/QGC/."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_qgc_interaction",
+      "description": "Verify the agent used QGroundControl to configure the vehicle.",
+      "visual_evidence": "Screenshots should show interaction with the QGroundControl GUI to search for and modify parameters, rather than just writing a text file."
+    },
+    {
+      "id": "no_direct_file_faking",
+      "description": "Verify the agent did not manually fake the exported parameters file.",
+      "visual_evidence": "The agent should use QGroundControl's 'Tools -> Save to file' (or similar export function) to generate adsb_configured.params, not a text editor (like nano or gedit) to manually type the parameters."
+    },
+    {
+      "id": "actual_parameter_modification",
+      "description": "Verify parameters were actually saved to the vehicle.",
+      "visual_evidence": "In QGroundControl, modified parameters typically highlight or require a 'Save to Vehicle' action. Evidence should show these values were committed to the vehicle, not just typed into a search bar."
+    }
+  ],
+  "privileged_info_for_vlm": "The mandate document is located at /home/ga/Documents/QGC/caa_adsb_mandate.txt. The required parameters and their exact values are: ADSB_ENABLE: 1, AVD_ENABLE: 1, AVD_W_DIST_XY: 1500, AVD_W_DIST_Z: 300, AVD_F_DIST_XY: 500, AVD_F_DIST_Z: 150, AVD_F_ACTION: 2. The final configuration must be exported to /home/ga/Documents/QGC/adsb_configured.params."
+}

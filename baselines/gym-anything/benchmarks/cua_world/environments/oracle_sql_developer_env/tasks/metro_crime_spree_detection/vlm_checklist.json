@@ -1,0 +1,53 @@
+{
+  "task_id": "metro_crime_spree_detection@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Oracle database as the crime_analyst user.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., Oracle SQL Developer, DBeaver, or sqlplus in terminal) showing an active connection to the XEPDB1 service using the 'crime_analyst' user."
+    },
+    {
+      "id": "create_serial_crime_sprees_vw",
+      "description": "Create the SERIAL_CRIME_SPREES_VW view to identify localized crime sprees.",
+      "points": 25,
+      "visual_evidence": "Execution of a CREATE VIEW statement for SERIAL_CRIME_SPREES_VW. The query should show logic for a 72-hour window (e.g., using RANGE BETWEEN INTERVAL) and output columns: anchor_incident_id, police_beat, crime_category, anchor_timestamp, and trailing_72h_count. Look for a success message like 'View created'."
+    },
+    {
+      "id": "create_response_time_metrics_vw",
+      "description": "Create the RESPONSE_TIME_METRICS_VW view to calculate average and 90th percentile response times.",
+      "points": 25,
+      "visual_evidence": "Execution of a CREATE VIEW statement for RESPONSE_TIME_METRICS_VW. The query should join INCIDENTS, DISPATCHES, and PRECINCTS, and use functions like PERCENTILE_CONT for the p90 calculation and datetime arithmetic for response minutes. Look for a success message indicating the view was created."
+    },
+    {
+      "id": "create_nibrs_monthly_pivot_vw",
+      "description": "Create the NIBRS_MONTHLY_PIVOT_VW view to display 2024 incident counts pivoted by crime category.",
+      "points": 20,
+      "visual_evidence": "Execution of a CREATE VIEW statement for NIBRS_MONTHLY_PIVOT_VW. The query must use the PIVOT operator with precinct_name as rows and the specified crime categories (HOMICIDE, ROBBERY, ASSAULT, BURGLARY, THEFT, MOTOR_VEHICLE_THEFT) as columns. Look for a success message."
+    },
+    {
+      "id": "export_nibrs_matrix_csv",
+      "description": "Export the NIBRS matrix to a CSV file with column headers.",
+      "points": 20,
+      "visual_evidence": "A database export wizard, SQL spool command, or file explorer showing the creation of 'nibrs_matrix.csv' in the '/home/ga/Documents/exports/' directory. The export settings or resulting file must include column headers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_execution",
+      "description": "The agent must actually execute the SQL statements against the database.",
+      "visual_evidence": "Look for query execution results, success messages (e.g., 'View created'), or script output in a database client or terminal, rather than just typing the SQL into a text editor without running it."
+    },
+    {
+      "id": "authentic_sql_logic",
+      "description": "The agent must use genuine SQL logic to solve the analytical problems.",
+      "visual_evidence": "The SQL queries must contain actual analytical functions (e.g., PIVOT, PERCENTILE_CONT, window functions) rather than hardcoding the expected output or creating tables with dummy data."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "The CSV file must be generated from the database view.",
+      "visual_evidence": "The CSV export should be the result of a database tool's export function or a query output redirection, not a manually created text file where the agent typed out the expected matrix."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent is expected to use specific Oracle SQL features to accomplish the task: Window Functions (RANGE BETWEEN INTERVAL) for the 72-hour crime spree window, PERCENTILE_CONT for the 90th percentile response time, Datetime Arithmetic for response minutes, and the PIVOT Operator for the NIBRS matrix. The final CSV export must be located exactly at /home/ga/Documents/exports/nibrs_matrix.csv."
+}

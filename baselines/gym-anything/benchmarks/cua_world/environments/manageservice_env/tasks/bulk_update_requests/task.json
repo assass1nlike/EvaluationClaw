@@ -1,0 +1,29 @@
+{
+  "id": "bulk_update_requests@1",
+  "version": "1.0",
+  "env_id": "manageservice_env@0.1",
+  "description": "As the Shift Lead, perform a bulk update on the 5 unassigned requests related to 'WOW Carts' (Workstations on Wheels). Assign all 5 requests to the 'Clinical IT Support' group and classify them under the 'Medical Hardware' category with the 'WOW Cart' subcategory.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bulk_update_requests/setup_task.sh",
+    "post_task": "/workspace/tasks/bulk_update_requests/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "target_group": "Clinical IT Support",
+    "target_category": "Medical Hardware",
+    "target_subcategory": "WOW Cart",
+    "bulk_time_window_seconds": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bulk_update"
+    }
+  }
+}

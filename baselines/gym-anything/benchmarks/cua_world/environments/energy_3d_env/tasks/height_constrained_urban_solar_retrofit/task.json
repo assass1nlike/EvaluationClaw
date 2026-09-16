@@ -1,0 +1,27 @@
+{
+  "id": "height_constrained_urban_solar_retrofit@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Photovoltaic Engineer. Zoning laws restrict the maximum height of rooftop solar panels to 0.8 meters. The project file `~/Documents/Energy3D/solar-rack-array-row-spacing.ng3` is open and contains an array that violates this height rule.\n\n1. Modify the existing solar racks on the roof so that their maximum vertical height is strictly LESS THAN 0.8 meters (e.g., drastically lower the Tilt Angle or change Panel Orientation to Landscape).\n2. Because the panels are now flatter, row-to-row winter shading is greatly reduced. Densify the array by moving the rows closer together or adjusting row spacing to fit AT LEAST TWO additional rows of panels on the roof.\n3. Run the Annual Solar Yield simulation (Analysis > Solar Panels > Annual Yield Analysis) to see the new production.\n4. Save the modified project as `~/Documents/Energy3D/low_profile_array.ng3`.\n5. Create a text file at `~/Documents/Energy3D/yield_report.txt` and write the total annual yield (in kWh) shown in the simulation results.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/height_constrained_urban_solar_retrofit/setup_task.sh",
+    "post_task": "/workspace/tasks/height_constrained_urban_solar_retrofit/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Photovoltaic Engineer",
+    "industry": "Renewable Energy",
+    "starter_file": "solar-rack-array-row-spacing.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_height_constrained_urban_solar_retrofit"
+    }
+  }
+}

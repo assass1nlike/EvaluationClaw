@@ -1,0 +1,53 @@
+{
+  "task_id": "update_admin_profile@1",
+  "task_completion": [
+    {
+      "id": "access_artifactory",
+      "description": "Access the JFrog Artifactory web interface",
+      "points": 10,
+      "visual_evidence": "Browser window displaying the JFrog Artifactory login screen or dashboard at http://localhost:8082."
+    },
+    {
+      "id": "navigate_to_profile",
+      "description": "Navigate to the admin user profile settings",
+      "points": 15,
+      "visual_evidence": "The Artifactory UI shows the 'Edit Profile' or 'User Profile' page specifically for the 'admin' user."
+    },
+    {
+      "id": "update_email",
+      "description": "Change the admin email address to the target email",
+      "points": 25,
+      "visual_evidence": "The 'Email Address' input field in the profile form contains exactly 'admin@example.com'."
+    },
+    {
+      "id": "reveal_encrypted_password",
+      "description": "Reveal or generate the Encrypted Password in the UI",
+      "points": 25,
+      "visual_evidence": "The 'Encrypted Password' field in the Artifactory UI displays a generated hash/string (not just asterisks or blank)."
+    },
+    {
+      "id": "save_password_to_file",
+      "description": "Save the encrypted password to the specified local file",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal window showing the file '/home/ga/encrypted_password.txt' containing the copied encrypted password string."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the web browser GUI to interact with Artifactory",
+      "visual_evidence": "Screenshots show the agent clicking through the JFrog Artifactory web interface in a browser, rather than exclusively using curl/API commands in the terminal to update the profile."
+    },
+    {
+      "id": "genuine_encrypted_password",
+      "description": "The saved encrypted password is a genuine hash extracted from the UI",
+      "visual_evidence": "The text saved in '/home/ga/encrypted_password.txt' is a long encrypted hash that matches the one visible in the Artifactory UI, not a placeholder, a random string, or the plaintext word 'password'."
+    },
+    {
+      "id": "no_hallucinated_output",
+      "description": "Agent did not hallucinate the output file contents",
+      "visual_evidence": "The agent is seen copying the encrypted password directly from the Artifactory web UI before pasting it into the text editor or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The target email to be set in the admin profile is 'admin@example.com'. The encrypted password must be extracted from the Artifactory UI and saved exactly to '/home/ga/encrypted_password.txt'. The default credentials are admin / password."
+}

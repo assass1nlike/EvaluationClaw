@@ -1,0 +1,65 @@
+{
+  "task_id": "solar_farm_gimbal_inspection@1",
+  "task_completion": [
+    {
+      "id": "read_inspection_brief",
+      "description": "Open and read the inspection brief to find the substation locations.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '/home/ga/Documents/QGC/inspection_brief.txt'."
+    },
+    {
+      "id": "set_mnt1_type",
+      "description": "Enable the MAVLink gimbal by setting MNT1_TYPE to 2.",
+      "points": 15,
+      "visual_evidence": "QGroundControl Vehicle Setup -> Parameters menu showing the parameter 'MNT1_TYPE' set to '2'."
+    },
+    {
+      "id": "create_waypoints",
+      "description": "Create a mission plan with waypoints for the substations.",
+      "points": 15,
+      "visual_evidence": "QGroundControl Plan View showing a mission with multiple waypoints placed on the map."
+    },
+    {
+      "id": "configure_waypoint_altitude",
+      "description": "Set the waypoint altitude to 30 meters.",
+      "points": 15,
+      "visual_evidence": "The mission item list or waypoint editor in QGroundControl showing an altitude setting of '30' meters for the waypoints."
+    },
+    {
+      "id": "configure_camera_and_loiter",
+      "description": "Configure camera pitch to -60 degrees, a 15-second loiter, and a pitch reset to 0 degrees.",
+      "points": 20,
+      "visual_evidence": "The mission item list in QGroundControl showing commands for setting camera pitch to '-60', a loiter time of '15' seconds, and setting camera pitch to '0' for transit."
+    },
+    {
+      "id": "add_rtl_command",
+      "description": "Include a Return to Launch (RTL) command at the end of the mission.",
+      "points": 10,
+      "visual_evidence": "The mission item list in QGroundControl showing a 'Return to Launch' (RTL) command as the final step of the mission."
+    },
+    {
+      "id": "save_mission_plan",
+      "description": "Save the mission plan to the specified path.",
+      "points": 15,
+      "visual_evidence": "A file save dialog in QGroundControl or a file manager window showing 'solar_patrol.plan' saved in the '/home/ga/Documents/QGC/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the QGroundControl GUI to create the mission plan.",
+      "visual_evidence": "Screenshots show interaction with the QGroundControl application interface (Plan View, mission item editors) rather than writing a .plan file directly in a text editor."
+    },
+    {
+      "id": "genuine_parameter_change",
+      "description": "The parameter change for MNT1_TYPE was done through the QGC Parameters interface.",
+      "visual_evidence": "Screenshots show the QGroundControl Parameters screen being searched and edited, not a configuration file being modified via terminal."
+    },
+    {
+      "id": "no_direct_file_copy",
+      "description": "The agent actively built the mission rather than copying a pre-made file.",
+      "visual_evidence": "Screenshots show the step-by-step addition and configuration of waypoints and camera commands in QGroundControl."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected mission plan path is '/home/ga/Documents/QGC/solar_patrol.plan'. The brief path is '/home/ga/Documents/QGC/inspection_brief.txt'. The configuration requires MNT1_TYPE = 2.0, waypoint altitude = 30.0 m, inspection pitch = -60.0 degrees, transit pitch = 0.0 degrees, and a loiter time = 15.0 seconds."
+}

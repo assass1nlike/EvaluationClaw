@@ -1,0 +1,53 @@
+{
+  "task_id": "telescope_collimation_star_test@1",
+  "task_completion": [
+    {
+      "id": "read_maintenance_ticket",
+      "description": "Verify the agent opened and read the maintenance ticket for instructions.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '~/Documents/maintenance_ticket_104.txt'."
+    },
+    {
+      "id": "target_and_filter_set",
+      "description": "Verify the telescope is pointed at Capella and the V-band filter is selected.",
+      "points": 20,
+      "visual_evidence": "Astronomy control software (e.g., KStars, Ekos, or INDI control panel) showing the telescope tracking 'Capella' (RA ~5.278h, Dec ~45.998\u00b0) and the filter wheel set to 'V-band' or 'Slot 2'."
+    },
+    {
+      "id": "capture_focus_fits",
+      "description": "Verify FITS files were captured at the three required focus positions.",
+      "points": 40,
+      "visual_evidence": "A file manager or terminal showing three FITS files in '/home/ga/Maintenance/collimation_test' with prefixes 'focus_50000_', 'focus_40000_', and 'focus_60000_'."
+    },
+    {
+      "id": "capture_sky_context",
+      "description": "Verify the sky context capture was saved.",
+      "points": 15,
+      "visual_evidence": "A file manager, terminal, or image viewer showing 'field_context.png' saved in '/home/ga/Maintenance/collimation_test'."
+    },
+    {
+      "id": "create_completion_report",
+      "description": "Verify the completion report was created in the output directory.",
+      "points": 15,
+      "visual_evidence": "A file manager, terminal, or text editor showing 'report.txt' located in '/home/ga/Maintenance/collimation_test'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_astronomy_software",
+      "description": "Ensure the agent used actual astronomy/observatory control software to perform the task.",
+      "visual_evidence": "Screenshots should show GUI interaction with software like KStars, Ekos, or an INDI client, rather than just using 'touch' or 'echo' in the terminal to fake the output files."
+    },
+    {
+      "id": "genuine_image_captures",
+      "description": "Ensure the captured files appear to be genuine simulator outputs.",
+      "visual_evidence": "If any FITS viewer or image viewer is open, the images should display simulated star fields or camera noise, not completely blank canvases or text files renamed to image extensions."
+    },
+    {
+      "id": "report_not_copied",
+      "description": "Ensure the completion report contains actual task execution details.",
+      "visual_evidence": "The contents of 'report.txt' (if visible) should reflect the actions taken (e.g., mentioning Capella, the focus values, or the V-band filter) rather than just a verbatim copy-paste of the original task prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "Target: Capella (RA: 5.278 hours / 05h 16m 41s, Dec: 45.998 degrees / +45d 59m 52s). Required Filter: V-band (Slot 2). Required Focus Positions: 50000 (nominal), 40000 (intra), 60000 (extra). Output Directory: /home/ga/Maintenance/collimation_test. Expected Files: FITS files starting with 'focus_50000_', 'focus_40000_', and 'focus_60000_', a context image named 'field_context.png', and a text file named 'report.txt'."
+}

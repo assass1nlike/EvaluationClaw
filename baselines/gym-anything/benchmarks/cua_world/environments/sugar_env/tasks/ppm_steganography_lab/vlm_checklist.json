@@ -1,0 +1,53 @@
+{
+  "task_id": "ppm_steganography_lab@1",
+  "task_completion": [
+    {
+      "id": "encode_script_logic",
+      "description": "The encode.py script is created with the required LSB steganography logic.",
+      "points": 20,
+      "visual_evidence": "A text editor showing encode.py containing logic to read a PPM file, skip the 4-token header, manipulate the least significant bits (LSB) to embed a message, append a null byte, and save the output. There must be no 'import PIL' or 'import pillow' statements."
+    },
+    {
+      "id": "decode_script_logic",
+      "description": "The decode.py script is created with the required extraction logic and command-line argument handling.",
+      "points": 20,
+      "visual_evidence": "A text editor showing decode.py containing logic to read a file path from command-line arguments (e.g., using sys.argv), skip the 4-token header, extract LSBs, group them into 8-bit characters (MSB-first), and stop at a null byte. There must be no PIL/Pillow imports."
+    },
+    {
+      "id": "stego_image_generated",
+      "description": "The encode.py script is executed to generate stego_image.ppm.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of encode.py (e.g., 'python3 encode.py') and subsequent evidence (via 'ls' or file manager) that 'stego_image.ppm' exists in /home/ga/Documents/."
+    },
+    {
+      "id": "decode_script_execution",
+      "description": "The decode.py script is executed with the stego image as a command-line argument.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of decode.py with the path to the stego image passed as an argument, such as 'python3 decode.py /home/ga/Documents/stego_image.ppm'."
+    },
+    {
+      "id": "correct_decoded_output",
+      "description": "The decode.py script successfully prints the expected hidden message to standard output.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the exact string 'OLPC CS Curriculum: Steganography Lab' printed as the output of the decode.py script execution, with no other extraneous output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_external_libraries",
+      "description": "The agent did not use external image processing libraries like PIL or Pillow.",
+      "visual_evidence": "Check the import statements in both encode.py and decode.py. They should only use standard Python libraries (like sys, os) and must not contain 'import PIL' or 'from PIL import Image'."
+    },
+    {
+      "id": "genuine_steganography_decoding",
+      "description": "The decode.py script genuinely extracts the message from the file rather than hardcoding the output.",
+      "visual_evidence": "The code for decode.py must show actual file reading and bitwise operations. It should not just contain a print statement like print('OLPC CS Curriculum: Steganography Lab')."
+    },
+    {
+      "id": "dynamic_file_input",
+      "description": "The decode.py script uses the command-line argument for the file path instead of a hardcoded path.",
+      "visual_evidence": "The code for decode.py should use sys.argv[1] or argparse to get the target file path, rather than hardcoding '/home/ga/Documents/stego_image.ppm' inside the script."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected message to be embedded and decoded is exactly 'OLPC CS Curriculum: Steganography Lab'. The encoding must use LSB (Least Significant Bit) manipulation, MSB-first bit order, and be null-terminated. The image format is ASCII P3 PPM. The scripts must not use external libraries like PIL/Pillow."
+}

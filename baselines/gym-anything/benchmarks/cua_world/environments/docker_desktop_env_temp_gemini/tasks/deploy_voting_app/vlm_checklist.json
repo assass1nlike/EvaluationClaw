@@ -1,0 +1,53 @@
+{
+  "task_id": "deploy_voting_app@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_app_directory",
+      "description": "Verify the agent navigates to the application configuration directory.",
+      "points": 10,
+      "visual_evidence": "Terminal shows a command like 'cd /home/ga/voting-app/'."
+    },
+    {
+      "id": "execute_docker_compose",
+      "description": "Verify the agent executes the Docker Compose deployment command.",
+      "points": 20,
+      "visual_evidence": "Terminal shows the execution of 'docker-compose up' or 'docker compose up' (with or without the '-d' flag)."
+    },
+    {
+      "id": "verify_containers_running",
+      "description": "Verify all 5 required containers are running.",
+      "points": 30,
+      "visual_evidence": "Terminal shows the output of 'docker ps' or 'docker compose ps' listing exactly 5 containers (vote, result, worker, redis, db) with an 'Up' status."
+    },
+    {
+      "id": "access_vote_ui",
+      "description": "Verify the agent accesses the vote UI in a web browser.",
+      "points": 20,
+      "visual_evidence": "A web browser is open with the address bar showing 'http://localhost:5001' (or 127.0.0.1:5001) and displays the Voting App frontend."
+    },
+    {
+      "id": "access_result_ui",
+      "description": "Verify the agent accesses the results viewer in a web browser.",
+      "points": 20,
+      "visual_evidence": "A web browser is open with the address bar showing 'http://localhost:5002' (or 127.0.0.1:5002) and displays the Results App viewer."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_execution",
+      "description": "Ensure the agent actually ran Docker commands and didn't just print expected output.",
+      "visual_evidence": "Terminal shows authentic Docker daemon logs (e.g., pulling images, creating networks, starting containers) rather than simple echo commands."
+    },
+    {
+      "id": "genuine_browser_access",
+      "description": "Ensure the agent accessed the running services via HTTP, not local files.",
+      "visual_evidence": "Browser address bar shows 'localhost' or '127.0.0.1' with the correct ports, not a 'file://' URL."
+    },
+    {
+      "id": "actual_ui_rendered",
+      "description": "Ensure the web applications are actually rendered in a browser.",
+      "visual_evidence": "The screenshots show the graphical user interfaces of the voting and results apps in a browser window, not HTML source code in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The Docker configuration defines exactly 5 services: 'vote', 'result', 'worker', 'redis', and 'db'. The 'vote' service maps to host port 5001, and the 'result' service maps to host port 5002."
+}

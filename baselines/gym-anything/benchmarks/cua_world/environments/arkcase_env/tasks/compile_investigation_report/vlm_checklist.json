@@ -1,0 +1,53 @@
+{
+  "task_id": "compile_investigation_report@1",
+  "task_completion": [
+    {
+      "id": "access_arkcase",
+      "description": "Access the ArkCase application and navigate to the search or complaint cases section.",
+      "points": 10,
+      "visual_evidence": "The ArkCase web interface is open in a browser, showing the dashboard, search page, or complaint cases module."
+    },
+    {
+      "id": "search_operation_nightshade",
+      "description": "Perform a search for the keyword 'Operation Nightshade'.",
+      "points": 20,
+      "visual_evidence": "The phrase 'Operation Nightshade' is typed into a search bar, or search results are displayed showing cases related to this project."
+    },
+    {
+      "id": "identify_case_details",
+      "description": "Identify the Case Number, Complaint Title, and Priority for the matching cases.",
+      "points": 20,
+      "visual_evidence": "The agent is viewing search results or individual case details that clearly display the Case Number, Complaint Title, and Priority for the 'Operation Nightshade' cases."
+    },
+    {
+      "id": "compile_json_report",
+      "description": "Compile the extracted case details into a JSON array.",
+      "points": 30,
+      "visual_evidence": "A text editor (e.g., gedit, nano, VS Code) is open, showing a JSON array of objects containing keys for Case Number, Complaint Title, and Priority, populated with the data from the ArkCase search."
+    },
+    {
+      "id": "save_report_file",
+      "description": "Export the report to /home/ga/Documents/nightshade_report.json.",
+      "points": 20,
+      "visual_evidence": "The text editor's title bar, a 'Save As' dialog, or a terminal window confirms the file is named 'nightshade_report.json' and is saved in the '/home/ga/Documents/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_arkcase_gui",
+      "description": "The agent used the ArkCase web interface to find the cases.",
+      "visual_evidence": "Screenshots should show interaction with the ArkCase browser UI, not terminal commands querying a database or reading backend files to find the cases."
+    },
+    {
+      "id": "no_ground_truth_cheating",
+      "description": "The agent did not cheat by reading the ground truth file.",
+      "visual_evidence": "The agent should not be seen opening, reading, or copying from '/root/validation/ground_truth.json' in the terminal or any text editor."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The agent manually compiled the report rather than using a script to generate it automatically.",
+      "visual_evidence": "The JSON file should be seen being edited or pasted into a text editor, rather than being created entirely via a single terminal command (like a python script or curl command) that bypasses manual extraction."
+    }
+  ],
+  "privileged_info_for_vlm": "The target keyword is 'Operation Nightshade'. The agent must find 3 target cases with this phrase in their titles (which have High, Medium, and Low priorities) and ignore distractor cases. The final output must be a JSON array saved to '/home/ga/Documents/nightshade_report.json' containing the Case Number, Complaint Title, and Priority for each of the 3 target cases. The agent must not access the ground truth file at '/root/validation/ground_truth.json'."
+}

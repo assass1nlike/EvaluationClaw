@@ -1,0 +1,59 @@
+{
+  "task_id": "gpt_automated_processing_graph@1",
+  "task_completion": [
+    {
+      "id": "xml_file_created",
+      "description": "Verify the processing graph XML file was created at the correct path.",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands (e.g., nano, vim, echo) or a file explorer showing the creation of 'band_ratio_graph.xml' in the '/home/ga/snap_exports/' directory."
+    },
+    {
+      "id": "xml_read_node",
+      "description": "Verify the XML graph contains a Read node with the correct input file.",
+      "points": 15,
+      "visual_evidence": "Look at the contents of the XML file on screen. It should contain a <node id=\"Read\"> (or similar) with a <file> parameter pointing to '/home/ga/snap_data/landsat_multispectral.tif'."
+    },
+    {
+      "id": "xml_bandmaths_node",
+      "description": "Verify the XML graph contains a BandMaths node with the correct NDVI expression.",
+      "points": 25,
+      "visual_evidence": "Look at the XML contents for a BandMaths node. It must define a target band named 'ndvi' and include the exact expression '(band_2 - band_3) / (band_2 + band_3)'."
+    },
+    {
+      "id": "xml_write_node",
+      "description": "Verify the XML graph contains a Write node with the correct output file path.",
+      "points": 15,
+      "visual_evidence": "Look at the XML contents for a Write node. It must specify the output path as '/home/ga/snap_exports/nd_index_output.tif' and ideally specify GeoTIFF format."
+    },
+    {
+      "id": "gpt_execution_command",
+      "description": "Verify the graph was executed using the gpt utility with output redirected to the log file.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command executing the graph, such as '/opt/snap/bin/gpt /home/ga/snap_exports/band_ratio_graph.xml > /home/ga/snap_exports/gpt_execution.log' (or using &> / 2> to redirect output)."
+    },
+    {
+      "id": "outputs_generated",
+      "description": "Verify the output TIF and log file were successfully generated.",
+      "points": 15,
+      "visual_evidence": "Look for a terminal 'ls' command or file explorer showing 'nd_index_output.tif' and 'gpt_execution.log' existing in the '/home/ga/snap_exports/' directory after execution."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gpt_execution",
+      "description": "Ensure the agent actually ran the gpt command and did not just mock the output files.",
+      "visual_evidence": "Check the terminal history for the actual execution of '/opt/snap/bin/gpt'. The agent should not be using 'touch' to create empty 'nd_index_output.tif' or 'gpt_execution.log' files."
+    },
+    {
+      "id": "genuine_xml_authoring",
+      "description": "Ensure the agent authored the XML file manually or via script.",
+      "visual_evidence": "Look for the use of a text editor (nano, vim) or shell redirection (cat, echo) to write the XML tags, rather than copying a pre-existing solution file from an unauthorized location."
+    },
+    {
+      "id": "no_gui_shortcut",
+      "description": "Ensure the agent used the command-line gpt utility rather than the SNAP Desktop GUI.",
+      "visual_evidence": "The SNAP Desktop GUI should not be open or used to build/run the graph. All actions should be performed via text editing and the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected XML path is /home/ga/snap_exports/band_ratio_graph.xml. The input TIF is /home/ga/snap_data/landsat_multispectral.tif. The output TIF is /home/ga/snap_exports/nd_index_output.tif. The execution log must be saved to /home/ga/snap_exports/gpt_execution.log. In SNAP, standard GeoTIFF bands are named sequentially as 'band_1', 'band_2', etc., which validates the use of 'band_2' and 'band_3' in the BandMaths expression."
+}

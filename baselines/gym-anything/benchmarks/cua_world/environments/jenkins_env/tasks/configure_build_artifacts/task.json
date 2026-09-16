@@ -1,0 +1,32 @@
+{
+  "id": "configure_build_artifacts@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "Configure the 'Integration-Tests' freestyle job to discard old builds after 14 days with a maximum of 5 builds. Add a post-build action to archive artifacts matching 'reports/*.xml, reports/*.html'. You are logged in as admin.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_build_artifacts/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_build_artifacts/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "job_name": "Integration-Tests",
+    "expected_days_to_keep": "14",
+    "expected_num_to_keep": "5",
+    "expected_artifacts": [
+      "reports/*.xml",
+      "reports/*.html"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_build_artifacts"
+    }
+  }
+}

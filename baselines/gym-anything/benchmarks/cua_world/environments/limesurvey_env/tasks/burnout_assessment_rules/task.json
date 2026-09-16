@@ -1,0 +1,35 @@
+{
+  "id": "burnout_assessment_rules@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "You are an Industrial-Organizational psychologist deploying a workplace wellness screening using the Copenhagen Burnout Inventory (CBI). Create and activate a scored assessment survey in LimeSurvey (http://localhost/index.php/admin, login: admin / Admin123!) titled 'Copenhagen Burnout Inventory - Workplace Wellness 2024'. \n\nThe survey must have Assessment Mode enabled and include a question group named 'Personal Burnout Scale' containing a mandatory Array-type question (code: PB) with the text: 'Over the past two weeks, please rate how often you have experienced each of the following:'\n\nThe question requires the following sub-questions:\nPB01: How often do you feel tired?\nPB02: How often are you physically exhausted?\nPB03: How often are you emotionally exhausted?\nPB04: How often do you think: \"I can't take it anymore\"?\nPB05: How often do you feel worn out?\nPB06: How often do you feel weak and susceptible to illness?\n\nThe answer options must include these assessment values:\nAO01: Never/almost never (0)\nAO02: Seldom (25)\nAO03: Sometimes (50)\nAO04: Often (75)\nAO05: Always (100)\n\nThe survey must be configured with three assessment rules to provide tiered feedback:\n- Scores 0-200: 'Low Burnout: Your scores suggest healthy coping and sustainable work patterns. Continue your current wellness practices.'\n- Scores 201-400: 'Moderate Burnout: Your scores indicate emerging burnout risk. Consider stress management strategies, workload review, and recovery time.'\n- Scores 401-600: 'High Burnout: Your scores indicate significant burnout. Professional support, workload restructuring, and immediate wellness interventions are recommended.'",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/burnout_assessment_rules/setup_task.sh",
+    "post_task": "/workspace/tasks/burnout_assessment_rules/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keyword": "Burnout",
+    "expected_subquestions": 6,
+    "expected_assessment_values": [
+      0,
+      25,
+      50,
+      75,
+      100
+    ],
+    "expected_rule_count": 3,
+    "occupation_context": "Industrial-Organizational Psychologists"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_burnout_assessment"
+    }
+  }
+}

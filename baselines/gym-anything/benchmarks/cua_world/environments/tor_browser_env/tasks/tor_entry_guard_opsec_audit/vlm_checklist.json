@@ -1,0 +1,59 @@
+{
+  "task_id": "tor_entry_guard_opsec_audit@1",
+  "task_completion": [
+    {
+      "id": "open_tor_state_file",
+      "description": "Open the Tor state file to find the Entry Guard fingerprint",
+      "points": 10,
+      "visual_evidence": "A terminal or text editor window displaying the contents of the Tor 'state' file, showing lines that include 'EntryGuard' and a 40-character hex string."
+    },
+    {
+      "id": "access_tor_relay_search",
+      "description": "Navigate to the Tor Relay Search tool",
+      "points": 10,
+      "visual_evidence": "A web browser window open to the URL 'https://metrics.torproject.org/rs.html'."
+    },
+    {
+      "id": "search_fingerprint",
+      "description": "Search for the Entry Guard fingerprint",
+      "points": 20,
+      "visual_evidence": "The Tor Relay Search page with a 40-character hex string (fingerprint) entered into the search field."
+    },
+    {
+      "id": "view_relay_details",
+      "description": "View the relay details for the searched fingerprint",
+      "points": 20,
+      "visual_evidence": "The Tor Relay Search results page displaying the details of the searched relay, specifically showing the Country and AS Name."
+    },
+    {
+      "id": "create_audit_file",
+      "description": "Create or open the guard audit text file",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window indicating the file '/home/ga/Documents/guard_audit.txt' is being created or edited."
+    },
+    {
+      "id": "document_audit_details",
+      "description": "Document the Entry Guard details in the required format",
+      "points": 30,
+      "visual_evidence": "The text file contains the exact header '=== ENTRY GUARD AUDIT ===' followed by 'Fingerprint:', 'Country:', and 'AS Name:' with their respective values filled in."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_used_for_search",
+      "description": "The agent used a real web browser to search for the relay details",
+      "visual_evidence": "A GUI web browser is used to navigate to metrics.torproject.org, rather than using terminal commands like curl or python scripts to bypass GUI interaction."
+    },
+    {
+      "id": "consistent_fingerprint",
+      "description": "The searched fingerprint matches the one from the state file",
+      "visual_evidence": "The 40-character hex string searched in the browser is identical to the one found in the Tor state file."
+    },
+    {
+      "id": "consistent_relay_details",
+      "description": "The documented relay details match the search results",
+      "visual_evidence": "The Country and AS Name entered into the audit text file exactly match the information displayed on the Tor Relay Search results page."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output file must be exactly at /home/ga/Documents/guard_audit.txt. The agent must visit metrics.torproject.org to search for the Tor node fingerprint."
+}

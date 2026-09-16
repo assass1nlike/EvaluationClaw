@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_storage_optimization@1",
+  "task_completion": [
+    {
+      "id": "connect_database",
+      "description": "Connect to the 'ChinookBloated' database",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQLiteStudio) or terminal session is open showing an active connection to the 'ChinookBloated' database or the '/home/ga/Documents/databases/chinook_bloated.db' file."
+    },
+    {
+      "id": "query_old_records",
+      "description": "Identify or filter 'audit_logs' records dated before '2024-01-01'",
+      "points": 20,
+      "visual_evidence": "An SQL query (e.g., SELECT * FROM audit_logs WHERE date < '2024-01-01') or a GUI filter applied to the 'audit_logs' table showing the correct date cutoff."
+    },
+    {
+      "id": "export_csv_archive",
+      "description": "Export the filtered records to a CSV file with headers",
+      "points": 20,
+      "visual_evidence": "An export dialog configuring the output to '/home/ga/Documents/exports/audit_archive.csv' with headers enabled, a success message for the export, or a file manager/terminal showing the newly created CSV file in the correct directory."
+    },
+    {
+      "id": "delete_archived_records",
+      "description": "Delete the archived pre-2024 records from the database",
+      "points": 20,
+      "visual_evidence": "Execution of a DELETE SQL statement (e.g., DELETE FROM audit_logs WHERE date < '2024-01-01') or a confirmation message showing rows deleted (approximately 26,831 rows)."
+    },
+    {
+      "id": "vacuum_database",
+      "description": "Perform a VACUUM or optimization operation to reclaim disk space",
+      "points": 30,
+      "visual_evidence": "Execution of the 'VACUUM' SQL command, a GUI database maintenance task for shrinking/optimizing, or a file manager/terminal showing the 'chinook_bloated.db' file size significantly reduced (to around 17.6 MB)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_client_used",
+      "description": "The agent used a genuine database client or CLI rather than mocking the output",
+      "visual_evidence": "Presence of a real database management interface (like DBeaver) or sqlite3 terminal session, not just a text editor creating a fake CSV file."
+    },
+    {
+      "id": "authentic_export_process",
+      "description": "The CSV export was generated through the database tool's export function or SQL commands",
+      "visual_evidence": "Export wizard dialogs, SQL '.mode csv' commands, or progress bars indicating a real data export process, rather than manually typing or copy-pasting data."
+    },
+    {
+      "id": "actual_size_reduction",
+      "description": "The database file size was actually reduced on disk",
+      "visual_evidence": "File manager or terminal 'ls -lh' output showing the 'chinook_bloated.db' file size is significantly smaller (around 17-18 MB) compared to its original ~53 MB size, proving the VACUUM operation actually occurred."
+    }
+  ],
+  "privileged_info_for_vlm": "The target database is located at '/home/ga/Documents/databases/chinook_bloated.db'. The archive must be saved to '/home/ga/Documents/exports/audit_archive.csv'. The cutoff date for archiving and deletion is strictly '2024-01-01'. There are exactly 26,831 records pre-2024 that should be exported and deleted. The initial database size is approximately 53.4 MB. After successful deletion and VACUUM, the final database file size should be approximately 17.6 MB."
+}

@@ -1,0 +1,40 @@
+{
+  "id": "crew_partner_network_setup@1",
+  "env_id": "example.flica_env@0.1",
+  "difficulty": "hard",
+  "description": "You are a United Airlines Captain based at Chicago O'Hare International Airport (ORD). Set up your Flight Crew View profile before your first trip by updating your display name to 'Capt. Rodriguez | ORD', setting your position to Captain, and configuring both your home and base/activity airports to ORD. Additionally, add fo.james@united.aero, fa.chen@united.aero, and fa.garcia@united.aero as friends. Login credentials: cuasuite@gmail.com / #Aa123456aA (Friend/Family account).",
+  "init": {
+    "timeout_sec": 540,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/crew_partner_network_setup/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/crew_partner_network_setup/export_result.sh"
+  },
+  "metadata": {
+    "target_display_name": "Capt. Rodriguez | ORD",
+    "display_name_keyword": "Rodriguez",
+    "target_position": "Captain",
+    "target_home_airport": "ORD",
+    "target_base_airport": "ORD",
+    "target_friends": [
+      "fo.james@united.aero",
+      "fa.chen@united.aero",
+      "fa.garcia@united.aero"
+    ],
+    "friend_keywords": [
+      "fo.james",
+      "fa.chen",
+      "fa.garcia"
+    ],
+    "persona": "United Airlines Captain",
+    "base": "ORD"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_crew_partner_network_setup"
+    }
+  }
+}

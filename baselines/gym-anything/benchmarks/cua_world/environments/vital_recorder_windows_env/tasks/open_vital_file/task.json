@@ -1,0 +1,21 @@
+{
+  "id": "open_vital_file@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "Vital Recorder 1.16.6 is open on the Windows desktop. A surgical vital signs recording file '0001.vital' from the VitalDB open dataset (Seoul National University Hospital) is located at C:\\Users\\Docker\\Desktop\\VitalRecorderData\\0001.vital. This file contains approximately 3 hours of intraoperative monitoring data from a noncardiac surgery case, including arterial blood pressure (ART), ECG waveforms (ECG_II, ECG_V5), pulse oximetry (PLETH), capnography (CO2), airway pressure (AWP), and anesthetic agent concentrations (INSP_SEVO, EXP_SEVO). Load the file '0001.vital' from C:\\Users\\Docker\\Desktop\\VitalRecorderData\\ into Vital Recorder to display the physiological waveform traces.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\open_vital_file\\setup_task.ps1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_open_vital_file"
+    }
+  }
+}

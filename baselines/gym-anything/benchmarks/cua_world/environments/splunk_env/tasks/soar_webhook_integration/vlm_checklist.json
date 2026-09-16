@@ -1,0 +1,65 @@
+{
+  "task_id": "soar_webhook_integration@1",
+  "task_completion": [
+    {
+      "id": "alert_search_query",
+      "description": "Verify the agent entered a search query for failed logins in the security_logs index.",
+      "points": 10,
+      "visual_evidence": "Look for the Splunk search bar containing 'index=security_logs' along with logic to find failed logins, group by source IP (e.g., 'stats count by src_ip'), and filter for counts greater than 10 (e.g., 'where count > 10')."
+    },
+    {
+      "id": "alert_name_saved",
+      "description": "Verify the alert is saved with the correct name.",
+      "points": 10,
+      "visual_evidence": "Look for the 'Save As Alert' dialog or the Splunk Alerts list showing the exact name 'Brute_Force_Webhook_Alert'."
+    },
+    {
+      "id": "alert_schedule_cron",
+      "description": "Verify the alert is configured with the correct cron schedule.",
+      "points": 15,
+      "visual_evidence": "In the alert configuration window, look for the Schedule type set to 'Cron Schedule' (or similar custom schedule) with the exact cron expression '*/5 * * * *'."
+    },
+    {
+      "id": "alert_throttle_config",
+      "description": "Verify the alert throttling is configured for 1 hour grouped by the attacker's IP.",
+      "points": 15,
+      "visual_evidence": "In the alert configuration window, look for the 'Throttle' checkbox enabled, the time window set to '1 hour' (or 60 minutes), and the 'Suppress results containing field value' input containing an IP field name (e.g., 'src_ip' or similar)."
+    },
+    {
+      "id": "alert_webhook_action",
+      "description": "Verify the webhook trigger action is configured with the correct URL.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Trigger Actions' section in the alert configuration showing a 'Webhook' action added, with the URL field explicitly set to 'http://10.0.0.50:8080/soar_webhook'."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "Verify the health monitoring dashboard is created with the correct name.",
+      "points": 10,
+      "visual_evidence": "Look for a Splunk dashboard view or the Dashboards list displaying the title 'SOAR_Integration_Health'."
+    },
+    {
+      "id": "dashboard_panel_search",
+      "description": "Verify the dashboard panel uses the correct internal search to monitor the alert execution.",
+      "points": 20,
+      "visual_evidence": "Look at the dashboard edit mode or panel configuration. The search string for the visualization panel must contain 'index=_internal', 'sourcetype=scheduler', and 'savedsearch_name=\"Brute_Force_Webhook_Alert\"'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the Splunk Web GUI to create the alert and dashboard.",
+      "visual_evidence": "Screenshots should show the agent interacting with the Splunk web interface in a browser (http://localhost:8000), rather than using curl commands or API scripts in a terminal."
+    },
+    {
+      "id": "no_direct_conf_editing",
+      "description": "Verify the agent did not bypass the UI by directly editing Splunk configuration files.",
+      "visual_evidence": "Screenshots should not show the agent using terminal text editors (like nano or vim) to manually edit 'savedsearches.conf' or 'ui-prefs.conf'."
+    },
+    {
+      "id": "genuine_splunk_interface",
+      "description": "Verify the interface shown is the genuine Splunk Enterprise web application.",
+      "visual_evidence": "Look for standard Splunk UI elements (Splunk logo, App: Search & Reporting, standard navigation bars) rather than a mocked HTML page or text document."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Alert Name: 'Brute_Force_Webhook_Alert'. Target Webhook URL: 'http://10.0.0.50:8080/soar_webhook'. Target Dashboard Name: 'SOAR_Integration_Health'. Splunk Credentials: admin / SplunkAdmin1!."
+}

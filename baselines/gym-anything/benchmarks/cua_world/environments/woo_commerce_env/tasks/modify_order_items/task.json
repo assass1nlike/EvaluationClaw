@@ -1,0 +1,30 @@
+{
+  "id": "modify_order_items@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "A customer, Michael Chen, has contacted support regarding his recent order. He ordered an 'Organic Cotton T-Shirt' by mistake and wants to swap it for a 'Merino Wool Sweater'. Update Michael Chen's 'On Hold' order in the WooCommerce admin panel by replacing the 'Organic Cotton T-Shirt' with one 'Merino Wool Sweater'. Recalculate the order totals and save the changes. You do not need to process any refund or payment, just update the order contents.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/modify_order_items/setup_task.sh",
+    "post_task": "/workspace/tasks/modify_order_items/export_result.sh"
+  },
+  "metadata": {
+    "target_customer_email": "michael.chen@example.com",
+    "item_to_remove_sku": "OCT-BLK-M",
+    "item_to_remove_name": "Organic Cotton T-Shirt",
+    "item_to_add_sku": "MWS-GRY-L",
+    "item_to_add_name": "Merino Wool Sweater",
+    "expected_item_quantity": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_modify_order_items"
+    }
+  }
+}

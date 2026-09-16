@@ -1,0 +1,28 @@
+{
+  "id": "polar_station_midnight_sun_array@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "At extreme high latitudes during the summer solstice, the sun never sets; instead, it traces a full 360-degree circle around the horizon. A standard south-facing solar array will miss the 'nighttime' sun located in the northern sky, losing significant potential energy. This task requires you to design a multi-directional or tracking solar array for an Arctic research station that provides uninterrupted 24-hour power generation while adhering to a strict physical constraint for snow clearance.\n\nGoal: Configure a solar array at 78° N latitude that produces uninterrupted power for all 24 hours of the summer solstice, while maintaining a minimum 30° tilt to shed heavy snow.\n\n1. Open the existing project ~/Documents/Energy3D/polar_base.ng3.\n2. Change the geographic location to Latitude 78° N (e.g. near Svalbard).\n3. Set the date to June 21st (Summer Solstice).\n4. Design a solar array (rooftop or ground) capable of capturing sunlight from all 360 degrees. You may use panels facing multiple cardinal directions or utilize solar trackers.\n5. Constraint: Every solar panel must have a tilt angle of at least 30° (if fixed) or utilize dynamic tracking to shed snow.\n6. Run the Daily Yield Analysis.\n7. Right-click the resulting graph and Export the raw data to a CSV file at ~/Documents/Energy3D/midnight_sun_yield.csv.\n8. Save the modified Energy3D project as ~/Documents/Energy3D/polar_base_solved.ng3.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/polar_station_midnight_sun_array/setup_task.sh",
+    "post_task": "/workspace/tasks/polar_station_midnight_sun_array/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Off-grid Power Systems Engineer",
+    "industry": "Remote / Polar Operations",
+    "expected_csv": "/home/ga/Documents/Energy3D/midnight_sun_yield.csv",
+    "expected_project": "/home/ga/Documents/Energy3D/polar_base_solved.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_polar_station_array"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_roi_zoom_layout@1",
+  "task_completion": [
+    {
+      "id": "api_access",
+      "description": "Agent accesses the Nx Witness REST API",
+      "points": 10,
+      "visual_evidence": "Visual evidence of the agent using a browser to access the Nx Witness API documentation/Swagger UI at https://localhost:7001, or preparing a terminal command (curl) or script (Python) targeting this URL."
+    },
+    {
+      "id": "query_camera",
+      "description": "Agent retrieves the ID for the 'Lobby Camera'",
+      "points": 15,
+      "visual_evidence": "A visible API request (and response) querying the system's devices/cameras to find the unique identifier (UUID) associated with the 'Lobby Camera'."
+    },
+    {
+      "id": "create_layout_request",
+      "description": "Agent constructs a layout creation request with the correct name",
+      "points": 20,
+      "visual_evidence": "A JSON payload or API request body being drafted or sent that includes the layout name 'Lobby POS Monitor'."
+    },
+    {
+      "id": "configure_two_views",
+      "description": "Agent includes two views of the Lobby Camera in the layout",
+      "points": 20,
+      "visual_evidence": "The layout creation payload contains an array of items/resources where the Lobby Camera's ID is referenced exactly twice, representing the side-by-side views."
+    },
+    {
+      "id": "configure_zoom_parameters",
+      "description": "Agent configures the digital zoom ROI for the second view",
+      "points": 25,
+      "visual_evidence": "The payload specifies zoom or item parameters for one of the camera views with the exact coordinates: x=0.5, y=0.5, width=0.5, height=0.5 (or w=0.5, h=0.5)."
+    },
+    {
+      "id": "successful_creation_response",
+      "description": "Agent successfully executes the layout creation request",
+      "points": 10,
+      "visual_evidence": "The terminal, script output, or API client shows a successful HTTP response (e.g., 200 OK, or a JSON response containing the new layout details) after the creation request is sent."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_api_not_gui",
+      "description": "Agent used the REST API instead of the Desktop GUI",
+      "visual_evidence": "The agent must accomplish the task using API requests (via curl, scripts, or browser-based API UI). The agent should NOT be seen opening the Nx Witness Desktop client to manually draw the zoom region or create the layout."
+    },
+    {
+      "id": "actual_api_interaction",
+      "description": "Agent actually sent the API request to the server",
+      "visual_evidence": "The agent executes the request and receives a genuine server response, rather than just typing a JSON payload into a text editor without running it."
+    },
+    {
+      "id": "correct_target_system",
+      "description": "Agent interacted with the specified local system",
+      "visual_evidence": "API requests are explicitly directed to https://localhost:7001, proving interaction with the correct test environment."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a layout named 'Lobby POS Monitor' containing two views of 'Lobby Camera' via the Nx Witness REST API at https://localhost:7001. The second view must have a digital zoom configured with coordinates x=0.5, y=0.5, width=0.5, height=0.5 (representing the bottom-right quadrant). Look for API requests (via curl, Python, or API docs UI) containing these exact names and coordinate values, followed by a successful API response."
+}

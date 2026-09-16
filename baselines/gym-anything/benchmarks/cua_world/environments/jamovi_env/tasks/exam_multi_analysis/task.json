@@ -1,0 +1,39 @@
+{
+  "id": "exam_multi_analysis@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "You are a psychology researcher preparing the results section for a paper on exam performance using the ExamAnxiety.csv dataset in jamovi. Conduct descriptive statistics (mean, median, standard deviation, minimum, and maximum) for Exam, Revise, and Anxiety split by Gender. Perform an independent samples t-test comparing Exam scores between Male and Female participants and generate a correlation matrix showing the pairwise Pearson correlations among Exam, Revise, and Anxiety. Save the analysis to /home/ga/Documents/Jamovi/ExamAnalysis.omv.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/exam_multi_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/exam_multi_analysis/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "ExamAnxiety.csv",
+    "n_participants": 103,
+    "required_analyses": [
+      "descriptives",
+      "ttest",
+      "correlation"
+    ],
+    "save_path": "/home/ga/Documents/Jamovi/ExamAnalysis.omv",
+    "dv_ttest": "Exam",
+    "grouping_var": "Gender",
+    "correlation_vars": [
+      "Exam",
+      "Revise",
+      "Anxiety"
+    ],
+    "split_var": "Gender"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_exam_multi_analysis"
+    }
+  }
+}

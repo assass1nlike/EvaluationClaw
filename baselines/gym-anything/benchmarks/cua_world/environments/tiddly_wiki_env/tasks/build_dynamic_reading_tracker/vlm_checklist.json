@@ -1,0 +1,53 @@
+{
+  "task_id": "build_dynamic_reading_tracker@1",
+  "task_completion": [
+    {
+      "id": "macro_tiddler_created",
+      "description": "Verify the creation of the ProgressMacro tiddler with the correct tag.",
+      "points": 15,
+      "visual_evidence": "A tiddler titled 'ProgressMacro' is visible in the interface, and it clearly has the tag '$:/tags/Macro' applied to it."
+    },
+    {
+      "id": "macro_definition_code",
+      "description": "Verify the macro definition contains the correct parameters and HTML element.",
+      "points": 20,
+      "visual_evidence": "The text editor view for 'ProgressMacro' shows TiddlyWiki macro syntax defining `\\define reading-progress` with parameters for current and total (e.g., `current`, `total`), and includes an HTML `<progress>` tag utilizing those parameters."
+    },
+    {
+      "id": "dashboard_tiddler_created",
+      "description": "Verify the creation of the Reading Dashboard tiddler.",
+      "points": 15,
+      "visual_evidence": "A tiddler exactly titled 'Reading Dashboard' is visible in the TiddlyWiki interface."
+    },
+    {
+      "id": "dashboard_book_list_rendered",
+      "description": "Verify the dashboard dynamically lists the books with titles as links and their authors.",
+      "points": 20,
+      "visual_evidence": "The rendered view of the 'Reading Dashboard' shows a list of books (e.g., 'The Dispossessed', 'Dune', 'Neuromancer', 'Foundation'). The book titles must be formatted as clickable links, followed by the exact text 'by' and the author's name."
+    },
+    {
+      "id": "dashboard_progress_bars_rendered",
+      "description": "Verify the dashboard displays visual progress bars for each book.",
+      "points": 30,
+      "visual_evidence": "In the rendered 'Reading Dashboard', each book entry has a visual progress bar (HTML5 `<progress>` element) next to or below it. The bars must reflect the specific progress of each book (e.g., Neuromancer's bar should be 100% full, Foundation's bar should be mostly empty)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the TiddlyWiki GUI to complete the task.",
+      "visual_evidence": "Screenshots should show the agent interacting with the TiddlyWiki web interface in a browser (e.g., using the 'New Tiddler' button, typing in the text areas, clicking 'Save'), rather than exclusively using terminal commands to generate files."
+    },
+    {
+      "id": "dynamic_list_usage",
+      "description": "Verify the dashboard uses dynamic listing rather than hardcoded text.",
+      "visual_evidence": "If the edit view of 'Reading Dashboard' is visible, it should contain TiddlyWiki list widget syntax (e.g., `<$list filter=\"[tag[Book]]\">`) and field transclusions (e.g., `{{!!author}}`), rather than hardcoded book titles and author names."
+    },
+    {
+      "id": "genuine_progress_elements",
+      "description": "Verify the progress bars are actual HTML elements.",
+      "visual_evidence": "The progress bars should look like standard browser-rendered HTML5 `<progress>` elements (typically a styled graphical bar), not typed out ASCII text characters like '[====    ]'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a macro tiddler exactly named 'ProgressMacro' with the tag '$:/tags/Macro', and a dashboard tiddler exactly named 'Reading Dashboard'. The dashboard must list books seeded in the environment. The VLM should look for these specific books and their progress to verify the rendered output: 'The Dispossessed' (150/387 pages), 'Dune' (412/896 pages), 'Neuromancer' (271/271 pages, progress bar should be exactly 100% full), and 'Foundation' (45/255 pages, progress bar should be ~17% full)."
+}

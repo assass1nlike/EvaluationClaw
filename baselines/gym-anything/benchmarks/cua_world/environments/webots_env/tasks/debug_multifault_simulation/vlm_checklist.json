@@ -1,0 +1,53 @@
+{
+  "task_id": "debug_multifault_simulation@1",
+  "task_completion": [
+    {
+      "id": "open_simulation_file",
+      "description": "Agent opens the simulation world file to inspect the configuration.",
+      "points": 10,
+      "visual_evidence": "Screenshots show Webots or a text editor (like VS Code, nano, or gedit) open with a .wbt file (likely soccer.wbt) containing simulation nodes."
+    },
+    {
+      "id": "adjust_gravity",
+      "description": "Agent fixes the 'floating in the air' issue by correcting the gravity configuration.",
+      "points": 20,
+      "visual_evidence": "Text editor or Webots interface showing the 'gravity' field in the WorldInfo node being modified or verified to a realistic value (>= 9.0, typically 9.81)."
+    },
+    {
+      "id": "adjust_mass",
+      "description": "Agent fixes the 'moving without physics' issue by correcting the mass of robot components.",
+      "points": 20,
+      "visual_evidence": "Text editor or Webots interface showing 'mass' fields inside Physics nodes being increased (specifically ensuring all masses, including small parts like wheels, are > 0.1 kg)."
+    },
+    {
+      "id": "adjust_timestep",
+      "description": "Agent fixes the 'too slow for real-time control' issue by adjusting the simulation time step.",
+      "points": 20,
+      "visual_evidence": "Text editor or Webots interface showing the 'basicTimeStep' field in the WorldInfo node being added or modified to a lower, performant value (<= 64)."
+    },
+    {
+      "id": "save_fixed_simulation",
+      "description": "Agent saves the corrected simulation world to the specified output path.",
+      "points": 30,
+      "visual_evidence": "A save dialog, terminal command, or file manager showing the file being saved exactly as '/home/ga/Desktop/fixed_simulation.wbt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_modification",
+      "description": "Agent genuinely modifies the simulation file using an editor or Webots interface.",
+      "visual_evidence": "Screenshots show active editing of the .wbt file contents, rather than just running a pre-made script or echoing text to bypass the task."
+    },
+    {
+      "id": "valid_webots_format",
+      "description": "The saved file maintains the Webots world file structure.",
+      "visual_evidence": "The edited file retains standard Webots node syntax (e.g., WorldInfo { ... }, Robot { ... }) and is not replaced by plain text or a copy-paste of the prompt."
+    },
+    {
+      "id": "no_hallucinated_success",
+      "description": "Agent does not just claim success without performing the required edits.",
+      "visual_evidence": "Actual file editing of gravity, mass, and basicTimeStep must be visible in the trajectory before any final save or completion message."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file must be saved exactly to '/home/ga/Desktop/fixed_simulation.wbt'. To be considered correct based on the underlying verifier, the basicTimeStep must be <= 64, gravity must be >= 9.0, and all robot masses (including small parts like wheels) must be > 0.1 kg. Note that due to a setup flaw in the benchmark, the initial file might not have these errors explicitly injected, so the agent must manually ensure these specific thresholds are met in the final saved file to pass."
+}

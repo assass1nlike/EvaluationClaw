@@ -1,0 +1,25 @@
+{
+  "id": "promotion_and_department_update@1",
+  "version": "1.0",
+  "env_id": "odoo_hr_env@0.1",
+  "description": "You are the General Operations Manager at a consulting firm processing the results of the annual personnel review. Log in to Odoo at http://localhost:8069 with username admin and password admin to implement several role changes. Promote Ronnie Hart to 'CTO' in the 'Management' department with 'Marc Demo' as their direct manager. Update Jennie Fletcher's Job Position to 'HR Manager'. For all employees in the 'Long Term Projects' department, add the 'Consultant' tag if missing. Designate 'Randall Lewis' as the official department manager for 'Long Term Projects'.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 640,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/promotion_and_department_update/setup_task.sh",
+    "post_task": "/workspace/tasks/promotion_and_department_update/export_result.sh"
+  },
+  "metadata": {
+    "result_file": "/tmp/promotion_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_promotion"
+    }
+  }
+}

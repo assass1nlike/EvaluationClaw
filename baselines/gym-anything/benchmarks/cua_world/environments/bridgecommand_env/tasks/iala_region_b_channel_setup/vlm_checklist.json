@@ -1,0 +1,53 @@
+{
+  "task_id": "iala_region_b_channel_setup@1",
+  "task_completion": [
+    {
+      "id": "scenario_files_created",
+      "description": "Verify the scenario directory and required ini files were created.",
+      "points": 15,
+      "visual_evidence": "Terminal showing `ls` of `/opt/bridgecommand/Scenarios/w) Miami IALA B Approach/` containing `environment.ini`, `ownship.ini`, and `othership.ini`, or a file manager showing these files."
+    },
+    {
+      "id": "ownship_configuration",
+      "description": "Verify the ownship settings match the task requirements.",
+      "points": 20,
+      "visual_evidence": "Content of `ownship.ini` showing vessel 'MV Dorado', Latitude 25.766, Longitude 80.080 W (or -80.080), Heading 270, and Speed 10."
+    },
+    {
+      "id": "buoy_positions",
+      "description": "Verify the positions of the 6 lateral buoys.",
+      "points": 25,
+      "visual_evidence": "Content of `othership.ini` showing 6 buoys. North buoys at Latitude ~25.767, South buoys at Latitude ~25.765. Longitudes at 80.100 W (or -80.100), 80.110 W (or -80.110), and 80.120 W (or -80.120) for each pair."
+    },
+    {
+      "id": "buoy_models_iala_b",
+      "description": "Verify the correct buoy models are assigned according to IALA Region B rules.",
+      "points": 25,
+      "visual_evidence": "Content of `othership.ini` showing Red buoy models assigned to the North buoys (Lat 25.767) and Green buoy models assigned to the South buoys (Lat 25.765)."
+    },
+    {
+      "id": "documentation_file",
+      "description": "Verify the channel configuration plan documentation.",
+      "points": 15,
+      "visual_evidence": "Content of `/home/ga/Documents/channel_configuration_plan.txt` showing the names of the buoy models used for the North (Red) and South (Green) sides."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_editing",
+      "description": "Verify the agent genuinely created and edited the configuration files.",
+      "visual_evidence": "Screenshots show the agent using a text editor (e.g., nano, vim, gedit) or shell commands to write the configuration files, rather than just printing the expected text."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Verify the files are created in the actual system directory.",
+      "visual_evidence": "The files are created in the actual `/opt/bridgecommand/Scenarios/` directory, requiring appropriate permissions (e.g., using sudo if needed), not in a fake local directory."
+    },
+    {
+      "id": "documentation_saved",
+      "description": "Verify the documentation file is actually saved to disk.",
+      "visual_evidence": "The text file in Documents is actually saved to disk, visible via a terminal command like `cat` or `ls`, not just typed into an unsaved editor buffer."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: 1) Miami is in IALA Region B ('Red Right Returning'). 2) For a Westbound vessel (heading 270 degrees), the North side is Starboard and must be marked with Red buoys. 3) The South side is Port and must be marked with Green buoys. 4) The correct scenario directory is '/opt/bridgecommand/Scenarios/w) Miami IALA B Approach'."
+}

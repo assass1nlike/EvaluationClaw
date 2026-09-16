@@ -1,0 +1,59 @@
+{
+  "id": "inhalation_risk_ranking@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "Perform a comparative inhalation risk assessment for Methanol, Toluene, Acetone, Carbon Disulfide, and Ethylene Oxide using data from CAMEO Chemicals (https://cameochemicals.noaa.gov/). For each chemical, determine the IDLH (ppm) and Vapor Pressure (mmHg) to calculate the Inhalation Risk Ratio (Vapor Pressure / IDLH). Export the results to /home/ga/Documents/inhalation_risk_assessment.csv with the header 'Chemical,CAS,IDLH_ppm,Vapor_Pressure_mmHg,VP_IDLH_Ratio,Risk_Rank'. The data must be sorted by Risk_Rank from 1 (highest ratio) to 5 (lowest ratio), with the VP_IDLH_Ratio rounded to three decimal places.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/inhalation_risk_ranking/setup_task.sh",
+    "post_task": "/workspace/tasks/inhalation_risk_ranking/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Documents/inhalation_risk_assessment.csv",
+    "chemicals": {
+      "Ethylene Oxide": {
+        "cas": "75-21-8",
+        "idlh": 800,
+        "vp_approx": 1095
+      },
+      "Carbon Disulfide": {
+        "cas": "75-15-0",
+        "idlh": 500,
+        "vp_approx": 300
+      },
+      "Acetone": {
+        "cas": "67-64-1",
+        "idlh": 2500,
+        "vp_approx": 180
+      },
+      "Toluene": {
+        "cas": "108-88-3",
+        "idlh": 500,
+        "vp_approx": 22
+      },
+      "Methanol": {
+        "cas": "67-56-1",
+        "idlh": 6000,
+        "vp_approx": 96
+      }
+    },
+    "expected_ranking": [
+      "Ethylene Oxide",
+      "Carbon Disulfide",
+      "Acetone",
+      "Toluene",
+      "Methanol"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_inhalation_risk_ranking"
+    }
+  }
+}

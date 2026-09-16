@@ -1,0 +1,32 @@
+{
+  "id": "create_fleet_monitoring_views@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "You are a Database Administrator for the Aerobridge drone management system. Create three SQL views in the SQLite database at /opt/aerobridge/aerobridge.sqlite3 to power a new monitoring dashboard: `v_fleet_overview` (listing aircraft Registration Number or Name, Manufacturer Name, and Operator Name), `v_operator_fleet_size` (listing each Operator Name and the count of aircraft assigned to them), and `v_personnel_directory` (listing all Person names (First/Last) and their associated Operator Name). Save the CREATE VIEW SQL statements to /home/ga/Documents/dashboard_views.sql. Query each view (limit 5 rows) and save the labeled output to /home/ga/Documents/dashboard_views_output.txt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_fleet_monitoring_views/setup_task.sh",
+    "post_task": "/workspace/tasks/create_fleet_monitoring_views/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/opt/aerobridge/aerobridge.sqlite3",
+    "expected_views": [
+      "v_fleet_overview",
+      "v_operator_fleet_size",
+      "v_personnel_directory"
+    ],
+    "output_sql_path": "/home/ga/Documents/dashboard_views.sql",
+    "output_data_path": "/home/ga/Documents/dashboard_views_output.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_fleet_monitoring_views"
+    }
+  }
+}

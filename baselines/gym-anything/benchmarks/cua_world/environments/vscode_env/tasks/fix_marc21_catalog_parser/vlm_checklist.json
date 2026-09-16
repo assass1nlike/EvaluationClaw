@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_marc21_catalog_parser@1",
+  "task_completion": [
+    {
+      "id": "open_parser_script",
+      "description": "The agent opened the parser script in a text editor or IDE.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., VS Code, vim, nano) is open showing the contents of /home/ga/workspace/marc_parser/parser.py."
+    },
+    {
+      "id": "edit_parser_script",
+      "description": "The agent modified the parser script to fix the binary parsing, encoding, and field extraction bugs.",
+      "points": 30,
+      "visual_evidence": "Visible changes being made to parser.py in the editor, such as adding .decode('utf-8') for international titles, adjusting binary offsets, or fixing subfield delimiter logic."
+    },
+    {
+      "id": "execute_parser_script",
+      "description": "The agent executed the modified parser script to process the MARC21 file.",
+      "points": 20,
+      "visual_evidence": "A terminal window showing the command 'python parser.py' (or similar) being executed without throwing crash tracebacks."
+    },
+    {
+      "id": "check_output_file_exists",
+      "description": "The agent verified that the parsed catalog JSON file was successfully generated.",
+      "points": 20,
+      "visual_evidence": "Terminal commands (like 'ls output/' or 'cat output/parsed_catalog.json') or a file explorer showing that 'output/parsed_catalog.json' has been created."
+    },
+    {
+      "id": "verify_output_content",
+      "description": "The agent verified the contents of the generated catalog, ensuring it contains the correct number of parsed records.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., using 'wc -l', 'jq', or a python snippet) or an editor showing the contents of output/parsed_catalog.json, ideally indicating exactly 100 records were parsed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_execution",
+      "description": "The agent generated the output by running the Python script, not by manually creating the file.",
+      "visual_evidence": "The output/parsed_catalog.json file should be the result of running parser.py, not created via 'echo', 'cat', or manual text entry."
+    },
+    {
+      "id": "no_ground_truth_copying",
+      "description": "The agent did not cheat by copying the hidden ground truth file.",
+      "visual_evidence": "There should be no terminal commands copying '/var/lib/app/ground_truth/expected_catalog.json' to 'output/parsed_catalog.json'."
+    },
+    {
+      "id": "actual_code_modification",
+      "description": "The agent manually fixed the code rather than downloading a pre-made solution.",
+      "visual_evidence": "The agent should be seen editing parser.py in an editor, rather than replacing it entirely using 'wget', 'curl', or copying from an external source."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output catalog must contain exactly 100 records. The true expected output is located at /var/lib/app/ground_truth/expected_catalog.json. Watch closely to ensure the agent does not simply copy this ground truth file to bypass fixing the parser script."
+}

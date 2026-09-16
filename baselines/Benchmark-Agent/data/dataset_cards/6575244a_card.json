@@ -1,0 +1,94 @@
+{
+  "dataset_id": "6575244a",
+  "name": "Openset Context-Aware Embodied Agent Dialogue",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Openset Context-Aware Embodied Agent Dialogue dataset consists of multimodal examples in which an agent must determine its next action given a main goal, a history of previous steps, and a sequence of egocentric images from a household environment. It evaluates context-aware action prediction and visual question answering in embodied scenarios.",
+  "card_text": "This dataset contains 200 samples. Each sample includes a list of image filenames and a textual prompt that specifies a main goal, step details with <ImageHere> placeholders, and a current step query. The target output is a short imperative phrase describing the next action the agent should take. The images are likely egocentric views of household scenes containing everyday objects. The task requires integrating visual observations with the instruction and previous decisions. Prompts are in English and are explicitly instructional. The dataset is openset in that actions are free-form text rather than a fixed set of labels. It is designed to test an agent's ability to use context and visual perception to plan actions in a simulated household environment.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "embodied AI household tasks",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The prompt is the main textual context: it states the agent's main goal, lists previous step details (with <ImageHere> placeholders for corresponding images), and ends with 'Current Step:' to request the next action. It combines task instructions with history and serves as the query for the model.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The same prompt field also acts as the question, asking the agent to determine the next action based on the provided goal and step history.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The target next action, expressed as a short imperative phrase, that the agent should perform in the environment.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "A list of image filenames that correspond to the <ImageHere> placeholders in the prompt. They provide egocentric visual observations of the environment at previous steps and the current step, used to infer the next action.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an id (ignored) and two main parts: input and output. The input has a list of image filenames (input.image_file) and a single text prompt (input.prompt). The prompt states the main goal, lists previous step details with <ImageHere> placeholders, and ends with 'Current Step:' to request the next action, so it serves as both context and question. The output has a short text answer (output.text) giving the next action. The images correspond to the placeholders and provide visual context for the decision."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Context-AwareEmbodiedAgentDialogue/openset_context-aware_embodied_agent_dialogue.json",
+    "existing_tags": {
+      "task": "Context-Aware Embodied Agent Dialogue",
+      "type": "image comprehension",
+      "skill": "Multimodal Dialogue",
+      "domain": "General",
+      "general_capability": [
+        "Interactive Capability"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

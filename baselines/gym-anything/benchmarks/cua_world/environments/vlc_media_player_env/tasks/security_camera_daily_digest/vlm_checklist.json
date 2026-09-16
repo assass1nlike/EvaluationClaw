@@ -1,0 +1,53 @@
+{
+  "task_id": "security_camera_daily_digest@1",
+  "task_completion": [
+    {
+      "id": "directory_structure_created",
+      "description": "Create the daily_digest directory and its subdirectories",
+      "points": 10,
+      "visual_evidence": "A file manager or terminal window showing the creation or existence of /home/ga/Videos/daily_digest/ with 'frames' and 'incidents' subdirectories."
+    },
+    {
+      "id": "timelapses_generated",
+      "description": "Generate 6x speed time-lapses for each camera",
+      "points": 20,
+      "visual_evidence": "Terminal output showing ffmpeg commands adjusting video speed (e.g., setpts=1/6.0PTS), or a file manager showing timelapse_lobby.mp4, timelapse_parking.mp4, and timelapse_loading.mp4 in the daily_digest folder."
+    },
+    {
+      "id": "frames_extracted",
+      "description": "Extract PNG frames every 30 seconds for each camera",
+      "points": 20,
+      "visual_evidence": "Terminal output showing frame extraction commands, or a file manager showing multiple .png files in the 'frames' directory following the naming convention {camera}_{seconds}s.png (e.g., lobby_0s.png, parking_30s.png)."
+    },
+    {
+      "id": "incidents_extracted",
+      "description": "Extract the four incident clips based on guard notes",
+      "points": 20,
+      "visual_evidence": "Terminal output showing video clipping commands (e.g., using -ss and -t/-to flags in ffmpeg), or a file manager showing incident_1.mp4 through incident_4.mp4 in the 'incidents' directory."
+    },
+    {
+      "id": "manifest_generated",
+      "description": "Generate the JSON manifest with required keys",
+      "points": 30,
+      "visual_evidence": "A text editor, script, or terminal output (like cat) showing the contents of digest_manifest.json containing the keys 'cameras', 'timelapses', 'incidents', and 'frames_count'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_video_processing",
+      "description": "The agent genuinely processed the videos using appropriate tools rather than creating empty/mock files.",
+      "visual_evidence": "Terminal windows showing actual ffmpeg execution logs with progress indicators, frame counts, and bitrates, or a video editing GUI actively processing the files."
+    },
+    {
+      "id": "valid_file_sizes",
+      "description": "The generated video and image files have realistic sizes indicating actual content.",
+      "visual_evidence": "File manager or terminal 'ls -l' output showing file sizes greater than 0 bytes for the generated .mp4 and .png files."
+    },
+    {
+      "id": "genuine_manifest_creation",
+      "description": "The agent constructed the JSON manifest manually or programmatically.",
+      "visual_evidence": "An open text editor (e.g., nano, vim, gedit, VS Code) or a script showing the agent actively writing or formatting the JSON structure."
+    }
+  ],
+  "privileged_info_for_vlm": "The original videos are exactly 180 seconds long. The 6x speed time-lapses must be exactly 30 seconds in duration. The four incident clips must be exactly 20s, 25s, 25s, and 20s in duration respectively. There should be exactly 18 PNG frames extracted across the 3 cameras (6 frames per camera)."
+}

@@ -1,0 +1,74 @@
+{
+  "dataset_id": "1fa2278a",
+  "name": "Comparative-Opinion-Quintuple-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset is designed for comparative opinion quintuple extraction from product reviews. Given a review snippet and an extraction instruction, the model must identify comparative relations and output quintuples of (target1, target2, aspect, opinion, sentiment). It evaluates structured extraction of comparative opinions in text.",
+  "card_text": "This text-only dataset contains 200 samples for comparative opinion quintuple extraction. Each sample provides a short product review snippet (e.g., comparing camera models like the Nikon D80 and D200) along with a prompt instructing the model to extract all comparative opinion quintuplets. The expected output is a comma-separated list of quintuples formatted as 'target1 => target2 => aspect => opinion => sentiment', where sentiment is positive, negative, or neutral and any missing target or aspect may be 'NULL'. The data assumes the review text contains explicit or implicit comparative opinions and that the model can produce structured tuples directly. It is intended to benchmark relation extraction and structured opinion mining from user-generated review text.",
+  "tasks": [
+    "relation_extraction"
+  ],
+  "domain": "product reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A short product review snippet, typically comparing two camera models or expressing user expectations. It provides the unstructured text from which comparative opinion quintuples must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction prompt that asks the model to extract all comparative opinion quintuplets from the raw_text, specifying the tuple format and sentiment labels.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A string containing one or more comparative opinion quintuplets in the format target1 => target2 => aspect => opinion => sentiment, with multiple quintuplets separated by commas. It represents the extracted structured relation(s).",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of two input components and one output component: an input.raw_text field holding a short product review sentence or fragment, an input.prompt field with an extraction instruction that references the raw text, and an output.text field containing the extracted comparative opinion quintuplets formatted as target1 => target2 => aspect => opinion => sentiment. The prompt asks for all quintuplets from the review, and the output provides the answer string; there are no explicit question, options, bbox, or dialog fields."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Comparative-Opinion-Quintuple-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "comparative_opinion_quintuple_extraction",
+      "type": "multi label classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "sternberg_accuracy_speed_tradeoff@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Checks if the agent opens or reads the sternberg_data.csv file.",
+      "points": 10,
+      "visual_evidence": "A script (e.g., Python using pandas) reading '~/pebl/data/sternberg_data.csv', or the file opened in a spreadsheet/text editor."
+    },
+    {
+      "id": "compute_participant_stats",
+      "description": "Checks if the agent computes mean accuracy and mean reaction time for each participant by set size.",
+      "points": 20,
+      "visual_evidence": "Code showing grouping operations (e.g., groupby(['participant_id', 'set_size'])) calculating the mean of 'correct' and 'response_time_ms', or terminal output displaying these participant-level statistics."
+    },
+    {
+      "id": "exclude_non_genuine_participant",
+      "description": "Checks if the agent identifies and excludes the participant with non-genuine performance.",
+      "points": 30,
+      "visual_evidence": "Code filtering out anomalous data (e.g., identifying sub-99999 due to 100% accuracy and impossibly low RTs around 50-80ms), or terminal output explicitly stating the exclusion of this participant."
+    },
+    {
+      "id": "compute_group_means",
+      "description": "Checks if the agent calculates the overall group means for the remaining valid participants.",
+      "points": 20,
+      "visual_evidence": "Code aggregating the filtered dataset to compute overall mean accuracy and RT for set sizes 1, 3, 5, and 7, or terminal output showing these final group means."
+    },
+    {
+      "id": "write_json_output",
+      "description": "Checks if the agent writes the results to the specified JSON file with the correct structure.",
+      "points": 20,
+      "visual_evidence": "Code writing to '~/pebl/analysis/sternberg_analysis.json' (e.g., using json.dump) or the file content displayed in an editor showing the top-level keys 'participants' and 'group_means'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "computational_derivation",
+      "description": "Verifies that the agent wrote code to compute the statistics rather than hardcoding the expected answers.",
+      "visual_evidence": "A script containing actual data manipulation logic (e.g., pandas groupby, mean calculations) rather than a script that simply constructs and prints a hardcoded JSON string."
+    },
+    {
+      "id": "genuine_anomaly_detection",
+      "description": "Verifies that the agent explored the data to find the anomaly rather than magically knowing to exclude 'sub-99999'.",
+      "visual_evidence": "Code that calculates min/max/mean stats to find outliers, or terminal output showing data exploration, rather than hardcoding 'if participant == \"sub-99999\"' without prior inspection."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "Verifies the output file is saved to the exact requested directory.",
+      "visual_evidence": "Terminal commands (like 'ls ~/pebl/analysis/') or file paths in the script confirming the file is saved exactly at '~/pebl/analysis/sternberg_analysis.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 11 valid participants and 1 contaminated participant ('sub-99999'). 'sub-99999' must be excluded due to impossible performance (100% accuracy, RT 50.2-79.2ms). The final group means for the valid participants should be approximately: Set Size 1 (acc: 0.925, rt: 980.9), Set Size 3 (acc: 0.8388, rt: 1118.7), Set Size 5 (acc: 0.8101, rt: 1210.5), Set Size 7 (acc: 0.7652, rt: 1260.7). The output must be saved to ~/pebl/analysis/sternberg_analysis.json."
+}

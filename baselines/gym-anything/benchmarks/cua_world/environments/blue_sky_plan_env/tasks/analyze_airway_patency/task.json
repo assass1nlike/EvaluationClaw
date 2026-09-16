@@ -1,0 +1,35 @@
+{
+  "id": "analyze_airway_patency@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "Blue Sky Plan is open with a dental CBCT scan loaded ('Airway_Case_01.bsp'). Your goal is to analyze the patient's pharyngeal airway to screen for constriction. Adjust the visualization to identify the narrowest point of the oropharyngeal airway. Measure the minimum anteroposterior (AP) dimension in the sagittal view and the corresponding dimensions in the axial view. Save a screenshot of the sagittal measurement to C:\\Users\\Docker\\Documents\\AirwayAnalysis\\sagittal_airway.png and the axial view to C:\\Users\\Docker\\Documents\\AirwayAnalysis\\axial_airway.png. Create a text report at C:\\Users\\Docker\\Documents\\AirwayAnalysis\\airway_report.txt containing the minimum AP dimension in mm and its classification based on the following criteria: Normal (>11mm), Narrowed (6-11mm), or Severely narrowed (<6mm).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\analyze_airway_patency\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\analyze_airway_patency\\export_result.ps1",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "expected_output_dir": "C:\\Users\\Docker\\Documents\\AirwayAnalysis",
+    "expected_files": [
+      "sagittal_airway.png",
+      "axial_airway.png",
+      "airway_report.txt"
+    ],
+    "project_file": "C:\\workspace\\data\\Airway_Case_01.bsp",
+    "bsp_executable": "C:\\Program Files\\BlueSkyPlan\\BlueSkyPlan.exe",
+    "plausible_min_mm": 2.0,
+    "plausible_max_mm": 25.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_airway_patency"
+    }
+  }
+}

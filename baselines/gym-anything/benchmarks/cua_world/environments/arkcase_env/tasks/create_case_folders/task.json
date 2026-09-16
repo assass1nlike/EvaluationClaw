@@ -1,0 +1,31 @@
+{
+  "id": "create_case_folders@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Create a standardized document folder structure for the complaint case 'Records Management Folder Setup - 2024-RM-0047'. Create four root-level folders named 'Evidence', 'Correspondence', 'Legal_Briefs', and 'Witness_Statements'. Ensure the folder names match exactly (case-sensitive).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_case_folders/setup_task.sh",
+    "post_task": "/workspace/tasks/create_case_folders/export_result.sh"
+  },
+  "metadata": {
+    "case_title": "Records Management Folder Setup - 2024-RM-0047",
+    "required_folders": [
+      "Evidence",
+      "Correspondence",
+      "Legal_Briefs",
+      "Witness_Statements"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_case_folders"
+    }
+  }
+}

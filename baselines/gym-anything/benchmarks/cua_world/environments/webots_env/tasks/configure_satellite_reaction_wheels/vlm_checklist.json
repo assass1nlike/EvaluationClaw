@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_satellite_reaction_wheels@1",
+  "task_completion": [
+    {
+      "id": "configure_gravity",
+      "description": "Set the WorldInfo gravity to 0 0 0.",
+      "points": 15,
+      "visual_evidence": "Look for the Webots scene tree or a text editor showing the .wbt file where the 'WorldInfo' node has its 'gravity' field set to '0 0 0'."
+    },
+    {
+      "id": "configure_damping",
+      "description": "Add a Damping node to the CUBESAT Robot's physics with linear and angular fields set to 0.0.",
+      "points": 20,
+      "visual_evidence": "Look for the 'CUBESAT' Robot node in the Webots scene tree or text editor. Inside its 'physics' node, there should be a 'Damping' node with 'linear' set to 0.0 and 'angular' set to 0.0."
+    },
+    {
+      "id": "configure_max_velocity",
+      "description": "Set the RotationalMotor maxVelocity to 600.0 rad/s for the yaw, pitch, and roll reaction wheels.",
+      "points": 15,
+      "visual_evidence": "Look for the 'yaw_joint', 'pitch_joint', and 'roll_joint' nodes. Inside their 'device' or 'RotationalMotor' fields, the 'maxVelocity' should be set to 600 or 600.0."
+    },
+    {
+      "id": "configure_max_torque",
+      "description": "Set the RotationalMotor maxTorque to 0.05 Nm for the yaw, pitch, and roll reaction wheels.",
+      "points": 15,
+      "visual_evidence": "Look for the 'yaw_joint', 'pitch_joint', and 'roll_joint' nodes. Inside their 'device' or 'RotationalMotor' fields, the 'maxTorque' should be set to 0.05."
+    },
+    {
+      "id": "configure_mass",
+      "description": "Set the flywheel mass to 0.12 kg in the physics node for the yaw, pitch, and roll reaction wheels.",
+      "points": 15,
+      "visual_evidence": "Look for the 'physics' node inside the 'yaw_joint', 'pitch_joint', and 'roll_joint' (or their respective solid endPoints). The 'mass' field must be set to 0.12."
+    },
+    {
+      "id": "save_configured_world",
+      "description": "Save the configured world to /home/ga/Desktop/cubesat_adcs_configured.wbt.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager, terminal (e.g., ls command), or the Webots/text editor title bar showing that a file named 'cubesat_adcs_configured.wbt' has been saved to the Desktop."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "interactive_editing",
+      "description": "The agent interactively edited the file using the Webots GUI or a text editor.",
+      "visual_evidence": "Screenshots should show the Webots interface or a text editor (like VS Code, gedit, nano, or vim) open with the .wbt file, rather than just running blind terminal commands to append text."
+    },
+    {
+      "id": "correct_node_hierarchy",
+      "description": "The modifications respect the Webots node hierarchy.",
+      "visual_evidence": "If edited in a text editor, the new values (like Damping, mass, maxVelocity) must be correctly indented inside their respective parent nodes (Physics, RotationalMotor), not just pasted randomly at the bottom of the file."
+    },
+    {
+      "id": "genuine_save_operation",
+      "description": "The agent genuinely saved the file to the requested path.",
+      "visual_evidence": "Look for the 'Save As' dialog, terminal copy commands, or the editor's active file path confirming the exact path '/home/ga/Desktop/cubesat_adcs_configured.wbt' was used."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output path: /home/ga/Desktop/cubesat_adcs_configured.wbt. WorldInfo gravity must be [0.0, 0.0, 0.0]. CUBESAT Robot physics must have a Damping node with linear and angular damping set to 0.0. The world contains exactly 3 reaction wheels (yaw_joint, pitch_joint, roll_joint), each requiring: RotationalMotor maxVelocity = 600.0, maxTorque = 0.05, and physics mass = 0.12."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "filter_http_traffic@1",
+  "task_completion": [
+    {
+      "id": "open_capture_file",
+      "description": "Open the http.cap file in a network protocol analyzer like Wireshark.",
+      "points": 10,
+      "visual_evidence": "Wireshark (or a similar network analysis tool) is open, and the interface or title bar clearly indicates that '/home/ga/Documents/captures/http.cap' is loaded."
+    },
+    {
+      "id": "input_http_filter",
+      "description": "Input the 'http' display filter.",
+      "points": 20,
+      "visual_evidence": "The text 'http' is typed into the display filter toolbar at the top of the Wireshark interface."
+    },
+    {
+      "id": "apply_http_filter",
+      "description": "Apply the HTTP filter to isolate the traffic.",
+      "points": 20,
+      "visual_evidence": "The display filter is active (indicated by a green background in the Wireshark filter bar) and the packet list view updates to display only HTTP protocol packets."
+    },
+    {
+      "id": "open_export_dialog",
+      "description": "Initiate the export of the filtered packets.",
+      "points": 20,
+      "visual_evidence": "The 'Export Specified Packets' dialog box is open on the screen."
+    },
+    {
+      "id": "save_filtered_traffic",
+      "description": "Export the resulting traffic to filtered_http.pcap.",
+      "points": 30,
+      "visual_evidence": "The save dialog shows the file being saved exactly as 'filtered_http.pcap' in the '/home/ga/Documents/captures/' directory, or a terminal/file manager window confirms the new file exists in that specific location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_export_process",
+      "description": "Verify the file was exported from the analyzer and not just created as an empty/fake file.",
+      "visual_evidence": "Screenshots should show the agent interacting with the 'Export Specified Packets' feature in Wireshark (or using a valid tshark command), rather than using 'touch' or a text editor to artificially create 'filtered_http.pcap'."
+    },
+    {
+      "id": "exported_displayed_packets",
+      "description": "Verify that only the filtered (displayed) packets are being exported, not the entire capture.",
+      "visual_evidence": "In the Wireshark export dialog, the 'Displayed' radio button/toggle must be selected in the Packet Range section, ensuring the filter is actually applied to the exported file."
+    },
+    {
+      "id": "no_simple_file_copy",
+      "description": "Verify the agent didn't simply copy the original file to the new name.",
+      "visual_evidence": "The agent should not be seen running 'cp http.cap filtered_http.pcap' or using a file manager to duplicate the file. The process must involve actual protocol filtering."
+    }
+  ],
+  "privileged_info_for_vlm": "The source file is 'http.cap' (26KB, 43 total packets). The correct Wireshark display filter to isolate HTTP traffic is exactly 'http'. The expected output file must be named 'filtered_http.pcap' and saved in '/home/ga/Documents/captures/'."
+}

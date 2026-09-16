@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_high_capacity_monitoring@1",
+  "task_completion": [
+    {
+      "id": "access_config_file",
+      "description": "Access the Jitsi Meet configuration file",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., nano, vim) or terminal command is shown opening or modifying the file specifically at '/home/ga/.jitsi-meet-cfg/web/config.js'."
+    },
+    {
+      "id": "set_channel_last_n",
+      "description": "Set channelLastN to -1",
+      "points": 20,
+      "visual_evidence": "The screenshot shows the configuration file being edited to include 'channelLastN: -1' (or similar valid JavaScript syntax)."
+    },
+    {
+      "id": "set_disable_audio_levels",
+      "description": "Set disableAudioLevels to true",
+      "points": 20,
+      "visual_evidence": "The screenshot shows the configuration file being edited to include 'disableAudioLevels: true'."
+    },
+    {
+      "id": "set_enable_layer_suspension",
+      "description": "Set enableLayerSuspension to false",
+      "points": 20,
+      "visual_evidence": "The screenshot shows the configuration file being edited to include 'enableLayerSuspension: false'."
+    },
+    {
+      "id": "verify_served_config",
+      "description": "Verify the new configuration is active and served by the web server",
+      "points": 30,
+      "visual_evidence": "A web browser navigated to 'http://localhost:8080/config.js' or a terminal showing 'curl http://localhost:8080/config.js' displays the updated configuration file containing the newly added parameters."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "verify_actual_web_server",
+      "description": "The agent verified the configuration via the web server, not just the local file system.",
+      "visual_evidence": "The browser URL bar shows 'http://localhost:8080/config.js' and NOT a 'file://' URI, or the terminal uses 'curl http://localhost:8080/config.js' rather than just 'cat'ing the local file."
+    },
+    {
+      "id": "verify_valid_file_modification",
+      "description": "The agent modified the actual configuration file rather than creating a fake file.",
+      "visual_evidence": "The file path being edited is explicitly '/home/ga/.jitsi-meet-cfg/web/config.js'."
+    },
+    {
+      "id": "verify_jitsi_running",
+      "description": "The Jitsi Meet web server is actually running and serving the file.",
+      "visual_evidence": "The browser or curl command successfully loads the config.js file without a 'Connection Refused' or 'Not Found' error."
+    }
+  ],
+  "privileged_info_for_vlm": "The configuration file is located at /home/ga/.jitsi-meet-cfg/web/config.js and served at http://localhost:8080/config.js. The valid required settings are 'channelLastN: -1' and 'disableAudioLevels: true'. The task also requests 'enableLayerSuspension: false', which is obsolete in this Jitsi version but should still be checked for as text added to the file by the agent."
+}

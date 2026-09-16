@@ -1,0 +1,53 @@
+{
+  "task_id": "blue_green_cutover_remediation@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Agent logged into the Rancher web interface.",
+      "points": 10,
+      "visual_evidence": "The Rancher dashboard is visible in the browser with the URL pointing to https://localhost."
+    },
+    {
+      "id": "navigate_frontend_green",
+      "description": "Agent navigated to the 'frontend-green' deployment in the 'production' namespace.",
+      "points": 10,
+      "visual_evidence": "Rancher UI or terminal showing the details, YAML, or edit screen specifically for the 'frontend-green' deployment within the 'production' namespace."
+    },
+    {
+      "id": "fix_readiness_probe",
+      "description": "Agent diagnosed and fixed the readiness probe issue on the 'frontend-green' deployment.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the readiness probe configuration being edited/corrected, followed by the 'frontend-green' pods successfully transitioning to a 'Ready' or 'Active' state (e.g., green indicators in Rancher or 1/1 Ready in kubectl)."
+    },
+    {
+      "id": "cutover_frontend_service",
+      "description": "Agent manually updated the 'frontend-service' to route traffic to the green pods.",
+      "points": 30,
+      "visual_evidence": "Rancher UI or terminal showing the 'frontend-service' selectors being updated to match the 'frontend-green' pods (e.g., changing a selector label from 'blue' to 'green'), or endpoints showing the green pod IPs."
+    },
+    {
+      "id": "scale_frontend_blue_zero",
+      "description": "Agent scaled the 'frontend-blue' deployment to 0 replicas.",
+      "points": 20,
+      "visual_evidence": "Rancher UI or terminal showing the 'frontend-blue' deployment scaled down, displaying 0/0 pods or a replica count of 0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_interaction",
+      "description": "Agent interacted with the actual Rancher GUI or used genuine kubectl commands in the terminal.",
+      "visual_evidence": "Presence of the actual Rancher web interface or a terminal window with standard kubectl command execution and authentic Kubernetes API responses."
+    },
+    {
+      "id": "no_text_spoofing",
+      "description": "Agent did not simply type success messages into a text editor or terminal.",
+      "visual_evidence": "Absence of text files or echo commands that merely state 'fixed readiness probe' or 'scaled to 0'. Evidence must come from the cluster state (Rancher UI or kubectl get/describe outputs)."
+    },
+    {
+      "id": "deployment_preserved",
+      "description": "Agent preserved the 'frontend-blue' deployment for potential rollback rather than deleting it.",
+      "visual_evidence": "The 'frontend-blue' deployment still exists in the deployments list in Rancher or kubectl output, but with 0 replicas. It should not be completely missing/deleted."
+    }
+  ],
+  "privileged_info_for_vlm": "Target namespace is 'production'. Target deployments are 'frontend-blue' and 'frontend-green'. Target service is 'frontend-service'. The agent must fix the readiness probe on 'frontend-green' so pods become Ready, update 'frontend-service' selectors to point to green pods, and scale 'frontend-blue' to 0 replicas without deleting the deployment itself."
+}

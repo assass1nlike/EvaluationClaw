@@ -1,0 +1,65 @@
+{
+  "task_id": "splunk_data_quality_audit@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Agent logged into the Splunk web interface.",
+      "points": 10,
+      "visual_evidence": "The Splunk Web UI is visible in a web browser, indicating a successful login (typically showing the default home screen or Search & Reporting app)."
+    },
+    {
+      "id": "dashboard_created",
+      "description": "A dashboard named 'Data_Quality_Audit' was created.",
+      "points": 15,
+      "visual_evidence": "A dashboard is visible with the exact title 'Data_Quality_Audit' in the Splunk UI."
+    },
+    {
+      "id": "three_panels_minimum",
+      "description": "The dashboard contains at least three visualization panels.",
+      "points": 15,
+      "visual_evidence": "At least three distinct panels (charts, tables, single value displays, etc.) are visible on the 'Data_Quality_Audit' dashboard."
+    },
+    {
+      "id": "non_internal_index_queried",
+      "description": "Queries target non-internal indexes.",
+      "points": 15,
+      "visual_evidence": "SPL queries visible in the search bar, search history, or panel edit screens show searches targeting indexes like 'security_logs', 'web_logs', 'system_logs', or 'index=*' (without querying '_internal')."
+    },
+    {
+      "id": "indextime_field_used",
+      "description": "The '_indextime' field is incorporated into the dashboard queries.",
+      "points": 15,
+      "visual_evidence": "SPL queries visible in the search bar, search history, or panel edit screens explicitly include the '_indextime' field."
+    },
+    {
+      "id": "punct_field_used",
+      "description": "The 'punct' field is incorporated into the dashboard queries.",
+      "points": 15,
+      "visual_evidence": "SPL queries visible in the search bar, search history, or panel edit screens explicitly include the 'punct' field."
+    },
+    {
+      "id": "len_or_linecount_used",
+      "description": "The 'len' eval function or 'linecount' field is incorporated into the dashboard queries.",
+      "points": 15,
+      "visual_evidence": "SPL queries visible in the search bar, search history, or panel edit screens explicitly include the 'len' function (e.g., eval length=len(_raw)) or the 'linecount' field."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent interacted with the Splunk Web UI rather than solely using terminal commands or API calls.",
+      "visual_evidence": "Screenshots show the Splunk web interface in a browser being actively used to create the dashboard and run searches."
+    },
+    {
+      "id": "genuine_dashboard",
+      "description": "The dashboard was genuinely created within Splunk.",
+      "visual_evidence": "The dashboard appears within the standard Splunk framing (navigation bar, app context, Splunk styling) and is not a mocked-up HTML page or text file."
+    },
+    {
+      "id": "real_data_populated",
+      "description": "The dashboard panels display actual queried data.",
+      "visual_evidence": "Visualizations (tables, charts) display populated data rows or graphs, indicating real log data was successfully queried and rendered, rather than empty panels or hardcoded text."
+    }
+  ],
+  "privileged_info_for_vlm": "The dashboard must be named exactly 'Data_Quality_Audit' and contain a minimum of 3 visualization panels. The SPL queries powering these panels must incorporate the following specific fields/functions: '_indextime', 'punct', and either 'len' or 'linecount'. The queries must target non-internal indexes."
+}

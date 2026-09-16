@@ -1,0 +1,53 @@
+{
+  "task_id": "chinook_json_hybrid_analysis@1",
+  "task_completion": [
+    {
+      "id": "table_created",
+      "description": "Create the TrackFeatures table in the Chinook database",
+      "points": 10,
+      "visual_evidence": "Look for 'TrackFeatures' in the database navigator (e.g., DBeaver) or a SQL editor showing a CREATE TABLE statement with TrackId (INTEGER, Primary Key) and Features (TEXT)."
+    },
+    {
+      "id": "data_imported",
+      "description": "Import data from track_features.csv into the TrackFeatures table",
+      "points": 20,
+      "visual_evidence": "Look for a data grid showing the contents of TrackFeatures (TrackId integers and JSON strings), a successful import dialog/message, or a script executing the import from the pipe-delimited CSV."
+    },
+    {
+      "id": "view_created",
+      "description": "Create the v_TrackExtended view joining Track and TrackFeatures with JSON extraction",
+      "points": 30,
+      "visual_evidence": "Look for 'v_TrackExtended' in the database navigator or a CREATE VIEW statement in the SQL editor. The query must join the Track table with TrackFeatures and use JSON extraction functions (e.g., json_extract(Features, '$.bpm') or Features ->> '$.bpm') to expose BPM, Key, and Danceability alongside TrackId, Name, and Composer."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Export the high_energy_tracks.csv report with specific filters",
+      "points": 20,
+      "visual_evidence": "Look for 'high_energy_tracks.csv' in a file manager, terminal, or open in an editor. It should contain columns Name, BPM, and Danceability, and the data should reflect the filters (BPM > 130 and Danceability > 0.7)."
+    },
+    {
+      "id": "sql_saved",
+      "description": "Save all SQL scripts to json_analysis.sql",
+      "points": 20,
+      "visual_evidence": "Look for a file named 'json_analysis.sql' saved in /home/ga/Documents/scripts/, visible in a text editor, IDE, or file manager showing the SQL commands used for the task."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_used",
+      "description": "The agent interacted with the actual SQLite database",
+      "visual_evidence": "Look for a database client (like DBeaver or sqlite3 CLI) being used to execute queries, rather than just typing text into a file without running it."
+    },
+    {
+      "id": "genuine_json_extraction",
+      "description": "The agent used SQL JSON functions rather than manual text manipulation",
+      "visual_evidence": "Check the SQL script or query editor for proper JSON extraction syntax (e.g., json_extract) rather than hardcoding values or using basic string replacement."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The CSV export was generated from the database query",
+      "visual_evidence": "Look for an export action in DBeaver, a command line export, or a script writing the query results to the CSV, rather than manually typing the CSV contents."
+    }
+  ],
+  "privileged_info_for_vlm": "Database path: /home/ga/Documents/databases/chinook.db. Import file: /home/ga/Documents/imports/track_features.csv (pipe-delimited '|', no quotes). Export file: /home/ga/Documents/exports/high_energy_tracks.csv. SQL file: /home/ga/Documents/scripts/json_analysis.sql. The TrackFeatures table must have TrackId and Features columns. The v_TrackExtended view must join Track and TrackFeatures and extract 'bpm', 'key', and 'danceability' from the JSON Features column (note: JSON keys are lowercase). The export must filter for BPM > 130 and Danceability > 0.7, and contain exactly the columns Name, BPM, and Danceability."
+}

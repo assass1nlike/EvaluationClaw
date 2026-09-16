@@ -1,0 +1,63 @@
+{
+  "id": "us_executive_branch_orgchart@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Create a multi-page organizational chart of the US Executive Branch in draw.io using the hierarchy, departments, and agencies found in 'executive_branch_structure.txt' on the Desktop. The diagram must include two pages: 'Cabinet Departments' and 'Independent Agencies'. On the 'Cabinet Departments' page, create a hierarchy starting with the President and Vice President, including all 15 Cabinet Departments with their names and establishment years. Connect the hierarchy and color-code the departments by policy domain (National Security, Economic, Domestic) using at least three different fill colors. On the 'Independent Agencies' page, include at least six independent agencies from the text file. Save the final diagram as 'us_executive_branch.drawio' on the Desktop and export the 'Cabinet Departments' page as 'us_executive_branch.png' to the Desktop.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/us_executive_branch_orgchart/setup_task.sh",
+    "post_task": "/workspace/tasks/us_executive_branch_orgchart/export_result.sh"
+  },
+  "metadata": {
+    "expected_drawio": "/home/ga/Desktop/us_executive_branch.drawio",
+    "expected_png": "/home/ga/Desktop/us_executive_branch.png",
+    "required_departments": [
+      "State",
+      "Treasury",
+      "Defense",
+      "Justice",
+      "Interior",
+      "Agriculture",
+      "Commerce",
+      "Labor",
+      "Health",
+      "Housing",
+      "Transportation",
+      "Energy",
+      "Education",
+      "Veterans",
+      "Homeland"
+    ],
+    "required_officers": [
+      "President",
+      "Vice President"
+    ],
+    "required_agencies": [
+      "NASA",
+      "EPA",
+      "CIA",
+      "FCC",
+      "SEC",
+      "SSA",
+      "SBA",
+      "USPS",
+      "NSF",
+      "FEMA"
+    ],
+    "min_departments": 12,
+    "min_agencies": 4,
+    "min_pages": 2,
+    "min_colors": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_us_executive_branch_orgchart"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "add_admin_flight_count@1",
+  "task_completion": [
+    {
+      "id": "admin_login_success",
+      "description": "Agent successfully logs into the Django admin interface.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Django admin login screen with credentials entered, followed by the admin dashboard or a successful login state."
+    },
+    {
+      "id": "edit_registry_admin",
+      "description": "Agent edits the admin.py file to create a custom AircraftAdmin class.",
+      "points": 20,
+      "visual_evidence": "A text editor or IDE shows modifications to /opt/aerobridge/registry/admin.py, specifically unregistering the default Aircraft admin and registering a new custom AircraftAdmin class with a custom method for the new column."
+    },
+    {
+      "id": "navigate_aircraft_list",
+      "description": "Agent navigates to the Aircraft list view in the Django admin.",
+      "points": 20,
+      "visual_evidence": "A web browser displays the URL http://localhost:8000/admin/registry/aircraft/ showing the list of Aircraft objects."
+    },
+    {
+      "id": "plan_count_header",
+      "description": "The Aircraft list view contains the new 'Plan Count' column header.",
+      "points": 25,
+      "visual_evidence": "In the web browser showing the Aircraft list view, the table header includes a column explicitly labeled 'Plan Count'."
+    },
+    {
+      "id": "plan_count_values",
+      "description": "The 'Plan Count' column displays numerical values for each aircraft.",
+      "points": 25,
+      "visual_evidence": "The rows under the 'Plan Count' column in the Aircraft list view display numbers (e.g., 0, 1, etc.) corresponding to the flight plans."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_browser_used",
+      "description": "Agent used a real web browser to view the Django admin interface.",
+      "visual_evidence": "The Django admin interface is rendered in a graphical web browser (like Chromium/Firefox), not just fetched via curl or a text-based browser."
+    },
+    {
+      "id": "actual_code_edit",
+      "description": "Agent edited the actual Python source code.",
+      "visual_evidence": "Screenshots show the agent editing Python files (like admin.py) in a text editor or IDE, rather than just modifying HTML via browser developer tools."
+    },
+    {
+      "id": "server_running",
+      "description": "The Django development server is actively running.",
+      "visual_evidence": "A terminal window shows the Django 'runserver' command executing and outputting HTTP request logs."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is /opt/aerobridge/registry/admin.py. In the original codebase, Aircraft is registered with SimpleHistoryAdmin directly (no custom AircraftAdmin class exists). The agent must create a custom AircraftAdmin class to add the column. Note: There is a structural contradiction in the codebase where the FlightPlan model has no actual ForeignKey relationship to Aircraft. The agent may have to work around this (e.g., by modifying models, catching errors, or returning 0) to get the page to load without crashing. The key visual verification is the presence of the 'Plan Count' column and its numerical values in the Django admin Aircraft list view at http://localhost:8000/admin/registry/aircraft/."
+}

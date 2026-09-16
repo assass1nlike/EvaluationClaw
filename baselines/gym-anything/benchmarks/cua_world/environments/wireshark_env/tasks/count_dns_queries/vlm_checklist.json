@@ -1,0 +1,53 @@
+{
+  "task_id": "count_dns_queries@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Open the dns.cap capture file",
+      "points": 10,
+      "visual_evidence": "Wireshark window is open with the file 'dns.cap' loaded, visible in the title bar or recent files list."
+    },
+    {
+      "id": "apply_display_filter",
+      "description": "Apply a display filter to isolate DNS queries",
+      "points": 20,
+      "visual_evidence": "The Wireshark display filter bar contains 'dns.flags.response == 0' (or an equivalent filter) and is applied (typically indicated by a green background in the filter bar)."
+    },
+    {
+      "id": "identify_query_count",
+      "description": "Identify the correct number of filtered packets",
+      "points": 20,
+      "visual_evidence": "The Wireshark status bar at the bottom shows 'Displayed: 19', indicating the filter successfully isolated the 19 query packets."
+    },
+    {
+      "id": "open_output_file",
+      "description": "Open or create the target output text file",
+      "points": 20,
+      "visual_evidence": "A text editor (like gedit) is open with the filename 'dns_query_count.txt', or a terminal window shows a command preparing to write to '/home/ga/Documents/captures/dns_query_count.txt'."
+    },
+    {
+      "id": "save_correct_count",
+      "description": "Save the correct integer count to the output file",
+      "points": 30,
+      "visual_evidence": "The plain integer '19' is typed into the text editor for 'dns_query_count.txt' and saved, or an echo command like 'echo 19 > dns_query_count.txt' is executed in the terminal."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis",
+      "description": "Agent genuinely analyzed the pcap file rather than guessing or hallucinating the answer",
+      "visual_evidence": "Screenshots must show the agent actively interacting with Wireshark or tshark to view the packets, not just immediately creating the text file with the answer."
+    },
+    {
+      "id": "plain_integer_format",
+      "description": "Output file contains only a plain integer",
+      "visual_evidence": "The text editor or terminal command shows ONLY the digits '19', without any surrounding text like 'The count is 19' or 'DNS Queries: 19'."
+    },
+    {
+      "id": "no_scripting_shortcut",
+      "description": "Agent used standard network analysis tools",
+      "visual_evidence": "The agent used Wireshark or tshark rather than writing a custom Python or Bash script to parse the binary pcap file directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The capture file 'dns.cap' contains exactly 38 packets in total. Exactly 19 of these are DNS queries (where dns.flags.response == 0). The final output file 'dns_query_count.txt' must contain exactly the integer '19'."
+}

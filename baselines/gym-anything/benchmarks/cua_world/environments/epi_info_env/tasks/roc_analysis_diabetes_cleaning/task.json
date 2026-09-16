@@ -1,0 +1,32 @@
+{
+  "id": "roc_analysis_diabetes_cleaning@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "Perform data cleaning and diagnostic accuracy analysis on the Pima Indians Diabetes dataset (C:\\Users\\Docker\\Documents\\EpiData\\diabetes.csv) using Epi Info 7 Classic Analysis. Clean the dataset by handling biologically implausible zero values in 'Glucose' and 'BMI' (set to Missing) and export the cleaned data to C:\\Users\\Docker\\Documents\\EpiData\\diabetes_clean.csv. Conduct ROC curve analyses for 'Glucose' and 'BMI' predicting 'Outcome', saving the final analysis output to C:\\Users\\Docker\\Documents\\EpiData\\roc_results.html.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\roc_analysis_diabetes_cleaning\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\roc_analysis_diabetes_cleaning\\export_result.ps1"
+  },
+  "metadata": {
+    "data_url": "https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.csv",
+    "raw_csv_path": "C:\\Users\\Docker\\Documents\\EpiData\\diabetes.csv",
+    "cleaned_csv_path": "C:\\Users\\Docker\\Documents\\EpiData\\diabetes_clean.csv",
+    "result_html_path": "C:\\Users\\Docker\\Documents\\EpiData\\roc_results.html",
+    "expected_auc_glucose_clean": 0.79,
+    "expected_auc_bmi_clean": 0.69,
+    "col_glucose": "Glucose",
+    "col_bmi": "BMI"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_roc_analysis"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "visceral_fat_quantification@1",
+  "task_completion": [
+    {
+      "id": "navigate_l4_l5_level",
+      "description": "The agent navigated to the L4-L5 vertebral level on the abdominal CT scan.",
+      "points": 15,
+      "visual_evidence": "The axial slice displayed in the medical imaging software corresponds to the L4-L5 intervertebral disc space or the L4/L5 vertebral bodies."
+    },
+    {
+      "id": "segment_sat_vat",
+      "description": "The agent segmented the subcutaneous (SAT) and visceral (VAT) adipose tissue compartments.",
+      "points": 25,
+      "visual_evidence": "Colored overlays or masks representing SAT and VAT are visible on the axial CT slice, typically isolated using a specific threshold range."
+    },
+    {
+      "id": "save_segmentation_file",
+      "description": "The agent saved the fat compartment segmentation to the specified path.",
+      "points": 15,
+      "visual_evidence": "A save dialog, terminal command, or file explorer showing 'fat_segmentation.nii.gz' being saved to or existing in '~/Documents/SlicerData/AMOS/'."
+    },
+    {
+      "id": "format_json_report",
+      "description": "The agent created a JSON report containing all the required fields.",
+      "points": 20,
+      "visual_evidence": "A text editor, IDE, or terminal showing a JSON structure with the exact keys: 'measurement_level', 'slice_index', 'sat_area_cm2', 'vat_area_cm2', 'vat_sat_ratio', and 'fat_distribution'."
+    },
+    {
+      "id": "save_populated_report",
+      "description": "The agent saved the completed fat analysis report with calculated values to the specified path.",
+      "points": 25,
+      "visual_evidence": "The file 'fat_analysis_report.json' is saved in '~/Documents/SlicerData/AMOS/' and contains populated numerical values for the areas and ratio, and a classification string."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_imaging_software",
+      "description": "The agent interacted with a medical imaging application to perform the segmentation and measurements.",
+      "visual_evidence": "Screenshots show the UI of an imaging software (e.g., 3D Slicer) with the CT scan loaded, rather than just a text editor or a script outputting dummy files."
+    },
+    {
+      "id": "genuine_measurement",
+      "description": "The agent actually performed measurements or thresholding in the software before creating the JSON report.",
+      "visual_evidence": "The imaging software shows thresholding tools (using the -190 to -30 HU range), segment statistics, or area measurement tools being actively used on the fat compartments."
+    },
+    {
+      "id": "no_hardcoded_values",
+      "description": "The agent did not hardcode the JSON values without deriving them from the image.",
+      "visual_evidence": "The values entered into the JSON report match the output of the segment statistics or measurement tools visible in the imaging software."
+    }
+  ],
+  "privileged_info_for_vlm": "The standard Hounsfield Unit (HU) range for quantifying adipose tissue (both subcutaneous and visceral) in CT scans is -190 to -30. The L4-L5 vertebral level is the recommended clinical standard for visceral fat quantification."
+}

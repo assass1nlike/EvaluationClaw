@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_traffic_safety_ssm@1",
+  "task_completion": [
+    {
+      "id": "config_modified_and_saved",
+      "description": "Verify the agent created or modified the SUMO configuration file to include the required SSM parameters.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal output showing the contents of '/home/ga/SUMO_Scenarios/bologna_pasubio/run_ssm.sumocfg' with SSM parameters: probability '1.0', measures 'TTC DRAC', thresholds '5.0 3.0', and the output file pointing to '/home/ga/SUMO_Output/ssm.xml'."
+    },
+    {
+      "id": "simulation_executed_headlessly",
+      "description": "Verify the agent ran the SUMO simulation headlessly using the modified configuration.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the execution of the 'sumo' command (not 'sumo-gui') with the '-c /home/ga/SUMO_Scenarios/bologna_pasubio/run_ssm.sumocfg' flag."
+    },
+    {
+      "id": "ssm_output_generated",
+      "description": "Verify the SSM output file was successfully generated.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the existence of '/home/ga/SUMO_Output/ssm.xml' (e.g., via 'ls', 'cat', or SUMO execution logs indicating the file was written)."
+    },
+    {
+      "id": "conflict_elements_counted",
+      "description": "Verify the agent counted the total number of <conflict> elements in the generated ssm.xml file.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command used to count the elements, such as 'grep -c \"<conflict\" /home/ga/SUMO_Output/ssm.xml' or a Python script performing the count."
+    },
+    {
+      "id": "final_count_written",
+      "description": "Verify the agent wrote the final integer count to the specified text file.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the creation or content of '/home/ga/SUMO_Output/conflict_count.txt' containing exactly the integer '193055'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "headless_execution",
+      "description": "Verify the agent used the command-line 'sumo' tool and did not open the graphical interface.",
+      "visual_evidence": "No SUMO GUI windows are visible in any screenshot; only terminal commands are used for execution."
+    },
+    {
+      "id": "genuine_counting",
+      "description": "Verify the agent actually executed a command or script to count the conflicts.",
+      "visual_evidence": "Terminal shows a counting command (like grep, wc, or a script) being executed on ssm.xml, rather than just echoing the number directly without computation."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Verify the agent used the exact file paths specified in the instructions.",
+      "visual_evidence": "Commands explicitly reference '/home/ga/SUMO_Scenarios/bologna_pasubio/run_ssm.sumocfg', '/home/ga/SUMO_Output/ssm.xml', and '/home/ga/SUMO_Output/conflict_count.txt'."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct output SSM file must be /home/ga/SUMO_Output/ssm.xml, configured in /home/ga/SUMO_Scenarios/bologna_pasubio/run_ssm.sumocfg. The required tracked measures are TTC and DRAC. The exact integer count of <conflict> elements is 193055, which must be written to /home/ga/SUMO_Output/conflict_count.txt."
+}

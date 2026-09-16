@@ -1,0 +1,34 @@
+{
+  "id": "ingest_conference_schedule@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Ingest the conference schedule from '~/conference_data.json' into the 'demodb' database by creating a graph structure linking Conferences, Sessions, Hotels, and Profiles. Create Vertex Class 'Conferences' with property 'Name' (String) and Vertex Class 'Sessions' with properties 'Title' (String) and 'Duration' (Integer). Establish the following relationships: Edge Class 'HostedAt' linking Conferences to Hotels (lookup by Name), Edge Class 'HasSession' linking Conferences to Sessions, and Edge Class 'PresentedBy' linking Sessions to Profiles (lookup by Email).",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ingest_conference_schedule/setup_task.sh",
+    "post_task": "/workspace/tasks/ingest_conference_schedule/export_result.sh"
+  },
+  "metadata": {
+    "data_file": "/home/ga/conference_data.json",
+    "expected_conferences": 2,
+    "expected_sessions": 4,
+    "schema_classes": [
+      "Conferences",
+      "Sessions",
+      "HostedAt",
+      "HasSession",
+      "PresentedBy"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ingest_conference_schedule"
+    }
+  }
+}

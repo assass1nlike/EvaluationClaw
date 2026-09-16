@@ -1,0 +1,43 @@
+{
+  "id": "nuclear_cytoplasmic_ratio@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Nuclear-to-Cytoplasmic Fluorescence Ratio Measurement",
+  "description": "Measure the nuclear-to-cytoplasmic (N/C) fluorescence intensity ratio for at least 3 individual cells in the 'Fluorescent Cells' sample image. Use the Blue channel to define nuclear regions and the Green channel to measure mean intensities for both nuclear and cytoplasmic regions. Calculate the N/C ratio (Mean Nuclear Intensity / Mean Cytoplasmic Intensity) for each cell and save a results table containing the Nuclear Mean, Cytoplasmic Mean, and N/C Ratio for each cell to ~/ImageJ_Data/results/nc_ratio_results.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "fluorescence",
+    "cell-biology",
+    "quantification",
+    "ratio-imaging",
+    "roi-manager",
+    "imagej"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nuclear_cytoplasmic_ratio/setup_task.sh",
+    "post_task": "/workspace/tasks/nuclear_cytoplasmic_ratio/export_result.sh"
+  },
+  "metadata": {
+    "result_file": "/home/ga/ImageJ_Data/results/nc_ratio_results.csv",
+    "min_cells": 3,
+    "expected_ratio_min": 0.1,
+    "expected_ratio_max": 20.0,
+    "required_columns": [
+      "nuclear",
+      "cytoplasm",
+      "ratio",
+      "mean"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nuclear_cytoplasmic_ratio"
+    }
+  }
+}

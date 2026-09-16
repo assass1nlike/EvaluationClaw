@@ -1,0 +1,53 @@
+{
+  "task_id": "plsql_sql_injection_remediation@1",
+  "task_completion": [
+    {
+      "id": "open_vulnerable_source",
+      "description": "Open the vulnerable PL/SQL package source code.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a text editor, IDE, or database client displaying the source code for the 'HR_LEGACY_REPORTING' package, potentially opened from '/home/ga/Desktop/vulnerable_source.sql'."
+    },
+    {
+      "id": "refactor_search_employees",
+      "description": "Refactor SEARCH_EMPLOYEES to use bind variables.",
+      "points": 25,
+      "visual_evidence": "Screenshots of the modified code show the 'SEARCH_EMPLOYEES' procedure using a bind variable in its dynamic SQL. Look for 'EXECUTE IMMEDIATE ... USING <variable>' instead of string concatenation (||) for the name pattern filter."
+    },
+    {
+      "id": "refactor_rank_departments",
+      "description": "Refactor RANK_DEPARTMENTS to use DBMS_ASSERT or a whitelist.",
+      "points": 25,
+      "visual_evidence": "Screenshots of the modified code show the 'RANK_DEPARTMENTS' procedure validating the sort column. Look for the use of 'DBMS_ASSERT' (e.g., DBMS_ASSERT.SIMPLE_SQL_NAME) or a logical whitelist (e.g., IF/CASE statements checking the column name) before the EXECUTE IMMEDIATE statement."
+    },
+    {
+      "id": "compile_secured_package",
+      "description": "Compile the secured package in the database.",
+      "points": 20,
+      "visual_evidence": "Screenshots show a terminal (e.g., using sqlplus) or a database GUI connected as the 'hr' user executing the 'CREATE OR REPLACE PACKAGE BODY HR_LEGACY_REPORTING' statement, followed by a success message such as 'Package body created' or 'compiled'."
+    },
+    {
+      "id": "export_secure_reporting_sql",
+      "description": "Export the fixed package body code to the required desktop file.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the secured PL/SQL code being saved to '/home/ga/Desktop/secure_reporting.sql'. This can be seen in a text editor's 'Save As' dialog, a terminal command (like cp or redirecting output to the file), or the file appearing on the Desktop."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_modification",
+      "description": "Verify the agent actually modified the PL/SQL code rather than just creating an empty or dummy file.",
+      "visual_evidence": "The file '/home/ga/Desktop/secure_reporting.sql' should contain actual PL/SQL code with the CREATE OR REPLACE PACKAGE BODY statement, not just placeholder text."
+    },
+    {
+      "id": "actual_database_interaction",
+      "description": "Verify the agent interacted with the Oracle database to compile the code.",
+      "visual_evidence": "Look for a database client interface (like sqlplus, SQL Developer, or DBeaver) showing an active connection to localhost:1521/XEPDB1 and the execution of SQL commands, rather than just editing text files."
+    },
+    {
+      "id": "no_blind_copy_paste",
+      "description": "Verify the agent manually applied the fixes or used a script to do so, rather than pasting a pre-computed perfect solution without inspecting the original code.",
+      "visual_evidence": "Screenshots should show the agent reading the original vulnerable code or querying the database for the package source before writing the fixes."
+    }
+  ],
+  "privileged_info_for_vlm": "Package Name: HR_LEGACY_REPORTING. Vulnerable Source: /home/ga/Desktop/vulnerable_source.sql. Output File: /home/ga/Desktop/secure_reporting.sql. To verify the fixes: SEARCH_EMPLOYEES must use 'USING' for bind variables in EXECUTE IMMEDIATE. RANK_DEPARTMENTS must wrap the sort column variable in a DBMS_ASSERT function (like SIMPLE_SQL_NAME or ENQUOTE_NAME) or use an explicit IF/ELSIF/CASE whitelist."
+}

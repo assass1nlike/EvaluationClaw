@@ -1,0 +1,53 @@
+{
+  "task_id": "analyze_offline_incident_data@1",
+  "task_completion": [
+    {
+      "id": "access_evidence_file",
+      "description": "Agent accesses and reads the recovered alerts log file.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (e.g., cat, less, jq, grep) or a text editor showing the contents of ~/evidence/recovered_alerts.json."
+    },
+    {
+      "id": "extract_attack_details",
+      "description": "Agent identifies the attacker IP and compromised user.",
+      "points": 20,
+      "visual_evidence": "Terminal output, script output, or text editor showing the extracted attacker IP and compromised user from the logs."
+    },
+    {
+      "id": "extract_timestamps",
+      "description": "Agent identifies the attack start and compromise timestamps.",
+      "points": 20,
+      "visual_evidence": "Terminal output, script output, or text editor showing the extraction of the first failed authentication attempt timestamp and the first successful login timestamp."
+    },
+    {
+      "id": "calculate_time_to_compromise",
+      "description": "Agent calculates the time to compromise in seconds.",
+      "points": 20,
+      "visual_evidence": "A script (e.g., Python), terminal command (e.g., using 'date'), or calculator used to compute the difference in seconds between the two extracted timestamps."
+    },
+    {
+      "id": "save_incident_report",
+      "description": "Agent creates the final incident report JSON file with all required fields.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal command saving a JSON object with the fields 'incident_type', 'attacker_ip', 'compromised_user', 'attack_start_timestamp', 'compromise_timestamp', and 'time_to_compromise_seconds' to ~/incident_report.json."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_access",
+      "description": "Agent did not access the hidden ground truth file.",
+      "visual_evidence": "No commands like 'cat /var/lib/wazuh-task-truth.json' or opening this file in an editor."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "Agent genuinely calculated the time difference instead of guessing or hardcoding.",
+      "visual_evidence": "Presence of a script, command, or tool used to parse the timestamps and calculate the difference in seconds."
+    },
+    {
+      "id": "report_saved_to_disk",
+      "description": "Agent saved the report to the correct file path.",
+      "visual_evidence": "Commands like 'nano ~/incident_report.json', '> ~/incident_report.json', or a script writing to this path, rather than just printing the JSON to stdout."
+    }
+  ],
+  "privileged_info_for_vlm": "The evidence file is located at /home/ga/evidence/recovered_alerts.json. The expected output report must be generated at /home/ga/incident_report.json. The specific attacker IP, compromised user, and timestamps are stochastically generated and vary across runs, so the agent must extract them from the evidence file. The ground truth values are stored in /var/lib/wazuh-task-truth.json, which the agent should not access."
+}

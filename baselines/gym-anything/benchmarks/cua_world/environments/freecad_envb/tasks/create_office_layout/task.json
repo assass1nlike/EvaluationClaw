@@ -1,0 +1,31 @@
+{
+  "id": "create_office_layout@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a dimensioned 2D floor plan of an office room. Draw a 5000 mm by 4000 mm rectangle starting at (0,0) and a hexagonal meeting table with a 600 mm radius centered at (2500, 2000). Include a dimension for the 5000 mm width on the bottom wall. Save the file to /home/ga/Documents/FreeCAD/office_layout.FCStd and export the drawing to /home/ga/Documents/FreeCAD/office_layout.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_office_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/create_office_layout/export_result.sh"
+  },
+  "metadata": {
+    "fcstd_path": "/home/ga/Documents/FreeCAD/office_layout.FCStd",
+    "dxf_path": "/home/ga/Documents/FreeCAD/office_layout.dxf",
+    "expected_room_width": 5000,
+    "expected_room_height": 4000,
+    "expected_table_x": 2500,
+    "expected_table_y": 2000,
+    "expected_table_radius": 600
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_office_layout"
+    }
+  }
+}

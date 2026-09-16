@@ -1,0 +1,37 @@
+{
+  "id": "scene_collection_organization@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You are a production coordinator organizing a messy Blender scene for a studio pipeline. Organize the existing objects into four new collections: move all meshes (BaseCube, Sphere, Cylinder, Cone, Torus, Suzanne, GroundPlane) into \"Geometry\"; all lights (SunLight, PointLight, SpotLight) into \"Lighting\"; all cameras (MainCamera, OverheadCamera) into \"Cameras\"; and all empties (PivotEmpty, TargetEmpty) into \"Helpers\". Disable viewport visibility for the \"Helpers\" collection. Save the resulting scene to /home/ga/BlenderProjects/organized_scene.blend without deleting or renaming any objects.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/scene_collection_organization/setup_task.sh",
+    "post_task": "/workspace/tasks/scene_collection_organization/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/BlenderProjects/organized_scene.blend",
+    "target_collections": [
+      "Geometry",
+      "Lighting",
+      "Cameras",
+      "Helpers"
+    ],
+    "object_counts": {
+      "MESH": 7,
+      "LIGHT": 3,
+      "CAMERA": 2,
+      "EMPTY": 2
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_scene_organization"
+    }
+  }
+}

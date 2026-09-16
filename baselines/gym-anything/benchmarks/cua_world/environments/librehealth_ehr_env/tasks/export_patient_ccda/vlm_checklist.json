@@ -1,0 +1,53 @@
+{
+  "task_id": "export_patient_ccda@1",
+  "task_completion": [
+    {
+      "id": "read_transfer_request",
+      "description": "Open and read the transfer request file to identify the patient.",
+      "points": 10,
+      "visual_evidence": "A text editor, terminal, or file viewer displaying the contents of '~/Desktop/transfer_request.txt' with the target patient's details visible."
+    },
+    {
+      "id": "login_librehealth",
+      "description": "Log into the LibreHealth EHR system.",
+      "points": 10,
+      "visual_evidence": "A web browser showing the LibreHealth EHR login screen with 'admin' entered, or the main LibreHealth EHR dashboard visible after a successful login."
+    },
+    {
+      "id": "access_patient_record",
+      "description": "Search for and open the specified patient's clinical record.",
+      "points": 20,
+      "visual_evidence": "The LibreHealth EHR interface showing a search for the patient's name (matching the text file) or the specific patient's chart/dashboard actively open."
+    },
+    {
+      "id": "generate_ccda_export",
+      "description": "Initiate the C-CDA or CCR XML export for the patient.",
+      "points": 30,
+      "visual_evidence": "The export module, Care Coordination Document (CCD), C-CDA, or CCR generation screen open in LibreHealth EHR for the correct patient, with a button clicked or process running to generate the XML."
+    },
+    {
+      "id": "save_export_file",
+      "description": "Save the exported XML file to the specified destination.",
+      "points": 30,
+      "visual_evidence": "A browser download dialog, file manager, or terminal showing the exported file being saved, moved, or verified exactly at '~/Documents/Transfer/export.xml'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "The agent interacted with the LibreHealth EHR GUI via a web browser.",
+      "visual_evidence": "Screenshots must show a web browser navigating the LibreHealth EHR interface, rather than the agent using terminal scripts or direct database queries to bypass the UI."
+    },
+    {
+      "id": "actual_patient_match",
+      "description": "The exported record belongs to the specific patient requested.",
+      "visual_evidence": "The patient name visible in the EHR export screen or the downloaded file name must correspond to the patient requested in the transfer_request.txt file, not a random patient."
+    },
+    {
+      "id": "genuine_export_download",
+      "description": "The XML file was genuinely exported from the EHR system.",
+      "visual_evidence": "The file should originate from a browser download action from the LibreHealth EHR system, rather than the agent manually typing out a fake XML file in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The transfer request file is located at /home/ga/Desktop/transfer_request.txt. LibreHealth EHR credentials are admin / password. The final exported file must be saved exactly to /home/ga/Documents/Transfer/export.xml. The EHR contains real NHANES patient data, so the patient name will be dynamically selected and must match between the text file and the EHR search."
+}

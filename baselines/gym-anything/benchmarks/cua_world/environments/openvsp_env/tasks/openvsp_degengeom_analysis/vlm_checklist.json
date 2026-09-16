@@ -1,0 +1,53 @@
+{
+  "task_id": "openvsp_degengeom_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_degen_geom_tool",
+      "description": "Open the Degen Geom analysis tool in OpenVSP.",
+      "points": 10,
+      "visual_evidence": "The OpenVSP application window is visible with the 'Degen Geom' analysis dialog box open."
+    },
+    {
+      "id": "export_degengeom_csv",
+      "description": "Export the Degen Geom results to the specified CSV file path.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or OpenVSP dialog showing the file 'eCRM001_degengeom.csv' successfully created or saved in '/home/ga/Documents/OpenVSP/exports/'."
+    },
+    {
+      "id": "view_parse_csv",
+      "description": "Parse or view the exported CSV file to extract the required metrics.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application, text editor, or terminal output displaying the contents of 'eCRM001_degengeom.csv', specifically showing the rows/columns for the Wing component."
+    },
+    {
+      "id": "write_report_file",
+      "description": "Write the extracted metrics to the structured report file.",
+      "points": 20,
+      "visual_evidence": "A text editor open showing the file '/home/ga/Desktop/degengeom_report.txt' containing the four required metrics: total projected wingspan, total projected planform area, mean aerodynamic chord (MAC), and aspect ratio."
+    },
+    {
+      "id": "correct_metric_values",
+      "description": "Convert and report the metrics in metric units.",
+      "points": 40,
+      "visual_evidence": "The values in the report file must be in metric units (e.g., meters) and match the expected converted values: Span ~11.48m, Area ~15.87 sq meters, Aspect Ratio ~8.31, and MAC ~1.4m."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the OpenVSP GUI to generate the analysis.",
+      "visual_evidence": "Screenshots should show the agent navigating the OpenVSP menus (Analysis > Degen Geom) and clicking execute/export, rather than faking the CSV creation via terminal."
+    },
+    {
+      "id": "genuine_csv_extraction",
+      "description": "The agent extracted the data from the actual CSV file.",
+      "visual_evidence": "The agent should be seen opening the CSV, running a script to parse it, or using terminal commands (like grep/awk) on the CSV file before writing the final report."
+    },
+    {
+      "id": "no_hallucinated_metrics",
+      "description": "The agent calculated the metric conversions rather than hallucinating the final answers.",
+      "visual_evidence": "Evidence of a script, calculator usage, or terminal math operations converting the native inch values from the CSV into meters/square meters."
+    }
+  ],
+  "privileged_info_for_vlm": "The native OpenVSP model is in inches. The main 'Wing' component (ID XIUYSEMJCT) has the following approximate metric values: Span = 11.48 meters, Area = 15.87 square meters, Aspect Ratio = 8.31, MAC = 1.4 meters. The agent must explicitly convert the raw CSV values (which are in inches) to these metric values in the final report. The evaluation framework may use /tmp/openvsp_degengeom_analysis_result.json to collect the final submission."
+}

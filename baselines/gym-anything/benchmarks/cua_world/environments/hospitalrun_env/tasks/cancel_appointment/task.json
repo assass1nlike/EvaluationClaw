@@ -1,0 +1,30 @@
+{
+  "id": "cancel_appointment@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Patient Thomas Baker has called to cancel his 'General Checkup' appointment scheduled for tomorrow due to a work conflict. Update the appointment status to 'Cancelled' and include the note 'Patient called to cancel due to work conflict'. Do not delete the appointment record.",
+  "difficulty": "beginner",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/cancel_appointment/setup_task.sh",
+    "post_task": "/workspace/tasks/cancel_appointment/export_result.sh"
+  },
+  "metadata": {
+    "patient_first_name": "Thomas",
+    "patient_last_name": "Baker",
+    "appointment_title": "General Checkup",
+    "expected_status": "Cancelled",
+    "expected_note_content": "work conflict",
+    "couch_db": "main"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_cancel_appointment"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "export_skull_rotation_movie@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "Using the loaded CT Cranium DICOM dataset in InVesalius 3, generate a 3D surface of the skull (bone mask) and create a rotating animation of the model. Export the animation as either a series of at least 12 PNG screenshots covering at least 180 degrees of rotation to /home/ga/Documents/skull_rotation_frames/ or as a video file to /home/ga/Documents/skull_rotation.avi. Ensure the output captures the rotation clearly.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_skull_rotation_movie/setup_task.sh",
+    "post_task": "/workspace/tasks/export_skull_rotation_movie/export_result.sh"
+  },
+  "metadata": {
+    "frames_dir": "/home/ga/Documents/skull_rotation_frames",
+    "video_path": "/home/ga/Documents/skull_rotation.avi",
+    "min_frames": 12,
+    "min_video_size_bytes": 102400,
+    "min_rotation_angle": 180
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_skull_rotation_movie"
+    }
+  }
+}

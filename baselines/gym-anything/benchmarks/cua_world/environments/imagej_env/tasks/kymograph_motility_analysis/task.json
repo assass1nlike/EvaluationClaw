@@ -1,0 +1,39 @@
+{
+  "id": "kymograph_motility_analysis@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Time-Lapse Kymograph Generation",
+  "description": "You are a biophysicist studying cell division kinetics. Your goal is to generate a kymograph (space-time plot) from the 'Mitosis' 5D hyperstack sample to visualize chromosome movement over time. Process the Red channel (chromosomes) by performing a Max Intensity Z-projection across all time frames. Save this intermediate time-lapse stack to ~/ImageJ_Data/results/mitosis_projection.tif. From this projection, generate a kymograph by reslicing along a line drawn through the center of the dividing cell, crossing both sets of chromosomes along the axis of division. Save the final kymograph image to ~/ImageJ_Data/results/mitosis_kymograph.tif. Login: username 'ga', password 'password123'.",
+  "difficulty": "medium",
+  "tags": [
+    "kymograph",
+    "hyperstack",
+    "time-lapse",
+    "mitosis",
+    "reslice",
+    "z-projection",
+    "5d-image"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/kymograph_motility_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/kymograph_motility_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_time_frames": 51,
+    "expected_kymograph_height": 51,
+    "min_kymograph_width": 20,
+    "output_kymograph": "/home/ga/ImageJ_Data/results/mitosis_kymograph.tif",
+    "output_projection": "/home/ga/ImageJ_Data/results/mitosis_projection.tif"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_kymograph"
+    }
+  }
+}

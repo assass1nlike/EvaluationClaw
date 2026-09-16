@@ -1,0 +1,31 @@
+{
+  "id": "add_kotlin_serialization@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Integrate Kotlin Serialization into the GitHubBrowser project by adding the org.jetbrains.kotlin.plugin.serialization plugin and the org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3 dependency. In the com.example.githubbrowser.model package, create @Serializable data classes Owner and GitHubRepo using @SerialName to map snake_case JSON fields to camelCase properties. The Owner class must contain id (Long), login (String), avatarUrl (from avatar_url), and htmlUrl (from html_url). The GitHubRepo class must contain id (Long), name (String), fullName (from full_name), owner (Owner), description (nullable String), htmlUrl (from html_url), stargazersCount (from stargazers_count, Int), language (nullable String), forksCount (from forks_count, Int), and openIssuesCount (from open_issues_count, Int). Ensure the project builds successfully after configuration.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_kotlin_serialization/setup_task.sh",
+    "post_task": "/workspace/tasks/add_kotlin_serialization/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/GitHubBrowser",
+    "model_package_dir": "app/src/main/java/com/example/githubbrowser/model",
+    "expected_files": [
+      "Owner.kt",
+      "GitHubRepo.kt"
+    ],
+    "required_dependency": "kotlinx-serialization-json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_kotlin_serialization"
+    }
+  }
+}

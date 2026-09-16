@@ -1,0 +1,65 @@
+{
+  "task_id": "heterogeneous_fleet_capacity_scaling@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Verify the dashboard is named 'Heterogeneous Fleet Capacity'.",
+      "points": 10,
+      "visual_evidence": "The text 'Heterogeneous Fleet Capacity' is visible at the top of the Graphite dashboard interface."
+    },
+    {
+      "id": "graph_1_title",
+      "description": "Verify the first graph is titled 'Active Compute Cores'.",
+      "points": 10,
+      "visual_evidence": "The title 'Active Compute Cores' appears above or within the first graph's display area."
+    },
+    {
+      "id": "graph_1_individual_series",
+      "description": "Verify the individual scaled series for Inst 1, 2, and 3 are configured correctly.",
+      "points": 20,
+      "visual_evidence": "The legend or query editor for the first graph shows 'Inst 1 Cores', 'Inst 2 Cores', and 'Inst 3 Cores'. Look for evidence of the `scale` function being applied with values 0.02 (for Inst 1 and 2) and 0.16 (for Inst 3)."
+    },
+    {
+      "id": "graph_1_total_series",
+      "description": "Verify the 'Total Active Cores' series is present and sums the scaled series.",
+      "points": 15,
+      "visual_evidence": "The legend shows 'Total Active Cores'. The query should show a `sumSeries` or `sum` function wrapping the three scaled instance series."
+    },
+    {
+      "id": "graph_2_title",
+      "description": "Verify the second graph is titled 'Fleet Utilization: Naive vs True'.",
+      "points": 10,
+      "visual_evidence": "The title 'Fleet Utilization: Naive vs True' appears above or within the second graph's display area."
+    },
+    {
+      "id": "graph_2_naive_series",
+      "description": "Verify the 'Naive Average' series is configured correctly.",
+      "points": 15,
+      "visual_evidence": "The legend or query editor for the second graph shows 'Naive Average'. The query should show an `averageSeries` function applied to the wildcard `servers.ec2_instance_*.cpu.*`."
+    },
+    {
+      "id": "graph_2_true_series",
+      "description": "Verify the 'True Weighted Average' series is configured correctly.",
+      "points": 20,
+      "visual_evidence": "The legend or query editor shows 'True Weighted Average'. The query should show a `scale` function with a factor of 5 applied to the 'Total Active Cores' calculation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "Verify the agent used the Graphite web interface to build the dashboard.",
+      "visual_evidence": "Screenshots show the Graphite web UI in a web browser, rather than a terminal window editing a JSON file."
+    },
+    {
+      "id": "actual_data_plotted",
+      "description": "Verify the graphs display actual metric data.",
+      "visual_evidence": "The graphs show plotted lines or curves, indicating real metric data is being loaded and rendered, rather than empty coordinate planes."
+    },
+    {
+      "id": "manual_configuration",
+      "description": "Verify the agent interacted with the UI to configure the graphs.",
+      "visual_evidence": "Screenshots show the agent interacting with the Graphite function menus (e.g., clicking 'Apply Function', 'Transform', 'Combine') or typing queries into the Graphite composer."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Heterogeneous Fleet Capacity'. The expected graph titles are 'Active Compute Cores' and 'Fleet Utilization: Naive vs True'. The task requires specific scaling factors: 0.02 for Inst 1 and 2, 0.16 for Inst 3, and a factor of 5 for the True Weighted Average."
+}

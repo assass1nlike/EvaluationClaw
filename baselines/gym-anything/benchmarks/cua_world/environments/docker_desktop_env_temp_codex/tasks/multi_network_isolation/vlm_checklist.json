@@ -1,0 +1,53 @@
+{
+  "task_id": "multi_network_isolation@1",
+  "task_completion": [
+    {
+      "id": "networks_created",
+      "description": "Verify that the 'frontend' and 'backend' bridge networks have been created.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output of `docker network ls` or the Docker Desktop Networks tab showing both 'frontend' and 'backend' networks."
+    },
+    {
+      "id": "web_proxy_deployed",
+      "description": "Verify the 'web-proxy' container is deployed with the correct image and port mapping.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output of `docker ps` or Docker Desktop showing a container named 'web-proxy' using the 'nginx:alpine' (or 'nginx') image, with host port 8081 mapped to container port 80 (e.g., 0.0.0.0:8081->80/tcp)."
+    },
+    {
+      "id": "app_server_deployed",
+      "description": "Verify the 'app-server' container is deployed with the correct image.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output of `docker ps` or Docker Desktop showing a container named 'app-server' using the 'httpd:alpine' (or 'httpd') image."
+    },
+    {
+      "id": "data_store_deployed",
+      "description": "Verify the 'data-store' container is deployed with the correct image and port mapping.",
+      "points": 20,
+      "visual_evidence": "Look for terminal output of `docker ps` or Docker Desktop showing a container named 'data-store' using the 'redis:alpine' (or 'redis') image, with host port 6380 mapped to container port 6379 (e.g., 0.0.0.0:6380->6379/tcp)."
+    },
+    {
+      "id": "network_attachments_verified",
+      "description": "Verify the containers are connected to the correct networks to ensure isolation.",
+      "points": 30,
+      "visual_evidence": "Look for terminal output of `docker inspect`, `docker network inspect`, or Docker Desktop showing 'web-proxy' connected ONLY to 'frontend', 'data-store' connected ONLY to 'backend', and 'app-server' connected to BOTH 'frontend' and 'backend'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_docker_interaction",
+      "description": "Verify that Docker commands were executed in a real terminal or configured via Docker Desktop.",
+      "visual_evidence": "Look for standard terminal prompts, command execution, or the genuine Docker Desktop interface, rather than a text editor or mocked output."
+    },
+    {
+      "id": "no_echo_commands",
+      "description": "Ensure the agent did not use 'echo' or similar commands to fake the output of Docker commands.",
+      "visual_evidence": "Check the terminal history for 'echo' commands that match the expected output of 'docker ps' or 'docker network ls'."
+    },
+    {
+      "id": "real_container_status",
+      "description": "Verify that the containers are actually running.",
+      "visual_evidence": "In `docker ps` output, check that the 'STATUS' column shows 'Up' with a realistic uptime, or the Docker Desktop GUI shows the containers with a green 'Running' status."
+    }
+  ],
+  "privileged_info_for_vlm": "Networks required: 'frontend' and 'backend'. Containers required: 'web-proxy' (image: nginx, expected networks: ['frontend']), 'app-server' (image: httpd, expected networks: ['frontend', 'backend']), 'data-store' (image: redis, expected networks: ['backend'])."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "ospan_scoring_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_input_data",
+      "description": "Agent accesses the input OSPAN data file.",
+      "points": 10,
+      "visual_evidence": "Terminal commands (like cat, head) or a text editor/IDE showing the contents of ~/pebl/data/ospan_data.csv."
+    },
+    {
+      "id": "implement_span_scoring",
+      "description": "Agent implements logic to calculate Math Accuracy, Absolute Span, and Partial Span according to the rules.",
+      "points": 20,
+      "visual_evidence": "Code in an editor showing string manipulation (uppercase, removing spaces), exact match checks for Absolute Span, and position-by-position checks for Partial Span."
+    },
+    {
+      "id": "implement_exclusion_logic",
+      "description": "Agent implements the exclusion rule for Math Accuracy < 0.85.",
+      "points": 20,
+      "visual_evidence": "Code showing a conditional check (e.g., math_accuracy < 0.85) that sets 'excluded': true and provides a 'reason', while omitting span scores."
+    },
+    {
+      "id": "calculate_valid_means",
+      "description": "Agent calculates the group means for Absolute and Partial Span using only valid participants.",
+      "points": 20,
+      "visual_evidence": "Code showing an aggregation or average calculation for absolute and partial spans that explicitly filters out or skips excluded participants."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Agent generates and saves the final JSON report to the correct path.",
+      "points": 30,
+      "visual_evidence": "Terminal commands or script execution saving the output to ~/pebl/analysis/ospan_report.json, and/or a view of the final JSON file showing the 'participants' array and group means."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_based_execution",
+      "description": "Agent used a script or data analysis tool to process the data rather than manually typing the JSON output.",
+      "visual_evidence": "Presence of a Python script, R script, or similar code being written and executed."
+    },
+    {
+      "id": "genuine_data_processing",
+      "description": "Agent actually read the input CSV file dynamically.",
+      "visual_evidence": "The script contains file reading operations (e.g., pandas.read_csv, csv.reader) pointing to ospan_data.csv."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Agent did not hardcode the final group means or participant scores.",
+      "visual_evidence": "The code calculates the means and scores using variables and loops rather than assigning static, pre-calculated numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 26 participants. Participant 'sub-99' has a math accuracy of ~0.6133 (61.3%) and must be excluded based on the <0.85 rule. The other 25 participants are valid. The final output must be located at /home/ga/pebl/analysis/ospan_report.json and must contain 'group_mean_absolute_span' and 'group_mean_partial_span' calculated only from the 25 valid participants."
+}

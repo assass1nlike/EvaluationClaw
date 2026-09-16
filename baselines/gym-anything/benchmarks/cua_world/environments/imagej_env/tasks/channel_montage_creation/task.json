@@ -1,0 +1,37 @@
+{
+  "id": "channel_montage_creation@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Create Multi-Channel Fluorescence Montage",
+  "description": "Create a publication-quality figure panel from the 'Fluorescent Cells' sample image. Split the image into its Red, Green, and Blue channels and create a montage containing all three individual channels plus the original composite image (4 panels total). Save the final montage as a TIFF file to ~/ImageJ_Data/results/fluorescence_montage.tif.",
+  "difficulty": "medium",
+  "tags": [
+    "image-processing",
+    "montage",
+    "figure-creation",
+    "fluorescence",
+    "channels",
+    "stack"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/channel_montage_creation/setup_task.sh",
+    "post_task": "/workspace/tasks/channel_montage_creation/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/results/fluorescence_montage.tif",
+    "min_dimension_px": 700,
+    "min_total_area_px": 780000,
+    "source_image": "Fluorescent Cells (512x512 RGB)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_channel_montage_creation"
+    }
+  }
+}

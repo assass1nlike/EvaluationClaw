@@ -1,0 +1,29 @@
+{
+  "id": "import_survey_points@1",
+  "version": "1.0",
+  "env_id": "topocal_env@0.1",
+  "description": "Import the survey dataset 'survey_points.csv' from the 'SurveyData' folder on the Desktop into TopoCal. The file contains survey points in UTM Zone 13N coordinates representing a field survey in the Colorado foothills, with columns for PointNumber, Easting, Northing, Elevation, and Code.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\import_survey_points\\setup_task.ps1",
+    "pre_task_timeout": 600
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_survey_points"
+    }
+  },
+  "metadata": {
+    "data_file": "survey_points.csv",
+    "point_count": 204,
+    "coordinate_system": "UTM Zone 13N",
+    "area": "Colorado foothills (simulated survey)",
+    "topocal_menu_language": "Spanish"
+  }
+}

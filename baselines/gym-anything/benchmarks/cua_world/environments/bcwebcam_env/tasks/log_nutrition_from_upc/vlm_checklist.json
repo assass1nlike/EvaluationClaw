@@ -1,0 +1,59 @@
+{
+  "task_id": "log_nutrition_from_upc@1",
+  "task_completion": [
+    {
+      "id": "bcwebcam_launched_and_positioned",
+      "description": "bcWebCam is launched and positioned over the barcode.",
+      "points": 10,
+      "visual_evidence": "The bcWebCam application window is visible on screen and its capture area is placed over the barcode displayed in the web browser."
+    },
+    {
+      "id": "barcode_decoded",
+      "description": "The barcode is successfully scanned and decoded by bcWebCam.",
+      "points": 20,
+      "visual_evidence": "The bcWebCam interface displays the decoded 12-digit UPC number (049000000443)."
+    },
+    {
+      "id": "csv_database_opened",
+      "description": "The local CSV database is opened.",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application or text editor is open displaying the contents of 'C:\\workspace\\openfoodfacts_subset.csv'."
+    },
+    {
+      "id": "product_located_in_csv",
+      "description": "The row matching the scanned UPC is located in the CSV file.",
+      "points": 20,
+      "visual_evidence": "The row containing the UPC '049000000443', 'Coca-Cola Original Taste', and '42' is visible in the CSV viewer, potentially highlighted or selected by the agent."
+    },
+    {
+      "id": "daily_diary_opened",
+      "description": "The daily diary text file is opened.",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., Notepad) is open displaying the file 'C:\\workspace\\daily_diary.txt'."
+    },
+    {
+      "id": "diary_appended_and_saved",
+      "description": "The nutritional information is appended to the diary in the correct format and saved.",
+      "points": 30,
+      "visual_evidence": "The text editor shows the exact line '049000000443 - Coca-Cola Original Taste - 42 kcal' added to the file. There should be evidence the file was saved (e.g., clicking File -> Save, or the absence of an unsaved indicator like an asterisk in the window title)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_bcwebcam_usage",
+      "description": "The agent used the bcWebCam GUI to scan the barcode rather than bypassing the tool.",
+      "visual_evidence": "Screenshots must show the bcWebCam UI actively capturing the screen and decoding the barcode, not just a terminal script or hallucinated output."
+    },
+    {
+      "id": "genuine_csv_lookup",
+      "description": "The agent opened and read the CSV file to find the product details.",
+      "visual_evidence": "The 'openfoodfacts_subset.csv' file is visibly opened in an application during the trajectory, proving the agent didn't just use prior knowledge to guess the Coca-Cola details."
+    },
+    {
+      "id": "gui_text_editing",
+      "description": "The agent used a GUI text editor to modify the diary file.",
+      "visual_evidence": "A GUI text editor (like Notepad) is used to append the text to 'daily_diary.txt', rather than using hidden background scripts or terminal echo commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected UPC decoded from the barcode is '049000000443'. The corresponding product name in the CSV is 'Coca-Cola Original Taste' and the energy value is '42'. The exact line that must be appended to C:\\workspace\\daily_diary.txt is: '049000000443 - Coca-Cola Original Taste - 42 kcal'."
+}

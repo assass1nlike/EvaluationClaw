@@ -1,0 +1,43 @@
+{
+  "id": "anonymize_customer_data@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "You are a Data Protection Officer. Create a privacy-safe copy of the customer dataset in LibreOffice Base by creating a new table named 'Customer_Anonymized' with the same structure and data as the 'Customer' table. In 'Customer_Anonymized', mask the Personally Identifiable Information (PII) for all records: set 'FirstName' to 'Sanitized', 'LastName' to 'User_' followed by the CustomerId (e.g., 'User_1'), and 'Email' to the new LastName plus '@example.com'. Set 'Company', 'Address', 'Phone', and 'Fax' to NULL while preserving 'City', 'State', 'Country', 'PostalCode', and 'SupportRepId' exactly as they are. Do not modify the original 'Customer' table and save the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/anonymize_customer_data/setup_task.sh",
+    "post_task": "/workspace/tasks/anonymize_customer_data/export_result.sh"
+  },
+  "metadata": {
+    "target_table": "Customer_Anonymized",
+    "source_table": "Customer",
+    "expected_row_count": 59,
+    "check_rows": [
+      {
+        "id": 1,
+        "expected_lastname": "User_1",
+        "expected_email": "User_1@example.com",
+        "expected_city": "São José dos Campos",
+        "expected_country": "Brazil"
+      },
+      {
+        "id": 59,
+        "expected_lastname": "User_59",
+        "expected_email": "User_59@example.com",
+        "expected_city": "Bangalore",
+        "expected_country": "India"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_anonymize_customer_data"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "export_polyglot_audit_report@1",
+  "task_completion": [
+    {
+      "id": "mariadb_connection_or_query",
+      "description": "Agent accesses or queries the MariaDB database to retrieve user details.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a connection to MariaDB (e.g., 'mysql -u socioboard -p'), a SQL query selecting from 'user_details', or a script containing MariaDB connection and query logic."
+    },
+    {
+      "id": "mongodb_connection_or_query",
+      "description": "Agent accesses or queries the MongoDB database to retrieve published posts.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a connection to MongoDB (e.g., 'mongosh' or 'mongo'), a query on the 'published_posts' collection, or a script containing MongoDB connection and query logic."
+    },
+    {
+      "id": "data_join_logic_implemented",
+      "description": "Agent implements logic to join the MariaDB and MongoDB datasets on the user ID.",
+      "points": 30,
+      "visual_evidence": "A script (e.g., Python, Node.js) visible in a text editor or terminal that fetches data from both databases and contains logic to match 'userId' from MongoDB with 'user_id' from MariaDB."
+    },
+    {
+      "id": "csv_file_exported",
+      "description": "Agent exports the joined data to the specified CSV file path.",
+      "points": 20,
+      "visual_evidence": "Terminal command executing the export script, or a file listing (e.g., 'ls -l /workspace') showing the creation of 'audit_report.csv' in the '/workspace' directory."
+    },
+    {
+      "id": "csv_headers_verified",
+      "description": "The exported CSV file contains the exact required headers.",
+      "points": 20,
+      "visual_evidence": "The contents of '/workspace/audit_report.csv' displayed in the terminal (e.g., via 'cat' or 'head') or a text editor, showing the first row exactly as 'User_Email,Network,Publish_Date,Post_Content,Post_URL' (with or without spaces after commas)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent actually interacted with MariaDB and MongoDB rather than fabricating the data.",
+      "visual_evidence": "Look for execution of database queries via CLI tools or a script running without errors. The agent should not be manually creating mock data arrays."
+    },
+    {
+      "id": "no_hardcoded_csv",
+      "description": "Agent generated the CSV programmatically rather than typing it out manually.",
+      "visual_evidence": "The CSV file should be the output of a script or database tool. There should be no evidence of the agent manually typing the data rows into a text editor."
+    },
+    {
+      "id": "meaningful_data_rows",
+      "description": "The generated CSV contains actual joined data, not just the headers.",
+      "visual_evidence": "When the CSV is displayed, it must contain data rows beneath the header row, proving that the join operation actually processed records."
+    }
+  ],
+  "privileged_info_for_vlm": "The output file must be exactly located at '/workspace/audit_report.csv'. The CSV must contain the exact headers: 'User_Email', 'Network', 'Publish_Date', 'Post_Content', 'Post_URL'."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "tcp_retransmission_analysis@1",
+  "version": "1.0",
+  "env_id": "wireshark_env@0.1",
+  "description": "A network engineer is investigating application slowness using the packet capture /home/ga/Documents/captures/200722_tcp_anon.pcapng. Export all packets matching the 'tcp.analysis.retransmission' filter to /home/ga/Documents/captures/tcp_retransmissions.pcapng. Identify the source IP address with the most retransmissions and create a report at /home/ga/Documents/captures/retransmission_report.txt with the following format:\n\nTotal Retransmissions: <number>\nTop Source IP: <ip_address>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/tcp_retransmission_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/tcp_retransmission_analysis/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "/home/ga/Documents/captures/200722_tcp_anon.pcapng",
+    "expected_export_path": "/home/ga/Documents/captures/tcp_retransmissions.pcapng",
+    "expected_report_path": "/home/ga/Documents/captures/retransmission_report.txt",
+    "filter_expression": "tcp.analysis.retransmission"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_tcp_retransmission_analysis"
+    }
+  }
+}

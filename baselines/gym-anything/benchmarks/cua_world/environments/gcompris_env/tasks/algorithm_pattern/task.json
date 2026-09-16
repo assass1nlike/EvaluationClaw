@@ -1,0 +1,30 @@
+{
+  "id": "algorithm_pattern@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Complete the first three levels of the 'algorithm' pattern recognition activity in GCompris. Capture a screenshot of the completed pattern for each level and save them to /home/ga/algorithm_level1.png, /home/ga/algorithm_level2.png, and /home/ga/algorithm_level3.png respectively.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/algorithm_pattern/setup_task.sh",
+    "post_task": "/workspace/tasks/algorithm_pattern/export_result.sh"
+  },
+  "metadata": {
+    "expected_files": [
+      "/home/ga/algorithm_level1.png",
+      "/home/ga/algorithm_level2.png",
+      "/home/ga/algorithm_level3.png"
+    ],
+    "min_file_size_bytes": 50000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_algorithm_pattern"
+    }
+  }
+}

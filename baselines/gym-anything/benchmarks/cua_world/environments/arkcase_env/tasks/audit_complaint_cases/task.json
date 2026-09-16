@@ -1,0 +1,27 @@
+{
+  "id": "audit_complaint_cases@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "Perform an audit of active complaint cases in ArkCase. Create a summary report at '~/audit_report.txt' containing the Case Number, Title, and Priority for each active complaint, formatted with one line per case. Credentials: arkcase-admin@dev.arkcase.com / ArkCase1234!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_complaint_cases/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_complaint_cases/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/audit_report.txt",
+    "ground_truth_path": "/tmp/ground_truth_complaints.json",
+    "required_cases": 4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_complaint_cases"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "tor_storage_api_isolation_audit@1",
+  "task_completion": [
+    {
+      "id": "create_index_html",
+      "description": "Create the test page at /home/ga/web_audit/index.html with serviceWorker and localStorage checks.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing the creation of /home/ga/web_audit/index.html containing JavaScript that references 'navigator.serviceWorker' and 'localStorage' (specifically managing the 'audit_token' key)."
+    },
+    {
+      "id": "start_local_server",
+      "description": "Host the page on port 8080 and log output to /home/ga/Documents/server.log.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a command starting an HTTP server on port 8080 (e.g., python3 -m http.server 8080) with output redirected or piped to /home/ga/Documents/server.log."
+    },
+    {
+      "id": "open_tor_browser_initial",
+      "description": "Open Tor Browser and navigate to the local server to observe initial API behavior.",
+      "points": 15,
+      "visual_evidence": "Tor Browser window open with 'localhost:8080' or '127.0.0.1:8080' in the address bar, displaying the test page."
+    },
+    {
+      "id": "create_initial_audit",
+      "description": "Document the initial API behavior in /home/ga/Documents/initial_audit.txt.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing the contents of /home/ga/Documents/initial_audit.txt being written or viewed, describing the initial state of serviceWorker and localStorage."
+    },
+    {
+      "id": "restart_tor_browser",
+      "description": "Perform a complete browser restart and verify persistence.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing Tor Browser being closed and subsequently reopened, then navigating back to the test page to check if the 'audit_token' persisted."
+    },
+    {
+      "id": "create_restart_audit",
+      "description": "Record the post-restart findings in /home/ga/Documents/restart_audit.txt.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the contents of /home/ga/Documents/restart_audit.txt being written or viewed, describing whether the localStorage data persisted after the restart."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_tor_browser_used",
+      "description": "Verify that Tor Browser was used for the audit, not a standard browser.",
+      "visual_evidence": "The browser window should display Tor Browser specific UI elements, such as the Onion logo, Tor-specific toolbar icons, or 'Tor Browser' in the window title."
+    },
+    {
+      "id": "genuine_restart",
+      "description": "Verify that the browser was actually restarted, not just refreshed.",
+      "visual_evidence": "There should be a clear sequence showing the browser window being completely closed (e.g., returning to desktop/terminal) and a new instance being launched."
+    },
+    {
+      "id": "authentic_audit_files",
+      "description": "Verify that the audit files were written based on actual observation.",
+      "visual_evidence": "The creation of initial_audit.txt and restart_audit.txt should occur chronologically after the respective interactions with Tor Browser, rather than being written beforehand."
+    }
+  ],
+  "privileged_info_for_vlm": "The test page must be at /home/ga/web_audit/index.html. The local server must run on port 8080 and log to /home/ga/Documents/server.log. The initial audit must be saved to /home/ga/Documents/initial_audit.txt, and the post-restart audit to /home/ga/Documents/restart_audit.txt."
+}

@@ -1,0 +1,39 @@
+{
+  "id": "user_manual_sections@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Restructure the AquaTrack User Manual draft from '/home/ga/Documents/aquatrack_manual_draft.docx' into a professional, multi-section document. The final document must contain at least four sections, with the Title Page in its own section and separate sections for the Introduction, Installation, and subsequent chapters. Configure the headers so the Title Page has no header, while all other sections display 'AquaTrack User Manual'. Apply 'Heading 1' style to the four main chapter titles (Introduction, Installation Guide, Operation, Troubleshooting) and 'Heading 2' style to all sub-sections. Format all body text as 11pt Liberation Sans or Arial. Save the formatted document to '/home/ga/Documents/aquatrack_manual_formatted.docx'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/user_manual_sections/setup_task.sh",
+    "post_task": "/workspace/tasks/user_manual_sections/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/Documents/aquatrack_manual_draft.docx",
+    "output_path": "/home/ga/Documents/aquatrack_manual_formatted.docx",
+    "header_text": "AquaTrack User Manual",
+    "chapter_titles": [
+      "Introduction",
+      "Installation Guide",
+      "Operation",
+      "Troubleshooting"
+    ],
+    "required_section_count": 4,
+    "required_font": [
+      "Liberation Sans",
+      "Arial"
+    ],
+    "required_font_size": 11
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_user_manual_sections"
+    }
+  }
+}

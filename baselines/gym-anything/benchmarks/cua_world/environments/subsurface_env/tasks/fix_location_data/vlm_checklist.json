@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_location_data@1",
+  "task_completion": [
+    {
+      "id": "open_dive_log",
+      "description": "The agent opens the imported dive logbook to review the dive site data.",
+      "points": 10,
+      "visual_evidence": "A dive logging application (e.g., Subsurface) is open showing the dive entries, or a terminal/editor is open showing the contents of the .ssrf dive log file."
+    },
+    {
+      "id": "fix_garbled_name",
+      "description": "The agent identifies and corrects the garbled dive site name.",
+      "points": 20,
+      "visual_evidence": "The dive site name 'Snd Rck' is edited and changed to 'Sund Rock' in the application's location field or within the data file."
+    },
+    {
+      "id": "fix_yellow_house_gps",
+      "description": "The agent corrects the erroneous GPS coordinates for the 'Yellow House' dive site.",
+      "points": 25,
+      "visual_evidence": "The coordinates for 'Yellow House' are changed from the inland California values (35.0, -120.0) to fall within the Hood Canal bounding box (Latitude: 47.3 to 47.5 N, Longitude: 123.0 to 123.25 W / -123.0 to -123.25), or the map view updates to show the site in Washington State."
+    },
+    {
+      "id": "fix_sund_rock_gps",
+      "description": "The agent identifies the missing GPS data for 'Sund Rock' and adds correct coordinates.",
+      "points": 25,
+      "visual_evidence": "GPS coordinates are newly entered for 'Sund Rock' that fall within the Hood Canal bounding box (Latitude: 47.3 to 47.5 N, Longitude: 123.0 to 123.25 W / -123.0 to -123.25), or the map view updates to show the site in Washington State."
+    },
+    {
+      "id": "export_corrected_kml",
+      "description": "The agent saves or exports the corrected logbook to the specified KML file path.",
+      "points": 20,
+      "visual_evidence": "An export dialog is visible saving the file as KML to '/home/ga/Documents/corrected_logbook.kml', or a terminal command/script is shown successfully writing to this exact file path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_data_editing",
+      "description": "Verifies the agent actually edited the dive log data rather than creating a dummy file.",
+      "visual_evidence": "Screenshots should show the agent interacting with the Subsurface GUI to edit coordinates and names, or writing/running a script that actively parses and modifies the source data."
+    },
+    {
+      "id": "proper_kml_export",
+      "description": "Verifies the agent used a legitimate method to generate the KML file.",
+      "visual_evidence": "The Subsurface 'Export' dialog is used with the KML format selected, or a script is used that explicitly converts the dive data into KML format."
+    },
+    {
+      "id": "no_hardcoded_echo",
+      "description": "Verifies the agent didn't bypass the task by echoing a pre-written KML string.",
+      "visual_evidence": "Absence of terminal commands that simply `echo` or `cat` a massive, hardcoded block of KML text directly into the target file without reading or processing the original logbook."
+    }
+  ],
+  "privileged_info_for_vlm": "The original logbook has three specific errors to fix: 1) The site name 'Sund Rock' is garbled as 'Snd Rck'. 2) The GPS coordinates for 'Yellow House' are incorrectly set to 35.0, -120.0 (inland California). 3) The GPS coordinates for 'Sund Rock' are completely missing (blank). The agent must correct the name to 'Sund Rock' and update the GPS coordinates for both sites to fall within the Hood Canal, WA bounding box: Latitude 47.3 to 47.5 N, Longitude -123.25 to -123.0 W. The final output must be saved exactly to /home/ga/Documents/corrected_logbook.kml."
+}

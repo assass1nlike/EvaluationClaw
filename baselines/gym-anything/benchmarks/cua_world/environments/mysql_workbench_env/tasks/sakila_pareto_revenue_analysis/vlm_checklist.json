@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_pareto_revenue_analysis@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the local database and access the sakila database",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, MySQL Workbench, or terminal) open and connected to localhost with the 'sakila' database selected or in use."
+    },
+    {
+      "id": "view_v_customer_ltv_created",
+      "description": "Create the v_customer_ltv view",
+      "points": 20,
+      "visual_evidence": "SQL query execution showing 'CREATE VIEW v_customer_ltv' with columns customer_id, first_name, last_name, and total_revenue ordered descending, or the view visible in the database schema explorer."
+    },
+    {
+      "id": "view_v_pareto_revenue_created",
+      "description": "Create the v_pareto_revenue view with window functions",
+      "points": 25,
+      "visual_evidence": "SQL query execution showing 'CREATE VIEW v_pareto_revenue' utilizing window functions (e.g., SUM(...) OVER(...)) to calculate running_total and cumulative_pct, or the view visible in the database schema explorer."
+    },
+    {
+      "id": "export_query_executed",
+      "description": "Query the pareto view for the top 80% of revenue",
+      "points": 20,
+      "visual_evidence": "A SELECT query filtering the v_pareto_revenue view with a condition like 'cumulative_pct <= 80' (or 80.00) and 'ORDER BY total_revenue DESC'."
+    },
+    {
+      "id": "csv_file_exported",
+      "description": "Export the results to vip_whales.csv with headers",
+      "points": 25,
+      "visual_evidence": "A terminal, file manager, or text editor showing the file '/home/ga/Documents/exports/vip_whales.csv' exists, contains the correct column headers (customer_id, first_name, last_name, total_revenue, running_total, cumulative_pct), and contains data rows."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent interacted with a genuine database client or CLI to execute SQL",
+      "visual_evidence": "Screenshots show actual SQL execution in a database tool or terminal, not just typing queries into a text editor without running them."
+    },
+    {
+      "id": "authentic_export",
+      "description": "The CSV file was generated via a genuine export process",
+      "visual_evidence": "Evidence of an export command (e.g., INTO OUTFILE), a script running, or using a GUI export wizard, rather than manually typing or copy-pasting fake data into a CSV file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Agent did not hardcode the final CSV output",
+      "visual_evidence": "The agent actually performed the window function calculations in SQL rather than writing a Python/Bash script that bypasses the database views to generate a hardcoded file."
+    }
+  ],
+  "privileged_info_for_vlm": "Target database: sakila. Expected views to be created: v_customer_ltv and v_pareto_revenue. Expected output file: /home/ga/Documents/exports/vip_whales.csv. Cutoff percentage: <= 80.0. CRITICAL NOTE FOR SCORING: The top 80% of revenue in the standard Sakila database actually requires 437 customers, NOT 100-160. A perfectly correct execution will result in a CSV file with exactly 437 data rows. Do not penalize the agent for having a large number of rows; 437 is the correct mathematical result for this database."
+}

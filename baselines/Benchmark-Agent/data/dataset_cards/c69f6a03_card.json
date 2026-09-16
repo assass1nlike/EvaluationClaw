@@ -1,0 +1,94 @@
+{
+  "dataset_id": "c69f6a03",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset consists of natural images paired with short context descriptions that may contain object hallucinations. Given an image and a descriptive context, the model must identify and output the specific item mentioned in the context that does not actually appear in the image.",
+  "card_text": "Annotation Open is an image-text comprehension dataset of 200 samples aimed at object-level hallucination detection. Each sample pairs a real photograph (mostly everyday indoor/outdoor scenes with common objects, tables, food, appliances) with a few sentences of fluent description, plus an instruction asking the model to output the original item where a hallucination occurs. The description is mostly faithful but deliberately contains exactly one object that is absent from the image; the ground-truth output is that object's surface string as it appears in the context. The task requires grounding the textual mentions against the visual content, judging presence/absence, and extracting the offending noun phrase, which makes it a hybrid of visual grounding, fact verification and span extraction.",
+  "tasks": [
+    "hallucination_detection",
+    "visual_question_answering",
+    "fact_verification",
+    "span_extraction"
+  ],
+  "domain": "everyday visual scenes / object hallucination detection",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "A photographic image of an everyday scene (kitchen, dining, picnic, food, appliances) that serves as the visual ground truth. The model must inspect it to determine which object mentioned in the accompanying context is not actually present.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "context": {
+        "paths": [
+          "input.context"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "factual",
+        "semantics": "A short descriptive paragraph of a few sentences that verbally enumerates objects and their layout in the image. It is factually worded but intentionally contains one hallucinated object, so it must be checked against the image rather than trusted as true.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An explicit instruction telling the model that the context contains an object hallucination and asking it to output the original item (the textual mention) where the hallucination occurs.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.hitem"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ground-truth hallucinated item: a short noun phrase copied verbatim from the context (e.g. 'picnic mat', 'refrigerator'). It is the span that does not correspond to any object in the image and directly answers the prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an image reference (input.image_file), a descriptive context paragraph (input.context) enumerating objects in the scene, an instruction prompt (input.prompt) declaring that a hallucination exists in the context, and a short textual answer (output.hitem) giving the hallucinated object phrase. The image is the visual ground truth, the context is the text to be verified against it, and the answer is the extracted phrase from the context that has no visual support."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Object_Hallucination_Detection/annotation_open.json",
+    "existing_tags": {
+      "task": "Object_Hallucination_Detection",
+      "type": "comprehension",
+      "skill": "Hallucination Detection",
+      "domain": "GeEthicsneral",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "GeEthicsneral"
+  }
+}

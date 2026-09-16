@@ -1,0 +1,31 @@
+{
+  "id": "setup_foreign_currency_invoice@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "As Northwind Traders expands sales to Europe, configure Manager.io for multi-currency operations. Set the base currency to USD and add EUR as a foreign currency with an exchange rate of 1.08. Update the customer 'Alfreds Futterkiste' to use EUR and issue a sales invoice (Reference: INV-EUR-001) dated 2025-01-15 for an 'Organic Honey Shipment' totaling 2500.00 EUR.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/setup_foreign_currency_invoice/setup_task.sh",
+    "post_task": "/workspace/tasks/setup_foreign_currency_invoice/export_result.sh"
+  },
+  "metadata": {
+    "expected_base_currency": "USD",
+    "expected_foreign_currency": "EUR",
+    "expected_exchange_rate": 1.08,
+    "expected_customer": "Alfreds Futterkiste",
+    "expected_invoice_ref": "INV-EUR-001",
+    "expected_amount": 2500.0,
+    "expected_date": "2025-01-15"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_foreign_currency_invoice"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "add_flight_authorization@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "Add a flight authorization record in the Aerobridge Django admin panel (http://localhost:8000/admin/) using username 'admin' and password 'adminpass123'. The record must include the title 'Mumbai Port Area BVLOS Survey Authorization', operation max height 400, operation ceiling 500, 'Green' airspace type, and permit to fly above crowd set to No. Use the first available options for operator, risk type, and authorization type. Set the validity period from 2024-06-01 00:00:00 to 2024-12-31 23:59:00.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_flight_authorization/setup_task.sh",
+    "post_task": "/workspace/tasks/add_flight_authorization/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Mumbai Port Area BVLOS Survey Authorization",
+    "expected_max_height": 400,
+    "expected_ceiling": 500,
+    "expected_airspace_type": "Green",
+    "expected_crowd_permit": false,
+    "expected_start_date": "2024-06-01",
+    "expected_end_date": "2024-12-31",
+    "admin_url": "http://localhost:8000/admin/",
+    "target_model_url": "http://localhost:8000/admin/registry/authorization/add/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_flight_authorization"
+    }
+  },
+  "tags": [
+    "admin",
+    "authorization",
+    "regulatory",
+    "form-filling",
+    "django-admin"
+  ]
+}

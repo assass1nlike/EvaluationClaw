@@ -1,0 +1,38 @@
+{
+  "id": "customer_rank_tiering@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are a marketing analyst creating a product performance tiering report. Using the data from 'C:\\Users\\Docker\\Desktop\\PowerBITasks\\sales_data.csv', create a Power BI report named 'Product_Tier_Report.pbix' at 'C:\\Users\\Docker\\Desktop\\'. The report should include a calculated column 'Product_Rank' ranking 'Product_Category' by 'Sales_Amount' (descending) and a calculated column 'Performance_Tier' labeling Rank 1 as 'Top', Ranks 2-3 as 'Mid', and Rank 4 as 'Low'. Implement DAX measures 'Tier_Revenue' (Sum of Sales_Amount) and 'Avg_Discount' (Average of Discount). The dashboard must feature a 100% Stacked Bar Chart (Region on Y-axis, Tier_Revenue on X-axis, Performance_Tier as Legend), a Multi-Row Card (displaying Tier_Revenue and Avg_Discount), and a Table (showing Product_Category, Product_Rank, Performance_Tier, and Tier_Revenue).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\customer_rank_tiering\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\customer_rank_tiering\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "Product_Tier_Report.pbix",
+    "required_columns": [
+      "Product_Rank",
+      "Performance_Tier"
+    ],
+    "required_measures": [
+      "Tier_Revenue",
+      "Avg_Discount"
+    ],
+    "required_visuals": [
+      "hundredPercentStackedBarChart",
+      "multiRowCard",
+      "tableEx"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_customer_rank_tiering"
+    }
+  }
+}

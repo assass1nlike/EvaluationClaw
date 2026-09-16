@@ -1,0 +1,53 @@
+{
+  "task_id": "create_cumulative_revenue_views@1",
+  "task_completion": [
+    {
+      "id": "monthly_revenue_query",
+      "description": "Agent configures the MonthlyRevenue view query",
+      "points": 25,
+      "visual_evidence": "A query editor, design view, or SQL command window showing the query for MonthlyRevenue. It must include columns for SalesYear, SalesMonth, PeriodId (Year * 100 + Month), and MonthlyTotal (Sum of Total) from the Invoice table, with grouping by Year and Month."
+    },
+    {
+      "id": "monthly_revenue_saved",
+      "description": "MonthlyRevenue view is successfully created",
+      "points": 15,
+      "visual_evidence": "The view 'MonthlyRevenue' is visible in the database Views list, or a 'Command successfully executed' message is shown after running a CREATE VIEW statement for it."
+    },
+    {
+      "id": "cumulative_revenue_query",
+      "description": "Agent configures the CumulativeRevenue view query",
+      "points": 30,
+      "visual_evidence": "A query editor or SQL command window showing the query for CumulativeRevenue. It must select from the MonthlyRevenue view and include a RunningTotal column calculated using a correlated subquery."
+    },
+    {
+      "id": "cumulative_revenue_saved",
+      "description": "CumulativeRevenue view is successfully created",
+      "points": 20,
+      "visual_evidence": "The view 'CumulativeRevenue' is visible in the database Views list, or a 'Command successfully executed' message is shown after running its CREATE VIEW statement."
+    },
+    {
+      "id": "database_saved",
+      "description": "The database file is saved to persist changes",
+      "points": 10,
+      "visual_evidence": "The agent saves the main database file (e.g., clicking the Save icon in the main LibreOffice Base window, using File -> Save, or the Save icon appearing disabled/greyed out indicating no unsaved changes)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_database_gui",
+      "description": "Agent used the database GUI to create the views",
+      "visual_evidence": "Screenshots show the LibreOffice Base interface (or similar database GUI) being used, rather than terminal commands modifying the .odb zip archive directly."
+    },
+    {
+      "id": "actual_query_entry",
+      "description": "Agent entered the SQL queries in the database application",
+      "visual_evidence": "Screenshots show the SQL text being typed or present in the LibreOffice Base query editor/SQL window, rather than just executing a pre-made script blindly."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Agent did not bypass the database GUI by writing to a text file",
+      "visual_evidence": "The SQL is executed or saved within the LibreOffice Base 'Create View' or 'Tools -> SQL' interface, not just written to a text file in an editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is an HSQLDB-embedded database located at /home/ga/chinook.odb. The expected views to be created are 'MonthlyRevenue' and 'CumulativeRevenue'. If the agent executes the CumulativeRevenue view to test it, the final running total for the last period should be exactly 2328.60."
+}

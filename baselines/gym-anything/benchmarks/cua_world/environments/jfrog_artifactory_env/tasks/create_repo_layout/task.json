@@ -1,0 +1,29 @@
+{
+  "id": "create_repo_layout@1",
+  "version": "1.0",
+  "env_id": "jfrog_artifactory_env@0.1",
+  "description": "Create a new Repository Layout in JFrog Artifactory named 'flat-org-layout' using the admin account (password: 'password'). Configure the layout with the Artifact Path Pattern '[org]/[module]/[baseRev]/[module]-[baseRev](-[classifier]).[ext]', Descriptor Path Pattern '[org]/[module]/[baseRev]/[module]-[baseRev].pom', and both Folder and File Integration Revision RegExps set to 'SNAPSHOT'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_repo_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/create_repo_layout/export_result.sh"
+  },
+  "metadata": {
+    "layout_name": "flat-org-layout",
+    "expected_artifact_pattern": "[org]/[module]/[baseRev]/[module]-[baseRev](-[classifier]).[ext]",
+    "expected_descriptor_pattern": "[org]/[module]/[baseRev]/[module]-[baseRev].pom",
+    "expected_folder_integration_regexp": "SNAPSHOT",
+    "expected_file_integration_regexp": "SNAPSHOT"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_repo_layout"
+    }
+  }
+}

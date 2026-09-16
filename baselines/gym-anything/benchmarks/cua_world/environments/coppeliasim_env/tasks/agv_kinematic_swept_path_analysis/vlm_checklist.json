@@ -1,0 +1,59 @@
+{
+  "task_id": "agv_kinematic_swept_path_analysis@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_script_created",
+      "description": "Agent created a script to programmatically interact with CoppeliaSim.",
+      "points": 15,
+      "visual_evidence": "A code editor or terminal showing a script (likely Python) that imports the CoppeliaSim ZMQ Remote API, connects to port 23000, and contains logic to animate a 2.0x1.0x0.5m AGV chassis."
+    },
+    {
+      "id": "script_execution_success",
+      "description": "Agent successfully executed the simulation script.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the script running without errors, or the CoppeliaSim GUI showing the AGV chassis moving along the 90-degree curve."
+    },
+    {
+      "id": "csv_file_exported",
+      "description": "The swept_corners.csv file was saved to the correct directory.",
+      "points": 15,
+      "visual_evidence": "Terminal commands (like `ls`) or a file explorer showing `swept_corners.csv` exists in `/home/ga/Documents/CoppeliaSim/exports/`."
+    },
+    {
+      "id": "csv_content_valid",
+      "description": "The CSV file contains the correct columns and sufficient data rows.",
+      "points": 15,
+      "visual_evidence": "The contents of the CSV file displayed in a terminal or editor, showing the header row with `angle_deg`, `front_left_x`, `front_left_y`, `front_right_x`, `front_right_y`, `rear_left_x`, `rear_left_y`, `rear_right_x`, `rear_right_y`, and at least 15 rows of numerical data."
+    },
+    {
+      "id": "json_report_exported",
+      "description": "The swept_report.json file was saved to the correct directory.",
+      "points": 10,
+      "visual_evidence": "Terminal commands or a file explorer showing `swept_report.json` exists in `/home/ga/Documents/CoppeliaSim/exports/`."
+    },
+    {
+      "id": "json_report_accuracy",
+      "description": "The JSON report contains the correct calculated kinematic values.",
+      "points": 30,
+      "visual_evidence": "The contents of `swept_report.json` showing `outer_radius_m` near 3.64, `inner_radius_m` near 2.50, and `swept_width_m` near 1.14 (all within a 0.05m tolerance)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "programmatic_simulation_used",
+      "description": "The agent used a script to interact with CoppeliaSim rather than bypassing the simulation.",
+      "visual_evidence": "The script must contain ZMQ connection code (e.g., `RemoteAPIClient('localhost', 23000)`) and CoppeliaSim API calls to move the vehicle and read coordinates, rather than purely calculating the math in Python."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent calculated the results from simulation data rather than hardcoding the expected answers.",
+      "visual_evidence": "The script should derive the outer radius, inner radius, and swept width by finding the maximum and minimum distances from the recorded corner coordinates, not by assigning the values 3.64, 2.50, and 1.14 directly."
+    },
+    {
+      "id": "genuine_file_exports",
+      "description": "The agent genuinely exported the files to the filesystem.",
+      "visual_evidence": "The script must contain file writing operations (e.g., `csv.writer`, `json.dump`) targeting the `/home/ga/Documents/CoppeliaSim/exports/` directory, and the files should be visible on the filesystem."
+    }
+  ],
+  "privileged_info_for_vlm": "The exact kinematic bounds for the 2.0m x 1.0m vehicle on a 3.0m turning radius are: outer radius = 3.64m, inner radius = 2.50m, and swept width = 1.14m. The accepted tolerance is 0.05m. The CSV file must contain at least 15 rows of data."
+}

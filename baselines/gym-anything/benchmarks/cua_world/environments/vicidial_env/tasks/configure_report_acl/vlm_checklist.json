@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_report_acl@1",
+  "task_completion": [
+    {
+      "id": "group_basic_info",
+      "description": "Verify the User Group is created with the correct ID, Name, and Description.",
+      "points": 20,
+      "visual_evidence": "Look for a form or list in the Vicidial interface showing Group ID 'SUP_SECURE', Group Name 'Secure Supervisors', and Description 'Restricted Reporting Access'."
+    },
+    {
+      "id": "force_change_password",
+      "description": "Verify the 'Force Change Password' setting is enabled.",
+      "points": 15,
+      "visual_evidence": "Look for the 'Force Change Password' field in the User Group configuration form and ensure it is set to 'Y'."
+    },
+    {
+      "id": "allow_agent_performance_detail",
+      "description": "Verify that access to the 'Agent Performance Detail' report is allowed.",
+      "points": 20,
+      "visual_evidence": "Look for the report permissions/allowed reports section and ensure 'Agent Performance Detail' (or 'AST_agent_performance_detail.php') is checked, selected, or set to '1'/'Y'."
+    },
+    {
+      "id": "allow_real_time_main_report",
+      "description": "Verify that access to the 'Real-Time Main Report' is allowed.",
+      "points": 20,
+      "visual_evidence": "Look for the report permissions/allowed reports section and ensure 'Real-Time Main Report' (or 'AST_timeonVDADall.php') is checked, selected, or set to '1'/'Y'."
+    },
+    {
+      "id": "block_export_reports",
+      "description": "Verify that all 'Export' reports are blocked.",
+      "points": 25,
+      "visual_evidence": "Look through the report permissions section and ensure that any report containing the word 'Export' is unchecked, unselected, or set to '0'/'N'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the Vicidial web interface to configure the user group.",
+      "visual_evidence": "Screenshots should show the Vicidial admin web interface in a web browser, not terminal commands or direct database queries (e.g., MySQL CLI)."
+    },
+    {
+      "id": "genuine_submission",
+      "description": "Ensure the settings were actually saved or submitted.",
+      "visual_evidence": "Look for a confirmation message indicating the User Group was added or modified, or verify that the settings persist in the form after a save action."
+    },
+    {
+      "id": "no_text_editor",
+      "description": "Ensure the agent didn't just type the expected outcomes into a text editor.",
+      "visual_evidence": "The configuration must be visible within the actual Vicidial HTML form fields, not in a notepad, text editor, or terminal window."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Group ID is 'SUP_SECURE'. The allowed reports 'Agent Performance Detail' and 'Real-Time Main Report' correspond to the underlying scripts 'AST_agent_performance_detail.php' and 'AST_timeonVDADall.php' in the Vicidial interface. All reports containing the keyword 'export' must be disabled. 'Force Change Password' must be set to 'Y'."
+}

@@ -1,0 +1,82 @@
+{
+  "dataset_id": "7634d491",
+  "name": "Openset Before-After Relationship Caption",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A dataset of before-after image pairs paired with natural language image editing instructions. It evaluates a model's ability to infer and describe the visual transformation from a source image to a target image.",
+  "card_text": "This dataset contains 200 samples for before-after relationship captioning. Each sample provides a pair of images (source and target) and a templated prompt asking for the editing action or instruction that transforms the source into the target. The output is a short natural language instruction, such as 'improve quality of photo' or 'adjust color on this image'. The images are general-domain photographs, and the editing instructions cover a range of visual modifications. The dataset is multimodal, requiring visual comparison of the two images to generate the correct text. It is designed as an openset benchmark for visual relation inference and image editing instruction generation.",
+  "tasks": [
+    "captioning",
+    "visual_question_answering"
+  ],
+  "domain": "image editing",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "A pair of image file references corresponding to the source image and the target image. The source image is to be modified, and the target image represents the desired edited result. These images are the visual evidence used to infer the editing operation.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A templated natural-language instruction asking for an editing action or image edit instruction that transforms the source image into the target image. It references the two images via <ImageHere> placeholders and ends with 'Instruction:'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The target text: a concise image editing instruction or action description (e.g., 'improve quality of photo') that indicates how to modify the source image to obtain the target image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object containing a list of two image file references (source and target) and a prompt that asks for the editing action transforming the source image into the target image. The output object contains a single text field with a concise editing instruction. The prompt references the images with <ImageHere> placeholders, and the answer is the generated instruction. No additional context, options, or annotations are provided."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Before-AfterRelationshipCaption/openset_before-after_relationship_caption.json",
+    "existing_tags": {
+      "task": "Before-After Relationship Caption",
+      "type": "image comprehension",
+      "skill": "Visual Relation Inference",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

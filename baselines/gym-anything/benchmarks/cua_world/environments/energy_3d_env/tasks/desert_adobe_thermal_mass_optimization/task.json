@@ -1,0 +1,27 @@
+{
+  "id": "desert_adobe_thermal_mass_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Sustainability Engineer designing an eco-friendly adobe house in Albuquerque, NM. The starting project 'building-passive-heating.ng3' is open in Energy3D. Your goal is to compare the winter daily heating load of standard wood-frame construction vs. high-thermal-mass adobe construction.\n\nFirst, change the project location to Albuquerque, NM (or latitude ~35°N) and set the simulation date to January 21. Run a 'Daily Building Energy Analysis' on the baseline house, and export the analysis data to a CSV file named '~/Documents/Energy3D/baseline_wood_frame.csv'.\n\nNext, modify all walls of the house to simulate thick adobe materials: set the Wall U-value to exactly 0.40 W/m²·℃ and set the Wall Volumetric Heat Capacity to exactly 0.5 kWh/m³·℃. Re-run the 'Daily Building Energy Analysis' for January 21 with these new parameters, and export the new analysis data to a CSV file named '~/Documents/Energy3D/adobe_thermal_mass.csv'.\n\nFinally, save the modified 3D model as '~/Documents/Energy3D/adobe_house_design.ng3'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/desert_adobe_thermal_mass_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/desert_adobe_thermal_mass_optimization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Sustainability Engineer",
+    "industry": "Architecture / Building Design",
+    "starter_file": "building-passive-heating.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_thermal_mass_optimization"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "calculate_hemodynamic_indices@1",
+  "version": "1.0",
+  "env_id": "vital_recorder_windows_env@0.1",
+  "description": "Vital Recorder is open with VitalDB Case #6 loaded, containing physiological data from a surgical case. Calculate hemodynamic indices at three specific timepoints: 00:15:00, 00:45:00, and 01:15:00. For each timepoint, record the Heart Rate (HR), Systolic Blood Pressure (SBP), and Diastolic Blood Pressure (DBP), then calculate the Shock Index (HR / SBP) and Pulse Pressure (SBP - DBP). Create a text file report at 'C:\\Users\\Docker\\Documents\\hemodynamic_indices_report.txt' using the exact format below:\n\nHEMODYNAMIC INDICES REPORT\nCase: VitalDB #6\n==========================\n\nTimepoint 1: 00:15:00\n  HR: [value] bpm\n  SBP: [value] mmHg\n  DBP: [value] mmHg\n  Shock Index: [value]\n  Pulse Pressure: [value] mmHg\n\nTimepoint 2: 00:45:00\n  HR: [value] bpm\n  SBP: [value] mmHg\n  DBP: [value] mmHg\n  Shock Index: [value]\n  Pulse Pressure: [value] mmHg\n\nTimepoint 3: 01:15:00\n  HR: [value] bpm\n  SBP: [value] mmHg\n  DBP: [value] mmHg\n  Shock Index: [value]\n  Pulse Pressure: [value] mmHg",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\calculate_hemodynamic_indices\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\calculate_hemodynamic_indices\\export_result.ps1"
+  },
+  "metadata": {
+    "case_id": 6,
+    "report_path": "C:\\Users\\Docker\\Documents\\hemodynamic_indices_report.txt",
+    "timestamps": [
+      900,
+      2700,
+      4500
+    ],
+    "tolerance_raw": 5,
+    "tolerance_index": 0.1,
+    "tolerance_pp": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hemodynamic_indices"
+    }
+  }
+}

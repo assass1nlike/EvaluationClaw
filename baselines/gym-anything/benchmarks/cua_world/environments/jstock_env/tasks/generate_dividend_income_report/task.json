@@ -1,0 +1,45 @@
+{
+  "id": "generate_dividend_income_report@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Calculate the total dividend income received in the 'My Portfolio' JStock portfolio. Record the sum of all dividend amounts in /home/ga/Documents/dividend_total.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_dividend_income_report/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_dividend_income_report/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/dividend_total.txt",
+    "expected_value": 110.25,
+    "tolerance": 0.1,
+    "dividend_data": [
+      {
+        "symbol": "AAPL",
+        "amount": 45.0
+      },
+      {
+        "symbol": "MSFT",
+        "amount": 22.5
+      },
+      {
+        "symbol": "JNJ",
+        "amount": 30.0
+      },
+      {
+        "symbol": "O",
+        "amount": 12.75
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_dividend_income_report"
+    }
+  }
+}

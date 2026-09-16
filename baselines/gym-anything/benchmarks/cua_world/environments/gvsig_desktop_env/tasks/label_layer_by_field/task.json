@@ -1,0 +1,32 @@
+{
+  "id": "label_layer_by_field@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Enable labels for the 'ne_110m_admin_0_countries' layer in gvSIG to display country names. Use the 'NAME' field for the labels so that names such as 'Brazil', 'Russia', and 'Australia' are visible on the map.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/label_layer_by_field/setup_task.sh"
+  },
+  "metadata": {
+    "layer_name": "ne_110m_admin_0_countries",
+    "label_field": "NAME",
+    "example_labels": [
+      "United States",
+      "Brazil",
+      "Russia",
+      "Australia",
+      "China"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_label_layer_by_field"
+    }
+  }
+}

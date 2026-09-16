@@ -1,0 +1,53 @@
+{
+  "id": "wordpress_c4_architecture@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Software Architect documenting the WordPress CMS architecture for a platform engineering team using the specification file at `~/Desktop/wordpress_c4_spec.txt`. Create a two-page C4 Model architecture diagram in draw.io using standard C4 notation and labeled relationships. Page 1 (System Context) must show the WordPress CMS System interacting with 3 Persons (Reader, Author, Admin) and 4 External Systems (Email, CDN, Social Media, Plugin Repo). Page 2 (Container) must show the internals of the WordPress CMS System (Web Server, PHP App, Database, etc.) inside a System Boundary, surrounded by the external actors from the Context view. Ensure all 8 context-level elements and 7 container-level elements from the spec are included. Save the diagram as `~/Desktop/wordpress_c4.drawio` and export it to `~/Desktop/wordpress_c4.png`.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/wordpress_c4_architecture/setup_task.sh",
+    "post_task": "/workspace/tasks/wordpress_c4_architecture/export_result.sh"
+  },
+  "metadata": {
+    "output_drawio": "/home/ga/Desktop/wordpress_c4.drawio",
+    "output_png": "/home/ga/Desktop/wordpress_c4.png",
+    "spec_file": "/home/ga/Desktop/wordpress_c4_spec.txt",
+    "context_keywords": [
+      "Reader",
+      "Author",
+      "Admin",
+      "Email",
+      "CDN",
+      "Social",
+      "Plugin",
+      "Repository"
+    ],
+    "container_keywords": [
+      "Apache",
+      "Nginx",
+      "PHP",
+      "wp-includes",
+      "Database",
+      "MySQL",
+      "wp-content",
+      "uploads",
+      "Cron",
+      "WP-Admin",
+      "API"
+    ],
+    "min_pages": 2,
+    "min_shapes": 10,
+    "min_edges": 8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_wordpress_c4"
+    }
+  }
+}

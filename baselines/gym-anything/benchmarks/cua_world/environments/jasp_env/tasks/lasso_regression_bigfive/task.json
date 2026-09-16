@@ -1,0 +1,30 @@
+{
+  "id": "lasso_regression_bigfive@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a LASSO (L1) regularized regression analysis using the dataset '/home/ga/Documents/JASP/BigFivePersonalityTraits.csv' to predict 'Neuroticism' using 'Agreeableness', 'Conscientiousness', 'Extraversion', and 'Openness' as predictors. Configure the analysis with a 30% test set holdout and a random seed of 42. Save the JASP project to '/home/ga/Documents/JASP/LassoRegressionBigFive.jasp' and create a text report at '/home/ga/Documents/JASP/lasso_report.txt' documenting the Test Set RMSE, R-squared, and which predictors were retained with non-zero coefficients.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/lasso_regression_bigfive/setup_task.sh",
+    "post_task": "/workspace/tasks/lasso_regression_bigfive/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/BigFivePersonalityTraits.csv",
+    "expected_jasp_file": "/home/ga/Documents/JASP/LassoRegressionBigFive.jasp",
+    "expected_report_file": "/home/ga/Documents/JASP/lasso_report.txt",
+    "target_variable": "Neuroticism",
+    "seed": 42,
+    "test_split": 0.3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lasso_regression_bigfive"
+    }
+  }
+}

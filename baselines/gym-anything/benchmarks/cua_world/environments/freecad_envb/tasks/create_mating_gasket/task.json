@@ -1,0 +1,30 @@
+{
+  "id": "create_mating_gasket@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a 2mm thick mating gasket for the T8 Lead Screw Housing Bracket currently loaded in FreeCAD. The gasket must match the bottom footprint and mounting holes of the bracket exactly. Save the resulting file containing both the bracket and the new gasket to /home/ga/Documents/FreeCAD/T8_gasket.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_mating_gasket/setup_task.sh",
+    "post_task": "/workspace/tasks/create_mating_gasket/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/FreeCAD/T8_gasket.FCStd",
+    "target_thickness_mm": 2.0,
+    "thickness_tolerance_mm": 0.2,
+    "hole_alignment_tolerance_mm": 0.1,
+    "expected_hole_count": 4,
+    "reference_part_name": "T8_housing_bracket"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_mating_gasket"
+    }
+  }
+}

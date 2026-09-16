@@ -1,0 +1,44 @@
+{
+  "id": "vendor_security_audit_escalation@1",
+  "version": "1.0",
+  "env_id": "rocket_chat_env@0.1",
+  "description": "You are a Computer and Information Systems Manager at a mid-size financial services firm. Following a penetration test by CyberGuard Solutions, you must coordinate the remediation of three critical vulnerabilities (CVE-2026-0142, CVE-2026-0198, CVE-2026-0215) for PCI-DSS compliance. Using Rocket.Chat (Username: admin, Password: Admin1234!), acknowledge the report in #security-alerts by starring the message and replying in a thread to confirm mobilization. Organize the remediation effort by creating a private channel named 'sec-remediation-2026-03-06' with the topic 'Critical | CVE-2026-0142, CVE-2026-0198, CVE-2026-0215 | Remediation deadline: 2026-03-13', inviting the relevant team (ciso, security.analyst, vendor.liaison, compliance.officer, and devops.lead), pinning a vulnerability triage matrix for the CVEs, and posting a status update on containment and vendor contact. Coordinate specific requirements via direct messages to compliance.officer regarding PCI-DSS notification requirements and to vendor.liaison regarding PayStream and IdentityBridge patch availability.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "dense"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/vendor_security_audit_escalation/setup_task.sh",
+    "pre_task_timeout": 600,
+    "post_task": "/workspace/tasks/vendor_security_audit_escalation/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Computer and Information Systems Manager",
+    "industry": "Financial Services",
+    "remediation_channel": "sec-remediation-2026-03-06",
+    "required_members": [
+      "ciso",
+      "security.analyst",
+      "vendor.liaison",
+      "compliance.officer",
+      "devops.lead"
+    ],
+    "dm_recipients": [
+      "compliance.officer",
+      "vendor.liaison"
+    ],
+    "cves": [
+      "CVE-2026-0142",
+      "CVE-2026-0198",
+      "CVE-2026-0215"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_vendor_security_audit_escalation"
+    }
+  }
+}

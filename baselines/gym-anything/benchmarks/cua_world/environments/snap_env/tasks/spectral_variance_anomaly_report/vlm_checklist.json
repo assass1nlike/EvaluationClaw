@@ -1,0 +1,65 @@
+{
+  "task_id": "spectral_variance_anomaly_report@1",
+  "task_completion": [
+    {
+      "id": "load_input_image",
+      "description": "Load the Landsat multispectral TIFF into ESA SNAP Desktop",
+      "points": 10,
+      "visual_evidence": "The Product Explorer panel in ESA SNAP Desktop shows 'landsat_multispectral' loaded as a product."
+    },
+    {
+      "id": "create_spectral_mean",
+      "description": "Generate a virtual band named 'spectral_mean'",
+      "points": 10,
+      "visual_evidence": "A band named 'spectral_mean' is visible under the Bands folder in the Product Explorer, or the Band Maths dialog is open configuring this band."
+    },
+    {
+      "id": "create_spectral_variance",
+      "description": "Generate a virtual band named 'spectral_variance'",
+      "points": 15,
+      "visual_evidence": "A band named 'spectral_variance' is visible under the Bands folder in the Product Explorer, or the Band Maths dialog is open configuring this band."
+    },
+    {
+      "id": "create_anomaly_flag",
+      "description": "Create a binary anomaly mask band named 'anomaly_flag' using the > 5000 threshold",
+      "points": 20,
+      "visual_evidence": "A band named 'anomaly_flag' is visible in the Product Explorer, or the Band Maths dialog shows an expression applying the threshold (e.g., spectral_variance > 5000)."
+    },
+    {
+      "id": "export_beam_dimap",
+      "description": "Save the enriched product in BEAM-DIMAP format",
+      "points": 15,
+      "visual_evidence": "A 'Save Product As' dialog saving the file as 'landsat_qa.dim' in /home/ga/snap_exports/, or a file manager/terminal showing this file exists."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the anomaly_flag band as a GeoTIFF",
+      "points": 15,
+      "visual_evidence": "An Export dialog saving 'anomaly_mask.tif' in /home/ga/snap_exports/, or a file manager/terminal showing this file exists."
+    },
+    {
+      "id": "create_quality_report",
+      "description": "Document the findings in a plain-text quality report",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal output showing the contents of 'quality_report.txt' with the total number of pixels (3,326,628) and the number of anomalous pixels (0 or 0%)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "snap_gui_used",
+      "description": "The agent used the ESA SNAP Desktop GUI to perform the tasks.",
+      "visual_evidence": "Screenshots show interaction with the SNAP graphical user interface (Product Explorer, Band Maths, Export menus) rather than exclusively using terminal commands like 'gpt'."
+    },
+    {
+      "id": "authentic_band_math",
+      "description": "The agent actually configured the band math expressions in SNAP.",
+      "visual_evidence": "The Band Maths dialog is visible in at least some screenshots showing the mathematical expressions being entered for the virtual bands."
+    },
+    {
+      "id": "genuine_report_creation",
+      "description": "The agent created the text report based on actual analysis.",
+      "visual_evidence": "The agent is seen opening a text editor (e.g., gedit, nano) or using terminal commands to write the report, and the numbers reflect the actual image properties rather than placeholder text."
+    }
+  ],
+  "privileged_info_for_vlm": "The input image has exactly 3,326,628 total pixels. The maximum spectral variance across the 4 bands is approximately 3336.2. Therefore, applying the threshold of spectral_variance > 5000 results in exactly 0 anomalous pixels (0%). The quality report must reflect these specific numbers (3,326,628 total, 0 anomalous) to be fully correct."
+}

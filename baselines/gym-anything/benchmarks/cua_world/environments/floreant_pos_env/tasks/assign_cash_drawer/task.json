@@ -1,0 +1,28 @@
+{
+  "id": "assign_cash_drawer@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Perform the start-of-shift procedure by assigning a cash drawer to the 'Administrator' user with a $200.00 opening cash float. Use Manager PIN 1111 for authorization.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/assign_cash_drawer/setup_task.sh",
+    "post_task": "/workspace/tasks/assign_cash_drawer/export_result.sh"
+  },
+  "metadata": {
+    "target_user": "Administrator",
+    "target_pin": "1111",
+    "target_amount": 200.0,
+    "db_table": "DRAWER_ASSIGNED_HISTORY"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assign_cash_drawer"
+    }
+  }
+}

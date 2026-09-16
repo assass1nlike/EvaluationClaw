@@ -1,0 +1,59 @@
+{
+  "task_id": "provision_service_account_api@1",
+  "task_completion": [
+    {
+      "id": "admin_logged_in",
+      "description": "Verifies the agent logged into Redmine as the admin user.",
+      "points": 10,
+      "visual_evidence": "The Redmine web interface should be visible with 'Logged in as admin' displayed, typically in the top right corner."
+    },
+    {
+      "id": "rest_api_enabled",
+      "description": "Verifies the REST Web Service was enabled in Redmine.",
+      "points": 15,
+      "visual_evidence": "In Redmine Administration -> Settings -> API tab, the 'Enable REST web service' checkbox should be checked and saved."
+    },
+    {
+      "id": "user_ci_runner_created",
+      "description": "Verifies the 'ci_runner' user was created with the correct name and email.",
+      "points": 20,
+      "visual_evidence": "The Redmine Users list should show the user 'ci_runner' with the name 'CI Bot' and email 'ci_runner@example.com', or a success message indicating this user was created."
+    },
+    {
+      "id": "user_password_settings",
+      "description": "Verifies the user is not required to change their password at next logon.",
+      "points": 10,
+      "visual_evidence": "During user creation or editing, the 'Must change password at next logon' checkbox should be visibly unchecked."
+    },
+    {
+      "id": "api_key_obtained",
+      "description": "Verifies the agent obtained the API access key for the 'ci_runner' account.",
+      "points": 25,
+      "visual_evidence": "The API access key for 'ci_runner' should be visible on screen (typically found in the 'My account' page after logging in as ci_runner, or generated via an API token view)."
+    },
+    {
+      "id": "api_key_saved",
+      "description": "Verifies the API key was saved to the correct file path.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor should show the API key being saved to or present in the file '/home/ga/ci_api_key.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verifies the agent used the web browser to interact with Redmine.",
+      "visual_evidence": "Screenshots should show the agent navigating the Redmine web interface to configure settings and create the user, rather than bypassing the UI with direct database or console commands."
+    },
+    {
+      "id": "genuine_api_key",
+      "description": "Verifies the saved API key appears to be a genuine generated token.",
+      "visual_evidence": "The API key saved to the text file should be a long alphanumeric string (typical of Redmine API tokens) and match the token shown in the Redmine UI, not a placeholder or hardcoded string."
+    },
+    {
+      "id": "correct_file_creation",
+      "description": "Verifies the agent actually created the output file in the terminal or a text editor.",
+      "visual_evidence": "The terminal or text editor should show the actual creation and saving of '/home/ga/ci_api_key.txt', rather than just echoing the path."
+    }
+  ],
+  "privileged_info_for_vlm": "Target user login: 'ci_runner'. Target user email: 'ci_runner@example.com'. Output file path: '/home/ga/ci_api_key.txt'."
+}

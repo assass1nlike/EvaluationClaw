@@ -1,0 +1,59 @@
+{
+  "task_id": "game_audio_seamless_loop@1",
+  "task_completion": [
+    {
+      "id": "import_audio",
+      "description": "Import the specified audio file into Ardour.",
+      "points": 10,
+      "visual_evidence": "The Ardour timeline shows an imported audio region/waveform, or the import dialog is visible with '/home/ga/Audio/import_me.wav' selected."
+    },
+    {
+      "id": "split_audio",
+      "description": "Split the audio clip at the 15-second mark.",
+      "points": 20,
+      "visual_evidence": "The audio region on the timeline is split into two distinct clips, with the cut located at or very close to the 15.0-second mark on the time ruler."
+    },
+    {
+      "id": "position_back_half",
+      "description": "Move the second half of the audio to the beginning of the timeline.",
+      "points": 25,
+      "visual_evidence": "An audio region (the segment originally from 15-30s) is positioned so its start aligns exactly with the 0.0s mark on the timeline."
+    },
+    {
+      "id": "position_front_half",
+      "description": "Move the first half of the audio to start at 14.0 seconds.",
+      "points": 25,
+      "visual_evidence": "An audio region (the segment originally from 0-15s) is positioned so its start aligns with the 14.0s mark on the timeline, creating a 1-second overlap with the other region."
+    },
+    {
+      "id": "rename_track",
+      "description": "Rename the track to 'Ambient Loop'.",
+      "points": 10,
+      "visual_evidence": "The track header on the left side of the Ardour timeline displays the name 'Ambient Loop' (or contains the keywords 'ambient' and 'loop')."
+    },
+    {
+      "id": "save_session",
+      "description": "Save the Ardour session.",
+      "points": 10,
+      "visual_evidence": "The 'File -> Save' menu action is clicked, or the Ardour window title bar shows the session name without an unsaved indicator (like an asterisk)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_ardour_gui",
+      "description": "The agent used the Ardour GUI to perform the audio editing tasks.",
+      "visual_evidence": "Screenshots show the Ardour application interface being actively used (timeline edits, track renaming), rather than just terminal windows."
+    },
+    {
+      "id": "no_xml_tampering",
+      "description": "The agent did not bypass the GUI by directly editing the Ardour session XML file.",
+      "visual_evidence": "The terminal or text editors (like nano/vim) do not show the agent manually modifying the `.ardour` XML file to set region positions or track names."
+    },
+    {
+      "id": "genuine_interaction",
+      "description": "The agent interacted with the actual timeline and regions.",
+      "visual_evidence": "Cursor movements, drag-and-drop actions, or split tool selections are visible on the Ardour timeline."
+    }
+  ],
+  "privileged_info_for_vlm": "The source file is '/home/ga/Audio/import_me.wav'. The track name must contain 'ambient' or 'loop' (case-insensitive). The split point is at 15.0 seconds. The back half (originally 15-30s) must be placed at 0.0s. The front half (originally 0-15s) must be placed at 14.0s. A tolerance of 0.5 seconds is allowed for all timeline positions."
+}

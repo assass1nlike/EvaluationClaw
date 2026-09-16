@@ -1,0 +1,28 @@
+{
+  "id": "find_details_art@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Complete the first level of the 'Find the details' activity in GCompris. Save a screenshot of the success state to ~/art_detective_success.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/find_details_art/setup_task.sh",
+    "post_task": "/workspace/tasks/find_details_art/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/art_detective_success.png",
+    "activity_name": "Find the details",
+    "category_icon": "Puzzle / Jigsaw",
+    "target_content": "Famous paintings (Seurat, Van Gogh, etc.)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_find_details_art"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "transparent_database_encryption@1",
+  "task_completion": [
+    {
+      "id": "volume_created",
+      "description": "Create a 50MB VeraCrypt volume at the specified path.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI volume creation wizard completing, or terminal commands (e.g., 'ls -lh /home/ga/Volumes/') showing the 'crm_encrypted.hc' file with a size of approximately 50MB."
+    },
+    {
+      "id": "volume_mounted",
+      "description": "Mount the encrypted volume to the secure store directory.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the VeraCrypt GUI with the volume mounted at '/home/ga/MountPoints/secure_store', or terminal output from commands like 'mount', 'df -h', or 'veracrypt -l' confirming the mount point."
+    },
+    {
+      "id": "database_moved",
+      "description": "Move the existing customers.db into the mounted encrypted volume.",
+      "points": 20,
+      "visual_evidence": "Terminal output (e.g., 'mv' command followed by 'ls /home/ga/MountPoints/secure_store') or a file manager window showing 'customers.db' successfully residing inside the mounted secure_store directory."
+    },
+    {
+      "id": "symlink_created",
+      "description": "Create a symbolic link at the original database location pointing to the new location.",
+      "points": 25,
+      "visual_evidence": "Terminal output showing the 'ln -s' command being executed, or an 'ls -l /home/ga/LegacyCRM/data/' command showing 'customers.db' as a symlink (indicated by 'l' in permissions and '->' pointing to the secure_store path)."
+    },
+    {
+      "id": "database_readable",
+      "description": "Verify the database is still readable through the original path.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the agent testing access to the database via the original path, such as using 'sqlite3 /home/ga/LegacyCRM/data/customers.db' to query records, or a successful application test run."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_veracrypt_usage",
+      "description": "Verify the agent actually used VeraCrypt to create the volume.",
+      "visual_evidence": "Look for the VeraCrypt GUI or 'veracrypt' CLI commands in the terminal. The agent should not simply use 'touch' or 'dd' to create a dummy file named '.hc' without actually encrypting it."
+    },
+    {
+      "id": "actual_symlink_used",
+      "description": "Verify a symbolic link was created rather than copying the file.",
+      "visual_evidence": "When viewing the original directory ('/home/ga/LegacyCRM/data/'), the 'customers.db' file must explicitly be a symlink (e.g., light blue text in terminal, '->' symbol in 'ls -l', or shortcut arrow in GUI). It should not be a regular copied file."
+    },
+    {
+      "id": "no_app_code_changes",
+      "description": "Verify the application code was not modified to point to the new database.",
+      "visual_evidence": "Ensure there are no text editors (like nano, vim, or VS Code) open showing modifications to the LegacyCRM application source code to change the hardcoded database path."
+    }
+  ],
+  "privileged_info_for_vlm": "The VeraCrypt volume must be created exactly at '/home/ga/Volumes/crm_encrypted.hc' with a size of 50MB and password 'Compliance2024!'. It must be mounted at '/home/ga/MountPoints/secure_store'. The original database at '/home/ga/LegacyCRM/data/customers.db' must be moved to the mount point, and a symbolic link must be created at the original path pointing to '/home/ga/MountPoints/secure_store/customers.db'."
+}

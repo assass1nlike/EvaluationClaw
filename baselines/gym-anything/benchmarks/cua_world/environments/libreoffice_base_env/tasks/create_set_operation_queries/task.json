@@ -1,0 +1,85 @@
+{
+  "id": "create_set_operation_queries@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "The Chinook music store database is open in LibreOffice Base. Perform a gap and overlap analysis by creating four SQL queries using set operations (EXCEPT, INTERSECT, NOT EXISTS, or NOT IN). Each query must select at least the 'TrackId' and 'Name' columns. Save the queries with the following exact names: 'TracksWithoutPlaylist' (tracks not included in any playlist), 'SharedMusicAnd90s' (tracks present in both the 'Music' playlist [PlaylistId = 1] and the '90s Music' playlist [PlaylistId = 5]), 'MusicNotIn90s' (tracks in the 'Music' playlist [PlaylistId = 1] but not in the '90s Music' playlist [PlaylistId = 5]), and 'UnpurchasedTracks' (tracks that have never been purchased and do not exist in the InvoiceLine table). Save the database after creating the queries.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_set_operation_queries/setup_task.sh",
+    "post_task": "/workspace/tasks/create_set_operation_queries/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/chinook.odb",
+    "required_queries": [
+      {
+        "name": "TracksWithoutPlaylist",
+        "tables": [
+          "Track",
+          "PlaylistTrack"
+        ],
+        "keywords": [
+          "EXCEPT",
+          "NOT IN",
+          "NOT EXISTS",
+          "LEFT JOIN"
+        ]
+      },
+      {
+        "name": "SharedMusicAnd90s",
+        "tables": [
+          "PlaylistTrack"
+        ],
+        "ids": [
+          "1",
+          "5"
+        ],
+        "keywords": [
+          "INTERSECT",
+          "IN",
+          "EXISTS",
+          "JOIN"
+        ]
+      },
+      {
+        "name": "MusicNotIn90s",
+        "tables": [
+          "PlaylistTrack"
+        ],
+        "ids": [
+          "1",
+          "5"
+        ],
+        "keywords": [
+          "EXCEPT",
+          "NOT IN",
+          "NOT EXISTS",
+          "LEFT JOIN"
+        ]
+      },
+      {
+        "name": "UnpurchasedTracks",
+        "tables": [
+          "Track",
+          "InvoiceLine"
+        ],
+        "keywords": [
+          "EXCEPT",
+          "NOT IN",
+          "NOT EXISTS",
+          "LEFT JOIN"
+        ]
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_set_operation_queries"
+    }
+  }
+}

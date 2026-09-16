@@ -1,0 +1,37 @@
+{
+  "id": "edit_uml_class_diagram@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "Add a Payment class with associations to the existing e-commerce UML class diagram in 'ecommerce_uml_classes.drawio'. The Payment class must include attributes paymentId: int, amount: double, paymentDate: Date, and method: String, as well as methods processPayment(): boolean and refund(): void. Establish a 1..1 association from the Order class to the Payment class and save the updated diagram.",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/edit_uml_class_diagram/setup_task.sh",
+    "post_task": "/workspace/tasks/edit_uml_class_diagram/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "ecommerce_uml_classes.drawio",
+    "expected_save_location": "/home/ga/Diagrams",
+    "expected_new_class": "Payment",
+    "expected_attributes": [
+      "paymentId",
+      "amount",
+      "paymentDate",
+      "method"
+    ],
+    "expected_methods": [
+      "processPayment",
+      "refund"
+    ],
+    "min_new_connections": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_edit_uml_class_diagram"
+    }
+  }
+}

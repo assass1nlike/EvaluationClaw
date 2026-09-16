@@ -1,0 +1,32 @@
+{
+  "id": "complete_home_staging@1",
+  "version": "1.0",
+  "env_id": "dreamplan_home_design_software_env@0.1",
+  "description": "You are a professional home stager preparing the Contemporary House for a real estate listing in DreamPlan. Furnish three key living spaces with the following requirements:\n\n- Living Room: Place at least a sofa (or sectional/loveseat) and a coffee table.\n- Dining Room: Place a dining table and at least two chairs.\n- Bedroom: Place a bed and at least one additional item (nightstand, dresser, wardrobe, or lamp).\n\nExport a separate image of each furnished room to the following paths:\n- Living room: C:\\Users\\Docker\\Desktop\\staged_living_room.jpg\n- Dining room: C:\\Users\\Docker\\Desktop\\staged_dining_room.jpg\n- Bedroom: C:\\Users\\Docker\\Desktop\\staged_bedroom.jpg",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\complete_home_staging\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\complete_home_staging\\export_result.ps1"
+  },
+  "metadata": {
+    "required_files": [
+      "C:\\Users\\Docker\\Desktop\\staged_living_room.jpg",
+      "C:\\Users\\Docker\\Desktop\\staged_dining_room.jpg",
+      "C:\\Users\\Docker\\Desktop\\staged_bedroom.jpg"
+    ],
+    "result_json_path": "C:\\Users\\Docker\\complete_home_staging_result.json",
+    "start_ts_path": "C:\\Users\\Docker\\task_start_ts_home_staging.txt",
+    "min_image_size_bytes": 30000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_complete_home_staging"
+    }
+  }
+}

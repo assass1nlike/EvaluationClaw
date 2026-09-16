@@ -1,0 +1,42 @@
+{
+  "id": "morphological_series_analysis@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Morphological Operations Series Analysis",
+  "description": "Perform a systematic analysis of how binary morphological operations affect particle segmentation metrics using the 'Blobs (25K)' sample image. For the baseline binary image and four morphological variations (Erode, Dilate, Open, and Close), record the Operation Name, Particle Count, Total Area, and Average Particle Size. Save the compiled results with headers to ~/ImageJ_Data/results/morphological_series.csv.",
+  "difficulty": "medium",
+  "tags": [
+    "image-processing",
+    "morphology",
+    "binary-operations",
+    "particle-analysis",
+    "quantitative-analysis"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/morphological_series_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/morphological_series_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_conditions": [
+      "Original",
+      "Erode",
+      "Dilate",
+      "Open",
+      "Close"
+    ],
+    "expected_file": "/home/ga/ImageJ_Data/results/morphological_series.csv",
+    "blobs_approx_count": 60,
+    "blobs_approx_total_area": 28000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_morphological_series"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "verify_tcp_options_mtu@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Open the specified PCAP file for analysis",
+      "points": 10,
+      "visual_evidence": "Look for a Wireshark window with '200722_tcp_anon.pcapng' in the title bar, or a terminal showing a command like 'wireshark' or 'tshark -r' targeting this file in ~/Documents/captures/."
+    },
+    {
+      "id": "inspect_tcp_handshake",
+      "description": "Analyze the TCP 3-way handshake for Stream 0 to find MSS and Window Scale",
+      "points": 20,
+      "visual_evidence": "Look for Wireshark's packet details pane expanded to show 'Options' under 'Transmission Control Protocol' for SYN and SYN-ACK packets, or terminal commands filtering for TCP SYN flags and extracting tcp.options.mss_val / tcp.options.wscale.shift."
+    },
+    {
+      "id": "inspect_payload_size",
+      "description": "Analyze Stream 0 to find the maximum TCP payload size",
+      "points": 20,
+      "visual_evidence": "Look for Wireshark's packet list showing TCP payload lengths (e.g., inspecting the 'Length' column or TCP segment data for PSH+ACK packets), or terminal commands extracting and sorting 'tcp.len'."
+    },
+    {
+      "id": "format_report_file",
+      "description": "Create the output report file with the required format",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (e.g., nano, vim, gedit) or terminal echo/cat commands writing to '/home/ga/Documents/captures/tcp_options_report.txt' containing the required keys (Client_MSS, Server_MSS, Client_WScale, Server_WScale, Max_Payload_Size, TSO_Detected)."
+    },
+    {
+      "id": "correct_handshake_values",
+      "description": "Record the correct MSS and Window Scale values in the report",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the report file. It must exactly show: 'Client_MSS: 1460', 'Server_MSS: 1460', 'Client_WScale: 8', and 'Server_WScale: 7'."
+    },
+    {
+      "id": "correct_payload_tso_values",
+      "description": "Record the correct Max Payload Size and TSO detection result in the report",
+      "points": 20,
+      "visual_evidence": "Look at the contents of the report file. It must exactly show: 'Max_Payload_Size: 6' and 'TSO_Detected: NO'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis",
+      "description": "The agent actually viewed the packet capture data using an analysis tool",
+      "visual_evidence": "Screenshots must show Wireshark GUI or tshark/tcpdump terminal output displaying the packet data. The agent should not just guess or write the file without opening the PCAP."
+    },
+    {
+      "id": "no_hallucination",
+      "description": "The agent extracted the values from the PCAP rather than hallucinating them",
+      "visual_evidence": "The correct values (1460, 8, 7, 6) should be visible in the analysis tool's output in the screenshots before or while they are written to the text file."
+    },
+    {
+      "id": "correct_file_creation",
+      "description": "The agent saved the results to the specified file path",
+      "visual_evidence": "The file path '/home/ga/Documents/captures/tcp_options_report.txt' must be explicitly visible in the text editor's header/status bar or in the terminal commands used to create the file."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct values for TCP Stream 0 in 200722_tcp_anon.pcapng are: Client_MSS: 1460, Server_MSS: 1460, Client_WScale: 8, Server_WScale: 7, Max_Payload_Size: 6, TSO_Detected: NO. The output must be saved exactly to /home/ga/Documents/captures/tcp_options_report.txt."
+}

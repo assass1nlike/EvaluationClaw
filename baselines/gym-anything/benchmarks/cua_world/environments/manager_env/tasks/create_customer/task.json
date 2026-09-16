@@ -1,0 +1,30 @@
+{
+  "id": "create_customer@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "In Manager.io, open the Northwind Traders business and create a new customer named Blue River Technologies (Code: BRT-001). Include the following details: Credit Limit: 25000, Billing Address: 1847 Innovation Drive, Austin, TX 78701, United States, and Email: accounts@blueriver.tech. Credentials: Username = administrator, Password = (leave empty).",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_customer/setup_task.sh"
+  },
+  "metadata": {
+    "expected_name": "Blue River Technologies",
+    "expected_code": "BRT-001",
+    "expected_credit_limit": 25000,
+    "expected_email": "accounts@blueriver.tech",
+    "expected_city": "Austin",
+    "manager_module": "customers",
+    "manager_action": "new"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_customer"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "verify_large_text_readability@1",
+  "version": "1.0",
+  "env_id": "example.flica_env@0.1",
+  "description": "A user with visual impairment is reporting issues reading the schedule. Test the Flight Crew View app's large text support by setting the system font size to the largest possible setting. Navigate to the app's Friends list and evaluate the readability. Save a screenshot of the list to /sdcard/large_text_test.png and create a file at /sdcard/readability_result.txt containing 'READABLE: YES' if the text is displayed correctly or 'READABLE: NO' if it is broken. Leave the font size set to the largest setting upon completion.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/verify_large_text_readability/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/verify_large_text_readability/export_result.sh"
+  },
+  "metadata": {
+    "expected_screenshot": "/sdcard/large_text_test.png",
+    "expected_report": "/sdcard/readability_result.txt",
+    "target_package": "com.robert.fcView"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_large_text_readability"
+    }
+  }
+}

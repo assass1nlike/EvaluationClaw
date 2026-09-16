@@ -1,0 +1,28 @@
+{
+  "id": "configure_sales_team_alias@1",
+  "version": "1.0",
+  "env_id": "odoo_crm_env@0.1",
+  "description": "Create a new Sales Team in Odoo CRM named 'Direct Sales' with Mitchell Admin as the Team Leader. Set the Email Alias to 'direct-sales' and configure the team to accept emails from 'Everyone'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_sales_team_alias/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_sales_team_alias/export_result.sh"
+  },
+  "metadata": {
+    "target_team_name": "Direct Sales",
+    "expected_alias": "direct-sales",
+    "expected_policy": "everyone",
+    "expected_leader_name": "Mitchell Admin"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_sales_team_alias"
+    }
+  }
+}

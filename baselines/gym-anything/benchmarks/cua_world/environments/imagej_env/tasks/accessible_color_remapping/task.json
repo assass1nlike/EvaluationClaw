@@ -1,0 +1,36 @@
+{
+  "id": "accessible_color_remapping@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Accessible Color Remapping for Scientific Figures",
+  "description": "Scientific journals increasingly require colorblind-accessible figures. Convert the 'Fluorescent Cells' sample image into an accessible Magenta/Green/Blue composite by mapping the original Red channel to Magenta while keeping the Green and Blue channels unchanged. Save the final flattened RGB image to ~/ImageJ_Data/results/accessible_composite.tif.",
+  "difficulty": "medium",
+  "tags": [
+    "imagej",
+    "accessibility",
+    "channels",
+    "color-processing",
+    "publication"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/accessible_color_remapping/setup_task.sh",
+    "post_task": "/workspace/tasks/accessible_color_remapping/export_result.sh"
+  },
+  "metadata": {
+    "ground_truth_url": "https://imagej.net/images/FluorescentCells.jpg",
+    "ground_truth_path": "/var/lib/imagej/ground_truth_cells.jpg",
+    "output_path": "/home/ga/ImageJ_Data/results/accessible_composite.tif",
+    "correlation_threshold": 0.8
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_accessible_color_remapping"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "river_floodplain_transects@1",
+  "task_completion": [
+    {
+      "id": "load_source_dataset",
+      "description": "Load the Natural Earth rivers and lake centerlines shapefile.",
+      "points": 10,
+      "visual_evidence": "The file 'ne_10m_rivers_lake_centerlines' is visible in the layers panel of a GIS application (like QGIS) or loaded in a Python script."
+    },
+    {
+      "id": "isolate_danube_river",
+      "description": "Select or filter the dataset to isolate the Danube River.",
+      "points": 20,
+      "visual_evidence": "An attribute filter, selection dialog, or query is visible searching for 'Danube', or the Danube River is uniquely highlighted (e.g., in yellow) on the map canvas."
+    },
+    {
+      "id": "configure_transect_parameters",
+      "description": "Set the transect generation parameters to 20,000m spacing and 10,000m length.",
+      "points": 20,
+      "visual_evidence": "A tool dialog (such as 'Transect' in QGIS) is open with '20000' entered for spacing/interval and '10000' entered for length, or equivalent parameters in a script."
+    },
+    {
+      "id": "generate_transects",
+      "description": "Execute the generation of perpendicular transects along the river.",
+      "points": 20,
+      "visual_evidence": "A new layer is created and visible on the map canvas showing multiple perpendicular line segments crossing the main river line."
+    },
+    {
+      "id": "export_geojson_file",
+      "description": "Export the generated transects as a GeoJSON file to the specified path.",
+      "points": 30,
+      "visual_evidence": "A 'Save Vector Layer as...' dialog or export command shows the format set to 'GeoJSON' and the file path set to '/home/ga/GIS_Data/exports/danube_transects.geojson'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gis_operation",
+      "description": "The agent used genuine GIS software or spatial libraries to perform the task.",
+      "visual_evidence": "Screenshots show interaction with QGIS tools (Processing Toolbox, Vector tools) or a Python script using spatial libraries (geopandas, shapely), rather than just typing a mock file."
+    },
+    {
+      "id": "visual_transect_confirmation",
+      "description": "The generated features are actually perpendicular transects.",
+      "visual_evidence": "The map canvas displays actual cross-section lines perpendicular to the river's path, not just a random grid or bounding box."
+    },
+    {
+      "id": "no_manual_mocking",
+      "description": "The agent did not manually create a dummy GeoJSON file.",
+      "visual_evidence": "The agent is not seen opening a text editor (like nano or vim) to manually paste or type fake GeoJSON content into 'danube_transects.geojson'."
+    }
+  ],
+  "privileged_info_for_vlm": "The source dataset is located at /home/ga/GIS_Data/natural_earth/ne_10m_rivers_lake_centerlines.shp. The Danube river is approximately 2,850 km long. With a 20,000 m (20 km) spacing, the expected output should contain approximately 142 transects (acceptable range: 120-170). Each transect must be 10,000 m (10 km) long. The final output must be exported as a GeoJSON file to /home/ga/GIS_Data/exports/danube_transects.geojson. Note: To accurately generate transects in meters, the agent will likely need to reproject the data to a metric CRS (like EPSG:3857 or EPSG:3035) before generation."
+}

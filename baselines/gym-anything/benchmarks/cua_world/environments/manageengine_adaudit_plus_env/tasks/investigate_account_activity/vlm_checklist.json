@@ -1,0 +1,59 @@
+{
+  "task_id": "investigate_account_activity@1",
+  "task_completion": [
+    {
+      "id": "adaudit_plus_accessed",
+      "description": "Verify the agent accessed the ADAudit Plus web interface.",
+      "points": 10,
+      "visual_evidence": "Look for a web browser open to http://localhost:8081/ displaying the ADAudit Plus login screen or dashboard."
+    },
+    {
+      "id": "viewed_account_events",
+      "description": "Verify the agent investigated account management events.",
+      "points": 15,
+      "visual_evidence": "Look for the ADAudit Plus interface showing reports related to Local Account Management, such as User Creation, User Modification, Password Resets, or Group Membership changes."
+    },
+    {
+      "id": "viewed_failed_logons",
+      "description": "Verify the agent investigated failed logon attempts.",
+      "points": 15,
+      "visual_evidence": "Look for the ADAudit Plus interface showing reports related to Local Logon Failures or invalid logon attempts."
+    },
+    {
+      "id": "created_technician_account",
+      "description": "Verify the agent created the new technician account.",
+      "points": 20,
+      "visual_evidence": "Look for the ADAudit Plus Admin/Delegation settings showing the creation or existence of a technician account with the username 'soc_analyst1' and the role 'Operator'."
+    },
+    {
+      "id": "documented_threat_users",
+      "description": "Verify the agent documented the discovered usernames and event types in the report.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor (e.g., Notepad) open with 'account_threat_report.txt' containing lists of discovered users (e.g., jsmith, baduser1, dlee) and the specific event types associated with them."
+    },
+    {
+      "id": "documented_remediation",
+      "description": "Verify the agent documented recommended remediation steps in the report.",
+      "points": 20,
+      "visual_evidence": "Look for 'account_threat_report.txt' containing recommended remediation steps (e.g., resetting passwords, disabling accounts, blocking IPs) based on the investigation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_investigation_used",
+      "description": "Verify the agent used the ADAudit Plus GUI for investigation rather than reading backend logs or running scripts.",
+      "visual_evidence": "The agent should be navigating the ADAudit Plus web interface to view reports, not using PowerShell or opening raw log files in a terminal."
+    },
+    {
+      "id": "gui_account_creation",
+      "description": "Verify the agent created the technician account via the ADAudit Plus web interface.",
+      "visual_evidence": "The agent should be seen interacting with the ADAudit Plus Admin/Technicians web UI to add the user, rather than using backend database commands or API scripts."
+    },
+    {
+      "id": "genuine_documentation",
+      "description": "Verify the agent manually compiled the report rather than just copying the prompt.",
+      "visual_evidence": "The text file should contain actual usernames discovered from the ADAudit Plus interface (e.g., jsmith, baduser1), not just a copy-paste of the task description instructions."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected technician account to be created in ADAudit Plus is 'soc_analyst1' with the role 'Operator'. The investigation report must be saved to 'C:\\Users\\Docker\\Desktop\\account_threat_report.txt'. The report should identify account management event users (jsmith, mjohnson, rwilliams, abrown, dlee) and failed logon users (baduser1, baduser2, wrongadmin, testattacker, bruteforce1). The user 'dlee' specifically has both a password reset and multiple failed logons."
+}

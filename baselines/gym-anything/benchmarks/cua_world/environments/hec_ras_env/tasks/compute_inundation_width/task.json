@@ -1,0 +1,27 @@
+{
+  "id": "compute_inundation_width@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Calculate the floodplain inundation width (top width) for the White River Muncie model using the HEC-RAS unsteady flow simulation results (e.g., `Muncie.p04.tmp.hdf`) found in the project directory. For each cross-section, determine the maximum Water Surface Elevation reached during the simulation and calculate the resulting top width. Export the results to a CSV file at `~/Documents/hec_ras_results/inundation_width.csv` with columns `River_Station`, `Peak_WSE_ft`, and `Top_Width_ft`. Additionally, generate a summary text file at `~/Documents/hec_ras_results/inundation_summary.txt` containing the maximum width, the station where it occurs, the mean width, and the total cross-section count.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_inundation_width/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_inundation_width/export_result.sh"
+  },
+  "metadata": {
+    "expected_csv_path": "/home/ga/Documents/hec_ras_results/inundation_width.csv",
+    "expected_summary_path": "/home/ga/Documents/hec_ras_results/inundation_summary.txt",
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_inundation_width"
+    }
+  }
+}

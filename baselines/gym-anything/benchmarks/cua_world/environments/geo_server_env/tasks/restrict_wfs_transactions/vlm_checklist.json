@@ -1,0 +1,47 @@
+{
+  "task_id": "restrict_wfs_transactions@1",
+  "task_completion": [
+    {
+      "id": "navigate_service_security",
+      "description": "Navigate to the Service Security page in GeoServer",
+      "points": 20,
+      "visual_evidence": "The GeoServer web administration interface is open, and the 'Service Security' page (under Security -> Services) is displayed, showing the list of service access rules."
+    },
+    {
+      "id": "configure_wfs_transaction",
+      "description": "Configure WFS Transaction rule for ADMIN role",
+      "points": 30,
+      "visual_evidence": "A rule configuration screen or list entry showing Service set to 'wfs' (or '*'), Method set to 'Transaction', and Role restricted to 'ADMIN'."
+    },
+    {
+      "id": "configure_wfs_getfeature",
+      "description": "Configure WFS GetFeature rule for Anonymous role",
+      "points": 30,
+      "visual_evidence": "A rule configuration screen or list entry showing Service set to 'wfs' (or '*'), Method set to 'GetFeature', and Role allowed for 'Anonymous' (or '*' / 'ROLE_ANONYMOUS')."
+    },
+    {
+      "id": "save_service_security",
+      "description": "Save and verify the Service Security rules",
+      "points": 20,
+      "visual_evidence": "The final Service Security rules list displays both the WFS Transaction rule restricted to ADMIN and the WFS GetFeature rule allowed for Anonymous, indicating the changes were successfully saved."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the GeoServer web GUI to configure the settings",
+      "visual_evidence": "Screenshots show interaction with the GeoServer web interface (buttons, forms, dropdowns) rather than terminal commands (like curl) to modify the configuration."
+    },
+    {
+      "id": "actual_application",
+      "description": "Agent interacted with the actual GeoServer application",
+      "visual_evidence": "The browser address bar shows the URL http://localhost:8080/geoserver/web/ and the standard GeoServer interface is visible."
+    },
+    {
+      "id": "no_inspect_element",
+      "description": "Agent did not fake the UI changes using browser developer tools",
+      "visual_evidence": "Browser developer tools (Inspect Element) are not open and actively being used to alter the text of the rules list."
+    }
+  ],
+  "privileged_info_for_vlm": "Target service is 'wfs'. Target write method is 'Transaction'. Target read method is 'GetFeature'. The target layer is 'ne:ne_countries' from the Natural Earth dataset, though the security rules are applied at the service level. The role 'ADMIN' is used for Transaction, and 'Anonymous' (or equivalent public access like '*' or 'ROLE_ANONYMOUS') for GetFeature."
+}

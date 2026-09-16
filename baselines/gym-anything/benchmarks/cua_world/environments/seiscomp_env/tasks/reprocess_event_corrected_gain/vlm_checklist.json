@@ -1,0 +1,53 @@
+{
+  "task_id": "reprocess_event_corrected_gain@1",
+  "task_completion": [
+    {
+      "id": "inventory_updated",
+      "description": "Update the SeisComP database with the corrected inventory file.",
+      "points": 20,
+      "visual_evidence": "Terminal commands (e.g., scimport, scinv) or GUI actions showing the import of '/home/ga/Documents/GSI_corrected.scml' into the database at 'mysql://sysop:sysop@localhost/seiscomp'."
+    },
+    {
+      "id": "event_opened",
+      "description": "Access the Noto earthquake event for reprocessing.",
+      "points": 10,
+      "visual_evidence": "The Noto earthquake event is opened in a SeisComP application (like scolv) or targeted by a command-line reprocessing tool."
+    },
+    {
+      "id": "waveforms_loaded",
+      "description": "Load the waveform archive for recomputation.",
+      "points": 20,
+      "visual_evidence": "Evidence that the waveform archive at '/home/ga/seiscomp/var/lib/archive' is being used. This could be visible via command-line flags (e.g., --archive, -I) or GUI settings pointing to this specific path."
+    },
+    {
+      "id": "magnitudes_recomputed",
+      "description": "Recompute the amplitudes and magnitudes for the event.",
+      "points": 25,
+      "visual_evidence": "Display of newly recomputed amplitudes and magnitudes in the GUI (e.g., Magnitude tab in scolv) or terminal output. The new network magnitude value must be visible and should be lower than the original overestimated value."
+    },
+    {
+      "id": "changes_committed",
+      "description": "Store the corrected magnitude in the database.",
+      "points": 25,
+      "visual_evidence": "A 'Commit' action being executed in the GUI (e.g., clicking the Commit button in scolv) or a terminal confirmation showing the new origin/magnitude has been successfully saved to the SeisComP database."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_seiscomp_tools",
+      "description": "Verify the agent used actual SeisComP utilities to perform the tasks.",
+      "visual_evidence": "The agent interacts with SeisComP tools (scolv, scimport, scmag, scamp, etc.) rather than manually editing database entries directly with SQL commands to bypass the workflow."
+    },
+    {
+      "id": "genuine_recomputation",
+      "description": "Verify the agent actually triggered an amplitude/magnitude recomputation using the waveform data.",
+      "visual_evidence": "The agent loads the waveforms and runs the computation process, rather than just manually typing a lower magnitude value into a field."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "Verify the agent did not spoof the results in a text editor.",
+      "visual_evidence": "Outputs and confirmations appear in genuine terminal logs or SeisComP GUI windows, not in a text editor or echo statements designed to look like success."
+    }
+  ],
+  "privileged_info_for_vlm": "The corrected inventory file fixes a gain configuration error for station GE.GSI. Recomputing the amplitudes and magnitudes with this corrected inventory physically mandates a lower overall magnitude. Verify that the newly computed and committed magnitude is strictly lower than the original overestimated magnitude."
+}

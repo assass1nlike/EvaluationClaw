@@ -1,0 +1,59 @@
+{
+  "task_id": "housing_typology_diversity@1",
+  "task_completion": [
+    {
+      "id": "notebook_setup_and_data_loading",
+      "description": "Jupyter notebook is created and loads the required dataset.",
+      "points": 10,
+      "visual_evidence": "Jupyter notebook interface is visible with the filename 'housing_diversity_index.ipynb'. Code cells show pandas or h5py operations reading '/home/ga/urbansim_projects/data/sanfran_public.h5' and joining the 'buildings' and 'parcels' tables on 'parcel_id'."
+    },
+    {
+      "id": "data_processing_and_sdi_calculation",
+      "description": "Data is filtered and Simpson's Diversity Index is calculated.",
+      "points": 20,
+      "visual_evidence": "Code cells show filtering for residential buildings (e.g., `residential_units > 0`), excluding zones with fewer than 10 residential buildings, and implementing the SDI formula (1 - sum((n_i / N)^2))."
+    },
+    {
+      "id": "csv_output_generated",
+      "description": "Zone-level results are saved to a CSV file with the correct columns.",
+      "points": 15,
+      "visual_evidence": "Code cell showing a dataframe being saved to '/home/ga/urbansim_projects/output/zone_housing_diversity.csv' using `.to_csv()`. The code or output should indicate the presence of columns: `zone_id`, `total_res_buildings`, `total_res_units`, and `simpsons_diversity_index`."
+    },
+    {
+      "id": "plot_output_generated",
+      "description": "A scatter plot of density vs diversity is created and saved.",
+      "points": 20,
+      "visual_evidence": "A scatter plot is visible either inline in the notebook or in an image viewer, showing density (total_res_units) on the X-axis and diversity (simpsons_diversity_index) on the Y-axis. Code must show it being saved to '/home/ga/urbansim_projects/output/diversity_vs_density.png'."
+    },
+    {
+      "id": "json_output_generated",
+      "description": "A JSON summary file is generated with the required keys.",
+      "points": 15,
+      "visual_evidence": "Code cell showing a dictionary being saved to '/home/ga/urbansim_projects/output/diversity_summary.json' using `json.dump()` or similar. The dictionary keys must include `citywide_average_sdi`, `most_diverse_zone_id`, `least_diverse_zone_id`, and `zones_analyzed_count`."
+    },
+    {
+      "id": "correct_execution_results",
+      "description": "The notebook is fully executed and produces the correct summary statistics.",
+      "points": 20,
+      "visual_evidence": "Execution counts (e.g., `In [1]:`) are present for all cells. Output cells, printed variables, or an open view of the JSON file show `zones_analyzed_count` as 188, `citywide_average_sdi` around 0.4648, `most_diverse_zone_id` as 11, and `least_diverse_zone_id` as 187."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "code_computes_results",
+      "description": "The agent wrote actual logic to compute the results instead of hardcoding the expected answers.",
+      "visual_evidence": "Check that the notebook contains actual pandas operations and math formulas to calculate the SDI and summary stats, rather than directly assigning the numbers 188, 0.4648, 11, and 187 to variables."
+    },
+    {
+      "id": "jupyter_environment_used",
+      "description": "The agent used a Jupyter environment to execute the code.",
+      "visual_evidence": "Check that the code is written and executed within a Jupyter Notebook or JupyterLab interface, evident by the UI, cell structure, and execution numbers."
+    },
+    {
+      "id": "files_generated_by_code",
+      "description": "Output files are generated programmatically.",
+      "visual_evidence": "Check that the CSV, PNG, and JSON files are generated via code execution (e.g., `.to_csv()`, `plt.savefig()`, `json.dump()`) rather than being manually typed or created in a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct output should yield exactly 188 analyzed zones. The resulting citywide average SDI is approximately 0.4648. The most diverse zone is zone_id 11, and the least diverse zone is zone_id 187. The expected columns for the CSV are zone_id, total_res_buildings, total_res_units, and simpsons_diversity_index. The expected keys for the JSON are citywide_average_sdi, most_diverse_zone_id, least_diverse_zone_id, and zones_analyzed_count."
+}

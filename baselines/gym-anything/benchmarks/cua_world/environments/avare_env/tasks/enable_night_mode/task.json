@@ -1,0 +1,25 @@
+{
+  "id": "enable_night_mode@1",
+  "env_id": "example.avare_env@0.1",
+  "difficulty": "easy",
+  "description": "The Avare aviation GPS app is open on the main map screen. Enable the 'Night Mode' setting within the display preferences and return to the map screen.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 20,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/enable_night_mode/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/enable_night_mode/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_enable_night_mode"
+    }
+  },
+  "metadata": {
+    "target_setting": "Night Mode",
+    "expected_value": "enabled"
+  }
+}

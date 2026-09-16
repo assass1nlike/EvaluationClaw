@@ -1,0 +1,53 @@
+{
+  "task_id": "fleet_load_imbalance_detector@1",
+  "task_completion": [
+    {
+      "id": "dashboard_named_correctly",
+      "description": "Create a dashboard named exactly 'Load Balancer Equity'",
+      "points": 10,
+      "visual_evidence": "Look for the title 'Load Balancer Equity' at the top of the Graphite dashboard UI."
+    },
+    {
+      "id": "graph_ec2_fleet_cpu_spread",
+      "description": "Add a graph titled 'EC2 Fleet CPU Spread' showing the instantaneous spread of EC2 CPU utilization",
+      "points": 25,
+      "visual_evidence": "Look for a graph panel titled 'EC2 Fleet CPU Spread'. The legend or query editor should show a function calculating the spread (e.g., spread(), or max minus min) applied to the metric 'servers.ec2_instance_*.cpu.*'."
+    },
+    {
+      "id": "graph_traffic_sensor_divergence",
+      "description": "Add a graph titled 'Traffic Sensor Divergence' showing the absolute difference between the two speed sensors",
+      "points": 25,
+      "visual_evidence": "Look for a graph panel titled 'Traffic Sensor Divergence'. The legend or query editor should show a function calculating the absolute difference (e.g., absolute(diffSeries(...))) between 'servers.web_traffic.speed_sensor_1' and 'servers.web_traffic.speed_sensor_2'."
+    },
+    {
+      "id": "graph_average_fleet_headroom",
+      "description": "Add a graph titled 'Average Fleet Headroom' showing 100 minus the average fleet CPU utilization",
+      "points": 25,
+      "visual_evidence": "Look for a graph panel titled 'Average Fleet Headroom'. The legend or query editor should show a mathematical function representing 100 minus the average (e.g., offset(scale(averageSeries(...), -1), 100)) applied to 'servers.ec2_instance_*.cpu.*'."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "Save the completed dashboard",
+      "points": 15,
+      "visual_evidence": "Look for a 'Dashboard saved' notification, a save confirmation dialog, or the save icon indicating the dashboard has been successfully saved to the system."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "The agent used the Graphite web interface to create the dashboard",
+      "visual_evidence": "Screenshots should show the agent interacting with the Graphite web UI in a browser, rather than using terminal commands (like curl) to construct the dashboard JSON."
+    },
+    {
+      "id": "graphs_rendered_data",
+      "description": "The graphs actually render time-series data",
+      "visual_evidence": "The graph panels in the dashboard should display actual plotted lines or data points, proving the metrics were queried correctly, rather than being empty panels with just titles."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "The agent did not simply write a JSON file in a text editor",
+      "visual_evidence": "The screenshots should not show the agent manually typing out the dashboard JSON structure in an editor like nano, vim, or gedit to bypass the UI."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Load Balancer Equity'. The three expected graph titles are exactly 'EC2 Fleet CPU Spread', 'Traffic Sensor Divergence', and 'Average Fleet Headroom'. The task requires manipulating specific metrics: 'servers.ec2_instance_*.cpu.*' and 'servers.web_traffic.speed_sensor_*'."
+}

@@ -1,0 +1,49 @@
+{
+  "id": "retaining_wall_section@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a cross-section detail drawing of a concrete retaining wall in LibreCAD using the following specifications (units in mm). Use layers WALL (White/7), DRAINAGE (Cyan/4), DIMENSIONS (Green/3), and LABELS (Yellow/2). On the WALL layer, draw a 1500x300 Base Footing (bottom-left at 0,0) and a 300x1800 Wall Stem (coordinates 200,300 to 500,2100). On the DRAINAGE layer, draw a 300x1800 Gravel Drain (coordinates 500,300 to 800,2100) and a 75mm radius Drain Pipe circle centered at (650,450). On the LABELS layer, add text 'CONCRETE WALL', 'GRAVEL DRAIN', 'DRAIN PIPE', and 'FOOTING' near their respective parts. On the DIMENSIONS layer, add linear dimensions for Footing Width (1500), Footing Height (300), Stem Height (1800), and Stem Width (300). Save the drawing to /home/ga/Documents/LibreCAD/retaining_wall_section.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/retaining_wall_section/setup_task.sh",
+    "post_task": "/workspace/tasks/retaining_wall_section/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/retaining_wall_section.dxf",
+    "required_layers": [
+      "WALL",
+      "DRAINAGE",
+      "DIMENSIONS",
+      "LABELS"
+    ],
+    "geometry_specs": {
+      "footing": {
+        "width": 1500,
+        "height": 300,
+        "layer": "WALL"
+      },
+      "stem": {
+        "width": 300,
+        "height": 1800,
+        "layer": "WALL"
+      },
+      "pipe": {
+        "radius": 75,
+        "center_x": 650,
+        "center_y": 450,
+        "layer": "DRAINAGE"
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_retaining_wall_section"
+    }
+  }
+}

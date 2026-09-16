@@ -1,0 +1,59 @@
+{
+  "task_id": "repair_historical_nlp_pipeline@1",
+  "task_completion": [
+    {
+      "id": "fix_diacritics_bug",
+      "description": "Modify the pipeline to preserve unicode diacritics instead of stripping them.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal diff showing changes to ASCII-encoding or unicode normalization logic in the pipeline modules to prevent the removal of diacritics."
+    },
+    {
+      "id": "fix_html_entities_bug",
+      "description": "Modify the pipeline to correctly handle and decode HTML entities.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal diff showing regular expression (regex) or parsing modifications specifically targeting HTML entities."
+    },
+    {
+      "id": "fix_line_wrap_hyphens_bug",
+      "description": "Modify the pipeline to correctly handle line-wrap hyphens.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal diff showing regular expression (regex) modifications to join words broken by line-wrap hyphens."
+    },
+    {
+      "id": "fix_abbreviation_split_bug",
+      "description": "Modify the pipeline to prevent sentence splitting on abbreviations.",
+      "points": 15,
+      "visual_evidence": "Code editor or terminal diff showing regular expression (regex) modifications to the sentence tokenization logic to recognize and ignore abbreviations."
+    },
+    {
+      "id": "fix_bpe_sorting_bug",
+      "description": "Modify the BPE tokenizer to sort merges by frequency score instead of alphabetically.",
+      "points": 20,
+      "visual_evidence": "Code editor or terminal diff showing changes to the sorting logic in the BPE module, specifically changing a sort key or method to use frequency/score rather than alphabetical order."
+    },
+    {
+      "id": "pytest_suite_passes",
+      "description": "Run the pytest suite successfully, confirming all bugs are fixed.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the execution of `pytest` in the `/home/ga/workspace/historical_nlp/` directory with all tests passing (e.g., green text, '100%', or 'passed' indicators)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tests_unmodified",
+      "description": "Ensure the test files were not modified to bypass the requirements.",
+      "visual_evidence": "The VLM should verify that no test files (e.g., files starting with `test_`) are shown being edited, commented out, or deleted in the editor or terminal history."
+    },
+    {
+      "id": "genuine_pytest_execution",
+      "description": "Ensure the pytest success output is genuine and not mocked.",
+      "visual_evidence": "Terminal output should show standard pytest formatting, including test collection counts, execution time, and proper progress indicators, rather than a simple `echo` command or printed text file."
+    },
+    {
+      "id": "genuine_code_edits",
+      "description": "Ensure the agent actually edited the Python pipeline files.",
+      "visual_evidence": "Screenshots should show the agent interacting with the code using a real text editor (like VS Code, vim, or nano) or standard file manipulation tools, rather than just running a pre-made script to overwrite files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task involves fixing a Python NLP pipeline at /home/ga/workspace/historical_nlp/. The required fixes are: 1) correcting ASCII-encoding logic that destroys unicode diacritics, 2) using regular expressions to fix HTML entities, 3) using regular expressions to fix line-wrap hyphens, 4) using regular expressions to fix sentence splitting on abbreviations, and 5) modifying a BPE tokenizer to sort merges by frequency score instead of alphabetically. The pytest suite must pass without any modifications to the test files themselves."
+}

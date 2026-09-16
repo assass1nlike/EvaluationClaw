@@ -1,0 +1,42 @@
+{
+  "id": "hospital_staffing_overtime_audit@1",
+  "version": "1.0",
+  "env_id": "microsoft_excel_2010_env@0.1",
+  "description": "You are a healthcare finance analyst at a regional hospital conducting a January 2024 payroll audit using hospital_staffing.xlsx. Complete the 'Employee_Overtime_Summary' sheet for all 30 employees by calculating Regular Hours (capped at 8 per shift), Overtime Hours, Regular Pay (Regular Hours × Hourly Rate), Overtime Pay (Overtime Hours × Hourly Rate × 1.5 premium), Total Pay, and an OT_Flag ('OT_REVIEW' if monthly overtime exceeds 40 hours). Include a totals row for these columns. In the 'Department_Cost_Summary' sheet, generate department-level aggregates for Total Regular Hours, Total Overtime Hours, Total Regular Pay, Total Overtime Pay, Total Labor Cost, Avg Cost per Employee, and OT% of total hours, including a hospital-wide total row. Save the updated file to C:\\Users\\Docker\\Desktop\\ExcelTasks\\hospital_staffing.xlsx.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\hospital_staffing_overtime_audit\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\hospital_staffing_overtime_audit\\export_result.ps1"
+  },
+  "metadata": {
+    "occupation": "Medical and Health Services Managers",
+    "industry": "Healthcare / Hospital Administration",
+    "onet_soc": "11-9111.00",
+    "data_source": "Hourly rates from BLS OEWS May 2023 (SOC 29-1141 RN $40.92 median, 29-2061 LPN $25.25 median); shift structure consistent with ANA/Joint Commission hospital staffing standards; FLSA 40-hr OT threshold (29 U.S.C. 207)",
+    "excel_features": [
+      "SUMPRODUCT",
+      "SUMIFS",
+      "SUMIF",
+      "MIN_in_aggregate",
+      "IF_flags",
+      "multi_sheet"
+    ],
+    "expected_total_ot_hours": 776.1,
+    "expected_total_ot_cost_range": [
+      47000,
+      62000
+    ],
+    "expected_ot_review_count": 7
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hospital_staffing_overtime_audit"
+    }
+  }
+}

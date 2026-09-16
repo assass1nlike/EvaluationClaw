@@ -1,0 +1,59 @@
+{
+  "task_id": "building_energy_emissions_audit@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQL Developer, or terminal with SQL*Plus) showing an active connection to XEPDB1 with the username 'env_auditor'."
+    },
+    {
+      "id": "create_pivot_view",
+      "description": "Create the ANNUAL_ENERGY_PIVOT_VW view to pivot fuel types.",
+      "points": 20,
+      "visual_evidence": "SQL editor or execution log showing the 'CREATE VIEW ANNUAL_ENERGY_PIVOT_VW' statement containing a PIVOT clause for electricity_kwh, natural_gas_therms, and steam_mlbs, and handling NULLs as 0. Look for a success message indicating the view was created."
+    },
+    {
+      "id": "create_emissions_view",
+      "description": "Create the BUILDING_EMISSIONS_VW view to calculate emissions, compliance, and penalties.",
+      "points": 25,
+      "visual_evidence": "SQL editor or execution log showing the 'CREATE VIEW BUILDING_EMISSIONS_VW' statement. It must include the specific coefficients (0.00028896, 0.0053, 0.0449) and the penalty calculation using the $268 rate. Look for a success message indicating the view was created."
+    },
+    {
+      "id": "create_plsql_procedure",
+      "description": "Implement the PL/SQL procedure PROC_GENERATE_NOTICES.",
+      "points": 20,
+      "visual_evidence": "SQL editor showing 'CREATE OR REPLACE PROCEDURE PROC_GENERATE_NOTICES' with logic to 'INSERT INTO EMISSION_NOTICES' using 'NOTICE_SEQ.NEXTVAL' and 'SYSDATE'. Look for a 'Procedure compiled successfully' or similar message."
+    },
+    {
+      "id": "execute_procedure",
+      "description": "Execute the PROC_GENERATE_NOTICES procedure.",
+      "points": 10,
+      "visual_evidence": "SQL execution log, terminal, or script output showing the execution of the procedure (e.g., 'EXEC PROC_GENERATE_NOTICES' or 'BEGIN PROC_GENERATE_NOTICES; END;') and a message indicating successful completion."
+    },
+    {
+      "id": "export_csv_results",
+      "description": "Export the top 50 buildings with the highest penalty amounts to a CSV file.",
+      "points": 15,
+      "visual_evidence": "A file manager, terminal (e.g., 'ls' or 'cat' commands), or a spreadsheet application showing the file 'top_50_penalties.csv' located in the '/home/ga/Documents/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with a real database client to execute the SQL commands.",
+      "visual_evidence": "Screenshots should show a functional database tool (like DBeaver, SQL*Plus, or similar) with query results or execution success messages, not just SQL code written in a plain text editor without execution."
+    },
+    {
+      "id": "dynamic_calculations",
+      "description": "The agent used the database to perform the calculations dynamically rather than hardcoding answers.",
+      "visual_evidence": "The SQL statements for the views must contain the mathematical formulas and coefficients provided in the instructions, rather than static inserted values."
+    },
+    {
+      "id": "authentic_export",
+      "description": "The CSV file was generated via a genuine export process.",
+      "visual_evidence": "Evidence of an export dialog in a GUI database client, a SQL spool command, or a script writing to the CSV file, rather than manually typing data into a spreadsheet."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected CSV export path is exactly '/home/ga/Documents/top_50_penalties.csv'. The task requires the use of Oracle features including PIVOT, PL/SQL, and Analytical Views. The penalty rate must be exactly 268. The fuel emission coefficients must be exactly: electricity = 0.00028896, natural_gas = 0.0053, and district_steam = 0.0449."
+}

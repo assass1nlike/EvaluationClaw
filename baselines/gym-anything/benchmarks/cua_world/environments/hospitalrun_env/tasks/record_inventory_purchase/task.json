@@ -1,0 +1,32 @@
+{
+  "id": "record_inventory_purchase@1",
+  "version": "1.0",
+  "env_id": "hospitalrun_env@0.1",
+  "description": "Record a new inventory purchase for 'Disposable Surgical Gloves - Large' (Cross Reference: GLV-LG-001) in HospitalRun. Use the following details: Vendor: MedLine Industries, Date Received: 01/15/2025, Quantity: 500, Purchase Cost: 625, Lot Number: LOT-2024-0847, Expiration Date: 06/30/2026, Invoice No: INV-ML-20241115, and Location: Main Warehouse.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/record_inventory_purchase/setup_task.sh",
+    "post_task": "/workspace/tasks/record_inventory_purchase/export_result.sh"
+  },
+  "metadata": {
+    "target_item_id": "inventory_p1_GLVLG001",
+    "expected_vendor": "MedLine Industries",
+    "expected_quantity_added": 500,
+    "expected_cost": 625,
+    "expected_lot": "LOT-2024-0847",
+    "expected_invoice": "INV-ML-20241115",
+    "initial_quantity": 200,
+    "expected_final_quantity": 700
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_record_inventory_purchase"
+    }
+  }
+}

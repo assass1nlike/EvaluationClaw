@@ -1,0 +1,32 @@
+{
+  "id": "repair_invalid_geometry_parcels@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Clean the land parcel dataset at /home/ga/GIS_Data/parcels_with_errors.geojson by repairing invalid geometries, such as self-intersections. Export the repaired layer to /home/ga/GIS_Data/exports/parcels_fixed.geojson in GeoJSON format.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/repair_invalid_geometry_parcels/setup_task.sh",
+    "post_task": "/workspace/tasks/repair_invalid_geometry_parcels/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/GIS_Data/parcels_with_errors.geojson",
+    "expected_output": "/home/ga/GIS_Data/exports/parcels_fixed.geojson",
+    "min_feature_count": 3,
+    "expected_attributes": [
+      "id",
+      "owner",
+      "type"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_repair_invalid_geometry_parcels"
+    }
+  }
+}

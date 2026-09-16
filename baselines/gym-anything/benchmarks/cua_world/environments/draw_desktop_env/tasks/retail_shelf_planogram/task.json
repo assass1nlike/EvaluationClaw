@@ -1,0 +1,45 @@
+{
+  "id": "retail_shelf_planogram@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Retail Merchandiser for a grocery chain. Create a planogram (shelf layout diagram) for the 'Breakfast Cereal' section (Bay 1) using draw.io, following the merchandising strategy located at ~/Desktop/merchandising_strategy.txt. The diagram must represent a 4-shelf gondola fixture with the 8 cereal products arranged on the correct shelves according to the rules in the strategy file. Ensure the vertical arrangement on the canvas reflects the shelf levels (e.g., 'Top Shelf' items must be physically higher than 'Bottom Shelf' items). Include the title 'Planogram: Cereal Bay 1'. Save the diagram to ~/Desktop/cereal_planogram.drawio and export it as a PNG to ~/Desktop/cereal_planogram.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/retail_shelf_planogram/setup_task.sh",
+    "post_task": "/workspace/tasks/retail_shelf_planogram/export_result.sh"
+  },
+  "metadata": {
+    "strategy_file": "/home/ga/Desktop/merchandising_strategy.txt",
+    "output_drawio": "/home/ga/Desktop/cereal_planogram.drawio",
+    "output_png": "/home/ga/Desktop/cereal_planogram.png",
+    "categories": {
+      "top": [
+        "All Bran",
+        "Muesli"
+      ],
+      "eye": [
+        "Corn Flakes",
+        "Raisin Bran"
+      ],
+      "touch": [
+        "Froot Loops",
+        "Apple Jacks"
+      ],
+      "bottom": [
+        "Bag O' Puffs",
+        "Value Oats"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_retail_shelf_planogram"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "merge_duplicate_users@1",
+  "task_completion": [
+    {
+      "id": "access_commander_login",
+      "description": "Verify the agent has successfully logged into the 2N Access Commander web interface.",
+      "points": 10,
+      "visual_evidence": "The browser shows the 2N Access Commander dashboard or user management interface."
+    },
+    {
+      "id": "locate_duplicate_user",
+      "description": "Verify the agent located the duplicate user account to find the RFID card.",
+      "points": 10,
+      "visual_evidence": "The browser shows the user profile or details for the duplicate account 'Meiling Zhang' (ml.zhang@buildingtech.com), displaying the card number '0009876543'."
+    },
+    {
+      "id": "rfid_card_transferred",
+      "description": "Verify the RFID card from the duplicate account has been added to the primary account.",
+      "points": 30,
+      "visual_evidence": "The user profile for 'Mei-Ling Zhang' (m.zhang@buildingtech.com) in 2N Access Commander shows the RFID card '0009876543' assigned to it."
+    },
+    {
+      "id": "duplicate_deleted",
+      "description": "Verify the duplicate account has been deleted.",
+      "points": 20,
+      "visual_evidence": "The user list in 2N Access Commander shows only the primary 'Mei-Ling Zhang' and no longer lists the duplicate 'Meiling Zhang' (ml.zhang@buildingtech.com), or there is a notification confirming the deletion."
+    },
+    {
+      "id": "audit_report_created",
+      "description": "Verify the audit report was created with the correct information.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal shows the contents of 'merge_report.txt' containing the duplicate's name/email ('Meiling Zhang' or 'ml.zhang@buildingtech.com'), the primary's name/email ('Mei-Ling Zhang' or 'm.zhang@buildingtech.com'), and the transferred card number ('0009876543')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_used_for_ac",
+      "description": "The agent used a web browser to interact with 2N Access Commander.",
+      "visual_evidence": "Screenshots show a web browser (e.g., Chromium/Firefox) open to https://localhost:9443, rather than terminal commands making API requests."
+    },
+    {
+      "id": "report_not_hallucinated",
+      "description": "The agent gathered the card number from the application before writing the report.",
+      "visual_evidence": "There should be screenshots showing the agent viewing the duplicate user's profile or card details in the browser before the report is written."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The agent created the report file at the requested path.",
+      "visual_evidence": "The terminal or text editor shows the file path as ~/Documents/merge_report.txt or /home/ga/Documents/merge_report.txt."
+    }
+  ],
+  "privileged_info_for_vlm": "Primary user: 'Mei-Ling Zhang' (m.zhang@buildingtech.com). Duplicate user: 'Meiling Zhang' (ml.zhang@buildingtech.com). Transferred RFID card number: '0009876543'. Report path: '/home/ga/Documents/merge_report.txt'."
+}

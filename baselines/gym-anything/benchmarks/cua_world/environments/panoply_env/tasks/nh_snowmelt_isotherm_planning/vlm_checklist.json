@@ -1,0 +1,59 @@
+{
+  "task_id": "nh_snowmelt_isotherm_planning@1",
+  "task_completion": [
+    {
+      "id": "plot_february_created",
+      "description": "Create a comparison plot for February surface air temperature.",
+      "points": 15,
+      "visual_evidence": "Look for an image file named 'air_temp_february.png' or a visualization window showing the surface air temperature data for February."
+    },
+    {
+      "id": "plot_march_created",
+      "description": "Create a comparison plot for March surface air temperature.",
+      "points": 15,
+      "visual_evidence": "Look for an image file named 'air_temp_march.png' or a visualization window showing the surface air temperature data for March."
+    },
+    {
+      "id": "plot_april_created",
+      "description": "Create a comparison plot for April surface air temperature.",
+      "points": 15,
+      "visual_evidence": "Look for an image file named 'air_temp_april.png' or a visualization window showing the surface air temperature data for April."
+    },
+    {
+      "id": "correct_freezing_threshold_used",
+      "description": "Ensure the visualization color scale highlights the correct freezing point based on the actual data units (0\u00b0C), ignoring the incorrect briefing request (273.15 K).",
+      "points": 25,
+      "visual_evidence": "Examine the color bar or legend on the generated plots. The scale must highlight or center on 0 (Celsius). It must NOT highlight 273.15, because the NetCDF data is actually in degrees Celsius."
+    },
+    {
+      "id": "snowmelt_report_written",
+      "description": "Write a snowmelt timing report identifying the onset month.",
+      "points": 20,
+      "visual_evidence": "Look for a text file named 'snowmelt_timing_report.txt' open in an editor or printed in the terminal. The text must identify March as the onset of the spring snowmelt."
+    },
+    {
+      "id": "outputs_delivered_correctly",
+      "description": "Deliver all outputs to the ~/Documents/SnowmeltPlan/ directory.",
+      "points": 10,
+      "visual_evidence": "Look at a file manager or terminal window showing the ~/Documents/SnowmeltPlan/ directory. It should contain 'air_temp_february.png', 'air_temp_march.png', 'air_temp_april.png', and 'snowmelt_timing_report.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_visualization_tool_used",
+      "description": "The agent used a genuine visualization tool or script to generate the plots.",
+      "visual_evidence": "Screenshots should show the agent interacting with a tool like Panoply, or writing/executing a Python script (e.g., matplotlib/xarray) to render the NetCDF data, rather than downloading pre-made images."
+    },
+    {
+      "id": "data_driven_report",
+      "description": "The agent based the snowmelt report on actual data observation rather than hallucination.",
+      "visual_evidence": "The agent should be seen viewing the plots or querying the data values for the Columbia River Basin before writing 'March' in the report."
+    },
+    {
+      "id": "no_file_faking",
+      "description": "The agent did not simply create empty files or rename unrelated files to match the expected output names.",
+      "visual_evidence": "The PNG files should be genuine plots exported from the visualization software, and the TXT file should be manually written or generated with echo/text editor commands."
+    }
+  ],
+  "privileged_info_for_vlm": "The data file 'air.mon.ltm.nc' contains the 'air' variable in degrees Celsius ('degC'), not Kelvin. The briefing request incorrectly instructs the use of 273.15 K. The correct freezing threshold to highlight on the plots is 0\u00b0C. Data analysis confirms that March is the correct onset month for snowmelt (February is mostly sub-freezing, March sees 7/15 grid cells >0\u00b0C, April sees widespread melting). Expected outputs are air_temp_february.png, air_temp_march.png, air_temp_april.png, and snowmelt_timing_report.txt in ~/Documents/SnowmeltPlan/."
+}

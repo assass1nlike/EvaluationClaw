@@ -253,11 +253,14 @@ def generate(
     laaj_reasoning_effort: Optional[str] = typer.Option(None, "--laaj-reasoning-effort", help="Reasoning effort passed to the LaaJ model."),
     laaj_extra_body: Optional[str] = typer.Option(None, "--laaj-extra-body", help="JSON extra request body for the LaaJ model."),
     laaj_sample_size: int = typer.Option(50, "--laaj-sample-size", help="Maximum number of stratified benchmark items evaluated by LaaJ."),
+    laaj_tool_calls_per_item: int = typer.Option(200, "--laaj-tool-calls-per-item", min=1, help="LaaJ evidence and exploration budget per sampled item; pooled across the assessment."),
+    analyser_tool_max_calls: int = typer.Option(500, "--analyser-tool-max-calls", min=1, help="Evidence tool calls per Analyser decision or review."),
+    agent_judge_tool_max_calls: int = typer.Option(500, "--agent-judge-tool-max-calls", min=1, help="Exploration tool calls per agent-task scoring judge."),
     contamination_enabled: bool = typer.Option(True, "--contamination/--no-contamination", help="Run separate contamination research and judging with LaaJ (on by default)."),
     contamination_sample_size: Optional[int] = typer.Option(None, "--contamination-sample-size", min=1, help="Stratified contamination sample size; defaults to all benchmark items."),
-    contamination_max_queries: int = typer.Option(12, "--contamination-max-queries", min=1, help="Maximum search queries per contamination item."),
-    contamination_max_sources: int = typer.Option(20, "--contamination-max-sources", min=1, help="Maximum distinct URLs explored per contamination item."),
-    contamination_max_tool_calls: int = typer.Option(40, "--contamination-max-tool-calls", min=1, help="Total research-agent tool budget per contamination item."),
+    contamination_max_queries: int = typer.Option(100, "--contamination-max-queries", min=1, help="Maximum search queries per contamination item."),
+    contamination_max_sources: int = typer.Option(200, "--contamination-max-sources", min=1, help="Maximum distinct URLs explored per contamination item."),
+    contamination_max_tool_calls: int = typer.Option(500, "--contamination-max-tool-calls", min=1, help="Total research-agent tool budget per contamination item."),
     contamination_min_overlap_chars: int = typer.Option(200, "--contamination-min-overlap-chars", min=1, help="Minimum consecutive exact-overlap characters after whitespace normalization."),
     use_llm_qc: bool = typer.Option(True, "--use-llm-qc/--no-llm-qc", help="Enable LLM-based QC review (on by default when a QC model is configured)."),
     ablation_simplified_contract: bool = typer.Option(
@@ -302,16 +305,16 @@ def generate(
         None, "--actor-extra-body", help="JSON extra request body for the actor model."
     ),
     actor_max_turns: int = typer.Option(
-        10, "--actor-max-turns", help="Maximum model turns in one actor interaction."
+        200, "--actor-max-turns", help="Maximum model turns in one actor interaction."
     ),
     actor_max_tool_calls: int = typer.Option(
-        20, "--actor-max-tool-calls", help="Maximum tool calls in one actor interaction."
+        500, "--actor-max-tool-calls", help="Maximum tool calls in one actor interaction."
     ),
     actor_max_tokens: int = typer.Option(
         32768, "--actor-max-tokens", help="Maximum output tokens for each actor model call."
     ),
     actor_timeout: int = typer.Option(
-        300, "--actor-timeout", help="Wall-clock timeout for one actor interaction."
+        3600, "--actor-timeout", help="Wall-clock timeout for one actor interaction."
     ),
     research_model: Optional[str] = typer.Option(None, "--research-model", help="Optional Deep Research model override."),
     research_provider: Optional[str] = typer.Option(None, "--research-provider", help="Protocol/provider for --research-model."),
@@ -444,7 +447,7 @@ def generate(
         help="Maximum retries after a TaskBuilder output is truncated.",
     ),
     task_builder_tool_max_calls: int = typer.Option(
-        50,
+        2000,
         "--task-builder-tool-max-calls",
         help="Maximum tool calls for one task-builder invocation.",
     ),
@@ -453,12 +456,21 @@ def generate(
         "--task-builder-tool-max-chars",
         help="Maximum characters returned by each task-builder tool call.",
     ),
+    builder_sandbox_image: str = typer.Option(
+        "python:3.11-slim", "--builder-sandbox-image", help="Python image for isolated Builder tools.",
+    ),
+    builder_memory_mb: int = typer.Option(
+        8192, "--builder-memory-mb", min=128, help="Memory limit per Builder execution container in MiB.",
+    ),
+    builder_pids_limit: int = typer.Option(
+        512, "--builder-pids-limit", min=16, help="Process limit per Builder execution container.",
+    ),
     runner_max_workers: int = typer.Option(
         4,
         "--runner-workers",
         help="Maximum concurrent independent target-item executions.",
     ),
-    single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one judge pass instead of the default double-pass audit."),
+    single_pass_judge: bool = typer.Option(False, "--single-pass-judge", help="Use one text-response judge pass instead of the default double-pass audit."),
     llm_backend: str = typer.Option("auto", "--llm-backend", help="LLM backend: auto or litellm."),
     runner: str = typer.Option("direct", "--runner", help="Runner mode: direct, lm-eval, or auto."),
     no_environment_claw: bool = typer.Option(
@@ -499,9 +511,9 @@ def generate(
         help="Skip executable task setup/evaluator preflight before target execution.",
     ),
     allow_incomplete_benchmark: bool = typer.Option(
-        False,
-        "--allow-incomplete-benchmark",
-        help="Filter out QC-error items and continue with the remaining benchmark.",
+        True,
+        "--allow-incomplete-benchmark/--strict-benchmark",
+        help="Continue with QC-passed items by default; strict mode requires complete construction and QC acceptance.",
     ),
     strict_qc_filter: bool = typer.Option(
         False,
@@ -789,6 +801,8 @@ def generate(
         **failover_config,
         task_models=task_models,
         laaj_sample_size=laaj_sample_size,
+        laaj_tool_calls_per_item=laaj_tool_calls_per_item,
+        analyser_tool_max_calls=analyser_tool_max_calls,
         contamination_enabled=contamination_enabled,
         contamination_sample_size=contamination_sample_size,
         contamination_max_queries=contamination_max_queries,
@@ -820,8 +834,12 @@ def generate(
         task_builder_truncation_retries=task_builder_truncation_retries,
         task_builder_tool_max_calls=task_builder_tool_max_calls,
         task_builder_tool_max_chars=task_builder_tool_max_chars,
+        builder_sandbox_image=builder_sandbox_image,
+        builder_memory_mb=builder_memory_mb,
+        builder_pids_limit=builder_pids_limit,
         runner_max_workers=runner_max_workers,
         judge_double_pass=not single_pass_judge,
+        agent_judge_tool_max_calls=agent_judge_tool_max_calls,
         llm_backend=llm_backend,
         runner=runner,
         environment_claw=not no_environment_claw,

@@ -1,0 +1,53 @@
+{
+  "task_id": "container_timezone_locale_fix@1",
+  "task_completion": [
+    {
+      "id": "open_docker_config",
+      "description": "Open the Docker configuration file for the scheduler bot.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) or terminal output (like cat) showing the contents of 'Dockerfile' or 'docker-compose.yml' located in '/home/ga/scheduler-bot'."
+    },
+    {
+      "id": "set_timezone",
+      "description": "Configure the Docker container to use the 'America/New_York' timezone.",
+      "points": 20,
+      "visual_evidence": "The Dockerfile or docker-compose.yml file is modified to include a timezone setting, such as 'ENV TZ=America/New_York' or an equivalent environment variable."
+    },
+    {
+      "id": "set_locale_utf8",
+      "description": "Configure the Docker container to support UTF-8 encoding.",
+      "points": 20,
+      "visual_evidence": "The Dockerfile or docker-compose.yml file is modified to include a UTF-8 locale setting, such as 'ENV LANG=C.UTF-8', 'LC_ALL=C.UTF-8', or equivalent."
+    },
+    {
+      "id": "rebuild_and_restart_container",
+      "description": "Rebuild and restart the Docker container to apply the new configuration.",
+      "points": 20,
+      "visual_evidence": "Terminal showing Docker commands being executed to rebuild and restart the container, such as 'docker-compose up -d --build', 'docker build', or 'docker restart scheduler-bot'."
+    },
+    {
+      "id": "verify_bot_logs",
+      "description": "Verify the bot runs successfully, logs the correct timezone, and processes the non-ASCII name without crashing.",
+      "points": 30,
+      "visual_evidence": "Terminal showing the container logs (e.g., via 'docker logs scheduler-bot' or 'docker-compose logs'). The logs must show the time in the 'America/New_York' timezone and indicate successful processing of the user 'Rapha\u00ebl' without a UnicodeEncodeError."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "modified_docker_not_python",
+      "description": "Ensure the agent fixed the issue via Docker configuration as requested, rather than modifying the Python script.",
+      "visual_evidence": "The timezone and encoding fixes should be visible in Dockerfile or docker-compose.yml. The agent should not have hardcoded the timezone or bypassed the encoding error directly inside the bot's Python source code."
+    },
+    {
+      "id": "executed_in_docker",
+      "description": "Ensure the bot was actually run inside the Docker container.",
+      "visual_evidence": "The final logs and verification should come from Docker commands (e.g., 'docker logs scheduler-bot') rather than the agent running 'python bot.py' directly on the host machine terminal."
+    },
+    {
+      "id": "genuine_log_output",
+      "description": "Ensure the success logs are genuine application output.",
+      "visual_evidence": "The logs showing 'Rapha\u00ebl' and the correct timezone should appear as standard output from the running container, not as text manually echoed or printed by the agent in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/scheduler-bot. Container name: scheduler-bot. Target timezone: America/New_York. Target user name: Rapha\u00ebl. The agent must modify the Docker configuration (Dockerfile or docker-compose.yml) to set the TZ environment variable to 'America/New_York' and a locale environment variable (like LANG or LC_ALL) to a UTF-8 value (e.g., C.UTF-8 or en_US.UTF-8) so the bot can process the name 'Rapha\u00ebl' without crashing."
+}

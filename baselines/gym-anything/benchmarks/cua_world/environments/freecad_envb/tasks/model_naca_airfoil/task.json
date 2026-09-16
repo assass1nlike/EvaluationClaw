@@ -1,0 +1,30 @@
+{
+  "id": "model_naca_airfoil@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a 3D aerodynamic wing segment using the NACA 2412 airfoil coordinates from '~/Documents/FreeCAD/naca2412.dat'. The segment must be a valid solid with a 200mm extrusion length along the Z-axis. Save the final project as '~/Documents/FreeCAD/wing_section.FCStd'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/model_naca_airfoil/setup_task.sh",
+    "post_task": "/workspace/tasks/model_naca_airfoil/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "wing_section.FCStd",
+    "data_file": "naca2412.dat",
+    "expected_chord": 100.0,
+    "expected_span": 200.0,
+    "expected_thickness_ratio": 0.12,
+    "volume_tolerance": 0.05
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_model_naca_airfoil"
+    }
+  }
+}

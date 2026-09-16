@@ -1,0 +1,53 @@
+{
+  "task_id": "network_stress_test_analysis@1",
+  "task_completion": [
+    {
+      "id": "run_baseline_simulation",
+      "description": "Verify the agent executed the baseline SUMO simulation.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a 'sumo' command running the '/home/ga/SUMO_Scenarios/bologna_pasubio/run.sumocfg' file without a scale parameter, ideally outputting to a summary file like baseline_summary.xml."
+    },
+    {
+      "id": "run_stress_simulation",
+      "description": "Verify the agent executed the stress test SUMO simulation with scaled traffic.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a 'sumo' command running the same configuration file but with a '--scale 1.2' parameter, ideally outputting to a summary file like stress_summary.xml."
+    },
+    {
+      "id": "create_report_file",
+      "description": "Verify the agent created the required report file.",
+      "points": 15,
+      "visual_evidence": "A text editor (like nano/vim) or terminal output (like cat/echo) showing the creation or editing of '/home/ga/SUMO_Output/stress_test_report.txt'."
+    },
+    {
+      "id": "report_baseline_metrics",
+      "description": "Verify the baseline metrics are correctly recorded in the report.",
+      "points": 25,
+      "visual_evidence": "The report file explicitly contains the lines 'baseline_max_halting: 591' and 'baseline_min_speed: -1.0'."
+    },
+    {
+      "id": "report_stress_metrics",
+      "description": "Verify the stress metrics are correctly recorded in the report.",
+      "points": 25,
+      "visual_evidence": "The report file explicitly contains the lines 'stress_max_halting: 822' and 'stress_min_speed: -1.0'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Ensure the agent actually ran the SUMO simulations rather than just guessing or hardcoding the final report.",
+      "visual_evidence": "Terminal output showing SUMO execution logs, step progression, or summary generation."
+    },
+    {
+      "id": "genuine_data_extraction",
+      "description": "Ensure the agent extracted the data from the simulation outputs.",
+      "visual_evidence": "Commands like 'grep', 'cat', or a Python script being used on the generated XML summary files to find the halting and speed values."
+    },
+    {
+      "id": "correct_configuration_used",
+      "description": "Ensure the agent used the specified configuration file for the Bologna Pasubio network.",
+      "visual_evidence": "The 'sumo' commands explicitly reference '/home/ga/SUMO_Scenarios/bologna_pasubio/run.sumocfg'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected final report is located at /home/ga/SUMO_Output/stress_test_report.txt. The correct values to look for in the report are: baseline_max_halting: 591, baseline_min_speed: -1.0, stress_max_halting: 822, stress_min_speed: -1.0. The baseline summary is expected at /home/ga/SUMO_Output/baseline_summary.xml and the stress summary at /home/ga/SUMO_Output/stress_summary.xml."
+}

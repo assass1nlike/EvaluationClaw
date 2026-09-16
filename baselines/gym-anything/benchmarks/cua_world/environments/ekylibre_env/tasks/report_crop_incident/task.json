@@ -1,0 +1,27 @@
+{
+  "id": "report_crop_incident@1",
+  "version": "1.0",
+  "env_id": "ekylibre_env@0.1",
+  "description": "You are a farmer at GAEC JOULIN monitoring your fields. You have discovered a disease outbreak that needs to be recorded immediately for compliance and treatment planning. Report a crop incident for the plot named 'La Grande Borne'. Record the problem as Yellow Rust ('Rouille jaune') with a High ('Importante/Élevée') severity level for today's date.\n\nCredentials:\n- Email: admin@ekylibre.org\n- Password: 12345678",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/report_crop_incident/setup_task.sh",
+    "post_task": "/workspace/tasks/report_crop_incident/export_result.sh"
+  },
+  "metadata": {
+    "target_plot_name": "La Grande Borne",
+    "target_pest_name": "Rouille jaune",
+    "target_severity": "High"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_report_crop_incident"
+    }
+  }
+}

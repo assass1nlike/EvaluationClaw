@@ -1,0 +1,38 @@
+{
+  "id": "forensic_analysis_report@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a Digital Forensic Examiner at CyberShield Forensics. Using the technical findings for Case #CSF-2025-0442 located in /home/ga/Documents/case_442_data.json, create a formal 'Digital Forensics Examination Report' in Apache OpenOffice Writer and save it to /home/ga/Documents/Forensic_Report_Case_442.odt. The report must include a title page with the agency name, case number, and date; an auto-generated table of contents; and page numbers in the footer. Organize the report into sections for 'Executive Summary', 'Evidence Identification', 'Analysis Findings', and 'Conclusion' using Heading 1 styles. Include an evidence table in the identification section listing items from the JSON and a chronological narrative of the attack in the findings section. All technical indicators, such as file paths, SHA-256 hashes, and code snippets, must be formatted in a monospace font to distinguish them from narrative text. Login: username ga, no password required.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/forensic_analysis_report/setup_task.sh",
+    "post_task": "/workspace/tasks/forensic_analysis_report/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/case_442_data.json",
+    "output_file": "/home/ga/Documents/Forensic_Report_Case_442.odt",
+    "case_number": "CSF-2025-0442",
+    "target_hash": "a1b2c3d4e5f67890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "target_path": "/var/www/html/wp-content/uploads/2024/11/b374k.php",
+    "min_h1_count": 4,
+    "min_table_count": 1,
+    "required_monospace_fonts": [
+      "Courier",
+      "Mono",
+      "Consolas",
+      "Source Code",
+      "Fixed"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_forensic_report"
+    }
+  }
+}

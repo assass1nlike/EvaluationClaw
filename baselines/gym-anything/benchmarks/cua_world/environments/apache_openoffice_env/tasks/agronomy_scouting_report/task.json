@@ -1,0 +1,30 @@
+{
+  "id": "agronomy_scouting_report@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a crop scout for AgriScan Field Services. Create a professional scouting report in Apache OpenOffice Writer for 'Valley View Dairy' using the data found in /home/ga/Documents/field_data.json and save it as /home/ga/Documents/ValleyView_Alfalfa_Report_June2025.odt. The document must include a header with the text 'AgriScan Field Services - Scouting Report' and a footer with page numbers. Organize the report with Heading 1 sections for 'Field Information' (listing Client, Field ID, Crop, and Stage), 'Observations' (containing a table with columns for Pest Name, Count, Threshold, and Status), and 'Recommendations' (detailing the Action Plan, including Product and Rate if a chemical is listed). For safety compliance, ensure the Restricted Entry Interval (REI) value is formatted in bold text.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/agronomy_scouting_report/setup_task.sh",
+    "post_task": "/workspace/tasks/agronomy_scouting_report/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/ValleyView_Alfalfa_Report_June2025.odt",
+    "input_file": "/home/ga/Documents/field_data.json",
+    "pest_name": "Potato Leafhopper",
+    "pest_count": "2.5",
+    "chemical_name": "Warrior II",
+    "rei_value": "24 hours"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_agronomy_report"
+    }
+  }
+}

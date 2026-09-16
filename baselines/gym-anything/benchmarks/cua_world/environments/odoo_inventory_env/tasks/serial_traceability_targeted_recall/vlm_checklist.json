@@ -1,0 +1,53 @@
+{
+  "task_id": "serial_traceability_targeted_recall@1",
+  "task_completion": [
+    {
+      "id": "login_admin",
+      "description": "Log in to the system as admin.",
+      "points": 10,
+      "visual_evidence": "The Odoo backend interface is visible, and the user profile menu in the top right indicates the user is logged in as 'admin' (or 'Mitchell Admin')."
+    },
+    {
+      "id": "identify_receipt_siblings",
+      "description": "Identify sibling serial numbers from the same inbound receipt as the defective unit (CM-2024-089).",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the Traceability report, Stock Moves, or the specific Inbound Receipt document for CM-2024-089, revealing the sibling serial numbers CM-2024-090 and CM-2024-092."
+    },
+    {
+      "id": "create_quarantine_location",
+      "description": "Create an Internal Location named 'Quarantine'.",
+      "points": 20,
+      "visual_evidence": "The Odoo Locations configuration screen showing a newly created location with the Location Name 'Quarantine' and the Location Type set to 'Internal Location'."
+    },
+    {
+      "id": "transfer_siblings_to_quarantine",
+      "description": "Transfer the specific in-stock sibling units to the Quarantine location.",
+      "points": 30,
+      "visual_evidence": "Screenshots of a validated Internal Transfer or Inventory Adjustment showing serial numbers CM-2024-090 and CM-2024-092 being moved to the 'Quarantine' location, with the status marked as 'Done'."
+    },
+    {
+      "id": "exclude_unaffected_units",
+      "description": "Ensure no units from unaffected receipts are included in the Quarantine location.",
+      "points": 20,
+      "visual_evidence": "The transfer document or the Current Stock view for the 'Quarantine' location strictly contains only CM-2024-090 and CM-2024-092. Serial numbers CM-2024-093, CM-2024-094, and CM-2024-095 must NOT be present in the Quarantine location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Odoo web interface to complete the task.",
+      "visual_evidence": "Screenshots should show a web browser interacting with the Odoo GUI, not terminal commands or database queries executing the moves."
+    },
+    {
+      "id": "genuine_navigation",
+      "description": "Verify the agent navigated through the Odoo application naturally.",
+      "visual_evidence": "Presence of intermediate screens like the Inventory dashboard, Configuration menus, and Traceability reports, rather than jumping straight to a final state via injected URLs."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Verify the agent did not just copy-paste the expected serial numbers without investigating.",
+      "visual_evidence": "Evidence of the agent actually opening the receipt or traceability report for CM-2024-089 to discover the siblings, rather than magically knowing to move CM-2024-090 and CM-2024-092."
+    }
+  ],
+  "privileged_info_for_vlm": "Defective SN: CM-2024-089. Sibling SNs in stock that MUST be quarantined: CM-2024-090, CM-2024-092. Unaffected SNs in stock that MUST NOT be quarantined: CM-2024-093, CM-2024-094, CM-2024-095. Product Code: MED-CM-PRO."
+}

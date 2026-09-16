@@ -1,0 +1,33 @@
+{
+  "id": "generate_pipeline_checkout_snippet@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "Generate a Jenkins Pipeline Groovy script using the Snippet Generator for a Git checkout of the Spring Boot repository (https://github.com/spring-projects/spring-boot.git) on branch '2.7.x'. The configuration must include cleaning before checkout, pruning stale remote-tracking branches, and checking out to the 'sources' sub-directory. Save the generated script to /home/ga/spring_checkout_snippet.groovy. You are logged in as admin (User: admin, Pass: Admin123!).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_pipeline_checkout_snippet/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_pipeline_checkout_snippet/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/home/ga/spring_checkout_snippet.groovy",
+    "expected_url": "https://github.com/spring-projects/spring-boot.git",
+    "expected_branch": "2.7.x",
+    "expected_subdir": "sources",
+    "required_extensions": [
+      "CleanBeforeCheckout",
+      "PruneStaleBranch",
+      "RelativeTargetDirectory"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_pipeline_checkout_snippet"
+    }
+  }
+}

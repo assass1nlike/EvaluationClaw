@@ -1,0 +1,53 @@
+{
+  "task_id": "egfp_lc3b_fusion_construction@1",
+  "task_completion": [
+    {
+      "id": "nucleotide_fasta_saved",
+      "description": "Verify the fusion nucleotide sequence was saved as a FASTA file.",
+      "points": 20,
+      "visual_evidence": "A file named 'egfp_lc3b_fusion.fasta' is visible in the '~/UGENE_Data/fusion_design/results/' directory, and its contents show a nucleotide sequence (A, T, C, G)."
+    },
+    {
+      "id": "protein_fasta_saved",
+      "description": "Verify the translated protein sequence was saved as a FASTA file.",
+      "points": 20,
+      "visual_evidence": "A file named 'egfp_lc3b_protein.fasta' is visible in the '~/UGENE_Data/fusion_design/results/' directory, and its contents show an amino acid sequence."
+    },
+    {
+      "id": "report_original_lengths",
+      "description": "Verify the summary report contains the original CDS lengths.",
+      "points": 20,
+      "visual_evidence": "A file named 'fusion_report.txt' is open or displayed, explicitly listing the original EGFP CDS length (should be 798 bp) and the original MAP1LC3B CDS length."
+    },
+    {
+      "id": "report_final_lengths",
+      "description": "Verify the summary report contains the final fusion lengths.",
+      "points": 20,
+      "visual_evidence": "The 'fusion_report.txt' file explicitly lists the final fusion nucleotide sequence length (bp) and the final fusion protein length (aa)."
+    },
+    {
+      "id": "report_stop_codon_statement",
+      "description": "Verify the summary report contains a statement confirming the absence of internal stop codons.",
+      "points": 20,
+      "visual_evidence": "The 'fusion_report.txt' file includes a clear written statement confirming that there are no internal stop codons in the fusion sequence."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_tool_usage",
+      "description": "Verify the agent used a bioinformatics GUI tool (like UGENE) to inspect and manipulate the sequences.",
+      "visual_evidence": "Screenshots should show the agent interacting with a graphical bioinformatics application (e.g., UGENE) to open the .gb files, rather than exclusively using terminal commands or Python scripts to bypass the GUI."
+    },
+    {
+      "id": "accurate_egfp_length",
+      "description": "Verify the agent extracted the actual EGFP CDS length from the provided file rather than hallucinating a standard value.",
+      "visual_evidence": "The report should state the EGFP CDS length as 798 bp (derived from the specific pEGFP-C1.gb file provided), not the standard 720 bp."
+    },
+    {
+      "id": "correct_output_directory",
+      "description": "Verify all files are saved in the correct requested directory.",
+      "visual_evidence": "File manager or terminal outputs show the files are located exactly in '~/UGENE_Data/fusion_design/results/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The pEGFP-C1 vector (U55763.1) provided in the task has an annotated CDS length of 798 bp due to the inclusion of the multiple cloning site, which differs from the standard EGFP length of 720 bp. The agent's report must state 798 bp for the original EGFP CDS length. The EGFP stop codon (3 bp) must be removed for the fusion, meaning 795 bp of EGFP should be concatenated with the MAP1LC3B (NM_022818.5) CDS. The final fusion nucleotide length should equal 795 + MAP1LC3B_CDS_length, and the final protein length should be exactly one-third of the final nucleotide length."
+}

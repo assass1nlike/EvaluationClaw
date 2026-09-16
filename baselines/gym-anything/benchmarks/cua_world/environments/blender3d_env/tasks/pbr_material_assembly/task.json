@@ -1,0 +1,35 @@
+{
+  "id": "pbr_material_assembly@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Create a realistic PBR material named 'SandMaterial' for the 'GroundPlane' object using the diffuse, roughness, and normal texture maps located in '/home/ga/Assets/Textures/'. Ensure the material is configured for physical accuracy. Render the scene to '/home/ga/BlenderProjects/pbr_render.png' and save the project to '/home/ga/BlenderProjects/pbr_material_complete.blend'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/pbr_material_assembly/setup_task.sh",
+    "post_task": "/workspace/tasks/pbr_material_assembly/export_result.sh",
+    "pre_task_timeout": 300
+  },
+  "metadata": {
+    "texture_dir": "/home/ga/Assets/Textures",
+    "output_blend": "/home/ga/BlenderProjects/pbr_material_complete.blend",
+    "output_render": "/home/ga/BlenderProjects/pbr_render.png",
+    "required_textures": [
+      "diffuse.jpg",
+      "roughness.jpg",
+      "normal.jpg"
+    ],
+    "target_object": "GroundPlane",
+    "target_material": "SandMaterial"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_pbr_material_assembly"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "optimize_pv_om_strategy@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_setup",
+      "description": "Agent creates a Python script to run the PySAM Pvwattsv8 model with the correct system parameters.",
+      "points": 20,
+      "visual_evidence": "A code editor showing a Python script importing PySAM (e.g., `import PySAM.Pvwattsv8`) and setting parameters: system_capacity=50000, tilt=20, azimuth=180, array_type=0, module_type=0, dc_ac_ratio=1.2, inv_eff=96.0, and using a Phoenix weather file."
+    },
+    {
+      "id": "optimization_and_financial_logic",
+      "description": "Agent implements the correct downtime, loss, and financial formulas across the $15 to $25 O&M rates.",
+      "points": 20,
+      "visual_evidence": "The Python script contains a loop for O&M rates 15 through 25, calculating `downtime_pct = 5.0 * (0.8 ** (om_rate - 15))`, adding it to 10.0% base losses, and calculating lifetime revenue, lifetime O&M cost, and gross margin over 25 years."
+    },
+    {
+      "id": "json_file_created",
+      "description": "Agent successfully exports the results to the specified JSON file path.",
+      "points": 10,
+      "visual_evidence": "A terminal, file explorer, or editor showing the file `om_optimization.json` exists in the `/home/ga/Documents/SAM_Projects/` directory."
+    },
+    {
+      "id": "json_optimal_result",
+      "description": "The JSON file contains the correct optimal O&M rate and maximum gross margin.",
+      "points": 25,
+      "visual_evidence": "The contents of `om_optimization.json` show `\"optimal_om_rate\": 18` and a corresponding `max_gross_margin` value."
+    },
+    {
+      "id": "json_scenarios_data",
+      "description": "The JSON file contains a list of all 11 scenarios with the required data fields.",
+      "points": 25,
+      "visual_evidence": "The contents of `om_optimization.json` show an array/list of 11 objects (for rates 15 to 25), each containing keys for `om_rate`, `downtime_pct`, `losses_pct`, `annual_energy_kwh` (should be around 86.8 million), `lifetime_revenue`, `lifetime_om_cost`, and `gross_margin`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_script_execution",
+      "description": "The agent executed a script to generate the JSON file rather than typing it manually.",
+      "visual_evidence": "Terminal output showing the execution of the Python script (e.g., `python optimize_om.py`) without errors, rather than the agent just opening a text editor and manually typing the JSON structure."
+    },
+    {
+      "id": "no_hardcoded_optimal_rate",
+      "description": "The agent calculated the optimal rate programmatically rather than hardcoding the answer.",
+      "visual_evidence": "The Python script uses a `max()` function or a comparison loop to determine the best gross margin, rather than explicitly setting `optimal_om_rate = 18` or `optimal_om_rate = 17`."
+    },
+    {
+      "id": "genuine_simulation_output",
+      "description": "The annual energy values in the JSON are derived from a real PySAM simulation.",
+      "visual_evidence": "The `annual_energy_kwh` values in the JSON file are precise, non-round numbers (around 86,800,000) that vary slightly depending on the exact losses, indicating genuine PySAM output rather than mocked placeholder values."
+    }
+  ],
+  "privileged_info_for_vlm": "The optimal O&M rate that maximizes the 25-year gross margin is exactly $18/kW-yr. The baseline annual energy production for this 50 MW system in Phoenix is approximately 86.8 million kWh (verified to be between 80,000,000 and 120,000,000 kWh). The JSON file must contain exactly 11 scenarios (for integer rates $15 through $25). The expected output file path is /home/ga/Documents/SAM_Projects/om_optimization.json."
+}

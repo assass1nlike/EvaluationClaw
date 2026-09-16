@@ -1,0 +1,53 @@
+{
+  "task_id": "perform_quality_control@1",
+  "task_completion": [
+    {
+      "id": "open_astroimagej",
+      "description": "Open the AstroImageJ application.",
+      "points": 10,
+      "visual_evidence": "The AstroImageJ main toolbar or application window is visible on the screen."
+    },
+    {
+      "id": "load_image_sequence",
+      "description": "Load the sequence of 25 FITS images from the quality_control directory.",
+      "points": 20,
+      "visual_evidence": "An image window in AstroImageJ is open displaying a FITS image, with a scrollbar or stack indicator at the bottom showing a sequence of 25 images (e.g., '1/25')."
+    },
+    {
+      "id": "inspect_degraded_frames",
+      "description": "Visually inspect the image sequence to find degraded frames.",
+      "points": 20,
+      "visual_evidence": "The agent is seen interacting with the image stack slider in AstroImageJ, viewing frames that exhibit visible degradation such as blur, wind shake (double stars), or transparency loss (dimness)."
+    },
+    {
+      "id": "open_text_editor",
+      "description": "Open a text editor to record the identified bad frames.",
+      "points": 10,
+      "visual_evidence": "A text editor application (e.g., Mousepad, Gedit, or a terminal-based editor like nano) is open on the screen."
+    },
+    {
+      "id": "save_bad_frames_file",
+      "description": "List the 3 degraded frames in bad_frames.txt on the Desktop.",
+      "points": 40,
+      "visual_evidence": "The text editor contains exactly 'frame_006.fits', 'frame_014.fits', and 'frame_021.fits' on separate lines. The file must be saved as 'bad_frames.txt' on the Desktop, which can be verified via the editor's title bar, save dialog, or a file manager window."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_astroimagej",
+      "description": "Verify the agent used AstroImageJ to inspect the images rather than using terminal scripts to cheat.",
+      "visual_evidence": "Screenshots should show the AstroImageJ GUI being used to view the FITS files. The agent should not be using terminal commands (like Python scripts or ls -l) to detect file size or metadata differences as a shortcut."
+    },
+    {
+      "id": "no_blind_guessing",
+      "description": "Verify the agent actually viewed the images before writing the answers.",
+      "visual_evidence": "The AstroImageJ image stack must be opened and interacted with before the bad_frames.txt file is populated with the correct filenames."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "Verify the output file is genuinely saved to the Desktop.",
+      "visual_evidence": "The text editor's save path or a terminal/file manager confirms the file is located at ~/Desktop/bad_frames.txt, not just held in an unsaved buffer."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains exactly 25 frames. The 3 artificially degraded frames that must be identified are exactly: frame_006.fits (transparency drop), frame_014.fits (wind shake), and frame_021.fits (defocus blur). The output file must be located at /home/ga/Desktop/bad_frames.txt and contain exactly these three filenames, one per line."
+}

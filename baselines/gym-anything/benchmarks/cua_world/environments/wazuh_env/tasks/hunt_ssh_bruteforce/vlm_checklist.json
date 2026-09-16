@@ -1,0 +1,59 @@
+{
+  "task_id": "hunt_ssh_bruteforce@1",
+  "task_completion": [
+    {
+      "id": "access_wazuh_index",
+      "description": "Access the wazuh-alerts-4.x-2024.01.15 index to begin the investigation.",
+      "points": 10,
+      "visual_evidence": "OpenSearch Dashboards, Wazuh UI, or Dev Tools open with the index 'wazuh-alerts-4.x-2024.01.15' selected or queried."
+    },
+    {
+      "id": "filter_ssh_failures",
+      "description": "Filter logs for SSH failure rules.",
+      "points": 15,
+      "visual_evidence": "Filters, search bar queries, or API calls containing the rule IDs: 5710, 5712, 5716, 5720, or 5551."
+    },
+    {
+      "id": "identify_attacker_ips",
+      "description": "Identify the attacker IPs with 10 or more failed attempts.",
+      "points": 20,
+      "visual_evidence": "Query results, data tables, or visualizations showing the IPs 185.220.101.42, 45.33.32.156, and 103.253.41.98 along with their respective high failure event counts."
+    },
+    {
+      "id": "filter_ssh_successes",
+      "description": "Filter logs for SSH success rules originating from the identified attacker IPs.",
+      "points": 15,
+      "visual_evidence": "Filters or search queries containing the rule IDs 5715 or 5501, and referencing the previously identified attacker IPs."
+    },
+    {
+      "id": "identify_compromised_hosts",
+      "description": "Identify the compromised hosts that recorded a successful login from the attacker IPs.",
+      "points": 20,
+      "visual_evidence": "Query results showing successful logins to 'web-server-01' (from 185.220.101.42) and 'db-server-01' (from 103.253.41.98)."
+    },
+    {
+      "id": "export_json_report",
+      "description": "Export the findings to a JSON report at ~/threat_hunt_report.json.",
+      "points": 20,
+      "visual_evidence": "A text editor (nano, vim, etc.) or terminal command showing the creation or content of 'threat_hunt_report.json' containing the hunt_id 'SSH-BRUTE-2024-001', the attacker IPs, and the compromised hosts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_query_execution",
+      "description": "Verify the agent actually executed queries against the log database.",
+      "visual_evidence": "Screenshots should show the agent interacting with the OpenSearch/Wazuh interface or executing API/curl commands to retrieve data, rather than just typing the final IPs from external knowledge."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Verify the JSON report was actually saved to the filesystem.",
+      "visual_evidence": "The agent should use a text editor and save the file, or use shell redirection (e.g., > ~/threat_hunt_report.json) rather than just printing the JSON to the console without saving."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "Verify the agent did not hallucinate the failure counts.",
+      "visual_evidence": "The failure counts in the final JSON report should match the numbers seen in the query results on screen (e.g., 87, 43, 15), not arbitrary numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output path: /home/ga/threat_hunt_report.json. Ground truth attackers to look for in the final report: 1) IP: 185.220.101.42 (87 failures, compromised: web-server-01), 2) IP: 45.33.32.156 (43 failures, compromised: none), 3) IP: 103.253.41.98 (15 failures, compromised: db-server-01)."
+}

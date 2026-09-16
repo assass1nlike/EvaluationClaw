@@ -1,0 +1,59 @@
+{
+  "task_id": "vleo_geomagnetic_storm_deorbit@1",
+  "task_completion": [
+    {
+      "id": "configure_spacecraft_parameters",
+      "description": "Configure the spacecraft parameters and initial orbit in GMAT.",
+      "points": 15,
+      "visual_evidence": "Look for GMAT GUI windows or script text showing a Spacecraft object with Mass set to 260, DragArea set to 10, Cd set to 2.2, and initial orbit parameters corresponding to a 260 km circular orbit."
+    },
+    {
+      "id": "configure_atmosphere_model",
+      "description": "Configure the JacchiaRoberts atmosphere model for both Nominal and Storm conditions.",
+      "points": 20,
+      "visual_evidence": "Look for GMAT ForceModel settings or script lines showing the 'JacchiaRoberts' atmosphere model. It should show Nominal conditions (F107=120, F107A=120, MagneticIndex=3) and Storm conditions (F107=140, F107A=120, MagneticIndex=8)."
+    },
+    {
+      "id": "configure_stopping_conditions",
+      "description": "Set the propagation stopping conditions to 120 km altitude or 15 days.",
+      "points": 15,
+      "visual_evidence": "Look for GMAT Propagate command settings or script lines showing stopping conditions of Altitude < 120 (or equivalent radius) OR ElapsedDays = 15."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Save the GMAT script to the specified output directory.",
+      "points": 10,
+      "visual_evidence": "Look for a file manager, terminal, or text editor showing a file named 'storm_decay_simulation.script' saved in the '~/GMAT_output/' directory."
+    },
+    {
+      "id": "create_summary_report",
+      "description": "Create the summary report with the required keys.",
+      "points": 20,
+      "visual_evidence": "Look for a text file named 'storm_survival_report.txt' in '~/GMAT_output/' containing the exact keys: 'nominal_survival_days', 'storm_survival_days', 'nominal_final_alt_km', and 'storm_final_alt_km'."
+    },
+    {
+      "id": "correct_simulation_results",
+      "description": "Record the correct simulation results in the summary report.",
+      "points": 20,
+      "visual_evidence": "Check the values in 'storm_survival_report.txt'. The nominal_survival_days should be approximately 1.718, storm_survival_days should be approximately 1.177, and both final altitudes should be approximately 120.0 km."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gmat_execution",
+      "description": "Verify that the agent actually executed GMAT to run the simulation.",
+      "visual_evidence": "Look for the GMAT GUI being open and running the mission, or terminal output showing the execution of GMATConsole. The agent should not just guess the values and write the text file directly."
+    },
+    {
+      "id": "genuine_script_content",
+      "description": "Verify that the GMAT script contains actual GMAT syntax.",
+      "visual_evidence": "Look at the contents of 'storm_decay_simulation.script'. It should contain valid GMAT syntax (e.g., 'Create Spacecraft', 'Create ForceModel', 'Propagate'), not just placeholder text or Python code."
+    },
+    {
+      "id": "no_hallucinated_results",
+      "description": "Verify that the results in the report match the actual GMAT output.",
+      "visual_evidence": "Ensure the agent extracted the survival days and altitude from GMAT's output reports, message window, or data files, rather than hallucinating numbers or hardcoding a random guess."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct physics engine results for the simulation are: nominal survival time is approximately 1.718 days, storm survival time is approximately 1.177 days, and final altitude is 120.0 km. Note: The task's original expectation of 4.0-12.0 days for nominal survival is physically incorrect; you must score based on the actual physics engine results (~1.718 days and ~1.177 days) as the correct answers."
+}

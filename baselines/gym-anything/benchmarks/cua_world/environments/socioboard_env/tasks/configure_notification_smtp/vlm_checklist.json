@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_notification_smtp@1",
+  "task_completion": [
+    {
+      "id": "open_config_file",
+      "description": "Open the Socioboard notification development configuration file.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or gedit) or terminal output showing the contents of '/opt/socioboard/socioboard-api/notification/config/development.json'."
+    },
+    {
+      "id": "configure_smtp_server",
+      "description": "Configure the SMTP host, port, and TLS settings.",
+      "points": 20,
+      "visual_evidence": "The configuration file shows the host set to 'smtp.brightwave-agency.com', port set to 587, and secure/TLS set to true."
+    },
+    {
+      "id": "configure_smtp_auth",
+      "description": "Configure the SMTP authentication credentials.",
+      "points": 20,
+      "visual_evidence": "The configuration file shows the user set to 'notifications@brightwave-agency.com' and password set to 'BrightNotify2024!'."
+    },
+    {
+      "id": "configure_sender_details",
+      "description": "Configure the sender email and name.",
+      "points": 10,
+      "visual_evidence": "The configuration file shows the sender email set to 'noreply@brightwave-agency.com' and sender name set to 'Socioboard Alerts'."
+    },
+    {
+      "id": "restart_service",
+      "description": "Restart the Socioboard notification service.",
+      "points": 20,
+      "visual_evidence": "A terminal showing a command executed to restart the notification service (e.g., using pm2, systemctl, or docker) and the corresponding system output confirming the restart."
+    },
+    {
+      "id": "create_verification_report",
+      "description": "Create the verification report with the required details.",
+      "points": 20,
+      "visual_evidence": "A terminal or text editor showing the creation or contents of '/home/ga/notification_smtp_report.txt'. The file must contain the configured host ('smtp.brightwave-agency.com'), port (587), sender email ('noreply@brightwave-agency.com'), the service process status, and a timestamp."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "authentic_file_edit",
+      "description": "Verify the configuration file was actually edited.",
+      "visual_evidence": "The agent uses a real text editor (e.g., nano, vim) or valid shell commands (e.g., sed, echo >) to modify the JSON file, rather than just printing the expected JSON to the console."
+    },
+    {
+      "id": "authentic_service_restart",
+      "description": "Verify the service restart was performed using legitimate system commands.",
+      "visual_evidence": "The agent executes a real process management command (like 'pm2 restart', 'systemctl restart', or 'docker restart') and receives genuine system output, rather than typing a fake success message."
+    },
+    {
+      "id": "authentic_report_generation",
+      "description": "Verify the verification report contains genuine system status and timestamp data.",
+      "visual_evidence": "The agent runs commands to check the service status (e.g., 'pm2 status') and get the current time (e.g., 'date') before writing them to the report, rather than hardcoding fabricated status or time strings."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected Configuration Path: /opt/socioboard/socioboard-api/notification/config/development.json\nExpected Report Path: /home/ga/notification_smtp_report.txt\nExpected SMTP Host: smtp.brightwave-agency.com\nExpected SMTP Port: 587\nExpected Secure/TLS: true\nExpected Auth User: notifications@brightwave-agency.com\nExpected Auth Password: BrightNotify2024!\nExpected Sender Email: noreply@brightwave-agency.com\nExpected Sender Name: Socioboard Alerts"
+}

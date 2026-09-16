@@ -1,0 +1,39 @@
+{
+  "id": "supply_chain_hub_lines@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Perform a supply chain network analysis to visualize delivery routes by connecting retail stores to their nearest warehouses. Using the warehouse layer (/home/ga/GIS_Data/logistics/warehouses.geojson) and the store layer (/home/ga/GIS_Data/logistics/retail_stores.geojson), generate a line layer representing the distance to the nearest hub for each store. Use the 'name' attribute for the hub layer and record measurements in meters. Export the resulting connections as a GeoJSON file to /home/ga/GIS_Data/exports/hub_connections.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/supply_chain_hub_lines/setup_task.sh",
+    "post_task": "/workspace/tasks/supply_chain_hub_lines/export_result.sh"
+  },
+  "metadata": {
+    "warehouses_path": "/home/ga/GIS_Data/logistics/warehouses.geojson",
+    "stores_path": "/home/ga/GIS_Data/logistics/retail_stores.geojson",
+    "expected_output_path": "/home/ga/GIS_Data/exports/hub_connections.geojson",
+    "expected_feature_count": 6,
+    "expected_geometry_type": "LineString",
+    "warehouses": {
+      "Oakland Port": [
+        -122.3,
+        37.8
+      ],
+      "SFO Cargo": [
+        -122.38,
+        37.62
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_supply_chain_hub_lines"
+    }
+  }
+}

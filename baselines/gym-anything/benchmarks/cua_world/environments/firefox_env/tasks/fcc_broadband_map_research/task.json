@@ -1,0 +1,71 @@
+{
+  "id": "fcc_broadband_map_research@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are an IT Relocation Specialist verifying internet infrastructure for remote workers. Use the FCC National Broadband Map (https://broadbandmap.fcc.gov/home) to determine the fastest available WIRED broadband options (Fiber, Cable, or Copper/DSL) for the following locations, ignoring Satellite and Fixed Wireless providers:\n\n1. Seattle Central Library: 1000 4th Ave, Seattle, WA 98104\n2. Austin Central Library: 710 W Cesar Chavez St, Austin, TX 78701\n3. Portland Public Library: 5 Monument Sq, Portland, ME 04101\n\nCreate a Firefox bookmark folder named 'ISP Research' containing a link to the broadband map. Save a JSON report to '",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "research",
+    "data-entry",
+    "geolocation",
+    "fcc"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fcc_broadband_map_research/setup_task.sh",
+    "post_task": "/workspace/tasks/fcc_broadband_map_research/export_result.sh"
+  },
+  "metadata": {
+    "required_domains": [
+      "broadbandmap.fcc.gov"
+    ],
+    "required_bookmark_folder": "ISP Research",
+    "output_file": "/home/ga/Documents/isp_availability_report.json",
+    "ground_truth": {
+      "seattle": {
+        "valid_providers": [
+          "Comcast",
+          "Xfinity",
+          "CenturyLink",
+          "Lumen",
+          "Quantum Fiber",
+          "Astound",
+          "Wave"
+        ],
+        "min_download": 100
+      },
+      "austin": {
+        "valid_providers": [
+          "Google Fiber",
+          "AT&T",
+          "Spectrum",
+          "Charter",
+          "Grande",
+          "Astound"
+        ],
+        "min_download": 100
+      },
+      "portland": {
+        "valid_providers": [
+          "Fidium",
+          "Consolidated",
+          "Spectrum",
+          "Charter",
+          "FirstLight"
+        ],
+        "min_download": 50
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fcc_broadband_map_research"
+    }
+  }
+}

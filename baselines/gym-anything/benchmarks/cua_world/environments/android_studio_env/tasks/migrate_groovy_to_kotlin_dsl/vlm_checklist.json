@@ -1,0 +1,53 @@
+{
+  "task_id": "migrate_groovy_to_kotlin_dsl@1",
+  "task_completion": [
+    {
+      "id": "settings_gradle_kts_created",
+      "description": "The settings.gradle file was converted to settings.gradle.kts with valid Kotlin DSL syntax.",
+      "points": 15,
+      "visual_evidence": "A file named `settings.gradle.kts` is open in an editor or visible in the file tree. The contents should use Kotlin DSL syntax (e.g., double quotes for strings, parentheses for function calls like `include(\":app\")`)."
+    },
+    {
+      "id": "root_build_gradle_kts_created",
+      "description": "The root build.gradle file was converted to build.gradle.kts with valid Kotlin DSL syntax.",
+      "points": 15,
+      "visual_evidence": "A file named `build.gradle.kts` in the project root is open in an editor or visible in the file tree. The contents should use Kotlin DSL syntax (e.g., `id(\"com.android.application\") version \"8.2.0\" apply false`)."
+    },
+    {
+      "id": "app_build_gradle_kts_created",
+      "description": "The app/build.gradle file was converted to app/build.gradle.kts with valid Kotlin DSL syntax.",
+      "points": 30,
+      "visual_evidence": "A file named `build.gradle.kts` in the `app` directory is open in an editor or visible in the file tree. The contents should use Kotlin DSL syntax (e.g., `compileSdk = 34`, `applicationId = \"com.example.weatherapp\"`, `minSdk = 24`, and `implementation(...)` with parentheses and double quotes)."
+    },
+    {
+      "id": "old_gradle_files_removed",
+      "description": "The original Groovy DSL files (.gradle) were removed from the project.",
+      "points": 10,
+      "visual_evidence": "The file explorer or terminal `ls` output shows the `.gradle.kts` files, and confirms that the original `settings.gradle`, `build.gradle`, and `app/build.gradle` files have been deleted."
+    },
+    {
+      "id": "project_builds_successfully",
+      "description": "The project builds successfully using the command ./gradlew assembleDebug.",
+      "points": 30,
+      "visual_evidence": "A terminal window shows the execution of `./gradlew assembleDebug` resulting in a 'BUILD SUCCESSFUL' message, indicating the Kotlin DSL migration is valid."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_editor_usage",
+      "description": "The agent used a real text editor or IDE to edit the files.",
+      "visual_evidence": "The screenshots show the agent using a text editor or IDE (like Android Studio, VS Code, vim, or nano) to modify the files, rather than just echoing text into files."
+    },
+    {
+      "id": "genuine_build_execution",
+      "description": "The build command was actually executed in a terminal.",
+      "visual_evidence": "The build command shows typical Gradle progress logs, daemon startup, and execution time, not just a mocked or instantly printed 'BUILD SUCCESSFUL' string."
+    },
+    {
+      "id": "syntax_actually_converted",
+      "description": "The files show actual Kotlin DSL syntax changes.",
+      "visual_evidence": "The files show actual Kotlin DSL syntax changes (like `=` for assignments and `()` for function calls), rather than just renaming the files while keeping Groovy syntax."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/AndroidStudioProjects/WeatherApp. The expected files to be created are settings.gradle.kts, build.gradle.kts, and app/build.gradle.kts. The forbidden files that must be removed are settings.gradle, build.gradle, and app/build.gradle. The app/build.gradle.kts file should contain compileSdk = 34, minSdk = 24, and applicationId = \"com.example.weatherapp\". The root build.gradle.kts should reference AGP version 8.2.0 and Kotlin version 1.9.0."
+}

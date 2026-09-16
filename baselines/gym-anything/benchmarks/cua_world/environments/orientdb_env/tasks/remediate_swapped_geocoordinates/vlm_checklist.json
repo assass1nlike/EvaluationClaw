@@ -1,0 +1,53 @@
+{
+  "task_id": "remediate_swapped_geocoordinates@1",
+  "task_completion": [
+    {
+      "id": "login_orientdb_studio",
+      "description": "Verify the agent accessed and logged into OrientDB Studio.",
+      "points": 10,
+      "visual_evidence": "Screenshots should show the OrientDB Studio web interface loaded in a browser window."
+    },
+    {
+      "id": "access_demodb",
+      "description": "Verify the agent connected to the 'demodb' database.",
+      "points": 10,
+      "visual_evidence": "Look for 'demodb' displayed as the active database in the top navigation bar or connection screen of the OrientDB Studio UI."
+    },
+    {
+      "id": "repair_geospatial_fields",
+      "description": "Verify the agent repaired the swapped latitude and longitude fields for the flagship hotels.",
+      "points": 30,
+      "visual_evidence": "Look for executed SQL UPDATE queries in the 'Browse' tab or record views showing the latitude and longitude values have been swapped/corrected for the hotel records."
+    },
+    {
+      "id": "create_geofixaudit_class",
+      "description": "Verify the agent materialized the GeoFixAudit evidence class.",
+      "points": 20,
+      "visual_evidence": "Look for 'GeoFixAudit' listed in the 'Schema' tab, or a successful 'CREATE CLASS GeoFixAudit' query executed in the 'Browse' tab."
+    },
+    {
+      "id": "populate_audit_records",
+      "description": "Verify the GeoFixAudit class is populated with batch-tagged before/after records for each corrected hotel.",
+      "points": 30,
+      "visual_evidence": "Look for query results or record views of the GeoFixAudit class showing multiple entries. These entries must contain before/after coordinate data and a batch tag (specifically 'geo_swap_2026q1')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "Verify the agent used the OrientDB Studio web interface to perform the tasks.",
+      "visual_evidence": "The screenshots should show interaction with the browser-based OrientDB Studio UI, rather than terminal windows executing curl commands or python scripts."
+    },
+    {
+      "id": "authentic_database_interaction",
+      "description": "Verify the agent interacted with the actual database application.",
+      "visual_evidence": "Look for genuine OrientDB Studio UI elements (Browse, Schema, Graph tabs) and query execution results, not just text typed into a notepad or text editor."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Verify the agent did not bypass the GUI requirement using terminal commands.",
+      "visual_evidence": "Ensure there are no terminal windows showing direct OrientDB console commands (console.sh) or API requests being used to complete the database modifications."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts: The correct longitude for Park Hyatt Tokyo is 139.690994. The required batch tag for the audit records is 'geo_swap_2026q1'."
+}

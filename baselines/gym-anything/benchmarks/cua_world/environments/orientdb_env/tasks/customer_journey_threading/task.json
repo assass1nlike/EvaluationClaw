@@ -1,0 +1,32 @@
+{
+  "id": "customer_journey_threading@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Construct a chronological 'Customer Journey' timeline for the user 'sofia.ricci@journey.com' in the 'demodb' database. Create 'TimelineEvent' vertices with properties 'EventDate' (DATE), 'Type' (STRING), and 'Summary' (STRING) for all 'Orders' and 'Reviews' associated with the user. Link the user's profile to the earliest event using a 'StartsJourney' edge and connect all events in a strict chronological sequence using 'NextEvent' edges.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/customer_journey_threading/setup_task.sh",
+    "post_task": "/workspace/tasks/customer_journey_threading/export_result.sh"
+  },
+  "metadata": {
+    "target_email": "sofia.ricci@journey.com",
+    "expected_event_count": 4,
+    "expected_chain_order": [
+      "2023-01-10",
+      "2023-03-15",
+      "2023-06-20",
+      "2023-07-01"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_customer_journey_threading"
+    }
+  }
+}

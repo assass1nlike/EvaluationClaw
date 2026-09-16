@@ -1,0 +1,32 @@
+{
+  "id": "appointment_schedule_audit@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "As the clinic coordinator, resolve an overbooking conflict in the Bahmni Appointments module (https://localhost/bahmni/home, login: superman / Admin123) where Emily Chen (BAH000011), Rosa Martinez (BAH000010), and Priya Patel (BAH000005) are all scheduled for the same General OPD clinic slot tomorrow morning. Reschedule Emily Chen to a slot 1 hour later than the original time and Rosa Martinez to a slot 2 hours later, while keeping Priya Patel at the original time. Add a note to each rescheduled appointment documenting the reason for the change so that all three patients are in different time slots.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/appointment_schedule_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/appointment_schedule_audit/export_result.sh"
+  },
+  "metadata": {
+    "patient_identifier_1": "BAH000011",
+    "patient_given_name_1": "Emily",
+    "patient_family_name_1": "Chen",
+    "patient_identifier_2": "BAH000010",
+    "patient_given_name_2": "Rosa",
+    "patient_family_name_2": "Martinez",
+    "patient_identifier_3": "BAH000005",
+    "patient_given_name_3": "Priya",
+    "patient_family_name_3": "Patel"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_appointment_schedule_audit"
+    }
+  }
+}

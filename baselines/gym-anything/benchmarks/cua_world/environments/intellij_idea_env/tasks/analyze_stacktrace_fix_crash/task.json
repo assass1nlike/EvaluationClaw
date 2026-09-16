@@ -1,0 +1,29 @@
+{
+  "id": "analyze_stacktrace_fix_crash@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "A critical production crash has been reported in the 'ecommerce-legacy' project. Using the stack trace provided in ~/Desktop/crash_log.txt, identify and fix the NullPointerException in OrderProcessingService.java. The project must compile and run without throwing this exception.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/analyze_stacktrace_fix_crash/setup_task.sh",
+    "post_task": "/workspace/tasks/analyze_stacktrace_fix_crash/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/ecommerce-legacy",
+    "log_file": "/home/ga/Desktop/crash_log.txt",
+    "buggy_file": "src/main/java/com/ecommerce/core/OrderProcessingService.java",
+    "buggy_method": "calculateTax",
+    "verification_test_class": "com.ecommerce.core.VerificationTest"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_stacktrace_fix_crash"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "geometry_nodes_curve_fence@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Create a procedural fence generator using Geometry Nodes on the 'FencePath' curve. The generator must instance the 'FencePost' object along the curve at intervals of exactly 1.5 meters, with each post aligned to the direction of the path. The resulting fence should automatically update when the curve is extended. Save the project to /home/ga/BlenderProjects/procedural_fence.blend.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/geometry_nodes_curve_fence/setup_task.sh",
+    "post_task": "/workspace/tasks/geometry_nodes_curve_fence/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/BlenderProjects/procedural_fence.blend",
+    "target_curve_name": "FencePath",
+    "instance_object_name": "FencePost",
+    "spacing": 1.5,
+    "min_instances": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_geometry_nodes_fence"
+    }
+  }
+}

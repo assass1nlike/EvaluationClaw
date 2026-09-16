@@ -1,0 +1,53 @@
+{
+  "task_id": "document_handling_opsec_hardening@1",
+  "task_completion": [
+    {
+      "id": "disable_pdfjs",
+      "description": "Verify that the built-in PDF viewer is disabled in Tor Browser.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows Tor Browser navigated to 'about:config' with the preference 'pdfjs.disabled' searched and its value set to 'true'."
+    },
+    {
+      "id": "disable_webgl",
+      "description": "Verify that WebGL rendering is disabled in Tor Browser.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows Tor Browser navigated to 'about:config' with the preference 'webgl.disabled' searched and its value set to 'true'."
+    },
+    {
+      "id": "disable_wasm",
+      "description": "Verify that WebAssembly execution is disabled in Tor Browser.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows Tor Browser navigated to 'about:config' with the preference 'javascript.options.wasm' searched and its value set to 'false'."
+    },
+    {
+      "id": "navigate_to_pdf_url",
+      "description": "Verify that the agent navigates to the correct URL to download the TLS 1.3 specification.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows Tor Browser's address bar containing 'https://www.rfc-editor.org/rfc/pdfrfc/rfc8446.txt.pdf' or a download prompt originating from this URL."
+    },
+    {
+      "id": "save_pdf_to_quarantine",
+      "description": "Verify that the PDF file is saved to the specified Quarantine directory.",
+      "points": 20,
+      "visual_evidence": "Screenshot shows a 'Save As' dialog with the destination folder set to 'Quarantine' (inside Documents) and the filename 'rfc8446.pdf', or a file manager displaying the downloaded file in '/home/ga/Documents/Quarantine'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_preference_modification",
+      "description": "Verify that preferences were modified using the Tor Browser GUI.",
+      "visual_evidence": "The 'about:config' page should be visible in the browser window. The agent should not be using a terminal or text editor to modify 'prefs.js'."
+    },
+    {
+      "id": "gui_download",
+      "description": "Verify that the file was downloaded using Tor Browser.",
+      "visual_evidence": "The download should occur via the browser's download manager or 'Save As' dialog. The agent should not use terminal commands like 'wget' or 'curl' to download the file."
+    },
+    {
+      "id": "genuine_file_saving",
+      "description": "Verify that the agent actually saves the downloaded file rather than creating a fake file.",
+      "visual_evidence": "The 'Save As' dialog or browser download progress should be visible, confirming the file is being saved from the browser, not created via terminal commands like 'touch' or 'echo'."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Directory: /home/ga/Documents/Quarantine\nTarget File: /home/ga/Documents/Quarantine/rfc8446.pdf\nTarget URL: https://www.rfc-editor.org/rfc/pdfrfc/rfc8446.txt.pdf\nRequired Preferences in about:config: pdfjs.disabled=true, webgl.disabled=true, javascript.options.wasm=false."
+}

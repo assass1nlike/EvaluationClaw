@@ -1,0 +1,29 @@
+{
+  "id": "experimental_randomization_survey@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "You are a psychology professor setting up an online replication of the classic Tversky & Kahneman (1981) framing effect experiment using LimeSurvey at http://localhost/index.php/admin (Username: admin, Password: Admin123!). Create and activate a survey titled 'Framing Effect Experiment - Cognitive Decision Making Study 2024' with anonymized responses enabled and backward navigation disabled. The survey must include five question groups in the following order: 'Informed Consent and Instructions', 'Scenario A - Disease Outbreak', 'Scenario B - Financial Decision', 'Scenario C - Environmental Policy', and 'Demographics and Debrief'. Randomize the three scenario groups using the randomization group name 'experimental', ensuring the consent and demographics groups are not randomized. Each group must contain at least one question: a Yes/No consent question in the first group; the disease outbreak scenario (600 people at risk, with options for 200 saved vs 1/3 chance all saved) in Scenario A; the financial decision (60 employees at risk) in Scenario B; the environmental policy (1200 homes at risk) in Scenario C; and a demographics question in the final group.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/experimental_randomization_survey/setup_task.sh",
+    "post_task": "/workspace/tasks/experimental_randomization_survey/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keyword": "Framing Effect",
+    "expected_group_count": 5,
+    "expected_randomization_group": "experimental",
+    "expected_randomized_count": 3,
+    "expected_fixed_count": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_experimental_survey"
+    }
+  }
+}

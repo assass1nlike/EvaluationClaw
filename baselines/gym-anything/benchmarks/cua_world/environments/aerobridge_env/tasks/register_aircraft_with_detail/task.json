@@ -1,0 +1,34 @@
+{
+  "id": "register_aircraft_with_detail@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "You are using Aerobridge, an open-source drone/UAV fleet management system (admin login: http://localhost:8000/admin/, username: admin, password: adminpass123). Register a new aircraft named 'Falcon Eye 3' with flight controller ID FE3CTRL334455, status Active, operator A.J. August Photography, and manufacturer Aerobridge Drone Company (using any existing final assembly). Ensure the AircraftDetail record for 'Falcon Eye 3' is marked as registered with the mark IND/UP/2024/003. Additionally, document a FlightOperation named 'Falcon Eye 3 Maiden Flight' for this drone using Flight Plan A, operator A.J. August Photography, pilot Rakesh Kankipati, purpose photographing, and operation type VLOS, including valid start and end datetimes.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/register_aircraft_with_detail/setup_task.sh",
+    "post_task": "/workspace/tasks/register_aircraft_with_detail/export_result.sh"
+  },
+  "metadata": {
+    "expected_aircraft_name": "Falcon Eye 3",
+    "expected_flight_controller_id": "FE3CTRL334455",
+    "expected_registration_mark": "IND/UP/2024/003",
+    "expected_operation_name": "Falcon Eye 3 Maiden Flight",
+    "expected_operator_company": "A.J. August Photography",
+    "expected_pilot_name": "Rakesh Kankipati",
+    "expected_manufacturer": "Aerobridge Drone Company",
+    "admin_url": "http://localhost:8000/admin/",
+    "admin_username": "admin",
+    "admin_password": "adminpass123"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_register_aircraft_with_detail"
+    }
+  }
+}

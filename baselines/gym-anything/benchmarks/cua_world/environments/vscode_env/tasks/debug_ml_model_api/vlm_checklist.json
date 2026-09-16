@@ -1,0 +1,53 @@
+{
+  "task_id": "debug_ml_model_api@1",
+  "task_completion": [
+    {
+      "id": "fix_schemas_bmi_type",
+      "description": "Correct the data type for 'bmi' in api/schemas.py.",
+      "points": 15,
+      "visual_evidence": "Screenshot showing api/schemas.py open in an editor with the 'bmi' field defined as a float (or appropriate numeric type) instead of an incorrect type."
+    },
+    {
+      "id": "fix_preprocessing_scaling_shapes",
+      "description": "Implement correct feature scaling and array shapes for numerical features in api/preprocessing.py.",
+      "points": 25,
+      "visual_evidence": "Screenshot of api/preprocessing.py showing StandardScaler applied to 'age', 'bmi', and 'heart_rate', along with correct array reshaping (e.g., .reshape(1, -1))."
+    },
+    {
+      "id": "fix_preprocessing_categorical_encoding",
+      "description": "Implement correct categorical encoding for 'blood_type' in api/preprocessing.py.",
+      "points": 20,
+      "visual_evidence": "Screenshot of api/preprocessing.py showing One-Hot Encoding logic applied to the 'blood_type' feature."
+    },
+    {
+      "id": "fix_app_memory_leak",
+      "description": "Optimize the model loading process in api/app.py to prevent memory leaks.",
+      "points": 25,
+      "visual_evidence": "Screenshot of api/app.py showing the model loading function (e.g., joblib.load) moved outside the endpoint function (loaded globally or on startup) rather than loading the model on every API request."
+    },
+    {
+      "id": "verify_pytest_execution",
+      "description": "Verify the fixes by running pytest tests/test_api.py.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of 'pytest tests/test_api.py' with all tests passing (e.g., green text, 'passed' status)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_editor_usage",
+      "description": "The agent used a real text editor or IDE to modify the Python files.",
+      "visual_evidence": "Screenshots show the files (schemas.py, preprocessing.py, app.py) being edited in an IDE (like VS Code) or terminal editor (like nano/vim), not just echoing text to files without viewing them."
+    },
+    {
+      "id": "actual_test_execution",
+      "description": "The agent genuinely ran the pytest command in the terminal.",
+      "visual_evidence": "Terminal shows the actual pytest command typed and the standard pytest output format, rather than a mocked or manually printed success message."
+    },
+    {
+      "id": "no_test_bypasses",
+      "description": "The agent did not modify the test file to force a pass.",
+      "visual_evidence": "The test file 'tests/test_api.py' is not shown being edited or modified to remove assertions or hardcode passing conditions."
+    }
+  ],
+  "privileged_info_for_vlm": "The task involves debugging a FastAPI app predicting hospital readmission risk. Key fixes include: 1) Changing 'bmi' data type to float in schemas.py. 2) Applying StandardScaler to 'age', 'bmi', and 'heart_rate' and One-Hot Encoding to 'blood_type' in preprocessing.py. 3) Moving the scikit-learn Random Forest model loading (joblib.load) outside the request handler in app.py to fix the memory leak. The final verification is running pytest tests/test_api.py which must pass."
+}

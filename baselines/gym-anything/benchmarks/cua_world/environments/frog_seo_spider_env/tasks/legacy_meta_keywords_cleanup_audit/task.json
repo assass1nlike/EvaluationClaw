@@ -1,0 +1,28 @@
+{
+  "id": "legacy_meta_keywords_cleanup_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "You are a Technical SEO auditing a legacy site. Use Screaming Frog to perform a custom source code search for the deprecated '<meta name=\"keywords\">' tag on 'https://crawler-test.com/'. Ensure the search is configured to check the HTML source rather than visible page text. Export the resulting Custom Search report to '~/Documents/SEO/exports/meta_keywords_audit.csv'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/legacy_meta_keywords_cleanup_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/legacy_meta_keywords_cleanup_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "target_domain": "crawler-test.com",
+    "expected_export_path": "/home/ga/Documents/SEO/exports/meta_keywords_audit.csv",
+    "search_term": "<meta name=\"keywords\""
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_legacy_meta_keywords_cleanup_audit"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "amp_implementation_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "You are a Technical SEO auditing a news publisher's AMP implementation. Configure Screaming Frog SEO Spider to crawl and validate Accelerated Mobile Pages (AMP) for 'https://crawler-test.com/'. Export the AMP audit data to a CSV file in '~/Documents/SEO/exports/' with a filename containing 'amp'. Write a report to '~/Documents/SEO/reports/amp_audit_report.txt' listing at least two specific AMP errors found and the total count of AMP pages identified.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/amp_implementation_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/amp_implementation_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_url": "https://crawler-test.com/",
+    "export_dir": "/home/ga/Documents/SEO/exports",
+    "report_path": "/home/ga/Documents/SEO/reports/amp_audit_report.txt",
+    "required_csv_substring": "amp",
+    "expected_amp_columns": [
+      "AMP HTML",
+      "Validation Status",
+      "AMP Cache URL",
+      "Canonical"
+    ],
+    "expected_errors": [
+      "Missing Canonical",
+      "Missing Non-AMP Return Link",
+      "Validation Error"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_amp_implementation_audit"
+    }
+  }
+}

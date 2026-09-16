@@ -1,0 +1,80 @@
+{
+  "dataset_id": "6f1bd1c5",
+  "name": "Bird Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Bird Detection is an image-based object detection dataset where each sample contains a bird photograph and an instruction to detect the bird. The output is a bounding box (or list of boxes) specifying the location of the bird(s). It evaluates visual localization and detection capabilities.",
+  "card_text": "The dataset consists of 200 samples pairing bird photographs with a fixed prompt: 'Detect the bird in the given image.' Each sample includes an image file reference and a structured JSON output that maps the class label 'bird' to a list of bounding boxes in [x, y, width, height] format. The images are natural photographs of birds in various settings, and the task requires the model to localize all birds present, though each sample typically contains a single bird. The data is intended for object detection and localization research, particularly in the wildlife domain. Assumptions: the class of interest is always 'bird'; bounding boxes are provided in absolute pixel coordinates; no additional categories or attributes are annotated.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "wildlife",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "The image file reference to a photograph containing a bird; serves as the visual input the model must analyze to locate the bird.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A fixed instruction asking the model to detect the bird in the provided image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.text.bird"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of bounding boxes for the bird(s) in the image, each given as [x, y, width, height] coordinates. The key 'bird' indicates the object class.",
+        "path_types": [
+          "list<list>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input image file and a text prompt instructing the model to detect the bird. The output is a structured text object with a key 'bird' mapping to a list of bounding boxes, each box given as [x, y, width, height] pixel coordinates. The image serves as the visual context, the prompt is the instruction, and the bounding boxes are the target answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/BirdDetection/bird_detection.json",
+    "existing_tags": {
+      "task": "Bird Detection",
+      "type": "image comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

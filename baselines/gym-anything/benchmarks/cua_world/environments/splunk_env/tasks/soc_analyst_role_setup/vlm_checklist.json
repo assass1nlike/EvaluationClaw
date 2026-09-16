@@ -1,0 +1,53 @@
+{
+  "task_id": "soc_analyst_role_setup@1",
+  "task_completion": [
+    {
+      "id": "role_name_and_inheritance",
+      "description": "Verify the junior_soc_analyst role is created and inherits only from the user role.",
+      "points": 20,
+      "visual_evidence": "Splunk 'Roles' page or role creation form showing the role name 'junior_soc_analyst' with inheritance explicitly set to 'user' (and not 'admin' or 'power')."
+    },
+    {
+      "id": "role_search_jobs_quota",
+      "description": "Verify the search jobs quota for the junior_soc_analyst role is set to 3.",
+      "points": 15,
+      "visual_evidence": "Splunk role configuration page (Resources tab or similar) for 'junior_soc_analyst' showing the standard search jobs limit/quota set to 3."
+    },
+    {
+      "id": "role_index_restrictions",
+      "description": "Verify the junior_soc_analyst role is restricted to only the security_logs and web_logs indexes for both allowed and default searches.",
+      "points": 25,
+      "visual_evidence": "Splunk role configuration page (Indexes tab) showing 'security_logs' and 'web_logs' selected for both 'Included' and 'Default', and '*' or 'main' NOT selected."
+    },
+    {
+      "id": "user_creation_details",
+      "description": "Verify the user jsmith is created with the full name Jordan Smith.",
+      "points": 15,
+      "visual_evidence": "Splunk 'Users' list or user creation form showing username 'jsmith' and Full Name 'Jordan Smith'."
+    },
+    {
+      "id": "user_role_and_app",
+      "description": "Verify the user jsmith is assigned only the junior_soc_analyst role and the default app is set to search.",
+      "points": 25,
+      "visual_evidence": "Splunk user configuration page for 'jsmith' showing the assigned role is exactly 'junior_soc_analyst' and the Default App dropdown is set to 'search'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Splunk Web UI to create the role and user.",
+      "visual_evidence": "Screenshots show interaction with the Splunk Web interface (Settings > Roles, Settings > Users) rather than a terminal window executing CLI commands."
+    },
+    {
+      "id": "genuine_application",
+      "description": "The agent interacted with the actual Splunk instance in a browser.",
+      "visual_evidence": "The browser address bar shows a Splunk URL (e.g., localhost:8000) and the genuine Splunk UI is visible, not a text editor or mock-up."
+    },
+    {
+      "id": "no_script_bypass",
+      "description": "The agent did not use a script to bypass the UI configuration.",
+      "visual_evidence": "Absence of terminal windows executing scripts like 'splunk add user' or curl commands to the Splunk REST API."
+    }
+  ],
+  "privileged_info_for_vlm": "Role Name: 'junior_soc_analyst'. Inherited Roles: MUST include 'user', MUST NOT include 'admin' or 'power'. Allowed/Default Indexes: MUST include 'security_logs' and 'web_logs', MUST NOT include '*' or 'main'. Search Jobs Quota: 3. Username: 'jsmith'. Full Name: 'Jordan Smith'. Password: 'JuniorSOC2024!'. Assigned Role: 'junior_soc_analyst' ONLY. Default App: 'search'."
+}

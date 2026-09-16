@@ -1,0 +1,53 @@
+{
+  "task_id": "block_inbound_spam_numbers@1",
+  "task_completion": [
+    {
+      "id": "read_spam_number_file",
+      "description": "Read the spam number from the specified text file.",
+      "points": 10,
+      "visual_evidence": "A terminal window (using cat, less, etc.) or a text editor showing the contents of '~/Documents/VicidialData/spam_number_to_block.txt'."
+    },
+    {
+      "id": "create_filter_phone_group",
+      "description": "Create a new Filter Phone Group with the specified ID and Name.",
+      "points": 20,
+      "visual_evidence": "Vicidial web administration interface showing the creation or existence of a Filter Phone Group with Group ID 'SPAMBLOCK' and Group Name 'Blocked Spammers'."
+    },
+    {
+      "id": "add_number_to_filter_group",
+      "description": "Add the retrieved spam number to the newly created Filter Phone Group.",
+      "points": 25,
+      "visual_evidence": "Vicidial web interface showing the specific spam number (from the text file) successfully added to the 'SPAMBLOCK' Filter Phone Group."
+    },
+    {
+      "id": "access_target_did",
+      "description": "Locate and open the configuration page for the target DID.",
+      "points": 15,
+      "visual_evidence": "Vicidial web interface showing the DID modification or settings page specifically for DID '8885550100'."
+    },
+    {
+      "id": "configure_did_filter_action",
+      "description": "Configure the DID to use the Filter Phone Group with a HANGUP action.",
+      "points": 30,
+      "visual_evidence": "On the DID '8885550100' configuration page, the 'Filter Phone Group ID' (or similar filter setting) is set to 'SPAMBLOCK' and the corresponding filter route/action is set to 'HANGUP'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_gui",
+      "description": "The agent used the Vicidial web administration GUI to configure the settings.",
+      "visual_evidence": "Screenshots should show interaction with the Vicidial web interface in a browser, rather than direct database SQL queries or backend script manipulation."
+    },
+    {
+      "id": "read_actual_file",
+      "description": "The agent actually opened and read the spam number file.",
+      "visual_evidence": "At least one screenshot must show the file 'spam_number_to_block.txt' being opened or printed to the screen, proving the agent didn't just guess or hallucinate the number."
+    },
+    {
+      "id": "no_unrelated_did_changes",
+      "description": "The agent only modified the target DID.",
+      "visual_evidence": "The DID modification screens should only show DID '8885550100' being edited. There should be no evidence of altering other DIDs."
+    }
+  ],
+  "privileged_info_for_vlm": "The spam number to block is located in '/home/ga/Documents/VicidialData/spam_number_to_block.txt'. The agent must create a Filter Phone Group with ID 'SPAMBLOCK' and Name 'Blocked Spammers'. The target DID to configure is '8885550100'. The DID must be configured to use the 'SPAMBLOCK' filter group, and the action for the filtered number must be set to 'HANGUP'."
+}

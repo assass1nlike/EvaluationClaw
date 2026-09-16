@@ -1,0 +1,29 @@
+{
+  "id": "implement_shoppable_editorial_content@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Implement a 'Shoppable Content' feature by creating a new content type called 'Editorial Review' (machine name: editorial_review). This content type must include a field named 'Merchandise' (machine name: field_merchandise) referencing a single Commerce Product. Configure the content display so the referenced merchandise appears as a teaser. Create and publish an 'Editorial Review' node titled 'Sony WH-1000XM5 Deep Dive' referencing the 'Sony WH-1000XM5 Wireless Headphones' product.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_shoppable_editorial_content/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_shoppable_editorial_content/export_result.sh"
+  },
+  "metadata": {
+    "expected_type_name": "editorial_review",
+    "expected_field_name": "field_merchandise",
+    "expected_product_sku": "SONY-WH1000XM5",
+    "expected_view_mode": "teaser",
+    "expected_formatter": "entity_reference_entity_view"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_implement_shoppable_content"
+    }
+  }
+}

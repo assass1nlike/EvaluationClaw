@@ -1,0 +1,53 @@
+{
+  "task_id": "nationality_normalization@1",
+  "task_completion": [
+    {
+      "id": "create_edge_class",
+      "description": "Create the 'IsCitizenOf' edge class in the database",
+      "points": 10,
+      "visual_evidence": "Look for OrientDB Studio schema view, OrientDB console output, or a script execution showing the creation of an edge class named 'IsCitizenOf'."
+    },
+    {
+      "id": "create_edges_mapped",
+      "description": "Create edges linking Profiles to Countries based on semantic nationality mapping",
+      "points": 20,
+      "visual_evidence": "Look for database query results, graph visualization, or script output confirming that 'IsCitizenOf' edges were created connecting Profile vertices to existing Country vertices."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Create the nationality audit report file at the correct path",
+      "points": 10,
+      "visual_evidence": "Look for a text editor (e.g., nano, vim, gedit) or terminal output (e.g., cat, ls) showing the file '/home/ga/nationality_audit.txt'."
+    },
+    {
+      "id": "report_successful_mappings",
+      "description": "List successful Email to Country mappings in the report",
+      "points": 30,
+      "visual_evidence": "Look at the contents of the audit report. It must list successful mappings showing Profile Emails linked to Country Names (e.g., mapping to United States, United Kingdom, Netherlands)."
+    },
+    {
+      "id": "report_unmapped_section",
+      "description": "Include a separate section for Unmapped Nationalities in the report",
+      "points": 30,
+      "visual_evidence": "Look at the contents of the audit report. It must contain a distinct section for 'Unmapped Nationalities' that identifies 'Mexican' or 'carlos.lopez@example.com'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "database_queried",
+      "description": "Agent actually queried the OrientDB database to find profiles and countries",
+      "visual_evidence": "Screenshots should show the agent executing SELECT queries in OrientDB Studio, console, or via a script to inspect the 'Profiles' and 'Countries' classes before writing the report."
+    },
+    {
+      "id": "no_hallucinated_countries",
+      "description": "Agent did not create new country vertices for unmapped nationalities",
+      "visual_evidence": "Check that there are no INSERT or CREATE VERTEX commands adding 'Mexico' to the Countries class, as the instructions explicitly state to identify unmapped profiles 'without creating new country vertices'."
+    },
+    {
+      "id": "genuine_report_path",
+      "description": "Report is saved to the exact requested path",
+      "visual_evidence": "The file path '/home/ga/nationality_audit.txt' should be visible in the text editor's title bar, status bar, or in the terminal command used to save/view the file."
+    }
+  ],
+  "privileged_info_for_vlm": "The required edge class is 'IsCitizenOf'. The report must be saved exactly to '/home/ga/nationality_audit.txt'. Successful mappings to verify include: American -> United States, British -> United Kingdom, and Dutch -> Netherlands. The expected unmapped nationality (orphan) is 'Mexican', which corresponds to the email 'carlos.lopez@example.com'."
+}

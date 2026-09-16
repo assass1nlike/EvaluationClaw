@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_multires_logging@1",
+  "task_completion": [
+    {
+      "id": "input_process_opened",
+      "description": "The agent opened the input processing configuration for the 'rack_power_main' input.",
+      "points": 10,
+      "visual_evidence": "The 'Input processes' modal or page is open in Emoncms, clearly showing 'rack_power_main' (under node 'server_room') as the target input being configured."
+    },
+    {
+      "id": "live_feed_configured",
+      "description": "The agent configured a 'Log to feed' process for 'rack_power_live' with a 10-second interval.",
+      "points": 30,
+      "visual_evidence": "In the input processes list, there is a 'Log to feed' action targeting a new feed named 'rack_power_live' with an interval set to 10s."
+    },
+    {
+      "id": "archive_feed_configured",
+      "description": "The agent configured a 'Log to feed' process for 'rack_power_archive' with a 30-minute (1800s) interval.",
+      "points": 30,
+      "visual_evidence": "In the input processes list, there is a second 'Log to feed' action targeting a new feed named 'rack_power_archive' with an interval set to 30 mins or 1800s."
+    },
+    {
+      "id": "process_list_saved",
+      "description": "The input processing chain containing both feeds is saved.",
+      "points": 15,
+      "visual_evidence": "The process list displays both 'Log to feed' processes and appears saved (e.g., no unsaved changes warning, or a 'Saved' success message is visible)."
+    },
+    {
+      "id": "feeds_verified",
+      "description": "Both feeds are successfully created and visible in the Feeds list.",
+      "points": 15,
+      "visual_evidence": "The Feeds page in Emoncms displays both 'rack_power_live' and 'rack_power_archive' with their respective intervals (10s and 30 mins / 1800s)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Emoncms web interface to configure the inputs and feeds.",
+      "visual_evidence": "Screenshots show interaction with the Emoncms web UI in a browser, rather than using a script or text editor."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "The agent did not use terminal commands to directly modify the database or API.",
+      "visual_evidence": "There are no terminal windows showing curl commands, sqlite3 queries, or python scripts being executed to bypass the UI."
+    },
+    {
+      "id": "authentic_data",
+      "description": "The inputs and feeds shown in the UI match the expected names and intervals without signs of HTML tampering.",
+      "visual_evidence": "The Emoncms interface looks authentic, and the feed names/intervals are entered into the actual application forms."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring dual-resolution logging for the 'rack_power_main' input under node 'server_room' in Emoncms. The agent must create two feeds: 'rack_power_live' at 10-second intervals and 'rack_power_archive' at 1800-second (30-minute) intervals. Both feeds must be added to the input's processing chain using 'Log to feed' processes. Success requires both feeds to be properly configured with correct intervals and named exactly as specified."
+}

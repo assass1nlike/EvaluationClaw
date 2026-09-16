@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_external_event_bookmarking@1",
+  "task_completion": [
+    {
+      "id": "access_web_admin",
+      "description": "Access the Nx Witness Web Admin interface",
+      "points": 10,
+      "visual_evidence": "The browser should be open to the Nx Witness Web Admin interface at https://localhost:7001, showing the user is logged in."
+    },
+    {
+      "id": "configure_event_trigger",
+      "description": "Configure the Generic Event trigger with the correct source and caption",
+      "points": 20,
+      "visual_evidence": "An event rule configuration screen showing the 'Event' type set to 'Generic Event', the 'Source' field containing 'AI_Analytics', and the 'Caption' field containing 'Loitering_Detected'."
+    },
+    {
+      "id": "configure_event_action",
+      "description": "Configure the rule action to create a bookmark on the target camera",
+      "points": 20,
+      "visual_evidence": "The action section of the event rule showing the action type set to 'Bookmark' (or 'Create Bookmark') and the target camera explicitly set to 'Parking Lot Camera'."
+    },
+    {
+      "id": "simulate_api_request",
+      "description": "Simulate the event via the /api/createEvent API endpoint",
+      "points": 20,
+      "visual_evidence": "A terminal, browser, or API client showing an HTTP request (e.g., curl) made to 'https://localhost:7001/api/createEvent' that includes parameters for source ('AI_Analytics') and caption ('Loitering_Detected')."
+    },
+    {
+      "id": "verify_bookmark_timeline",
+      "description": "Confirm the bookmark appears on the camera's timeline",
+      "points": 30,
+      "visual_evidence": "The Nx Witness interface (camera view or bookmark log) showing a newly created bookmark for 'Loitering_Detected' associated with the 'Parking Lot Camera'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_web_admin_interaction",
+      "description": "Verify the agent interacted with the actual Nx Witness Web Admin interface",
+      "visual_evidence": "The screenshots should show the genuine Nx Witness web interface with standard UI elements, not a text editor, mockup, or local HTML file."
+    },
+    {
+      "id": "actual_api_execution",
+      "description": "Verify the API request was actually executed and not just typed",
+      "visual_evidence": "The terminal or API client should show a successful HTTP response (e.g., 200 OK or JSON response from the Nx server) following the request to /api/createEvent."
+    },
+    {
+      "id": "genuine_bookmark_verification",
+      "description": "Verify the bookmark verification is authentic",
+      "visual_evidence": "The bookmark must be visible within the actual VMS interface or timeline, without signs of browser developer tools (Inspect Element) being used to fake the UI text."
+    }
+  ],
+  "privileged_info_for_vlm": "The target camera for the bookmark must be exactly 'Parking Lot Camera'. The Generic Event rule must use 'AI_Analytics' as the event source and 'Loitering_Detected' as the event caption. The API endpoint used to simulate the event must be 'https://localhost:7001/api/createEvent'."
+}

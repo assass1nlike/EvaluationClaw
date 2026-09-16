@@ -1,0 +1,33 @@
+{
+  "id": "noise_filter_evaluation@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "You are a materials scientist establishing a standard image preprocessing pipeline. Evaluate three noise reduction filters—Gaussian Blur (sigma=2.0), Median (radius=2), and Mean (radius=2)—on the noisy fluorescence microscopy image located at ~/Fiji_Data/raw/filter_test/test_image.tif.\n\nCalculate the Signal-to-Noise Ratio (SNR = Mean / StdDev) for the original image and each filtered version. Save the processed images as gaussian_filtered.tif, median_filtered.tif, and mean_filtered.tif to ~/Fiji_Data/results/filter_comparison/.\n\nGenerate a comparison CSV named filter_comparison.csv in ~/Fiji_Data/results/filter_comparison/ with columns for filter, mean, stddev, min, max, and snr for the original and all filtered versions. Additionally, save a text report named filter_report.txt in the same folder that lists all SNR values and identifies the filter with the highest SNR as the \"best\" filter.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/noise_filter_evaluation/setup_task.sh",
+    "post_task": "/workspace/tasks/noise_filter_evaluation/export_result.sh"
+  },
+  "metadata": {
+    "input_image": "~/Fiji_Data/raw/filter_test/test_image.tif",
+    "output_dir": "~/Fiji_Data/results/filter_comparison",
+    "filters": [
+      "gaussian",
+      "median",
+      "mean"
+    ],
+    "sigma": 2.0,
+    "radius": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_noise_filter_evaluation"
+    }
+  }
+}

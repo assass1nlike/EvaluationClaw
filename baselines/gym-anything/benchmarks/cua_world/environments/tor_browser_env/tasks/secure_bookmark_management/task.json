@@ -1,0 +1,56 @@
+{
+  "id": "secure_bookmark_management@1",
+  "version": "1.0",
+  "env_id": "tor_browser_env@0.1",
+  "description": "You are an investigative journalist at a major newspaper building a secure, organized research bookmark library in Tor Browser for ongoing investigative work. Confirm Tor is working at https://check.torproject.org/ and bookmark the page as 'Tor Exit Node Checker' within a folder named 'Secure Research Sources'. Also bookmark the DuckDuckGo onion service (https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion/) in the 'Secure Research Sources' folder with the title 'DuckDuckGo Private Search'. Finally, search DuckDuckGo onion for 'press freedom index reporters without borders' and bookmark the first search result in a new folder named 'Press Freedom Research'.",
+  "difficulty": "hard",
+  "tags": [
+    "tor",
+    "bookmarks",
+    "onion-service",
+    "research",
+    "journalist"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 65,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/secure_bookmark_management/setup_task.sh",
+    "post_task": "/workspace/tasks/secure_bookmark_management/export_result.sh"
+  },
+  "metadata": {
+    "required_folders": [
+      "Secure Research Sources",
+      "Press Freedom Research"
+    ],
+    "required_bookmarks": {
+      "Secure Research Sources": [
+        {
+          "title": "DuckDuckGo Private Search",
+          "url_contains": "duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion"
+        },
+        {
+          "title": "Tor Exit Node Checker",
+          "url_contains": "check.torproject.org"
+        }
+      ],
+      "Press Freedom Research": [
+        {
+          "count_min": 1
+        }
+      ]
+    },
+    "required_history_urls": [
+      "check.torproject.org",
+      "duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_secure_bookmark_management"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "concentrated_solar_power_tower@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "Design a Concentrated Solar Power (CSP) pilot plant in Las Vegas by placing a 50-meter Solar Tower surrounded by at least 30 Heliostats, and analyze its yield on the Winter Solstice.\n\nInstructions:\n1. Draw a Foundation large enough to hold the solar field (e.g., 100m x 100m).\n2. Place a Solar Tower in the center of the foundation and set its height to approximately 50 meters.\n3. Place a field of at least 30 Heliostats (tracking mirrors) on the foundation, surrounding the tower. (You can place these manually or use the software's field-generation features).\n4. Change the project location/city to Las Vegas, NV to simulate a high Direct Normal Irradiance (DNI) environment.\n5. Set the simulation date to December 21 (Winter Solstice) to analyze the worst-case winter yield.\n6. Run the Daily Yield Analysis (or Daily Environmental Temperature/Solar Radiation analysis) to calculate the concentrated energy arriving at the tower.\n7. Save the project to exactly: ~/Documents/Energy3D/csp_las_vegas.ng3",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/concentrated_solar_power_tower/setup_task.sh",
+    "post_task": "/workspace/tasks/concentrated_solar_power_tower/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/Energy3D/csp_las_vegas.ng3",
+    "expected_min_heliostats": 30,
+    "expected_city": "Las Vegas",
+    "occupation": "Solar CSP Engineer",
+    "industry": "Renewable Energy Utilities"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_csp_design"
+    }
+  }
+}

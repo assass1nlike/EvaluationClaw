@@ -1,0 +1,53 @@
+{
+  "task_id": "fiscal_period_close_reconciliation@1",
+  "task_completion": [
+    {
+      "id": "connect_to_database",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "A database client (e.g., DBeaver, SQL Developer, or terminal) showing an active connection to localhost:1521/XEPDB1 with the user 'fiscal_admin'."
+    },
+    {
+      "id": "resolve_discrepancies",
+      "description": "Resolve discrepancies in the JOURNAL_ENTRIES and JOURNAL_LINES tables.",
+      "points": 30,
+      "visual_evidence": "Execution of SQL UPDATE, DELETE, or INSERT statements (or GUI data edits) targeting unbalanced entries, duplicates, intercompany eliminations, and CapEx/OpEx misclassifications in the JOURNAL_ENTRIES and JOURNAL_LINES tables."
+    },
+    {
+      "id": "create_trial_balance_mv",
+      "description": "Create a materialized view named TRIAL_BALANCE_MV with ROLLUP.",
+      "points": 20,
+      "visual_evidence": "Execution of a 'CREATE MATERIALIZED VIEW TRIAL_BALANCE_MV...' statement that includes a 'ROLLUP' clause for subtotals and grand totals, or the materialized view appearing in the database schema browser."
+    },
+    {
+      "id": "create_consolidated_report_vw",
+      "description": "Create a view named CONSOLIDATED_REPORT_VW showing the income statement.",
+      "points": 20,
+      "visual_evidence": "Execution of a 'CREATE VIEW CONSOLIDATED_REPORT_VW...' statement that explicitly includes lines for Revenue, COGS, Gross Profit, SGA Expenses, Operating Income, and Net Income, or the view appearing in the database schema browser."
+    },
+    {
+      "id": "export_csv_results",
+      "description": "Export the corrected trial balance to /home/ga/fiscal_close_results.csv.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal output, or text editor showing the file '/home/ga/fiscal_close_results.csv' containing the columns ACCOUNT_CATEGORY, ACCOUNT_NAME, DEBIT_BALANCE, and CREDIT_BALANCE."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Verify the agent interacted with the actual Oracle database to perform the tasks.",
+      "visual_evidence": "Screenshots should show a genuine database client (like DBeaver, SQL Developer, or sqlplus) executing queries and returning results, rather than just typing SQL into a text editor without executing it."
+    },
+    {
+      "id": "genuine_csv_export",
+      "description": "Verify the CSV file contains actual exported data and wasn't just manually mocked.",
+      "visual_evidence": "The CSV file should contain realistic accounting data rows matching the requested columns, not just empty headers or placeholder text copied from the prompt."
+    },
+    {
+      "id": "sequential_execution",
+      "description": "Verify the agent didn't skip the data correction steps before exporting.",
+      "visual_evidence": "There should be evidence of the data correction queries and view creations being executed successfully before the final CSV export takes place."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

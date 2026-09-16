@@ -1,0 +1,53 @@
+{
+  "id": "migrate_hotel_type_to_tags@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Refactor the 'Hotels' class in the 'demodb' database by migrating the single 'Type' property (String) to a 'Tags' property (Embedded Set of Strings) to allow multiple categories per hotel. The new 'Tags' property must contain the original 'Type' value for each record. Additionally, enrich the data by adding the tag 'Luxury' to any hotel with 'Palace' in its name, the tag 'Resort' to any hotel with 'Resort' in its name, and the tag 'Wellness' to any hotel with 'Spa' in its name. Once the data migration and enrichment are complete, remove the legacy 'Type' property from the schema.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_hotel_type_to_tags/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_hotel_type_to_tags/export_result.sh"
+  },
+  "metadata": {
+    "database": "demodb",
+    "class": "Hotels",
+    "old_property": "Type",
+    "new_property": "Tags",
+    "test_cases": [
+      {
+        "name": "Copacabana Palace",
+        "original_type": "Historic",
+        "expected_tags": [
+          "Historic",
+          "Luxury"
+        ]
+      },
+      {
+        "name": "Terme di Saturnia Spa",
+        "original_type": "Luxury",
+        "expected_tags": [
+          "Luxury",
+          "Wellness"
+        ]
+      },
+      {
+        "name": "Hotel Artemide",
+        "original_type": "Boutique",
+        "expected_tags": [
+          "Boutique"
+        ]
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_hotel_type_to_tags"
+    }
+  }
+}

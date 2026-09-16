@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_custom_message_group@1",
+  "task_completion": [
+    {
+      "id": "open_config_file",
+      "description": "Open the scmaster configuration file",
+      "points": 15,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit) or terminal output showing the contents of the file '/home/ga/seiscomp/etc/scmaster.cfg'."
+    },
+    {
+      "id": "locate_production_queue",
+      "description": "Locate the production queue groups parameter",
+      "points": 15,
+      "visual_evidence": "The parameter 'queues.production.groups' is visible within the configuration file being viewed or edited."
+    },
+    {
+      "id": "add_risk_group",
+      "description": "Add the RISK group to the production queue",
+      "points": 30,
+      "visual_evidence": "The string 'RISK' is added to the comma-separated list of values for the 'queues.production.groups' parameter."
+    },
+    {
+      "id": "save_config_file",
+      "description": "Save the modified configuration file",
+      "points": 10,
+      "visual_evidence": "A confirmation message in the text editor (e.g., 'Wrote X lines' in nano) or the terminal prompt returning after the editor is closed, indicating the file was saved."
+    },
+    {
+      "id": "restart_scmaster_service",
+      "description": "Restart the scmaster service to load the new group",
+      "points": 30,
+      "visual_evidence": "A terminal command such as 'seiscomp restart scmaster' or 'seiscomp restart' is executed, followed by output indicating that the scmaster service is stopping and starting."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "authentic_file_path",
+      "description": "Verify the correct configuration file is edited",
+      "visual_evidence": "The file path shown in the editor or command line must be exactly '/home/ga/seiscomp/etc/scmaster.cfg', not a copy or a similarly named file in a different directory."
+    },
+    {
+      "id": "authentic_restart_command",
+      "description": "Verify the service restart was performed genuinely",
+      "visual_evidence": "The agent uses the actual 'seiscomp' command-line utility to restart the service, rather than running a mock script or echoing success messages."
+    },
+    {
+      "id": "no_echo_faking",
+      "description": "Verify the agent did not fake terminal outputs",
+      "visual_evidence": "There should be no 'echo' commands used to print fake success messages or fake file contents to the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The target configuration file is located at '/home/ga/seiscomp/etc/scmaster.cfg'. The agent must modify the 'queues.production.groups' parameter to include the new group 'RISK'. Finally, the agent must restart the scmaster service (typically using 'seiscomp restart scmaster' or 'seiscomp restart') to ensure the new group is loaded and active in the running system."
+}

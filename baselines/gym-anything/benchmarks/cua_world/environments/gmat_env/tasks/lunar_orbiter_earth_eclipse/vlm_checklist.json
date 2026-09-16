@@ -1,0 +1,53 @@
+{
+  "task_id": "lunar_orbiter_earth_eclipse@1",
+  "task_completion": [
+    {
+      "id": "open_baseline_script",
+      "description": "The agent opens the provided baseline script to begin configuring the mission.",
+      "points": 10,
+      "visual_evidence": "GMAT application open with lunar_baseline.script loaded, or a text editor showing the contents of ~/Documents/missions/lunar_baseline.script."
+    },
+    {
+      "id": "configure_propagation_duration",
+      "description": "The agent configures the orbit propagation to last for at least 3 days starting from March 13.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI showing a Propagate command configured for at least 3 days (e.g., ElapsedDays = 3), or the script text modified to reflect this propagation time and epoch."
+    },
+    {
+      "id": "configure_eclipse_locator",
+      "description": "The agent configures an Eclipse Locator to track occultations by Earth and Luna and output a report.",
+      "points": 20,
+      "visual_evidence": "GMAT EclipseLocator properties window open showing OccultingBodies set to Earth and Luna, and the output file path set to ~/GMAT_output/EclipseReport.txt, or equivalent script code."
+    },
+    {
+      "id": "generate_eclipse_report",
+      "description": "The agent runs the simulation and successfully generates the eclipse report.",
+      "points": 20,
+      "visual_evidence": "GMAT mission run completing successfully, or a terminal/file explorer/text editor showing the newly created EclipseReport.txt in the ~/GMAT_output/ directory."
+    },
+    {
+      "id": "record_max_duration_json",
+      "description": "The agent creates the JSON file containing the maximum umbra duration.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing the creation and contents of ~/GMAT_output/eclipse_analysis.json with the exact key 'max_umbra_duration_seconds' and a numerical value (expected to be > 3500.0)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gmat_execution",
+      "description": "The agent actually ran the GMAT simulation rather than manually typing a fake report.",
+      "visual_evidence": "Screenshots showing the GMAT GUI actively running the mission, or terminal commands executing the GMAT binary to process the script."
+    },
+    {
+      "id": "data_provenance",
+      "description": "The agent extracted the maximum duration value from the generated report rather than hallucinating it.",
+      "visual_evidence": "The agent viewing the contents of EclipseReport.txt on screen to identify the longest continuous Umbra duration before writing it to the JSON file."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "The agent placed the output files in the exact requested directories.",
+      "visual_evidence": "File paths in the terminal or text editor explicitly showing /home/ga/GMAT_output/ for both EclipseReport.txt and eclipse_analysis.json."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline script is located at /home/ga/Documents/missions/lunar_baseline.script. The eclipse report must be saved to /home/ga/GMAT_output/EclipseReport.txt. The final JSON output must be saved to /home/ga/GMAT_output/eclipse_analysis.json. The correct maximum umbra duration is expected to be at least 3500.0 seconds (typically around 3900 seconds for the March 14, 2025 total lunar eclipse)."
+}

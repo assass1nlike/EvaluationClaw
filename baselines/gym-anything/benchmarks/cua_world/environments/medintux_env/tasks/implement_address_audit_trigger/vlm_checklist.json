@@ -1,0 +1,48 @@
+{
+  "task_id": "implement_address_audit_trigger@1",
+  "task_completion": [
+    {
+      "id": "sql_file_exists",
+      "description": "The file ~/audit_implementation.sql is created and contains SQL commands.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output (e.g., cat, nano, vim) showing the contents of ~/audit_implementation.sql."
+    },
+    {
+      "id": "audit_table_sql",
+      "description": "The SQL file contains the correct CREATE TABLE statement for the audit log.",
+      "points": 20,
+      "visual_evidence": "The SQL script includes 'CREATE TABLE address_audit_log' with columns for log_id, patient_guid, old_address, new_address, and change_date."
+    },
+    {
+      "id": "trigger_sql",
+      "description": "The SQL file contains the CREATE TRIGGER statement on the correct table.",
+      "points": 20,
+      "visual_evidence": "The SQL script includes 'CREATE TRIGGER trg_audit_address_update' (AFTER or BEFORE) UPDATE ON 'fchpat'."
+    },
+    {
+      "id": "trigger_logic",
+      "description": "The trigger logic correctly captures the old and new addresses.",
+      "points": 20,
+      "visual_evidence": "The trigger body contains an INSERT INTO address_audit_log statement that references OLD.FchPat_Adresse and NEW.FchPat_Adresse, as well as the patient GUID (OLD.FchPat_GUID_Doss or NEW.FchPat_GUID_Doss)."
+    },
+    {
+      "id": "implementation_executed",
+      "description": "The SQL commands were executed in the MySQL database.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing the execution of the SQL file (e.g., 'mysql -u root DrTuxTest < ~/audit_implementation.sql') or a MySQL shell showing 'Query OK' for the table and trigger creation."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "real_database_interaction",
+      "description": "The agent interacted with the actual MySQL database.",
+      "visual_evidence": "Terminal commands show interaction with the 'mysql' client and the 'DrTuxTest' database, rather than SQLite or a mock environment."
+    },
+    {
+      "id": "valid_sql_syntax",
+      "description": "The agent wrote genuine SQL commands.",
+      "visual_evidence": "The contents of audit_implementation.sql are valid SQL statements, not just placeholder text or a script that bypasses the actual database implementation."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is 'DrTuxTest' in MySQL. The target table is 'fchpat'. The column for patient address is 'FchPat_Adresse'. The column for patient GUID is 'FchPat_GUID_Doss'. The audit table must be named 'address_audit_log' and the trigger must be named 'trg_audit_address_update'. The SQL file must be saved to '/home/ga/audit_implementation.sql'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "construction_work_schedule@1",
+  "task_completion": [
+    {
+      "id": "read_schedule_brief",
+      "description": "The agent opened and read the preliminary construction schedule brief.",
+      "points": 10,
+      "visual_evidence": "A text editor or document viewer is open showing the contents of 'contractor_schedule_brief.txt' from the Desktop."
+    },
+    {
+      "id": "create_work_schedule",
+      "description": "The agent created a work schedule in Bonsai/BlenderBIM.",
+      "points": 20,
+      "visual_evidence": "The Bonsai/BlenderBIM interface shows the Sequence/Scheduling panel with a new schedule created (expected name: 'FZK-Haus Construction Programme')."
+    },
+    {
+      "id": "add_tasks_and_durations",
+      "description": "The agent added at least 5 construction tasks with assigned durations.",
+      "points": 30,
+      "visual_evidence": "The task list in the scheduling panel displays 5 or more distinct tasks (e.g., representing major build phases) with visible durations, start dates, or finish dates."
+    },
+    {
+      "id": "link_physical_elements",
+      "description": "The agent linked physical building elements to the construction tasks.",
+      "points": 30,
+      "visual_evidence": "The interface shows 3D elements (like walls, slabs, windows) assigned to tasks. This can be seen in the 'Assigned Objects', 'Products', or 'Elements' sub-panel of a selected task, or elements highlighting in the 3D viewport when a task is selected."
+    },
+    {
+      "id": "save_ifc_file",
+      "description": "The agent saved the completed IFC project to the specified directory.",
+      "points": 10,
+      "visual_evidence": "A 'Save As' or export dialog in Blender showing the file being saved to '/home/ga/BIMProjects/fzk_construction_schedule.ifc', or a file manager window showing the saved file in that location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Bonsai/BlenderBIM graphical user interface to create the schedule and assign elements.",
+      "visual_evidence": "Screenshots show active interaction with Blender's panels, buttons, and 3D viewport, rather than terminal commands or Python scripts modifying the IFC file directly."
+    },
+    {
+      "id": "genuine_element_selection",
+      "description": "The agent genuinely selected 3D model elements to link to tasks.",
+      "visual_evidence": "The 3D viewport shows building elements being actively selected (highlighted in orange/yellow) before being assigned to the schedule tasks."
+    },
+    {
+      "id": "genuine_file_save",
+      "description": "The agent saved the file using the application's native save functionality.",
+      "visual_evidence": "The Blender/Bonsai save project button or file menu is used, rather than terminal commands like 'cp' or 'touch' to fake the output file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected schedule name to be created in Bonsai/BlenderBIM is 'FZK-Haus Construction Programme'. The schedule must contain a minimum of 5 tasks. The FZK-Haus model contains walls, doors, windows, and slabs; look for these specific elements being linked to the tasks. The final output must be saved exactly as '/home/ga/BIMProjects/fzk_construction_schedule.ifc'. The brief is located at '/home/ga/Desktop/contractor_schedule_brief.txt'."
+}

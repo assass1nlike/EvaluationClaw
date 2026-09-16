@@ -1,0 +1,28 @@
+{
+  "id": "compute_hydrograph_shape@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "You are a hydrologist analyzing the Muncie, Indiana (White River) HEC-RAS model to characterize the shape of the simulated flood hydrograph for regional synthetic unit hydrograph parameters. Using the HDF5 plan file at /home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf, extract flow (Q in cfs) time series for three cross-sections: the most upstream (highest River Station), the approximate midpoint, and the most downstream (lowest River Station). \n\nFor each cross-section, compute the following hydrograph shape parameters:\n- Q_base_cfs: Minimum flow during the simulation\n- Q_peak_cfs: Maximum flow during the simulation\n- T_rise_hr: Time (hours) from when flow first exceeds Q_base + 10% of (Q_peak - Q_base) to the time of Q_peak\n- T_rec_hr: Time (hours) from Q_peak to when flow last drops below Q_base + 10% of (Q_peak - Q_base)\n- R_ratio: T_rise / T_rec\n- W50_hr: Total duration (hours) where flow exceeds Q_base + 50% of (Q_peak - Q_base)\n- W75_hr: Total duration (hours) where flow exceeds Q_base + 75% of (Q_peak - Q_base)\n- P_coeff: Peakedness coefficient = Q_peak / Q_mean, where Q_mean is the average flow during the period when flow exceeds the 10% threshold\n\nSave the results to /home/ga/Documents/hec_ras_results/hydrograph_shape_params.csv with columns: River_Station, Q_base_cfs, Q_peak_cfs, T_rise_hr, T_rec_hr, R_ratio, W50_hr, W75_hr, P_coeff. Additionally, save a summary report to /home/ga/Documents/hec_ras_results/hydrograph_shape_summary.txt containing the station IDs, a formatted table of all parameters, and a classification for each station as 'fast-rising' (R_ratio < 0.7), 'symmetric' (0.7 <= R_ratio <= 1.3), or 'slow-rising' (R_ratio > 1.3). \n\nPython 3 with h5py, numpy, and scipy is available for processing. Use the time step interval from the HDF5 file metadata or infer it from the data structure.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_hydrograph_shape/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_hydrograph_shape/export_result.sh"
+  },
+  "metadata": {
+    "output_csv": "/home/ga/Documents/hec_ras_results/hydrograph_shape_params.csv",
+    "output_summary": "/home/ga/Documents/hec_ras_results/hydrograph_shape_summary.txt",
+    "hdf_file": "/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf",
+    "reference_file_path": "/tmp/hydrograph_shape_reference.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_hydrograph_shape"
+    }
+  }
+}

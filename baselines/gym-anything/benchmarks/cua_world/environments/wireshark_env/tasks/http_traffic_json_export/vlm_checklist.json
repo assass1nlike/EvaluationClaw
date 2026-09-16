@@ -1,0 +1,53 @@
+{
+  "task_id": "http_traffic_json_export@1",
+  "task_completion": [
+    {
+      "id": "access_capture_file",
+      "description": "Agent references or opens the input capture file.",
+      "points": 10,
+      "visual_evidence": "Look for the file path '/home/ga/Documents/captures/http.cap' in a terminal command (e.g., tshark -r), a Python script, or opened in the Wireshark GUI."
+    },
+    {
+      "id": "filter_http_requests",
+      "description": "Agent applies a filter to isolate HTTP requests and exclude responses.",
+      "points": 20,
+      "visual_evidence": "Look for a filter like 'http.request' or 'http.request.method' in a tshark command (using the -Y flag), Wireshark display filter bar, or script logic."
+    },
+    {
+      "id": "specify_export_fields",
+      "description": "Agent specifies the 6 required fields for extraction.",
+      "points": 30,
+      "visual_evidence": "Look for the exact fields 'frame.number', 'frame.time_epoch', 'ip.src', 'http.host', 'http.request.method', and 'http.request.uri' being specified (e.g., multiple '-e' flags in a tshark command, or explicit field selections in a script)."
+    },
+    {
+      "id": "format_as_json",
+      "description": "Agent configures the output format to be a JSON array.",
+      "points": 20,
+      "visual_evidence": "Look for the '-T json' flag in a tshark command, JSON formatting/dumping logic in a script, or JSON export selection in a GUI."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Agent saves the extracted data to the specified output path.",
+      "points": 20,
+      "visual_evidence": "Look for the output path '/home/ga/Documents/captures/http_requests.json' in a terminal output redirection ('>'), script file writing logic, or a save dialog."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_tool_usage",
+      "description": "Verify that the agent uses a packet analysis tool (like tshark, Wireshark, or a script) to process the file, rather than manually typing the JSON output.",
+      "visual_evidence": "Look for execution of commands like 'tshark' or a Python script using a pcap parsing library, rather than a text editor manually constructing the JSON."
+    },
+    {
+      "id": "no_hardcoded_json",
+      "description": "Ensure the agent does not manually write or echo hardcoded JSON data into the output file.",
+      "visual_evidence": "Look at terminal commands or scripts to ensure the agent isn't just using 'echo' or pasting pre-written JSON containing the frame details directly into the output file."
+    },
+    {
+      "id": "correct_file_interaction",
+      "description": "Check that the agent interacts with the actual input file and does not create a dummy file.",
+      "visual_evidence": "Ensure the agent reads from the exact path '/home/ga/Documents/captures/http.cap' and does not create a fake file with that name to bypass extraction."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file http.cap contains exactly 2 HTTP GET requests (Frame 4 and Frame 18). Frame 4 is a request from IP 145.254.160.237 to www.ethereal.com for /download.html at epoch time 1084443428.222534000. Frame 18 is a request to pagead2.googlesyndication.com. The output JSON must be an array containing these two requests with the 6 specified fields: frame.number, frame.time_epoch, ip.src, http.host, http.request.method, and http.request.uri."
+}

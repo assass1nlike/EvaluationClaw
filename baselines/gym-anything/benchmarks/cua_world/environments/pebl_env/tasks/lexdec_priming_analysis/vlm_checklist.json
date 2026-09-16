@@ -1,0 +1,53 @@
+{
+  "task_id": "lexdec_priming_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_dataset",
+      "description": "Agent accesses or reads the lexical decision dataset.",
+      "points": 10,
+      "visual_evidence": "Look for terminal commands (e.g., cat, head, pandas read_csv) or a script opening '~/pebl/data/lexdec_priming_data.csv'."
+    },
+    {
+      "id": "write_computation_logic",
+      "description": "Agent writes code to compute semantic priming, lexicality effects, and d-prime with standard corrections.",
+      "points": 25,
+      "visual_evidence": "Look for a script (e.g., Python) containing formulas for priming (unrelated_word RT - related_word RT), lexicality (nonword RT - word RT), and d-prime (Z(hit rate) - Z(false alarm rate)) including corrections replacing 0 with 0.5/N and 1 with (N-0.5)/N."
+    },
+    {
+      "id": "write_exclusion_logic",
+      "description": "Agent explicitly excludes participant 'sub-99' from the group analysis.",
+      "points": 20,
+      "visual_evidence": "Look for code filtering out 'sub-99' (e.g., `if sub != 'sub-99':` or pandas filtering) before calculating group means, and marking them with 'excluded: true' in the participant list."
+    },
+    {
+      "id": "execute_analysis_script",
+      "description": "Agent runs the analysis script to process the data.",
+      "points": 15,
+      "visual_evidence": "Look for terminal execution of the script (e.g., `python analyze.py`) and any console output indicating successful processing."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Agent saves the final JSON report with the correct structure.",
+      "points": 30,
+      "visual_evidence": "Look for a file explorer, terminal command (e.g., `cat ~/pebl/analysis/priming_report.json`), or editor showing the generated JSON file containing 'participants' and 'group_means' keys."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_computation",
+      "description": "Agent actually runs code to compute the values rather than hardcoding dummy values.",
+      "visual_evidence": "Ensure the agent wrote and executed a script (e.g., Python, R) to process the CSV, rather than just typing out a mock JSON file."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "Agent does not hallucinate the JSON contents without reading the CSV file.",
+      "visual_evidence": "Check that the agent actually loaded the CSV file into their script before generating the JSON output."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The JSON file is saved to the correct directory.",
+      "visual_evidence": "Ensure the file is saved exactly at '~/pebl/analysis/priming_report.json' and not just printed to standard output or saved in a temporary directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 20 real participants and 1 contaminated participant ('sub-99'). 'sub-99' is a random responder with chance accuracy (~50%), ~0ms priming/lexicality effects, and d' near 0. The output must be saved to '/home/ga/pebl/analysis/priming_report.json'. The verifier uses tolerance thresholds: 15ms for individual priming, 0.5 for individual d-prime, 10ms for group mean priming, and 0.3 for group mean d-prime."
+}

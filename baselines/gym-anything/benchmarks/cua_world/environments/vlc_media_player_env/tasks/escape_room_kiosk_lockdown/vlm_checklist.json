@@ -1,0 +1,53 @@
+{
+  "task_id": "escape_room_kiosk_lockdown@1",
+  "task_completion": [
+    {
+      "id": "transcoded_video_exists",
+      "description": "Verify the transcoded video file was created at the correct path.",
+      "points": 10,
+      "visual_evidence": "Look for a file named 'kiosk_loop.mp4' in the '/home/ga/Videos/' directory via a file manager or terminal 'ls' command."
+    },
+    {
+      "id": "video_properties_correct",
+      "description": "Verify the video was transcoded to H.264, 1280x720 resolution, silent (no audio), and inverted colors.",
+      "points": 30,
+      "visual_evidence": "Look for the terminal command used to create the video (e.g., an 'ffmpeg' command containing flags like '-c:v libx264', '-s 1280x720', '-an' for no audio, and '-vf negate' for inverted colors) or an 'ffprobe'/'MediaInfo' output confirming these properties."
+    },
+    {
+      "id": "vlc_config_created",
+      "description": "Verify the VLC configuration file was created with the exact required settings.",
+      "points": 30,
+      "visual_evidence": "Look for a text editor or terminal output ('cat') showing the contents of '/home/ga/Documents/kiosk_vlcrc'. It must contain: 'fullscreen=1', 'loop=1' (or 'repeat=1'), 'video-title-show=0', 'key-quit=Unset', and 'key-play-pause=Unset'."
+    },
+    {
+      "id": "bash_script_created",
+      "description": "Verify the bash script was created to launch VLC with the custom config and video.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing the contents of '/home/ga/Desktop/start_kiosk.sh'. It should contain a command invoking 'vlc' (or 'cvlc'), pointing to the custom config file (e.g., '--config=/home/ga/Documents/kiosk_vlcrc') and the transcoded video ('/home/ga/Videos/kiosk_loop.mp4')."
+    },
+    {
+      "id": "bash_script_executable",
+      "description": "Verify the bash script was made executable.",
+      "points": 10,
+      "visual_evidence": "Look for a 'chmod +x /home/ga/Desktop/start_kiosk.sh' command in the terminal, or an 'ls -l' output showing execute ('x') permissions for the script."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_transcoding_performed",
+      "description": "Ensure the agent actually transcoded the video rather than faking the output file.",
+      "visual_evidence": "Look for evidence of a real transcoding process in the terminal (like ffmpeg progress logs) rather than just a 'touch' or 'mv' command to create a dummy 'kiosk_loop.mp4' file."
+    },
+    {
+      "id": "valid_config_format",
+      "description": "Ensure the VLC config file is formatted as actual configuration lines.",
+      "visual_evidence": "The contents of 'kiosk_vlcrc' should be formatted as line-by-line key-value pairs, not just a copy-pasted English sentence from the task description."
+    },
+    {
+      "id": "valid_script_format",
+      "description": "Ensure the bash script contains a genuine shell command.",
+      "visual_evidence": "The contents of 'start_kiosk.sh' should look like a valid bash script (ideally with a #!/bin/bash shebang) and a valid VLC command, not just a text description of what it should do."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output video path: /home/ga/Videos/kiosk_loop.mp4. Expected resolution: exactly 1280x720. Expected audio streams: 0 (must be silent). Expected VLC config path: /home/ga/Documents/kiosk_vlcrc. Expected bash script path: /home/ga/Desktop/start_kiosk.sh."
+}

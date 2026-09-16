@@ -1,0 +1,29 @@
+{
+  "id": "backtest_strategy_and_export@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "As a quantitative analyst, backtest the built-in SampleMACrossOver strategy on SPY (S&P 500 ETF) using daily bars from January 2023 through December 2024. Export the complete list of executed trades to C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\spy_backtest_trades.csv. Login credentials: Docker / GymAnything123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\backtest_strategy_and_export\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\backtest_strategy_and_export\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "SPY",
+    "strategy": "SampleMACrossOver",
+    "start_date": "2023-01-03",
+    "end_date": "2024-12-31",
+    "bar_type": "Daily",
+    "expected_output_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\spy_backtest_trades.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_backtest_strategy_and_export"
+    }
+  }
+}

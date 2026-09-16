@@ -1,0 +1,48 @@
+{
+  "id": "chem101_exam_review_calendar_events@1",
+  "version": "1.0",
+  "env_id": "canvas_lms_env@0.1",
+  "description": "Log in to Canvas as admin (canvas@example.edu / canvas-docker) and create two events for the 'CHEM101' course calendar. The 'Final Exam Review Session' event must be scheduled 7 to 14 days from today from 6:00 PM to 8:00 PM, with 'Science Building Room 204' in the location/description and 'comprehensive review' and 'practice problems' in the description. The 'Drop-in Office Hours - Final Prep' event must be scheduled exactly one day before the review session from 2:00 PM to 3:00 PM, with 'Faculty Office 312' in the location/description and 'one-on-one' and 'last chance'",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chem101_exam_review_calendar_events/setup_task.sh",
+    "post_task": "/workspace/tasks/chem101_exam_review_calendar_events/export_result.sh"
+  },
+  "metadata": {
+    "course_code": "CHEM101",
+    "event_1": {
+      "title": "Final Exam Review Session",
+      "keywords": [
+        "comprehensive review",
+        "practice problems"
+      ],
+      "location_keyword": "Science Building Room 204",
+      "duration_minutes": 120,
+      "start_hour": 18,
+      "future_days_min": 7,
+      "future_days_max": 14
+    },
+    "event_2": {
+      "title": "Drop-in Office Hours - Final Prep",
+      "keywords": [
+        "one-on-one",
+        "last chance"
+      ],
+      "location_keyword": "Faculty Office 312",
+      "duration_minutes": 60,
+      "start_hour": 14,
+      "relative_day_offset": -1
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chem101_exam_review_calendar_events"
+    }
+  }
+}

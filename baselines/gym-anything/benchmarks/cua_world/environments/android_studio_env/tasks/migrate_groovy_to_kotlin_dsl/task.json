@@ -1,0 +1,40 @@
+{
+  "id": "migrate_groovy_to_kotlin_dsl@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Convert the 'WeatherApp' project's build configuration from Groovy DSL (.gradle) to Kotlin DSL (.gradle.kts). This migration must cover settings.gradle, the root build.gradle, and app/build.gradle. The original .gradle files should be removed upon completion. The task is successful if the project builds using './gradlew assembleDebug'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_groovy_to_kotlin_dsl/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_groovy_to_kotlin_dsl/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/WeatherApp",
+    "expected_files": [
+      "settings.gradle.kts",
+      "build.gradle.kts",
+      "app/build.gradle.kts"
+    ],
+    "forbidden_files": [
+      "settings.gradle",
+      "build.gradle",
+      "app/build.gradle"
+    ],
+    "agp_version": "8.2.0",
+    "kotlin_version": "1.9.0",
+    "compile_sdk": 34,
+    "min_sdk": 24,
+    "app_id": "com.example.weatherapp"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migration"
+    }
+  }
+}

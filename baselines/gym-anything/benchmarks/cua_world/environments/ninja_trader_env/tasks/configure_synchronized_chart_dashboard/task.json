@@ -1,0 +1,33 @@
+{
+  "id": "configure_synchronized_chart_dashboard@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "You are a day trader who needs to monitor SPY, AAPL, and MSFT simultaneously. Create a workspace in NinjaTrader 8 featuring three separate chart windows for these symbols. Synchronize the charts using 'Green' interval linking and enable 'Global Crosshair' so the cursor is visible across all windows. Set the timeframe for the charts to 60-minute bars and save the workspace.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_synchronized_chart_dashboard\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_synchronized_chart_dashboard\\export_result.ps1"
+  },
+  "metadata": {
+    "instruments": [
+      "SPY",
+      "AAPL",
+      "MSFT"
+    ],
+    "expected_link_color": "Green",
+    "expected_crosshair": "Global",
+    "expected_period_value": 60,
+    "expected_period_type": "Minute"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_synchronized_chart_dashboard"
+    }
+  }
+}

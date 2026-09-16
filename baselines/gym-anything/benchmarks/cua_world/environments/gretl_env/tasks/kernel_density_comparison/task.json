@@ -1,0 +1,36 @@
+{
+  "id": "kernel_density_comparison@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform a comparative distribution analysis on the 'food.gdt' dataset by categorizing 'food_exp' based on income levels. Create a dummy variable 'high_income' (1 if 'income' > 20, 0 otherwise) and derive two series: 'food_hi' (containing 'food_exp' values where high_income is 1) and 'food_lo' (containing 'food_exp' values where high_income is 0). Save the summary statistics for these variables to '/home/ga/Documents/gretl_output/group_stats.txt' and export a combined Kernel Density Estimation (KDE) graph for both series to '/home/ga/Documents/gretl_output/kde_comparison.png'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/kernel_density_comparison/setup_task.sh",
+    "post_task": "/workspace/tasks/kernel_density_comparison/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "output_stats": "/home/ga/Documents/gretl_output/group_stats.txt",
+    "output_image": "/home/ga/Documents/gretl_output/kde_comparison.png",
+    "threshold_income": 20,
+    "expected_mean_hi_range": [
+      300,
+      450
+    ],
+    "expected_mean_lo_range": [
+      150,
+      280
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_kernel_density_comparison"
+    }
+  }
+}

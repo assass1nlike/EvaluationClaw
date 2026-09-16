@@ -1,0 +1,53 @@
+{
+  "task_id": "enforce_dispo_timeouts@1",
+  "task_completion": [
+    {
+      "id": "campaign_created",
+      "description": "Verify the creation of a campaign with ID 'FASTTRACK', name 'Fast Track Outbound', and Active set to 'Y'.",
+      "points": 15,
+      "visual_evidence": "In the Vicidial Campaigns screen, look for 'FASTTRACK' in the campaign list or the Add/Modify Campaign screen showing Campaign ID 'FASTTRACK', Campaign Name 'Fast Track Outbound', and Active 'Y'."
+    },
+    {
+      "id": "campaign_dial_settings",
+      "description": "Verify the campaign dial settings are configured with Dial Method 'RATIO' and Auto Dial Level '1.0'.",
+      "points": 15,
+      "visual_evidence": "In the modify screen for the FASTTRACK campaign, look for the 'Dial Method' dropdown set to 'RATIO' and the 'Auto Dial Level' dropdown set to '1.0'."
+    },
+    {
+      "id": "custom_status_created",
+      "description": "Verify the creation of a custom status with ID 'DISPTO', Description 'Disposition Timeout', Selectable 'N', and Human Answer 'N'.",
+      "points": 20,
+      "visual_evidence": "In the Admin -> System Statuses screen, look for the status 'DISPTO' with Description 'Disposition Timeout', Selectable 'N', and Human Answer 'N', or the Add/Modify Status screen showing these exact values."
+    },
+    {
+      "id": "disposition_timeout_configured",
+      "description": "Verify the campaign enforces a 30-second disposition limit using the 'DISPTO' status.",
+      "points": 30,
+      "visual_evidence": "In the modify screen for the FASTTRACK campaign, look for 'Dispo Call Status' set to 'DISPTO' and 'Dispo Screen Time Limit' set to '30'."
+    },
+    {
+      "id": "wrapup_and_pause_configured",
+      "description": "Verify the campaign has 'Wrapup Seconds' set to 5 and 'Agent Pause After Each Call' set to 'N'.",
+      "points": 20,
+      "visual_evidence": "In the modify screen for the FASTTRACK campaign, look for the 'Wrapup Seconds' field set to '5' and the 'Agent Pause After Each Call' dropdown set to 'N'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Vicidial web administration interface to configure the settings.",
+      "visual_evidence": "Screenshots should show a web browser navigating the Vicidial admin GUI, not a text editor or script."
+    },
+    {
+      "id": "actual_submission",
+      "description": "Verify the settings were actually saved and submitted to the system.",
+      "visual_evidence": "Look for success messages (e.g., 'SUCCESS: CAMPAIGN ADDED', 'SUCCESS: STATUS ADDED') or screenshots showing the modified settings persisting in the detail view after saving."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "Verify the agent did not use terminal commands or direct database queries to bypass the web interface.",
+      "visual_evidence": "Absence of terminal windows executing mysql queries, curl commands, or API calls to configure the campaign or status."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Campaign ID: FASTTRACK. Target Status ID: DISPTO. Expected Disposition Screen Time Limit: 30 seconds. Expected Wrapup Seconds: 5 seconds."
+}

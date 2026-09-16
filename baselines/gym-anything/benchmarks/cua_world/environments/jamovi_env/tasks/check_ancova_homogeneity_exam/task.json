@@ -1,0 +1,37 @@
+{
+  "id": "check_ancova_homogeneity_exam@1",
+  "version": "1.0",
+  "env_id": "jamovi_env@0.1",
+  "description": "Verify the 'Homogeneity of Regression Slopes' assumption for an ANCOVA predicting 'Exam' scores from 'Anxiety' (covariate) and 'Gender' (grouping factor) using the data in '/home/ga/Documents/Jamovi/ExamAnxiety.csv'. Perform a visual inspection using a scatterplot with regression lines and a formal statistical test for the interaction between the covariate and grouping factor. Save the Jamovi project to '/home/ga/Documents/Jamovi/HomogeneityCheck.omv'. Create a report at '/home/ga/Documents/Jamovi/assumption_report.txt' containing the unstandardized coefficient (B) and p-value for the interaction term, and your conclusion (Assumption Met/Violated), using this exact format:\nInteraction_B=<value>\nInteraction_p=<value>\nConclusion=<Met or Violated>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/check_ancova_homogeneity_exam/setup_task.sh",
+    "post_task": "/workspace/tasks/check_ancova_homogeneity_exam/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/Jamovi/ExamAnxiety.csv",
+    "project_path": "/home/ga/Documents/Jamovi/HomogeneityCheck.omv",
+    "report_path": "/home/ga/Documents/Jamovi/assumption_report.txt",
+    "ground_truth_logic": "OLS(Exam ~ Anxiety * Gender)",
+    "scoring": {
+      "file_saved": 10,
+      "scatterplot_visible": 20,
+      "interaction_modeled": 20,
+      "coefficient_accuracy": 15,
+      "p_value_accuracy": 15,
+      "conclusion_correct": 10,
+      "plot_features": 10
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_check_ancova_homogeneity_exam"
+    }
+  }
+}

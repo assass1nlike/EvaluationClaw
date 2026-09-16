@@ -1,0 +1,53 @@
+{
+  "task_id": "standardized_patch_montage@1",
+  "task_completion": [
+    {
+      "id": "open_blobs_sample",
+      "description": "Open the 'Blobs (25K)' sample image.",
+      "points": 10,
+      "visual_evidence": "The 'blobs.gif' image window is visible in the ImageJ workspace."
+    },
+    {
+      "id": "extract_64x64_crops",
+      "description": "Extract four distinct 64x64 pixel crops of different blobs.",
+      "points": 20,
+      "visual_evidence": "Multiple small image windows (or a stack) showing cropped blobs. The window titles or ImageJ status bar should indicate dimensions of 64x64 pixels."
+    },
+    {
+      "id": "combine_into_stack",
+      "description": "Combine the four patch images into a Stack.",
+      "points": 20,
+      "visual_evidence": "An image window containing the cropped blobs with a scrollbar/slider at the bottom indicating it is a stack (e.g., showing '1/4' or similar slice indicators)."
+    },
+    {
+      "id": "create_montage",
+      "description": "Create a 2x2 montage from the stack with scale factor 1.0 and 0 border width.",
+      "points": 30,
+      "visual_evidence": "A new image window (typically titled 'Montage') showing a 2x2 grid of the four cropped blobs with no borders between them. The overall dimensions should appear as 128x128 pixels."
+    },
+    {
+      "id": "save_montage_png",
+      "description": "Save the resulting montage as a PNG to ~/ImageJ_Data/results/blobs_montage.png.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog box in ImageJ showing the correct directory (/home/ga/ImageJ_Data/results/), filename (blobs_montage.png), and format (PNG), or a file explorer showing the saved file in the correct location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_imagej_gui",
+      "description": "The agent used the ImageJ GUI to perform the cropping, stacking, and montage creation.",
+      "visual_evidence": "Screenshots show ImageJ menus (e.g., Image > Stacks > Images to Stack, Image > Stacks > Make Montage) and dialog boxes being used, rather than terminal commands like ImageMagick or Python scripts."
+    },
+    {
+      "id": "genuine_distinct_crops",
+      "description": "The agent actually cropped distinct blobs from the sample image.",
+      "visual_evidence": "The final montage shows four different blob shapes/patterns, verifying the agent didn't just duplicate a single crop four times or use a pre-existing image."
+    },
+    {
+      "id": "actual_save_action",
+      "description": "The agent saved the file using the application's save functionality.",
+      "visual_evidence": "The 'Save' or 'Save As' dialog in ImageJ is visible, confirming the file was saved directly from the application."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output is a 128x128 pixel PNG image saved at /home/ga/ImageJ_Data/results/blobs_montage.png. The montage must consist of a 2x2 grid (2 columns, 2 rows) of 64x64 pixel patches extracted from the 'Blobs (25K)' sample image. The montage should have a scale factor of 1.0 and a border width of 0."
+}

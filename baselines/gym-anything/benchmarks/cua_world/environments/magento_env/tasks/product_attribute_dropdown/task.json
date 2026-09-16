@@ -1,0 +1,41 @@
+{
+  "id": "product_attribute_dropdown@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create a product attribute with the Default Label 'Material Origin' and Attribute Code 'material_origin'. Set the Input Type to 'Dropdown' and include these options: 'Locally Sourced', 'Imported - Europe', 'Imported - Asia', 'Fair Trade Certified', and 'Recycled/Upcycled'. Configure the Storefront Properties so the attribute is used in search, visible in advanced search, comparable on storefront, and filterable (with results) in layered navigation. Assign the attribute to the 'Default' Attribute Set.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/product_attribute_dropdown/setup_task.sh",
+    "post_task": "/workspace/tasks/product_attribute_dropdown/export_result.sh"
+  },
+  "metadata": {
+    "attribute_code": "material_origin",
+    "frontend_label": "Material Origin",
+    "input_type": "select",
+    "required_options": [
+      "Locally Sourced",
+      "Imported - Europe",
+      "Imported - Asia",
+      "Fair Trade Certified",
+      "Recycled/Upcycled"
+    ],
+    "storefront_props": {
+      "is_searchable": "1",
+      "is_visible_in_advanced_search": "1",
+      "is_comparable": "1",
+      "is_filterable": "1",
+      "is_filterable_in_search": "1"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_product_attribute_dropdown"
+    }
+  }
+}

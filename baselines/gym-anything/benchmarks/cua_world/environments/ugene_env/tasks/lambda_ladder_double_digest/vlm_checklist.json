@@ -1,0 +1,59 @@
+{
+  "task_id": "lambda_ladder_double_digest@1",
+  "task_completion": [
+    {
+      "id": "load_genome_file",
+      "description": "Load the lambda_genome.gb file into a bioinformatics tool.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the lambda_genome.gb file opened in a GUI application like UGENE or loaded into a script."
+    },
+    {
+      "id": "perform_double_digest",
+      "description": "Perform an in silico double restriction digest using EcoRI and HindIII.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a restriction analysis or digest operation with both EcoRI and HindIII enzymes selected and applied to the sequence."
+    },
+    {
+      "id": "export_fasta_file",
+      "description": "Export the resulting DNA fragments to a multi-FASTA file named ladder_fragments.fasta.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the creation or existence of 'ladder_fragments.fasta' in the ~/UGENE_Data/lambda_phage/results/ directory."
+    },
+    {
+      "id": "create_sizes_report",
+      "description": "Create a plain text report named ladder_sizes.txt listing the fragment lengths.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing a text editor or terminal output with the file 'ladder_sizes.txt' in the ~/UGENE_Data/lambda_phage/results/ directory."
+    },
+    {
+      "id": "verify_descending_order",
+      "description": "Ensure the lengths in the text report are in strictly descending order.",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the contents of 'ladder_sizes.txt' where the numerical values (fragment lengths) are sorted from largest to smallest."
+    },
+    {
+      "id": "verify_exclusive_directory_contents",
+      "description": "Ensure the results folder contains only the two requested files.",
+      "points": 10,
+      "visual_evidence": "Screenshots of a file manager or terminal 'ls' command showing exactly two files (ladder_fragments.fasta and ladder_sizes.txt) in the ~/UGENE_Data/lambda_phage/results/ directory with no other files present."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_digest_operation",
+      "description": "The agent actually performed the digest on the provided file rather than fabricating the results from external knowledge of commercial ladders.",
+      "visual_evidence": "The fragment list should contain exactly 12 fragments including a ~1709 bp fragment. If the agent outputs 13 fragments (specifically splitting the 1709 bp into 1584 bp and 125 bp), it indicates cheating by copying commercial mutant strain data."
+    },
+    {
+      "id": "genuine_fasta_content",
+      "description": "The exported FASTA file contains actual sequence data derived from the genome.",
+      "visual_evidence": "Screenshots showing the contents of ladder_fragments.fasta should display standard FASTA formatting with actual ATGC sequence lines, not empty files, placeholder text, or manually typed dummy sequences."
+    },
+    {
+      "id": "no_external_download",
+      "description": "The agent did not download a pre-computed ladder or fragment list from the internet.",
+      "visual_evidence": "Terminal history or browser history should not show the agent searching for or downloading pre-made EcoRI/HindIII lambda digest FASTA files or size lists."
+    }
+  ],
+  "privileged_info_for_vlm": "The provided lambda genome (J02459.1) is wild-type and correctly produces exactly 12 fragments when digested with EcoRI and HindIII, including a ~1709 bp fragment. Commercial mutant strains produce 13 fragments (splitting the 1709 bp into 1584 bp and 125 bp). If the agent outputs 13 fragments, it has fabricated the result based on external knowledge rather than the provided file. The size tolerance is 5 bp. The expected output paths are /home/ga/UGENE_Data/lambda_phage/results/ladder_fragments.fasta and /home/ga/UGENE_Data/lambda_phage/results/ladder_sizes.txt."
+}

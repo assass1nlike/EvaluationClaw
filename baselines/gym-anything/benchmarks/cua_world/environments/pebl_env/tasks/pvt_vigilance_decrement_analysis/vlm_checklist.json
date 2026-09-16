@@ -1,0 +1,53 @@
+{
+  "task_id": "pvt_vigilance_decrement_analysis@1",
+  "task_completion": [
+    {
+      "id": "access_pvt_data",
+      "description": "Access the PVT session data CSV file.",
+      "points": 10,
+      "visual_evidence": "Terminal commands, script code (e.g., pandas.read_csv), or a data viewer showing the agent opening or reading '~/pebl/data/pvt_session_data.csv'."
+    },
+    {
+      "id": "identify_fabricated_participant",
+      "description": "Identify and exclude the fabricated participant based on RT variability.",
+      "points": 20,
+      "visual_evidence": "Code logic calculating standard deviation of RTs, console output, or final JSON content explicitly identifying 'P00' as the excluded/fabricated participant (SD < 5ms)."
+    },
+    {
+      "id": "compute_individual_metrics",
+      "description": "Calculate required individual metrics including the vigilance slope.",
+      "points": 30,
+      "visual_evidence": "Code or script output showing calculations for mean_rt_ms, median_rt_ms, lapses, false_starts, fastest/slowest 10pct, and specifically the division of 120 trials into 5 quintiles to compute the linear regression slope (vigilance_slope_ms_per_quintile)."
+    },
+    {
+      "id": "compute_group_metrics",
+      "description": "Calculate group-level means and the sleep deprivation effect.",
+      "points": 20,
+      "visual_evidence": "Code or script output aggregating valid participants to compute group means for both rested and sleep-deprived conditions, and calculating the difference for 'sleep_deprivation_effect_ms'."
+    },
+    {
+      "id": "save_json_report",
+      "description": "Save the final analysis results to the specified JSON file path.",
+      "points": 20,
+      "visual_evidence": "A text editor, IDE, or terminal showing the creation and saving of 'pvt_report.json' in the '~/pebl/analysis/' directory, containing keys like 'participants', 'group_means', and 'sleep_deprivation_effect_ms'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_computation",
+      "description": "The agent used a script or data analysis tool to compute the metrics rather than hallucinating or hardcoding the final numbers.",
+      "visual_evidence": "Presence of a Python script, R script, Jupyter notebook, or similar tool containing actual data processing logic (e.g., pandas, scipy.stats.linregress) rather than just a manually typed JSON file."
+    },
+    {
+      "id": "data_driven_exclusion",
+      "description": "The agent determined the fabricated participant by analyzing the data, not by guessing.",
+      "visual_evidence": "Code that calculates the standard deviation of response times and filters based on the < 5ms condition, rather than hardcoding 'P00' without prior calculation."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The agent saved the output to the exact requested file path.",
+      "visual_evidence": "The file path '/home/ga/pebl/analysis/pvt_report.json' is visible in the save dialog, file explorer, or script output writing the file."
+    }
+  ],
+  "privileged_info_for_vlm": "The fabricated participant (auto-clicker with RT variability SD < 5ms) is 'P00'. The final output must be saved exactly at '/home/ga/pebl/analysis/pvt_report.json'."
+}

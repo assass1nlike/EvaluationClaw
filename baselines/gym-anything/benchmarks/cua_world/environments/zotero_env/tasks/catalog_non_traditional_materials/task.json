@@ -1,0 +1,46 @@
+{
+  "id": "catalog_non_traditional_materials@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Modern research reproducibility requires citing software and datasets. Create a collection named 'Reproducibility Data' containing two items. The first is a 'Computer Program' item for 'Scikit-learn' (Version: 1.0.2, System: Python, URL: https://scikit-learn.org, Company/Publisher: Scikit-learn Developers). The second is a 'Dataset' item for 'MNIST Database' (Date: 1998, Repository: Courant Institute, URL: http://yann.lecun.com/exdb/mnist/).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/catalog_non_traditional_materials/setup_task.sh",
+    "post_task": "/workspace/tasks/catalog_non_traditional_materials/export_result.sh"
+  },
+  "metadata": {
+    "collection_name": "Reproducibility Data",
+    "items": [
+      {
+        "type": "computerProgram",
+        "title": "Scikit-learn",
+        "fields": {
+          "version": "1.0.2",
+          "system": "Python",
+          "url": "https://scikit-learn.org",
+          "company": "Scikit-learn Developers"
+        }
+      },
+      {
+        "type": "dataset",
+        "title": "MNIST Database",
+        "fields": {
+          "date": "1998",
+          "repository": "Courant Institute",
+          "url": "http://yann.lecun.com/exdb/mnist/"
+        }
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_catalog_non_traditional_materials"
+    }
+  }
+}

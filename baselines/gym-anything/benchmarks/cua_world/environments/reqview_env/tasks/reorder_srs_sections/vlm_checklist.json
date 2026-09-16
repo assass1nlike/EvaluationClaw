@@ -1,0 +1,53 @@
+{
+  "task_id": "reorder_srs_sections@1",
+  "task_completion": [
+    {
+      "id": "open_reqview_project",
+      "description": "Open the Smart Home example project in the ReqView application.",
+      "points": 10,
+      "visual_evidence": "The ReqView application window is visible, and the project tree on the left shows the Smart Home project loaded."
+    },
+    {
+      "id": "navigate_to_srs",
+      "description": "Navigate to the SRS (Software Requirements Specification) document.",
+      "points": 10,
+      "visual_evidence": "The main document view in ReqView displays the SRS document, showing top-level headings like 'Introduction', 'Requirements', etc."
+    },
+    {
+      "id": "reorder_sections",
+      "description": "Move the 4th top-level section to become the 2nd top-level section.",
+      "points": 30,
+      "visual_evidence": "The document tree or main view shows the sections have been reordered. Due to a known ambiguity, accept EITHER 'Supporting information' (ID 30) moved to the 2nd heading position OR 'Verification' (ID 29) moved to the 1st heading position."
+    },
+    {
+      "id": "save_project",
+      "description": "Save the project in ReqView after restructuring the document.",
+      "points": 10,
+      "visual_evidence": "The agent clicks File -> Save, uses a keyboard shortcut like Ctrl+S, or the 'unsaved changes' indicator (usually an asterisk next to the project name) disappears."
+    },
+    {
+      "id": "write_result_file",
+      "description": "Create a text file at /home/ga/reorder_result.txt with the three required lines.",
+      "points": 40,
+      "visual_evidence": "A terminal or text editor shows the creation of '/home/ga/reorder_result.txt'. The file must contain exactly three lines: Line 1 has the ID/heading of the moved section, Line 2 has the ID/heading of the section immediately following it, and Line 3 contains just the total number of top-level sections."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_reqview_gui",
+      "description": "The agent used the ReqView GUI to reorder the sections.",
+      "visual_evidence": "Screenshots show the agent interacting with the ReqView application (e.g., dragging and dropping sections in the document tree or using ReqView menus) rather than editing the SRS.json file directly in a text editor."
+    },
+    {
+      "id": "no_direct_json_manipulation",
+      "description": "The agent did not bypass the GUI by writing a script to modify the project files.",
+      "visual_evidence": "No Python, Node, or Bash scripts are seen being written or executed to parse and modify the SRS.json file directly."
+    },
+    {
+      "id": "actual_text_file_creation",
+      "description": "The agent created the result text file using standard tools.",
+      "visual_evidence": "Terminal commands (like echo, cat, nano) or a GUI text editor are visible creating and saving the contents of /home/ga/reorder_result.txt."
+    }
+  ],
+  "privileged_info_for_vlm": "The task operates on a synthetic Smart Home example project with the SRS document stored at ExampleProject/documents/SRS.json. There is a known ambiguity between the visual layout and the underlying JSON structure. Visually, the 4th heading is 'Supporting information' (ID 30). However, the underlying JSON has an unnumbered Copyright block at index 0, making 'Verification' (ID 29) index 3. The agent may move 'Supporting information' to the 2nd visual position (following the prompt strictly), OR move 'Verification' to the 1st visual position (following the JSON structure). You must accept EITHER interpretation as correct for both the GUI reordering action and the contents written to /home/ga/reorder_result.txt."
+}

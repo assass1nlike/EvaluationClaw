@@ -1,0 +1,21 @@
+{
+  "id": "run_simulation@1",
+  "version": "1.0",
+  "env_id": "equest_env@0.1",
+  "description": "The 4StoreyBuilding model, a multi-storey commercial building with multiple thermal zones, is open in eQUEST. Run the DOE-2.2 energy simulation and review the annual energy consumption results, including the breakdown by end use (heating, cooling, lighting, equipment, fans, and pumps).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\run_simulation\\setup_task.ps1"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_run_simulation"
+    }
+  }
+}

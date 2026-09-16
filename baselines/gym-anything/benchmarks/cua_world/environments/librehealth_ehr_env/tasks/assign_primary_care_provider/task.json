@@ -1,0 +1,27 @@
+{
+  "id": "assign_primary_care_provider@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "Assign 'Administrator' as the Primary Care Provider (PCP) for the patient whose name is provided in /home/ga/Desktop/task_patient.txt within the LibreHealth EHR system. Use the credentials Username: admin, Password: password. Ensure the 'Administrator' is officially linked as their provider in the system.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/assign_primary_care_provider/setup_task.sh",
+    "post_task": "/workspace/tasks/assign_primary_care_provider/export_result.sh"
+  },
+  "metadata": {
+    "target_provider_username": "admin",
+    "target_provider_name": "Administrator",
+    "patient_file_path": "/home/ga/Desktop/task_patient.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_assign_primary_care_provider"
+    }
+  }
+}

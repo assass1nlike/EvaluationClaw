@@ -1,0 +1,30 @@
+{
+  "id": "configure_secondary_series_analysis@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is open with daily OHLCV data for AAPL and MSFT (Jan 2023 - Dec 2024). As a sector analyst, compare the price action of AAPL against MSFT on the same timeline by creating a single chart containing daily bars for both symbols. Apply a 20-period Exponential Moving Average (EMA) indicator specifically to the MSFT data series. Save the workspace.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_secondary_series_analysis\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_secondary_series_analysis\\export_result.ps1"
+  },
+  "metadata": {
+    "primary_instrument": "AAPL",
+    "secondary_instrument": "MSFT",
+    "indicator_type": "EMA",
+    "indicator_period": 20,
+    "expected_series_index": 1,
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces\\"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_secondary_series_analysis"
+    }
+  }
+}

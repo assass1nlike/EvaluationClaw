@@ -1,0 +1,32 @@
+{
+  "id": "major_incident_documentation@1",
+  "version": "1.0",
+  "env_id": "opencad_env@0.1",
+  "description": "You are the on-duty Incident Commander at the Los Santos Emergency Communications Center. A major industrial incident is unfolding at a chemical storage facility on El Rancho Boulevard near Jamestown Street involving an explosion and structural fire with hazardous materials. Access the system at http://localhost (credentials: admin@opencad.local / Admin123!). Create a 10-70 structure fire call at El Rancho Boulevard and Jamestown Street with a narrative covering the HAZMAT concerns and incident severity. Issue a 'Safety Violation' citation to the facility's operations manager, Michael De Santa, for $2,500.00. File a person BOLO for a fleeing suspect described as a heavyset, bald white male wearing a blue work jacket.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/major_incident_documentation/setup_task.sh",
+    "post_task": "/workspace/tasks/major_incident_documentation/export_result.sh"
+  },
+  "metadata": {
+    "expected_call_type": "10-70",
+    "expected_street1": "El Rancho Boulevard",
+    "expected_street2": "Jamestown Street",
+    "expected_citation_name_id": 1,
+    "expected_citation_person": "Michael De Santa",
+    "expected_citation_name": "Safety Violation",
+    "expected_fine": 2500.0,
+    "profession": "Incident Commander"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_major_incident_documentation"
+    }
+  }
+}

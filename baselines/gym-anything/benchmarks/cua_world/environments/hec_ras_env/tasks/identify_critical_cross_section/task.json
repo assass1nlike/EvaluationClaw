@@ -1,0 +1,27 @@
+{
+  "id": "identify_critical_cross_section@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Analyze the Muncie HEC-RAS model results from the unsteady flow simulation (Plan 04) to identify the most critical cross section, defined as the section with the minimum freeboard (the difference between the minimum bank elevation and the Peak Water Surface Elevation). Using the project's HDF5 output files (Muncie.p04.hdf or Muncie.p04.tmp.hdf), extract the necessary hydraulic and geometry data for all cross sections. Generate a detailed report at /home/ga/Documents/hec_ras_results/critical_section_report.csv with columns: River_Station, Peak_WSE_ft, Left_Bank_Elev_ft, Right_Bank_Elev_ft, Min_Bank_Elev_ft, and Freeboard_ft. Also, create a summary file at /home/ga/Documents/hec_ras_results/critical_section_summary.txt containing the Critical_River_Station, Freeboard_ft, Overtopping status (YES/NO), Num_Overtopped_Sections, and Total_Cross_Sections.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/identify_critical_cross_section/setup_task.sh",
+    "post_task": "/workspace/tasks/identify_critical_cross_section/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "ground_truth_path": "/var/lib/hec-ras/ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_critical_section"
+    }
+  }
+}

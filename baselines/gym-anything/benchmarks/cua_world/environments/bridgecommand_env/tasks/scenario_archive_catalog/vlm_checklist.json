@@ -1,0 +1,53 @@
+{
+  "task_id": "scenario_archive_catalog@1",
+  "task_completion": [
+    {
+      "id": "catalog_file_structure",
+      "description": "The scenario_catalog.json file is created and structured as a JSON array.",
+      "points": 15,
+      "visual_evidence": "A file named scenario_catalog.json is visible (e.g., in a text editor, cat command, or script output) and its contents start with a '[' indicating a JSON array containing objects for each scenario."
+    },
+    {
+      "id": "catalog_file_fields",
+      "description": "The JSON catalog contains all required fields extracted from the INI files.",
+      "points": 25,
+      "visual_evidence": "The JSON objects inside scenario_catalog.json show keys for 'scenario_name', 'directory_path', 'world_model', 'start_time', 'own_ship_name', 'traffic_vessel_count', 'files_present', and 'is_complete' with appropriate values (e.g., text, numbers, booleans, and lists of filenames)."
+    },
+    {
+      "id": "checksum_file_generated",
+      "description": "The scenario_checksums.sha256 file is created with valid hashes and absolute paths.",
+      "points": 30,
+      "visual_evidence": "A file named scenario_checksums.sha256 is visible, containing 64-character hexadecimal strings followed by absolute file paths starting with '/opt/bridgecommand/Scenarios/'."
+    },
+    {
+      "id": "report_file_counts",
+      "description": "The preservation_report.txt file includes the total scenario count and complete/incomplete breakdown.",
+      "points": 15,
+      "visual_evidence": "A file named preservation_report.txt is visible, containing text that explicitly states the total number of scenarios and how many of them are complete versus incomplete."
+    },
+    {
+      "id": "report_file_world_models",
+      "description": "The preservation report lists the unique World Models.",
+      "points": 15,
+      "visual_evidence": "The preservation_report.txt file contains a list or mention of the unique World Models (e.g., 'Portsmouth') extracted from the 'Setting' key in the scenarios' environment.ini files."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_or_commands_used",
+      "description": "The agent used a script or terminal commands to process the files rather than hallucinating the output.",
+      "visual_evidence": "A Python script, bash script, or a series of terminal commands (like find, sha256sum, grep) is visible in the screenshots, showing programmatic extraction of the data."
+    },
+    {
+      "id": "no_hallucinated_data",
+      "description": "The agent extracted actual data from the scenario files rather than using placeholders.",
+      "visual_evidence": "The values in the JSON and report match the format of Bridge Command INI files (e.g., world models like 'Portsmouth', start times like 14.0) rather than generic placeholder text."
+    },
+    {
+      "id": "valid_checksum_execution",
+      "description": "The checksums were generated using a real hashing tool or library.",
+      "visual_evidence": "The agent ran a command like `sha256sum` or used `hashlib` in Python, ensuring the hashes are genuine and not randomly typed strings."
+    }
+  ],
+  "privileged_info_for_vlm": "Bridge Command INI files use key=value format. Text values are in quotes (e.g., Setting=\"Portsmouth\", ShipName=\"MV Sentinel\"), numerical values are not (e.g., StartTime=14.0). othership.ini uses indexed notation like Type(1), Type(2) for vessels, and may also have a Number=X field. The scenario_catalog.json should reflect these extracted values. The checksum file must use absolute paths (starting with /opt/bridgecommand/Scenarios/). A scenario is considered 'complete' if environment.ini, ownship.ini, and othership.ini all exist in its directory."
+}

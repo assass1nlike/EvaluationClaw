@@ -1,0 +1,53 @@
+{
+  "task_id": "clinical_safety_protocol_config@1",
+  "task_completion": [
+    {
+      "id": "notification_settings_accessed",
+      "description": "Navigate to the notification settings for the 'Depression Screening - Fall 2024' survey.",
+      "points": 10,
+      "visual_evidence": "The LimeSurvey interface shows the 'Notification & data management' or similar settings page for the 'Depression Screening - Fall 2024' survey."
+    },
+    {
+      "id": "admin_notification_expression",
+      "description": "Configure the detailed admin notification email with the conditional expression.",
+      "points": 30,
+      "visual_evidence": "The 'Send detailed admin notification email to' field contains exactly: {if(safety_check == 'Y', 'dr.patel@clinical-safety.org', '')}"
+    },
+    {
+      "id": "crisis_question_code_and_type",
+      "description": "Create a new question with the correct code and type.",
+      "points": 20,
+      "visual_evidence": "A question editor or summary screen shows a question with the code 'crisis_resource' and the question type set to 'Text display'."
+    },
+    {
+      "id": "crisis_question_text",
+      "description": "Include the required crisis lifeline text in the question content.",
+      "points": 20,
+      "visual_evidence": "The text editor or preview for the 'crisis_resource' question contains the text '988 Suicide & Crisis Lifeline'."
+    },
+    {
+      "id": "crisis_question_relevance",
+      "description": "Set the relevance equation so the question only appears when the safety check is 'Y'.",
+      "points": 20,
+      "visual_evidence": "The 'Relevance equation' (or Condition) field for the 'crisis_resource' question is set to: safety_check == \"Y\""
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "The agent used the LimeSurvey web interface to make configurations.",
+      "visual_evidence": "Screenshots show a web browser interacting with the LimeSurvey GUI, rather than terminal commands or API scripts."
+    },
+    {
+      "id": "genuine_save_actions",
+      "description": "The agent actually saved the configurations in the system.",
+      "visual_evidence": "Look for success banners (e.g., 'Survey settings saved', 'Question saved') or the settings persisting after clicking save, rather than just typing text into fields without submitting."
+    },
+    {
+      "id": "no_database_tampering",
+      "description": "The agent did not bypass the application by directly editing the database.",
+      "visual_evidence": "No terminal windows showing SQL queries (e.g., sqlite3, mysql) modifying survey tables directly."
+    }
+  ],
+  "privileged_info_for_vlm": "The task is performed in a LimeSurvey environment. The target email for notifications is 'dr.patel@clinical-safety.org'. The trigger question code is 'safety_check' with the trigger value 'Y'. The intervention text must include '988'. The expected relevance equation for the crisis resource question is exactly: safety_check == \"Y\"."
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "executive_qbr_dashboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_created",
+      "description": "Create a new dashboard named 'QBR Infrastructure Summary'",
+      "points": 10,
+      "visual_evidence": "The dashboard title at the top of the screen or in the settings menu is exactly 'QBR Infrastructure Summary'."
+    },
+    {
+      "id": "graph1_top_cpu",
+      "description": "Create the first graph titled 'Top CPU Consumers' with the correct target query",
+      "points": 20,
+      "visual_evidence": "A graph panel exists with the title 'Top CPU Consumers'. In its query/metrics editor, the target is set to 'aliasByNode(highestCurrent(servers.ec2_instance_*.cpu.*, 2), 1)'."
+    },
+    {
+      "id": "graph2_title",
+      "description": "Create the second graph titled 'Disk Write Rate'",
+      "points": 10,
+      "visual_evidence": "A graph panel exists with the title 'Disk Write Rate'."
+    },
+    {
+      "id": "graph2_query",
+      "description": "Configure the 'Disk Write Rate' graph with nonNegativeDerivative and correct aliases",
+      "points": 20,
+      "visual_evidence": "In the query/metrics editor for the 'Disk Write Rate' graph, the functions include 'nonNegativeDerivative()' and the aliases 'Instance 1 Writes/sec' and 'Instance 2 Writes/sec' are visible in the query or legend."
+    },
+    {
+      "id": "graph3_title",
+      "description": "Create the third graph titled 'Fleet CPU Envelope'",
+      "points": 10,
+      "visual_evidence": "A graph panel exists with the title 'Fleet CPU Envelope'."
+    },
+    {
+      "id": "graph3_query",
+      "description": "Configure the 'Fleet CPU Envelope' graph with max, average, and min series and correct aliases",
+      "points": 20,
+      "visual_evidence": "In the query/metrics editor for the 'Fleet CPU Envelope' graph, the functions 'maxSeries', 'averageSeries', and 'minSeries' are applied to the CPU metrics, and the aliases 'Fleet Maximum', 'Fleet Average', and 'Fleet Minimum' are visible in the query or legend."
+    },
+    {
+      "id": "dashboard_saved",
+      "description": "Save the completed dashboard",
+      "points": 10,
+      "visual_evidence": "A 'Dashboard saved' notification appears, or the save button/icon is clicked and the dashboard shows no 'unsaved changes' indicator."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the actual dashboarding GUI (e.g., Graphite/Grafana) to create the dashboard",
+      "visual_evidence": "Screenshots show the agent clicking through the web interface, adding panels, and typing into query fields, rather than writing a JSON file in a text editor or terminal."
+    },
+    {
+      "id": "real_data_rendered",
+      "description": "The graphs display actual rendered data lines",
+      "visual_evidence": "The graph panels show plotted lines/charts representing the metrics, proving the agent successfully queried the real metric backend rather than mocking the UI."
+    },
+    {
+      "id": "no_script_execution",
+      "description": "The agent did not run a pre-written script to bypass manual creation",
+      "visual_evidence": "The terminal does not show the execution of a script (e.g., python create_dashboard.py or curl commands) that automatically generates the dashboard via API."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'QBR Infrastructure Summary'. The task uses real AWS Cloudwatch data (EC2, ELB, RDS) from the NAB dataset, so the graphs should display actual metric data lines if queried correctly. The final dashboard configuration is exported to '/tmp/executive_qbr_dashboard_result.json' by the system, but you must verify the GUI steps leading up to the final saved dashboard."
+}

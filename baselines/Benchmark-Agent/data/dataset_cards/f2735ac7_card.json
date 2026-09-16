@@ -1,0 +1,93 @@
+{
+  "dataset_id": "f2735ac7",
+  "name": "Price-Tag-Detection-And-Text-Grounding",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A visual detection dataset of 200 images annotated with price-tag bounding boxes. It evaluates a model's ability to locate price tags in retail scenes, optionally guided by a text prompt.",
+  "card_text": "Price-Tag-Detection-And-Text-Grounding is an image-text dataset for detecting price tags in retail imagery. Each sample includes a photograph of products or shelves, a generic user-style prompt, and an output list of bounding boxes labeled 'pricetag'. The bounding boxes are four-number coordinates that specify the location of each price tag. The images vary in scene complexity, lighting, and tag size, making the task one of open-set object detection/localization. The prompt field is a placeholder instruction that can be replaced by user-defined prompts for text grounding. The dataset is small (200 samples) and suitable for evaluating detection, localization, and visual grounding models. Outputs are structured as JSON-like objects rather than plain text, so systems must predict precise spatial coordinates for each price tag instance.",
+  "tasks": [
+    "detection"
+  ],
+  "domain": "retail price tags",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "The main input image that the model must analyze. It shows a retail scene with one or more price tags to be detected and localized.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A generic prompt string ('users' specifically-defined prompts for different models') that serves as the textual instruction accompanying the image. It can be replaced by user-defined prompts for grounding tasks.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "objects",
+        "semantics": "File path to the input image containing retail products and price tags. It is the visual input for detection.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Bounding-box annotations for price tags. Each item is a dictionary with the key 'pricetag' mapped to a four-number coordinate list [x, y, w, h] (or [x1, y1, x2, y2]) locating a single price tag in the input image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with an image_file path and a generic prompt, plus an output object containing a bbox list. The image_file provides the visual context; the prompt is a short instruction. The bbox list contains one or more dictionaries, each mapping the label 'pricetag' to a four-number coordinate list that defines a price-tag bounding box. The model must predict these boxes from the image and prompt."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/price-tag-detection-and-text-grounding/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "price-tag-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

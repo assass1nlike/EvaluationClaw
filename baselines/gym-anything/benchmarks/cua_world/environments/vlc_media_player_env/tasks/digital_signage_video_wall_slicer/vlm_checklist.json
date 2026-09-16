@@ -1,0 +1,59 @@
+{
+  "task_id": "digital_signage_video_wall_slicer@1",
+  "task_completion": [
+    {
+      "id": "video_processing_setup",
+      "description": "Agent initiates the video slicing process using a video editor or terminal commands.",
+      "points": 10,
+      "visual_evidence": "Look for a video editing application open with the master video loaded, or a terminal window showing FFmpeg commands with crop filters (e.g., crop=1080:1920:0:0) being executed."
+    },
+    {
+      "id": "video_files_exported",
+      "description": "The three sliced video files are exported to the correct directory with the specified names.",
+      "points": 20,
+      "visual_evidence": "Look for a file manager or terminal showing the directory '/home/ga/Videos/signage/wall_slices/' containing exactly 'screen_1_left.mp4', 'screen_2_center.mp4', and 'screen_3_right.mp4'."
+    },
+    {
+      "id": "video_properties_verified",
+      "description": "The exported videos have the correct 1080x1920 portrait resolution and no audio track.",
+      "points": 20,
+      "visual_evidence": "Look for file properties dialogs, media info tools, or terminal output (like ffprobe) confirming the resolution is 1080x1920 and showing no audio streams (or ffmpeg commands explicitly using '-an' to strip audio)."
+    },
+    {
+      "id": "playlist_created",
+      "description": "A VLC XSPF playlist containing the three video slices is created.",
+      "points": 15,
+      "visual_evidence": "Look for a file named 'wall_test_playlist.xspf' in the 'wall_slices' directory, or open in a text editor showing XML tags referencing the three exported mp4 files."
+    },
+    {
+      "id": "playlist_looping",
+      "description": "The VLC playlist is configured to loop infinitely.",
+      "points": 15,
+      "visual_evidence": "Look for the XSPF file open in a text editor showing loop configuration (e.g., <vlc:option>loop</vlc:option> or similar repeat tags), or VLC media player open with the loop toggle activated for the playlist."
+    },
+    {
+      "id": "manifest_created",
+      "description": "A JSON manifest is generated with the correct metadata and panel array.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor showing 'signage_manifest.json' containing the keys 'exhibit': 'Panoramic Earth', 'master_resolution': '3240x1920', and a 'panels' array documenting the filename, resolution, and 'audio_stripped': true for all three slices."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_video_processing",
+      "description": "Verify the agent actually processed the video rather than creating fake/empty files.",
+      "visual_evidence": "Check for genuine video processing activity (e.g., FFmpeg encoding progress in the terminal or rendering progress in a GUI editor) rather than just using 'touch' or renaming existing files."
+    },
+    {
+      "id": "valid_xspf_format",
+      "description": "Verify the playlist is a genuine XSPF XML file.",
+      "visual_evidence": "Check that the 'wall_test_playlist.xspf' file contains valid XML structure (like <?xml...>, <playlist>, <trackList>) and is not just a plain text list of filenames."
+    },
+    {
+      "id": "valid_json_format",
+      "description": "Verify the manifest is properly formatted JSON.",
+      "visual_evidence": "Check that 'signage_manifest.json' uses valid JSON syntax (curly braces, double quotes for keys/strings, proper commas) and is not just unstructured text."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected master video resolution is exactly 3240x1920. The sliced videos must be exactly 1080x1920 resolution. The exported files must have exactly 0 audio streams (audio completely removed). The expected filenames are 'screen_1_left.mp4', 'screen_2_center.mp4', and 'screen_3_right.mp4'."
+}

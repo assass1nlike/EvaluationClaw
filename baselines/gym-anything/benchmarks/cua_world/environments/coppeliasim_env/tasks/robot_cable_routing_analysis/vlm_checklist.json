@@ -1,0 +1,53 @@
+{
+  "task_id": "robot_cable_routing_analysis@1",
+  "task_completion": [
+    {
+      "id": "dummy_object_setup",
+      "description": "Verify the agent defined the four cable tie points (Dummy objects) at the correct local offsets.",
+      "points": 15,
+      "visual_evidence": "Python script code showing the creation or placement of Dummy objects at local position offsets [0.0, -0.15, 0.05] relative to Joints 1, 3, 5, and 6 (or tip), or the CoppeliaSim GUI showing these objects in the scene hierarchy."
+    },
+    {
+      "id": "coppeliasim_script_execution",
+      "description": "Verify the agent executed a script to simulate the robot arm across its range of motion using the ZMQ Remote API.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of a Python script that connects to port 23000, or the CoppeliaSim GUI showing the robot arm moving through various joint configurations."
+    },
+    {
+      "id": "csv_file_generation",
+      "description": "Verify the creation of the cable_measurements.csv file with the required columns.",
+      "points": 20,
+      "visual_evidence": "Terminal command (e.g., cat, head) or text editor showing the file at /home/ga/Documents/CoppeliaSim/exports/cable_measurements.csv containing the exact headers: config_id, j1_rad, j2_rad, j3_rad, j4_rad, j5_rad, j6_rad, t0_x, t0_y, t0_z, t1_x, t1_y, t1_z, t2_x, t2_y, t2_z, t3_x, t3_y, t3_z, segment1_m, segment2_m, segment3_m, and total_length_m."
+    },
+    {
+      "id": "minimum_configurations_recorded",
+      "description": "Verify that measurements from at least 50 diverse joint configurations were recorded.",
+      "points": 20,
+      "visual_evidence": "The CSV file showing a config_id reaching at least 49 (if 0-indexed) or 50, a terminal command like 'wc -l' showing 51+ lines for the CSV, or the JSON report showing 'total_configs' >= 50."
+    },
+    {
+      "id": "json_report_generation",
+      "description": "Verify the creation of the cable_report.json file with the required summary fields.",
+      "points": 30,
+      "visual_evidence": "Terminal command (e.g., cat) or text editor showing the file at /home/ga/Documents/CoppeliaSim/exports/cable_report.json containing the fields: total_configs, min_length_m, max_length_m, variance_m, and recommended_length_m."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_data",
+      "description": "Ensure the data comes from actual CoppeliaSim simulation rather than being mocked or hardcoded.",
+      "visual_evidence": "The Python script should import the ZMQ Remote API (e.g., zmqRemoteApi) and dynamically read joint/dummy positions using API calls, rather than generating random numbers or hardcoding values."
+    },
+    {
+      "id": "mathematical_consistency",
+      "description": "Ensure the values in the JSON report mathematically align with the task instructions.",
+      "visual_evidence": "In the JSON file, 'variance_m' must exactly equal ('max_length_m' - 'min_length_m') and 'recommended_length_m' must exactly equal ('max_length_m' * 1.15)."
+    },
+    {
+      "id": "no_direct_file_mocking",
+      "description": "Ensure the agent did not manually type the JSON or CSV files to bypass the scripting requirement.",
+      "visual_evidence": "The JSON and CSV files should be generated programmatically by the Python script (visible in the code via file write operations), not manually created in a text editor or via simple echo commands."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified facts for the VLM verifier: The task requires a minimum of 50 configurations (min_configs = 50). The generated cable lengths must have a variance of at least 0.05m (min_variance_m = 0.05). The output CSV must be exactly at /home/ga/Documents/CoppeliaSim/exports/cable_measurements.csv. The output JSON must be exactly at /home/ga/Documents/CoppeliaSim/exports/cable_report.json."
+}

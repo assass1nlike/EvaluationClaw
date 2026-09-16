@@ -1,0 +1,42 @@
+{
+  "id": "count_particles@1",
+  "name": "Count and Measure Particles in Microscopy Image",
+  "description": "Perform particle analysis on the 'blobs' sample image in Fiji. Threshold the image to binary and ensure particles are represented as white objects on a black background. Run the particle analysis using a size filter of 10-Infinity pixels and a circularity range of 0.00-1.00. Save the measurement results to ~/ImageJ_Data/results/Results.csv and the summary statistics to ~/ImageJ_Data/results/Summary.csv. Report the total particle count and the average particle area (Average Size) from the summary data.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "metadata": {
+    "image_name": "blobs",
+    "image_size": [
+      256,
+      254
+    ],
+    "expected_particle_count_min": 50,
+    "expected_particle_count_max": 80,
+    "expected_avg_area_min": 100,
+    "expected_avg_area_max": 500,
+    "threshold_type": "default",
+    "min_particle_size": 10,
+    "data_source": "ImageJ built-in sample (blobs.gif)"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/count_particles/setup_task.sh",
+    "post_task": "/workspace/tasks/count_particles/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_count_particles"
+    }
+  },
+  "difficulty": "easy",
+  "tags": [
+    "microscopy",
+    "particle-analysis",
+    "segmentation",
+    "thresholding",
+    "cell-counting"
+  ]
+}

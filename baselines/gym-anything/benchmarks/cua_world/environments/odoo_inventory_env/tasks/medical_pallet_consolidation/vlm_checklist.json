@@ -1,0 +1,53 @@
+{
+  "task_id": "medical_pallet_consolidation@1",
+  "task_completion": [
+    {
+      "id": "pallet_alpha_contents",
+      "description": "Verify the creation of the first mixed pallet (Package) matching the Pallet Alpha manifest.",
+      "points": 25,
+      "visual_evidence": "Look for a Package details screen or stock list showing a specific package containing exactly: 200 units of 'Med-Syringe 10ml', 100 units of 'Med-Saline 500ml', and 400 units of 'Med-Bandage Roll'."
+    },
+    {
+      "id": "pallet_beta_contents",
+      "description": "Verify the creation of the second mixed pallet (Package) matching the Pallet Beta manifest.",
+      "points": 25,
+      "visual_evidence": "Look for a Package details screen or stock list showing a specific package containing exactly: 300 units of 'Med-Syringe 10ml', 100 units of 'Med-Saline 500ml', and 600 units of 'Med-Bandage Roll'."
+    },
+    {
+      "id": "pallet_gamma_contents",
+      "description": "Verify the creation of the third mixed pallet (Package) matching the Pallet Gamma manifest.",
+      "points": 25,
+      "visual_evidence": "Look for a Package details screen or stock list showing a specific package containing exactly: 800 units of 'Med-Gauze Pads 4x4', 600 units of 'Med-Surgical Gloves Size M', and 600 units of 'Med-Surgical Gloves Size L'."
+    },
+    {
+      "id": "packages_in_rapid_deployment",
+      "description": "Verify that the created packages are located in the 'WH/Stock/Rapid Deployment' zone.",
+      "points": 15,
+      "visual_evidence": "Look at the Location field on the Package details screens or the Inventory -> Locations view for 'WH/Stock/Rapid Deployment'. The three created packages must be listed under this specific location."
+    },
+    {
+      "id": "no_loose_stock",
+      "description": "Verify that no loose stock remains in the Rapid Deployment location.",
+      "points": 10,
+      "visual_evidence": "Look at the Current Stock view filtered by Location 'WH/Stock/Rapid Deployment'. Every line item shown must have a value in the 'Package' column. There should be no items listed without an assigned package."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent must use the Odoo web interface to perform the inventory consolidation.",
+      "visual_evidence": "Screenshots should show the agent clicking through the Odoo Inventory module (Operations, Transfers, Packages, or Locations) in a web browser, rather than using terminal scripts or API calls."
+    },
+    {
+      "id": "no_database_tampering",
+      "description": "The agent must not directly modify the database to bypass the UI.",
+      "visual_evidence": "The terminal should not show commands like 'psql' or python scripts executing SQL queries or XML-RPC calls to update stock quantities or package assignments."
+    },
+    {
+      "id": "genuine_results",
+      "description": "The results must be visible within the actual Odoo application.",
+      "visual_evidence": "The package contents and locations must be shown in the standard Odoo interface (e.g., list views, form views), not typed out in a text editor or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Pallet Alpha requires exactly: 200 Med-Syringe 10ml, 100 Med-Saline 500ml, 400 Med-Bandage Roll. Pallet Beta requires exactly: 300 Med-Syringe 10ml, 100 Med-Saline 500ml, 600 Med-Bandage Roll. Pallet Gamma requires exactly: 800 Med-Gauze Pads 4x4, 600 Med-Surgical Gloves Size M, 600 Med-Surgical Gloves Size L. The pass threshold for the task is 85."
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "location_hierarchy_setup@1",
+  "task_completion": [
+    {
+      "id": "parent_location_created",
+      "description": "Verify the parent location 'West Campus Medical Center' was created.",
+      "points": 15,
+      "visual_evidence": "In the Snipe-IT Locations list, there should be an entry for 'West Campus Medical Center'."
+    },
+    {
+      "id": "parent_manager_assigned",
+      "description": "Verify the manager for the parent location is set correctly.",
+      "points": 10,
+      "visual_evidence": "In the Locations list or location details for 'West Campus Medical Center', the Manager column/field should display 'Sarah Chen' or 'schen'."
+    },
+    {
+      "id": "child_locations_created",
+      "description": "Verify the three child locations were created with the correct parent.",
+      "points": 25,
+      "visual_evidence": "The Locations list should show 'WC - Emergency Department', 'WC - Radiology Wing', and 'WC - Administrative Offices'. They should visually indicate 'West Campus Medical Center' as their parent location (e.g., in a Parent column or via indentation)."
+    },
+    {
+      "id": "assets_relocated_emergency",
+      "description": "Verify ASSET-WC01 and ASSET-WC04 were relocated to the Emergency Department.",
+      "points": 20,
+      "visual_evidence": "In the Assets/Hardware list, the 'Location' or 'Default Location' column for both ASSET-WC01 and ASSET-WC04 must show 'WC - Emergency Department'."
+    },
+    {
+      "id": "asset_relocated_radiology",
+      "description": "Verify ASSET-WC02 was relocated to the Radiology Wing.",
+      "points": 10,
+      "visual_evidence": "In the Assets/Hardware list, the 'Location' or 'Default Location' column for ASSET-WC02 must show 'WC - Radiology Wing'."
+    },
+    {
+      "id": "asset_relocated_admin",
+      "description": "Verify ASSET-WC03 was relocated to the Administrative Offices.",
+      "points": 10,
+      "visual_evidence": "In the Assets/Hardware list, the 'Location' or 'Default Location' column for ASSET-WC03 must show 'WC - Administrative Offices'."
+    },
+    {
+      "id": "staging_warehouse_empty",
+      "description": "Verify no assets remain in the Staging Warehouse.",
+      "points": 10,
+      "visual_evidence": "In the Locations list, the 'Assets' count for 'Staging Warehouse' should be 0, or filtering the Assets list by 'Staging Warehouse' should yield no results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Ensure the agent used the Snipe-IT web GUI to complete the task.",
+      "visual_evidence": "Screenshots should show the web browser navigating the Snipe-IT interface, filling out forms, and clicking buttons, rather than terminal windows executing curl or database commands."
+    },
+    {
+      "id": "genuine_data_entry",
+      "description": "Ensure the agent actually entered the data into the application.",
+      "visual_evidence": "Screenshots should capture the agent typing into the location creation forms and asset edit screens, rather than just showing the final state or modifying the DOM directly."
+    },
+    {
+      "id": "no_script_execution",
+      "description": "Ensure the agent did not run external scripts to bypass manual entry.",
+      "visual_evidence": "No terminal windows running Python, Bash, or SQL scripts to directly insert locations or update asset records should be visible."
+    }
+  ],
+  "privileged_info_for_vlm": "Parent Location: 'West Campus Medical Center'. Manager: 'Sarah Chen' (schen). Child Locations: 'WC - Emergency Department', 'WC - Radiology Wing', 'WC - Administrative Offices'. Asset Assignments: ASSET-WC01 -> 'WC - Emergency Department', ASSET-WC02 -> 'WC - Radiology Wing', ASSET-WC03 -> 'WC - Administrative Offices', ASSET-WC04 -> 'WC - Emergency Department'. The 'Staging Warehouse' must have 0 assets assigned at the end of the task."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "tool_lending_tracker@1",
+  "task_completion": [
+    {
+      "id": "initial_data_loaded",
+      "description": "Verify the initial tool lending data is loaded into LibreOffice Calc.",
+      "points": 10,
+      "visual_evidence": "LibreOffice Calc is open showing 8 rows of tool data with columns for Tool Name, Borrower, Date Lent, Expected Return, and Value."
+    },
+    {
+      "id": "days_out_column_added",
+      "description": "Verify a 'Days Out' column has been added with date calculations.",
+      "points": 20,
+      "visual_evidence": "A new column (e.g., 'Days Out') exists and contains integer values representing the number of days since the 'Date Lent'. The formula bar may show a formula like =TODAY()-C2."
+    },
+    {
+      "id": "status_column_added",
+      "description": "Verify a 'Status' column has been added using conditional formulas.",
+      "points": 20,
+      "visual_evidence": "A new column (e.g., 'Status') exists and contains text values 'OVERDUE' or 'OK'. The formula bar may show an IF formula like =IF(F2>30,\"OVERDUE\",\"OK\")."
+    },
+    {
+      "id": "correct_overdue_identification",
+      "description": "Verify the correct number of items are identified as OVERDUE.",
+      "points": 20,
+      "visual_evidence": "Exactly 5 of the 8 tools should have the status 'OVERDUE' in the Status column, while the remaining 3 should be 'OK'."
+    },
+    {
+      "id": "conditional_formatting_applied",
+      "description": "Verify red formatting is applied to OVERDUE items.",
+      "points": 20,
+      "visual_evidence": "The cells containing the word 'OVERDUE' are formatted in red (either red text font or red cell background)."
+    },
+    {
+      "id": "saved_as_ods",
+      "description": "Verify the file is saved in ODS format.",
+      "points": 10,
+      "visual_evidence": "The LibreOffice Calc window title bar shows the file name ending in '.ods' (e.g., tool_lending_result.ods), or a 'Save As' dialog is visible selecting the ODF Spreadsheet (.ods) format."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_calc_gui",
+      "description": "Verify the agent interacted with the LibreOffice Calc GUI.",
+      "visual_evidence": "Screenshots should show the LibreOffice Calc application interface being actively used (menus, cell selection, formula bar), not just a terminal or text editor."
+    },
+    {
+      "id": "used_actual_formulas",
+      "description": "Verify the agent used formulas rather than hardcoding values.",
+      "visual_evidence": "When a 'Days Out' or 'Status' cell is selected, the formula bar at the top should display a formula (e.g., =TODAY()-... or =IF(...)) rather than plain text like '45' or 'OVERDUE'."
+    },
+    {
+      "id": "genuine_formatting",
+      "description": "Verify formatting was applied using spreadsheet features.",
+      "visual_evidence": "The red formatting should appear within the Calc grid. Evidence of using the Conditional Formatting dialog or standard formatting toolbar is a strong indicator of genuine interaction."
+    }
+  ],
+  "privileged_info_for_vlm": "The initial data contains exactly 8 tools. The agent must add a 'Days Out' column calculating days since 'Date Lent' (e.g., =TODAY()-C2) and a 'Status' column using an IF formula with a >30 days threshold (e.g., =IF(F2>30,\"OVERDUE\",\"OK\")). By design, exactly 5 tools evaluate to OVERDUE. The OVERDUE cells must be formatted in red. The final file must be saved in ODS format."
+}

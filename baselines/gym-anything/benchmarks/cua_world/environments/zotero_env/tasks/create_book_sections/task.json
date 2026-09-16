@@ -1,0 +1,29 @@
+{
+  "id": "create_book_sections@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "You are a researcher correcting a bibliographic entry for the seminal 1949 work 'The Mathematical Theory of Communication' by Claude E. Shannon and Warren Weaver. Update the existing item 'The Mathematical Theory of Communication' (1949) to the 'Book' item type. Create two 'Book Section' items for the 1949 University of Illinois Press publication: one for Warren Weaver's contribution titled 'Recent Contributions to the Mathematical Theory of Communication' (pages 1-28) and one for Claude E. Shannon's contribution titled 'The Mathematical Theory of Communication' (pages 29-125). Each section should list only its respective author.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_book_sections/setup_task.sh",
+    "post_task": "/workspace/tasks/create_book_sections/export_result.sh"
+  },
+  "metadata": {
+    "parent_title": "The Mathematical Theory of Communication",
+    "weaver_title": "Recent Contributions to the Mathematical Theory of Communication",
+    "shannon_title": "The Mathematical Theory of Communication",
+    "weaver_pages": "1-28",
+    "shannon_pages": "29-125"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_book_sections"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "explode_multipart_geometries@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Convert the multipart polygon geometries of the 'ne_110m_admin_0_countries' layer into singlepart polygons using gvSIG's geoprocessing tools. The input layer contains approximately 177 features, including multipart polygons like Indonesia and the Philippines. Export the resulting singlepart polygons to /home/ga/gvsig_data/exports/countries_singlepart.shp and ensure the new layer is added to the View.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/explode_multipart_geometries/setup_task.sh",
+    "post_task": "/workspace/tasks/explode_multipart_geometries/export_result.sh"
+  },
+  "metadata": {
+    "input_layer": "ne_110m_admin_0_countries",
+    "expected_output_path": "/home/ga/gvsig_data/exports/countries_singlepart.shp",
+    "min_expected_features": 200,
+    "original_features": 177
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_explode_multipart_geometries"
+    }
+  }
+}

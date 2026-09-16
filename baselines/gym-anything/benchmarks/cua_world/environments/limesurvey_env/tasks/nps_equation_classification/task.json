@@ -1,0 +1,42 @@
+{
+  "id": "nps_equation_classification@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create an NPS survey titled 'Q4 2024 Customer Experience NPS Survey' in LimeSurvey (admin/Admin123!). The survey must include an 'NPS Rating' group with a mandatory 0-10 scale question named 'NPS' and an equation question named 'NPSCat' that classifies scores as 'Detractor' (0-6), 'Passive' (7-8), or 'Promoter' (9-10). Include a 'Follow-Up Feedback' group with three conditional Long Free Text questions: 'DetractorQ' (shown only for Detractors: \"We're sorry to hear that. What was the primary reason for your low score?\"), 'PassiveQ' (shown only for Passives: \"Thank you for your feedback. What one improvement would make you rate us higher?\"), and 'PromoterQ' (shown only for Promoters: \"That's great to hear! What do you value most about our product/service?\"). Configure the survey settings to anonymize responses and activate the survey upon completion.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nps_equation_classification/setup_task.sh",
+    "post_task": "/workspace/tasks/nps_equation_classification/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keywords": [
+      "NPS",
+      "Net Promoter",
+      "Customer Experience"
+    ],
+    "nps_question_code": "NPS",
+    "equation_question_code": "NPSCat",
+    "classification_logic": {
+      "detractor_max": 6,
+      "passive_min": 7,
+      "passive_max": 8,
+      "promoter_min": 9
+    },
+    "follow_up_codes": [
+      "DetractorQ",
+      "PassiveQ",
+      "PromoterQ"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nps_survey"
+    }
+  }
+}

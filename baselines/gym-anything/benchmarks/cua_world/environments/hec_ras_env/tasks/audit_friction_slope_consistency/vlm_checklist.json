@@ -1,0 +1,53 @@
+{
+  "task_id": "audit_friction_slope_consistency@1",
+  "task_completion": [
+    {
+      "id": "open_hec_ras_project",
+      "description": "Open the Muncie HEC-RAS project and ensure Plan 04 is selected.",
+      "points": 10,
+      "visual_evidence": "HEC-RAS main window is visible with the 'Muncie' project loaded and 'Plan 04' selected as the current plan."
+    },
+    {
+      "id": "view_hydraulic_output_table",
+      "description": "Open the Profile Output Table or Detailed Output Table to view cross-section results at peak flow.",
+      "points": 20,
+      "visual_evidence": "HEC-RAS Profile Output Table or similar results window is open, displaying hydraulic data for multiple cross-sections."
+    },
+    {
+      "id": "extract_main_channel_variables",
+      "description": "Identify and extract the required variables (Velocity, Hydraulic Radius, Friction Slope, Manning's n) specifically for the Main Channel.",
+      "points": 20,
+      "visual_evidence": "The output table columns are configured to show Main Channel Velocity, Main Channel Hydraulic Radius, Friction Slope, and Manning's n, or the agent is copying this specific data."
+    },
+    {
+      "id": "perform_roughness_calculations",
+      "description": "Calculate the effective Manning's n, Residual, and Status using a spreadsheet or a script.",
+      "points": 20,
+      "visual_evidence": "A spreadsheet program (e.g., LibreOffice Calc) or a code editor is open showing the implementation of the US Customary Manning's Equation, the residual absolute difference, and the PASS/FAIL logic."
+    },
+    {
+      "id": "save_roughness_audit_csv",
+      "description": "Save the results to the specified CSV file path with all required columns.",
+      "points": 30,
+      "visual_evidence": "A 'Save As' dialog, file manager, or terminal showing the creation of 'roughness_audit.csv' in '~/Documents/hec_ras_results/', with the required columns (River_Station, Channel_Velocity_fps, etc.) visible in the file or script output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_hec_ras_interaction",
+      "description": "The agent interacted with the actual HEC-RAS application to retrieve the data.",
+      "visual_evidence": "Screenshots show the HEC-RAS GUI being navigated and data being extracted from its tables, rather than just reading text files or guessing values."
+    },
+    {
+      "id": "authentic_calculations",
+      "description": "The agent actually performed the calculations rather than hardcoding a fake output file.",
+      "visual_evidence": "Evidence of a script (e.g., Python) or spreadsheet being used to compute the values, rather than a text editor typing out a CSV manually with fabricated numbers."
+    },
+    {
+      "id": "actual_manning_n_used",
+      "description": "The agent extracted the actual Manning's n from the model rather than hallucinating a value.",
+      "visual_evidence": "The input Manning's n in the calculations or final CSV matches the actual model data (0.04), not a guessed or hallucinated value."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file must be saved exactly at '/home/ga/Documents/hec_ras_results/roughness_audit.csv'. The CSV must contain exactly these columns: River_Station, Channel_Velocity_fps, Channel_Hydraulic_Radius_ft, Friction_Slope, Input_Manning_n, Calculated_Manning_n, Residual, Status. Note: The actual input Manning's n for the main channel in the Muncie model is 0.04. The agent must extract this value from the model and not use a hallucinated value."
+}

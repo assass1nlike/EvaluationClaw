@@ -1,0 +1,35 @@
+{
+  "id": "badminton_court_layout@1",
+  "version": "1.0",
+  "env_id": "librecad_env@0.1",
+  "description": "Create a regulation doubles badminton court layout in LibreCAD using Millimeters as units. The drawing must include three layers: 'Court_Lines' (White, Continuous), 'Net_Line' (Red, Dashed), and 'Annotations' (Yellow, Continuous). Draw the court geometry using the following coordinates: an outer boundary from (0, 0) to (13400, 6100); singles sidelines at Y=460 and Y=5640 (X=0 to 13400); short service lines at X=4720 and X=8680 (Y=0 to 6100); doubles service lines at X=760 and X=12640 (Y=0 to 6100); and a center line at Y=3050 within the service courts (X=0 to 4720 and X=8680 to 13400). Add a net line at X=6700 extending from Y=-500 to Y=6600 on the 'Net_Line' layer. Include the text \"NET\" near the net line and \"SERVICE LINE\" near one of the service lines on the 'Annotations' layer. Save the final drawing to /home/ga/Documents/LibreCAD/badminton_court.dxf.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/badminton_court_layout/setup_task.sh",
+    "post_task": "/workspace/tasks/badminton_court_layout/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/LibreCAD/badminton_court.dxf",
+    "required_layers": [
+      "Court_Lines",
+      "Net_Line",
+      "Annotations"
+    ],
+    "court_dimensions": [
+      13400,
+      6100
+    ],
+    "net_position_x": 6700
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_badminton_court"
+    }
+  }
+}

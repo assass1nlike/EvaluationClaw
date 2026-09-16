@@ -1,0 +1,30 @@
+{
+  "id": "embed_meeting_iframe@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Create a custom HTML dashboard at /home/ga/Documents/meeting_portal.html that embeds a Jitsi Meet conference room for 'WeeklyOpsReview' using the IFrame External API (Domain: localhost:8080, Script: http://localhost:8080/external_api.js). The meeting must be contained in a div with id 'jitsi-container' with dimensions 100% width and 700px height. Configure the meeting options to start with audio and video muted, set the subject to 'Weekly Operations Review - Q4 Planning', and set the user display name to 'Operations Manager'. Open the resulting file in Firefox to verify the dashboard.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/embed_meeting_iframe/setup_task.sh",
+    "post_task": "/workspace/tasks/embed_meeting_iframe/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "expected_file_path": "/home/ga/Documents/meeting_portal.html",
+    "api_script_url": "http://localhost:8080/external_api.js",
+    "expected_room_name": "WeeklyOpsReview",
+    "expected_display_name": "Operations Manager",
+    "expected_subject": "Weekly Operations Review - Q4 Planning"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_embed_meeting_iframe"
+    }
+  }
+}

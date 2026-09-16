@@ -1,0 +1,33 @@
+{
+  "id": "reproject_view_crs@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "You are a cartographer preparing a base layer for a web mapping project. In the gvSIG project 'countries_base', change the Coordinate Reference System (CRS) of the view containing the Natural Earth 110m countries shapefile from WGS 84 (EPSG:4326) to Web Mercator (EPSG:3857). Save the updated project to /home/ga/gvsig_data/projects/mercator_project.gvsproj.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reproject_view_crs/setup_task.sh",
+    "post_task": "/workspace/tasks/reproject_view_crs/export_result.sh"
+  },
+  "metadata": {
+    "expected_project_path": "/home/ga/gvsig_data/projects/mercator_project.gvsproj",
+    "base_project_path": "/home/ga/gvsig_data/projects/countries_base.gvsproj",
+    "target_epsg": "3857",
+    "target_crs_names": [
+      "Pseudo-Mercator",
+      "Web Mercator",
+      "Popular Visualisation CRS",
+      "Google Mercator"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reproject_view_crs"
+    }
+  }
+}

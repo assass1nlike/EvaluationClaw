@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_media3_exoplayer@1",
+  "task_completion": [
+    {
+      "id": "dependencies_added",
+      "description": "Verify that the required Media3 dependencies are added to the app's build.gradle.kts file.",
+      "points": 20,
+      "visual_evidence": "Look for 'app/build.gradle.kts' open in the editor with 'implementation' lines for 'androidx.media3:media3-exoplayer' and 'androidx.media3:media3-ui'."
+    },
+    {
+      "id": "player_view_xml",
+      "description": "Verify that a full-screen PlayerView is added to activity_main.xml.",
+      "points": 20,
+      "visual_evidence": "Look for 'activity_main.xml' open in the editor showing an '<androidx.media3.ui.PlayerView>' element. It should have layout_width and layout_height set to 'match_parent' to be full-screen."
+    },
+    {
+      "id": "exoplayer_initialization",
+      "description": "Verify that an ExoPlayer instance is properly initialized in MainActivity.kt.",
+      "points": 20,
+      "visual_evidence": "Look for 'MainActivity.kt' open in the editor showing code that builds an ExoPlayer instance, such as 'ExoPlayer.Builder(this).build()', and assigns it to the PlayerView."
+    },
+    {
+      "id": "media_item_playback",
+      "description": "Verify that the ExoPlayer is configured to play the local promo_video resource.",
+      "points": 20,
+      "visual_evidence": "Look for 'MainActivity.kt' showing a MediaItem being created from the local raw resource (e.g., referencing 'R.raw.promo_video' or 'android.resource://.../raw/promo_video'), followed by 'player.setMediaItem(...)', 'player.prepare()', and 'player.play()'."
+    },
+    {
+      "id": "lifecycle_release",
+      "description": "Verify that the ExoPlayer instance is released in a lifecycle-aware manner.",
+      "points": 20,
+      "visual_evidence": "Look for 'MainActivity.kt' showing overridden Android lifecycle methods (such as 'onStop()', 'onPause()', or 'onDestroy()') that contain a call to 'player.release()' to free up resources."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "android_studio_used",
+      "description": "Verify that the agent used Android Studio to edit the project files.",
+      "visual_evidence": "Screenshots should show the Android Studio IDE interface being used to edit 'build.gradle.kts', 'activity_main.xml', and 'MainActivity.kt'."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Verify that the agent did not bypass the IDE by generating files entirely via terminal commands.",
+      "visual_evidence": "The terminal should not show commands like 'echo' or 'cat' being used to write the entire contents of the Kotlin or XML files."
+    },
+    {
+      "id": "genuine_local_resource",
+      "description": "Verify that the agent actually referenced the local video file and didn't hardcode an external web URL.",
+      "visual_evidence": "The code in MainActivity.kt must explicitly reference the local raw resource (promo_video) rather than an 'http://' or 'https://' URL."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/AndroidStudioProjects/VideoPlayerApp'. The expected dependencies in build.gradle.kts are 'androidx.media3:media3-exoplayer' and 'androidx.media3:media3-ui'. The local video resource is named 'promo_video' and should be referenced in code (e.g., R.raw.promo_video)."
+}

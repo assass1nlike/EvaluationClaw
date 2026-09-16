@@ -1,0 +1,54 @@
+{
+  "task_id": "rasterize_vector_to_raster@1",
+  "task_completion": [
+    {
+      "id": "load_input_layer",
+      "description": "Load the sample_polygon.geojson vector layer into QGIS.",
+      "points": 10,
+      "visual_evidence": "The QGIS Layers panel shows 'sample_polygon' loaded."
+    },
+    {
+      "id": "open_rasterize_tool",
+      "description": "Open the Rasterize (Vector to Raster) tool.",
+      "points": 10,
+      "visual_evidence": "The 'Rasterize (Vector to Raster)' dialog window is visible on the screen."
+    },
+    {
+      "id": "set_burn_in_and_resolution",
+      "description": "Set the burn-in field and output resolution.",
+      "points": 20,
+      "visual_evidence": "In the Rasterize dialog, 'Field to use for a burn-in value' is set to 'area_sqkm', 'Output raster size units' is set to Georeferenced units, and both Horizontal and Vertical resolutions are set to 0.005."
+    },
+    {
+      "id": "set_extent_and_nodata",
+      "description": "Set the output extent and nodata value.",
+      "points": 20,
+      "visual_evidence": "In the Rasterize dialog, 'Output extent' is set to the sample_polygon layer extent, and 'Assign a specified nodata value to output bands' is set to -9999."
+    },
+    {
+      "id": "execute_and_save_raster",
+      "description": "Save the output GeoTIFF to the specified path.",
+      "points": 20,
+      "visual_evidence": "The 'Rasterized' output file path in the dialog is set to '/home/ga/GIS_Data/exports/polygon_raster.tif', or the resulting raster is shown in the Layers panel after execution."
+    },
+    {
+      "id": "save_qgis_project",
+      "description": "Save the QGIS project to the specified path.",
+      "points": 20,
+      "visual_evidence": "The QGIS window title shows 'rasterize_project' or a 'Save Project' dialog shows the path '/home/ga/GIS_Data/projects/rasterize_project.qgs'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_qgis_gui",
+      "description": "The agent used the QGIS GUI to perform the task.",
+      "visual_evidence": "Screenshots show interaction with the QGIS application and Rasterize dialog, rather than terminal commands like 'gdal_rasterize'."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "The agent did not use Python scripts or terminal commands to bypass the GUI.",
+      "visual_evidence": "There are no terminal windows or Python consoles showing scripts that directly generate the raster or project files."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/GIS_Data/sample_polygon.geojson. Expected output raster: /home/ga/GIS_Data/exports/polygon_raster.tif. Expected QGIS project: /home/ga/GIS_Data/projects/rasterize_project.qgs. Burn-in field: 'area_sqkm' (values 10.5 and 8.2). Resolution: 0.005 degrees. Nodata value: -9999. Extent matches input layer."
+}

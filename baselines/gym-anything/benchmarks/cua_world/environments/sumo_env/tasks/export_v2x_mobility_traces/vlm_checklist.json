@@ -1,0 +1,53 @@
+{
+  "task_id": "export_v2x_mobility_traces@1",
+  "task_completion": [
+    {
+      "id": "fcd_file_generated",
+      "description": "Verify the generation of the FCD export file.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command running 'sumo' with '--fcd-output /home/ga/SUMO_Output/acosta_fcd.xml' or an 'ls' command showing 'acosta_fcd.xml' in the /home/ga/SUMO_Output/ directory. The file size should be large (around 342MB)."
+    },
+    {
+      "id": "ns2_mobility_generated",
+      "description": "Verify the generation of the 10-minute NS2 mobility file.",
+      "points": 25,
+      "visual_evidence": "Look for a terminal command running 'traceExporter.py' (or similar SUMO tool) with '--ns2mobility-output /home/ga/SUMO_Output/ns2_mobility.tcl' and a 10-minute limit (e.g., '--end 600'). Alternatively, look for 'ns2_mobility.tcl' in an 'ls' output with a size of around 14MB."
+    },
+    {
+      "id": "ns2_activity_generated",
+      "description": "Verify the generation of the NS2 activity file.",
+      "points": 25,
+      "visual_evidence": "Look for the 'traceExporter.py' command including '--ns2activity-output /home/ga/SUMO_Output/ns2_activity.tcl', or an 'ls' command showing 'ns2_activity.tcl' in the output directory."
+    },
+    {
+      "id": "line_count_computed",
+      "description": "Verify the agent computed the line count of the mobility file.",
+      "points": 10,
+      "visual_evidence": "Look for a terminal command like 'wc -l /home/ga/SUMO_Output/ns2_mobility.tcl' resulting in the number 252698."
+    },
+    {
+      "id": "summary_file_created",
+      "description": "Verify the summary file was created with the correct format and line count.",
+      "points": 20,
+      "visual_evidence": "Look for an 'echo' command or a text editor saving to '/home/ga/SUMO_Output/trace_summary.txt' with the exact content 'total_mobility_lines=252698', or a 'cat' command displaying this content."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sumo_execution",
+      "description": "Ensure the agent actually ran SUMO and traceExporter tools to generate the files.",
+      "visual_evidence": "Check that the agent executed 'sumo' and 'traceExporter.py' commands in the terminal, rather than just creating mock files using 'touch' or 'echo'."
+    },
+    {
+      "id": "genuine_line_count",
+      "description": "Ensure the agent computed the line count rather than hardcoding it.",
+      "visual_evidence": "Check that the agent ran a command like 'wc -l' to find the line count before writing it to the summary file."
+    },
+    {
+      "id": "correct_time_limit",
+      "description": "Ensure the agent restricted the trace to 10 minutes.",
+      "visual_evidence": "Look for the '--end 600' or '-e 600' parameter in the traceExporter command. The agent should not have exported the entire trace without a time limit."
+    }
+  ],
+  "privileged_info_for_vlm": "The FCD file (acosta_fcd.xml) should be approximately 342MB. The NS2 mobility file (ns2_mobility.tcl) should be approximately 14MB and contain exactly 252,698 lines. The NS2 activity file (ns2_activity.tcl) should contain 2,756 lines. The correct summary file content is exactly 'total_mobility_lines=252698'."
+}

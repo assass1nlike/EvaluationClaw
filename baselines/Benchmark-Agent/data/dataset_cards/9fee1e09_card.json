@@ -1,0 +1,85 @@
+{
+  "dataset_id": "9fee1e09",
+  "name": "Toothbrush Anomaly Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "image"
+      ]
+    }
+  ],
+  "size_samples": 12,
+  "description": "A visual anomaly segmentation dataset for industrial products. Each sample contains an image and a text prompt specifying the object, and the goal is to output a pixel-level mask highlighting the anomalous region.",
+  "card_text": "The Toothbrush Anomaly Detection dataset is a small benchmark for image-based anomaly segmentation in industrial inspection. It contains paired image-text inputs: an image of a product (e.g., toothbrush or leather) and a short instruction like 'Detect the anomaly region of the leather'. The target output is a binary mask image that marks the anomalous pixels. Modalities include image and text; the text serves as an instruction prompt. The dataset is designed for segmentation models that localize defects or anomalies. Samples are stored as JSON with file references to input images, prompts, and output mask files. Assumptions: each image contains at most one anomaly region, and the prompt identifies the object category.",
+  "tasks": [
+    "segmentation"
+  ],
+  "domain": "industrial anomaly detection",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Input image of an industrial product (e.g., toothbrush or leather) that may contain an anomaly; it is the visual scene to be inspected and segmented.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "Text instruction that asks the model to detect the anomaly region of the specified object in the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "mask": {
+        "paths": [
+          "output.mask_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "Ground-truth binary mask image that highlights the anomalous region in the corresponding input image; this is the target output for segmentation.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image (input.image_file), a text prompt (input.prompt) instructing the model to detect the anomaly for a specified object, and an output mask (output.mask_file) that provides the ground-truth segmentation of the anomalous region. The prompt acts as the query, the image is the visual context, and the mask is the target answer. No other components (dialog, options, boxes, etc.) are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/ToothbrushAnomalyDetection/toothbrush_anomaly_detection.json",
+    "existing_tags": {
+      "task": "toothbrush anomaly detection",
+      "type": "image comprehension",
+      "skill": "Industrial Anomaly Detection",
+      "domain": [
+        "Engineering"
+      ],
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": [
+      "Engineering"
+    ]
+  }
+}

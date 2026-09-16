@@ -1,0 +1,59 @@
+{
+  "task_id": "bridge_inspection_lidar_avoidance@1",
+  "task_completion": [
+    {
+      "id": "open_manifest_file",
+      "description": "Agent opens the reference sensor manifest file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Documents/QGC/sensor_manifest.txt."
+    },
+    {
+      "id": "open_qgc_parameters",
+      "description": "Agent opens QGroundControl and navigates to the Parameters setup menu.",
+      "points": 10,
+      "visual_evidence": "The QGroundControl application is open, the 'Vehicle Setup' (gear icon) is selected, and the 'Parameters' tab is active."
+    },
+    {
+      "id": "set_rngfnd1_params",
+      "description": "Agent configures the RNGFND1 parameters for the downward LiDAR.",
+      "points": 20,
+      "visual_evidence": "In the QGC parameter editor, RNGFND1_TYPE is set to 8, RNGFND1_ORIENT is set to 25, and RNGFND1_MAX_CM is set to 5000."
+    },
+    {
+      "id": "set_rngfnd2_params",
+      "description": "Agent configures the RNGFND2 parameters for the upward LiDAR.",
+      "points": 20,
+      "visual_evidence": "In the QGC parameter editor, RNGFND2_TYPE is set to 8, RNGFND2_ORIENT is set to 24, and RNGFND2_MAX_CM is set to 1500."
+    },
+    {
+      "id": "set_prx1_type",
+      "description": "Agent configures the proximity sensor type.",
+      "points": 20,
+      "visual_evidence": "In the QGC parameter editor, PRX1_TYPE is set to 4."
+    },
+    {
+      "id": "set_avoid_params",
+      "description": "Agent configures the obstacle avoidance parameters.",
+      "points": 20,
+      "visual_evidence": "In the QGC parameter editor, AVOID_ENABLE is set to 1 and AVOID_MARGIN is set to 2.50."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the QGroundControl GUI to modify parameters.",
+      "visual_evidence": "Screenshots show interaction with the QGC parameter search bar, parameter tree, and parameter modification dialogs, rather than just executing terminal commands."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "Agent did not spoof the results by typing them into a text editor.",
+      "visual_evidence": "The parameter values are clearly visible inside the genuine QGroundControl application interface, not in a mock text file or terminal output."
+    },
+    {
+      "id": "genuine_parameter_search",
+      "description": "Agent actively searched for the required parameters.",
+      "visual_evidence": "The QGC search bar contains relevant search terms (e.g., 'RNGFND', 'PRX', 'AVOID') or the correct parameter categories are expanded in the sidebar."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent MUST set the parameters to the exact numerical values specified in the prompt: RNGFND1_TYPE=8, RNGFND1_ORIENT=25, RNGFND1_MAX_CM=5000, RNGFND2_TYPE=8, RNGFND2_ORIENT=24, RNGFND2_MAX_CM=1500, PRX1_TYPE=4, AVOID_ENABLE=1, AVOID_MARGIN=2.50. Note: Even if ArduPilot documentation suggests different semantics for these values (e.g., AVOID_ENABLE=1 means UseFence instead of UseProximitySensor in real ArduPilot), the agent must strictly input the exact values requested in the task description. The reference manifest is located at /home/ga/Documents/QGC/sensor_manifest.txt."
+}

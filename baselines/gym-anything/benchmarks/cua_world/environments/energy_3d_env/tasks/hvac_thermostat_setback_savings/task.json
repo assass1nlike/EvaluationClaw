@@ -1,0 +1,31 @@
+{
+  "id": "hvac_thermostat_setback_savings@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are an energy auditor evaluating a residential property. The homeowner currently leaves their thermostat at a constant 22°C year-round. Run an annual building energy analysis to calculate the energy savings of upgrading to a smart thermostat with an 'Eco' setback schedule.\n\n1. Ensure the building's location/city is set to 'Boston, MA'.\n2. Run a baseline 'Annual Building Energy Analysis' with both the Heating and Cooling Setpoints at 22°C. Note the 'Total' annual energy consumption (kWh) from the graph.\n3. Change the building's thermostat to the proposed Eco configuration: Heating Setpoint = 18°C, Cooling Setpoint = 26°C.\n4. Run the 'Annual Building Energy Analysis' again and note the new 'Total' consumption.\n5. Calculate the absolute energy savings (Baseline - Eco) and the percentage savings.\n6. Create a text file at ~/Documents/Energy3D/thermostat_savings_report.txt clearly listing: Baseline Energy, Eco Energy, Absolute Savings (kWh), and Percentage Savings.\n7. Save the modified Energy3D model with the Eco settings applied as ~/Documents/Energy3D/eco_building.ng3.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 1200,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hvac_thermostat_setback_savings/setup_task.sh",
+    "post_task": "/workspace/tasks/hvac_thermostat_setback_savings/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Energy Auditor",
+    "industry": "Energy Efficiency",
+    "expected_heating_setpoint": 18,
+    "expected_cooling_setpoint": 26,
+    "expected_city": "Boston, MA",
+    "report_path": "/home/ga/Documents/Energy3D/thermostat_savings_report.txt",
+    "eco_model_path": "/home/ga/Documents/Energy3D/eco_building.ng3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hvac_thermostat_setback_savings"
+    }
+  }
+}

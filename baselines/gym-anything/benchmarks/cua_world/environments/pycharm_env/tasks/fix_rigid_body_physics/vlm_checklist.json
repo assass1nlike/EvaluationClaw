@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_rigid_body_physics@1",
+  "task_completion": [
+    {
+      "id": "fix_time_integration",
+      "description": "The agent modified the time integration logic to correctly update object velocities and positions over time.",
+      "points": 30,
+      "visual_evidence": "Screenshots show a code editor open to a physics engine file (e.g., engine/physics.py) with modifications to how velocity is updated by acceleration and position is updated by velocity using a time step variable (e.g., 'dt')."
+    },
+    {
+      "id": "fix_collision_impulse",
+      "description": "The agent corrected the collision impulse calculations to resolve objects gaining energy after collisions.",
+      "points": 30,
+      "visual_evidence": "Screenshots show a code editor with modifications to the impulse resolution math, typically involving relative velocity, collision normals, restitution (bounciness), and inverse mass."
+    },
+    {
+      "id": "fix_positional_correction",
+      "description": "The agent implemented or fixed positional correction to prevent objects from sinking into each other.",
+      "points": 30,
+      "visual_evidence": "Screenshots show a code editor with logic added or fixed to separate overlapping objects, often involving penetration depth, a correction vector, and moving objects apart along the collision normal."
+    },
+    {
+      "id": "run_pytest_command",
+      "description": "The agent executed the pytest command in the project directory.",
+      "points": 5,
+      "visual_evidence": "Terminal output showing the agent typing and running 'pytest' within the '/home/ga/PycharmProjects/box_sim' directory."
+    },
+    {
+      "id": "verify_all_tests_pass",
+      "description": "All tests in the test suite passed successfully without regressions.",
+      "points": 5,
+      "visual_evidence": "Terminal output from pytest clearly displaying that exactly 5 tests were collected and showing a passing result (e.g., '5 passed' in green text)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "unmodified_test_files",
+      "description": "The agent did not modify any of the test files, as explicitly forbidden by the task instructions.",
+      "visual_evidence": "No screenshots show the agent opening or editing files in a 'tests' directory or files named 'test_*.py' in a code editor."
+    },
+    {
+      "id": "unmodified_vectors_library",
+      "description": "The agent did not modify the vector math library, as explicitly forbidden by the task instructions.",
+      "visual_evidence": "No screenshots show the agent editing the 'engine/vectors.py' file."
+    },
+    {
+      "id": "genuine_pytest_output",
+      "description": "The test results come from a genuine execution of pytest.",
+      "visual_evidence": "The terminal shows standard pytest output formatting (e.g., 'collected 5 items', test session starts, progress indicators) rather than a simple echo command or a manually printed text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/PycharmProjects/box_sim. There are exactly 5 tests in the test suite. The agent earns 30 points for each of the 3 physics bugs fixed (Integration, Impulse, Positional Correction) and 10 points for passing all 5 tests. The agent is strictly forbidden from modifying test files or engine/vectors.py."
+}

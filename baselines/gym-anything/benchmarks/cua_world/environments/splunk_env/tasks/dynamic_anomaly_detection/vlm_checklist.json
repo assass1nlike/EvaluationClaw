@@ -1,0 +1,53 @@
+{
+  "task_id": "dynamic_anomaly_detection@1",
+  "task_completion": [
+    {
+      "id": "alert_exists",
+      "description": "Verify that an alert named 'Statistical_Web_Error_Spike' has been created.",
+      "points": 20,
+      "visual_evidence": "Look for 'Statistical_Web_Error_Spike' in the Splunk Alerts list, the 'Save As Alert' dialog, or the alert configuration screen."
+    },
+    {
+      "id": "queries_web_logs",
+      "description": "Verify that the alert's search query targets the 'web_logs' index.",
+      "points": 20,
+      "visual_evidence": "Look for 'index=\"web_logs\"' or 'index=web_logs' at the beginning of the SPL search string in the Splunk search bar or alert configuration."
+    },
+    {
+      "id": "uses_statistical_functions",
+      "description": "Verify that the search query uses statistical commands to calculate the mean and standard deviation.",
+      "points": 20,
+      "visual_evidence": "Look for commands like 'eventstats', 'streamstats', 'avg', and 'stdev' or 'stdevp' in the SPL query shown in the interface."
+    },
+    {
+      "id": "applies_2_sigma_bound",
+      "description": "Verify that the alert condition enforces a 2-standard-deviation threshold (mean + 2 * standard deviation).",
+      "points": 20,
+      "visual_evidence": "Look for a 'where' clause or similar logic in the SPL query containing '2' and '*' (e.g., 'where count > avg + 2*stdev' or similar mathematical expression)."
+    },
+    {
+      "id": "alert_is_scheduled",
+      "description": "Verify that the alert is configured to run on an hourly schedule.",
+      "points": 20,
+      "visual_evidence": "Look for the Schedule type set to 'Run on Cron Schedule' with '0 * * * *' or a dropdown selection indicating 'Every hour' or 'Hourly' in the alert settings modal."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_splunk_gui",
+      "description": "Ensure the agent interacted with the Splunk web interface to create the alert.",
+      "visual_evidence": "Screenshots should show the Splunk web UI (e.g., Search & Reporting app, Alerts tab) rather than terminal curl commands or text editors."
+    },
+    {
+      "id": "genuine_spl_entry",
+      "description": "Ensure the SPL query was actually entered into the Splunk search bar or alert configuration.",
+      "visual_evidence": "The query should be visible inside the Splunk interface's search input field or alert setup modal, not just written in a notepad or terminal window."
+    },
+    {
+      "id": "no_direct_conf_manipulation",
+      "description": "Ensure the agent didn't bypass the UI by directly editing Splunk .conf files in a terminal.",
+      "visual_evidence": "Absence of terminal windows showing 'nano savedsearches.conf', 'vim', or similar file edits to create the alert."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected alert name is exactly 'Statistical_Web_Error_Spike'. The target index must be 'web_logs'. The SPL query must dynamically handle bounds using statistical commands (e.g., eventstats, streamstats, avg, stdev, stdevp) and enforce a 2-sigma threshold using 'where', '2', and '*'. The alert must be scheduled to run hourly. Splunk credentials are admin / SplunkAdmin1!."
+}

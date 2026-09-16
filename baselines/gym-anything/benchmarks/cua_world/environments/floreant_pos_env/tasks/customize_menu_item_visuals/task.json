@@ -1,0 +1,29 @@
+{
+  "id": "customize_menu_item_visuals@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Create a menu item named 'Firecracker Shrimp' with a price of $12.99. Configure the button color as RED and the text color as WHITE. Ensure the item is assigned to a group and is visible. Use PIN 1111 for system access.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/customize_menu_item_visuals/setup_task.sh",
+    "post_task": "/workspace/tasks/customize_menu_item_visuals/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Firecracker Shrimp",
+    "expected_price": 12.99,
+    "expected_btn_color_int": "-65536",
+    "expected_text_color_int": "-1",
+    "db_url": "jdbc:derby:/opt/floreantpos/database/derby-server"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_customize_menu_item_visuals"
+    }
+  }
+}

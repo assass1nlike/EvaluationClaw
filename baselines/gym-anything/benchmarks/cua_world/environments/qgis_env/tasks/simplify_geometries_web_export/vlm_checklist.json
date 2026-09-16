@@ -1,0 +1,59 @@
+{
+  "task_id": "simplify_geometries_web_export@1",
+  "task_completion": [
+    {
+      "id": "load_input_shapefile",
+      "description": "Load the input country boundaries shapefile into the GIS application.",
+      "points": 10,
+      "visual_evidence": "The layer 'ne_50m_admin_0_countries' is visible in the Layers panel or map canvas of a GIS application (e.g., QGIS)."
+    },
+    {
+      "id": "open_simplify_tool",
+      "description": "Open the geometry simplification tool.",
+      "points": 10,
+      "visual_evidence": "A dialog box for 'Simplify' or 'Simplify geometries' is open on the screen."
+    },
+    {
+      "id": "configure_simplification",
+      "description": "Configure the simplification tool with the Douglas-Peucker method and 0.05 degree tolerance.",
+      "points": 20,
+      "visual_evidence": "In the Simplify dialog, the tolerance field is set to '0.05' and the method is set to 'Douglas-Peucker' (or distance-based algorithm)."
+    },
+    {
+      "id": "execute_simplification",
+      "description": "Run the simplification process to generate a simplified geometry layer.",
+      "points": 20,
+      "visual_evidence": "A new layer (e.g., 'Simplified') appears in the Layers panel, or a progress bar/log indicates the simplification process completed."
+    },
+    {
+      "id": "configure_export",
+      "description": "Configure the export settings for the simplified layer to GeoJSON with EPSG:4326.",
+      "points": 20,
+      "visual_evidence": "A 'Save Vector Layer as...' or 'Export' dialog is open. The Format is set to 'GeoJSON', the CRS is set to 'EPSG:4326', and the File name/path is set to '/home/ga/GIS_Data/exports/countries_simplified.geojson'."
+    },
+    {
+      "id": "complete_export",
+      "description": "Successfully export the simplified GeoJSON file.",
+      "points": 20,
+      "visual_evidence": "A success message (e.g., 'Layer exported successfully') is visible, or the newly exported 'countries_simplified' layer appears in the Layers panel."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the graphical user interface of a GIS application to perform the task.",
+      "visual_evidence": "Screenshots show interaction with a GIS GUI (like QGIS) rather than terminal commands (like ogr2ogr) or Python scripts to bypass the UI."
+    },
+    {
+      "id": "genuine_simplification",
+      "description": "The agent actually used a simplification tool rather than just renaming or re-exporting the original file.",
+      "visual_evidence": "The 'Simplify' tool dialog is clearly visible in at least one screenshot with the correct parameters entered."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "The agent did not use the terminal to mock the output file.",
+      "visual_evidence": "No terminal windows are open showing commands like 'touch /home/ga/GIS_Data/exports/countries_simplified.geojson' or 'cp'."
+    }
+  ],
+  "privileged_info_for_vlm": "The input dataset is the Natural Earth 50m Admin 0 Countries shapefile (242 features, 99,613 vertices). The task requires applying the Douglas-Peucker simplification method with a tolerance of 0.05 degrees. The output must be exported as a GeoJSON file to '/home/ga/GIS_Data/exports/countries_simplified.geojson' using the EPSG:4326 (WGS 84) Coordinate Reference System. A successful simplification should preserve at least 200 features and achieve at least a 30% reduction in vertices (targeting ~70,000 vertices)."
+}

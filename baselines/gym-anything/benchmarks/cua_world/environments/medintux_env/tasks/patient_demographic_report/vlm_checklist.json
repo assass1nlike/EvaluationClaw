@@ -1,0 +1,59 @@
+{
+  "task_id": "patient_demographic_report@1",
+  "task_completion": [
+    {
+      "id": "medintux_accessed",
+      "description": "Agent opened MedinTux to view patient records",
+      "points": 10,
+      "visual_evidence": "The MedinTux application window is visible on screen, showing the patient search or patient list interface."
+    },
+    {
+      "id": "report_file_initiated",
+      "description": "Agent initiated the creation of the demographics report file",
+      "points": 10,
+      "visual_evidence": "A text editor (e.g., gedit, nano, vim) or terminal command is visible, showing the creation or editing of a file named 'patient_demographics_report.txt'."
+    },
+    {
+      "id": "basic_statistics_recorded",
+      "description": "Report contains the correct basic patient counts",
+      "points": 20,
+      "visual_evidence": "The report text explicitly includes the exact strings: 'Total Patients: 8', 'Male (H): 4', and 'Female (F): 4'."
+    },
+    {
+      "id": "advanced_statistics_recorded",
+      "description": "Report contains the calculated age-related statistics",
+      "points": 20,
+      "visual_evidence": "The report text includes the exact labels: 'Average Age: <number>', 'Oldest Patient: <LASTNAME Firstname> (born <YYYY-MM-DD>)', and 'Youngest Patient: <LASTNAME Firstname> (born <YYYY-MM-DD>)'."
+    },
+    {
+      "id": "patient_list_recorded",
+      "description": "Report contains the full list of patients",
+      "points": 20,
+      "visual_evidence": "The report text lists the names of all 8 patients (BERNARD, THOMAS, PETIT, DURAND, MARTIN, DUBOIS, ROBERT, RICHARD)."
+    },
+    {
+      "id": "file_saved_correct_path",
+      "description": "Report is saved to the exact required path",
+      "points": 20,
+      "visual_evidence": "The text editor's save dialog, title bar, or a terminal command (like 'ls' or 'cat') confirms the file is saved exactly at '/home/ga/patient_demographics_report.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_medintux_interaction",
+      "description": "Agent extracted data by interacting with MedinTux rather than bypassing it",
+      "visual_evidence": "Screenshots should show the agent actively using the MedinTux GUI to look up patient data, rather than just executing a direct SQL query against the underlying database in the terminal."
+    },
+    {
+      "id": "no_hallucinated_patients",
+      "description": "Agent only included the actual patients present in the database",
+      "visual_evidence": "The patient names in the report must strictly match the 8 specific French names provided in the privileged information, with no fabricated or missing names."
+    },
+    {
+      "id": "actual_file_saved",
+      "description": "Agent saved the output to a file instead of just printing to console",
+      "visual_evidence": "The final output must be written to the .txt file, not merely echoed or printed to the terminal stdout without file redirection."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct file path is /home/ga/patient_demographics_report.txt. The database contains exactly 8 patients: 4 male (BERNARD, THOMAS, PETIT, DURAND) and 4 female (MARTIN, DUBOIS, ROBERT, RICHARD). The report must state 'Total Patients: 8', 'Male (H): 4', and 'Female (F): 4'."
+}

@@ -1,0 +1,48 @@
+{
+  "id": "configure_market_analyzer_heatmap@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "A proprietary trader needs a 'Heatmap' style Market Analyzer to monitor daily performance. Create and configure a Market Analyzer window in NinjaTrader 8 for instruments SPY, AAPL, and MSFT. The 'Net Change %' column must be visible with cell conditions applied: a green background for values greater than 0 and a red background for values less than 0. Sort the grid by 'Net Change %' in descending order and save the workspace as 'HeatmapTask'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_market_analyzer_heatmap\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_market_analyzer_heatmap\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_workspace_name": "HeatmapTask",
+    "required_instruments": [
+      "SPY",
+      "AAPL",
+      "MSFT"
+    ],
+    "required_column": "NetChangePercent",
+    "sort_direction": "Descending",
+    "positive_colors": [
+      "Green",
+      "Lime",
+      "LightGreen",
+      "DarkGreen",
+      "SeaGreen",
+      "PaleGreen"
+    ],
+    "negative_colors": [
+      "Red",
+      "Pink",
+      "LightPink",
+      "DarkRed",
+      "Crimson",
+      "IndianRed"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_market_analyzer_heatmap"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "enable_ssl_website@1",
+  "task_completion": [
+    {
+      "id": "select_virtual_server",
+      "description": "Select the 'acmecorp.test' virtual server in the Virtualmin interface",
+      "points": 10,
+      "visual_evidence": "The Virtualmin web interface is open (typically at https://localhost:10000) and 'acmecorp.test' is selected in the left sidebar dropdown or main panel as the active virtual server."
+    },
+    {
+      "id": "enable_ssl_feature",
+      "description": "Enable the SSL website feature for the virtual server",
+      "points": 20,
+      "visual_evidence": "In the 'Edit Virtual Server' -> 'Enabled features' section, the checkbox for 'Apache SSL website enabled' (or similar SSL feature) is checked and the changes are saved."
+    },
+    {
+      "id": "enter_cert_details",
+      "description": "Enter the required organizational details for the self-signed certificate",
+      "points": 30,
+      "visual_evidence": "The 'Create Self-Signed Certificate' form is filled out with: Organization Name: Acme Corporation, Department/Organizational Unit: Web Services, City/Locality: San Francisco, State/Province: California, Country Code: US, and Validity Period: 365 days (or 12 months)."
+    },
+    {
+      "id": "generate_certificate",
+      "description": "Successfully generate and apply the self-signed SSL certificate",
+      "points": 20,
+      "visual_evidence": "A success message in Virtualmin stating the certificate was generated, or the 'Current Certificate' page displaying the Issuer/Subject details matching 'Acme Corporation' and 'acmecorp.test'."
+    },
+    {
+      "id": "verify_https_access",
+      "description": "Verify the website is accessible over HTTPS",
+      "points": 20,
+      "visual_evidence": "A web browser window shows the address bar navigated to 'https://acmecorp.test'. It is acceptable if the browser displays a security warning (e.g., 'Your connection is not private') because the certificate is self-signed, or if it shows the default website page."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_virtualmin_gui",
+      "description": "The agent used the Virtualmin web interface to configure SSL and generate the certificate",
+      "visual_evidence": "Screenshots should show interaction with the Virtualmin web UI (https://localhost:10000) for certificate generation, rather than terminal commands like `openssl req` or `virtualmin generate-cert`."
+    },
+    {
+      "id": "genuine_https_test",
+      "description": "The agent tested the HTTPS connection in a real web browser",
+      "visual_evidence": "A standard web browser (e.g., Chrome, Firefox) is used to navigate to https://acmecorp.test, rather than using terminal commands like `curl` to bypass visual verification."
+    },
+    {
+      "id": "no_direct_file_manipulation",
+      "description": "The agent did not manually create or edit the certificate files via terminal",
+      "visual_evidence": "There should be no terminal windows showing text editors (nano, vim) or echo commands writing directly to `/home/acmecorp/ssl.cert` or `/home/acmecorp/ssl.key`."
+    }
+  ],
+  "privileged_info_for_vlm": "Target domain: acmecorp.test. Required Certificate Details: Organization (O) = 'Acme Corporation', Organizational Unit (OU) = 'Web Services', Locality (L) = 'San Francisco', State (ST) = 'California', Country (C) = 'US', Validity = 365 days. The certificate files are stored at /home/acmecorp/ssl.cert and /home/acmecorp/ssl.key. Note: Because the certificate is self-signed, a browser security warning when visiting https://acmecorp.test is expected and constitutes successful HTTPS access if the URL is correct."
+}

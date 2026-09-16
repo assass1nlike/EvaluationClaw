@@ -1,0 +1,33 @@
+{
+  "id": "bio101_final_exam_config@1",
+  "version": "1.0",
+  "env_id": "canvas_lms_env@0.1",
+  "description": "As an administrator (canvas@example.edu / canvas-docker), create and publish a 'Graded Quiz' named 'BIO101 Final Examination' in the BIO101 course. Configure the quiz with a 90-minute time limit, 1 allowed attempt, access code 'BIO101FINAL', shuffled answers, and show one question at a time. The description must include the phrases 'comprehensive final' and 'closed-book'. Set the due date for 21 days from today, with availability starting 20 days from today and ending 22 days from today.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bio101_final_exam_config/setup_task.sh",
+    "post_task": "/workspace/tasks/bio101_final_exam_config/export_result.sh"
+  },
+  "metadata": {
+    "target_course_code": "BIO101",
+    "target_quiz_title": "BIO101 Final Examination",
+    "access_code": "BIO101FINAL",
+    "time_limit": 90,
+    "allowed_attempts": 1,
+    "due_offset_days": 21,
+    "unlock_offset_days": 20,
+    "lock_offset_days": 22,
+    "date_tolerance_hours": 48
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bio101_final_exam_config"
+    }
+  }
+}

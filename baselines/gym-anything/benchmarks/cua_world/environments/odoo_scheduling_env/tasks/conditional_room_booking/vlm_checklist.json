@@ -1,0 +1,59 @@
+{
+  "task_id": "conditional_room_booking@1",
+  "task_completion": [
+    {
+      "id": "login_successful",
+      "description": "Verify the agent logged in with the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Look for the Odoo dashboard or application menu indicating a successful login (e.g., user profile icon or main app menu visible)."
+    },
+    {
+      "id": "calendar_opened",
+      "description": "Verify the agent navigated to the Calendar application.",
+      "points": 10,
+      "visual_evidence": "Look for the Odoo Calendar interface, showing a daily, weekly, or monthly calendar view."
+    },
+    {
+      "id": "meeting_time_and_duration_set",
+      "description": "Verify the meeting is set for Friday of the upcoming week at 14:00 (2:00 PM) for 1 hour.",
+      "points": 20,
+      "visual_evidence": "Look at the meeting creation form or calendar selection. The start time must be 14:00 (2:00 PM) and the end time must be 15:00 (3:00 PM) on a Friday."
+    },
+    {
+      "id": "meeting_name_entered",
+      "description": "Verify the meeting is named 'Project Sync'.",
+      "points": 10,
+      "visual_evidence": "Look for the exact text 'Project Sync' entered into the meeting subject or title field."
+    },
+    {
+      "id": "conditional_location_set",
+      "description": "Verify the correct location is selected based on availability.",
+      "points": 30,
+      "visual_evidence": "Look for the 'Location' field in the meeting details form. It must be filled with either 'Board Room' or 'Engineering Lab'."
+    },
+    {
+      "id": "meeting_saved",
+      "description": "Verify the meeting was successfully scheduled and appears on the calendar.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Project Sync' event block successfully displayed on the main calendar grid at the Friday 14:00 time slot."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_browser",
+      "description": "Verify the agent used the web browser to interact with Odoo.",
+      "visual_evidence": "Look for a web browser window showing the Odoo interface. The agent should not be using terminal commands (like curl or python scripts) to bypass the UI."
+    },
+    {
+      "id": "actual_calendar_interaction",
+      "description": "Verify the agent interacted with the genuine Odoo application.",
+      "visual_evidence": "Look for standard Odoo UI elements (buttons, modals, calendar grids). The inputs should not be typed into a text editor or a mocked HTML page."
+    },
+    {
+      "id": "no_inspect_element_manipulation",
+      "description": "Verify the final result is genuine and not visually spoofed.",
+      "visual_evidence": "Ensure the calendar event looks like a native Odoo calendar block without signs of browser developer tools manipulation (e.g., mismatched fonts, misaligned text, or floating elements)."
+    }
+  ],
+  "privileged_info_for_vlm": "The meeting must be named exactly 'Project Sync'. It must be scheduled for 14:00 (2:00 PM) with a duration of exactly 1.0 hour (ending at 15:00). The location must be 'Board Room' unless there is a conflicting event at that time, in which case it must be 'Engineering Lab'."
+}

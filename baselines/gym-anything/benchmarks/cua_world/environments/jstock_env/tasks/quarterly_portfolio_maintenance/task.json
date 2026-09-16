@@ -1,0 +1,32 @@
+{
+  "id": "quarterly_portfolio_maintenance@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Perform end-of-quarter portfolio maintenance in JStock by updating 'My Portfolio'. Record a cash deposit of $2,000.00 (Date: Mar 31, 2024, Comment: 'Q1 2024 Savings') and a buy transaction for 10 units of AAPL at $170.00 (Date: Mar 31, 2024, Fees: $0). Export the resulting portfolio view to /home/ga/Documents/Q1_2024_Portfolio_Report.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/quarterly_portfolio_maintenance/setup_task.sh",
+    "post_task": "/workspace/tasks/quarterly_portfolio_maintenance/export_result.sh"
+  },
+  "metadata": {
+    "expected_deposit_date": "Mar 31, 2024",
+    "expected_deposit_amount": 2000.0,
+    "expected_deposit_comment": "Q1 2024 Savings",
+    "expected_buy_symbol": "AAPL",
+    "expected_buy_date": "Mar 31, 2024",
+    "expected_buy_units": 10.0,
+    "expected_buy_price": 170.0,
+    "expected_export_path": "/home/ga/Documents/Q1_2024_Portfolio_Report.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_quarterly_portfolio_maintenance"
+    }
+  }
+}

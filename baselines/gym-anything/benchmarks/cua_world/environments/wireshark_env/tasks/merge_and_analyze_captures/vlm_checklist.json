@@ -1,0 +1,54 @@
+{
+  "task_id": "merge_and_analyze_captures@1",
+  "task_completion": [
+    {
+      "id": "merged_file_created",
+      "description": "Verify that the merged PCAP file was created at the correct path.",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands (e.g., 'mergecap', 'tshark') or Wireshark GUI actions saving a file named 'merged_traffic.pcapng' in '/home/ga/Documents/captures/'."
+    },
+    {
+      "id": "report_file_created",
+      "description": "Verify that the summary report was created with the correct format keys.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor, 'echo', or 'cat' command showing 'merge_report.txt' in '/home/ga/Documents/captures/' containing the exact keys: 'Total Packets:', 'Protocols:', 'First Packet:', and 'Last Packet:'."
+    },
+    {
+      "id": "report_total_packets",
+      "description": "Verify the total packet count in the report.",
+      "points": 20,
+      "visual_evidence": "The report must show 'Total Packets: 81'."
+    },
+    {
+      "id": "report_protocols",
+      "description": "Verify the protocols listed in the report.",
+      "points": 10,
+      "visual_evidence": "The 'Protocols:' line in the report must include at least 'DNS' and 'HTTP' (case-insensitive, comma-separated)."
+    },
+    {
+      "id": "report_first_packet",
+      "description": "Verify the first packet timestamp in the report.",
+      "points": 20,
+      "visual_evidence": "The 'First Packet:' line must show a date of '2004-05-13' and a time around '06:17:07'."
+    },
+    {
+      "id": "report_last_packet",
+      "description": "Verify the last packet timestamp in the report.",
+      "points": 20,
+      "visual_evidence": "The 'Last Packet:' line must show a date of '2005-03-30' and a time around '03:52:25'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_merge_operation",
+      "description": "Verify that the agent actually merged the files using a proper tool.",
+      "visual_evidence": "Look for the execution of 'mergecap', 'tshark', or Wireshark GUI being used to combine both 'dns.cap' and 'http.cap'. The agent should not just copy or rename a single file."
+    },
+    {
+      "id": "genuine_analysis_operation",
+      "description": "Verify that the agent extracted the statistics from the PCAP files rather than hallucinating them.",
+      "visual_evidence": "Look for the execution of 'capinfos', 'tshark', or Wireshark GUI being used to read the packet counts, protocols, and timestamps from the files."
+    }
+  ],
+  "privileged_info_for_vlm": "The merged file should contain exactly 81 packets (43 from http.cap + 38 from dns.cap). The first packet timestamp is 2004-05-13 06:17:07 (from http.cap). The last packet timestamp is 2005-03-30 03:52:25 (from dns.cap). The protocols must include DNS and HTTP."
+}

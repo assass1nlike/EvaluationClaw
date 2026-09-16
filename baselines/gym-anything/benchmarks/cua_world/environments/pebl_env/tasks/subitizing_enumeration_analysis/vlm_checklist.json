@@ -1,0 +1,59 @@
+{
+  "task_id": "subitizing_enumeration_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Read the enumeration dataset from the specified CSV file.",
+      "points": 10,
+      "visual_evidence": "Code (e.g., Python/pandas) showing `read_csv('~/pebl/data/enumeration_data.csv')` or a spreadsheet application with the data open."
+    },
+    {
+      "id": "exclude_response_masher",
+      "description": "Identify and exclude the participant who engaged in response mashing.",
+      "points": 20,
+      "visual_evidence": "Code showing logic to filter participants based on near 100% accuracy for 1 dot and 0% for >1 dot, OR the final JSON output explicitly showing participant 'sub-99' with an exclusion status and reason."
+    },
+    {
+      "id": "calculate_slopes",
+      "description": "Calculate subitizing (1-3 dots) and counting (5-8 dots) slopes for correct trials.",
+      "points": 20,
+      "visual_evidence": "Code showing linear regression (e.g., `scipy.stats.linregress` or `np.polyfit`) applied to RT vs dot_count for the specific ranges (1-3 and 5-8) on correct trials, OR the final JSON showing `subitizing_slope_ms` and `counting_slope_ms` fields for participants."
+    },
+    {
+      "id": "calculate_accuracies",
+      "description": "Calculate accuracy proportions for small (1-4 dots) and large (5-9 dots) ranges.",
+      "points": 15,
+      "visual_evidence": "Code calculating the mean of the 'correct' column for dot counts 1-4 and 5-9, OR the final JSON showing `accuracy_1_to_4` and `accuracy_5_to_9` fields."
+    },
+    {
+      "id": "calculate_group_means",
+      "description": "Calculate group means for both slopes across all valid participants.",
+      "points": 15,
+      "visual_evidence": "Code calculating the overall average of the subitizing and counting slopes, OR the final JSON output containing group mean values for these slopes at the end of the report."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Save the final analysis report as a JSON file to the correct path.",
+      "points": 20,
+      "visual_evidence": "Code showing `json.dump` or `to_json` writing to `~/pebl/analysis/subitizing_report.json`, or a terminal/file explorer confirming the file's creation at this exact path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "programmatic_analysis",
+      "description": "The agent used a script or data analysis tool to process the data rather than manually typing out the JSON.",
+      "visual_evidence": "Presence of a Python script, Jupyter notebook, or R script being written and executed in an IDE or terminal."
+    },
+    {
+      "id": "dynamic_exclusion_logic",
+      "description": "The agent wrote actual logic to detect the response masher rather than hardcoding the known contaminated participant.",
+      "visual_evidence": "Code should show conditional filtering based on accuracy and dot counts (e.g., `dot_count == 1` and `accuracy == 0`) rather than a hardcoded `if participant == 'sub-99'`."
+    },
+    {
+      "id": "correct_output_path",
+      "description": "The agent saved the output to the exact requested directory without using shortcuts or temporary folders.",
+      "visual_evidence": "The file path `/home/ga/pebl/analysis/subitizing_report.json` is explicitly visible in the save command or file explorer."
+    }
+  ],
+  "privileged_info_for_vlm": "The contaminated participant (response masher) that must be excluded is 'sub-99'. The expected output file path is exactly '/home/ga/pebl/analysis/subitizing_report.json'."
+}

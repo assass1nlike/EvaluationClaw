@@ -1,0 +1,48 @@
+{
+  "task_id": "weekend_incident_log_entry@1",
+  "task_completion": [
+    {
+      "id": "ticket_sec_mon_001",
+      "description": "Verify the first unique incident (water pooling) was entered as a ticket.",
+      "points": 20,
+      "visual_evidence": "In the OpenMaint interface, look for a ticket with code 'SEC-MON-001', assigned to Building A, with 'Critical', 'High', or 'Urgent' priority, and a description mentioning water pooling or the server room."
+    },
+    {
+      "id": "ticket_sec_mon_002",
+      "description": "Verify the second unique incident (broken window latch) was entered as a ticket.",
+      "points": 20,
+      "visual_evidence": "Look for a ticket with code 'SEC-MON-002', assigned to Building B, with 'High' priority, and a description mentioning a broken window latch."
+    },
+    {
+      "id": "ticket_sec_mon_003",
+      "description": "Verify the third unique incident (dark emergency light) was entered as a ticket.",
+      "points": 20,
+      "visual_evidence": "Look for a ticket with code 'SEC-MON-003', assigned to Building C, with 'Medium', 'Normal', or 'Low' priority, and a description mentioning an emergency light."
+    },
+    {
+      "id": "ticket_sec_mon_004",
+      "description": "Verify the fourth unique incident (sagging ceiling tile) was entered as a ticket, successfully navigating the false duplicate trap.",
+      "points": 20,
+      "visual_evidence": "Look for a ticket with code 'SEC-MON-004', assigned to Building A (Room 102), with 'Medium', 'Normal', or 'Low' priority, and a description mentioning a sagging ceiling tile."
+    },
+    {
+      "id": "no_duplicates_created",
+      "description": "Verify that no tickets were created for the duplicate incidents.",
+      "points": 20,
+      "visual_evidence": "Review the list of created tickets. Ensure there are exactly 4 new SEC-MON tickets and no new tickets created for 'lights buzzing' or 'dripping faucet'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_openmaint_gui",
+      "description": "The agent used the OpenMaint web interface to create the tickets.",
+      "visual_evidence": "Screenshots should show the OpenMaint application open in a web browser with forms being filled or ticket lists displayed."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "The agent did not use terminal commands or scripts to bypass the GUI.",
+      "visual_evidence": "No terminal windows showing database insertion commands (like psql) or curl requests to the OpenMaint API."
+    }
+  ],
+  "privileged_info_for_vlm": "The security log contains 6 incidents. The agent must create exactly 4 tickets with the SEC-MON-00X sequence and avoid creating tickets for two duplicates.\n1. Water pooling, Building A -> SEC-MON-001, Critical/High priority.\n2. Lights buzzing -> Duplicate, DO NOT CREATE.\n3. Broken window latch, Building B -> SEC-MON-002, High priority.\n4. Dripping faucet -> Duplicate, DO NOT CREATE.\n5. Dark emergency light, Building C -> SEC-MON-003, Medium/Low priority.\n6. Sagging ceiling tile, Building A -> SEC-MON-004, Medium/Low priority (This is a false duplicate trap and MUST be created)."
+}

@@ -1,0 +1,86 @@
+{
+  "dataset_id": "efbdba76",
+  "name": "Numerical-Reasoning",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 204,
+  "description": "The Numerical-Reasoning dataset contains multiple-choice math and numerical reasoning problems. Each sample presents a question, often involving arithmetic, geometry, or logical deduction, and asks the model to select the correct answer from five options.",
+  "card_text": "The Numerical-Reasoning dataset is a text-only multiple-choice QA benchmark comprising 204 samples. Each item contains a question that either states a direct numerical problem or embeds the problem in a short narrative or dialogue. The model must reason over quantities, dates, prime numbers, volumes, and similar concepts to choose one of five candidate options. Answers are provided as option letters (A–E). The data mixes straightforward arithmetic questions with more elaborate puzzle-style scenarios, requiring both reading comprehension and mathematical inference. It is intended to evaluate numerical reasoning in a multiple-choice format.",
+  "tasks": [
+    "multiple_choice_qa"
+  ],
+  "domain": "mathematics",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "The question field serves as the primary input, containing the problem statement or scenario that contextualizes the numerical reasoning task. It may include a short narrative dialogue or a direct math question, and it is paired with multiple-choice options and an answer label.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "mixed",
+        "semantics": "The same field also contains the explicit question or task instruction at the end, asking for a numerical answer. It functions as the query that the model must answer using the provided options.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.options"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "A list of five candidate answers, typically numbers with units or short phrases, from which the model must choose the correct one. The options are directly tied to the question and provide the answer space.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A single uppercase letter (A–E) indicating the correct option from the list. It is the target label for the multiple-choice question.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a single question field that contains the full problem statement (which may embed a narrative or dialogue context) and the explicit query, a list of five answer options, and an output answer letter indicating the correct choice. The question and options are inputs; the answer is the target label. No separate passage, dialog structure, or additional annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Numerical-Reasoning/annotation.json",
+    "existing_tags": {
+      "task": "Numerical Reasoning",
+      "type": "MultipleChoiceQA",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

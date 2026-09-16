@@ -1,0 +1,53 @@
+{
+  "task_id": "whitelabel_wp_login@1",
+  "task_completion": [
+    {
+      "id": "logo_copied_to_wp",
+      "description": "Verify the client logo was moved to a web-accessible location within the WordPress directory.",
+      "points": 15,
+      "visual_evidence": "Terminal commands (e.g., cp, mv) or a file manager showing 'client-logo.png' being placed inside a directory like '/var/www/html/wordpress/wp-content/' or an images subfolder within it."
+    },
+    {
+      "id": "mu_plugin_created",
+      "description": "Verify a Must-Use plugin file was created for the customizations.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal showing a new .php file being created or edited inside the '/var/www/html/wordpress/wp-content/mu-plugins/' directory."
+    },
+    {
+      "id": "login_url_customized",
+      "description": "Verify the login logo URL is customized to point to http://localhost/.",
+      "points": 20,
+      "visual_evidence": "PHP code in the mu-plugin file hooking into 'login_headerurl' and returning 'http://localhost/', or a browser hovering over the login logo showing 'http://localhost/' as the link destination."
+    },
+    {
+      "id": "background_color_applied",
+      "description": "Verify the body.login background color is set to #1e293b.",
+      "points": 25,
+      "visual_evidence": "The WordPress login page viewed in a browser showing a dark slate/blue background, OR PHP code in the mu-plugin injecting CSS 'body.login { background-color: #1e293b; }'."
+    },
+    {
+      "id": "custom_logo_displayed",
+      "description": "Verify the default WordPress logo is replaced with the client logo.",
+      "points": 25,
+      "visual_evidence": "The WordPress login page viewed in a browser showing the custom 'client-logo.png' instead of the default WordPress 'W' logo, OR PHP code injecting CSS to change the '.login h1 a' background-image to the new logo."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_core_file_modification",
+      "description": "Ensure WordPress core files (like wp-login.php) were not modified.",
+      "visual_evidence": "The text editor should not show 'wp-login.php' or other core WordPress files being edited. All code changes should be in the mu-plugins directory."
+    },
+    {
+      "id": "genuine_browser_test",
+      "description": "Ensure the agent tested the login page on the actual local web server.",
+      "visual_evidence": "A web browser showing the login page with a URL starting with 'http://localhost' or 'http://127.0.0.1', not a 'file://' URL or a static HTML mock."
+    },
+    {
+      "id": "mu_plugin_exclusive_usage",
+      "description": "Ensure customizations were made exclusively via the mu-plugins system.",
+      "visual_evidence": "No edits should be visible in the active theme's 'functions.php' file; all customization code must be within the 'mu-plugins' directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The target background color for the login page is #1e293b (dark blue/slate). The custom logo filename is client-logo.png."
+}

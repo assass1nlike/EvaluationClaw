@@ -1,0 +1,59 @@
+{
+  "task_id": "whisper_namespace_migration@1",
+  "task_completion": [
+    {
+      "id": "filesystem_migration_terminal",
+      "description": "Whisper metric directories are migrated to the new infrastructure hierarchy.",
+      "points": 15,
+      "visual_evidence": "Terminal window showing commands (e.g., `mv`) moving `ec2_instance_*` to `infrastructure/compute/` and `load_balancer` to `infrastructure/network/`, and ensuring legacy directories in `servers/` are removed."
+    },
+    {
+      "id": "search_index_updated",
+      "description": "Graphite search index is updated to reflect the changes.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a command to update the index (e.g., running a build-index script), or the Graphite Web UI's left-hand tree displaying the new `infrastructure` hierarchy."
+    },
+    {
+      "id": "graphite_ui_open",
+      "description": "Graphite Web UI is accessed.",
+      "points": 5,
+      "visual_evidence": "A web browser is open to `http://localhost/` showing the Graphite Web interface."
+    },
+    {
+      "id": "compute_tier_graph_created",
+      "description": "A graph for the Compute Tier is created.",
+      "points": 20,
+      "visual_evidence": "A graph in the dashboard titled 'Compute Tier'. The metric path `infrastructure.compute.ec2_instance_*.cpu.*utilization` should be visible in the graph's legend, tooltip, or configuration area."
+    },
+    {
+      "id": "network_tier_graph_created",
+      "description": "A graph for the Network Tier is created.",
+      "points": 20,
+      "visual_evidence": "A graph in the dashboard titled 'Network Tier'. The metric path `infrastructure.network.load_balancer.requests.count` should be visible in the graph's legend, tooltip, or configuration area."
+    },
+    {
+      "id": "dashboard_named_and_saved",
+      "description": "The dashboard is named 'Namespace Migration Audit' and saved.",
+      "points": 30,
+      "visual_evidence": "The dashboard title displays 'Namespace Migration Audit', or a save dialog/confirmation shows this exact name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_terminal_usage",
+      "description": "Verify that filesystem changes were executed in a real terminal emulator.",
+      "visual_evidence": "Look for a standard terminal interface with shell prompts and executed commands, rather than a text editor containing a list of commands."
+    },
+    {
+      "id": "genuine_graphite_ui",
+      "description": "Verify that the dashboard and graphs are created within the actual Graphite Web UI.",
+      "visual_evidence": "Look for standard Graphite UI elements (like the metric tree, graph rendering, and dashboard top bar) in a web browser, not a mocked HTML page or image editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent didn't just create a fake result file without performing the tasks.",
+      "visual_evidence": "The screenshots must show the actual process of moving files and configuring the UI, not just a terminal echoing JSON into a result file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Namespace Migration Audit'. The compute graph must be titled 'Compute Tier' and the network graph must be titled 'Network Tier'."
+}

@@ -1,0 +1,38 @@
+{
+  "id": "update_preprints_to_proceedings@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Update three specific papers in your library from 'Report' type to 'Conference Paper' and add their missing proceedings information. For 'Attention Is All You Need', set the Proceedings Title to 'Advances in Neural Information Processing Systems 30'. For 'Deep Residual Learning for Image Recognition', set the Proceedings Title to 'Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition'. For 'Generative Adversarial Nets', set the Proceedings Title to 'Advances in Neural Information Processing Systems 27'. Ensure the Date and Authors for each entry remain correct.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/update_preprints_to_proceedings/setup_task.sh",
+    "post_task": "/workspace/tasks/update_preprints_to_proceedings/export_result.sh"
+  },
+  "metadata": {
+    "papers": [
+      {
+        "title": "Attention Is All You Need",
+        "expected_venue": "Advances in Neural Information Processing Systems 30"
+      },
+      {
+        "title": "Deep Residual Learning for Image Recognition",
+        "expected_venue": "Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition"
+      },
+      {
+        "title": "Generative Adversarial Nets",
+        "expected_venue": "Advances in Neural Information Processing Systems 27"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_update_preprints"
+    }
+  }
+}

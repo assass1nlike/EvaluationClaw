@@ -1,0 +1,30 @@
+{
+  "id": "add_log_transformation@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "The food.gdt dataset is open in Gretl, containing household survey data for 'food_exp' (weekly food expenditure) and 'income' (weekly income). Create a new variable named 'l_food_exp' that is the natural log of 'food_exp'. Save the modified dataset to /home/ga/Documents/gretl_output/food_with_log.gdt.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_log_transformation/setup_task.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "source_variable": "food_exp",
+    "new_variable": "l_food_exp",
+    "transformation": "log",
+    "expected_output": "/home/ga/Documents/gretl_output/food_with_log.gdt",
+    "data_source": "Hill, Griffiths, Lim - Principles of Econometrics 5th ed, household survey data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_log_transformation"
+    }
+  }
+}

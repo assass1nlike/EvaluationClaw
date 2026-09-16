@@ -1,0 +1,36 @@
+{
+  "id": "macro_recording_automation@1",
+  "version": "1.0",
+  "env_id": "fiji_env@0.1",
+  "description": "Record a Fiji macro named 'clean_and_segment.ijm' that automates a cleaning and segmentation workflow on the 'Blobs' sample image. The macro must perform background subtraction (rolling ball radius: 50 pixels), a median filter (radius: 2 pixels), and segmentation using the Otsu thresholding algorithm. Save the macro to ~/Fiji_Data/results/macros/clean_and_segment.ijm.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/macro_recording_automation/setup_task.sh",
+    "post_task": "/workspace/tasks/macro_recording_automation/export_result.sh"
+  },
+  "metadata": {
+    "output_path": "/home/ga/Fiji_Data/results/macros/clean_and_segment.ijm",
+    "required_commands": [
+      "Subtract Background",
+      "Median",
+      "AutoThreshold",
+      "Convert to Mask"
+    ],
+    "required_params": {
+      "rolling": 50,
+      "radius": 2,
+      "method": "Otsu"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_macro_recording"
+    }
+  }
+}

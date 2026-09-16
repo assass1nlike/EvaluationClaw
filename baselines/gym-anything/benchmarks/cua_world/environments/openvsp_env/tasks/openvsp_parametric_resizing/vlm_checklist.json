@@ -1,0 +1,59 @@
+{
+  "task_id": "openvsp_parametric_resizing@1",
+  "task_completion": [
+    {
+      "id": "open_baseline_model",
+      "description": "Open the baseline conceptual jet model in OpenVSP.",
+      "points": 10,
+      "visual_evidence": "The OpenVSP application is open, displaying an aircraft model. The window title or file menu indicates that 'conceptual_jet_baseline.vsp3' is loaded."
+    },
+    {
+      "id": "access_main_wing_plan",
+      "description": "Select the Main Wing and navigate to its 'Plan' tab.",
+      "points": 10,
+      "visual_evidence": "The Geometry browser/editor window is open for the Main Wing (the largest wing), and the 'Plan' tab is actively selected."
+    },
+    {
+      "id": "resize_main_wing",
+      "description": "Parametrically resize the Main Wing to exactly 420.0 m^2 using Area and AR as driving parameters.",
+      "points": 25,
+      "visual_evidence": "In the 'Plan' tab for the Main Wing, the driving parameter dropdowns (next to the input boxes) are set to 'Area' and 'AR' (Aspect Ratio), and the Area input box is set to exactly 420.0."
+    },
+    {
+      "id": "access_htail_plan",
+      "description": "Select the Horizontal Tail and navigate to its 'Plan' tab.",
+      "points": 10,
+      "visual_evidence": "The Geometry browser/editor window is open for the Horizontal Tail (the smaller rear wing), and the 'Plan' tab is actively selected."
+    },
+    {
+      "id": "resize_htail",
+      "description": "Parametrically resize the Horizontal Tail to exactly 105.0 m^2 using Area and AR as driving parameters.",
+      "points": 25,
+      "visual_evidence": "In the 'Plan' tab for the Horizontal Tail, the driving parameter dropdowns are set to 'Area' and 'AR', and the Area input box is set to exactly 105.0."
+    },
+    {
+      "id": "save_resized_model",
+      "description": "Save the updated model to the specified new file path.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog box showing the filename 'conceptual_jet_resized.vsp3' in the /home/ga/Documents/OpenVSP/ directory, or the main OpenVSP window title updating to reflect the new 'conceptual_jet_resized.vsp3' filename."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the OpenVSP GUI to perform the resizing rather than modifying the file via terminal or text editor.",
+      "visual_evidence": "Screenshots show the agent clicking through the OpenVSP interface, opening geometry windows, and typing values into the GUI input boxes."
+    },
+    {
+      "id": "no_xform_scaling",
+      "description": "The agent did not use the 'XForm' Scale tab to resize the wings.",
+      "visual_evidence": "The 'XForm' tab is not shown being used to apply a global scale factor to any of the wings. All resizing is done strictly in the 'Plan' tab."
+    },
+    {
+      "id": "fuselage_unmodified",
+      "description": "The fuselage geometry was not altered.",
+      "visual_evidence": "No geometry editing windows for the fuselage are shown with modified parameters, and the fuselage remains visually identical to the baseline throughout the trajectory."
+    }
+  ],
+  "privileged_info_for_vlm": "The programmatic verifier for this task is completely broken due to an XML parsing defect, making your visual evaluation the sole determinant of the agent's score. You must strictly verify that the Main Wing area is set to exactly 420.0 and the Horizontal Tail area is set to exactly 105.0. Crucially, ensure the agent used the 'Plan' tab with 'Area' and 'AR' selected in the driving parameter dropdowns, and did NOT use the 'XForm' Scale tab. The fuselage must remain completely unchanged."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "analyze_symptom_frequency_group@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "You are a Surveillance Officer analyzing a respiratory virus cluster using a dataset at 'C:\\Users\\Docker\\Documents\\TaskData\\respiratory_cluster.csv' containing symptom columns (Fever, Cough, SoreThroat, Dyspnea, Myalgia). Using Epi Info 7 Classic Analysis, define a Group Variable named 'SymptomProfile' aggregating these five symptoms and perform a frequency analysis to show their prevalence in a single table. Save the resulting report as an HTML file to 'C:\\Users\\Docker\\Documents\\TaskData\\symptom_report.htm'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\analyze_symptom_frequency_group\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\analyze_symptom_frequency_group\\export_result.ps1"
+  },
+  "metadata": {
+    "data_path": "C:\\Users\\Docker\\Documents\\TaskData\\respiratory_cluster.csv",
+    "output_path": "C:\\Users\\Docker\\Documents\\TaskData\\symptom_report.htm",
+    "ground_truth_path": "C:\\GroundTruth\\symptoms_ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analyze_symptom_frequency_group"
+    }
+  }
+}

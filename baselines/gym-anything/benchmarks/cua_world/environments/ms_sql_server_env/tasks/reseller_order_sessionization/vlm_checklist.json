@@ -1,0 +1,53 @@
+{
+  "task_id": "reseller_order_sessionization@1",
+  "task_completion": [
+    {
+      "id": "schema_table_creation",
+      "description": "Create the Logistics schema and ResellerRestockingSessions table with the required columns.",
+      "points": 20,
+      "visual_evidence": "SQL script or Object Explorer showing the creation of 'Logistics' schema and 'Logistics.ResellerRestockingSessions' table with columns SessionID, CustomerID, SessionStartDate, SessionEndDate, OrderCount, TotalSessionValue, and GapUsed."
+    },
+    {
+      "id": "stored_procedure_creation",
+      "description": "Create the usp_GenerateRestockingSessions stored procedure with the correct logic.",
+      "points": 30,
+      "visual_evidence": "SQL script showing 'CREATE PROCEDURE Logistics.usp_GenerateRestockingSessions' with a @MaxGapDays parameter (default 14), logic filtering for OnlineOrderFlag = 0, and sessionization logic using LAG/LEAD or similar window functions."
+    },
+    {
+      "id": "index_creation",
+      "description": "Create the non-clustered index IX_ResellerSessions_CustomerID.",
+      "points": 20,
+      "visual_evidence": "SQL script or Object Explorer showing the creation of index 'IX_ResellerSessions_CustomerID' on Logistics.ResellerRestockingSessions covering CustomerID, SessionStartDate, and TotalSessionValue."
+    },
+    {
+      "id": "procedure_execution",
+      "description": "Execute the stored procedure with a 7-day gap threshold.",
+      "points": 15,
+      "visual_evidence": "SQL script showing execution of the procedure, e.g., 'EXEC Logistics.usp_GenerateRestockingSessions @MaxGapDays = 7' or 'EXEC Logistics.usp_GenerateRestockingSessions 7'."
+    },
+    {
+      "id": "execution_success",
+      "description": "Verify that the SQL commands were successfully executed.",
+      "points": 15,
+      "visual_evidence": "Messages tab showing 'Commands completed successfully' or a Results tab showing the populated table data after execution."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_sql_client",
+      "description": "The agent used Azure Data Studio or another genuine SQL client to perform the tasks.",
+      "visual_evidence": "The screenshots show the Azure Data Studio interface (or similar SQL IDE), not just a plain text editor."
+    },
+    {
+      "id": "actual_execution",
+      "description": "The agent actually executed the queries against the database.",
+      "visual_evidence": "Presence of query execution times, success messages in the Messages tab, or result grids in the SQL client."
+    },
+    {
+      "id": "no_hardcoded_mock_data",
+      "description": "The agent did not hardcode the results into the table.",
+      "visual_evidence": "The stored procedure contains actual SQL logic (e.g., window functions, CTEs) to calculate the sessions from Sales.SalesOrderHeader, rather than INSERT statements with hardcoded values."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the AdventureWorks2022 database. The source table is Sales.SalesOrderHeader. Reseller orders are identified by OnlineOrderFlag = 0. The target table Logistics.ResellerRestockingSessions must have exactly these columns: SessionID (INT, PK/Identity), CustomerID (INT), SessionStartDate (DATETIME), SessionEndDate (DATETIME), OrderCount (INT), TotalSessionValue (MONEY), and GapUsed (INT). The stored procedure Logistics.usp_GenerateRestockingSessions must accept @MaxGapDays INT (default 14). The index IX_ResellerSessions_CustomerID must cover CustomerID, SessionStartDate, and TotalSessionValue. The final execution must use a 7-day gap threshold."
+}

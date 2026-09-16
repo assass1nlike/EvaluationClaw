@@ -1,0 +1,49 @@
+{
+  "id": "gitflow_release_branching@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Create a GitFlow branching strategy diagram in draw.io that visually documents the release cycle described in '~/Desktop/release_scenario.txt'. The diagram must include all 7 branches (main, develop, 3 features, 1 release, 1 hotfix) with correct hierarchy/parallelism (time flowing left-to-right), labeled commits, version tags, and proper merge arrows. Use the specific colors requested in the scenario (Blue for main, Green for develop, etc.). Save the source file to '~/Diagrams/gitflow_release.drawio' and export the final diagram as a PNG image to '~/Diagrams/gitflow_release.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/gitflow_release_branching/setup_task.sh",
+    "post_task": "/workspace/tasks/gitflow_release_branching/export_result.sh"
+  },
+  "metadata": {
+    "expected_drawio_path": "/home/ga/Diagrams/gitflow_release.drawio",
+    "expected_png_path": "/home/ga/Diagrams/gitflow_release.png",
+    "required_branches": [
+      "main",
+      "develop",
+      "feature/user-preferences",
+      "feature/payment-retry",
+      "feature/audit-logging",
+      "release/2.4.0",
+      "hotfix/2.3.2"
+    ],
+    "required_tags": [
+      "v2.3.1",
+      "v2.3.2",
+      "v2.4.0"
+    ],
+    "required_colors": [
+      "#2196F3",
+      "#4CAF50",
+      "#FF9800",
+      "#9C27B0",
+      "#F44336"
+    ],
+    "min_shapes": 25,
+    "min_connections": 12
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_gitflow_diagram"
+    }
+  }
+}

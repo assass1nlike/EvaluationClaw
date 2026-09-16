@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from evalclaw.construction.suite import build_task_suite
 from evalclaw.diagnostics import write_json
 from evalclaw.execution.runner import run_eval
@@ -190,7 +192,71 @@ def test_construction_resume_restores_builder_source_definitions(tmp_path) -> No
     assert resumed_suite.tasks[0].source_definition == source
 
 
-def test_pipeline_reuses_completed_run_checkpoint(monkeypatch, tmp_path) -> None:
+def test_resumed_plan_restores_runtime_targets_before_builder(monkeypatch):
+    from evalclaw.benchmark import build_benchmark_suite_with_qc_loop
+    from evalclaw.construction.suite import _BlueprintBuildJob, _builder_checkpoint_digest
+    from evalclaw.types import BenchmarkPlanDimension
+
+    blueprint = make_blueprint("builder", "dimension", "One task", task_type=TaskType.fill_blank)
+    original = BenchmarkPlan(
+        objective="Evaluate", subjects=["target"],
+        dimensions=[BenchmarkPlanDimension(
+            id="dimension", name="Dimension", measurement_target="reasoning",
+            boundary="reasoning", approach="direct", task_designs=blueprint.task_designs,
+        )],
+    )
+    spec = original.to_eval_spec()
+    expected = _builder_checkpoint_digest(
+        spec, _BlueprintBuildJob(0, spec.dimensions[0], original.builder_jobs[0]), None, "initial",
+    )
+    restored = BenchmarkPlan.model_validate(original.model_dump(mode="json"))
+    assert restored.subjects == []
+
+    def build(spec, jobs, config, **kwargs):
+        actual = _builder_checkpoint_digest(
+            spec, _BlueprintBuildJob(0, spec.dimensions[0], jobs[0]), None, "initial",
+        )
+        assert actual == expected
+        return TaskSuite(objective=spec.objective, spec=spec), QcReport()
+
+    monkeypatch.setattr("evalclaw.benchmark.build_suite_from_spec_with_qc_loop", build)
+    build_benchmark_suite_with_qc_loop(
+        "Evaluate", BenchmarkConfig(targets=[TargetModelConfig(id="target", provider="openai", model="model")]),
+        resume_plan=restored,
+    )
+
+
+def test_strict_resume_rejects_missing_tasks_even_when_saved_qc_passed(monkeypatch, tmp_path):
+    dimension = EvalDimension(id="dimension", name="Dimension", description="Reason.", approach="Solve.")
+    spec = EvalSpec(objective="Evaluate reasoning.", dimensions=[dimension])
+    blueprint = make_blueprint("builder", dimension.id, "Tasks", task_type=TaskType.fill_blank, count=2)
+    item = BenchmarkItem(
+        id="builder_task_1", dimension_id=dimension.id, task_type=TaskType.fill_blank,
+        prompt="Compute the requested value.", expected_texts=["42"],
+        metadata={"builder_job_id": blueprint.id},
+    )
+    suite = TaskSuite(objective=spec.objective, spec=spec, blueprints=[blueprint], tasks=[item])
+    run_dir = tmp_path / "debug" / "runs" / "partial"
+    write_json(run_dir / "input.json", {"normalized_goal": spec.objective})
+    write_json(run_dir / "construction" / "plan.json", {"spec": spec.model_dump(mode="json")})
+    write_json(run_dir / "construction" / "final.json", {
+        "suite": suite.model_dump(mode="json"),
+        "qc_report": QcReport(passed_item_ids=[item.id]).model_dump(mode="json"),
+    })
+
+    def unexpected(*args, **kwargs):
+        pytest.fail("Strict resume must reject the partial suite before building or running tasks.")
+
+    monkeypatch.setattr("evalclaw.pipeline.build_benchmark_suite_with_qc_loop", unexpected)
+    monkeypatch.setattr("evalclaw.pipeline.run_eval", unexpected)
+    with pytest.raises(RuntimeError, match="every planned task"):
+        run_pipeline(None, BenchmarkConfig(
+            output_dir=str(tmp_path), allow_incomplete_benchmark=False, analysis_iterations=0,
+        ), resume_run=run_dir)
+
+
+@pytest.mark.parametrize("state", ["disabled", "complete", "failed", "missing", "duplicate", "wrong_target"])
+def test_pipeline_resumes_run_checkpoint(monkeypatch, tmp_path, state) -> None:
     dimension = EvalDimension(
         id="dimension",
         name="Dimension",
@@ -204,16 +270,29 @@ def test_pipeline_reuses_completed_run_checkpoint(monkeypatch, tmp_path) -> None
         spec=spec,
         tasks=[
             BenchmarkItem(
-                id="item",
+                id=item_id,
                 dimension_id=dimension.id,
                 task_type=TaskType.generation,
                 prompt="Solve the task.",
                 rubric="Score correctness.",
             )
+            for item_id in ("first", "second", "excluded")
         ],
     )
-    qc_report = QcReport(passed_item_ids=["item"])
-    run = EvalRun(suite=suite, qc_report=qc_report)
+    qc_report = QcReport(passed_item_ids=["first", "second"], rejected_item_ids=["excluded"])
+    target = TargetModelConfig(id="target", provider="openai", model="model")
+    # An incorrect answer with no execution error must be reused too.
+    first = ItemResult(item_id="first", target_id=target.id, raw_response="incorrect answer", score=0)
+    second = ItemResult(item_id="second", target_id=target.id, raw_response="answer", score=1)
+    saved_results = {
+        "disabled": [],
+        "complete": [first, second],
+        "failed": [first, second.model_copy(update={"error": "gateway failed", "score": 0})],
+        "missing": [first],
+        "duplicate": [first, first],
+        "wrong_target": [first, second.model_copy(update={"target_id": "other-target"})],
+    }[state]
+    run = EvalRun(suite=suite, qc_report=qc_report, results=saved_results)
     run_dir = tmp_path / "debug" / "runs" / "saved-run"
     write_json(run_dir / "input.json", {"original_goal": "goal", "normalized_goal": "goal"})
     write_json(
@@ -226,9 +305,14 @@ def test_pipeline_reuses_completed_run_checkpoint(monkeypatch, tmp_path) -> None
     )
     write_json(
         run_dir / "environment-state.json",
-        {"run_targets": False, "suite": suite.model_dump(mode="json"), "report": {"enabled": False}},
+        {"run_targets": state != "disabled", "suite": suite.model_dump(mode="json"), "report": {"enabled": False}},
     )
     write_json(run_dir / "run.json", run.model_dump(mode="json"))
+    for result in saved_results:
+        write_json(
+            run_dir / "runner" / result.target_id / result.item_id / "result.json",
+            result.model_dump(mode="json"),
+        )
 
     monkeypatch.setattr(
         "evalclaw.pipeline.build_benchmark_suite_with_qc_loop",
@@ -238,10 +322,18 @@ def test_pipeline_reuses_completed_run_checkpoint(monkeypatch, tmp_path) -> None
         "evalclaw.pipeline.run_environment_claw",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("environment was rerun")),
     )
-    monkeypatch.setattr(
-        "evalclaw.pipeline.run_eval",
-        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("runner was rerun")),
-    )
+    calls = []
+
+    def execute(item, config, target_id, **kwargs):
+        calls.append((target_id, item.id))
+        return ItemResult(item_id=item.id, target_id=target_id, raw_response="retried", score=1)
+
+    monkeypatch.setattr("evalclaw.execution.runner._run_item", execute)
+    if state in {"disabled", "complete"}:
+        monkeypatch.setattr(
+            "evalclaw.pipeline.run_eval",
+            lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("completed runner was rerun")),
+        )
     monkeypatch.setattr(
         "evalclaw.pipeline.build_report",
         lambda run, research_brief=None, analysis=None, laaj=None: EvalReport(
@@ -252,7 +344,19 @@ def test_pipeline_reuses_completed_run_checkpoint(monkeypatch, tmp_path) -> None
 
     package = run_pipeline(
         None,
-        BenchmarkConfig(output_dir=str(tmp_path), run_targets=False, analysis_iterations=0),
+        BenchmarkConfig(
+            output_dir=str(tmp_path), run_targets=state != "disabled", targets=[target],
+            allow_incomplete_benchmark=True, analysis_iterations=0,
+        ),
         resume_run=run_dir,
     )
-    assert [item.id for item in package.suite.tasks] == ["item"]
+    assert [item.id for item in package.suite.tasks] == ["first", "second", "excluded"]
+    assert calls == ([] if state in {"disabled", "complete"} else [(target.id, "second")])
+    saved_run = json.loads((run_dir / "run.json").read_text())
+    results = saved_run["results"]
+    assert not any(result["error"] for result in results)
+    if state != "disabled":
+        assert {result["item_id"] for result in results} == {"first", "second"}
+        retained = next(result for result in results if result["item_id"] == "first")
+        assert retained["raw_response"] == "incorrect answer"
+        assert retained["score"] == 0

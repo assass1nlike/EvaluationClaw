@@ -1,0 +1,53 @@
+{
+  "task_id": "ebr_zero_downtime_deployment@1",
+  "task_completion": [
+    {
+      "id": "base_package_created",
+      "description": "Implement PAYROLL_CALC.GET_BONUS in ORA$BASE returning 1000",
+      "points": 20,
+      "visual_evidence": "Screenshots showing SQL commands creating the PAYROLL_CALC package and body in the base edition (ORA$BASE), with the GET_BONUS function returning 1000."
+    },
+    {
+      "id": "child_edition_created",
+      "description": "Create a child edition named RELEASE_V2",
+      "points": 15,
+      "visual_evidence": "Screenshots showing the execution of a SQL command like 'CREATE EDITION RELEASE_V2'."
+    },
+    {
+      "id": "v2_package_updated",
+      "description": "Update PAYROLL_CALC.GET_BONUS in RELEASE_V2 to return 10% of salary",
+      "points": 25,
+      "visual_evidence": "Screenshots showing the session set to edition RELEASE_V2 and the PAYROLL_CALC package body being recompiled with logic to query the EMPLOYEES table and return 10% of the salary."
+    },
+    {
+      "id": "validation_report_documented",
+      "description": "Document GET_BONUS(100) outputs from both editions to patch_validation.txt",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the file /home/ga/Desktop/patch_validation.txt containing the test results for employee 100: 1000 for the base edition and 2400 for the RELEASE_V2 edition."
+    },
+    {
+      "id": "default_edition_set",
+      "description": "Set the database-wide default edition to RELEASE_V2",
+      "points": 20,
+      "visual_evidence": "Screenshots showing the execution of a SQL command like 'ALTER DATABASE DEFAULT EDITION = RELEASE_V2'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_execution",
+      "description": "Agent executed SQL commands in a real database client",
+      "visual_evidence": "Look for a database client interface (like SQL*Plus, SQLcl, or SQL Developer) showing successful execution messages (e.g., 'Package body created', 'Edition created', 'Database altered') rather than just a text editor with SQL scripts."
+    },
+    {
+      "id": "dynamic_v2_logic",
+      "description": "Agent implemented dynamic salary calculation in V2, not a hardcoded value",
+      "visual_evidence": "In the V2 package body creation script, look for a SELECT statement querying the salary from the EMPLOYEES table and multiplying by 0.10, rather than a hardcoded 'RETURN 2400'."
+    },
+    {
+      "id": "genuine_validation_report",
+      "description": "Validation report reflects actual database output",
+      "visual_evidence": "The patch_validation.txt file should ideally show pasted terminal output, SQL query results formatting, or spool output, indicating the agent actually ran the tests rather than just typing the expected numbers."
+    }
+  ],
+  "privileged_info_for_vlm": "Base edition: ORA$BASE. New edition: RELEASE_V2. Package: PAYROLL_CALC. Function: GET_BONUS. Test Employee ID: 100. Expected base edition output: 1000. Expected RELEASE_V2 output: 2400 (10% of 24000). Validation report path: /home/ga/Desktop/patch_validation.txt."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "convert_misclassified_work_items@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "A Product Owner has identified two misclassified work items in the TailwindTraders project that need correction. Convert the Bug titled 'Shopping Cart Redesign' into a User Story, ensuring that the requirements text from the 'Repro Steps' field (starting with 'Requirement: Add wish list button...') is preserved in the 'Description' field of the new User Story. Additionally, convert the User Story titled 'Update API Schema' into a Task.\n\nLogin credentials:\n- Username: Docker\n- Password: GymAnything123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\convert_misclassified_work_items\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\convert_misclassified_work_items\\export_result.ps1"
+  },
+  "metadata": {
+    "target_title_1": "Shopping Cart Redesign",
+    "target_title_2": "Update API Schema",
+    "required_text": "Requirement: Add wish list button to the main cart dropdown.",
+    "project_name": "TailwindTraders",
+    "collection_url": "http://localhost/DefaultCollection"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_convert_misclassified_work_items"
+    }
+  }
+}

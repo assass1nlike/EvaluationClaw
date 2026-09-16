@@ -1,0 +1,53 @@
+{
+  "task_id": "audit_outpatient_prescriptions@1",
+  "task_completion": [
+    {
+      "id": "ydbgui_accessible",
+      "description": "Verify that the YDBGui web interface has been accessed by the agent.",
+      "points": 10,
+      "visual_evidence": "A web browser is open and actively displaying the YDBGui web interface."
+    },
+    {
+      "id": "vista_running",
+      "description": "Verify that the VistA/YottaDB backend is running and successfully connected to the interface.",
+      "points": 10,
+      "visual_evidence": "The YDBGui interface displays a loaded list of database globals or a connected status, rather than a connection error or blank page."
+    },
+    {
+      "id": "global_navigated",
+      "description": "Verify that the agent navigated to the Outpatient Pharmacy Prescription global (^PSRX).",
+      "points": 30,
+      "visual_evidence": "The global '^PSRX' is typed into the YDBGui search/navigation bar, or is explicitly selected and highlighted in the globals directory tree."
+    },
+    {
+      "id": "record_expanded",
+      "description": "Verify that a specific prescription record (IEN) within the ^PSRX global has been expanded.",
+      "points": 20,
+      "visual_evidence": "A specific numerical node (representing the IEN) directly under ^PSRX is expanded in the tree view, revealing its child sub-nodes."
+    },
+    {
+      "id": "refill_data_visible",
+      "description": "Verify that the refill history sub-node ('1') is expanded and the refill details are visible.",
+      "points": 30,
+      "visual_evidence": "The sub-node '1' under the prescription record is expanded, and the data values for a refill node (e.g., ^PSRX(IEN,1,n,0)) are displayed on the screen, showing details like Date and Quantity."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_only",
+      "description": "Ensure the agent used the YDBGui web interface rather than terminal commands.",
+      "visual_evidence": "The database exploration and data display must occur within the YDBGui web browser interface, not in a terminal emulator or command-line interface."
+    },
+    {
+      "id": "genuine_application_use",
+      "description": "Ensure the agent interacted with the actual application and did not mock the results.",
+      "visual_evidence": "The screenshots should show the authentic YDBGui layout, tree structure, and data panes, rather than text pasted into a notepad or a static document."
+    },
+    {
+      "id": "no_devtools_manipulation",
+      "description": "Ensure the browser's developer tools were not used to alter the page content.",
+      "visual_evidence": "The browser's Developer Tools (Inspect Element) pane should not be open or used to manually inject the expected ^PSRX data into the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using the YDBGui web interface. The correct global for Outpatient Pharmacy Prescriptions (File #52) is ^PSRX. The refill history is located specifically in sub-node '1' under a prescription record (IEN), following the structure ^PSRX(IEN,1,n,0). Verify that the agent navigates the YDBGui tree to this exact path and that the data string containing refill details is visible."
+}

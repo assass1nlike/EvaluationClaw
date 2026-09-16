@@ -1,0 +1,75 @@
+{
+  "dataset_id": "9be821b9",
+  "name": "Chemical-Protein-Relationship-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Chemical-Protein-Relationship-Extraction dataset consists of biomedical sentences annotated with @CHEMICAL$ and @GENE$ entity placeholders, together with an instruction asking the model to predict the ChemProt relation type holding between the two entities. It evaluates multiclass chemical–protein relation extraction from text.",
+  "card_text": "This dataset is a text-only resource for biomedical relation extraction, built in the style of the ChemProt shared task. Each sample contains a short scientific sentence (typically drawn from biomedical abstracts) in which a chemical and a gene/protein entity are marked with the placeholders @CHEMICAL$ and @GENE$. Alongside the sentence, an instruction-style prompt is given that asks the model to classify the relationship between the two marked entities into one of the ChemProt categories (CPR:false, CPR:3, CPR:4, CPR:5, CPR:6, CPR:9). The expected output is a single relation-type string. The language is dense, factual and domain-specific, with abbreviations and receptor/substance terminology. The dataset is small (200 samples) and assumes the model only has to output the label, not justify it.",
+  "tasks": [
+    "relation_extraction",
+    "classification_multiclass"
+  ],
+  "domain": "biomedical relation extraction (chem–protein)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A single biomedical sentence from scientific literature in which a chemical entity is marked as @CHEMICAL$ and a gene/protein entity as @GENE$. It provides the evidence from which the relation type between the two marked entities must be inferred.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction template that embeds the raw sentence via a <<<raw_text>>> placeholder and asks the model to classify the relationship between @CHEMICAL$ and @GENE$, listing the allowed ChemProt relation labels and requiring only the relationship type as output.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The gold ChemProt relation label (e.g. 'CPR:false', 'CPR:3', 'CPR:4', 'CPR:5', 'CPR:6', 'CPR:9') expressing the chemical–protein relationship between the two marked entities in the context sentence.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample is a flat JSON object with an 'input' block and an 'output' block. The 'input' block carries two text fields: 'raw_text', a single biomedical sentence containing @CHEMICAL$ and @GENE$ entity placeholders, and 'prompt', an instruction template that embeds that sentence via a <<<raw_text>>> placeholder and enumerates the allowed ChemProt relation labels. The 'output' block carries one short text field, 'text', holding the gold relation type between the two marked entities. There is no separate entity, span, options or rationale field: the entities are expressed only implicitly through the in-text placeholders, and the answer is a single categorical label string."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Chemical-Protein-Relationship-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "chemical_protein_relationship_classification",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

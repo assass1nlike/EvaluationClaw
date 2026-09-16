@@ -1,0 +1,53 @@
+{
+  "task_id": "psf_3d_surface_visualization@1",
+  "task_completion": [
+    {
+      "id": "read_input_fits",
+      "description": "The agent opens or reads the input FITS file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a script, terminal command, or GUI tool opening '~/AstroImages/raw/hst_wfpc2_sample.fits'."
+    },
+    {
+      "id": "crop_roi",
+      "description": "The agent crops the image to a rectangular region of interest centered on a bright star.",
+      "points": 20,
+      "visual_evidence": "Code or tool interface showing the definition of a bounding box or array slicing with dimensions between 20x20 and 150x150 pixels."
+    },
+    {
+      "id": "save_crop_fits",
+      "description": "The agent saves the cropped image as a FITS file.",
+      "points": 20,
+      "visual_evidence": "Code or terminal output showing the cropped data being saved to '~/AstroImages/processed/psf_crop.fits', or the file appearing in the file explorer/terminal."
+    },
+    {
+      "id": "save_3d_surface_plot",
+      "description": "The agent generates and saves a 3D surface plot of the cropped region.",
+      "points": 30,
+      "visual_evidence": "A 3D surface plot visible in a plot window or code saving a figure to '~/AstroImages/processed/psf_surface.png'."
+    },
+    {
+      "id": "save_stats_txt",
+      "description": "The agent saves the peak pixel statistics to a text file.",
+      "points": 20,
+      "visual_evidence": "A text editor, script, or terminal echo showing the creation of '~/AstroImages/processed/psf_stats.txt' containing 'crop_width', 'crop_height', 'peak_value', 'peak_x', and 'peak_y'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_3d_plot",
+      "description": "The 3D surface plot is generated from the actual FITS data.",
+      "visual_evidence": "The agent uses a script (e.g., matplotlib plot_surface) or an astronomical tool to render the plot, rather than downloading or copying an external image."
+    },
+    {
+      "id": "computed_stats",
+      "description": "The peak statistics are genuinely computed from the cropped image.",
+      "visual_evidence": "The agent uses code (e.g., numpy argmax/max) or a tool's measurement feature to find the peak value and coordinates, rather than hardcoding arbitrary numbers."
+    },
+    {
+      "id": "no_dummy_files",
+      "description": "The output files are genuine results of the processing steps.",
+      "visual_evidence": "The FITS, PNG, and TXT files are created as a direct result of the agent's data processing actions, not as empty or placeholder files."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/AstroImages/raw/hst_wfpc2_sample.fits. Expected outputs must be in /home/ga/AstroImages/processed/: psf_crop.fits, psf_surface.png, and psf_stats.txt. The crop must be between 20x20 and 150x150 pixels."
+}

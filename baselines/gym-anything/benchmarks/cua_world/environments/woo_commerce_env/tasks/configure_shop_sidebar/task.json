@@ -1,0 +1,35 @@
+{
+  "id": "configure_shop_sidebar@1",
+  "version": "1.0",
+  "env_id": "woo_commerce_env@0.1",
+  "description": "Configure the WooCommerce Storefront sidebar to improve navigation. Remove all existing widgets from the 'Sidebar' area and add 'Product Search', 'Filter Products by Price', and 'Product Categories' in that exact order. For the 'Product Categories' widget, enable the 'Show product counts' setting. Use only default titles and do not modify any other widget areas.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_shop_sidebar/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_shop_sidebar/export_result.sh"
+  },
+  "metadata": {
+    "target_sidebar": "sidebar-1",
+    "expected_widgets": [
+      "woocommerce_product_search",
+      "woocommerce_price_filter",
+      "woocommerce_product_categories"
+    ],
+    "expected_category_settings": {
+      "count": 1,
+      "hierarchical": 0,
+      "dropdown": 0
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_shop_sidebar"
+    }
+  }
+}

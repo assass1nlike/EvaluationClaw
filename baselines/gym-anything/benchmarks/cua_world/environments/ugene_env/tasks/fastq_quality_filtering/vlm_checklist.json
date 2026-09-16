@@ -1,0 +1,53 @@
+{
+  "task_id": "fastq_quality_filtering@1",
+  "task_completion": [
+    {
+      "id": "load_raw_fastq",
+      "description": "Verify the agent accesses or opens the input raw_reads.fastq file.",
+      "points": 10,
+      "visual_evidence": "Screenshot showing a terminal command (e.g., cat, head, or a bioinformatics tool command) reading ~/UGENE_Data/ngs/raw_reads.fastq, or the file opened in a GUI tool like UGENE."
+    },
+    {
+      "id": "apply_quality_filter",
+      "description": "Verify the agent applies a quality filter with a threshold of 20.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing a terminal command (e.g., using seqtk, fastp, awk) with a quality parameter set to 20, or a GUI dialog box where the quality threshold is explicitly set to 20."
+    },
+    {
+      "id": "save_filtered_fastq",
+      "description": "Verify the filtered output is saved to the correct path as a FASTQ file.",
+      "points": 20,
+      "visual_evidence": "Screenshot of a terminal (e.g., ls command) or file explorer showing 'filtered_reads.fastq' located in ~/UGENE_Data/ngs/results/."
+    },
+    {
+      "id": "save_fasta_conversion",
+      "description": "Verify the high-quality sequences are converted and saved as a FASTA file.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the creation or existence of 'high_quality_reads.fasta' in ~/UGENE_Data/ngs/results/, either via a conversion command or file explorer."
+    },
+    {
+      "id": "create_qc_report",
+      "description": "Verify the creation of a plain text summary report documenting the read counts and threshold.",
+      "points": 30,
+      "visual_evidence": "Screenshot of a text editor or terminal output (e.g., cat qc_report.txt) showing the contents of ~/UGENE_Data/ngs/results/qc_report.txt. The text must explicitly mention the original number of reads, the final number of reads, and the quality threshold used (20)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_tool_usage",
+      "description": "Ensure the agent used actual commands or software to filter the data rather than just creating empty files manually.",
+      "visual_evidence": "Look for execution of bioinformatics CLI tools (like seqtk, fastq_quality_filter, awk scripts) or usage of a GUI sequence processor in the terminal history or screen."
+    },
+    {
+      "id": "report_matches_execution",
+      "description": "Ensure the QC report numbers reflect the actual dataset rather than hallucinated typical NGS numbers.",
+      "visual_evidence": "The qc_report.txt should show 250 for the original reads and 0 for the final reads. If it shows millions of reads, the agent hallucinated the results."
+    },
+    {
+      "id": "genuine_fasta_format",
+      "description": "Ensure the FASTA file is treated as a different format from FASTQ, not just a renamed file.",
+      "visual_evidence": "If the file contents are visible, the FASTA file should use '>' for headers and lack quality score lines, or the command used should be a genuine conversion command (e.g., seqtk seq -A)."
+    }
+  ],
+  "privileged_info_for_vlm": "The quality threshold is strictly 20. Note: Due to a broken download link in the environment setup, the input raw_reads.fastq only contains 250 synthetic reads, all of which have a quality score of 0. Therefore, a correct application of the Q20 filter will result in exactly 0 reads passing. The filtered FASTQ and converted FASTA files will be empty. The qc_report.txt should accurately reflect this (e.g., Original reads: 250, Final reads: 0, Threshold: 20). Do not penalize the agent for producing empty output files or reporting 0 final reads, as this is the correct and expected behavior for the provided data."
+}

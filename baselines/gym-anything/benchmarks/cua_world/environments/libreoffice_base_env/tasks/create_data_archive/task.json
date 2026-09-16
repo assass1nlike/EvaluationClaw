@@ -1,0 +1,26 @@
+{
+  "id": "create_data_archive@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "You are an office clerk performing year-end database maintenance on the Chinook digital media store database ('chinook.odb'). Archive all invoice data from the year 2009 into new archive tables and remove the archived records from the main tables. Create the 'InvoiceArchive' table (InvoiceId INTEGER PRIMARY KEY, CustomerId INTEGER, InvoiceDate TIMESTAMP, BillingAddress VARCHAR(70), BillingCity VARCHAR(40), BillingState VARCHAR(40), BillingCountry VARCHAR(40), BillingPostalCode VARCHAR(10), Total NUMERIC(10,2)) and the 'InvoiceLineArchive' table (InvoiceLineId INTEGER PRIMARY KEY, InvoiceId INTEGER, TrackId INTEGER, UnitPrice NUMERIC(10,2), Quantity INTEGER). Transfer all 2009 invoices and their associated line items to these archive tables, then delete the original records from the 'Invoice' and 'InvoiceLine' tables. Save the changes to the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_data_archive/setup_task.sh",
+    "post_task": "/workspace/tasks/create_data_archive/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/chinook.odb",
+    "ground_truth_path": "/tmp/ground_truth.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_data_archive"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "ttl_os_fingerprinting@1",
+  "task_completion": [
+    {
+      "id": "csv_file_created",
+      "description": "The ttl_fingerprint_report.csv file is created in ~/Documents/captures/.",
+      "points": 10,
+      "visual_evidence": "A terminal showing 'ls ~/Documents/captures/' or a file manager window displaying 'ttl_fingerprint_report.csv'."
+    },
+    {
+      "id": "csv_columns_present",
+      "description": "The CSV report contains the required columns: IP, observed TTL, initial TTL, hop count, and OS family.",
+      "points": 15,
+      "visual_evidence": "The contents of the CSV file (visible via 'cat', 'head', or a text editor) showing a header row with these exact or highly similar column names."
+    },
+    {
+      "id": "csv_data_correctness",
+      "description": "The CSV data is sorted by IP address and correctly maps observed TTLs to initial TTLs, hop counts, and OS families.",
+      "points": 25,
+      "visual_evidence": "The rows in the CSV file are sorted by the IP address column. The OS family matches the initial TTL (32: Windows-9x, 64: Linux/Unix, 128: Windows, 255: Cisco/Solaris), and hop count equals (Initial TTL - Observed TTL)."
+    },
+    {
+      "id": "summary_file_created",
+      "description": "The ttl_fingerprint_summary.txt file is created in ~/Documents/captures/.",
+      "points": 10,
+      "visual_evidence": "A terminal showing 'ls ~/Documents/captures/' or a file manager window displaying 'ttl_fingerprint_summary.txt'."
+    },
+    {
+      "id": "summary_counts_present",
+      "description": "The summary file contains the total number of unique IPs and the count of IPs per OS family.",
+      "points": 20,
+      "visual_evidence": "The contents of the summary file showing a total unique IP count (should be 17) and a breakdown of counts for Windows-9x, Linux/Unix, Windows, and Cisco/Solaris."
+    },
+    {
+      "id": "summary_hop_extremes",
+      "description": "The summary file identifies the IP addresses associated with the highest and lowest estimated hop counts.",
+      "points": 20,
+      "visual_evidence": "The contents of the summary file explicitly listing the IP address(es) with the highest hop count and the IP address(es) with the lowest hop count."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tool_or_script_usage",
+      "description": "The agent used a script (e.g., Python with scapy/pyshark) or a command-line tool (e.g., tshark) to process the capture files.",
+      "visual_evidence": "Terminal history showing the execution of a Python script, tshark commands, or similar packet analysis tools, rather than just manually typing out the final text files."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not simply echo or copy-paste hardcoded answers into the output files.",
+      "visual_evidence": "The presence of logic in a script (e.g., rounding up TTLs, calculating differences, sorting) or complex shell pipelines that derive the answers dynamically from the .cap/.pcap/.pcapng files."
+    },
+    {
+      "id": "correct_output_location",
+      "description": "The output files are genuinely saved to the specified directory.",
+      "visual_evidence": "The file paths in the terminal or editor clearly show the files are located in /home/ga/Documents/captures/."
+    }
+  ],
+  "privileged_info_for_vlm": "The capture directory is /home/ga/Documents/captures. Expected files are ttl_fingerprint_report.csv and ttl_fingerprint_summary.txt. There are exactly 17 unique source IPs across the captures. Observed TTLs in the files include 47, 50, 55, 58, 63, 64, 128, and 249. The OS mapping must strictly follow: 32 -> Windows-9x, 64 -> Linux/Unix, 128 -> Windows, 255 -> Cisco/Solaris. Initial TTL is the nearest standard value (32, 64, 128, 255) greater than or equal to the observed TTL. Hop count is calculated as (Initial TTL - Observed TTL)."
+}

@@ -1,0 +1,26 @@
+{
+  "id": "verify_friend_deletion_safeguard@1",
+  "version": "1.0",
+  "env_id": "example.flica_env@0.1",
+  "description": "Test the friend deletion safety mechanism in Flight Crew View. Add a friend named 'Safeguard Pilot' and initiate the deletion process, then abort the deletion when prompted. Verify that 'Safeguard Pilot' remains in the friends list.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/verify_friend_deletion_safeguard/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/verify_friend_deletion_safeguard/export_result.sh"
+  },
+  "metadata": {
+    "friend_name": "Safeguard Pilot",
+    "action": "cancel_deletion"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_friend_deletion_safeguard"
+    }
+  }
+}

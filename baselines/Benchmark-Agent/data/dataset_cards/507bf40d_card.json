@@ -1,0 +1,94 @@
+{
+  "dataset_id": "507bf40d",
+  "name": "Image Style Classification",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 214,
+  "description": "The dataset evaluates image style classification: given a single image and an enumerated list of ~70 artistic style categories, a model must assign the correct style label. It is a single-label, closed-vocabulary visual classification benchmark focused on art and illustration styles.",
+  "card_text": "This dataset contains 214 image-text pairs for artistic style recognition. Each sample provides one image (path under data/image/comprehension/style_classification/target_image/) plus a natural-language instruction that names the task and embeds a bracketed list of roughly seventy candidate style categories (e.g., artstyle-graffiti, artstyle-cubist, Surrealism, game-minecraft, sai-pixelart, Impressionism). A short companion prompt ('Analyze the image and classify it') restates the goal. The expected output is a single style label drawn from that closed candidate set. Images range from paintings and drawings to game-style and vector art, so visual complexity varies strongly across samples. The dataset assumes the target style is always present in the provided category list and that exactly one label is correct.",
+  "tasks": [
+    "classification_multiclass"
+  ],
+  "domain": "art / image style recognition",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "illustration",
+        "semantics": "Path to the target image whose artistic style must be recognized. It is the only visual input and is the object all instructions and outputs refer to. Visual complexity varies widely, from simple doodles and pixel art to dense painting-like compositions.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.instruction",
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "The task instruction tells the model to classify the image into one of the enumerated categories and also carries the full candidate category list; the shorter prompt restates the same request. Together they specify the classification task applied to the paired image.",
+        "path_types": [
+          "str",
+          "str"
+        ]
+      },
+      "options": {
+        "paths": [
+          "input.instruction"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "structured",
+        "semantics": "The bracketed, comma-separated enumeration of roughly seventy style labels embedded inside the instruction string. It defines the closed label space from which the answer must be selected and constrains the otherwise open-ended classification.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.style"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A single style category label (e.g., 'artstyle-graffiti', 'artstyle-cubist') chosen from the candidate list in the instruction. It is the gold target describing the visual style of the corresponding image.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of one image reference plus a textual instruction that both states the classification task and embeds the full list of candidate style categories, accompanied by a short restating prompt. The output side contains a single style label selected from that embedded category list. There is no separate passage, dialog, bounding box, or multi-turn structure: the image is the sole input content, the instruction/prompt defines the query and its option set, and the answer is one short category string linked directly to the image."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/image_style_classification/json/annotation.json",
+    "existing_tags": {
+      "task": "style recognition",
+      "type": "comprehension",
+      "skill": "Object Recognition",
+      "domain": "Art",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "Art"
+  }
+}

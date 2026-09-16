@@ -1,0 +1,28 @@
+{
+  "id": "evaluate_morphological_closing_impact@1",
+  "version": "1.0",
+  "env_id": "invesalius3_env@0.1",
+  "description": "As a biomedical engineer evaluating the impact of the 'Closing' morphological operation on cranial bone volume for 3D printing preparation, export two binary STL files for volumetric comparison from the loaded CT Cranium DICOM dataset. Export a 3D surface generated from a mask using the standard 'Bone' threshold (226 to 3071 HU) to /home/ga/Documents/raw_skull.stl. Additionally, export a 3D surface generated from the same bone mask after applying a 'Closing' morphological operation (size 1) to /home/ga/Documents/closed_skull.stl.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/evaluate_morphological_closing_impact/setup_task.sh",
+    "post_task": "/workspace/tasks/evaluate_morphological_closing_impact/export_result.sh"
+  },
+  "metadata": {
+    "raw_stl_path": "/home/ga/Documents/raw_skull.stl",
+    "closed_stl_path": "/home/ga/Documents/closed_skull.stl",
+    "min_triangle_count": 10000,
+    "dicom_series": "ct_cranium/0051"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_evaluate_morphological_closing_impact"
+    }
+  }
+}

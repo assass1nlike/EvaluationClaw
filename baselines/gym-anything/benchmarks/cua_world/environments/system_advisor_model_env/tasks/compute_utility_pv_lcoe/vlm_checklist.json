@@ -1,0 +1,59 @@
+{
+  "task_id": "compute_utility_pv_lcoe@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "Python script compute_lcoe.py is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A file named compute_lcoe.py is visible in /home/ga/Documents/SAM_Projects/ in a file explorer, terminal, or text editor."
+    },
+    {
+      "id": "script_parameters",
+      "description": "The Python script contains the correct system and financial parameters for the PySAM simulation.",
+      "points": 20,
+      "visual_evidence": "The script code shows parameters such as 100000 (kW DC), 1.3 (DC-to-AC), 2 (array type), 0 (tilt), 180 (azimuth), 14 (losses), 100000000 (capital cost), 1500000 (fixed O&M), and 0.0713 (fixed charge rate)."
+    },
+    {
+      "id": "script_weather_file",
+      "description": "The script reads the weather file directory from the specified text file and selects an Arizona TMY file.",
+      "points": 15,
+      "visual_evidence": "The script code shows it opening '/home/ga/.SAM/solar_resource_dir.txt' and constructing a path to an AZ TMY weather file (e.g., Phoenix)."
+    },
+    {
+      "id": "json_created",
+      "description": "The resulting JSON file utility_pv_lcoe_result.json is created in the correct directory.",
+      "points": 15,
+      "visual_evidence": "A file named utility_pv_lcoe_result.json is visible in /home/ga/Documents/SAM_Projects/."
+    },
+    {
+      "id": "json_keys",
+      "description": "The JSON file contains exactly the required keys.",
+      "points": 20,
+      "visual_evidence": "The contents of the JSON file show exactly these keys: 'annual_energy_kwh', 'capacity_factor_pct', 'lcoe_cents_per_kwh', and 'weather_file_used'."
+    },
+    {
+      "id": "json_values",
+      "description": "The JSON file contains reasonable calculated values based on the simulation.",
+      "points": 20,
+      "visual_evidence": "The JSON file shows annual_energy_kwh around 212,000,000, capacity_factor_pct around 24.2, and lcoe_cents_per_kwh around 4.06."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_json",
+      "description": "The agent did not hardcode the JSON output values.",
+      "visual_evidence": "The Python script computes the values using PySAM modules rather than containing hardcoded dictionaries with the final answers."
+    },
+    {
+      "id": "genuine_pysam_usage",
+      "description": "The script genuinely imports and uses PySAM modules.",
+      "visual_evidence": "The script contains imports like 'import PySAM.Pvwattsv8' and 'import PySAM.Lcoefcr' and executes their methods."
+    },
+    {
+      "id": "script_execution",
+      "description": "The agent executed the script to generate the JSON file.",
+      "visual_evidence": "A terminal window shows the command 'python compute_lcoe.py' (or similar) being run without errors, leading to the creation of the JSON file."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected annual energy is between 170,000,000 and 270,000,000 kWh (approx 212.15 GWh). The expected capacity factor is between 19.0% and 31.0% (approx 24.2%). The expected LCOE is between 2.8 and 5.5 cents/kWh (approx 4.06 cents/kWh). The script must use an AZ TMY weather file (e.g., Phoenix). The JSON must contain exactly 'annual_energy_kwh', 'capacity_factor_pct', 'lcoe_cents_per_kwh', and 'weather_file_used'."
+}

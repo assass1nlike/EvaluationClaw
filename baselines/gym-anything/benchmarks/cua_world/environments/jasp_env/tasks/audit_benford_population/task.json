@@ -1,0 +1,29 @@
+{
+  "id": "audit_benford_population@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Perform a forensic data integrity check using Benford's Law on the population dataset located at /home/ga/Documents/JASP/population_2018.csv. Conduct the analysis using the 'Value' column and include an 'Observed vs. expected' plot. Save the completed analysis to /home/ga/Documents/JASP/benford_analysis.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/audit_benford_population/setup_task.sh",
+    "post_task": "/workspace/tasks/audit_benford_population/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/population_2018.csv",
+    "expected_output_path": "/home/ga/Documents/JASP/benford_analysis.jasp",
+    "target_variable": "Value",
+    "module_name": "Audit",
+    "analysis_type": "Benford"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_audit_benford_population"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "blind_resume_reformat@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are a Talent Acquisition Coordinator at Apex Systems preparing a 'blind' resume for Marcus Reynolds for client submission to BioHealth Inc. Using the source file /home/ga/Documents/candidate_raw.odt, create an anonymized version by removing the candidate's name, address, phone number, email, and LinkedIn link. Add 'Candidate ID: CRA-994' as the first line formatted with 'Title' style. Apply 'Heading 1' style to the 'Professional Summary', 'Technical Skills', 'Professional Experience', and 'Education' headers, and 'Heading 2' style to the job roles. Convert the Technical Skills list into a 2-column table and include a footer with the text 'Confidential Representation - Apex Systems' and page numbers. Save the final document to /home/ga/Documents/Candidate_CRA-994_Blind.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/blind_resume_reformat/setup_task.sh",
+    "post_task": "/workspace/tasks/blind_resume_reformat/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/candidate_raw.odt",
+    "output_file": "/home/ga/Documents/Candidate_CRA-994_Blind.odt",
+    "forbidden_terms": [
+      "Marcus",
+      "Reynolds",
+      "415-555-0199",
+      "marcus.reynolds@email.com",
+      "linkedin.com/in/mreynolds"
+    ],
+    "required_terms": [
+      "CRA-994",
+      "Confidential Representation",
+      "Apex Systems"
+    ],
+    "style_requirements": {
+      "Heading 1": 4,
+      "Heading 2": 3
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_blind_resume"
+    }
+  }
+}

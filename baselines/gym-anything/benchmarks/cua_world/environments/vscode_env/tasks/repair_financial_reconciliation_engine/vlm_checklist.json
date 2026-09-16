@@ -1,0 +1,53 @@
+{
+  "task_id": "repair_financial_reconciliation_engine@1",
+  "task_completion": [
+    {
+      "id": "fix_decimal_precision",
+      "description": "Fix decimal precision matching to avoid direct float comparisons.",
+      "points": 20,
+      "visual_evidence": "Code editor showing changes in the Python files replacing direct float equality (==) with precision-safe comparisons (e.g., math.isclose, Decimal), or terminal output showing related tests passing."
+    },
+    {
+      "id": "fix_bid_ask_spread",
+      "description": "Correct the bid/ask spread application for foreign currency transactions.",
+      "points": 20,
+      "visual_evidence": "Code editor showing modifications to the foreign currency exchange rate logic to correctly apply bid/ask spreads, or terminal output showing foreign currency transactions successfully matching."
+    },
+    {
+      "id": "fix_timezone_handling",
+      "description": "Implement timezone-aware date comparisons.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the addition of timezone handling (e.g., using tzinfo, pytz, or timezone-aware datetime objects) in date comparison logic."
+    },
+    {
+      "id": "fix_tolerance_thresholds",
+      "description": "Fix tolerance thresholds to use max() instead of a single static value.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the tolerance calculation logic updated to use a max() function, ensuring legitimate transactions are no longer flagged as exceptions."
+    },
+    {
+      "id": "fix_signed_exception_grouping",
+      "description": "Correct the signed exception grouping logic.",
+      "points": 20,
+      "visual_evidence": "Code editor showing fixes to the exception grouping logic to properly handle positive and negative signs, or terminal output showing an exception report with corrected groupings."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_editing",
+      "description": "The agent genuinely edited the Python files rather than just printing out a fake success message.",
+      "visual_evidence": "Screenshots showing a text editor (e.g., VS Code, nano, vim) with the actual Python code being modified, or valid terminal commands (e.g., sed) modifying the files."
+    },
+    {
+      "id": "actual_test_execution",
+      "description": "The agent ran the reconciliation engine or its test suite to verify the fixes.",
+      "visual_evidence": "Terminal output showing the execution of the Python script or a test runner (e.g., pytest, python main.py) with results corresponding to the code changes."
+    },
+    {
+      "id": "no_hardcoded_bypass",
+      "description": "The agent did not hardcode the expected output or bypass the logic to force a pass.",
+      "visual_evidence": "The code modifications involve actual logic changes (e.g., math.isclose, max(), timezone handling) rather than 'return True', hardcoded strings, or bypassing the reconciliation checks entirely."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific Python bugs in the reconciliation engine: 1) Decimal precision matching (replacing float == float comparisons). 2) Bid/ask spread application for foreign currency. 3) Timezone-aware date comparisons. 4) Correct tolerance thresholds (using max() instead of a single value). 5) Signed exception grouping. The pass threshold is 60 points (fixing at least 3 out of 5 bugs)."
+}

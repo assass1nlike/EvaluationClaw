@@ -1,0 +1,73 @@
+{
+  "id": "spill_layering_prediction@1",
+  "version": "1.0",
+  "env_id": "cameo_chemicals_env@0.1",
+  "description": "A chemical warehouse with a water-filled containment basin needs a spill response plan. Determine the physical layering order of Carbon Tetrachloride, Toluene, Chloroform, n-Hexane, Carbon Disulfide, and water (SG 1.00) based on their Specific Gravity (SG) found via CAMEO Chemicals (https://cameochemicals.noaa.gov/). Record the predicted layering from BOTTOM (highest SG) to TOP (lowest SG) in /home/ga/Desktop/spill_layering_results.txt.\n\nFormat each line as:\nLayer 1 (Bottom): [Chemical Name] - SG: [Value]\nLayer 2: [Chemical Name] - SG: [Value]\nLayer 3: [Chemical Name] - SG: [Value]\nLayer 4: [Chemical Name] - SG: [Value]\nLayer 5: [Chemical Name] - SG: [Value]\nLayer 6 (Top): [Chemical Name] - SG: [Value]",
+  "difficulty": "medium",
+  "tags": [
+    "cameo",
+    "specific-gravity",
+    "density",
+    "stratification",
+    "hazmat",
+    "planning"
+  ],
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/spill_layering_prediction/setup_task.sh",
+    "post_task": "/workspace/tasks/spill_layering_prediction/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Desktop/spill_layering_results.txt",
+    "chemicals": {
+      "Carbon Tetrachloride": {
+        "min": 1.5,
+        "max": 1.7,
+        "sinks": true
+      },
+      "Chloroform": {
+        "min": 1.4,
+        "max": 1.56,
+        "sinks": true
+      },
+      "Carbon Disulfide": {
+        "min": 1.2,
+        "max": 1.33,
+        "sinks": true
+      },
+      "Water": {
+        "min": 0.99,
+        "max": 1.01,
+        "sinks": null
+      },
+      "Toluene": {
+        "min": 0.8,
+        "max": 0.92,
+        "sinks": false
+      },
+      "n-Hexane": {
+        "min": 0.6,
+        "max": 0.72,
+        "sinks": false
+      }
+    },
+    "correct_order_bottom_up": [
+      "Carbon Tetrachloride",
+      "Chloroform",
+      "Carbon Disulfide",
+      "Water",
+      "Toluene",
+      "n-Hexane"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_spill_layering"
+    }
+  }
+}

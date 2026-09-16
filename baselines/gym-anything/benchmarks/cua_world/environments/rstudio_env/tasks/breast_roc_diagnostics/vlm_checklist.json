@@ -1,0 +1,53 @@
+{
+  "task_id": "breast_roc_diagnostics@1",
+  "task_completion": [
+    {
+      "id": "r_script_created",
+      "description": "Create an R script at /home/ga/RProjects/breast_roc_analysis.R",
+      "points": 10,
+      "visual_evidence": "The file `breast_roc_analysis.R` is visible in the file explorer under `/home/ga/RProjects/` or open in a text editor/IDE."
+    },
+    {
+      "id": "individual_roc_csv",
+      "description": "Generate breast_roc_individual.csv with ROC metrics for each of the 9 features",
+      "points": 20,
+      "visual_evidence": "The file `breast_roc_individual.csv` is visible in the `/home/ga/RProjects/output/` directory. If opened, it should contain columns for feature, auc, auc_lower95, auc_upper95, optimal_cutpoint, sensitivity, and specificity."
+    },
+    {
+      "id": "auc_comparison_csv",
+      "description": "Generate breast_auc_comparison.csv comparing the best single feature against the other eight",
+      "points": 20,
+      "visual_evidence": "The file `breast_auc_comparison.csv` is visible in the `/home/ga/RProjects/output/` directory. If opened, it should contain columns for feature1, feature2, auc1, auc2, z_statistic, and p_value."
+    },
+    {
+      "id": "combined_model_csv",
+      "description": "Generate breast_combined_model.csv with the ROC performance of the combined logistic regression model",
+      "points": 20,
+      "visual_evidence": "The file `breast_combined_model.csv` is visible in the `/home/ga/RProjects/output/` directory. If opened, it should contain columns for model, auc, auc_lower95, auc_upper95, sensitivity, specificity, accuracy, and n_observations."
+    },
+    {
+      "id": "multi_panel_visualization",
+      "description": "Create a multi-panel visualization breast_roc_analysis.png featuring ROC curves and a bar chart",
+      "points": 30,
+      "visual_evidence": "The file `breast_roc_analysis.png` is visible in the `/home/ga/RProjects/output/` directory. If the image is shown, it must contain three panels: Panel A (multiple ROC curves for individual features), Panel B (a single ROC curve for the combined model), and Panel C (a bar chart comparing AUCs)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution_evidence",
+      "description": "Check that the R script was actually executed to generate the outputs",
+      "visual_evidence": "Look for evidence of script execution in the terminal or R console (e.g., running `Rscript breast_roc_analysis.R` or executing code blocks in an IDE), rather than just creating empty files."
+    },
+    {
+      "id": "genuine_plot_generation",
+      "description": "Ensure the visualization was generated programmatically",
+      "visual_evidence": "The R script should contain code for plotting (e.g., using ggplot2, pROC::ggroc, or base R plot functions) and saving the plot (e.g., ggsave, png()), and the plot style should match typical R output."
+    },
+    {
+      "id": "no_hardcoded_metrics",
+      "description": "Verify that the agent did not hardcode the expected AUC values or test results",
+      "visual_evidence": "The R script should use functions like `roc()`, `roc.test()`, and `glm()` to compute the metrics dynamically from the dataset, without hardcoding values like 0.976 or 0.996."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses the mlbench::BreastCancer dataset. The 9 features are: Cl.thickness, Cell.size, Cell.shape, Marg.adhesion, Epith.c.size, Bare.nuclei, Bl.cromatin, Normal.nucleoli, Mitoses. The best single feature is Cell.size with an AUC of ~0.976. The combined logistic regression model has an AUC of ~0.996. The expected output directory is /home/ga/RProjects/output."
+}

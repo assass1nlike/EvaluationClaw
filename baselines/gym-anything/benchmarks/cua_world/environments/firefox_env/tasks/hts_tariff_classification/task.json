@@ -1,0 +1,67 @@
+{
+  "id": "hts_tariff_classification@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a logistics coordinator. Research the Harmonized Tariff Schedule (HTS) classification codes and general duty rates for the following products using the official USITC HTS database (https://hts.usitc.gov/):\n- Lithium-ion rechargeable battery packs for laptop computers\n- Organic green tea, not fermented, in bulk packaging (>3 kg)\n- Stainless steel hex head bolts, M10 thread\n- Ceramic coffee mugs, glazed stoneware\n- Men's cotton knit t-shirts\n\nCreate a JSON report at '~/Documents/tariff_classification.json' containing an array of objects with the fields: 'description', 'hts_code' (format XXXX.XX.XX), 'general_duty_rate', and 'hts_chapter' (integer).",
+  "difficulty": "hard",
+  "tags": [
+    "firefox",
+    "research",
+    "compliance",
+    "data-entry",
+    "government-db"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hts_tariff_classification/setup_task.sh",
+    "post_task": "/workspace/tasks/hts_tariff_classification/export_result.sh"
+  },
+  "metadata": {
+    "output_file": "/home/ga/Documents/tariff_classification.json",
+    "required_bookmark_folder": "Trade Compliance",
+    "expected_products": [
+      {
+        "name": "battery",
+        "chapter": "85",
+        "prefix": "8507.6"
+      },
+      {
+        "name": "tea",
+        "chapter": "09",
+        "prefix": "0902.1"
+      },
+      {
+        "name": "bolts",
+        "chapter": "73",
+        "prefix": "7318.1"
+      },
+      {
+        "name": "mugs",
+        "chapter": [
+          "69",
+          "6911",
+          "6912"
+        ],
+        "prefix": [
+          "6911",
+          "6912"
+        ]
+      },
+      {
+        "name": "tshirt",
+        "chapter": "61",
+        "prefix": "6109"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hts_tariff_classification"
+    }
+  }
+}

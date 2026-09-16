@@ -1,0 +1,53 @@
+{
+  "task_id": "containerize_host_integration@1",
+  "task_completion": [
+    {
+      "id": "open_docker_compose",
+      "description": "Open the docker-compose.yml file for editing",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or VS Code) or terminal output (like cat) showing the contents of '/home/ga/Documents/docker-projects/migration-task/docker-compose.yml'."
+    },
+    {
+      "id": "add_extra_hosts",
+      "description": "Add the extra_hosts configuration to the frontend service",
+      "points": 20,
+      "visual_evidence": "The 'extra_hosts:' directive added under the frontend service definition in the docker-compose.yml file."
+    },
+    {
+      "id": "map_host_gateway",
+      "description": "Map the hardcoded backend hostname to the host machine's IP",
+      "points": 30,
+      "visual_evidence": "Under 'extra_hosts:', a mapping for 'backend.legacy.internal: host-gateway' (or the actual host IP address, e.g., 172.17.0.1 or similar) is visible in the docker-compose.yml file."
+    },
+    {
+      "id": "start_containers",
+      "description": "Start the docker-compose services",
+      "points": 10,
+      "visual_evidence": "Terminal output showing the execution of 'docker-compose up' or 'docker compose up' (with or without -d) and the frontend container starting successfully."
+    },
+    {
+      "id": "verify_frontend_access",
+      "description": "Verify the frontend application is accessible and successfully connects to the legacy backend",
+      "points": 30,
+      "visual_evidence": "A web browser or terminal command (e.g., curl) accessing 'http://localhost:8080' and displaying a response that includes the text 'Legacy Core Online'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Ensure the docker-compose.yml file was genuinely modified",
+      "visual_evidence": "The file edits should be visible in a real text editor or via valid shell commands (like sed or echo), rather than just typing the expected configuration into the terminal without saving it."
+    },
+    {
+      "id": "genuine_docker_execution",
+      "description": "Ensure Docker commands were actually executed",
+      "visual_evidence": "Look for standard Docker Compose output logs (e.g., 'Creating network', 'Creating container', 'Attaching to...') in the terminal."
+    },
+    {
+      "id": "genuine_frontend_request",
+      "description": "Ensure the final verification is a real HTTP request",
+      "visual_evidence": "The presence of 'Legacy Core Online' must come from a genuine curl command to localhost:8080 or a web browser rendering the page, not from an 'echo' command or a direct request to port 4567."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is '/home/ga/Documents/docker-projects/migration-task'. The target hostname that must be mapped is 'backend.legacy.internal'. The frontend application is exposed on port 8080. A successful integration will result in the frontend application returning a payload containing the string 'Legacy Core Online' when accessed at http://localhost:8080."
+}

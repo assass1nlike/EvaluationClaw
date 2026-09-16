@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_multiday_trip_planner@1",
+  "task_completion": [
+    {
+      "id": "set_start_and_destination",
+      "description": "Set Port of Boston as the start and Chicago Rail Yard as the destination",
+      "points": 15,
+      "visual_evidence": "The routing or mapping application interface shows 'Port_of_Boston' (or coordinates 42.3400, -71.0400) as the starting location and 'Chicago_Rail_Yard' (or coordinates 41.8100, -87.6300) as the final destination."
+    },
+    {
+      "id": "add_library_waypoints",
+      "description": "Include waypoints from the Library into the route",
+      "points": 15,
+      "visual_evidence": "The agent opens a 'Library' or saved places menu and adds intermediate waypoints to the route between Boston and Chicago."
+    },
+    {
+      "id": "set_driving_limit",
+      "description": "Set a maximum driving limit of 8 hours per day",
+      "points": 20,
+      "visual_evidence": "A settings menu, route properties, or planner configuration window is visible with a travel limit or maximum driving hours explicitly set to '8'."
+    },
+    {
+      "id": "calculate_route",
+      "description": "Generate the multi-day trip route",
+      "points": 20,
+      "visual_evidence": "The map displays a calculated route connecting the start, waypoints, and destination, ideally broken into multiple days or segments based on the 8-hour limit."
+    },
+    {
+      "id": "export_gpx",
+      "description": "Export the trip as a GPX file to the specified path",
+      "points": 30,
+      "visual_evidence": "A 'Save As' or 'Export' dialog box is visible, saving a file named 'freight_itinerary.gpx' into the 'C:\\workspace\\output\\' directory, with the file type set to GPX."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used a graphical mapping/routing application",
+      "visual_evidence": "Screenshots show interaction with a genuine GUI application for route planning, rather than just using terminal commands or writing a script to generate a dummy file."
+    },
+    {
+      "id": "genuine_export",
+      "description": "Agent used the application's export functionality",
+      "visual_evidence": "The GPX file is generated via the application's native export/save feature, not by manually typing XML/GPX content into a text editor."
+    },
+    {
+      "id": "no_direct_file_manipulation",
+      "description": "Agent did not copy or move a pre-existing file",
+      "visual_evidence": "The agent does not simply copy an existing 'freight_itinerary.gpx' file from another directory or download it directly from an external source to bypass the task."
+    }
+  ],
+  "privileged_info_for_vlm": "Target output path: C:\\workspace\\output\\freight_itinerary.gpx. Max driving limit: 8 hours per day. Port of Boston coordinates: 42.3400, -71.0400. Chicago Rail Yard coordinates: 41.8100, -87.6300. Note: The environment has a known structural bug where pre-task hooks fail to run, meaning the waypoints might be missing from the Library. Do not heavily penalize the agent if it searches the Library but finds no waypoints to add, as long as it successfully configures the start/end points, sets the 8-hour limit, and exports the GPX file."
+}

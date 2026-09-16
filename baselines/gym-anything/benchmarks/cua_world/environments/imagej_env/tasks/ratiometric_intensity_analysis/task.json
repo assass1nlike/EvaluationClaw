@@ -1,0 +1,34 @@
+{
+  "id": "ratiometric_intensity_analysis@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "description": "Perform a ratiometric analysis on the 'Fluorescent Cells' sample image. Generate a 32-bit floating-point ratio image (Red Channel / Green Channel) restricted to the cell area defined by the Green channel mask, with background pixels set to 0 or NaN. Save the resulting ratio image to '~/ImageJ_Data/results/ratio_map.tif'. Record the mean intensity of the ratio image within the cell mask to '~/ImageJ_Data/results/mean_ratio.txt'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/ratiometric_intensity_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/ratiometric_intensity_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/results/ratio_map.tif",
+    "expected_value_file": "/home/ga/ImageJ_Data/results/mean_ratio.txt",
+    "ground_truth_dir": "/tmp/task_ground_truth"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ratiometric_analysis"
+    }
+  },
+  "tags": [
+    "image-processing",
+    "ratiometric",
+    "image-math",
+    "32-bit",
+    "masking"
+  ]
+}

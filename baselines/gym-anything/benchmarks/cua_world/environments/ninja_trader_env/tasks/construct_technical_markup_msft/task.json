@@ -1,0 +1,35 @@
+{
+  "id": "construct_technical_markup_msft@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Perform a technical analysis markup on the MSFT Daily chart for 2023 to identify the major trend channel and retracement levels. Draw an Andrews Pitchfork using Pivot A (January 6, 2023), Pivot B (July 18, 2023), and Pivot C (October 26, 2023) as anchors. Apply Fibonacci Retracements from Pivot A to Pivot B to measure the correction and save the workspace to persist the analysis.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\construct_technical_markup_msft\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\construct_technical_markup_msft\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "MSFT",
+    "anchors": {
+      "A": "2023-01-06",
+      "B": "2023-07-18",
+      "C": "2023-10-26"
+    },
+    "date_tolerance_days": 3,
+    "tools": [
+      "AndrewsPitchfork",
+      "FibonacciRetracements"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_technical_markup"
+    }
+  }
+}

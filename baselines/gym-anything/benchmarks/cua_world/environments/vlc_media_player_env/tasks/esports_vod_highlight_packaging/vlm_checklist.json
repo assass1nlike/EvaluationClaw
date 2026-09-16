@@ -1,0 +1,59 @@
+{
+  "task_id": "esports_vod_highlight_packaging@1",
+  "task_completion": [
+    {
+      "id": "files_created",
+      "description": "Verify that the three highlight MP4 files and manifest.json are created in the correct directory.",
+      "points": 15,
+      "visual_evidence": "Look for a file manager window or terminal 'ls' command showing 'highlight_1_ambush.mp4', 'highlight_2_defense.mp4', 'highlight_3_victory.mp4', and 'manifest.json' in the '/home/ga/Videos/social_highlights/' directory."
+    },
+    {
+      "id": "video_processing_tool_used",
+      "description": "Verify that a video editing tool or command-line utility is used to process the videos.",
+      "points": 10,
+      "visual_evidence": "Look for an active video editor GUI (like Kdenlive) with the clips loaded, or terminal windows showing 'ffmpeg' commands executing the video processing."
+    },
+    {
+      "id": "watermark_applied",
+      "description": "Verify that the team logo is placed in the top-right corner of the video.",
+      "points": 20,
+      "visual_evidence": "Look for the team logo visible in the top-right corner of a video preview, or an ffmpeg filter graph containing an 'overlay' command positioning the logo at the top right (e.g., 'overlay=W-w:10' or similar)."
+    },
+    {
+      "id": "audio_normalized",
+      "description": "Verify that audio normalization or dynamic range compression is applied to balance the audio.",
+      "points": 15,
+      "visual_evidence": "Look for audio effects like 'Normalize', 'Compressor', or 'Limiter' applied in a GUI editor, or ffmpeg audio filters like 'loudnorm', 'dynaudnorm', or 'acompressor' in the terminal commands."
+    },
+    {
+      "id": "resolution_scaled",
+      "description": "Verify that the output resolution is explicitly set to 1920x1080.",
+      "points": 20,
+      "visual_evidence": "Look for export settings in a GUI showing the resolution set to 1920x1080, or an ffmpeg video filter like 'scale=1920:1080' or '-s 1920x1080' in the terminal."
+    },
+    {
+      "id": "manifest_json_content",
+      "description": "Verify the contents of manifest.json contain the required fields.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., 'cat manifest.json') displaying the JSON structure with a 'highlights' array containing objects with 'filename', 'duration_seconds', 'title', and 'watermarked' (set to true)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Verify the agent actually processed the video files rather than creating empty or dummy files.",
+      "visual_evidence": "Look for actual rendering progress bars, ffmpeg frame processing output in the terminal showing time/bitrate progress, or non-zero file sizes in the file manager."
+    },
+    {
+      "id": "genuine_json_creation",
+      "description": "Verify the agent constructed the JSON manifest based on the task rather than copying a pre-existing file.",
+      "visual_evidence": "Look for the agent typing the JSON in a text editor, using a script to generate it, or echoing the structured data into the file."
+    },
+    {
+      "id": "no_hallucinated_success",
+      "description": "Verify the agent did not just print a success message without performing the tasks.",
+      "visual_evidence": "Ensure there is visual proof of the ffmpeg commands running or the GUI editor exporting the files, not just a terminal echoing 'Done' or 'Success'."
+    }
+  ],
+  "privileged_info_for_vlm": "The raw video is the Sintel open movie with an actual resolution of 1280x546. To succeed, the agent must explicitly scale the output to 1920x1080 (ignoring the 'preserve original resolution' part of the prompt). The expected output files are highlight_1_ambush.mp4 (20s), highlight_2_defense.mp4 (20s), and highlight_3_victory.mp4 (30s) with a tolerance of 1.5s. Codecs must be H.264 for video and AAC for audio."
+}

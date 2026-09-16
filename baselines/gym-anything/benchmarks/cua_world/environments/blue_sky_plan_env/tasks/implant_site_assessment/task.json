@@ -1,0 +1,45 @@
+{
+  "id": "implant_site_assessment@1",
+  "version": "1.0",
+  "env_id": "blue_sky_plan_env@0.1",
+  "description": "As an oral surgeon performing a pre-implant bone assessment in Blue Sky Plan 5, evaluate the second premolar, first molar, and second molar areas in the lower right posterior jaw using the CBCT scan at C:\\Users\\Docker\\Documents\\DentalDICOM. For each site, measure the vertical bone height from the alveolar ridge crest to the superior border of the inferior alveolar nerve canal and the buccolingual bone width at the planned implant depth. Document the assessment with annotations and save the project to C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\site_assessment.bsp. Export at least two cross-sectional images to C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\site_images\\. Login credentials: Docker / GymAnything123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\implant_site_assessment\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\implant_site_assessment\\export_result.ps1"
+  },
+  "metadata": {
+    "dicom_dir": "C:\\Users\\Docker\\Documents\\DentalDICOM",
+    "expected_bsp_path": "C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\site_assessment.bsp",
+    "expected_images_dir": "C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\site_images",
+    "result_json_path": "C:\\Users\\Docker\\Desktop\\BlueSkyPlanTasks\\site_assessment_result.json",
+    "assessment_sites": [
+      "second_premolar",
+      "first_molar",
+      "second_molar"
+    ],
+    "jaw_region": "lower_right_posterior",
+    "min_images": 2,
+    "min_image_size_kb": 10,
+    "min_bsp_size_kb": 100,
+    "scoring_weights": {
+      "bsp_exists_and_substantial": 20,
+      "bsp_modified_after_start": 20,
+      "measurement_data_present": 25,
+      "annotation_data_present": 20,
+      "cross_section_images_exported": 15
+    },
+    "pass_threshold": 70
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_implant_site_assessment"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "med_refill_coordinator@1",
+  "task_completion": [
+    {
+      "id": "columns_added",
+      "description": "Verify that the 6 required columns are added to the spreadsheet.",
+      "points": 10,
+      "visual_evidence": "Look for new column headers: 'Days Supply', 'Refill Due Date', 'Insurance Allows Refill', 'Days Until Can Refill', 'Days Until Out', and 'ACTION NEEDED'."
+    },
+    {
+      "id": "days_supply_calculated",
+      "description": "Verify that the Days Supply column is correctly calculated.",
+      "points": 15,
+      "visual_evidence": "Look for the Days Supply column containing the correct values based on Qty/Dosage: 30 (Lisinopril), 90 (Metformin), 90 (Atorvastatin), 90 (Levothyroxine), 60 (Omeprazole)."
+    },
+    {
+      "id": "dates_calculated",
+      "description": "Verify that the Refill Due Date and Insurance Allows Refill columns contain calculated dates.",
+      "points": 15,
+      "visual_evidence": "Look for date values (e.g., YYYY-MM-DD or MM/DD/YY) in the 'Refill Due Date' and 'Insurance Allows Refill' columns."
+    },
+    {
+      "id": "days_until_calculated",
+      "description": "Verify that the Days Until Can Refill and Days Until Out columns contain numerical values.",
+      "points": 15,
+      "visual_evidence": "Look for numerical values (positive or negative integers) in the 'Days Until Can Refill' and 'Days Until Out' columns."
+    },
+    {
+      "id": "action_needed_and_formatted",
+      "description": "Verify that the ACTION NEEDED column is populated and conditional formatting is applied.",
+      "points": 20,
+      "visual_evidence": "Look for text flags in the 'ACTION NEEDED' column and observe cells or rows colored Red (for urgent) or Yellow (for this week)."
+    },
+    {
+      "id": "sorted_by_urgency",
+      "description": "Verify that the spreadsheet is sorted by urgency.",
+      "points": 15,
+      "visual_evidence": "Look at the 'Days Until Out' column to ensure the numbers are sorted in ascending order (smallest/most negative numbers at the top)."
+    },
+    {
+      "id": "saved_as_ods",
+      "description": "Verify that the file is saved in ODS format.",
+      "points": 10,
+      "visual_evidence": "Look at the LibreOffice Calc window title bar or a save dialog to confirm the file is named with an '.ods' extension (e.g., medication_refill_schedule.ods)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used",
+      "description": "Verify that the agent used the LibreOffice Calc GUI to perform the task.",
+      "visual_evidence": "The agent interacts with the LibreOffice Calc application window, clicking menus, cells, and using the formula bar."
+    },
+    {
+      "id": "no_python_script",
+      "description": "Verify that the agent did not use a terminal script to bypass GUI interaction.",
+      "visual_evidence": "The terminal should not show execution of Python or bash scripts that directly manipulate the CSV/ODS file to calculate values or apply formatting."
+    },
+    {
+      "id": "genuine_formulas",
+      "description": "Verify that the agent actually entered formulas rather than hardcoding values.",
+      "visual_evidence": "Look for the agent typing formulas starting with '=' (e.g., '=D2/E2', '=C2+F2') in the formula bar instead of typing raw numbers or dates."
+    }
+  ],
+  "privileged_info_for_vlm": "Medications: Lisinopril 10mg, Metformin 500mg, Atorvastatin 20mg, Levothyroxine 50mcg, Omeprazole 20mg.\nExpected Days Supply: Lisinopril=30, Metformin=90 (180 qty / 2 daily), Atorvastatin=90, Levothyroxine=90, Omeprazole=60.\nFormulas: Days Supply = Qty/Dosage; Refill Due = LastRefill+DaysSupply; Insurance Allows = LastRefill+(0.75*DaysSupply); Days Until Can Refill = InsuranceDate-TODAY(); Days Until Out = DueDate-TODAY().\nConditional formatting: Red for URGENT, Yellow for This Week.\nSorting: Ascending order by Days Until Out."
+}

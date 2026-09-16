@@ -1,0 +1,31 @@
+{
+  "id": "document_portfolio_thesis@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Enrich the existing investment portfolio by adding textual investment thesis notes to specific holdings. For the Apple (AAPL) buy transaction, record the note 'Long term ecosystem compounder'. For the Microsoft (MSFT) buy transaction, record the note 'Cloud infrastructure leader'. Ensure that all numerical financial data, including Units, Purchase Price, and Date, remains unchanged for these transactions.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/document_portfolio_thesis/setup_task.sh",
+    "post_task": "/workspace/tasks/document_portfolio_thesis/export_result.sh"
+  },
+  "metadata": {
+    "target_file": "/home/ga/.jstock/1.0.7/UnitedState/portfolios/My Portfolio/buyportfolio.csv",
+    "aapl_comment": "Long term ecosystem compounder",
+    "msft_comment": "Cloud infrastructure leader",
+    "aapl_units": "100.0",
+    "aapl_price": "185.2",
+    "msft_units": "50.0",
+    "msft_price": "374.5"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_document_portfolio_thesis"
+    }
+  }
+}

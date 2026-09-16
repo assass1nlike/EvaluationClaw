@@ -1,0 +1,53 @@
+{
+  "task_id": "docker_resource_governance@1",
+  "task_completion": [
+    {
+      "id": "update_acme_api",
+      "description": "Apply resource limits and restart policy to acme-api container.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a command like 'docker update --memory 256m --cpus 0.5 --restart unless-stopped acme-api' or 'docker inspect' output confirming these values."
+    },
+    {
+      "id": "update_acme_worker",
+      "description": "Apply resource limits and restart policy to acme-worker container.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a command like 'docker update --memory 512m --cpus 1.0 --restart on-failure:3 acme-worker' or 'docker inspect' output confirming these values."
+    },
+    {
+      "id": "update_acme_cache",
+      "description": "Apply resource limits and restart policy to acme-cache container.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a command like 'docker update --memory 128m --cpus 0.25 --restart always acme-cache' or 'docker inspect' output confirming these values."
+    },
+    {
+      "id": "stress_test_oom",
+      "description": "Perform a stress test on acme-worker to trigger an Out-Of-Memory (OOM) kill.",
+      "points": 30,
+      "visual_evidence": "Terminal showing a memory-consuming command executed inside the container (e.g., 'docker exec acme-worker stress --vm 1 --vm-bytes 1G') or 'docker inspect acme-worker' showing '\"OOMKilled\": true'."
+    },
+    {
+      "id": "documentation_created",
+      "description": "Document the applied limits and stress test results in a markdown file.",
+      "points": 25,
+      "visual_evidence": "A text editor (e.g., nano, vim, gedit) or terminal output ('cat') showing the contents of 'resource_governance.md' with the limits for all three containers and a description of the stress test results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_updates",
+      "description": "Verify that the agent actually executed Docker commands to update the containers.",
+      "visual_evidence": "Look for executed 'docker update' commands in the terminal history, ensuring the agent didn't just write the markdown documentation without applying the changes."
+    },
+    {
+      "id": "genuine_oom_trigger",
+      "description": "Verify that the OOM kill was triggered by a genuine stress test.",
+      "visual_evidence": "Look for evidence of a memory stress tool or script being run (e.g., stress, stress-ng, /dev/zero allocation) rather than the agent simply running 'docker kill' or 'docker stop' to fake a restart."
+    },
+    {
+      "id": "correct_doc_path",
+      "description": "Verify the documentation file is saved in the correct location.",
+      "visual_evidence": "The file path visible in the text editor's title bar, status bar, or terminal prompt must clearly indicate '~/Desktop/resource_governance.md' or '/home/ga/Desktop/resource_governance.md'."
+    }
+  ],
+  "privileged_info_for_vlm": "acme-api: 256MB (268435456 bytes), 0.5 CPUs (500000000 nano_cpus), restart 'unless-stopped'. acme-worker: 512MB (536870912 bytes), 1.0 CPUs (1000000000 nano_cpus), restart 'on-failure' with max 3 retries. acme-cache: 128MB (134217728 bytes), 0.25 CPUs (250000000 nano_cpus), restart 'always'. Documentation must be located exactly at /home/ga/Desktop/resource_governance.md."
+}

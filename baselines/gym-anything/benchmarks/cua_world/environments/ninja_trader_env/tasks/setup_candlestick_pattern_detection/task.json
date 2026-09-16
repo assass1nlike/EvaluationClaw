@@ -1,0 +1,38 @@
+{
+  "id": "setup_candlestick_pattern_detection@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "A price action trader needs to automate reversal signal detection on a SPY Daily chart. Configure a SPY Daily chart with two separate instances of the 'CandleStickPattern' indicator: one set to detect 'Doji' patterns plotted in 'Blue', and another set to detect 'Hammer' patterns plotted in 'Magenta'. Ensure both indicators are active and visible on the chart, then save the workspace.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\setup_candlestick_pattern_detection\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\setup_candlestick_pattern_detection\\export_result.ps1"
+  },
+  "metadata": {
+    "target_instrument": "SPY",
+    "patterns": [
+      {
+        "name": "Doji",
+        "color_name": "Blue",
+        "color_hex": "#FF0000FF"
+      },
+      {
+        "name": "Hammer",
+        "color_name": "Magenta",
+        "color_hex": "#FFFF00FF"
+      }
+    ],
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_candlestick_patterns"
+    }
+  }
+}

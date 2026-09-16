@@ -1,0 +1,65 @@
+{
+  "task_id": "measure_vertebral_compression_ratio@1",
+  "task_completion": [
+    {
+      "id": "measurements_visible_on_ct",
+      "description": "The agent used measurement tools to measure the anterior and posterior heights of the L1 vertebra on the CT scan.",
+      "points": 15,
+      "visual_evidence": "The 3D Slicer interface (or similar medical imaging viewer) is visible, showing a sagittal view of the spine CT with at least two line/ruler markups placed on the anterior and posterior aspects of a vertebral body."
+    },
+    {
+      "id": "json_file_created",
+      "description": "The agent created the required JSON file in the specified directory.",
+      "points": 15,
+      "visual_evidence": "A terminal, file explorer, or text editor shows a file named 'l1_compression_measurements.json' being saved or edited in the '~/Documents/SlicerData/Exports/' directory."
+    },
+    {
+      "id": "json_fields_present",
+      "description": "The JSON file contains all the required fields.",
+      "points": 10,
+      "visual_evidence": "The contents of the JSON file are visible and include the keys: 'vertebral_level', 'anterior_height_mm', 'posterior_height_mm', 'compression_ratio', and 'classification'."
+    },
+    {
+      "id": "anterior_height_accurate",
+      "description": "The anterior height is recorded accurately based on the synthetic CT dimensions.",
+      "points": 15,
+      "visual_evidence": "The JSON file shows the 'anterior_height_mm' value is approximately 28.5 (accept values between 27.0 and 30.0 due to manual measurement variance)."
+    },
+    {
+      "id": "posterior_height_accurate",
+      "description": "The posterior height is recorded accurately based on the synthetic CT dimensions.",
+      "points": 15,
+      "visual_evidence": "The JSON file shows the 'posterior_height_mm' value is approximately 32.0 (accept values between 30.5 and 33.5 due to manual measurement variance)."
+    },
+    {
+      "id": "ratio_correctly_calculated",
+      "description": "The compression ratio is correctly calculated as anterior height divided by posterior height.",
+      "points": 15,
+      "visual_evidence": "The JSON file shows the 'compression_ratio' is mathematically correct based on the agent's own recorded anterior and posterior heights (expected to be around 0.89)."
+    },
+    {
+      "id": "classification_correct",
+      "description": "The severity classification is correctly identified based on the compression ratio.",
+      "points": 15,
+      "visual_evidence": "The JSON file shows the 'classification' is recorded as 'Normal' (or 'Grade 0'), which corresponds to a compression ratio > 0.80."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_verified",
+      "description": "The agent interacted with the medical imaging software GUI to perform the measurements.",
+      "visual_evidence": "Screenshots show the 3D Slicer application open with the CT volume loaded and active measurement markups, rather than just a terminal window or text editor."
+    },
+    {
+      "id": "measurements_match_ui",
+      "description": "The values recorded in the JSON file match the actual measurements taken in the software.",
+      "visual_evidence": "The measurement lengths displayed on the rulers/lines in the 3D Slicer UI match the values typed into the JSON file, proving the agent didn't just guess or hardcode the expected answers."
+    },
+    {
+      "id": "no_script_injection_cheating",
+      "description": "The agent did not bypass the manual measurement task by running a script that automatically generates the perfect expected JSON.",
+      "visual_evidence": "The trajectory shows manual placement of fiducials/rulers and manual or standard programmatic extraction of those specific markup values, rather than a single bash command echoing the exact expected JSON string."
+    }
+  ],
+  "privileged_info_for_vlm": "The L1 vertebra in this synthetic CT scan has an expected anterior height of 28.5 mm and a posterior height of 32.0 mm. The expected compression ratio (anterior/posterior) is approximately 0.8906. According to the Genant semi-quantitative method, a height loss of ~11% (ratio of 0.89) is classified as 'Normal' (or Grade 0). Accept slight variations in the agent's measurements (e.g., +/- 1.5 mm) due to manual markup placement, as long as the ratio is calculated correctly from their own measurements and the classification logically follows."
+}

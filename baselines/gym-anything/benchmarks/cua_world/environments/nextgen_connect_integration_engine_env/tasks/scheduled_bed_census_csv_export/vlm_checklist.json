@@ -1,0 +1,59 @@
+{
+  "task_id": "scheduled_bed_census_csv_export@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Verify the channel 'Bed_Census_Reporter' is created in NextGen Connect.",
+      "points": 10,
+      "visual_evidence": "The NextGen Connect Administrator dashboard shows a channel named 'Bed_Census_Reporter' in the Channels list."
+    },
+    {
+      "id": "source_configured",
+      "description": "Verify the Source is configured as a Database Reader polling every 5 seconds.",
+      "points": 10,
+      "visual_evidence": "The Source tab shows 'Database Reader' as the connector type and a polling frequency of 5000 ms or 5 seconds."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Verify the Destination is configured as a File Writer saving to the correct path.",
+      "points": 10,
+      "visual_evidence": "The Destination tab shows 'File Writer' as the connector type and the Directory/File Name fields resolving to '/home/ga/reports/census_report.csv'."
+    },
+    {
+      "id": "logic_implemented",
+      "description": "Verify the channel contains logic to calculate occupancy percentage and determine status.",
+      "points": 20,
+      "visual_evidence": "The Scripts, Transformers, or Source SQL query tab shows code that divides occupied beds by total beds, multiplies by 100, rounds to 1 decimal, and uses a condition for the >= 90.0 CRITICAL threshold."
+    },
+    {
+      "id": "output_file_exists",
+      "description": "Verify the output CSV file was created at the specified path.",
+      "points": 20,
+      "visual_evidence": "A terminal window or file explorer shows the existence of the file '/home/ga/reports/census_report.csv'."
+    },
+    {
+      "id": "output_content_correct",
+      "description": "Verify the CSV contains the correct headers and calculated data.",
+      "points": 30,
+      "visual_evidence": "A terminal (e.g., using 'cat') or text editor showing the CSV contents with the header 'Unit,Occupancy,Status' and the correct rows: ICU,90.0,CRITICAL | ER,96.0,CRITICAL | MEDSURG,75.0,NORMAL | PEDS,16.7,NORMAL | NICU,93.3,CRITICAL."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_nextgen_connect",
+      "description": "Verify the agent used NextGen Connect to solve the task, rather than a standalone script.",
+      "visual_evidence": "Screenshots must show interaction with the NextGen Connect Administrator GUI to configure the channel, not just a Python or Bash script written to bypass the application."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "Verify the agent dynamically calculated the values rather than hardcoding the final output.",
+      "visual_evidence": "The code in NextGen Connect shows variables, mathematical operations, and conditional logic, not a hardcoded string of the final expected CSV content."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Verify the channel was actually deployed and executed to generate the file.",
+      "visual_evidence": "The NextGen Connect dashboard shows the channel status as 'Deployed' or 'Started' with message counts greater than 0, indicating it actually processed data."
+    }
+  ],
+  "privileged_info_for_vlm": "The target output file is '/home/ga/reports/census_report.csv'. It must contain the exact header 'Unit,Occupancy,Status'. The expected data rows based on the database are: ICU (90.0, CRITICAL), ER (96.0, CRITICAL), MEDSURG (75.0, NORMAL), PEDS (16.7, NORMAL), and NICU (93.3, CRITICAL). The channel name must be 'Bed_Census_Reporter' and it must poll every 5 seconds (5000 ms)."
+}

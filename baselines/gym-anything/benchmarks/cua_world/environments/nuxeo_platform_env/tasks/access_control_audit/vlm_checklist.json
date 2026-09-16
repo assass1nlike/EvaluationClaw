@@ -1,0 +1,59 @@
+{
+  "task_id": "access_control_audit@1",
+  "task_completion": [
+    {
+      "id": "revoke_dpatel_access",
+      "description": "Revoke all access for user 'dpatel' across workspaces.",
+      "points": 15,
+      "visual_evidence": "In the Nuxeo Permissions/Access Rights screen for the Templates workspace, 'dpatel' (Deepak Patel) should no longer be listed, or their permissions should be explicitly removed/deleted."
+    },
+    {
+      "id": "downgrade_lnovak_access",
+      "description": "Downgrade permissions violating the principle of least privilege based on the policy.",
+      "points": 20,
+      "visual_evidence": "In the Nuxeo Permissions/Access Rights screen for the Projects workspace, user 'lnovak' should have their permissions changed from 'Everything' (or 'Manage everything') to 'ReadWrite' (or 'Edit')."
+    },
+    {
+      "id": "create_iam_auditors_group",
+      "description": "Create a new user group called 'iam-auditors'.",
+      "points": 10,
+      "visual_evidence": "In the Nuxeo Admin Center or Users & Groups management screen, a group named 'iam-auditors' is visible in the group list or creation confirmation."
+    },
+    {
+      "id": "grant_iam_auditors_read",
+      "description": "Grant the 'iam-auditors' group Read-only access to all workspaces.",
+      "points": 20,
+      "visual_evidence": "In the Nuxeo Permissions/Access Rights screens for both the Templates and Projects workspaces, the group 'iam-auditors' is listed with 'Read' permissions."
+    },
+    {
+      "id": "add_audit_comments",
+      "description": "Add an audit trail comment to each modified workspace documenting the changes.",
+      "points": 20,
+      "visual_evidence": "In the Comments section of the Templates and Projects workspaces, there are new comments added by the Administrator documenting the access review changes (ideally referencing policy IAM-QAR-2025-Q4)."
+    },
+    {
+      "id": "upload_report_csv",
+      "description": "Upload the access review report template to the Templates workspace.",
+      "points": 15,
+      "visual_evidence": "In the Nuxeo Templates workspace document list, a file named 'access_review_report.csv' is visible as an uploaded document."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_nuxeo",
+      "description": "The agent used the Nuxeo web GUI to perform the tasks.",
+      "visual_evidence": "Screenshots show the agent navigating the Nuxeo web interface in a browser to modify permissions and create groups, rather than executing curl commands or scripts in a terminal."
+    },
+    {
+      "id": "genuine_file_upload",
+      "description": "The agent actually uploaded the CSV file from the Desktop.",
+      "visual_evidence": "Screenshots show the agent using the Nuxeo file upload interface (drag-and-drop or file picker) to upload '/home/ga/Desktop/access_review_report.csv', not just creating a blank note with that title."
+    },
+    {
+      "id": "genuine_comment_creation",
+      "description": "The agent used the built-in Nuxeo commenting feature.",
+      "visual_evidence": "Screenshots show the agent typing and submitting text into the specific 'Comments' tab or section of the Nuxeo workspaces, rather than editing a text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The Nuxeo system has two main workspaces: Templates and Projects. The 'Access Review Policy' (IAM-QAR-2025-Q4) dictates the required changes. User 'dpatel' initially has ReadWrite on Templates and must be removed entirely. User 'lnovak' initially has 'Everything' on Projects and must be downgraded to 'ReadWrite'. The new group 'iam-auditors' must be granted 'Read' access to both the Templates and Projects workspaces. Audit trail comments should be added to both workspaces referencing the changes. Finally, the file 'access_review_report.csv' must be uploaded to the Templates workspace."
+}

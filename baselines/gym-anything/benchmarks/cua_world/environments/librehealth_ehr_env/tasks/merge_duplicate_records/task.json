@@ -1,0 +1,27 @@
+{
+  "id": "merge_duplicate_records@1",
+  "version": "1.0",
+  "env_id": "librehealth_ehr_env@0.1",
+  "description": "A clerical error has resulted in a duplicate patient record for 'Cameron Fry'. Merge these two records into a single 'Golden Record' using the LibreHealth EHR administrative tools (Login: admin/password). The record with the higher PID must be merged into the record with the lower PID, which is to be preserved as the principal record. Refer to /tmp/merge_info.txt for specific PID details.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/merge_duplicate_records/setup_task.sh",
+    "post_task": "/workspace/tasks/merge_duplicate_records/export_result.sh"
+  },
+  "metadata": {
+    "patient_name": "Cameron Fry",
+    "action": "merge",
+    "target_metric": "data_integrity"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_merge_duplicate_records"
+    }
+  }
+}

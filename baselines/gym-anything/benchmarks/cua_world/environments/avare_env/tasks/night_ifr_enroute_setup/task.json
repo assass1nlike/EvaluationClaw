@@ -1,0 +1,28 @@
+{
+  "id": "night_ifr_enroute_setup@1",
+  "version": "1.0",
+  "env_id": "example.avare_env@0.1",
+  "description": "You are an instrument-rated pilot preparing for a night IFR cross-country flight from San Francisco (KSFO) to Denver (KDEN). Configure your Avare EFB for these conditions by enabling Night Mode and switching the display to IFR Low-Altitude Enroute charts. Additionally, create and save a flight plan with KSFO as the departure airport and KDEN as the destination.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/night_ifr_enroute_setup/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/night_ifr_enroute_setup/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_night_ifr_enroute_setup"
+    }
+  },
+  "metadata": {
+    "departure": "KSFO",
+    "destination": "KDEN",
+    "required_chart": "IFR Low",
+    "required_night_mode": true
+  }
+}

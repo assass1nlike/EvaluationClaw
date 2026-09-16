@@ -1,0 +1,37 @@
+{
+  "id": "hp_filter_output_gap@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "You are an economist analyzing the output gap. Perform a Hodrick-Prescott (HP) filter analysis on US Real GDP using the 'usa.gdt' dataset. Apply the HP filter to the 'gdp' series with lambda = 1600 to compute the trend and cyclical components, and calculate the 'output_gap' series as (cycle / trend) * 100. Save the augmented dataset containing the original variables, trend, cycle, and output_gap to /home/ga/Documents/gretl_output/usa_hp_decomposed.gdt. Generate a text report at /home/ga/Documents/gretl_output/hp_report.txt containing the smoothing parameter, the mean and standard deviation of the output gap, the number of quarters with a negative output gap, and the date of the largest negative output gap. Save the gretl script used for the analysis to /home/ga/Documents/gretl_output/hp_analysis.inp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hp_filter_output_gap/setup_task.sh",
+    "post_task": "/workspace/tasks/hp_filter_output_gap/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "usa.gdt",
+    "required_files": [
+      "hp_analysis.inp",
+      "usa_hp_decomposed.gdt",
+      "hp_report.txt"
+    ],
+    "hp_lambda": 1600,
+    "variable_names": [
+      "gdp",
+      "hp_cycle",
+      "hp_trend",
+      "output_gap"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hp_filter_output_gap"
+    }
+  }
+}

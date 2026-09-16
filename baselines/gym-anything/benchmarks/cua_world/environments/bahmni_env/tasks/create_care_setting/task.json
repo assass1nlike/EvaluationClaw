@@ -1,0 +1,31 @@
+{
+  "id": "create_care_setting@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Using the credentials 'superman' and 'Admin123', create a new 'Outpatient' Care Setting in Bahmni/OpenMRS named 'Telemedicine' with the description 'Remote consultation service orders'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_care_setting/setup_task.sh",
+    "post_task": "/workspace/tasks/create_care_setting/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "expected_name": "Telemedicine",
+    "expected_description_keywords": [
+      "Remote",
+      "consultation"
+    ],
+    "expected_type": "OUTPATIENT"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_care_setting"
+    }
+  }
+}

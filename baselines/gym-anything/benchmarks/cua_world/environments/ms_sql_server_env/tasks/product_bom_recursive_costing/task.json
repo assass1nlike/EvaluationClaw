@@ -1,0 +1,43 @@
+{
+  "id": "product_bom_recursive_costing@1",
+  "version": "1.0",
+  "env_id": "ms_sql_server_env@0.1",
+  "description": "You are a cost engineer at a manufacturing company. Management needs lifecycle material cost reports for all assembled products in the AdventureWorks2022 database. Build a multi-level BOM cost reporting system that includes a recursive view 'dbo.vw_ProductBOMHierarchy' to fully traverse active rows (EndDate IS NULL) in Production.BillOfMaterials, exposing assembly and component identities, names, hierarchy depth, quantity, and unit of measure. The system must also include a cost summary table 'Production.LifecycleCostSummary' (with a non-clustered index on AssemblyProductID) that stores assembly identities, total component counts across all levels, maximum hierarchy depth, direct material costs (level 1 components only), full BOM material costs (all levels), and report timestamps. Implement and execute a stored procedure 'dbo.usp_GenerateBOMCostReport' that populates the summary table by querying the hierarchy view and computing the required cost metrics. The final implementation must demonstrate multi-level traversal and contain populated cost data for at least five assemblies.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 1800,
+    "max_steps": 150,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/product_bom_recursive_costing/setup_task.sh",
+    "post_task": "/workspace/tasks/product_bom_recursive_costing/export_result.sh"
+  },
+  "metadata": {
+    "domain": "Manufacturing / Product Lifecycle Management",
+    "occupation": "Cost Engineer / Industrial Engineer",
+    "soc_code": "17-2112.00",
+    "soc_major_group": "Architecture and Engineering",
+    "application": "Azure Data Studio + Microsoft SQL Server 2022",
+    "database": "AdventureWorks2022",
+    "dataset": "AdventureWorks2022 Production schema (Microsoft sample database with multi-level product BOM data)",
+    "key_tables": [
+      "Production.BillOfMaterials",
+      "Production.Product",
+      "Production.UnitMeasure"
+    ],
+    "required_objects": [
+      "dbo.vw_ProductBOMHierarchy view (7 columns, recursive CTE)",
+      "Production.LifecycleCostSummary table (8 columns with index)",
+      "dbo.usp_GenerateBOMCostReport stored procedure",
+      "Production.LifecycleCostSummary populated with data"
+    ],
+    "difficulty_rationale": "Requires a recursive CTE to traverse multi-level BOM hierarchy, correct anchor/recursive member construction, multiple aggregation windows (direct vs full BOM cost), stored procedure with TRUNCATE+INSERT pattern, non-clustered index creation, and cross-joining Production.Product twice for assembly and component names."
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_product_bom_recursive_costing"
+    }
+  }
+}

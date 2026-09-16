@@ -1,0 +1,59 @@
+{
+  "task_id": "data_model_reverse_engineering@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Agent connects to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing a database client (e.g., DBeaver, SQL Developer, or terminal SQL*Plus) connected to the database using either 'legacy_ops' or 'system' user."
+    },
+    {
+      "id": "table_comments_added",
+      "description": "Agent adds comments to all 8 tables in the LEGACY_OPS schema.",
+      "points": 20,
+      "visual_evidence": "SQL editor showing 'COMMENT ON TABLE' statements for T_CLI, T_ORD, T_ORD_ITM, T_PRD, T_CAT, T_EMP, T_DEPT, and T_LOG, along with execution success messages, or a GUI table properties view showing the added descriptions."
+    },
+    {
+      "id": "column_comments_added",
+      "description": "Agent adds meaningful comments to at least 15 columns across the schema.",
+      "points": 20,
+      "visual_evidence": "SQL editor showing multiple 'COMMENT ON COLUMN' statements (at least 15) with execution success indicators, or GUI column properties showing the new descriptions."
+    },
+    {
+      "id": "primary_keys_applied",
+      "description": "Agent applies primary key constraints to the 6 specified tables.",
+      "points": 20,
+      "visual_evidence": "SQL statements like 'ALTER TABLE ... ADD PRIMARY KEY' for T_CLI, T_ORD, T_PRD, T_CAT, T_EMP, and T_DEPT with success messages, or an ERD/GUI view showing the new primary key constraints (often denoted by a key icon)."
+    },
+    {
+      "id": "foreign_keys_established",
+      "description": "Agent establishes at least 3 foreign key relationships between the tables.",
+      "points": 20,
+      "visual_evidence": "SQL statements like 'ALTER TABLE ... ADD FOREIGN KEY' executed successfully at least 3 times, or a database GUI/ERD showing the new relationship lines between tables."
+    },
+    {
+      "id": "schema_analysis_report_exported",
+      "description": "Agent exports the schema analysis report to the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor, terminal, or file manager showing a file named 'legacy_ops_analysis.txt' located in '/home/ga/Documents/exports/'. The file content should document table purposes and the identified relationships."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent actually executed the SQL commands against the database rather than just typing them in a text file.",
+      "visual_evidence": "Look for execution success logs, query result panes, or updated schema metadata in a database client GUI confirming the DDL statements were applied."
+    },
+    {
+      "id": "authentic_report_content",
+      "description": "The schema analysis report contains actual analysis rather than a direct copy-paste of the task prompt.",
+      "visual_evidence": "The text in 'legacy_ops_analysis.txt' should contain specific descriptions of the tables and the actual foreign keys created, written in the agent's or user's own words."
+    },
+    {
+      "id": "no_pre_existing_constraints_claimed",
+      "description": "The agent creates the constraints rather than falsely claiming they already existed.",
+      "visual_evidence": "Screenshots must show the actual ALTER TABLE commands being run or the GUI dialogs being used to create the new PK/FK constraints."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Schema: LEGACY_OPS. The schema contains exactly 8 tables: T_CLI, T_ORD, T_ORD_ITM, T_PRD, T_CAT, T_EMP, T_DEPT, T_LOG. Primary keys must be added to 6 specific tables: T_CLI, T_ORD, T_PRD, T_CAT, T_EMP, T_DEPT. The final report must be saved exactly at /home/ga/Documents/exports/legacy_ops_analysis.txt."
+}

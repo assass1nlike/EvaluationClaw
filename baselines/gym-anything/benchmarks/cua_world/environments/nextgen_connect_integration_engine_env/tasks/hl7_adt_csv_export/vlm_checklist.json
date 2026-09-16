@@ -1,0 +1,53 @@
+{
+  "task_id": "hl7_adt_csv_export@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "Create a channel named 'ADT_CSV_Export'.",
+      "points": 10,
+      "visual_evidence": "In the NextGen Connect Administrator interface, a channel with the exact name 'ADT_CSV_Export' is visible in the Channels list or the channel edit screen."
+    },
+    {
+      "id": "source_configured",
+      "description": "Configure the source as a TCP Listener on port 6661.",
+      "points": 20,
+      "visual_evidence": "In the Source tab of the channel configuration, the Connector Type is set to 'TCP Listener' and the Port field is set to '6661'."
+    },
+    {
+      "id": "destination_configured",
+      "description": "Configure the destination as a File Writer to the specified CSV file in append mode.",
+      "points": 20,
+      "visual_evidence": "In the Destinations tab, the Connector Type is 'File Writer', the Directory/File Name fields point to '/home/ga/output/patient_demographics.csv', and the 'Append to file' (or similar) option is selected/checked."
+    },
+    {
+      "id": "transformation_configured",
+      "description": "Extract demographics from the PID segment and format as CSV with the required header.",
+      "points": 30,
+      "visual_evidence": "In the Transformer, Message Builder, or Scripts view, there is logic (JavaScript or mapping steps) extracting fields from the HL7 PID segment (e.g., PID.3, PID.5) and constructing a CSV string with the header 'PatientID,LastName,FirstName,DOB,Gender,Street,City,State,Zip,Phone,SSN'."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Deploy the channel.",
+      "points": 20,
+      "visual_evidence": "The NextGen Connect Dashboard shows the 'ADT_CSV_Export' channel in the list with a status indicating it is deployed or started."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_nextgen_connect_gui",
+      "description": "The agent used the NextGen Connect Administrator interface to complete the task.",
+      "visual_evidence": "Screenshots show the NextGen Connect Administrator GUI (typically a Java application launched from the browser), rather than a custom terminal script bypassing the software."
+    },
+    {
+      "id": "no_hardcoded_patient_data",
+      "description": "The agent did not hardcode the expected test outputs.",
+      "visual_evidence": "The transformation scripts or mappings use variables or HL7 message references (like msg['PID']) rather than hardcoded strings like 'MRN10045' or 'JOHNSON'."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "The configuration is genuinely entered into the application.",
+      "visual_evidence": "The settings are visible in the actual input fields and tabs of the NextGen Connect GUI, not just written in a text editor or notes."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires configuring a NextGen Connect (formerly Mirth Connect) channel. The channel name must be 'ADT_CSV_Export'. The source must be a TCP Listener on port 6661. The destination must be a File Writer saving to '/home/ga/output/patient_demographics.csv' in append mode. The transformation step must extract patient demographics from the HL7 PID segment and output a CSV with the exact header: 'PatientID,LastName,FirstName,DOB,Gender,Street,City,State,Zip,Phone,SSN'."
+}

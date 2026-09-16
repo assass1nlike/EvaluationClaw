@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_pipeline_secrets@1",
+  "task_completion": [
+    {
+      "id": "variable_group_created",
+      "description": "Verify the creation of a Library Variable Group named 'PaymentService-Prod'",
+      "points": 20,
+      "visual_evidence": "Look for the Azure DevOps Library page showing a Variable Group with the exact name 'PaymentService-Prod'."
+    },
+    {
+      "id": "gateway_url_variable_added",
+      "description": "Verify 'Gateway_Url' variable is added with the correct value",
+      "points": 15,
+      "visual_evidence": "Look for the variable 'Gateway_Url' with the value 'https://api.stripe.com/v1' in the 'PaymentService-Prod' variable group configuration."
+    },
+    {
+      "id": "region_code_variable_added",
+      "description": "Verify 'Region_Code' variable is added with the correct value",
+      "points": 15,
+      "visual_evidence": "Look for the variable 'Region_Code' with the value 'us-east-1' in the 'PaymentService-Prod' variable group configuration."
+    },
+    {
+      "id": "secret_variable_added",
+      "description": "Verify 'Live_Secret_Key' variable is added and configured as a secret",
+      "points": 20,
+      "visual_evidence": "Look for the variable 'Live_Secret_Key' in the variable group. It must be marked as a secret, typically indicated by a padlock icon or an obscured value (e.g., '***')."
+    },
+    {
+      "id": "pipeline_yaml_updated",
+      "description": "Verify 'azure-pipelines.yml' is updated to reference the variable group",
+      "points": 30,
+      "visual_evidence": "Look for the 'azure-pipelines.yml' file in the 'main' branch of the 'TailwindTraders' repository. It should contain a 'variables' section that includes '- group: PaymentService-Prod'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "azure_devops_gui_used",
+      "description": "Verify the agent used the Azure DevOps web interface to create the variable group",
+      "visual_evidence": "Screenshots should show the Azure DevOps web portal (Pipelines > Library) being interacted with, rather than a terminal script executing API calls."
+    },
+    {
+      "id": "actual_repo_edited",
+      "description": "Verify the agent edited the actual repository file",
+      "visual_evidence": "Screenshots should show the 'azure-pipelines.yml' file being edited in the Azure DevOps Repos interface, a proper IDE, or a terminal editor within the cloned repository, not a standalone text file."
+    },
+    {
+      "id": "secret_not_hardcoded",
+      "description": "Verify the secret value is not hardcoded in the YAML file",
+      "visual_evidence": "The 'azure-pipelines.yml' file should only reference the variable group and must NOT contain the plaintext secret 'sk_live_51Mz92q92929492929'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected variable group name is 'PaymentService-Prod'. The 'Gateway_Url' must be 'https://api.stripe.com/v1' (the verified Stripe API v1 base endpoint). The 'Region_Code' must be 'us-east-1' (a verified AWS region code). The secret variable must be named 'Live_Secret_Key' and its value should be obscured or marked as secret in the UI."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "compose_credential_rotation@1",
+  "task_completion": [
+    {
+      "id": "docker_compose_updated",
+      "description": "Update the docker-compose.yml file with the new password",
+      "points": 20,
+      "visual_evidence": "Look for a text editor showing the `docker-compose.yml` file from `/home/ga/app-stack/`. The file should be modified so that the password for the database (and Adminer if applicable) is set to `SecureNewPass!2024`."
+    },
+    {
+      "id": "password_changed_in_db",
+      "description": "Change the PostgreSQL password in the running database",
+      "points": 20,
+      "visual_evidence": "Look for a terminal executing a SQL command like `ALTER USER appuser WITH PASSWORD 'SecureNewPass!2024';` via `psql` or `docker exec`, or the password being changed through the Adminer web interface. This is required because changing the compose file does not update an existing database's password."
+    },
+    {
+      "id": "services_restarted",
+      "description": "Restart the Docker Compose services",
+      "points": 20,
+      "visual_evidence": "Look for terminal output showing Docker Compose commands being executed to restart the stack, such as `docker compose down` followed by `docker compose up -d`, or `docker compose restart`."
+    },
+    {
+      "id": "adminer_connected",
+      "description": "Verify Adminer can connect to the database",
+      "points": 20,
+      "visual_evidence": "Look for a web browser open to `http://localhost:8081` showing the Adminer interface successfully logged in, displaying the database `appdb`."
+    },
+    {
+      "id": "data_preserved",
+      "description": "Ensure existing data and database volumes are preserved",
+      "points": 20,
+      "visual_evidence": "Look for evidence in the Adminer interface or a terminal SQL query showing the `projects` table still exists and contains its original data (e.g., 5 rows, with names like 'Cloud Migration Phase 2')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_adminer_used",
+      "description": "Agent used a web browser to verify Adminer connection",
+      "visual_evidence": "Verify that a real web browser is open to `http://localhost:8081` showing the Adminer interface, not just a curl command or text output."
+    },
+    {
+      "id": "no_volume_deletion",
+      "description": "Agent did not delete the database volume to force a password reset",
+      "visual_evidence": "Ensure there are no terminal commands like `docker compose down -v` or `docker volume rm` that would destroy the existing database volume and its data."
+    },
+    {
+      "id": "genuine_db_interaction",
+      "description": "Agent interacted with the actual database",
+      "visual_evidence": "Verify that the password change and data verification were performed on the actual running database (via SQL commands or Adminer), not just by editing local files or mocking output."
+    }
+  ],
+  "privileged_info_for_vlm": "The Docker Compose project is at /home/ga/app-stack. The database service is 'db', user is 'appuser', database is 'appdb'. The new password must be 'SecureNewPass!2024'. The database contains a 'projects' table with exactly 5 records (e.g., 'Cloud Migration Phase 2', 'Mobile App Redesign', 'Data Pipeline Modernization', 'Customer Portal v3', 'Security Compliance Audit'). The agent must change the password in the database itself (since changing docker-compose.yml alone does not update an existing database's password) and preserve these 5 records."
+}

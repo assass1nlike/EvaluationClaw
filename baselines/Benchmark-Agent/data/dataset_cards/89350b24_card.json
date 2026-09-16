@@ -1,0 +1,74 @@
+{
+  "dataset_id": "89350b24",
+  "name": "Mental-Health-Toxicity-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A binary text classification dataset for detecting mental health crisis signals in short user-generated text. Each sample contains a raw text snippet and a prompt asking the model to classify it as either 'Crisis' or 'Non-crisis'.",
+  "card_text": "This dataset is a text-only collection of 200 short, informal user-generated snippets, often resembling social media posts or personal expressions. The task is to determine whether the text indicates a mental health crisis. Each sample includes a raw_text field with the content to analyze, a prompt field that instructs the model to output only the category name ('Crisis' or 'Non-crisis'), and an output field with the gold crisis_level label. The dataset evaluates binary classification capability in a sensitive mental-health domain, where texts may be fragmented, emotional, or implicit. No additional context or rationale is provided; the model must rely solely on the raw text and the given instruction.",
+  "tasks": [
+    "classification_binary"
+  ],
+  "domain": "mental health",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "A short, informal user-generated text expressing personal thoughts, feelings, or experiences, sometimes fragmented. It is the main content to be analyzed for mental health crisis signals.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An explicit instruction that asks the model to analyze the raw_text (referenced via a placeholder) and determine if it indicates a mental health crisis, responding only with 'Crisis' or 'Non-crisis'.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.crisis_level"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target classification label for the raw text, which is either 'Crisis' or 'Non-crisis'. It serves as the gold answer for the binary classification task.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with a raw_text field holding the text to analyze and a prompt field providing a classification instruction, plus an output object with a crisis_level field containing the binary label. The prompt refers to the raw_text via a placeholder, and the output label is the target prediction. No other components such as dialog, options, or rationale are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Mental-Health-Toxicity-Detection/annotation.json",
+    "existing_tags": {
+      "task": "mental_health_toxicity_detection",
+      "type": "classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

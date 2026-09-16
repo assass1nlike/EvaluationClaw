@@ -1,0 +1,59 @@
+{
+  "task_id": "create_nback_working_memory@1",
+  "task_completion": [
+    {
+      "id": "conditions_file_structure",
+      "description": "Verify the conditions CSV file has the correct columns and valid stimuli.",
+      "points": 15,
+      "visual_evidence": "A spreadsheet, text editor, or terminal output showing the contents of 'nback_conditions.csv' with columns 'letter', 'trial_type', and 'correct_response'. The 'letter' column should contain only uppercase consonants (e.g., B, C, D, F, G)."
+    },
+    {
+      "id": "conditions_file_logic",
+      "description": "Verify the 2-back logic and target rate in the conditions file.",
+      "points": 20,
+      "visual_evidence": "In the visible rows of the CSV, whenever 'trial_type' is 'target' and 'correct_response' is 'space', the letter in that row must exactly match the letter 2 rows above it. The first two rows must be non-targets."
+    },
+    {
+      "id": "psychopy_routines_flow",
+      "description": "Verify the PsychoPy Builder flow contains the required routines.",
+      "points": 15,
+      "visual_evidence": "The PsychoPy Builder 'Flow' panel at the bottom of the screen shows three routines in order: 'Instructions', 'Trial', and 'End'."
+    },
+    {
+      "id": "trial_routine_components",
+      "description": "Verify the 'Trial' routine has the correct text and keyboard components.",
+      "points": 20,
+      "visual_evidence": "The 'Trial' routine tab is open, showing a Text component (which should be configured to display '$letter') and a Keyboard component (which should be configured to accept 'space' as a response)."
+    },
+    {
+      "id": "loop_configuration",
+      "description": "Verify the loop around the Trial routine is correctly configured.",
+      "points": 20,
+      "visual_evidence": "A Loop Properties dialog or the Flow panel shows a loop around the 'Trial' routine. The loop properties must show 'loopType' as 'sequential', 'nReps' as 1, and the conditions file set to 'nback_conditions.csv' (or its full path)."
+    },
+    {
+      "id": "experiment_saved",
+      "description": "Verify the experiment is saved to the correct path.",
+      "points": 10,
+      "visual_evidence": "The PsychoPy window title bar shows 'nback_task.psyexp' and/or a file explorer/terminal shows the file saved in the '/home/ga/PsychoPyExperiments/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_psychopy_builder",
+      "description": "Verify the agent used the PsychoPy Builder GUI to create the experiment.",
+      "visual_evidence": "Screenshots must show the PsychoPy Builder graphical interface being interacted with, rather than the agent just writing an XML/Psyexp file directly in a text editor."
+    },
+    {
+      "id": "genuine_csv_generation",
+      "description": "Verify the agent generated the conditions file programmatically or manually.",
+      "visual_evidence": "Screenshots should show a Python script being written/executed to generate the 2-back logic, or a spreadsheet application being used, rather than a pre-existing file magically appearing."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Verify the agent worked in the specified directories.",
+      "visual_evidence": "Terminal prompts, file explorers, or save dialogs should show the paths '/home/ga/PsychoPyExperiments/' and '/home/ga/PsychoPyExperiments/conditions/' being actively used."
+    }
+  ],
+  "privileged_info_for_vlm": "Experiment file must be saved to /home/ga/PsychoPyExperiments/nback_task.psyexp. Conditions file must be saved to /home/ga/PsychoPyExperiments/conditions/nback_conditions.csv. The conditions file must have at least 60 trials, a target rate between 20% and 40%, and use ONLY the uppercase consonants: BCDFGHJKLMNPQRSTVWXZ. The first two trials must be non-targets."
+}

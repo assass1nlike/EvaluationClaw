@@ -1,0 +1,32 @@
+{
+  "id": "approve_leave_request@1",
+  "version": "1.0",
+  "env_id": "attendhrm_env@0.1",
+  "description": "Approve the pending Sick Leave request for employee 'Anita Roy' for October 15, 2025. Ensure that other pending requests, such as the one for Rajiv Menon, are not processed or approved at this time.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\approve_leave_request\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\approve_leave_request\\export_result.ps1",
+    "pre_task_timeout": 180
+  },
+  "metadata": {
+    "target_employee": "Anita Roy",
+    "target_date": "2025-10-15",
+    "target_leave_type": "Sick Leave",
+    "decoy_employee": "Rajiv Menon",
+    "decoy_date": "2025-10-20",
+    "db_path": "C:\\Program Files (x86)\\Attend HRM\\Data\\DEMO.FDB",
+    "isql_path": "C:\\Program Files (x86)\\Firebird\\Firebird_5_0\\isql.exe"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_approve_leave_request"
+    }
+  }
+}

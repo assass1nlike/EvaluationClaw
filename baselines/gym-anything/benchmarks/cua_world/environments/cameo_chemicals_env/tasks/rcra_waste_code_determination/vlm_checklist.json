@@ -1,0 +1,65 @@
+{
+  "task_id": "rcra_waste_code_determination@1",
+  "task_completion": [
+    {
+      "id": "access_cameo_chemicals",
+      "description": "Access the CAMEO Chemicals website",
+      "points": 10,
+      "visual_evidence": "A web browser window is open and displaying the CAMEO Chemicals website (cameochemicals.noaa.gov)."
+    },
+    {
+      "id": "csv_file_and_headers",
+      "description": "Create the CSV file with the correct headers",
+      "points": 15,
+      "visual_evidence": "A text editor or spreadsheet application shows a file named 'waste_classification.csv' (saved in /home/ga/Documents/) with the exact columns: 'Chemical Name', 'Flash Point (F)', 'Corrosive?', 'Water Reactive?', and 'RCRA Codes'."
+    },
+    {
+      "id": "classify_acetone",
+      "description": "Correctly classify Acetone",
+      "points": 15,
+      "visual_evidence": "The CSV file contains a row for Acetone showing a flash point < 140F (e.g., 0), not corrosive, not water reactive, and the RCRA Code 'D001'."
+    },
+    {
+      "id": "classify_acetic_acid",
+      "description": "Correctly classify Acetic Acid, Glacial",
+      "points": 15,
+      "visual_evidence": "The CSV file contains a row for Acetic Acid (Glacial) showing a flash point < 140F (e.g., 104), corrosive, not water reactive, and the RCRA Codes 'D001' and 'D002' (separated by a semicolon or similar)."
+    },
+    {
+      "id": "classify_thionyl_chloride",
+      "description": "Correctly classify Thionyl Chloride",
+      "points": 15,
+      "visual_evidence": "The CSV file contains a row for Thionyl Chloride showing no flash point data, corrosive, water reactive, and the RCRA Codes 'D002' and 'D003'."
+    },
+    {
+      "id": "classify_hydrochloric_acid",
+      "description": "Correctly classify Hydrochloric Acid",
+      "points": 15,
+      "visual_evidence": "The CSV file contains a row for Hydrochloric Acid showing no flash point data, corrosive, not water reactive, and the RCRA Code 'D002'."
+    },
+    {
+      "id": "classify_ethylene_glycol",
+      "description": "Correctly classify Ethylene Glycol",
+      "points": 15,
+      "visual_evidence": "The CSV file contains a row for Ethylene Glycol showing a flash point > 140F (e.g., 232), not corrosive, not water reactive, and the RCRA Code 'None'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_browser_interaction",
+      "description": "Agent actually searched the CAMEO Chemicals database",
+      "visual_evidence": "Screenshots should show the agent typing chemical names into the CAMEO search bar and viewing the chemical data pages, rather than hallucinating the data without searching."
+    },
+    {
+      "id": "manual_csv_creation",
+      "description": "Agent created the CSV file using standard tools",
+      "visual_evidence": "The agent used a text editor (like gedit, nano) or a spreadsheet program (like LibreOffice Calc) or standard echo/cat commands to build the CSV, rather than executing a pre-existing hidden script."
+    },
+    {
+      "id": "no_direct_copy_paste_from_external",
+      "description": "Agent derived the RCRA codes based on the rules provided",
+      "visual_evidence": "The agent should be seen looking at the flash point, corrosivity, and water reactivity data on the CAMEO pages to deduce the D001, D002, and D003 codes, rather than instantly pasting the final answers."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified RCRA Codes for the 5 chemicals based on CAMEO data: 1. Acetone: D001 (Flash point 0\u00b0F, not corrosive, not water reactive). 2. Acetic Acid, Glacial: D001; D002 (Flash point 104\u00b0F, Corrosive, not water reactive). 3. Thionyl Chloride: D002; D003 (No flash point data, Corrosive, Water Reactive). 4. Hydrochloric Acid: D002 (No flash point data, Corrosive, not water reactive). 5. Ethylene Glycol: None (Flash point 232\u00b0F, not corrosive, not water reactive). The output file must be located at /home/ga/Documents/waste_classification.csv and contain the columns: 'Chemical Name', 'Flash Point (F)', 'Corrosive?', 'Water Reactive?', and 'RCRA Codes'."
+}

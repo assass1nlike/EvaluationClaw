@@ -1,0 +1,32 @@
+{
+  "id": "create_audit_triggers@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create an audit logging system for the Chinook database in LibreOffice Base. Execute the following SQL commands to create the audit table, the insert trigger, the delete trigger, and a test record. Save the database file to persist the changes.\n\nCREATE TABLE PUBLIC.\"CustomerAuditLog\" (\n    \"AuditId\" INTEGER IDENTITY PRIMARY KEY,\n    \"CustomerId\" INTEGER,\n    \"ActionType\" VARCHAR(10) NOT NULL,\n    \"ActionTimestamp\" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    \"Details\" VARCHAR(200)\n)\n\nCREATE TRIGGER \"trg_customer_insert\" AFTER INSERT ON PUBLIC.\"Customer\"\nREFERENCING NEW ROW AS newrow\nFOR EACH ROW\nINSERT INTO PUBLIC.\"CustomerAuditLog\" (\"CustomerId\",\"ActionType\",\"Details\")\nVALUES (newrow.\"CustomerId\", 'INSERT', newrow.\"FirstName\" || ' ' || newrow.\"LastName\")\n\nCREATE TRIGGER \"trg_customer_delete\" AFTER DELETE ON PUBLIC.\"Customer\"\nREFERENCING OLD ROW AS oldrow\nFOR EACH ROW\nINSERT INTO PUBLIC.\"CustomerAuditLog\" (\"CustomerId\",\"ActionType\",\"Details\")\nVALUES (oldrow.\"CustomerId\", 'DELETE', oldrow.\"FirstName\" || ' ' || oldrow.\"LastName\")\n\nINSERT INTO PUBLIC.\"Customer\" (\"CustomerId\",\"FirstName\",\"LastName\",\"Email\")\nVALUES (60, 'Audit', 'TestUser', 'audit.test@example.com')",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_audit_triggers/setup_task.sh",
+    "post_task": "/workspace/tasks/create_audit_triggers/export_result.sh"
+  },
+  "metadata": {
+    "odb_path": "/home/ga/chinook.odb",
+    "expected_table": "CustomerAuditLog",
+    "expected_triggers": [
+      "trg_customer_insert",
+      "trg_customer_delete"
+    ],
+    "test_customer_id": 60,
+    "test_customer_name": "Audit TestUser"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_audit_triggers"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "energy_consumption_profiling@1",
+  "task_completion": [
+    {
+      "id": "script_execution_zmq",
+      "description": "Agent executes a script that uses the ZMQ Remote API to interact with CoppeliaSim.",
+      "points": 15,
+      "visual_evidence": "Terminal showing the execution of a Python script, with code or output indicating a connection to CoppeliaSim via ZMQ Remote API."
+    },
+    {
+      "id": "three_motion_profiles",
+      "description": "Agent profiles at least three distinct motion profiles.",
+      "points": 20,
+      "visual_evidence": "Terminal output, script logs, or code visible on screen showing the execution of at least 3 different motion profiles (e.g., different target positions, speeds, or trajectories)."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "The energy_profile.csv file is created in the correct directory.",
+      "points": 15,
+      "visual_evidence": "Terminal command (like 'ls /home/ga/Documents/CoppeliaSim/exports/') or file manager showing 'energy_profile.csv' exists."
+    },
+    {
+      "id": "csv_contents_correct",
+      "description": "The CSV file contains per-timestep joint torques, velocities, and instantaneous power.",
+      "points": 25,
+      "visual_evidence": "Contents of 'energy_profile.csv' displayed via 'cat', 'head', or a text editor, showing columns/data for torques, velocities, and power (|torque x velocity|)."
+    },
+    {
+      "id": "json_contents_correct",
+      "description": "The energy_report.json file is created and contains aggregate energy statistics.",
+      "points": 25,
+      "visual_evidence": "Contents of 'energy_report.json' displayed via 'cat' or a text editor, showing aggregate statistics (e.g., total energy, average power, max power) in JSON format."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_zmq_interaction",
+      "description": "The agent actually interacted with CoppeliaSim to get the data.",
+      "visual_evidence": "The agent runs a script that connects to the simulator, rather than just writing a Python script that outputs hardcoded mock data directly to the files."
+    },
+    {
+      "id": "realistic_simulation_data",
+      "description": "The generated CSV and JSON files contain realistic simulation data.",
+      "visual_evidence": "The values in the CSV and JSON files are realistic floating-point numbers typical of physics simulations, not simple sequential numbers or repeated dummy values (e.g., 1.0, 1.0, 1.0)."
+    },
+    {
+      "id": "no_manual_file_creation",
+      "description": "The agent did not manually type the CSV/JSON contents.",
+      "visual_evidence": "The files were generated programmatically by a script, not manually typed out in a text editor by the agent."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires exactly 3 or more distinct motion profiles. The CSV file must be saved to exactly '/home/ga/Documents/CoppeliaSim/exports/energy_profile.csv' and the JSON file to exactly '/home/ga/Documents/CoppeliaSim/exports/energy_report.json'."
+}

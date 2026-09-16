@@ -1,0 +1,37 @@
+{
+  "id": "modernize_java_syntax@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "Modernize the legacy Java project 'legacy-modernize' located at ~/IdeaProjects/legacy-modernize by updating its Java 5/6 idioms to Java 17 standards. The updated codebase should utilize modern features such as lambda expressions, try-with-resources, switch expressions, text blocks, the diamond operator, and streams or enhanced for-loops where appropriate. All tests must pass via 'mvn test' upon completion.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/modernize_java_syntax/setup_task.sh",
+    "post_task": "/workspace/tasks/modernize_java_syntax/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/legacy-modernize",
+    "files_to_modernize": [
+      "src/main/java/com/legacy/DataProcessor.java",
+      "src/main/java/com/legacy/FileHandler.java",
+      "src/main/java/com/legacy/EventSystem.java",
+      "src/main/java/com/legacy/ConfigParser.java",
+      "src/main/java/com/legacy/ReportGenerator.java"
+    ],
+    "test_command": "mvn test",
+    "min_lambdas": 4,
+    "min_text_blocks": 1,
+    "min_switch_expr": 1,
+    "min_try_resources": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_modernize_java_syntax"
+    }
+  }
+}

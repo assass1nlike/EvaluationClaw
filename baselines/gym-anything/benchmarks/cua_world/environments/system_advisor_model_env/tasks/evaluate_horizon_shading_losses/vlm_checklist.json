@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_horizon_shading_losses@1",
+  "task_completion": [
+    {
+      "id": "weather_file_acquired",
+      "description": "Agent successfully downloaded or acquired the Salt Lake City TMY3 EPW weather file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a successful download command (e.g., wget, curl) from an alternative source, a browser window showing the download, or a file explorer/terminal listing the .epw file."
+    },
+    {
+      "id": "pysam_system_configured",
+      "description": "Agent wrote a Python script configuring the PySAM.Pvwattsv8 model with the correct system parameters.",
+      "points": 20,
+      "visual_evidence": "Code editor showing a Python script importing PySAM.Pvwattsv8 and setting parameters like system_capacity (10), tilt (30), azimuth (180), dc_ac_ratio (1.2), module_type (0), and array_type (0)."
+    },
+    {
+      "id": "horizon_profile_implemented",
+      "description": "Agent included the specified mountainous horizon shading profile in the model configuration.",
+      "points": 20,
+      "visual_evidence": "Code editor showing an array or dictionary of the specific azimuth/elevation pairs (0:10, 45:15, 90:25, 135:20, 180:12, 225:15, 270:22, 315:15) being passed into the PySAM shading parameters."
+    },
+    {
+      "id": "loss_calculation_logic",
+      "description": "Agent implemented logic to calculate both baseline and shaded annual energy, and compute the percentage loss.",
+      "points": 20,
+      "visual_evidence": "Code editor showing the model being executed twice (or two separate models) to get baseline and shaded outputs, along with the formula `((Baseline - Shaded) / Baseline) * 100`."
+    },
+    {
+      "id": "json_results_exported",
+      "description": "Agent exported the final results to the specified JSON file path with the required keys.",
+      "points": 30,
+      "visual_evidence": "Terminal showing successful script execution and/or a file viewer showing `/home/ga/Documents/SAM_Projects/horizon_shading_impact.json` containing keys: system_capacity_kw, weather_file, baseline_annual_energy_kwh, shaded_annual_energy_kwh, and energy_loss_percent."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_actually_executed",
+      "description": "The agent executed the Python script to generate the results rather than just typing out a JSON file manually.",
+      "visual_evidence": "Terminal window showing the `python` command being run on the script without errors, followed by the creation of the JSON file."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the baseline or shaded energy values into the JSON export.",
+      "visual_evidence": "The Python script dynamically assigns the results of the PySAM execution (e.g., `model.Outputs.annual_energy`) to the JSON dictionary rather than using fixed numbers."
+    },
+    {
+      "id": "real_epw_file_used",
+      "description": "The agent referenced a real EPW file path in the script rather than mocking the weather data.",
+      "visual_evidence": "The script's weather file parameter points to a local `.epw` file path that matches the downloaded Salt Lake City weather data."
+    }
+  ],
+  "privileged_info_for_vlm": "The original weather file URL provided in the task is broken (404), so the agent must find an alternative way to download the Salt Lake City TMY3 EPW file. The expected output file is 'horizon_shading_impact.json'. The 'system_capacity_kw' must be 10.0. The 'weather_file' string must contain 'salt.lake.city'. The 'baseline_annual_energy_kwh' must be dynamically calculated and should fall between 13,000 and 18,000 kWh (typically around 14,682 kWh)."
+}

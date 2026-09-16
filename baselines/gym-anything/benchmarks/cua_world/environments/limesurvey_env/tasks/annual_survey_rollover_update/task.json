@@ -1,0 +1,32 @@
+{
+  "id": "annual_survey_rollover_update@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Perform the annual survey rollover for the Employee Pulse survey. Create a new survey titled 'Employee Pulse 2025' by copying the 'Employee Pulse 2024' survey. In the new survey, remove the '2024 Initiatives' question group and add a new question group titled '2025 Strategic Focus'. This new group must include two questions: 'AI_USAGE' (Type: List (Radio), Options: Daily/Weekly/Monthly/Never, Text: 'How frequently do you use Generative AI tools in your daily work?') and 'INNOVATION_IDEA' (Type: Long free text, Text: 'Please share one idea for improving team efficiency this year.'). Activate the 'Employee Pulse 2025' survey. Login credentials: admin / Admin123!",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/annual_survey_rollover_update/setup_task.sh",
+    "post_task": "/workspace/tasks/annual_survey_rollover_update/export_result.sh"
+  },
+  "metadata": {
+    "source_survey_title": "Employee Pulse 2024",
+    "target_survey_title": "Employee Pulse 2025",
+    "obsolete_group": "2024 Initiatives",
+    "new_group": "2025 Strategic Focus",
+    "q1_code": "AI_USAGE",
+    "q1_type": "L",
+    "q2_code": "INNOVATION_IDEA",
+    "q2_type": "T"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_annual_survey_rollover_update"
+    }
+  }
+}

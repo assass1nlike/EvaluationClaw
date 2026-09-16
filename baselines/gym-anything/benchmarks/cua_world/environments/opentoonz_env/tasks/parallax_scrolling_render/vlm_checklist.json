@@ -1,0 +1,59 @@
+{
+  "task_id": "parallax_scrolling_render@1",
+  "task_completion": [
+    {
+      "id": "import_assets",
+      "description": "Verify that the foreground and background images are loaded into the OpenToonz project.",
+      "points": 10,
+      "visual_evidence": "Look for 'foreground.png' (Green) and 'background.png' (Red) in the OpenToonz Xsheet, Timeline, or Level Strip."
+    },
+    {
+      "id": "timeline_duration",
+      "description": "Verify that the animation spans at least 24 frames.",
+      "points": 10,
+      "visual_evidence": "Look at the Xsheet or Timeline. The exposure (filled cells) for both the foreground and background layers should extend down to at least frame/row 24."
+    },
+    {
+      "id": "animate_background",
+      "description": "Verify that the background layer is animated to move horizontally.",
+      "points": 15,
+      "visual_evidence": "Look for keyframe indicators (key icons or interpolated cell colors) on the background column in the Xsheet/Timeline, or observe the red background's X-position changing across frames in the viewer."
+    },
+    {
+      "id": "animate_foreground",
+      "description": "Verify that the foreground layer is animated to move horizontally.",
+      "points": 15,
+      "visual_evidence": "Look for keyframe indicators on the foreground column in the Xsheet/Timeline, or observe the green foreground's X-position changing across frames in the viewer."
+    },
+    {
+      "id": "parallax_effect",
+      "description": "Verify that the foreground moves significantly faster/further than the background.",
+      "points": 25,
+      "visual_evidence": "Compare the start and end frames in the viewer or look at the translation values in the schematic/function editor. The total horizontal displacement of the green foreground must be visibly at least twice as large as the red background's displacement."
+    },
+    {
+      "id": "render_output",
+      "description": "Verify that the project is set to render as PNGs to the correct output directory.",
+      "points": 25,
+      "visual_evidence": "Look for the OpenToonz 'Output Settings' dialog showing the save path as '/home/ga/OpenToonz/output/parallax/' and the format as 'png', or a file manager/terminal showing the rendered PNG sequence in that directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the OpenToonz GUI to create the animation.",
+      "visual_evidence": "Screenshots should show active interaction with the OpenToonz interface (menus, Xsheet, viewer, output settings) rather than just executing a pre-written script in the terminal."
+    },
+    {
+      "id": "genuine_render",
+      "description": "Verify the output files were generated via OpenToonz's render function.",
+      "visual_evidence": "Look for the OpenToonz render progress bar or output settings being applied, ensuring the agent didn't just use terminal commands (like ImageMagick or cp) to mock the output frames."
+    },
+    {
+      "id": "authentic_assets",
+      "description": "Verify the agent used the provided input images.",
+      "visual_evidence": "The images in the viewer should be the specific green and red PNG files from the inputs directory, not newly drawn solid color shapes created within OpenToonz to bypass loading."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires using OpenToonz to animate two specific assets: '/home/ga/OpenToonz/inputs/foreground.png' (Green) and '/home/ga/OpenToonz/inputs/background.png' (Red). The animation must be at least 24 frames long. Both objects must move horizontally, with the background moving at least 10 pixels and the foreground moving at least twice as far as the background (parallax ratio >= 2.0). The final output must be rendered as a sequence of PNG files to '/home/ga/OpenToonz/output/parallax/'."
+}

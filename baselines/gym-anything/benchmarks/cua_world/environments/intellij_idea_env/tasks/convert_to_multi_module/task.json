@@ -1,0 +1,36 @@
+{
+  "id": "convert_to_multi_module@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "A Maven project named 'java-library' is located at ~/IdeaProjects/java-library/. It currently builds as a single module but contains three logically independent components: com.library.math (MathUtils), com.library.strings (StringUtils), and com.library.collections (SimpleStack). Convert this project into a Maven multi-module build with three submodules named 'math', 'strings', and 'collections'. Organize the source and test files into the standard Maven layout within each module directory, ensuring each module has its own pom.xml referencing a parent POM at the root. The final configuration must allow 'mvn clean install' to succeed from the root directory with all tests passing.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 720,
+    "max_steps": 100
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/convert_to_multi_module/setup_task.sh",
+    "post_task": "/workspace/tasks/convert_to_multi_module/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/java-library",
+    "project_name": "java-library",
+    "expected_modules": [
+      "math",
+      "strings",
+      "collections"
+    ],
+    "module_packages": {
+      "math": "com.library.math",
+      "strings": "com.library.strings",
+      "collections": "com.library.collections"
+    },
+    "source_attribution": "MathUtils, StringUtils, SimpleStack based on standard algorithm textbook patterns and Apache Commons patterns (Apache 2.0)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_convert_to_multi_module"
+    }
+  }
+}

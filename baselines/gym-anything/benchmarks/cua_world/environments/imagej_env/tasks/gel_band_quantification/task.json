@@ -1,0 +1,41 @@
+{
+  "id": "gel_band_quantification@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Gel Electrophoresis Band Quantification",
+  "description": "You are a biochemist quantifying protein expression levels from a gel electrophoresis experiment. Using the 'Gel' sample image in Fiji, perform a gel analysis to quantify all visible lanes and bands. For each detectable band, calculate the background-corrected integrated optical density and express it as a percentage of the strongest band in its lane. Save a results table containing lane number, band position (pixels from top), background-corrected integrated intensity, and relative intensity percentage to ~/ImageJ_Data/results/gel_quantification.csv. Login: username 'ga', password 'password123'.",
+  "difficulty": "hard",
+  "tags": [
+    "gel",
+    "densitometry",
+    "western-blot",
+    "band-quantification",
+    "biochemistry",
+    "integrated-density"
+  ],
+  "init": {
+    "timeout_sec": 540,
+    "max_steps": 75
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/gel_band_quantification/setup_task.sh",
+    "post_task": "/workspace/tasks/gel_band_quantification/export_result.sh"
+  },
+  "metadata": {
+    "image_name": "Gel",
+    "image_source": "Fiji built-in sample (File > Open Samples > Gel)",
+    "image_type": "8-bit grayscale",
+    "expected_lane_count_min": 2,
+    "expected_lane_count_max": 8,
+    "expected_band_count_min": 3,
+    "expected_band_count_max": 30,
+    "expected_intensity_type": "background-corrected integrated density",
+    "result_file": "/home/ga/ImageJ_Data/results/gel_quantification.csv"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_gel_band_quantification"
+    }
+  }
+}

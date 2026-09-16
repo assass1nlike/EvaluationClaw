@@ -1,0 +1,27 @@
+{
+  "id": "reassemble_sentences@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Solve the first five puzzles in the 'Ordering Sentences' activity within the GCompris Reading category. Record the five completed sentences in ~/Documents/sentence_report.txt, one per line. Save a screenshot of a solved sentence to ~/Documents/sentence_evidence.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reassemble_sentences/setup_task.sh",
+    "post_task": "/workspace/tasks/reassemble_sentences/export_result.sh"
+  },
+  "metadata": {
+    "report_path": "/home/ga/Documents/sentence_report.txt",
+    "evidence_path": "/home/ga/Documents/sentence_evidence.png",
+    "min_sentences": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reassemble_sentences"
+    }
+  }
+}

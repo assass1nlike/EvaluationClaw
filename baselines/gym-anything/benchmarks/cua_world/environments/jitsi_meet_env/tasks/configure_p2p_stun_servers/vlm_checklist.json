@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_p2p_stun_servers@1",
+  "task_completion": [
+    {
+      "id": "config_file_edited",
+      "description": "Verify the Jitsi config file was edited.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or gedit) is open showing the file /home/ga/.jitsi-meet-cfg/web/config.js being modified."
+    },
+    {
+      "id": "services_restarted",
+      "description": "Verify the Jitsi services were restarted.",
+      "points": 20,
+      "visual_evidence": "A terminal window shows commands executed in the /home/ga/jitsi directory to restart services, such as 'docker-compose restart' or 'docker compose down' followed by 'up'."
+    },
+    {
+      "id": "browser_opened_to_config",
+      "description": "Verify a web browser is opened to the local Jitsi configuration URL.",
+      "points": 10,
+      "visual_evidence": "A web browser is visible with the address bar showing exactly 'http://localhost:8080/config.js'."
+    },
+    {
+      "id": "p2p_enabled_verified",
+      "description": "Verify P2P remains enabled in the served configuration.",
+      "points": 20,
+      "visual_evidence": "In the browser view of config.js, the 'p2p' configuration block contains 'enabled: true'."
+    },
+    {
+      "id": "stun_servers_verified",
+      "description": "Verify the Google STUN servers are present in the served configuration.",
+      "points": 40,
+      "visual_evidence": "In the browser view of config.js, the 'stunServers' array inside the 'p2p' block includes both 'stun:stun.l.google.com:19302' and 'stun:stun1.l.google.com:19302'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_browser_used",
+      "description": "Ensure the final screenshot is from a real web browser.",
+      "visual_evidence": "The screenshot showing http://localhost:8080/config.js must be a genuine web browser interface (e.g., Firefox, Chrome) with URL bar and navigation buttons, not a text editor."
+    },
+    {
+      "id": "no_local_file_url",
+      "description": "Ensure the browser is loading the config via the web server, not a local file.",
+      "visual_evidence": "The browser address bar must show 'http://localhost:8080/config.js' and NOT 'file:///home/ga/...'. This proves the web server is serving the updated file."
+    },
+    {
+      "id": "valid_syntax",
+      "description": "Ensure the configuration changes maintain valid syntax.",
+      "visual_evidence": "The added STUN servers should be formatted correctly within the JavaScript object structure (e.g., { urls: 'stun:stun.l.google.com:19302' }), without obvious syntax errors that would break the config."
+    }
+  ],
+  "privileged_info_for_vlm": "The configuration file is located at /home/ga/.jitsi-meet-cfg/web/config.js. The required Google STUN servers are stun:stun.l.google.com:19302 and stun:stun1.l.google.com:19302. The VLM should verify the browser URL is http://localhost:8080/config.js to confirm the changes were applied and served by the restarted Jitsi services. The evaluation script expects the final screenshot to be saved in /home/ga/Documents/."
+}

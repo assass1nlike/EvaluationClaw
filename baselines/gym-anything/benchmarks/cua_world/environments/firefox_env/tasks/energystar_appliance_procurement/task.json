@@ -1,0 +1,38 @@
+{
+  "id": "energystar_appliance_procurement@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "You are a facilities manager at a green apartment complex. Identify the most energy-efficient 'Top Freezer' refrigerators with a total volume between 16.0 and 19.0 cubic feet using the Energy Star Product Finder (https://www.energystar.gov/productfinder/product/certified-residential-refrigerators/results). Sort the results by 'Annual Energy Use (kWh/yr)' from low to high. Export the filtered list to ~/Downloads/ and bookmark the results page in a Firefox folder named 'Appliance Procurement'. Record the top 3 distinct models in ~/Documents/fridge_selection.json following this format: [{\"rank\": 1, \"brand_name\": \"...\", \"model_number\": \"...\", \"annual_energy_use_kwh\": 123}, ...]",
+  "difficulty": "medium",
+  "tags": [
+    "firefox",
+    "web-research",
+    "procurement",
+    "data-entry",
+    "energy-star"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/energystar_appliance_procurement/setup_task.sh",
+    "post_task": "/workspace/tasks/energystar_appliance_procurement/export_result.sh"
+  },
+  "metadata": {
+    "target_url_fragment": "energystar.gov",
+    "required_bookmark_folder": "Appliance Procurement",
+    "required_json_path": "/home/ga/Documents/fridge_selection.json",
+    "kwh_min_plausible": 200,
+    "kwh_max_plausible": 450,
+    "volume_min": 16.0,
+    "volume_max": 19.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_energystar_procurement"
+    }
+  }
+}

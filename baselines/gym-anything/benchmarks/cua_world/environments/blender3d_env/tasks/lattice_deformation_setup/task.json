@@ -1,0 +1,28 @@
+{
+  "id": "lattice_deformation_setup@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "Create a non-destructive lattice deformation setup for 3D text with the content \"GALAXY\". The text must be extruded and visibly warped using a lattice with a resolution of at least 3 in all dimensions. Save the project to /home/ga/BlenderProjects/lattice_warp.blend.\n\nLogin: The desktop session is active. Blender is open.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/lattice_deformation_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/lattice_deformation_setup/export_result.sh"
+  },
+  "metadata": {
+    "expected_text": "GALAXY",
+    "output_path": "/home/ga/BlenderProjects/lattice_warp.blend",
+    "min_lattice_resolution": 3,
+    "min_deformation_sum": 0.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lattice_deformation"
+    }
+  }
+}

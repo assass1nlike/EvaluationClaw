@@ -1,0 +1,29 @@
+{
+  "id": "create_exam_configuration@1",
+  "version": "1.0",
+  "env_id": "safe_exam_browser_env@0.1",
+  "name": "Create SEB Exam Configuration",
+  "description": "Create an SEB exam configuration named 'CS101 Final Exam Configuration' on the SEB Server (http://localhost:8080, credentials: super-admin / admin) with the description 'Secure configuration for CS101 Introduction to Computer Science final examination', 'Allow browser window reload' disabled, and 'Allow Virtual Machine Detection' enabled.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_exam_configuration/setup_task.sh",
+    "post_task": "/workspace/tasks/create_exam_configuration/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_exam_configuration"
+    }
+  },
+  "tags": [
+    "seb-server",
+    "exam-configuration",
+    "web-ui",
+    "hard"
+  ]
+}

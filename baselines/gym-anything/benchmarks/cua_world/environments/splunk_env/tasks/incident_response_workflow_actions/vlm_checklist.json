@@ -1,0 +1,59 @@
+{
+  "task_id": "incident_response_workflow_actions@1",
+  "task_completion": [
+    {
+      "id": "splunk_login",
+      "description": "Agent logged into the Splunk web interface.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Splunk web interface (localhost:8000) logged in as 'admin'."
+    },
+    {
+      "id": "abuseipdb_action_basic",
+      "description": "Created workflow action 'AbuseIPDB_Check' with the correct label and sourcetype.",
+      "points": 15,
+      "visual_evidence": "Splunk 'Workflow actions' settings page shows an action named 'AbuseIPDB_Check' with the label 'Check IP on AbuseIPDB' applied to the sourcetype 'linux_secure'."
+    },
+    {
+      "id": "abuseipdb_action_url",
+      "description": "Configured 'AbuseIPDB_Check' with the correct URL and window settings.",
+      "points": 15,
+      "visual_evidence": "The configuration for 'AbuseIPDB_Check' shows the action type as 'link', the URI as 'https://www.abuseipdb.com/check/$src_ip$', and the target as a new window ('_blank')."
+    },
+    {
+      "id": "deep_ip_action_basic",
+      "description": "Created workflow action 'Deep_IP_Investigation' with the correct label.",
+      "points": 15,
+      "visual_evidence": "Splunk 'Workflow actions' settings page shows an action named 'Deep_IP_Investigation' with the label 'Investigate this IP across all indexes'."
+    },
+    {
+      "id": "deep_ip_action_search",
+      "description": "Configured 'Deep_IP_Investigation' as a search action across multiple indexes.",
+      "points": 20,
+      "visual_evidence": "The configuration for 'Deep_IP_Investigation' shows the action type as 'search', the search string includes an IP token and queries multiple indexes (e.g., 'index=*'), and it is set to open in a new window."
+    },
+    {
+      "id": "top_attacking_ips_search",
+      "description": "Created saved search 'Top_Attacking_IPs' querying 'security_logs' for failed authentications.",
+      "points": 25,
+      "visual_evidence": "Splunk 'Reports' or 'Searches' page shows a saved search named 'Top_Attacking_IPs'. The search string must include 'index=security_logs', logic to find failed authentications, an aggregation by source IP (e.g., 'stats count by src_ip'), and a descending sort (e.g., 'sort - count')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Splunk web interface to create the objects.",
+      "visual_evidence": "Screenshots show the agent navigating the Splunk web UI (Settings > Fields > Workflow actions, and Search & Reporting) rather than using terminal commands (like curl) to interact with the Splunk REST API."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "Agent interacted with the actual Splunk configuration forms.",
+      "visual_evidence": "Screenshots show the agent filling out the Splunk web forms for Workflow Actions and Save As Report/Search dialogs, rather than just editing text files in a terminal."
+    },
+    {
+      "id": "no_direct_file_editing",
+      "description": "Agent did not bypass the UI by directly editing Splunk .conf files.",
+      "visual_evidence": "There should be no evidence of the agent opening terminal editors (like nano or vim) to directly modify props.conf, savedsearches.conf, or workflow_actions.conf."
+    }
+  ],
+  "privileged_info_for_vlm": "The agent must use the Splunk web interface (localhost:8000) with credentials admin / SplunkAdmin1!. Three specific objects must be created: 1) A workflow action named exactly 'AbuseIPDB_Check' pointing to 'abuseipdb.com'. 2) A workflow action named exactly 'Deep_IP_Investigation'. 3) A saved search named exactly 'Top_Attacking_IPs' that queries the 'security_logs' index."
+}

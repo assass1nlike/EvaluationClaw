@@ -1,0 +1,35 @@
+{
+  "id": "compositor_node_setup@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "A 3D artist has completed a car visualization render but the raw output looks flat. Create a cinematic post-processing pipeline for the BMW car scene using Blender's Compositor. The setup must utilize a Glare node (Fog Glow or Streaks, threshold ≤ 1.0), a Color Balance node for warm toning, and a Lens Distortion node (distortion between -0.05 and 0.1). Save the final rendered composite to /home/ga/BlenderProjects/cinematic_composite.png and the project file to /home/ga/BlenderProjects/compositing_setup.blend.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compositor_node_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/compositor_node_setup/export_result.sh"
+  },
+  "metadata": {
+    "render_output_path": "/home/ga/BlenderProjects/cinematic_composite.png",
+    "blend_output_path": "/home/ga/BlenderProjects/compositing_setup.blend",
+    "min_render_size_kb": 50,
+    "required_nodes": [
+      "CompositorNodeGlare",
+      "CompositorNodeColorBalance",
+      "CompositorNodeLensdist"
+    ],
+    "glare_threshold_max": 1.0,
+    "lens_distortion_min": -0.05,
+    "lens_distortion_max": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compositor_setup"
+    }
+  }
+}

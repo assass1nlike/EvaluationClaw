@@ -1,0 +1,59 @@
+{
+  "task_id": "export_patient_audit_log@1",
+  "task_completion": [
+    {
+      "id": "login_librehealth",
+      "description": "Log in to LibreHealth EHR using the provided admin credentials.",
+      "points": 10,
+      "visual_evidence": "The LibreHealth EHR dashboard or main interface is visible, indicating a successful login as 'admin'."
+    },
+    {
+      "id": "navigate_audit_log",
+      "description": "Navigate to the audit log or reports section of LibreHealth EHR.",
+      "points": 10,
+      "visual_evidence": "The Reports, Log, or Audit section is open in the LibreHealth EHR web interface."
+    },
+    {
+      "id": "search_patient",
+      "description": "Enter the patient name 'Brandie Sammet' into the audit log search or filter criteria.",
+      "points": 20,
+      "visual_evidence": "The name 'Brandie Sammet' is typed into a patient search, user, or filter field within the audit log interface."
+    },
+    {
+      "id": "filter_date_today",
+      "description": "Set the date filter for the audit log to 'Today'.",
+      "points": 20,
+      "visual_evidence": "A date filter or range is set to the current date (Today) in the audit log search criteria."
+    },
+    {
+      "id": "generate_audit_report",
+      "description": "Generate the audit log report for the specified criteria.",
+      "points": 20,
+      "visual_evidence": "The agent clicks a 'Generate', 'Search', or 'Submit' button, and the audit log results (or a 'no results found' message, given the missing patient) are displayed on the screen."
+    },
+    {
+      "id": "export_csv_file",
+      "description": "Export the generated audit log as a CSV file to the specified path.",
+      "points": 20,
+      "visual_evidence": "A save dialog or file manager shows the file being saved as 'brandie_sammet_audit.csv' in the '/home/ga/Documents/' directory, or a terminal/file explorer confirms its presence there."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the LibreHealth EHR web interface to generate the report.",
+      "visual_evidence": "Screenshots show interaction with the web browser and LibreHealth UI, not terminal commands querying the database directly."
+    },
+    {
+      "id": "genuine_file_export",
+      "description": "The CSV file was exported from the application, not manually created.",
+      "visual_evidence": "The file download/save dialog originates from the browser, rather than the agent opening a text editor and typing out a fake CSV."
+    },
+    {
+      "id": "no_direct_db_dump",
+      "description": "The agent did not bypass the EHR application by dumping the database via terminal.",
+      "visual_evidence": "No terminal windows showing `mysqldump` or `mysql` commands extracting the audit log directly to the Documents folder."
+    }
+  ],
+  "privileged_info_for_vlm": "Target user is 'admin'. The expected output file is 'brandie_sammet_audit.csv' located at '/home/ga/Documents/'. Note: The task contains a critical defect where the patient 'Brandie Sammet' does not exist in the database, which causes the environment setup to crash. The VLM should evaluate any visible attempts to complete the steps based on the task description, even if the task fails or shows 'no results' due to this defect."
+}

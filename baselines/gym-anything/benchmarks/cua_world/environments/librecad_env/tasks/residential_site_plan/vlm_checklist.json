@@ -1,0 +1,53 @@
+{
+  "task_id": "residential_site_plan@1",
+  "task_completion": [
+    {
+      "id": "layer_setup",
+      "description": "Create the required layers with specified colors and linetypes.",
+      "points": 15,
+      "visual_evidence": "Look at the Layer List panel in LibreCAD. It should show 'LOT_LINES' (Red), 'SETBACKS' (Blue, ideally showing dashed linetype), 'BUILDING' (Yellow), and 'TEXT' (White/Black depending on theme)."
+    },
+    {
+      "id": "draw_lot_lines",
+      "description": "Draw the 60'x100' property lot on the LOT_LINES layer.",
+      "points": 20,
+      "visual_evidence": "Look for a tall red rectangle in the drawing area starting at the origin (0,0). The height should be visibly larger than the width (100 vs 60)."
+    },
+    {
+      "id": "draw_setbacks",
+      "description": "Draw the zoning setbacks on the SETBACKS layer.",
+      "points": 20,
+      "visual_evidence": "Look for a blue dashed rectangle inside the red lot rectangle. It should have a large gap at the bottom (25' front setback), a smaller gap at the top (10' rear), and very small gaps on the sides (5' sides)."
+    },
+    {
+      "id": "draw_building",
+      "description": "Place the 30'x50' proposed house on the BUILDING layer.",
+      "points": 25,
+      "visual_evidence": "Look for a yellow rectangle inside the blue setback area. It should be perfectly centered horizontally, and its bottom edge must touch/align exactly with the bottom edge of the blue dashed setback rectangle."
+    },
+    {
+      "id": "add_text_labels",
+      "description": "Add 'STREET' and 'PROPOSED RESIDENCE' labels on the TEXT layer.",
+      "points": 20,
+      "visual_evidence": "Look for white text reading 'STREET' positioned below the red lot rectangle, and 'PROPOSED RESIDENCE' positioned inside the yellow house rectangle."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "The agent used the LibreCAD GUI to complete the task.",
+      "visual_evidence": "Screenshots should show the LibreCAD application window with toolbars, menus, and the drawing canvas, rather than just a terminal or text editor writing a DXF file."
+    },
+    {
+      "id": "manual_drawing_evidence",
+      "description": "The agent actively drew the elements using LibreCAD tools.",
+      "visual_evidence": "The command line at the bottom of the LibreCAD window should show drawing commands (e.g., 'rect', 'line', coordinate entries) or layer creation commands over time."
+    },
+    {
+      "id": "correct_file_save",
+      "description": "The agent saved the file to the correct path.",
+      "visual_evidence": "The LibreCAD window title bar or a 'Save As' dialog should show the filename 'residential_site_plan.dxf'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires specific geometric relationships that can be visually estimated: 1. Lot is 60x100 (taller than it is wide). 2. Setbacks create an inner rectangle from (5,25) to (55,90). The bottom gap (front setback, 25) is 5x larger than the side gaps (5) and 2.5x larger than the top gap (rear setback, 10). 3. The house is 30x50, spanning from X=15 to X=45 (centered, taking up exactly half the lot's width) and Y=25 to Y=75. The house's bottom edge must perfectly overlap the bottom edge of the setback rectangle. Layers: LOT_LINES (Red), SETBACKS (Blue, Dashed), BUILDING (Yellow), TEXT (White)."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "bulk_document_embedded_media_triage@1",
+  "task_completion": [
+    {
+      "id": "create_autopsy_case",
+      "description": "Create a new forensic case in Autopsy with the specified name and number.",
+      "points": 10,
+      "visual_evidence": "Autopsy GUI showing a case named 'Document_Triage_2024' and case number 'INV-DOC-001' in the title bar, case properties, or new case wizard."
+    },
+    {
+      "id": "add_data_source",
+      "description": "Add the specified ZIP archive as a data source to the Autopsy case.",
+      "points": 10,
+      "visual_evidence": "Autopsy GUI showing '/home/ga/evidence/govdocs/000.zip' in the data source tree or the add data source wizard."
+    },
+    {
+      "id": "configure_ingest_modules",
+      "description": "Run the required ingest modules for embedded file extraction, file type identification, and hash lookup.",
+      "points": 20,
+      "visual_evidence": "Autopsy ingest modules configuration screen or progress bar showing 'Embedded File Extraction', 'File Type Identification', and 'Hash Lookup' selected or running."
+    },
+    {
+      "id": "create_csv_catalog",
+      "description": "Catalog the extracted images in a pipe-delimited CSV file with the correct header.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal displaying the contents of '/home/ga/Reports/embedded_media.csv' with the header 'PARENT_DOCUMENT|EMBEDDED_FILENAME|MIME_TYPE|SIZE_BYTES|MD5_HASH' and pipe-delimited data rows."
+    },
+    {
+      "id": "write_investigative_summary",
+      "description": "Write an investigative summary containing the case details and correct counts of documents and images.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal displaying the contents of '/home/ga/Reports/embedded_summary.txt' showing the case name, data source, exactly 2 parent documents, and exactly 11 extracted images."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "autopsy_gui_used",
+      "description": "Verify the agent used the Autopsy GUI to process the evidence rather than bypassing it.",
+      "visual_evidence": "Screenshots must show the Autopsy application open and being interacted with to process the ZIP file."
+    },
+    {
+      "id": "genuine_extracted_data",
+      "description": "Verify the CSV contains actual extracted file metadata rather than placeholder or fabricated text.",
+      "visual_evidence": "The CSV file contents should show realistic MIME types (e.g., image/jpeg, image/png), byte sizes, and valid 32-character MD5 hashes."
+    },
+    {
+      "id": "no_script_bypass",
+      "description": "Verify the agent did not use an external script to extract images directly from the ZIP without using Autopsy.",
+      "visual_evidence": "Autopsy interface should show the extracted embedded files in its tree view under the data source, confirming the tool was actually used for the extraction."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected case name is 'Document_Triage_2024' and case number is 'INV-DOC-001'. The data source is '/home/ga/evidence/govdocs/000.zip'. The ground truth for the investigative summary is exactly 11 total extracted images across exactly 2 unique parent documents containing embedded media. The CSV must be at '/home/ga/Reports/embedded_media.csv' and the summary at '/home/ga/Reports/embedded_summary.txt'."
+}

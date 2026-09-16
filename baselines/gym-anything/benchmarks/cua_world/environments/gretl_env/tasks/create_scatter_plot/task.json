@@ -1,0 +1,30 @@
+{
+  "id": "create_scatter_plot@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Using the open food.gdt dataset containing household survey data for 'food_exp' (weekly food expenditure) and 'income' (weekly income), create a scatter plot with 'income' on the x-axis and 'food_exp' on the y-axis and save the graph to /home/ga/Documents/gretl_output/food_scatter.png.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 240,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_scatter_plot/setup_task.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "x_variable": "income",
+    "y_variable": "food_exp",
+    "plot_type": "scatter",
+    "expected_output": "/home/ga/Documents/gretl_output/food_scatter.png",
+    "data_source": "Hill, Griffiths, Lim - Principles of Econometrics 5th ed, household survey data"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_scatter_plot"
+    }
+  }
+}

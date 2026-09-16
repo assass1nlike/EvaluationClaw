@@ -1,0 +1,29 @@
+{
+  "id": "create_flu_control_chart@1",
+  "version": "1.0",
+  "env_id": "epi_info_env@0.1",
+  "description": "As a state influenza coordinator, use the ILINet data in 'Documents/flu_data_2019_2020.csv' to establish an epidemic threshold and visualize the 2019-2020 season. Calculate the alert threshold (Mean + 2 Standard Deviations) using 'Total_ILI' data from the baseline period (Weeks 40-50 of 2019). Generate a line chart plotting 'Total_ILI' and the 'Threshold' by 'Week', and save it to 'Documents/control_chart.png'. Document the calculated threshold and the list of weeks where 'Total_ILI' exceeded that threshold in 'Documents/alert_report.txt' using the following format:\nThreshold: <numeric_value>\nAlert Weeks: <comma_separated_list>",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_flu_control_chart/setup_task.sh",
+    "post_task": "/workspace/tasks/create_flu_control_chart/export_result.sh"
+  },
+  "metadata": {
+    "data_filename": "flu_data_2019_2020.csv",
+    "expected_image": "control_chart.png",
+    "expected_report": "alert_report.txt",
+    "ground_truth_path": "ground_truth_metrics.json",
+    "data_source": "CDC ILINet 2019-2020 (Simulated Subset)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_flu_control_chart"
+    }
+  }
+}

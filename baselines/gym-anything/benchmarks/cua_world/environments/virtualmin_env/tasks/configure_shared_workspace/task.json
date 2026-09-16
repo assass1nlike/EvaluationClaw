@@ -1,0 +1,32 @@
+{
+  "id": "configure_shared_workspace@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "The creative team at Acme Corp needs a shared workspace to collaborate on the 'Campaign 2026' project. Set up a shared environment by creating a Unix group named 'creative_team' containing users 'jordan' and 'alex'. Create a directory at '/home/acmecorp/campaign_2026' owned by user 'acmecorp' and group 'creative_team'. Ensure members of the group have full Read/Write/Execute access while others have no access. The directory must have the SetGID bit enabled so that new files inherit the 'creative_team' group ownership.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_shared_workspace/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_shared_workspace/export_result.sh"
+  },
+  "metadata": {
+    "group_name": "creative_team",
+    "target_users": [
+      "jordan",
+      "alex"
+    ],
+    "directory_path": "/home/acmecorp/campaign_2026",
+    "expected_permissions": "2770",
+    "expected_group_owner": "creative_team"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_shared_workspace"
+    }
+  }
+}

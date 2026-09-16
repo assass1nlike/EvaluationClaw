@@ -1,0 +1,59 @@
+{
+  "task_id": "service_account_token_projection_security@1",
+  "task_completion": [
+    {
+      "id": "rancher_login",
+      "description": "Log into the Rancher dashboard",
+      "points": 10,
+      "visual_evidence": "A web browser showing the Rancher dashboard at https://localhost, indicating successful login."
+    },
+    {
+      "id": "read_spec_file",
+      "description": "Open and read the identity security specification file",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of '/home/ga/Desktop/identity_security_spec.yaml'."
+    },
+    {
+      "id": "disable_default_token_mounts",
+      "description": "Disable default ServiceAccount token mounts for the deployments",
+      "points": 20,
+      "visual_evidence": "Rancher UI showing the deployment configuration (for public-api, k8s-sync-worker, or vault-auth-proxy) in the 'auth-system' namespace with 'Automount Service Account Token' unchecked or set to false."
+    },
+    {
+      "id": "configure_projection_public_api",
+      "description": "Configure bound ServiceAccount token volume projection for public-api",
+      "points": 20,
+      "visual_evidence": "Rancher UI showing the volume configuration for the 'public-api' deployment with a projected volume specifically for a ServiceAccount token."
+    },
+    {
+      "id": "configure_projection_k8s_sync_worker",
+      "description": "Configure bound ServiceAccount token volume projection for k8s-sync-worker",
+      "points": 20,
+      "visual_evidence": "Rancher UI showing the volume configuration for the 'k8s-sync-worker' deployment with a projected volume specifically for a ServiceAccount token."
+    },
+    {
+      "id": "configure_projection_vault_auth_proxy",
+      "description": "Configure bound ServiceAccount token volume projection for vault-auth-proxy",
+      "points": 20,
+      "visual_evidence": "Rancher UI showing the volume configuration for the 'vault-auth-proxy' deployment with a projected volume specifically for a ServiceAccount token."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the Rancher GUI to modify the deployments",
+      "visual_evidence": "Screenshots should show the agent clicking through the Rancher web interface to edit deployments, rather than exclusively using 'kubectl' commands in a terminal."
+    },
+    {
+      "id": "genuine_file_access",
+      "description": "Agent actually opened the spec file",
+      "visual_evidence": "The agent must be seen opening '/home/ga/Desktop/identity_security_spec.yaml' on the screen, not magically knowing the required projection settings."
+    },
+    {
+      "id": "no_precomputed_scripts",
+      "description": "Agent did not copy-paste a pre-written script to solve the task",
+      "visual_evidence": "The agent manually configures the settings in the UI or types out commands naturally, without pasting large blocks of pre-computed YAML or scripts."
+    }
+  ],
+  "privileged_info_for_vlm": "The target namespace is 'auth-system'. The security specification file is dynamically generated at '/home/ga/Desktop/identity_security_spec.yaml'. The passing threshold for this task is 80 points."
+}

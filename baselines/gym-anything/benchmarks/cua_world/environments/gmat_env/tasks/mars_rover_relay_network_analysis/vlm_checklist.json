@@ -1,0 +1,53 @@
+{
+  "task_id": "mars_rover_relay_network_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_mission_specifications",
+      "description": "Agent opens and reads the mission specifications file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of ~/Desktop/mars_relay_spec.txt."
+    },
+    {
+      "id": "configure_gmat_simulation",
+      "description": "Agent configures the GMAT simulation with the required orbiters and ground station.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI is open showing the Resources tree with a GroundStation (Perseverance/Jezero) and Spacecraft (MRO, MAVEN), or a script editor showing these configurations with a 10-degree elevation constraint."
+    },
+    {
+      "id": "run_gmat_simulation",
+      "description": "Agent successfully runs the GMAT simulation to calculate visibility.",
+      "points": 20,
+      "visual_evidence": "GMAT GUI showing a successful run in the Message Window, generated orbit plots, or ContactLocator output reports displaying contact times."
+    },
+    {
+      "id": "save_gmat_script",
+      "description": "Agent saves the GMAT script to the specified output directory.",
+      "points": 20,
+      "visual_evidence": "File manager, terminal, or GMAT save dialog showing the file 'mars_relay_analysis.script' located in the '~/GMAT_output/' directory."
+    },
+    {
+      "id": "write_summary_report",
+      "description": "Agent creates the relay summary text file with the correct format and calculated values.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing 'relay_summary.txt' in '~/GMAT_output/' containing 'mro_total_minutes: <value>', 'maven_total_minutes: <value>', and 'primary_relay: MAVEN'. The MRO value should be between 30-400 and MAVEN between 400-6000."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gmat_usage",
+      "description": "Verify the agent actually used GMAT to perform the simulation.",
+      "visual_evidence": "Screenshots must show the GMAT application interface open and being interacted with, rather than the agent just writing a Python script or guessing the values."
+    },
+    {
+      "id": "authentic_simulation_results",
+      "description": "Verify the agent derived the results from the simulation rather than hallucinating them.",
+      "visual_evidence": "The values entered into relay_summary.txt should correspond to the output reports or logs visible in the GMAT interface during the run."
+    },
+    {
+      "id": "correct_output_paths",
+      "description": "Verify the agent placed the output files in the exact requested directory.",
+      "visual_evidence": "The file paths for the script and summary report must explicitly be in '~/GMAT_output/', not the Desktop or the default GMAT output folder."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected results from the GMAT simulation are approximately 114 minutes for MRO (acceptable range: 30.0 - 400.0) and 5012 minutes for MAVEN (acceptable range: 400.0 - 6000.0). The primary_relay must be evaluated as MAVEN. The script must be saved to /home/ga/GMAT_output/mars_relay_analysis.script and the report to /home/ga/GMAT_output/relay_summary.txt."
+}

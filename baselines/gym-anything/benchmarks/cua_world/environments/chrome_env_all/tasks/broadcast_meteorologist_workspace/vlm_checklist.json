@@ -1,0 +1,59 @@
+{
+  "task_id": "broadcast_meteorologist_workspace@1",
+  "task_completion": [
+    {
+      "id": "bookmark_folders_created",
+      "description": "Create the four specified bookmark folders and sort existing bookmarks into them.",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Chrome Bookmark Manager (chrome://bookmarks) or the bookmarks bar showing the folders 'Live Radar', 'Satellite Imaging', 'Forecast Models', and 'Off-Air', ideally with bookmarks visible inside them."
+    },
+    {
+      "id": "site_settings_configured",
+      "description": "Allow Location access for radar.weather.gov and set global Notifications and Pop-ups to Block.",
+      "points": 15,
+      "visual_evidence": "Screenshots of Chrome Site Settings showing 'https://radar.weather.gov' in the Allowed list for Location, and the default behavior for Notifications and Pop-ups/redirects set to 'Don't allow' (Block)."
+    },
+    {
+      "id": "download_settings_configured",
+      "description": "Set the download directory to ~/Documents/Weather_Graphics and enable instant saving.",
+      "points": 15,
+      "visual_evidence": "Screenshots of Chrome Downloads settings (chrome://settings/downloads) showing the Location path ending in 'Weather_Graphics' and the toggle for 'Ask where to save each file before downloading' turned OFF."
+    },
+    {
+      "id": "site_search_created",
+      "description": "Create a custom site search for 'metar'.",
+      "points": 20,
+      "visual_evidence": "Screenshots of Chrome Manage search engines and site search (chrome://settings/searchEngines) showing a new entry with the keyword 'metar' and the URL 'https://aviationweather.gov/data/metar/?id=%s'."
+    },
+    {
+      "id": "startup_urls_configured",
+      "description": "Configure the browser to open specific weather URLs on startup.",
+      "points": 15,
+      "visual_evidence": "Screenshots of Chrome On startup settings (chrome://settings/onStartup) with 'Open a specific page or set of pages' selected, listing 'radar.weather.gov' and 'star.nesdis.noaa.gov'."
+    },
+    {
+      "id": "privacy_autofill_disabled",
+      "description": "Disable password saving and autofill features.",
+      "points": 15,
+      "visual_evidence": "Screenshots of Chrome Password Manager and Autofill settings showing toggles like 'Offer to save passwords', 'Auto Sign-in', and 'Save and fill addresses/payment methods' turned OFF."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "The agent used the Chrome GUI to configure settings rather than directly editing Chrome preference JSON files via terminal.",
+      "visual_evidence": "Screenshots should show the Chrome browser settings pages being navigated and modified. There should be no terminal windows open editing the Chrome 'Preferences' file using text editors (nano/vim) or JSON processors (jq)."
+    },
+    {
+      "id": "genuine_configuration_entry",
+      "description": "The agent actually entered the configurations into the Chrome settings fields.",
+      "visual_evidence": "Text fields in Chrome settings (like Site Search URL, Startup pages) contain the correct values. The agent did not just open the 'weather_wall_config.txt' file to display the target values without applying them."
+    },
+    {
+      "id": "no_automation_scripts",
+      "description": "The agent did not run a pre-written script to automate the browser configuration.",
+      "visual_evidence": "Absence of python or bash scripts being executed in the terminal to interact with Chrome via Selenium, Puppeteer, or direct file modification."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected bookmark folders: 'Live Radar', 'Satellite Imaging', 'Forecast Models', and 'Off-Air'. Target download directory: 'Weather_Graphics'. Custom search engine keyword: 'metar' with URL 'https://aviationweather.gov/data/metar/?id=%s'. Target startup URLs must include 'radar.weather.gov' and 'star.nesdis.noaa.gov'."
+}

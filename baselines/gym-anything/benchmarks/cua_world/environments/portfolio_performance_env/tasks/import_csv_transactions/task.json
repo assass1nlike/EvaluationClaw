@@ -1,0 +1,52 @@
+{
+  "id": "import_csv_transactions@1",
+  "version": "1.0",
+  "env_id": "portfolio_performance_env@0.1",
+  "description": "Import historical transactions from the CSV file at /home/ga/Documents/PortfolioData/broker_transactions.csv into the currently open portfolio, which contains five securities (AAPL, MSFT, AMZN, GOOGL, TSLA). Map the CSV columns for Date, Type, ISIN, Shares, Value, and Fees, and import the data into the 'Brokerage Account' and 'USD Cash Account'. Save the updated portfolio file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_csv_transactions/setup_task.sh",
+    "post_task": "/workspace/tasks/import_csv_transactions/export_result.sh"
+  },
+  "metadata": {
+    "portfolio_file": "/home/ga/Documents/PortfolioData/us_tech_portfolio.xml",
+    "csv_file": "/home/ga/Documents/PortfolioData/broker_transactions.csv",
+    "expected_total_count": 8,
+    "expected_buy_count": 6,
+    "expected_sell_count": 2,
+    "check_transactions": [
+      {
+        "description": "AAPL Buy",
+        "type": "BUY",
+        "shares": 10,
+        "amount": 1855.9,
+        "tolerance": 0.05
+      },
+      {
+        "description": "AMZN Buy",
+        "type": "BUY",
+        "shares": 20,
+        "amount": 3407.0,
+        "tolerance": 0.05
+      },
+      {
+        "description": "AAPL Sell",
+        "type": "SELL",
+        "shares": 3,
+        "amount": 510.09,
+        "tolerance": 0.05
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_csv_transactions"
+    }
+  }
+}

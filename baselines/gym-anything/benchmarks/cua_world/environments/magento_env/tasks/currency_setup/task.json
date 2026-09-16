@@ -1,0 +1,37 @@
+{
+  "id": "currency_setup@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Configure the Magento store for multi-currency international sales using the admin credentials admin/Admin1234!. Set the allowed currencies to include USD, EUR (Euro), GBP (British Pound Sterling), and CAD (Canadian Dollar), with USD as the default display currency. Manually set the USD exchange rates to 0.9200 for EUR, 0.7900 for GBP, and 1.3600 for CAD.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/currency_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/currency_setup/export_result.sh"
+  },
+  "metadata": {
+    "expected_allowed": [
+      "USD",
+      "EUR",
+      "GBP",
+      "CAD"
+    ],
+    "expected_default": "USD",
+    "expected_rates": {
+      "EUR": 0.92,
+      "GBP": 0.79,
+      "CAD": 1.36
+    },
+    "rate_tolerance": 0.001
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_currency_setup"
+    }
+  }
+}

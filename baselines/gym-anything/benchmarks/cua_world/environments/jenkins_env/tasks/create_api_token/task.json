@@ -1,0 +1,33 @@
+{
+  "id": "create_api_token@1",
+  "version": "1.0",
+  "env_id": "jenkins_env@0.1",
+  "description": "Create a personal API token named 'automation-token' for the 'admin' user and save the token value to /home/ga/api_token.txt. Retrieve the list of Jenkins jobs via the API using this token and save the JSON output to /home/ga/jenkins_jobs.json. If prompted, use Username: admin, Password: Admin123!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_api_token/setup_task.sh",
+    "post_task": "/workspace/tasks/create_api_token/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "expected_token_name": "automation-token",
+    "token_file_path": "/home/ga/api_token.txt",
+    "jobs_file_path": "/home/ga/jenkins_jobs.json",
+    "expected_jobs": [
+      "backend-api-tests",
+      "frontend-deploy",
+      "database-migrations"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_api_token"
+    }
+  }
+}

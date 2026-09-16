@@ -1,0 +1,48 @@
+{
+  "task_id": "create_cjis_audit_logger@1",
+  "task_completion": [
+    {
+      "id": "folder_created",
+      "description": "Verify that the target folder for the Talon scripts was created.",
+      "points": 10,
+      "visual_evidence": "File explorer or code editor file tree shows a folder named 'cjis_audit' located at 'C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\'."
+    },
+    {
+      "id": "app_monitoring_logic",
+      "description": "Verify that the Python script monitors application activation and deactivation for the specified apps.",
+      "points": 20,
+      "visual_evidence": "Python code visible in an editor showing event listeners for app activation/deactivation (e.g., using Talon's `ui.register`) and conditional checks for 'notepad.exe', 'mspaint.exe', and 'wordpad.exe' (case-insensitive)."
+    },
+    {
+      "id": "csv_logging_logic",
+      "description": "Verify that the Python script logs events to the correct CSV file with the correct format.",
+      "points": 25,
+      "visual_evidence": "Python code showing file append operations to 'C:\\Users\\Docker\\Documents\\cjis_audit_log.csv' and formatting strings matching 'YYYY-MM-DD HH:MM:SS,EVENT_TYPE,APP_NAME'."
+    },
+    {
+      "id": "custom_action_logic",
+      "description": "Verify that a custom Talon action is implemented for manual log notes.",
+      "points": 25,
+      "visual_evidence": "Python code showing a Talon action definition (e.g., `@mod.action_class`) for `audit_log_note(note: str)` that appends entries to the CSV with the 'MANUAL_NOTE' event type."
+    },
+    {
+      "id": "talon_command_mapping",
+      "description": "Verify that a .talon file maps the voice command to the custom action.",
+      "points": 20,
+      "visual_evidence": "A `.talon` file visible in the editor containing the command `audit note <user.text>:` (or similar syntax) mapped to call `user.audit_log_note()`."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_authored_in_editor",
+      "description": "Check that the agent actually authored the scripts using a text editor or IDE.",
+      "visual_evidence": "Screenshots should show the agent typing or pasting code into a text editor (e.g., VS Code, Notepad) rather than just echoing text blindly from a terminal."
+    },
+    {
+      "id": "no_fake_csv_creation",
+      "description": "Check that the agent did not manually create a fake CSV file to bypass writing the actual logging logic.",
+      "visual_evidence": "The CSV file should be generated or modified by the script's execution, not manually typed out by the agent in a spreadsheet or text editor with mock data."
+    }
+  ],
+  "privileged_info_for_vlm": "Target folder for scripts: C:\\Users\\Docker\\AppData\\Roaming\\talon\\user\\cjis_audit\\. Expected CSV log file path: C:\\Users\\Docker\\Documents\\cjis_audit_log.csv."
+}

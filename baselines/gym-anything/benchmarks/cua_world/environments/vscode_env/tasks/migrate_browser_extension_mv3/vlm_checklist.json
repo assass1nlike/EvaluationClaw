@@ -1,0 +1,53 @@
+{
+  "task_id": "migrate_browser_extension_mv3@1",
+  "task_completion": [
+    {
+      "id": "manifest_service_worker",
+      "description": "Update manifest.json to use a service worker instead of background scripts.",
+      "points": 15,
+      "visual_evidence": "Screenshot of manifest.json showing the 'background' field updated to use 'service_worker' (e.g., \"background\": { \"service_worker\": \"background.js\" }) instead of the Manifest V2 'scripts' array."
+    },
+    {
+      "id": "manifest_host_permissions",
+      "description": "Update manifest.json to move the API endpoint to host_permissions.",
+      "points": 15,
+      "visual_evidence": "Screenshot of manifest.json showing 'http://localhost:3000/*' inside a 'host_permissions' array, and removed from the standard 'permissions' array."
+    },
+    {
+      "id": "replace_xmlhttprequest",
+      "description": "Replace XMLHttpRequest with fetch() for network requests.",
+      "points": 25,
+      "visual_evidence": "Screenshot of the extension's JavaScript code showing the use of the fetch() API to make network requests, with no remaining instances of 'new XMLHttpRequest()'."
+    },
+    {
+      "id": "async_message_listener",
+      "description": "Ensure the asynchronous message listener returns true.",
+      "points": 20,
+      "visual_evidence": "Screenshot of the JavaScript code showing 'chrome.runtime.onMessage.addListener' with a 'return true;' statement at the end of the callback function to keep the message channel open."
+    },
+    {
+      "id": "migrate_storage_state",
+      "description": "Migrate the 'isTrackingActive' state to chrome.storage.local.",
+      "points": 25,
+      "visual_evidence": "Screenshot of the JavaScript code showing 'chrome.storage.local.set' and 'chrome.storage.local.get' being used to manage the 'isTrackingActive' variable, replacing any global variable state management."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_editor_usage",
+      "description": "Verify the agent used a text editor or IDE to modify the files.",
+      "visual_evidence": "Screenshots should show the code being edited in a recognizable text editor (like VS Code, vim, or nano) rather than just echoing strings directly into files from the terminal."
+    },
+    {
+      "id": "extension_loaded_in_browser",
+      "description": "Verify the agent opened the browser to check the extension.",
+      "visual_evidence": "Screenshots show the Chrome browser open to 'chrome://extensions' with the 'Price Tracker & Deal Finder' extension visible, indicating the agent tested if it loads correctly."
+    },
+    {
+      "id": "no_prompt_copy_paste",
+      "description": "Verify the code modifications are genuine and not just pasted instructions.",
+      "visual_evidence": "The code changes should integrate naturally into the existing JavaScript and JSON structures without containing markdown formatting or raw text from the task description."
+    }
+  ],
+  "privileged_info_for_vlm": "The required API endpoint that must be moved to the 'host_permissions' array in manifest.json is exactly 'http://localhost:3000/*'."
+}

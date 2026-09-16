@@ -1,0 +1,34 @@
+{
+  "id": "create_aggregate_query@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "Create a query named 'RevenueByGenre' in the Chinook database to calculate total sales revenue for each music genre. The query must produce two columns: 'Genre' (from the \"Genre\".\"Name\" column) and 'TotalRevenue' (the sum of \"InvoiceLine\".\"UnitPrice\" * \"InvoiceLine\".\"Quantity\"). The query should join the \"InvoiceLine\", \"Track\", and \"Genre\" tables, group by genre name, and order by total revenue in descending order. Note that in this HSQLDB database, table and column names are case-sensitive and must be enclosed in double quotes. Save the database file after creating the query.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_aggregate_query/setup_task.sh",
+    "post_task": "/workspace/tasks/create_aggregate_query/export_result.sh"
+  },
+  "metadata": {
+    "expected_query_name": "RevenueByGenre",
+    "tables_required": [
+      "Genre",
+      "Track",
+      "InvoiceLine"
+    ],
+    "expected_top_genre": "Rock",
+    "expected_top_revenue": 826.65,
+    "revenue_tolerance": 5.0,
+    "sqlite_path": "/opt/libreoffice_base_samples/Chinook_Sqlite.sqlite"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_aggregate_query"
+    }
+  }
+}

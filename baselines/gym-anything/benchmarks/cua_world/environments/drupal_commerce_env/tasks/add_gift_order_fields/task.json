@@ -1,0 +1,36 @@
+{
+  "id": "add_gift_order_fields@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "The store owner wants to allow customers to add gift options to their orders. Add two optional custom fields to the 'Default' Order type in Drupal Commerce: a 'Gift Message' field (Text plain long, machine name: field_gift_message) and a 'Gift Wrap Requested' field (Boolean, machine name: field_gift_wrap). Ensure both fields are enabled on the order admin form display.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_gift_order_fields/setup_task.sh",
+    "post_task": "/workspace/tasks/add_gift_order_fields/export_result.sh"
+  },
+  "metadata": {
+    "expected_fields": [
+      {
+        "machine_name": "field_gift_message",
+        "type": "text_long",
+        "label": "Gift Message"
+      },
+      {
+        "machine_name": "field_gift_wrap",
+        "type": "boolean",
+        "label": "Gift Wrap Requested"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_gift_order_fields"
+    }
+  }
+}

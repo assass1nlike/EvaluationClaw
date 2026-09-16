@@ -1,0 +1,42 @@
+{
+  "id": "migrate_deprecated_api@1",
+  "version": "1.0",
+  "env_id": "intellij_idea_env@0.1",
+  "description": "In the 'data-pipeline' Java Maven project loaded in IntelliJ IDEA, replace all usages of the deprecated method 'DataProcessor.processLegacy()' with 'DataProcessor.processModern()'. The replacement method has an identical signature. Do not delete the 'DataProcessor.processLegacy()' method declaration in DataProcessor.java, as it must remain for backward compatibility. Ensure the project compiles successfully after the changes.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_deprecated_api/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_deprecated_api/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/IdeaProjects/data-pipeline",
+    "main_class_file": "src/main/java/com/pipeline/DataProcessor.java",
+    "caller_files": [
+      "src/main/java/com/pipeline/BatchRunner.java",
+      "src/main/java/com/pipeline/StreamHandler.java",
+      "src/main/java/com/pipeline/ReportGenerator.java",
+      "src/main/java/com/pipeline/CacheManager.java",
+      "src/main/java/com/pipeline/App.java",
+      "src/test/java/com/pipeline/DataProcessorTest.java"
+    ],
+    "expected_modern_calls": 12,
+    "scoring": {
+      "no_stale_calls": 35,
+      "correct_modern_count": 20,
+      "maven_compile": 25,
+      "deprecated_preserved": 10,
+      "files_modified": 10
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_api"
+    }
+  }
+}

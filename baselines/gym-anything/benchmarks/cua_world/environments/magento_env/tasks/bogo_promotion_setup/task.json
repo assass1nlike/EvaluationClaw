@@ -1,0 +1,29 @@
+{
+  "id": "bogo_promotion_setup@1",
+  "version": "1.0",
+  "env_id": "magento_env@0.1",
+  "description": "Create a 'Buy 2 Get 1 Free' cart price rule named 'Clothing BOGO' for the 'Clothing' category. The rule must be active for the Main Website and all Customer Groups with no coupon required and a priority of 1. Configure the rule to apply only to items in the 'Clothing' category using the 'Buy X get Y free' action with a discount amount of 1 and a discount quantity step of 3. Enable 'Discard Subsequent Rules'. If not logged in, use admin/Admin1234!.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/bogo_promotion_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/bogo_promotion_setup/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Clothing BOGO",
+    "expected_action": "buy_x_get_y",
+    "expected_amount": "1",
+    "expected_step": "3",
+    "target_category_name": "Clothing"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_bogo_promotion"
+    }
+  }
+}

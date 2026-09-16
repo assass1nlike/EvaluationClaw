@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_recordstream_verify@1",
+  "task_completion": [
+    {
+      "id": "source_environment",
+      "description": "Source the SeisComP environment",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of 'source /home/ga/.bashrc' or '. /home/ga/.bashrc' to configure the environment."
+    },
+    {
+      "id": "configure_global_cfg",
+      "description": "Configure the global recordstream in global.cfg",
+      "points": 20,
+      "visual_evidence": "Terminal showing a text editor (like nano or vim) or a command (like echo or sed) adding or modifying the line to 'recordstream = sdsarchive:///home/ga/seiscomp/var/lib/archive' inside '/home/ga/seiscomp/etc/global.cfg'."
+    },
+    {
+      "id": "generate_inventory",
+      "description": "Generate an inventory listing of station codes from the GE network",
+      "points": 30,
+      "visual_evidence": "Terminal showing a command (e.g., grep, awk, python, or a SeisComP utility) reading '/home/ga/seiscomp/etc/inventory/ge_stations.xml' and redirecting the extracted station codes to '/home/ga/inventory_listing.txt'."
+    },
+    {
+      "id": "extract_waveforms",
+      "description": "Extract miniSEED waveform data for January 1, 2024",
+      "points": 30,
+      "visual_evidence": "Terminal showing a command (e.g., using 'scart' or another SeisComP tool) querying the SDS archive for the date '2024-01-01' (or similar date format for Jan 1, 2024) and outputting to '/home/ga/extracted_waveforms.mseed'."
+    },
+    {
+      "id": "verify_outputs",
+      "description": "Verify the generated output files exist and have content",
+      "points": 10,
+      "visual_evidence": "Terminal showing commands like 'ls -l', 'cat', or 'head' confirming that '/home/ga/inventory_listing.txt' and '/home/ga/extracted_waveforms.mseed' were created and are not empty."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_inventory",
+      "description": "Agent parsed the XML file rather than hardcoding the station names",
+      "visual_evidence": "Ensure the agent did not simply use 'echo' to write the specific station codes (TOLI, GSI, KWP, SANI, BKB) directly into the text file without reading the source XML."
+    },
+    {
+      "id": "no_fake_mseed",
+      "description": "Agent genuinely extracted waveform data rather than creating a dummy file",
+      "visual_evidence": "Ensure the agent used a proper extraction tool or script to generate the .mseed file, rather than using 'touch', 'echo', or copying an unrelated file to bypass the requirement."
+    },
+    {
+      "id": "actual_file_modification",
+      "description": "Agent actually modified the global.cfg file",
+      "visual_evidence": "Ensure the configuration string was written to the actual file '/home/ga/seiscomp/etc/global.cfg' and not just printed to the terminal or written to a temporary file that wasn't moved."
+    }
+  ],
+  "privileged_info_for_vlm": "Target global.cfg path: /home/ga/seiscomp/etc/global.cfg. Required recordstream value: sdsarchive:///home/ga/seiscomp/var/lib/archive. Expected stations in inventory: TOLI, GSI, KWP, SANI, BKB. Minimum inventory file size: 10 bytes. Minimum extracted miniSEED file size: 512 bytes."
+}

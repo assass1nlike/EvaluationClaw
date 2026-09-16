@@ -1,0 +1,37 @@
+{
+  "id": "multinomial_gof_test@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Using the dataset at /home/ga/Documents/JASP/Viagra.csv, which contains data from a pharmacological study on the effect of Viagra on libido, perform a Multinomial Goodness-of-Fit Test on the 'Dose' variable to check if participants were distributed according to the study protocol. Test the hypothesis of a 50/25/25 split (Placebo: 0.5, Low Dose: 0.25, High Dose: 0.25). Include descriptives and a descriptives plot in the analysis. Save the JASP project to /home/ga/Documents/JASP/MultinomialGOF.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/multinomial_gof_test/setup_task.sh",
+    "post_task": "/workspace/tasks/multinomial_gof_test/export_result.sh"
+  },
+  "metadata": {
+    "dataset_path": "/home/ga/Documents/JASP/Viagra.csv",
+    "output_path": "/home/ga/Documents/JASP/MultinomialGOF.jasp",
+    "analysis_type": "MultinomialTest",
+    "factor_variable": "Dose",
+    "expected_proportions": {
+      "Placebo": 0.5,
+      "Low Dose": 0.25,
+      "High Dose": 0.25
+    },
+    "required_options": [
+      "descriptives",
+      "descriptivesPlot"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_multinomial_gof_test"
+    }
+  }
+}

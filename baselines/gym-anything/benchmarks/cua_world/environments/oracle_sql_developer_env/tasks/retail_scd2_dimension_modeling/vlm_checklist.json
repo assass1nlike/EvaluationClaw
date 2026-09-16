@@ -1,0 +1,53 @@
+{
+  "task_id": "retail_scd2_dimension_modeling@1",
+  "task_completion": [
+    {
+      "id": "connect_oracle_db",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Terminal or database GUI showing a successful connection to localhost:1521/XEPDB1 with the user 'retail_admin'."
+    },
+    {
+      "id": "initial_load_dim_products",
+      "description": "Perform an initial load of 'SmartHome' products into DIM_PRODUCTS.",
+      "points": 20,
+      "visual_evidence": "Execution of an INSERT statement selecting from SOURCE_PRODUCTS where category is 'SmartHome', using SEQ_PRODUCT_KEY.NEXTVAL, and hardcoding valid_from='2020-01-01', valid_to='9999-12-31', and is_current='Y'."
+    },
+    {
+      "id": "create_scd2_trigger",
+      "description": "Create the TRG_PRODUCT_SCD2 row-level trigger on SOURCE_PRODUCTS.",
+      "points": 30,
+      "visual_evidence": "Execution of a CREATE OR REPLACE TRIGGER TRG_PRODUCT_SCD2 statement. The trigger body should contain logic to handle updates to unit_price and category by updating the old record (expiring it) and inserting a new active record into DIM_PRODUCTS."
+    },
+    {
+      "id": "create_historical_sales_view",
+      "description": "Create the HISTORICAL_SALES_REVENUE_VW point-in-time join view.",
+      "points": 20,
+      "visual_evidence": "Execution of a CREATE VIEW HISTORICAL_SALES_REVENUE_VW statement that joins SALES_FACT and DIM_PRODUCTS with the condition that sale_date is BETWEEN valid_from AND valid_to, and includes a calculated line_total column."
+    },
+    {
+      "id": "create_overlap_anomalies_view",
+      "description": "Create the SCD2_OVERLAP_ANOMALIES_VW view to identify overlapping validity periods.",
+      "points": 20,
+      "visual_evidence": "Execution of a CREATE VIEW SCD2_OVERLAP_ANOMALIES_VW statement containing logic (such as a self-join or window functions) to find product_ids in DIM_PRODUCTS where the valid_from and valid_to date ranges overlap."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sql_execution",
+      "description": "Verify that the agent actually executed the SQL commands in an Oracle client or terminal.",
+      "visual_evidence": "Screenshots should show SQL*Plus, SQLcl, or a database GUI (like DBeaver or SQL Developer) executing the commands and returning success messages (e.g., 'Trigger created.', 'View created.'), not just text typed into an editor."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Verify the agent did not manually create or fake the final output JSON file.",
+      "visual_evidence": "The agent should not be seen manually typing out a JSON file at /tmp/retail_scd2_result.json with hardcoded success metrics."
+    },
+    {
+      "id": "genuine_trigger_logic",
+      "description": "Verify the trigger logic is genuinely written to handle SCD2 operations.",
+      "visual_evidence": "The trigger code should actually contain the PL/SQL logic for expiring old rows and inserting new ones, rather than being an empty or dummy trigger."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses synthetically generated data. The trigger 'TRG_PRODUCT_SCD2' is dynamically tested post-task by an external script that injects an UPDATE statement for product 8000. The final results are expected to be exported to '/tmp/retail_scd2_result.json'. Ensure the agent actually executes the SQL commands (INSERT, CREATE TRIGGER, CREATE VIEW) in an Oracle client (like SQL*Plus or a GUI) rather than just writing SQL scripts without running them."
+}

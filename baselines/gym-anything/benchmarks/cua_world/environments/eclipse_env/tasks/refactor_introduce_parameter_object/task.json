@@ -1,0 +1,36 @@
+{
+  "id": "refactor_introduce_parameter_object@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Refactor the legacy `createBooking` method in `com.flysky.service.BookingService` within the 'FlightSystem' project (`~/Documents/FlightSystem`) using the 'Introduce Parameter Object' pattern. Group the five seat-related parameters—`seatRow`, `seatLetter`, `window`, `aisle`, and `exitRow`—into a new class named `SeatDetails` in the default package. The parameters `passengerId`, `flightNumber`, and `flightDate` must remain as separate arguments. Ensure all project files, including `BookingApp.java`, are updated and the project compiles.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_introduce_parameter_object/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_introduce_parameter_object/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/Documents/FlightSystem",
+    "workspace_path": "/home/ga/eclipse-workspace/FlightSystem",
+    "service_file": "src/com/flysky/service/BookingService.java",
+    "app_file": "src/com/flysky/app/BookingApp.java",
+    "new_class_file": "src/com/flysky/service/SeatDetails.java",
+    "expected_fields": [
+      "seatRow",
+      "seatLetter",
+      "window",
+      "aisle",
+      "exitRow"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_introduce_parameter_object"
+    }
+  }
+}

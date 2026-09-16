@@ -1,0 +1,39 @@
+{
+  "id": "analytics_warehouse_build@1",
+  "version": "1.0",
+  "env_id": "oracle_sql_developer_env@0.1",
+  "description": "The analytics team requires a dimensional data warehouse built on top of the HR operational system. Staging tables (STG_EMPLOYEES, STG_DEPARTMENTS, STG_JOBS, STG_JOB_HISTORY) have already been loaded in the ANALYTICS schema (analytics/Analytics2024). Implement a star schema in the ANALYTICS schema consisting of a central fact table named FACT_EMPLOYEE_SNAPSHOT and at least three dimension tables, including the required DIM_DEPARTMENT and DIM_JOB, populated with transformed data from the STG_* staging tables. Create a view named RPT_DEPT_SALARY_SUMMARY that aggregates employee headcount, total salary, and average salary grouped by department name. HR credentials: hr/hr123; Analytics credentials: analytics/Analytics2024; System if needed: system/OraclePassword123.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 100,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/analytics_warehouse_build/setup_task.sh",
+    "post_task": "/workspace/tasks/analytics_warehouse_build/export_result.sh"
+  },
+  "metadata": {
+    "analytics_schema": "ANALYTICS",
+    "analytics_password": "Analytics2024",
+    "staging_tables": [
+      "STG_EMPLOYEES",
+      "STG_DEPARTMENTS",
+      "STG_JOBS",
+      "STG_JOB_HISTORY"
+    ],
+    "required_fact_table": "FACT_EMPLOYEE_SNAPSHOT",
+    "required_dimensions": [
+      "DIM_DEPARTMENT",
+      "DIM_JOB"
+    ],
+    "required_view": "RPT_DEPT_SALARY_SUMMARY",
+    "min_fact_rows": 50
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_analytics_warehouse_build"
+    }
+  }
+}

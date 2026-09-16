@@ -1,0 +1,39 @@
+{
+  "id": "k8s_cluster_state_viz@1",
+  "version": "1.0",
+  "env_id": "diagrams_net_env@0.1",
+  "description": "Visualize the Kubernetes cluster state described in '~/Desktop/cluster_dump.json' by creating a diagram. Represent each Node as a container labeled with its name, and place all assigned Pods (labeled with their names) inside their respective Node containers. Pods with a 'CrashLoopBackOff' status must be colored red. Calculate the total CPU requests (in millicores 'm') for each Node by summing the 'resources.requests.cpu' of its pods and add a text label to each Node container showing this sum. Save the diagram to '~/Diagrams/cluster_state.drawio' and export it as '~/Diagrams/cluster_state.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/k8s_cluster_state_viz/setup_task.sh",
+    "post_task": "/workspace/tasks/k8s_cluster_state_viz/export_result.sh"
+  },
+  "metadata": {
+    "data_file": "/home/ga/Desktop/cluster_dump.json",
+    "expected_filename": "cluster_state.drawio",
+    "expected_export": "cluster_state.png",
+    "expected_nodes": [
+      "worker-us-east-1a",
+      "worker-us-east-1b",
+      "worker-us-east-1c"
+    ],
+    "node_cpu_totals": {
+      "worker-us-east-1a": 400,
+      "worker-us-east-1b": 1250,
+      "worker-us-east-1c": 2400
+    },
+    "crashing_pod": "payment-db-master",
+    "total_pods": 15
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_k8s_cluster_state_viz"
+    }
+  }
+}

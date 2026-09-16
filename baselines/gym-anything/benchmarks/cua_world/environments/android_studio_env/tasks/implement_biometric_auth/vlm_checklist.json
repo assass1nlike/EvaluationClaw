@@ -1,0 +1,53 @@
+{
+  "task_id": "implement_biometric_auth@1",
+  "task_completion": [
+    {
+      "id": "dependency_added",
+      "description": "The androidx.biometric dependency is added to the app's build.gradle.kts file.",
+      "points": 20,
+      "visual_evidence": "Look for the app/build.gradle.kts file open in an editor, showing a line like implementation(\"androidx.biometric:biometric:1.2.0-alpha05\") in the dependencies block."
+    },
+    {
+      "id": "biometric_prompt_instantiated",
+      "description": "A BiometricPrompt instance is created with an AuthenticationCallback.",
+      "points": 20,
+      "visual_evidence": "Look for LoginActivity.kt open in an editor, showing the initialization of a BiometricPrompt object that includes an object : BiometricPrompt.AuthenticationCallback() with overridden methods like onAuthenticationSucceeded."
+    },
+    {
+      "id": "prompt_info_configured",
+      "description": "PromptInfo is configured with the correct title and negative button text.",
+      "points": 20,
+      "visual_evidence": "Look for LoginActivity.kt showing BiometricPrompt.PromptInfo.Builder() with .setTitle(\"Biometric Login\") and .setNegativeButtonText(\"Cancel\")."
+    },
+    {
+      "id": "prompt_triggered_on_click",
+      "description": "The login button click listener is updated to trigger the biometric prompt.",
+      "points": 20,
+      "visual_evidence": "Look for LoginActivity.kt showing the login button's setOnClickListener block calling .authenticate(promptInfo) on the BiometricPrompt instance."
+    },
+    {
+      "id": "secure_navigation_implemented",
+      "description": "Navigation to DiaryActivity is moved inside the successful authentication callback.",
+      "points": 20,
+      "visual_evidence": "Look for LoginActivity.kt showing the startActivity(Intent(this, DiaryActivity::class.java)) code placed strictly inside the onAuthenticationSucceeded method of the AuthenticationCallback, rather than directly inside the button's click listener."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "ide_usage",
+      "description": "The agent used an IDE or text editor to modify the files.",
+      "visual_evidence": "Screenshots should show Android Studio or another code editor being used to edit the Kotlin and Gradle files, rather than terminal commands like 'echo' or 'sed' doing all the work."
+    },
+    {
+      "id": "no_mocked_callback",
+      "description": "The agent did not mock or bypass the biometric authentication flow.",
+      "visual_evidence": "The code should show genuine usage of the AndroidX BiometricPrompt API. The onAuthenticationSucceeded method should not be called manually from the button click listener."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "The modifications were made to the correct files in the SecretDiary project.",
+      "visual_evidence": "The editor tabs or file tree should confirm that the edited files are app/build.gradle.kts and app/src/main/java/com/example/secretdiary/LoginActivity.kt within the SecretDiary project directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/AndroidStudioProjects/SecretDiary. The target files are app/build.gradle.kts and app/src/main/java/com/example/secretdiary/LoginActivity.kt. The required dependency is exactly 'androidx.biometric:biometric' (version 1.2.0-alpha05). The PromptInfo must be configured with .setTitle(\"Biometric Login\") and .setNegativeButtonText(\"Cancel\"). Crucially, the intent to start DiaryActivity must be moved from the button's onClick listener into the BiometricPrompt.AuthenticationCallback's onAuthenticationSucceeded method."
+}

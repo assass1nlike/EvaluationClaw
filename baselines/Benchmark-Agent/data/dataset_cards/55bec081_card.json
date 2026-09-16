@@ -1,0 +1,79 @@
+{
+  "dataset_id": "55bec081",
+  "name": "License Plate Ocr",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 213,
+  "description": "A small image-to-text dataset for license plate OCR: each sample pairs a photo of a vehicle license plate with the instruction to recognize the plate text, and the target is the transcribed alphanumeric plate string.",
+  "card_text": "This dataset contains 213 samples for reading the textual content of license plates from images. Each sample consists of a single image file showing a vehicle license plate and a short fixed instruction prompt, 'Recognize the text in the license plate'. The expected output is the exact alphanumeric plate string (e.g. '7585CX', 'Y03561'), including digits and capital letters. The images are everyday photographs of plates, taken at varying distances, angles, and lighting conditions, so the recognition task requires robustness to real-world capture noise. The dataset is single-turn, non-conversational, and open-set in the sense that plate strings are not restricted to a fixed vocabulary. It evaluates fine-grained visual text recognition and exact string transcription rather than scene understanding or description. The Chinese-style plate format is suggested by the sample strings.",
+  "tasks": [
+    "attribute_extraction",
+    "captioning"
+  ],
+  "domain": "vehicle license plate recognition / traffic imagery",
+  "meta": {
+    "fields": {
+      "image": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "short",
+        "style": "objects",
+        "semantics": "Reference to a photograph of a vehicle license plate. The image is the sole visual input and contains the target alphanumeric string that must be read out.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short, essentially constant instruction asking the model to recognize the text in the license plate shown in the accompanying image. It defines the task to be performed on the image.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The ground-truth transcription of the license plate visible in the image, given as a short alphanumeric code mixing digits and capital letters. It is the exact target string for the instruction in the question field.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains three components: an image reference pointing to a photo of a vehicle license plate, a short textual instruction asking to recognize the plate text, and a textual answer giving the exact alphanumeric plate string. The instruction is essentially fixed across samples and always refers to the accompanying image, while the answer is the verbatim plate transcription that the model must produce from that image. There are no options, bounding boxes, masks, or any multi-turn structure."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/license_plate_ocr/json/annotation.json",
+    "existing_tags": {
+      "task": "license plate ocr",
+      "type": "comprehension",
+      "skill": "Image OCR (Img OCR)",
+      "domain": "General",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

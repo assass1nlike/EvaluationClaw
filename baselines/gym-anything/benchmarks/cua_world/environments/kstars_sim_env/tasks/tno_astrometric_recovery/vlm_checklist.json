@@ -1,0 +1,53 @@
+{
+  "task_id": "tno_astrometric_recovery@1",
+  "task_completion": [
+    {
+      "id": "eris_exposures",
+      "description": "Capture three 120-second exposures of Eris using the Slot 1 filter, saved to the Eris directory.",
+      "points": 20,
+      "visual_evidence": "Look for the KStars/Ekos Capture module showing a sequence queue with Target 'Eris', Exposure '120', Count '3', Filter 'Slot 1', and Directory '/home/ga/Images/tno_recovery/Eris/'. Alternatively, look for a file manager or terminal showing 3 FITS files in that directory."
+    },
+    {
+      "id": "makemake_exposures",
+      "description": "Capture three 120-second exposures of Makemake using the Slot 1 filter, saved to the Makemake directory.",
+      "points": 20,
+      "visual_evidence": "Look for the KStars/Ekos Capture module showing a sequence queue with Target 'Makemake', Exposure '120', Count '3', Filter 'Slot 1', and Directory '/home/ga/Images/tno_recovery/Makemake/'. Alternatively, look for a file manager or terminal showing 3 FITS files in that directory."
+    },
+    {
+      "id": "haumea_exposures",
+      "description": "Capture three 120-second exposures of Haumea using the Slot 1 filter, saved to the Haumea directory.",
+      "points": 20,
+      "visual_evidence": "Look for the KStars/Ekos Capture module showing a sequence queue with Target 'Haumea', Exposure '120', Count '3', Filter 'Slot 1', and Directory '/home/ga/Images/tno_recovery/Haumea/'. Alternatively, look for a file manager or terminal showing 3 FITS files in that directory."
+    },
+    {
+      "id": "makemake_sky_survey",
+      "description": "Capture a 0.5-degree field-of-view sky survey image for Makemake using the provided bash script.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal window showing the execution of the command `bash ~/capture_sky_view.sh /home/ga/Images/tno_recovery/makemake_field.png 0.5 --palette cool`."
+    },
+    {
+      "id": "summary_report",
+      "description": "Create a summary report at ~/Documents/tno_recovery_report.txt recording the observation date, target list, and coordinates.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor (like gedit or nano) or terminal output displaying the contents of `tno_recovery_report.txt`. It must contain the date '2026-03-10', the targets Eris, Makemake, and Haumea, and their corresponding RA/Dec coordinates."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_kstars_gui",
+      "description": "Verify the agent used the KStars/Ekos GUI to capture the FITS images.",
+      "visual_evidence": "Look for screenshots showing interaction with the KStars/Ekos application, specifically the Capture tab, rather than terminal commands mocking or touching the FITS files."
+    },
+    {
+      "id": "executed_bash_script",
+      "description": "Verify the agent executed the provided bash script for the sky survey.",
+      "visual_evidence": "Look for the actual command execution in a terminal window, ensuring the agent didn't just rename an existing image or use a different tool to bypass the script."
+    },
+    {
+      "id": "genuine_coordinate_extraction",
+      "description": "Verify the agent read the coordinates from the ephemeris file.",
+      "visual_evidence": "Look for the agent opening or using `cat`/`grep` on `~/Documents/tno_ephemeris_2026.txt` to read the coordinates before writing the report, rather than hallucinating them."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Coordinates for 2026-03-10: Eris (RA: 27.8, Dec: -3.175), Makemake (RA: 202.0167, Dec: 25.925), Haumea (RA: 223.8333, Dec: 14.2528). Required exposure time is 120 seconds. Required filter is Slot 1. Minimum of 3 exposures per target."
+}

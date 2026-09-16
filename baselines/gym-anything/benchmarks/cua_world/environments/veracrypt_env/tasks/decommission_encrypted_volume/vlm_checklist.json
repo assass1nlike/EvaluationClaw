@@ -1,0 +1,65 @@
+{
+  "task_id": "decommission_encrypted_volume@1",
+  "task_completion": [
+    {
+      "id": "volume_mounted",
+      "description": "The encrypted volume is successfully mounted to the specified mount point.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing a successful `veracrypt` mount command targeting '/home/ga/Volumes/data_volume.hc' to '/home/ga/MountPoints/slot1', or `mount`/`lsblk` output confirming the volume is mounted."
+    },
+    {
+      "id": "files_exported",
+      "description": "All files from the volume are copied to the DecryptedExport directory.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing `ls /home/ga/Documents/DecryptedExport/` or a file manager window displaying the expected files: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'."
+    },
+    {
+      "id": "checksum_manifest_saved",
+      "description": "A SHA-256 checksum manifest is generated and saved in the correct format.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the creation or contents (via `cat`) of '/home/ga/Documents/DecryptedExport/checksums.sha256', containing standard sha256sum output (hash followed by filename) for the exported files."
+    },
+    {
+      "id": "checksums_verified",
+      "description": "The copied files' checksums are verified against the originals.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing a verification command like `sha256sum -c checksums.sha256` with 'OK' next to each of the exported files, proving the copies match the generated hashes."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "The encrypted volume is dismounted after file extraction.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing a dismount command such as `veracrypt -d` or `umount /home/ga/MountPoints/slot1`."
+    },
+    {
+      "id": "volume_shredded",
+      "description": "The original container file is securely overwritten and deleted using 'shred'.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the execution of the `shred` command (e.g., `shred -u -n 3 /home/ga/Volumes/data_volume.hc`) and/or a subsequent `ls` command confirming the file no longer exists."
+    },
+    {
+      "id": "report_created",
+      "description": "A decommission report is created with all required details.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the contents of '/home/ga/Documents/decommission_report.txt' (e.g., via `cat`). The text must include a date/time, the original path '/home/ga/Volumes/data_volume.hc', the number of files exported (3), per-file PASS/FAIL verification status, and a statement confirming the container was securely destroyed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_shred_command",
+      "description": "The agent actually used the 'shred' utility to destroy the volume.",
+      "visual_evidence": "Look for the explicit use of the `shred` command in the terminal history. The agent should not just use `rm` and then write a report claiming it was shredded."
+    },
+    {
+      "id": "genuine_checksum_generation",
+      "description": "The agent used actual hashing utilities rather than hallucinating hashes.",
+      "visual_evidence": "Look for the execution of `sha256sum` on the files. The agent should not manually echo fake alphanumeric strings into the checksums.sha256 file."
+    },
+    {
+      "id": "actual_volume_interaction",
+      "description": "The agent interacted with the VeraCrypt volume rather than bypassing it.",
+      "visual_evidence": "Ensure the files copied to the export directory actually originated from the mounted VeraCrypt volume at '/home/ga/MountPoints/slot1', rather than being copied directly from a ground truth/assets folder or hallucinated via text editors."
+    }
+  ],
+  "privileged_info_for_vlm": "The target encrypted volume is located at '/home/ga/Volumes/data_volume.hc'. The expected files inside the volume (and to be exported) are exactly: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'backup_authorized_keys'. The export directory must be '/home/ga/Documents/DecryptedExport' and the final report must be saved to '/home/ga/Documents/decommission_report.txt'."
+}

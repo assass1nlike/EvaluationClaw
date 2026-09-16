@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_privacy_security@1",
+  "task_completion": [
+    {
+      "id": "block_remote_content",
+      "description": "Verify that remote content in messages is blocked.",
+      "points": 20,
+      "visual_evidence": "In Thunderbird Settings (Privacy & Security), the checkbox for 'Allow remote content in messages' is unchecked. Alternatively, in the Config Editor, 'mailnews.message_display.disable_remote_image' is set to 'true'."
+    },
+    {
+      "id": "enable_scam_detection",
+      "description": "Verify that scam detection is enabled.",
+      "points": 20,
+      "visual_evidence": "In Thunderbird Settings (Privacy & Security), the checkbox for 'Tell me if the message I'm reading is a suspected email scam' is checked. Alternatively, in the Config Editor, 'mail.phishing.detection.enabled' is set to 'true'."
+    },
+    {
+      "id": "enable_do_not_track",
+      "description": "Verify that the Do Not Track header is enabled.",
+      "points": 20,
+      "visual_evidence": "In Thunderbird Settings (Privacy & Security), the checkbox for 'Send websites a \"Do Not Track\" signal that you don't want to be tracked' is checked. Alternatively, in the Config Editor, 'privacy.donottrackheader.enabled' is set to 'true'."
+    },
+    {
+      "id": "never_send_return_receipts",
+      "description": "Verify that the return receipt policy is set to never send a return receipt for any scenario.",
+      "points": 20,
+      "visual_evidence": "In the Thunderbird Return Receipts settings dialog, the 'Never send a return receipt' radio button is selected, OR 'Allow return receipts for some messages' is selected but all three scenario dropdowns ('When I'm not in the To or Cc...', 'When the sender is outside my domain', 'In all other cases') are set to 'Never send'. Alternatively, in the Config Editor, the relevant return receipt action preferences are set to '0'."
+    },
+    {
+      "id": "display_plain_text",
+      "description": "Verify that the application is configured to display all emails as plain text.",
+      "points": 20,
+      "visual_evidence": "In the Thunderbird menu (View -> Message Body As), 'Plain Text' is selected (indicated by a dot or checkmark). Alternatively, in the Config Editor, 'mailnews.display.prefer_plaintext' is set to 'true' and 'mailnews.display.html_as' is set to '1'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gui_interaction",
+      "description": "Ensure the agent interacted with the actual Thunderbird application.",
+      "visual_evidence": "Screenshots should show the Thunderbird GUI (Settings tabs, Config Editor, or menus) being actively used, rather than a text editor modifying the prefs.js file directly."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Ensure the agent did not use terminal commands to bypass UI interaction.",
+      "visual_evidence": "There should be no terminal windows open running bash or python scripts to inject preferences into the Thunderbird profile."
+    },
+    {
+      "id": "settings_actually_applied",
+      "description": "Ensure the settings were actually applied and not just searched for.",
+      "visual_evidence": "The checkboxes, radio buttons, or Config Editor values must be shown in their final modified state (e.g., checked/unchecked appropriately, or boolean values toggled to true/false), not just typed into a search bar without being saved or toggled."
+    }
+  ],
+  "privileged_info_for_vlm": "If verifying via the Config Editor: The correct Return Receipt preference values for 'Never send a return receipt' are 0 (not 2). Other correct values are: disable remote images (mailnews.message_display.disable_remote_image=true), enable scam detection (mail.phishing.detection.enabled=true), enable Do Not Track (privacy.donottrackheader.enabled=true), and force plain text display (mailnews.display.prefer_plaintext=true AND mailnews.display.html_as=1)."
+}

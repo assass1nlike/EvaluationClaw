@@ -1,0 +1,92 @@
+{
+  "dataset_id": "34fa7768",
+  "name": "Annotation Open",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "A multi-image visual question answering dataset for fine-grained aircraft model matching, where the model compares two aircraft photos and decides whether they depict the same model.",
+  "card_text": "This dataset contains two-image visual comparison items built on FGVC-Aircraft imagery. Each sample provides a pair of aircraft photographs together with a natural-language question ('Are these two photos of the same type of aircraft?') and an instruction prompt that tells the model how to answer. The expected output is a single binary verdict, 'yes' or 'no', indicating whether the two aircraft belong to the same model type. The task requires fine-grained visual discrimination of aircraft fuselage, wings, engines and livery cues across two independent images, plus a consistency judgment that fuses the evidence from both photos. Modalities are image (two file paths per item) and text (question, prompt, answer). The dataset is relatively small (200 samples) and open-set in the sense that the model must judge similarity rather than pick from an enumerated label list.",
+  "tasks": [
+    "visual_question_answering",
+    "classification_binary"
+  ],
+  "domain": "fine-grained aircraft recognition / aviation",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An explicit task instruction that defines the comparison procedure and the required output format ('Return yes if they are the same model, otherwise no'). It frames how the accompanying question and images should be interpreted and answered.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A single-sentence yes/no query asking whether the two provided photographs show the same type of aircraft. It is the direct question the model must answer using both images.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "medium",
+        "style": "objects",
+        "semantics": "A pair of aircraft photograph file paths; each image shows one aircraft to be examined. The two images together supply the visual evidence for the same/different aircraft-model decision.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.answer"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The binary verdict for the comparison, either 'yes' (both images show the same aircraft model) or 'no' (they show different models). It is the ground-truth label conditioned on the image pair, question and prompt.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input block and an output block. The input holds a list of two aircraft image file paths, a short natural-language question asking whether the two photos show the same aircraft model, and an instruction-style prompt specifying the comparison procedure and the expected yes/no format. The output holds a single short textual answer, 'yes' or 'no', that reflects the ground-truth same/different judgment over the image pair. The prompt and question jointly direct the model, the two images provide the visual evidence, and the answer is the binary decision derived from comparing them."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Aircraft_Model_Matching/annotation_open.json",
+    "existing_tags": {
+      "task": "Aircraft_Model_Matching",
+      "type": "comprehension",
+      "skill": "Multi-image Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

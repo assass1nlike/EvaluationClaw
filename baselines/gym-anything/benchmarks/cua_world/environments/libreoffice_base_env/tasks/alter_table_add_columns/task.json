@@ -1,0 +1,39 @@
+{
+  "id": "alter_table_add_columns@1",
+  "version": "1.0",
+  "env_id": "libreoffice_base_env@0.1",
+  "description": "A digital media company is launching a customer loyalty program. Modify the 'Customer' table in the Chinook database to add two new columns: 'LoyaltyPoints' as an Integer with a default value of 0, and 'MembershipTier' as a VARCHAR with a length of 20 and a default value of 'Bronze'. Ensure the changes are saved to the database file.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/alter_table_add_columns/setup_task.sh",
+    "post_task": "/workspace/tasks/alter_table_add_columns/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/chinook.odb",
+    "table_name": "Customer",
+    "columns": [
+      {
+        "name": "LoyaltyPoints",
+        "type_category": "INTEGER",
+        "default": "0"
+      },
+      {
+        "name": "MembershipTier",
+        "type_category": "VARCHAR",
+        "length": 20,
+        "default": "'Bronze'"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_alter_table_add_columns"
+    }
+  }
+}

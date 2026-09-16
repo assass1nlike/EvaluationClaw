@@ -1,0 +1,59 @@
+{
+  "task_id": "formula_error_detective@1",
+  "task_completion": [
+    {
+      "id": "open_spreadsheet",
+      "description": "Open the spreadsheet in LibreOffice Calc",
+      "points": 10,
+      "visual_evidence": "LibreOffice Calc is open displaying the task spreadsheet, with 'Summary' and 'Monthly_Expenses' sheet tabs visible at the bottom."
+    },
+    {
+      "id": "fix_name_errors",
+      "description": "Resolve #NAME? errors by correcting sheet references",
+      "points": 20,
+      "visual_evidence": "Cells B2, B4, and B6 in the Summary sheet no longer display #NAME? errors and show the correct calculated values ($1,070, $547, and $1,195 respectively)."
+    },
+    {
+      "id": "fix_travel_error",
+      "description": "Fix the Travel category formula column reference",
+      "points": 20,
+      "visual_evidence": "Cell B3 in the Summary sheet shows the correct value of $3,740, indicating the formula now references the correct column."
+    },
+    {
+      "id": "fix_value_error",
+      "description": "Resolve the #VALUE! error in the Marketing category",
+      "points": 20,
+      "visual_evidence": "Cell B5 in the Summary sheet no longer displays a #VALUE! error and shows the correct value of $4,300."
+    },
+    {
+      "id": "correct_grand_total",
+      "description": "Ensure the grand total calculation is accurate",
+      "points": 20,
+      "visual_evidence": "Cell B8 in the Summary sheet shows the correct grand total of $10,852."
+    },
+    {
+      "id": "save_file",
+      "description": "Save the corrected spreadsheet",
+      "points": 10,
+      "visual_evidence": "The file is saved, indicated by the absence of an unsaved changes indicator (like an asterisk or red dot) in the title bar, or a visible save action (e.g., clicking the save icon)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui",
+      "description": "The agent used the LibreOffice Calc GUI to edit the spreadsheet",
+      "visual_evidence": "Changes are made through the LibreOffice Calc graphical interface, not via terminal commands or external scripts."
+    },
+    {
+      "id": "formulas_not_hardcoded",
+      "description": "The agent fixed the formulas rather than hardcoding the expected values",
+      "visual_evidence": "When a corrected cell in the Summary sheet is selected, the formula bar displays an actual formula (e.g., =SUMIF(...)) rather than a plain number."
+    },
+    {
+      "id": "data_preserved",
+      "description": "The original expense data was not modified to force correct answers",
+      "visual_evidence": "The 'Monthly_Expenses' sheet still contains its original 15 rows of expense data and was not altered."
+    }
+  ],
+  "privileged_info_for_vlm": "The spreadsheet contains two sheets: 'Monthly_Expenses' (data) and 'Summary' (formulas). The 'Summary' sheet initially contains broken formulas in cells B2:B6 and B8. The expected correct values for the Summary sheet are: Office Supplies (B2) = $1,070; Travel (B3) = $3,740; Software (B4) = $547; Marketing (B5) = $4,300; Utilities (B6) = $1,195; Total (B8) = $10,852. The agent must fix the formulas (e.g., changing 'Expenses' to 'Monthly_Expenses', fixing wrong column references, and removing header row references) rather than hardcoding the values."
+}

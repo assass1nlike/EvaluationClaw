@@ -1,0 +1,34 @@
+{
+  "id": "debug_broken_render@1",
+  "version": "1.0",
+  "env_id": "blender3d_env@0.1",
+  "description": "You are a technical artist who has received a Blender scene that produces an incorrect render. Diagnose and fix all rendering issues to ensure the scene correctly shows a properly lit red cube on a ground plane. The final render must have a resolution of at least 1280x720 and at least 16 render samples, with all objects visible and the camera correctly positioned. Save the rendered image to /home/ga/BlenderProjects/fixed_render.png and the corrected project file to /home/ga/BlenderProjects/fixed_scene.blend.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/debug_broken_render/setup_task.sh",
+    "post_task": "/workspace/tasks/debug_broken_render/export_result.sh"
+  },
+  "metadata": {
+    "expected_blend_output": "/home/ga/BlenderProjects/fixed_scene.blend",
+    "expected_render_output": "/home/ga/BlenderProjects/fixed_render.png",
+    "bugs_planted": 5,
+    "min_light_energy": 0.5,
+    "min_resolution": [
+      1280,
+      720
+    ],
+    "min_samples": 16,
+    "target_object": "BaseCube"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_debug_broken_render"
+    }
+  }
+}

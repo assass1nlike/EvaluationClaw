@@ -1,0 +1,53 @@
+{
+  "task_id": "geocache_route_optimizer@1",
+  "task_completion": [
+    {
+      "id": "geocache_data_opened",
+      "description": "The agent opened the geocache data in a spreadsheet application.",
+      "points": 10,
+      "visual_evidence": "Look for LibreOffice Calc open displaying the geocache data with columns such as Cache Name, Latitude, Longitude, Difficulty, Terrain, and Priority."
+    },
+    {
+      "id": "distance_calculated",
+      "description": "The agent calculated the distance from the starting point for the caches.",
+      "points": 20,
+      "visual_evidence": "Look for a new column in the spreadsheet containing distance calculations (likely using a SQRT formula) based on the starting coordinates."
+    },
+    {
+      "id": "time_estimates_calculated",
+      "description": "The agent calculated the time estimates (search time and travel time) for the caches.",
+      "points": 20,
+      "visual_evidence": "Look for new columns in the spreadsheet calculating search time (based on difficulty and terrain) and travel time (based on distance)."
+    },
+    {
+      "id": "route_prioritized_and_budgeted",
+      "description": "The agent selected a route prioritizing Priority 1 caches while keeping the total time under 240 minutes.",
+      "points": 20,
+      "visual_evidence": "Look for evidence of selecting specific caches (e.g., highlighting, filtering, sorting, or a separate list) where Priority 1 caches are favored and the total time is tracked to be under the 240-minute budget."
+    },
+    {
+      "id": "plan_saved_to_txt",
+      "description": "The agent saved the final route plan to /home/ga/Documents/geocaching_route.txt.",
+      "points": 30,
+      "visual_evidence": "Look for a text editor open with the final route plan, and evidence it is being saved as 'geocaching_route.txt' in the '/home/ga/Documents/' directory, or a terminal/file manager showing the file exists."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_for_calculations",
+      "description": "The agent used the spreadsheet GUI for calculations rather than bypassing it with a terminal script.",
+      "visual_evidence": "Look for interaction with LibreOffice Calc to perform the calculations, rather than a Python script or terminal commands doing all the work."
+    },
+    {
+      "id": "actual_formulas_used",
+      "description": "The agent used actual formulas in the spreadsheet rather than hardcoding guessed values.",
+      "visual_evidence": "Look at the formula bar in LibreOffice Calc to ensure formulas (e.g., SQRT, arithmetic operations) are used for distances and times."
+    },
+    {
+      "id": "file_saved_not_just_displayed",
+      "description": "The final text file is actually saved to the specified path.",
+      "visual_evidence": "Look for a 'Save' dialog confirmation or a terminal command verifying the file was written to /home/ga/Documents/geocaching_route.txt, not just text typed into an unsaved editor."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires planning a geocache route within a 240-minute budget. Starting coordinates: 40.3200, -105.6700. Distance formula: =110 * SQRT((Lat - 40.3200)^2 + (Lon - (-105.6700))^2). Search time formula: =15 + (Difficulty-1)*5 + (Terrain-1)*8. Travel time: Distance * 2. There are 5 Priority 1 caches, 3 Priority 2, and 2 Priority 3. The final plan must be saved to /home/ga/Documents/geocaching_route.txt."
+}

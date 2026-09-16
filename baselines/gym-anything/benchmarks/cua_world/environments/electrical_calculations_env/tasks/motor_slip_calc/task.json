@@ -1,0 +1,29 @@
+{
+  "id": "motor_slip_calc@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "You are maintaining a 4-pole motor operating at 60 Hz. Calculate the slip percentage using the Electrical Engineering Calculations app based on a synchronous speed of 1800 RPM and a measured rotor speed of 1725 RPM. Create a result file at /sdcard/tasks/motor_slip_result.txt with the following content:\n\nSynchronous_RPM: 1800\nMeasured_RPM: 1725\nSlip_Percentage: [numeric result]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/motor_slip_calc/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/motor_slip_calc/export_result.sh"
+  },
+  "metadata": {
+    "synchronous_rpm": 1800,
+    "measured_rpm": 1725,
+    "expected_slip_min": 4.1,
+    "expected_slip_max": 4.25,
+    "output_file_path": "/sdcard/tasks/motor_slip_result.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_motor_slip_calc"
+    }
+  }
+}

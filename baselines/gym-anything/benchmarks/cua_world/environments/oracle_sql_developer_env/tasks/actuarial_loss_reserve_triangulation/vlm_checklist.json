@@ -1,0 +1,53 @@
+{
+  "task_id": "actuarial_loss_reserve_triangulation@1",
+  "task_completion": [
+    {
+      "id": "database_connection",
+      "description": "Connect to the Oracle database using the provided credentials.",
+      "points": 10,
+      "visual_evidence": "Look for a database client (like Oracle SQL Developer, DBeaver, or a terminal running sqlplus) showing a successful connection to the XEPDB1 service as the 'actuary_admin' user."
+    },
+    {
+      "id": "create_company_triangle_vw",
+      "description": "Create the COMPANY_TRIANGLE_VW view with pivoted development lag columns.",
+      "points": 20,
+      "visual_evidence": "Look for SQL execution output (e.g., 'View COMPANY_TRIANGLE_VW created.') or the view definition in the SQL client. The query should show logic transforming development_lag into columns DLAG_1 through DLAG_10 for group_code '1767' and 'Commercial Auto'."
+    },
+    {
+      "id": "create_company_link_ratios_vw",
+      "description": "Create the COMPANY_LINK_RATIOS_VW view calculating Age-to-Age factors.",
+      "points": 20,
+      "visual_evidence": "Look for SQL execution output (e.g., 'View COMPANY_LINK_RATIOS_VW created.') or the view definition. The query should show columns for accident_year, target_lag, and link_ratio, typically using LAG or window functions."
+    },
+    {
+      "id": "create_industry_ldf_benchmarks_vw",
+      "description": "Create the INDUSTRY_LDF_BENCHMARKS_VW view calculating Volume-Weighted Average LDFs.",
+      "points": 30,
+      "visual_evidence": "Look for SQL execution output (e.g., 'View INDUSTRY_LDF_BENCHMARKS_VW created.') or the view definition. The query should aggregate across all companies for 'Commercial Auto' and show columns for target_lag and volume_weighted_ldf."
+    },
+    {
+      "id": "export_industry_benchmarks_csv",
+      "description": "Export the data from INDUSTRY_LDF_BENCHMARKS_VW to the specified CSV file.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command (e.g., ls, cat), file manager window, or SQL client export wizard confirming the creation of the file '/home/ga/Documents/exports/industry_ldf_benchmarks.csv'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_sql_execution",
+      "description": "Verify that the SQL commands were actually executed in a database client.",
+      "visual_evidence": "Look for execution success messages (e.g., 'View created', query result grids) in a database client or terminal, rather than just SQL text written in a text editor without being run."
+    },
+    {
+      "id": "no_hardcoded_views",
+      "description": "Verify that the views contain actual SQL logic and not hardcoded dummy data.",
+      "visual_evidence": "Check the SQL statements for the views. They must contain actual SQL functions (like PIVOT, LAG, SUM, or window functions) querying the SCHEDULE_P_RAW table, rather than hardcoded 'SELECT 1 AS target_lag, 1.5 AS link_ratio' statements."
+    },
+    {
+      "id": "authentic_csv_export",
+      "description": "Verify the CSV export was generated from the database view.",
+      "visual_evidence": "Look for evidence of an export tool, spool command, or script querying INDUSTRY_LDF_BENCHMARKS_VW to generate the CSV, rather than the agent manually typing or echoing data into the CSV file."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected output file path: /home/ga/Documents/exports/industry_ldf_benchmarks.csv. The task requires using Oracle SQL features such as PIVOT, LAG, Window Functions, and Volume-Weighted Averages to create the views."
+}

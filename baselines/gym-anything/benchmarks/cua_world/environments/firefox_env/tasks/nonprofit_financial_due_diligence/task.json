@@ -1,0 +1,42 @@
+{
+  "id": "nonprofit_financial_due_diligence@1",
+  "version": "1.0",
+  "env_id": "firefox_env@0.1",
+  "description": "Perform financial due diligence on three technology-focused non-profits using ProPublica Nonprofit Explorer (projects.propublica.org/nonprofits/): Mozilla Foundation (EIN ending 3644), Wikimedia Foundation (EIN ending 9703), and Electronic Frontier Foundation (EIN ending 5670). For each organization, find their most recent available Form 990 and extract the Tax Year, Total Revenue, Total Functional Expenses, Net Assets at end of year, and the name of the Principal Officer or highest compensated individual listed in the summary section. Create a Firefox bookmark folder named 'Grant Diligence' containing the ProPublica profile pages for each organization. Download the Mozilla Foundation's most recent Form 990 PDF to /home/ga/Documents/mozilla_9",
+  "difficulty": "hard",
+  "tags": [
+    "firefox",
+    "research",
+    "data-extraction",
+    "financial",
+    "bookmarks",
+    "pdf"
+  ],
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nonprofit_financial_due_diligence/setup_task.sh",
+    "post_task": "/workspace/tasks/nonprofit_financial_due_diligence/export_result.sh"
+  },
+  "metadata": {
+    "propublica_url": "projects.propublica.org",
+    "required_bookmarks_folder": "Grant Diligence",
+    "required_pdf_path": "/home/ga/Documents/mozilla_990.pdf",
+    "required_json_path": "/home/ga/Documents/nonprofit_financials.json",
+    "min_revenue_threshold": 1000000,
+    "target_orgs": [
+      "mozilla_foundation",
+      "wikimedia_foundation",
+      "eff"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nonprofit_financial_due_diligence"
+    }
+  }
+}

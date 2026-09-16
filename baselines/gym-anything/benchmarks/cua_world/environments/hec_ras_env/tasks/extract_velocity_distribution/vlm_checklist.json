@@ -1,0 +1,53 @@
+{
+  "task_id": "extract_velocity_distribution@1",
+  "task_completion": [
+    {
+      "id": "csv_file_created",
+      "description": "The velocity_distribution.csv file is created in the correct results directory.",
+      "points": 15,
+      "visual_evidence": "A file explorer window or terminal output (e.g., 'ls') showing the file 'velocity_distribution.csv' exists in '/home/ga/Documents/hec_ras_results/'."
+    },
+    {
+      "id": "csv_columns_correct",
+      "description": "The CSV file contains the required column headers.",
+      "points": 20,
+      "visual_evidence": "The contents of the CSV file displayed in a text editor, spreadsheet, or terminal (e.g., via 'cat' or 'head') showing the exact header row: 'cross_section', 'max_velocity', 'mean_velocity', and 'min_velocity'."
+    },
+    {
+      "id": "csv_data_populated",
+      "description": "The CSV file is populated with velocity data for the cross-sections.",
+      "points": 15,
+      "visual_evidence": "The contents of the CSV file showing multiple rows of numerical data corresponding to the cross-sections (there should be approximately 61 rows of data)."
+    },
+    {
+      "id": "summary_file_created",
+      "description": "The velocity_summary.txt file is created in the correct results directory.",
+      "points": 15,
+      "visual_evidence": "A file explorer window or terminal output showing the file 'velocity_summary.txt' exists in '/home/ga/Documents/hec_ras_results/'."
+    },
+    {
+      "id": "summary_file_contents_correct",
+      "description": "The summary text file contains the correct cross-section identifier and peak velocity value.",
+      "points": 35,
+      "visual_evidence": "The contents of 'velocity_summary.txt' displayed on screen. The first line must show the identifier '14039.64'. The second line must show a peak velocity value of approximately '18.4' or '16.91'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "analysis_method_used",
+      "description": "The agent used a script (e.g., Python with h5py/pandas) or an HDF5 viewer tool to extract the data.",
+      "visual_evidence": "Screenshots showing a Python script being written/executed, or an HDF5 viewing application open, demonstrating actual data extraction rather than hallucination."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "The agent did not simply hardcode the final summary answers without performing the analysis.",
+      "visual_evidence": "The agent's terminal or script history should show logic to compute the maximum velocity across all cross-sections. There should be no direct 'echo' commands writing the final answer to the summary file without a preceding analysis step."
+    },
+    {
+      "id": "correct_source_file_analyzed",
+      "description": "The agent analyzed the correct Muncie HDF5 file.",
+      "visual_evidence": "The script or tool explicitly references '/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.hdf' (or the .tmp.hdf variant)."
+    }
+  ],
+  "privileged_info_for_vlm": "The Muncie HDF5 file contains exactly 61 cross-sections. The absolute highest velocity is approximately 18.4 ft/s (Channel) or 16.91 ft/s (Total), both occurring at River Station cross-section 14039.64. The summary text file must have '14039.64' on the first line and a value near 18.4 or 16.91 on the second line."
+}

@@ -1,0 +1,25 @@
+{
+  "id": "add_tags_to_items@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Organize your Zotero library by creating and applying at least three distinct tags based on the research topics of your items.",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 35,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_tags_to_items/setup_task.sh",
+    "post_task": "/workspace/tasks/add_tags_to_items/export_result.sh"
+  },
+  "metadata": {
+    "expected_min_tags": 3,
+    "expected_min_tagged_items": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_tags_to_items"
+    }
+  }
+}

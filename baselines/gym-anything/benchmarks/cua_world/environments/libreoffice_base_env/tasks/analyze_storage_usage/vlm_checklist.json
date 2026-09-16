@@ -1,0 +1,59 @@
+{
+  "task_id": "analyze_storage_usage@1",
+  "task_completion": [
+    {
+      "id": "open_query_editor",
+      "description": "Open the LibreOffice Base query editor",
+      "points": 10,
+      "visual_evidence": "LibreOffice Base is open with the Chinook database, and either the Query Design View or SQL View window is active."
+    },
+    {
+      "id": "join_genre_track",
+      "description": "Join the Genre and Track tables",
+      "points": 15,
+      "visual_evidence": "In the query editor, both the 'Genre' and 'Track' tables are included. In Design View, this appears as two table boxes with a connecting line. In SQL View, this appears as a JOIN clause between the two tables."
+    },
+    {
+      "id": "select_and_alias_columns",
+      "description": "Select the required columns and apply exact aliases",
+      "points": 20,
+      "visual_evidence": "The query includes fields for Genre Name, Track count, and Total storage. The exact aliases 'GenreName', 'TrackCount', and 'TotalMB' must be visible in the 'Alias' row of the Design View or as 'AS' clauses in the SQL View."
+    },
+    {
+      "id": "calculate_total_mb",
+      "description": "Calculate the total storage size in Megabytes",
+      "points": 20,
+      "visual_evidence": "The TotalMB column contains a calculation that sums the Bytes and divides by 1,048,576. Look for syntax like `SUM(\"Bytes\")/1048576` or similar in the Field row or SQL text."
+    },
+    {
+      "id": "group_and_sort",
+      "description": "Group by Genre Name and sort by TotalMB descending",
+      "points": 15,
+      "visual_evidence": "The query is configured to group by the Genre Name (e.g., 'Group' selected in the Function row for GenreName) and sorted by the TotalMB column in Descending order (e.g., 'descending' selected in the Sort row)."
+    },
+    {
+      "id": "save_query_name",
+      "description": "Save the query as 'GenreStorageStats'",
+      "points": 20,
+      "visual_evidence": "The query is saved with the exact name 'GenreStorageStats'. This can be seen in a 'Save As' dialog, the title bar of the saved query window, or listed under 'Queries' in the main LibreOffice Base window."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the LibreOffice Base GUI to create the query",
+      "visual_evidence": "Screenshots should show interaction with the LibreOffice Base graphical interface (menus, design grids, or Base SQL editor), rather than terminal commands modifying the .odb file directly."
+    },
+    {
+      "id": "genuine_data_results",
+      "description": "Query results reflect genuine database calculations",
+      "visual_evidence": "If the query is executed and results are shown, they must reflect the actual Chinook database (e.g., Drama having the largest storage size, Rock having 1297 tracks), rather than hardcoded text or mock data."
+    },
+    {
+      "id": "no_text_editor_spoofing",
+      "description": "Agent did not use a text editor to spoof the query creation",
+      "visual_evidence": "The SQL query must be constructed inside the database application. The agent should not just type the SQL into a generic text editor (like gedit or nano) and present it as the final answer."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is located at /home/ga/chinook.odb. When the query is executed correctly, the results should show 'Drama' as the largest genre by storage size (~30,941.59 MB). 'Rock' is the largest genre by track count (exactly 1,297 tracks) and has a storage size of ~11,141.36 MB."
+}

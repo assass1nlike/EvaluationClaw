@@ -1,0 +1,59 @@
+{
+  "task_id": "indie_film_remediation_pipeline@1",
+  "task_completion": [
+    {
+      "id": "read_remediation_notes",
+      "description": "Verify the agent reads the remediation notes to understand the required synchronization offsets.",
+      "points": 10,
+      "visual_evidence": "Look for a text editor, terminal output (e.g., using 'cat', 'less', or 'nano'), or file viewer displaying the contents of '/home/ga/Videos/festival_submission/remediation_notes.txt'."
+    },
+    {
+      "id": "configure_deinterlacing",
+      "description": "Verify the agent applies a deinterlacing filter to the video.",
+      "points": 10,
+      "visual_evidence": "Look for an FFmpeg command containing a deinterlacing filter (e.g., '-vf yadif', '-deinterlace') or a video processing GUI (like Handbrake) with the 'Deinterlace' option enabled."
+    },
+    {
+      "id": "configure_audio_sync",
+      "description": "Verify the agent corrects the audio synchronization by shifting it -1500ms (-1.5 seconds).",
+      "points": 20,
+      "visual_evidence": "Look for an FFmpeg command using an offset for the audio stream (e.g., '-itsoffset -1.5', '-async', or an 'adelay' filter), or a GUI setting showing an audio delay/offset of -1500ms or -1.5s."
+    },
+    {
+      "id": "configure_subtitle_sync",
+      "description": "Verify the agent corrects the subtitle synchronization by shifting it +2000ms (+2.0 seconds).",
+      "points": 20,
+      "visual_evidence": "Look for an FFmpeg command using an offset for the subtitle stream (e.g., '-itsoffset 2.0' or '-itsoffset 2'), a GUI setting showing a subtitle delay of +2000ms, or a text editor showing the 'english_subs.srt' file modified so the first timestamp starts at '00:00:03,000'."
+    },
+    {
+      "id": "create_exhibition_master",
+      "description": "Verify the creation of the 'exhibition_master.mkv' file with soft subtitles.",
+      "points": 20,
+      "visual_evidence": "Look for a terminal command executing the creation of 'exhibition_master.mkv' (ensuring subtitles are copied/embedded as a track, e.g., '-c:s srt' or '-c:s copy'), or the file appearing in a file manager/terminal listing inside '/home/ga/Videos/festival_masters/'."
+    },
+    {
+      "id": "create_hardsub_master",
+      "description": "Verify the creation of the 'hardsub_master.mp4' file with burned-in subtitles.",
+      "points": 20,
+      "visual_evidence": "Look for an FFmpeg command using a subtitle video filter (e.g., '-vf subtitles=english_subs.srt' or similar) to output 'hardsub_master.mp4', or the file appearing in a file manager/terminal listing inside '/home/ga/Videos/festival_masters/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Ensure the agent actually uses a video processing tool (like FFmpeg, Handbrake, or VLC) to generate the files.",
+      "visual_evidence": "Look for actual command execution or GUI progress bars for video encoding/multiplexing. The agent should not simply use the 'touch' command or rename empty files to fake the outputs."
+    },
+    {
+      "id": "correct_input_files_used",
+      "description": "Ensure the agent processes the actual provided submission files.",
+      "visual_evidence": "Check that the commands or GUI inputs explicitly reference 'raw_film.mp4', 'english_subs.srt', and 'directors_commentary.mp3' from the '/home/ga/Videos/festival_submission/' directory."
+    },
+    {
+      "id": "no_hallucinated_success",
+      "description": "Ensure the agent does not just print a success message without performing the work.",
+      "visual_evidence": "Look for the actual execution of the FFmpeg commands or GUI encoding processes, rather than just an 'echo' command or a script that prints completion without running the underlying tools."
+    }
+  ],
+  "privileged_info_for_vlm": "The remediation instructions require shifting the audio by -1500 ms (to correct a 1.5s trail) and the subtitles by +2000 ms (to correct a 2.0s early appearance). The new subtitle start time must be exactly 00:00:03. The agent must apply deinterlacing, correct these sync issues, and output the correctly multiplexed/hardsubbed files to /home/ga/Videos/festival_masters/."
+}

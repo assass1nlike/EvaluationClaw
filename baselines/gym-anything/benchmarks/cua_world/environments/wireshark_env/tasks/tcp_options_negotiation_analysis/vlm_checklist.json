@@ -1,0 +1,59 @@
+{
+  "task_id": "tcp_options_negotiation_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_pcap_file",
+      "description": "Agent opens the target pcapng file for analysis.",
+      "points": 10,
+      "visual_evidence": "Screenshots show the agent opening `/home/ga/Documents/captures/200722_tcp_anon.pcapng` in Wireshark, or running a command like `tshark -r` or a Python script to read the file."
+    },
+    {
+      "id": "filter_syn_packets",
+      "description": "Agent filters for initial TCP SYN packets.",
+      "points": 15,
+      "visual_evidence": "Screenshots show a display filter like `tcp.flags.syn == 1 and tcp.flags.ack == 0` in Wireshark, or equivalent filtering logic in tshark/Python."
+    },
+    {
+      "id": "create_csv_report",
+      "description": "Agent creates the CSV report with the required header.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the creation of `/home/ga/Documents/tcp_options_report.csv` with the exact header row specified in the task description."
+    },
+    {
+      "id": "populate_csv_data",
+      "description": "Agent populates the CSV report with correct packet data.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the CSV file contains 2 rows of data (for frames 1 and 9), with 'yes' for sack_permitted and 'no' for timestamp_present."
+    },
+    {
+      "id": "create_summary_file",
+      "description": "Agent creates the summary text file with required labels.",
+      "points": 15,
+      "visual_evidence": "Screenshots show the creation of `/home/ga/Documents/tcp_options_summary.txt` containing the 7 required labeled lines."
+    },
+    {
+      "id": "populate_summary_data",
+      "description": "Agent populates the summary file with correct calculated values.",
+      "points": 25,
+      "visual_evidence": "Screenshots show the summary file contains correct values: total_syn_packets: 2, unique_mss_values: 1460, unique_window_scale_values: 8, sack_permitted_percentage: 100%, timestamp_present_percentage: 0%, most_common_mss: 1460, most_common_dst_port: 2000."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_analysis_performed",
+      "description": "Agent actually analyzed the pcap file using a tool or script.",
+      "visual_evidence": "Screenshots show genuine interaction with Wireshark, tshark, or a custom script parsing the pcap file, rather than just writing a text file from memory."
+    },
+    {
+      "id": "no_hardcoded_answers",
+      "description": "Agent did not hardcode the final answers without extracting them.",
+      "visual_evidence": "Screenshots do not show the agent using an echo command or script with hardcoded answers (like '100%' or '2000') before actually extracting and calculating the data from the pcap file."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Agent created the output files in the correct locations.",
+      "visual_evidence": "Screenshots show the files `tcp_options_report.csv` and `tcp_options_summary.txt` being saved or written to `/home/ga/Documents/`."
+    }
+  ],
+  "privileged_info_for_vlm": "The target capture file contains exactly 2 matching initial SYN packets (frame 1 and frame 9). Both packets have MSS=1460, Window Scale shift=8, SACK Permitted present ('yes'), and TCP Timestamps absent ('no'). Therefore, SACK Permitted is 100% and Timestamps Present is 0%. The most common MSS is 1460, and the most common destination port is 2000. The CSV should contain 2 data rows with 'yes' for sack_permitted and 'no' for timestamp_present. Note: There is a known bug in the automated verifier regarding SACK Permitted, but for visual verification, 'yes' is the correct value in the CSV."
+}

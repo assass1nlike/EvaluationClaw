@@ -1,0 +1,29 @@
+{
+  "id": "create_formatted_label_field@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Create a new String attribute field named 'FULL_LABEL' in the 'ne_110m_admin_0_countries' layer. Populate this field by concatenating the 'NAME' field and the 'ADM0_A3' field in the format \"Country Name (ISO_CODE)\" (e.g., \"Argentina (ARG)\"). Save the changes to the layer.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_formatted_label_field/setup_task.sh",
+    "post_task": "/workspace/tasks/create_formatted_label_field/export_result.sh"
+  },
+  "metadata": {
+    "target_layer_path": "/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.shp",
+    "target_dbf_path": "/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.dbf",
+    "new_field_name": "FULL_LABEL",
+    "source_field_name": "NAME",
+    "source_field_code": "ADM0_A3"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_formatted_label_field"
+    }
+  }
+}

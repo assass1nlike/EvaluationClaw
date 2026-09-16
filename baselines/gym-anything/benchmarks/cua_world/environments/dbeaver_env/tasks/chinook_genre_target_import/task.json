@@ -1,0 +1,37 @@
+{
+  "id": "chinook_genre_target_import@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Finance Analyst tasked with comparing annual sales targets against actual revenue. Import the data from /home/ga/Documents/imports/genre_sales_targets.csv into a new table named 'genre_sales_targets' in the Chinook SQLite database (/home/ga/Documents/databases/chinook.db) using a connection named 'ChinookImport'. Calculate the variance between actual revenue (summed from invoice_items) and target revenue, grouped by GenreName and Year. Export the results to /home/ga/Documents/exports/genre_variance_report.csv with columns for GenreName, Year, TargetRevenue, ActualRevenue, Variance, and VariancePct, sorted by GenreName and Year ascending. Save your SQL analysis script to /home/ga/Documents/scripts/genre_variance_analysis.sql.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_genre_target_import/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_genre_target_import/export_result.sh"
+  },
+  "metadata": {
+    "database_path": "/home/ga/Documents/databases/chinook.db",
+    "import_csv_path": "/home/ga/Documents/imports/genre_sales_targets.csv",
+    "export_csv_path": "/home/ga/Documents/exports/genre_variance_report.csv",
+    "sql_script_path": "/home/ga/Documents/scripts/genre_variance_analysis.sql",
+    "required_columns": [
+      "GenreName",
+      "Year",
+      "TargetRevenue",
+      "ActualRevenue",
+      "Variance",
+      "VariancePct"
+    ],
+    "connection_name": "ChinookImport"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_genre_target_import"
+    }
+  }
+}

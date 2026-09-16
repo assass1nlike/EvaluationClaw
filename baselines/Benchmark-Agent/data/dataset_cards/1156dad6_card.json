@@ -1,0 +1,93 @@
+{
+  "dataset_id": "1156dad6",
+  "name": "Multi-Page Application Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 112,
+  "description": "A multi-page document visual question answering dataset where each sample provides a natural-language question together with a sequence of page images from a single document, and the model must answer by reading the pages. Answers range from short yes/no responses to lists of extracted items. It evaluates visual document understanding and multi-page reasoning over real-world application documents.",
+  "card_text": "This dataset targets Document Visual Question Answering (DocVQA) over multi-page documents. Each sample pairs one natural-language question (input.prompt) with an ordered list of JPEG page images (input.image_files) that all belong to the same document, such as an application form, report, or technical document. The model must read and reason across the page sequence to produce a free-text answer (output.text), which may be a single short token like 'no' or an enumerated list of extracted values such as parameter names. Questions cover presence checks, content lookup, listing, and factual extraction. Modalities are image (page scans/photos) and text (question and answer). No bounding boxes, OCR text, or multiple-choice options are provided, so answers must be derived purely from visual reading of the document pages.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa",
+    "question_answering"
+  ],
+  "domain": "multi-page document understanding",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "The complete multi-page document rendered as an ordered list of page images; it is the source content the question refers to, and its pages must be read jointly to locate the requested information.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "image": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "long",
+        "style": "other",
+        "semantics": "Individual JPEG page scans of a single document, ordered by filename suffix; together they form the visual evidence pool over which the question is answered.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A single English question or instruction asking about the content of the multi-page document, e.g. whether a chart exists or asking to list specific parameters.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "factual",
+        "semantics": "The reference answer as a list of text strings; it can be a single short token (e.g. 'no') or an enumerated set of extracted factual items found in the document pages.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains a question (input.prompt) and an ordered list of page images (input.image_files) that together constitute one multi-page document, which serves as the visual context. The question is a short natural-language instruction about that document, and the target (output.text) is a list of answer strings that are either a single short response or several extracted factual items. There are no options, bounding boxes, masks, or separate OCR text fields: the image pages are the only context, the prompt is the only query, and the text list is the only supervision."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageApplicationDocumentVisualQuestionAnswering/multi-page_application_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page Application Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "materialize_monthly_revenue@1",
+  "task_completion": [
+    {
+      "id": "access_demodb",
+      "description": "Connect to the 'demodb' database in OrientDB.",
+      "points": 10,
+      "visual_evidence": "OrientDB Studio or console interface is visible, showing an active connection to the 'demodb' database."
+    },
+    {
+      "id": "create_monthly_stats_class",
+      "description": "Create the 'MonthlyStats' vertex class.",
+      "points": 10,
+      "visual_evidence": "Schema manager showing 'MonthlyStats' in the list of classes (preferably extending V/Vertex), or a successful execution of a 'CREATE CLASS MonthlyStats' query."
+    },
+    {
+      "id": "create_properties",
+      "description": "Create the required properties with correct data types for the MonthlyStats class.",
+      "points": 15,
+      "visual_evidence": "Schema properties view for 'MonthlyStats' showing 'Year' (Integer), 'Month' (Integer), 'TotalRevenue' (Double), and 'OrderCount' (Integer), or successful 'CREATE PROPERTY' queries."
+    },
+    {
+      "id": "create_unique_index",
+      "description": "Create a UNIQUE index on the Year and Month properties.",
+      "points": 15,
+      "visual_evidence": "Indexes tab in the schema manager showing a UNIQUE index covering both 'Year' and 'Month' for the MonthlyStats class, or a successful 'CREATE INDEX' query."
+    },
+    {
+      "id": "execute_aggregation_query",
+      "description": "Execute the query to aggregate data from Orders and insert it into MonthlyStats.",
+      "points": 30,
+      "visual_evidence": "Query editor showing an INSERT/SELECT statement that filters by Status='paid', groups by Year/Month, sums Price, and counts orders, along with a success message indicating records were inserted."
+    },
+    {
+      "id": "verify_populated_data",
+      "description": "Verify that the MonthlyStats class contains the aggregated records.",
+      "points": 20,
+      "visual_evidence": "A 'Browse' view or 'SELECT * FROM MonthlyStats' query result showing multiple records with populated Year, Month, TotalRevenue, and OrderCount fields."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "The agent interacted with the actual OrientDB database interface or console.",
+      "visual_evidence": "Screenshots show OrientDB Studio (web interface) or a live database console, not just queries written in a text editor."
+    },
+    {
+      "id": "dynamic_aggregation_used",
+      "description": "The agent used a dynamic query to aggregate and insert data rather than hardcoding values.",
+      "visual_evidence": "The query used to populate the data should be an INSERT ... SELECT ... or similar dynamic aggregation command, not manual INSERT statements with hardcoded numbers."
+    },
+    {
+      "id": "query_execution_success",
+      "description": "The queries were actually executed and succeeded.",
+      "visual_evidence": "Look for execution success messages, row counts, or execution times in the OrientDB interface, confirming the commands were run and not just typed."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: 'demodb'. Source Class: 'Orders' (~150 synthetic records). Target Class: 'MonthlyStats' (Vertex class). Required Properties: Year (INTEGER/LONG/SHORT), Month (INTEGER/LONG/SHORT), TotalRevenue (DOUBLE/FLOAT/DECIMAL), OrderCount (INTEGER/LONG/SHORT). Required Index: UNIQUE on (Year, Month). Aggregation Logic: Filter source data where Status='paid', group by the Year and Month extracted from the Date field, calculate the sum of Price as TotalRevenue, and count the orders as OrderCount."
+}

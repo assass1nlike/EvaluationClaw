@@ -1,0 +1,45 @@
+{
+  "id": "select_safe_afib_rate_control_ibrutinib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "A patient taking Ibrutinib has developed Atrial Fibrillation. Identify a safe rate-control medication by checking the interactions between Ibrutinib and Verapamil, Diltiazem, and Bisoprolol in the Liverpool Cancer iChart app. Create a report at /sdcard/ibrutinib_afib_safety.txt documenting the interaction color (Red, Orange, Yellow, Green, or Grey) for each drug and identifying the safe option. Use the format:\n- Verapamil: [Color]\n- Diltiazem: [Color]\n- Bisoprolol: [Color]\n- SAFE OPTION: [Drug Name]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/select_safe_afib_rate_control_ibrutinib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/select_safe_afib_rate_control_ibrutinib/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Ibrutinib",
+    "drugs_to_check": [
+      "Verapamil",
+      "Diltiazem",
+      "Bisoprolol"
+    ],
+    "expected_colors": {
+      "Verapamil": [
+        "Red",
+        "Orange"
+      ],
+      "Diltiazem": [
+        "Red",
+        "Orange"
+      ],
+      "Bisoprolol": [
+        "Green"
+      ]
+    },
+    "safe_option": "Bisoprolol",
+    "output_file": "/sdcard/ibrutinib_afib_safety.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ibrutinib_afib_safety"
+    }
+  }
+}

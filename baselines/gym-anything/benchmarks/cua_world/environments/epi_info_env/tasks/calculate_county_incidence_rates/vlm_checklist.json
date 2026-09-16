@@ -1,0 +1,53 @@
+{
+  "task_id": "calculate_county_incidence_rates@1",
+  "task_completion": [
+    {
+      "id": "create_project",
+      "description": "Verify that an Epi Info 7 project named 'Analysis' is created in the specified directory.",
+      "points": 10,
+      "visual_evidence": "Epi Info 7 window showing 'Analysis' as the active project, or File Explorer showing 'Analysis.prj' located in 'C:\\Users\\Docker\\Documents\\CountyAnalysis\\'."
+    },
+    {
+      "id": "load_and_merge_data",
+      "description": "Verify that both 'Cases.csv' and 'Population.csv' are loaded and combined in Epi Info 7.",
+      "points": 20,
+      "visual_evidence": "Epi Info 7 Classic Analysis or Visual Dashboard showing variables from both datasets (e.g., Count and Pop2024) available in the same working dataset or related via the County field."
+    },
+    {
+      "id": "calculate_incidence_rate",
+      "description": "Verify the calculation of the IncidenceRate variable using the specified formula.",
+      "points": 25,
+      "visual_evidence": "Epi Info 7 dialog box, syntax editor, or defined variables list showing 'IncidenceRate' assigned the exact formula '(Count / Pop2024) * 100000'."
+    },
+    {
+      "id": "verify_zero_cases_handling",
+      "description": "Verify that all five specified counties (Fulton, Gwinnett, Cobb, DeKalb, Clayton) are present in the data, and any county with zero cases shows an IncidenceRate of 0.",
+      "points": 20,
+      "visual_evidence": "A data grid, list, or output table in Epi Info 7 displaying the 5 counties, specifically showing a 0 in the IncidenceRate column for any county lacking cases."
+    },
+    {
+      "id": "export_final_csv",
+      "description": "Verify the final table is exported to 'FinalRates.csv' with the required columns.",
+      "points": 25,
+      "visual_evidence": "File Explorer showing 'FinalRates.csv' in 'C:\\Users\\Docker\\Documents\\CountyAnalysis\\', or the opened CSV file showing the columns 'County', 'Count', 'Pop2024', and 'IncidenceRate'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_usage",
+      "description": "Verify the agent used Epi Info 7's interface to process the data rather than writing an external script.",
+      "visual_evidence": "Screenshots should show interaction with the Epi Info 7 application windows (Classic Analysis, Visual Dashboard, etc.), not a terminal running a Python/Pandas script."
+    },
+    {
+      "id": "genuine_calculation",
+      "description": "Verify the incidence rates were actually calculated by the software and not manually typed.",
+      "visual_evidence": "Presence of Epi Info 7 syntax, variable definition dialogs, or output windows showing the computed results, rather than just a text editor manually typing the final CSV contents."
+    },
+    {
+      "id": "correct_file_paths",
+      "description": "Verify the agent used the exact specified input and output paths.",
+      "visual_evidence": "File paths visible in Epi Info 7's 'Read', 'Relate', or 'Write/Export' dialogs matching the 'C:\\Users\\Docker\\Documents\\CountyAnalysis\\...' structure."
+    }
+  ],
+  "privileged_info_for_vlm": "The task uses synthetic case data for Viral Meningitis in 2024, but the five counties (Fulton, Gwinnett, Cobb, DeKalb, and Clayton) are real Georgia counties. 2024 population estimates for these counties are publicly available (e.g., Fulton: ~1,076,561; Gwinnett: ~979,864; Cobb: ~775,208; DeKalb: ~765,351). The VLM should ensure the agent processes the provided 'Cases.csv' and 'Population.csv' files rather than looking up real-world incidence data, as county-level viral meningitis data is not publicly reported by the CDC."
+}

@@ -1,0 +1,54 @@
+{
+  "task_id": "panel_hausman_test@1",
+  "task_completion": [
+    {
+      "id": "script_file_created",
+      "description": "The script panel_analysis.inp is created in the correct directory.",
+      "points": 10,
+      "visual_evidence": "A file manager, terminal, or text editor shows the file named 'panel_analysis.inp' located in '/home/ga/Documents/gretl_output/'."
+    },
+    {
+      "id": "panel_structure_configured",
+      "description": "The data structure is set to a panel with 10 units and 20 periods.",
+      "points": 15,
+      "visual_evidence": "The script contains commands to set the dataset as a panel (e.g., `setobs` with panel flags), or the output file explicitly states 'Panel data, 10 cross-sectional units, 20 time-series observations' or '200 observations'."
+    },
+    {
+      "id": "fixed_effects_model",
+      "description": "A Fixed Effects (Within) model is estimated using 'invest' as the dependent variable and 'mvalue', 'kstock' as regressors.",
+      "points": 20,
+      "visual_evidence": "The script contains a command for Fixed Effects (e.g., `panel invest const mvalue kstock --fixed-effects` or similar), or the output file shows 'Fixed-effects' estimation results with the correct variables."
+    },
+    {
+      "id": "random_effects_model",
+      "description": "A Random Effects (GLS) model is estimated using 'invest' as the dependent variable and 'mvalue', 'kstock' as regressors.",
+      "points": 20,
+      "visual_evidence": "The script contains a command for Random Effects (e.g., `panel invest const mvalue kstock --random-effects`), or the output file shows 'Random-effects (GLS)' estimation results with the correct variables."
+    },
+    {
+      "id": "hausman_test_performed",
+      "description": "A Hausman test is included to compare the Fixed and Random Effects models.",
+      "points": 15,
+      "visual_evidence": "The script contains the `hausman` command (or similar test command), or the output file shows the results of a 'Hausman test-statistic'."
+    },
+    {
+      "id": "results_saved_to_file",
+      "description": "The complete analysis output is saved to panel_results.txt.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or text editor shows the file 'panel_results.txt' in '/home/ga/Documents/gretl_output/' containing the Gretl estimation results."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_gretl_output",
+      "description": "The output file contains genuine Gretl formatting and statistical results.",
+      "visual_evidence": "The contents of panel_results.txt should look like standard Gretl output (including standard errors, t-ratios, p-values, R-squared, etc.), not manually typed or simplified text."
+    },
+    {
+      "id": "script_contains_commands",
+      "description": "The script file contains actual Gretl commands, not hardcoded text outputs.",
+      "visual_evidence": "The panel_analysis.inp file should contain valid Gretl commands (like `open`, `setobs`, `panel`, `outfile`), not echo or print statements that just output the expected coefficients."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected panel regression coefficients are:\n- Fixed Effects model: mvalue \u2248 0.1101, kstock \u2248 0.3101.\n- Random Effects model: mvalue \u2248 0.1022, kstock \u2248 0.3070.\nThe dataset has 10 firms and 20 years (200 observations total). The output file should reflect these values if the models were estimated correctly."
+}

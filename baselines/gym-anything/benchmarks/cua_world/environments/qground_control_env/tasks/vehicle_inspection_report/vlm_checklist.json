@@ -1,0 +1,53 @@
+{
+  "task_id": "vehicle_inspection_report@1",
+  "task_completion": [
+    {
+      "id": "open_inspection_template",
+      "description": "Open and read the commissioning inspection template.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window is open displaying the contents of '/home/ga/Documents/QGC/inspection_template.txt'."
+    },
+    {
+      "id": "configure_flight_modes",
+      "description": "Configure the vehicle's flight modes to fleet standards in QGroundControl.",
+      "points": 25,
+      "visual_evidence": "QGroundControl's 'Flight Modes' setup menu is visible, showing the modes being set (e.g., Flight Mode 1 to AltHold, Flight Mode 2 to Loiter, Flight Mode 3 to Auto, Flight Mode 4 to RTL, Flight Mode 5 to Land, Flight Mode 6 to PosHold)."
+    },
+    {
+      "id": "configure_tuning_parameters",
+      "description": "Configure the vehicle's controller tuning parameters (ATC gains) to fleet standards.",
+      "points": 25,
+      "visual_evidence": "QGroundControl's 'Parameters' or 'Tuning' menu is visible, showing ATC angle gain parameters (such as ATC_ANG_PIT_P or ATC_ANG_RLL_P) being modified or set to approximately 4.0."
+    },
+    {
+      "id": "verify_live_telemetry",
+      "description": "Verify live telemetry from the vehicle.",
+      "points": 10,
+      "visual_evidence": "QGroundControl's main 'Fly' view is visible, displaying active telemetry data such as the artificial horizon, altitude, heading, or the vehicle's position on the map."
+    },
+    {
+      "id": "save_inspection_report",
+      "description": "Document findings in an airworthiness report and save it to the specified path.",
+      "points": 30,
+      "visual_evidence": "A text editor is visible showing the completed airworthiness report with documented findings, being saved to or located at '/home/ga/Documents/QGC/inspection_report.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_qgc_interaction",
+      "description": "The agent interacted with the QGroundControl GUI to configure the vehicle and view telemetry.",
+      "visual_evidence": "Screenshots should show the QGroundControl application open and being actively navigated (e.g., clicking through menus, changing parameters), rather than the agent bypassing the GUI using background scripts."
+    },
+    {
+      "id": "genuine_report_content",
+      "description": "The agent documented actual findings in the report rather than copying an empty template.",
+      "visual_evidence": "The final inspection_report.txt should contain filled-in values, checkmarks, or notes corresponding to the flight modes and ATC gains, not just the blank template text."
+    },
+    {
+      "id": "no_blind_file_creation",
+      "description": "The agent gathered information before writing the report.",
+      "visual_evidence": "The agent should be seen opening QGroundControl and checking/configuring the vehicle BEFORE or DURING the creation of the inspection_report.txt file, rather than just writing the file immediately from memory."
+    }
+  ],
+  "privileged_info_for_vlm": "The inspection template is located at '/home/ga/Documents/QGC/inspection_template.txt'. The final report must be saved to '/home/ga/Documents/QGC/inspection_report.txt'. The required flight modes are: FLTMODE1 = AltHold, FLTMODE2 = Loiter, FLTMODE3 = Auto, FLTMODE4 = RTL, FLTMODE5 = Land, FLTMODE6 = PosHold. The target ATC angle gains (e.g., ATC_ANG_PIT_P, ATC_ANG_RLL_P) must be configured to a value between 3.8 and 4.2 (target is exactly 4.0)."
+}

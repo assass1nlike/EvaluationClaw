@@ -1,0 +1,39 @@
+{
+  "id": "setup_line_break_chart@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "A swing trader wants to filter out market noise using a 3-Line Break chart. Configure a Daily chart for AAPL in NinjaTrader 8 using the 3-Line Break chart type. Add a 20-period Simple Moving Average (SMA) as an overlay and a 14-period Relative Strength Index (RSI) in Panel 2. Save the workspace to persist these changes.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\setup_line_break_chart\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\setup_line_break_chart\\export_result.ps1"
+  },
+  "metadata": {
+    "instrument": "AAPL",
+    "chart_type": "LineBreak",
+    "line_count": 3,
+    "indicators": [
+      {
+        "name": "SMA",
+        "period": 20
+      },
+      {
+        "name": "RSI",
+        "period": 14
+      }
+    ],
+    "workspace_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\workspaces",
+    "result_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\setup_line_break_chart_result.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_setup_line_break_chart"
+    }
+  }
+}

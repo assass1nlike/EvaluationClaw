@@ -1,0 +1,33 @@
+{
+  "id": "configure_daily_minmax@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "Configure the input processing pipeline for the 'greenhouse_temp' input (node: environment) to log the raw temperature to 'greenhouse_temp_raw', the daily maximum to 'greenhouse_temp_max', and the daily minimum to 'greenhouse_temp_min'. All feeds must use the PHPFina engine with a 10s interval. Ensure both the daily maximum and daily minimum are calculated from the raw temperature value.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_daily_minmax/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_daily_minmax/export_result.sh"
+  },
+  "metadata": {
+    "input_name": "greenhouse_temp",
+    "node_name": "environment",
+    "feeds": {
+      "raw": "greenhouse_temp_raw",
+      "max": "greenhouse_temp_max",
+      "min": "greenhouse_temp_min"
+    },
+    "engine": 5,
+    "interval": 10
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_daily_minmax"
+    }
+  }
+}

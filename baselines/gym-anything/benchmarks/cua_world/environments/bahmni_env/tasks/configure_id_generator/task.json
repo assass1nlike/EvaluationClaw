@@ -1,0 +1,30 @@
+{
+  "id": "configure_id_generator@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Configure a new sequential identifier generator in the OpenMRS ID Generation module named 'Nutrition ID Sequence' for the 'Nutrition ID' identifier type. The generator must use the base character set '0123456789', prefix 'NUT', and have a minimum and maximum length of 6. Login credentials: Username: superman, Password: Admin123.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_id_generator/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_id_generator/export_result.sh"
+  },
+  "metadata": {
+    "target_name": "Nutrition ID Sequence",
+    "target_identifier_type": "Nutrition ID",
+    "target_prefix": "NUT",
+    "target_min_length": 6,
+    "target_max_length": 6,
+    "target_base_set": "0123456789"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_id_generator"
+    }
+  }
+}

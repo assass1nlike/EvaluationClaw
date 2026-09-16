@@ -1,0 +1,59 @@
+{
+  "task_id": "dicom_network_send@1",
+  "task_completion": [
+    {
+      "id": "open_dicom_node_config",
+      "description": "Open the DICOM node configuration or DICOM Send dialog in Weasis",
+      "points": 10,
+      "visual_evidence": "Screenshots show the Weasis DICOM Send dialog or DICOM preferences window open, displaying options to add or configure a destination node."
+    },
+    {
+      "id": "configure_node_description",
+      "description": "Set the destination node description to 'Central PACS'",
+      "points": 10,
+      "visual_evidence": "The text 'Central PACS' is entered into the Description or Name field of the new DICOM node configuration."
+    },
+    {
+      "id": "configure_ae_title",
+      "description": "Set the AE Title to 'PACS_ARCHIVE'",
+      "points": 15,
+      "visual_evidence": "The text 'PACS_ARCHIVE' is entered into the AE Title field of the new DICOM node configuration."
+    },
+    {
+      "id": "configure_host_and_port",
+      "description": "Set the Hostname to 'localhost' and Port to '11112'",
+      "points": 15,
+      "visual_evidence": "The text 'localhost' is entered in the Hostname/IP field, and '11112' is entered in the Port field of the new DICOM node configuration."
+    },
+    {
+      "id": "select_destination_node",
+      "description": "Select the newly configured 'Central PACS' node as the destination for sending",
+      "points": 20,
+      "visual_evidence": "The DICOM Send dialog shows 'Central PACS' (or the newly created node) selected in the destination dropdown or list."
+    },
+    {
+      "id": "successful_dicom_send",
+      "description": "Initiate the send process and successfully transfer the DICOM series",
+      "points": 30,
+      "visual_evidence": "A success message, a completed progress bar (100%), or a job status indicating 'Completed' or 'Success' for the DICOM send operation in Weasis."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_weasis_gui",
+      "description": "The agent used the Weasis graphical user interface to configure the node and send the DICOM data",
+      "visual_evidence": "Screenshots show interaction with Weasis menus and dialog boxes, rather than terminal commands."
+    },
+    {
+      "id": "no_terminal_cheating",
+      "description": "The agent did not bypass the Weasis UI by using command-line DICOM tools (like storescu)",
+      "visual_evidence": "There should be no terminal windows showing the execution of 'storescu' or similar dcmtk/dcm4che command-line utilities to send the files."
+    },
+    {
+      "id": "genuine_configuration",
+      "description": "The configuration parameters were entered into the actual Weasis application",
+      "visual_evidence": "The fields containing 'Central PACS', 'PACS_ARCHIVE', 'localhost', and '11112' are clearly part of the Weasis application interface, not a text editor or separate notes app."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected AE Title is 'PACS_ARCHIVE', the expected port is 11112, and the expected host is 'localhost'. Note that the loaded DICOM series is actually an X-Ray Angiography (XA) file, despite the task description calling it a 'CT series'. The agent must configure these exact parameters in Weasis and successfully complete a DICOM C-STORE transfer to this local receiver."
+}

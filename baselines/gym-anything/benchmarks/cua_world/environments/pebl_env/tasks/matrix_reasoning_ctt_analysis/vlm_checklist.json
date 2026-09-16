@@ -1,0 +1,53 @@
+{
+  "task_id": "matrix_reasoning_ctt_analysis@1",
+  "task_completion": [
+    {
+      "id": "python_script_setup",
+      "description": "Agent creates a Python script to read the matrix reasoning CSV data.",
+      "points": 10,
+      "visual_evidence": "Look for a code editor open with a Python script importing data manipulation libraries (like pandas or csv) and loading the file '~/pebl/data/matrix_reasoning_data.csv'."
+    },
+    {
+      "id": "participant_exclusion_logic",
+      "description": "Python script includes logic to exclude participants with a mean reaction time of less than 1,500 ms.",
+      "points": 20,
+      "visual_evidence": "Look for code calculating the mean of 'rt_ms' grouped by 'participant_id' and filtering out participants where this mean is < 1500."
+    },
+    {
+      "id": "ctt_calculation_logic",
+      "description": "Python script includes logic to calculate Item Difficulty, Corrected Item-Total Correlation, and Cronbach's Alpha.",
+      "points": 20,
+      "visual_evidence": "Look for code calculating the mean of the 'correct' column (Difficulty), Pearson correlation between an item and the sum of other items (Corrected Item-Total Correlation), and a formula using sample variance for Cronbach's Alpha."
+    },
+    {
+      "id": "miskeyed_item_logic",
+      "description": "Python script includes logic to identify the single miskeyed item with a negative corrected item-total correlation.",
+      "points": 20,
+      "visual_evidence": "Look for an if-condition, filter, or search in the code checking for a corrected item-total correlation value < 0 to assign to the 'bad_item' variable."
+    },
+    {
+      "id": "json_report_generation",
+      "description": "Agent executes the script and generates the item_analysis_report.json file with the correct structure.",
+      "points": 30,
+      "visual_evidence": "Look for terminal output showing the Python script being executed, and/or the final '~/pebl/analysis/item_analysis_report.json' file open in an editor displaying the exact keys: 'excluded_participants', 'cronbach_alpha', 'bad_item', and 'items'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "dynamic_calculation",
+      "description": "The Python script dynamically calculates the CTT statistics from the data rather than hardcoding answers.",
+      "visual_evidence": "Check the Python code to ensure variables, loops, and math/stat functions are used to compute the results, rather than hardcoded numbers assigned to the JSON dictionary."
+    },
+    {
+      "id": "actual_script_execution",
+      "description": "The agent executes the Python script to generate the output file.",
+      "visual_evidence": "Look for the terminal showing a 'python <script_name>.py' command being run. The JSON file should be created by the script (e.g., using json.dump), not by terminal echo commands."
+    },
+    {
+      "id": "no_manual_json_typing",
+      "description": "The agent does not manually type out the final JSON file.",
+      "visual_evidence": "Ensure the agent does not open 'item_analysis_report.json' in a text editor and manually type the JSON structure and calculated values."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

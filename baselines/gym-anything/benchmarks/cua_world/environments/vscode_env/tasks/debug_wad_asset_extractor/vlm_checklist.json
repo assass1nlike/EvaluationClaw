@@ -1,0 +1,53 @@
+{
+  "task_id": "debug_wad_asset_extractor@1",
+  "task_completion": [
+    {
+      "id": "fix_endianness",
+      "description": "Corrected big-endian struct unpacking to little-endian.",
+      "points": 20,
+      "visual_evidence": "Look for code changes in the editor or terminal diffs showing struct format strings changed from big-endian (e.g., using '>') to little-endian (e.g., using '<') for parsing the WAD header or directory."
+    },
+    {
+      "id": "fix_absolute_seeking",
+      "description": "Changed relative file seeking to absolute file seeking.",
+      "points": 20,
+      "visual_evidence": "Look for code changes in the editor or terminal diffs where file.seek() calls are updated to use absolute offsets (e.g., removing os.SEEK_CUR or relative offset math) when jumping to lump data."
+    },
+    {
+      "id": "fix_string_decoding",
+      "description": "Handled missing null terminators in 8-byte string decoding.",
+      "points": 20,
+      "visual_evidence": "Look for code changes in the editor or terminal diffs showing the lump name decoding logic updated to safely handle exactly 8 bytes without crashing on missing null terminators (e.g., using .rstrip(b'\\x00') or similar safe decoding)."
+    },
+    {
+      "id": "skip_zero_byte_lumps",
+      "description": "Added logic to skip 0-byte marker lumps.",
+      "points": 20,
+      "visual_evidence": "Look for code changes in the editor or terminal diffs showing an 'if size == 0:' check with a 'continue' or 'pass' statement to safely ignore empty marker lumps, or terminal output showing marker lumps being skipped."
+    },
+    {
+      "id": "fix_color_channels",
+      "description": "Corrected BGR-to-RGB color channel extraction logic.",
+      "points": 20,
+      "visual_evidence": "Look for code changes in the editor or terminal diffs showing color tuple indices swapped or reordered from BGR to RGB, or look at extracted image assets in the output folder displaying correct colors (e.g., no swapped red/blue hues)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_code_modification",
+      "description": "The agent actually edited the Python extraction script rather than mocking the output.",
+      "visual_evidence": "Look for an open text editor (like VS Code, nano, or vim) showing the modified Python files in /home/ga/workspace/wad_extractor/, or terminal commands like 'sed' or 'git diff' applying the changes."
+    },
+    {
+      "id": "actual_script_execution",
+      "description": "The agent executed the extraction script using the provided DOOM1.WAD file.",
+      "visual_evidence": "Look for the command 'python main.py DOOM1.WAD output/' being run in the terminal and producing standard execution output, rather than the agent manually creating the output directory and files."
+    },
+    {
+      "id": "authentic_assets",
+      "description": "The extracted assets appear to be genuine DOOM media files.",
+      "visual_evidence": "Look at the 'output/' directory contents. It should contain numerous extracted files (like images or sounds) characteristic of a 4.19MB WAD file, not just a few manually created dummy files."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific binary parsing bugs in the Python extractor script located at /home/ga/workspace/wad_extractor/: 1) changing big-endian struct unpacking to little-endian, 2) changing relative file seeking to absolute seeking, 3) handling missing null terminators in 8-byte string decoding, 4) skipping 0-byte marker lumps, and 5) correcting BGR-to-RGB color channel extraction. The script must be run via 'python main.py DOOM1.WAD output/'. Each fixed bug is worth 20 points, and a minimum of 60 points (3 fixes) is required to pass."
+}

@@ -1,0 +1,38 @@
+{
+  "id": "split_layer_by_attribute@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Split the global countries layer (/home/ga/GIS_Data/ne_110m_admin_0_countries.geojson) into separate GeoJSON files based on the 'CONTINENT' field. Export the resulting files to /home/ga/GIS_Data/exports/countries_by_continent/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/split_layer_by_attribute/setup_task.sh",
+    "post_task": "/workspace/tasks/split_layer_by_attribute/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/GIS_Data/ne_110m_admin_0_countries.geojson",
+    "output_dir": "/home/ga/GIS_Data/exports/countries_by_continent",
+    "split_field": "CONTINENT",
+    "expected_continents": [
+      "Africa",
+      "Asia",
+      "Europe",
+      "North America",
+      "Oceania",
+      "South America",
+      "Antarctica"
+    ],
+    "min_files": 6,
+    "max_files": 9
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_split_layer_by_attribute"
+    }
+  }
+}

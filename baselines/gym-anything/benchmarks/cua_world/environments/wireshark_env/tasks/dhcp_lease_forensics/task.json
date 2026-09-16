@@ -1,0 +1,27 @@
+{
+  "id": "dhcp_lease_forensics@1",
+  "version": "1.0",
+  "env_id": "example.wireshark_env@0.1",
+  "description": "Analyze the DHCP packet capture file at ~/Documents/captures/dhcp.pcap and reconstruct every DHCP lease transaction found. Create a text report at ~/Documents/captures/dhcp_analysis_report.txt documenting all transactions. The report must include a header summarizing total packet count and unique transaction IDs, followed by a section for each transaction (grouped by Transaction ID/xid) containing the Transaction ID (hex), Client MAC address, Assigned IP address (Your IP/yiaddr), DHCP Server IP (from option 54), and lease options (Subnet Mask, Router, DNS Server, and Lease Time).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/dhcp_lease_forensics/setup_task.sh",
+    "post_task": "/workspace/tasks/dhcp_lease_forensics/export_result.sh"
+  },
+  "metadata": {
+    "pcap_file": "/home/ga/Documents/captures/dhcp.pcap",
+    "output_report": "/home/ga/Documents/captures/dhcp_analysis_report.txt",
+    "ground_truth_dir": "/var/lib/wireshark_ground_truth"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_dhcp_lease_forensics"
+    }
+  }
+}

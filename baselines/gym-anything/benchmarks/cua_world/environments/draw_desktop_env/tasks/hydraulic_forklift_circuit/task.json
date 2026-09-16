@@ -1,0 +1,42 @@
+{
+  "id": "hydraulic_forklift_circuit@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Mechanical Engineer creating a hydraulic circuit diagram for a Series-X Forklift service manual using ISO 1219 standard symbols from the 'Fluid Power' library. Based on the system specifications in ~/Desktop/hydraulic_specs.txt, create a schematic including a Reservoir, Fixed Displacement Pump (Electric Motor driven), Pressure Relief Valve, 4-Way 3-Position Directional Control Valve (Lever operated, Spring Centered), Double-Acting Cylinder, and Return Line Filter. Connect the components to show flow: the Pump feeds the Valve, the Relief Valve bridges the Pressure Line to the Tank, the Valve connects to both ends of the Cylinder, and the Valve exhaust returns through the Filter to the Tank. Label the main components (e.g., 'Pump', 'Lift Cylinder', 'Relief Valve'). Save the diagram to ~/Desktop/forklift_hydraulic.drawio and export it as a PNG to ~/Desktop/forklift_hydraulic.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hydraulic_forklift_circuit/setup_task.sh",
+    "post_task": "/workspace/tasks/hydraulic_forklift_circuit/export_result.sh"
+  },
+  "metadata": {
+    "expected_drawio": "/home/ga/Desktop/forklift_hydraulic.drawio",
+    "expected_png": "/home/ga/Desktop/forklift_hydraulic.png",
+    "required_styles": [
+      "fluid_power",
+      "hydraulic",
+      "valve",
+      "pump",
+      "cylinder",
+      "reservoir"
+    ],
+    "required_labels": [
+      "pump",
+      "cylinder",
+      "valve",
+      "filter",
+      "tank",
+      "motor"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hydraulic_forklift_circuit"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "sprint_retrospective_synthesis@1",
+  "version": "1.0",
+  "env_id": "rocket_chat_env@0.1",
+  "description": "You are a Software Developer serving as Scrum Master at a mid-size SaaS company. Synthesize the Q1 2026 sprint feedback from #retro-team-alpha, #retro-team-beta, and #retro-team-gamma in Rocket.Chat (Username: admin, Password: Admin1234!). Create a public channel named 'q1-retro-action-items' with the topic 'Q1 2026 Sprint Retrospective - Cross-Team Action Items and Owners' and invite eng.director, alpha.lead, beta.lead, gamma.lead, and product.manager. In the new channel, post a summary identifying at least two cross-cutting themes and a separate pinned message listing at least three specific action items with assigned owners. Send an executive summary of the findings to eng.director via direct message and post confirmation messages in #retro-team-alpha, #retro-team-beta, and #retro-team-gamma acknowledging that their feedback has been captured.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "dense"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sprint_retrospective_synthesis/setup_task.sh",
+    "pre_task_timeout": 600,
+    "post_task": "/workspace/tasks/sprint_retrospective_synthesis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Software Developer / Scrum Master",
+    "industry": "SaaS / Information Technology",
+    "action_channel": "q1-retro-action-items",
+    "required_members": [
+      "eng.director",
+      "alpha.lead",
+      "beta.lead",
+      "gamma.lead",
+      "product.manager"
+    ],
+    "dm_recipient": "eng.director"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sprint_retrospective_synthesis"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "generate_maven_client_config@1",
+  "task_completion": [
+    {
+      "id": "access_artifactory",
+      "description": "Access the JFrog Artifactory web interface.",
+      "points": 10,
+      "visual_evidence": "A web browser is open and displaying the JFrog Artifactory UI, typically at http://localhost:8082."
+    },
+    {
+      "id": "open_client_config_tool",
+      "description": "Open the client configuration or 'Set Me Up' tool for Maven.",
+      "points": 20,
+      "visual_evidence": "The Artifactory UI shows a 'Set Me Up' dialog, Application setup screen, or Maven configuration instructions."
+    },
+    {
+      "id": "select_target_repo",
+      "description": "Select the 'example-repo-local' repository for configuration.",
+      "points": 20,
+      "visual_evidence": "The configuration tool explicitly shows 'example-repo-local' selected as the target repository for the generated snippet."
+    },
+    {
+      "id": "create_output_file",
+      "description": "Create or open the target file /home/ga/maven_settings.xml.",
+      "points": 20,
+      "visual_evidence": "A text editor (like nano, vim, gedit) or a terminal command (like cat or echo) is visible, explicitly writing to the path '/home/ga/maven_settings.xml'."
+    },
+    {
+      "id": "save_valid_xml_content",
+      "description": "Save the valid XML snippet containing the correct server and repository configuration.",
+      "points": 30,
+      "visual_evidence": "The contents of /home/ga/maven_settings.xml are visible on screen, showing valid XML tags (e.g., <settings>, <servers>, <repositories>) and the repository URL containing 'artifactory/example-repo-local'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_artifactory_ui",
+      "description": "Verify the agent interacted with the actual Artifactory UI to get the configuration.",
+      "visual_evidence": "Screenshots should show the agent navigating the JFrog Artifactory web interface to generate the snippet, rather than just typing a hardcoded XML file from memory."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Verify the agent genuinely created and saved the file in the environment.",
+      "visual_evidence": "A real text editor or standard terminal command was used to write the file to the filesystem."
+    },
+    {
+      "id": "no_hallucinated_urls",
+      "description": "Verify the XML configuration uses the actual local Artifactory URL.",
+      "visual_evidence": "The XML content should show the local Artifactory URL (e.g., referencing localhost:8082) as provided by the UI, not a generic placeholder like 'example.com'."
+    }
+  ],
+  "privileged_info_for_vlm": "The target JFrog Artifactory instance is running at http://localhost:8082. The agent must generate a Maven configuration for the repository 'example-repo-local'. The final output must be saved exactly at '/home/ga/maven_settings.xml'. The saved XML must contain the repository URL path 'artifactory/example-repo-local'."
+}

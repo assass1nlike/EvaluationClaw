@@ -1,0 +1,53 @@
+{
+  "task_id": "bulk_product_discontinuation@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_catalog",
+      "description": "Navigate to the product catalog page",
+      "points": 10,
+      "visual_evidence": "The Magento admin panel is visible with the 'Catalog' -> 'Products' page loaded, showing the product grid."
+    },
+    {
+      "id": "filter_legacy_products",
+      "description": "Filter the product list to show only 'LEG-' SKUs",
+      "points": 20,
+      "visual_evidence": "The product grid's filter is active with 'LEG-' entered in the SKU column, and the grid displays only products with SKUs starting with 'LEG-'."
+    },
+    {
+      "id": "select_legacy_products",
+      "description": "Select the filtered 'LEG-' products for bulk action",
+      "points": 10,
+      "visual_evidence": "Checkboxes next to the 'LEG-' products in the grid are checked, or the 'Select All' checkbox in the grid header is checked."
+    },
+    {
+      "id": "update_status_disabled",
+      "description": "Update the status of 'LEG-' products to 'Disabled'",
+      "points": 30,
+      "visual_evidence": "The 'Update Attributes' page shows the 'Enable Product' toggle set to 'No' (Disabled) with the 'Change' checkbox ticked, OR the final product grid shows 'Disabled' in the Status column for 'LEG-' products."
+    },
+    {
+      "id": "update_tax_class_none",
+      "description": "Update the Tax Class of 'LEG-' products to 'None'",
+      "points": 30,
+      "visual_evidence": "The 'Update Attributes' page shows the 'Tax Class' dropdown set to 'None' with the 'Change' checkbox ticked, OR the final product grid shows 'None' in the Tax Class column for 'LEG-' products."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the web GUI to perform the updates",
+      "visual_evidence": "Screenshots show interaction with the Magento web interface in a browser, rather than using terminal commands, API scripts, or direct database queries."
+    },
+    {
+      "id": "no_core_modification",
+      "description": "Agent did not modify 'CORE-' products",
+      "visual_evidence": "There is no evidence of filtering, selecting, or updating products with the 'CORE-' prefix in the screenshots."
+    },
+    {
+      "id": "genuine_browser_usage",
+      "description": "Agent interacted with a real web browser",
+      "visual_evidence": "Standard browser elements (address bar, tabs, navigation buttons) are visible and the web pages render correctly without signs of text-editor mockups."
+    }
+  ],
+  "privileged_info_for_vlm": "There are exactly 25 target products with the SKU prefix 'LEG-' and 15 protected products with the SKU prefix 'CORE-'. Initially, all products have Status 'Enabled' (1) and Tax Class 'Taxable Goods' (2). The successful completion state requires 'LEG-' products to be updated to Status 'Disabled' (2) and Tax Class 'None' (0), while 'CORE-' products must remain completely untouched."
+}

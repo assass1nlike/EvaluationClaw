@@ -1,0 +1,27 @@
+{
+  "id": "batch_tag_urgent_cases@1",
+  "version": "1.0",
+  "env_id": "arkcase_env@0.1",
+  "description": "A set of new complaints has been filed regarding 'Project Omega'. We need to fast-track the urgent ones. Tag all 'High' priority complaints containing 'Project Omega' in the title with 'expedite-review'. Do not apply this tag to Low or Medium priority cases.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/batch_tag_urgent_cases/setup_task.sh",
+    "post_task": "/workspace/tasks/batch_tag_urgent_cases/export_result.sh"
+  },
+  "metadata": {
+    "target_tag": "expedite-review",
+    "required_cases_count": 2,
+    "forbidden_cases_count": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_batch_tagging"
+    }
+  }
+}

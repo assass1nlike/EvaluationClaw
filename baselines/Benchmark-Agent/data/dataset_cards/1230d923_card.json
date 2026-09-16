@@ -1,0 +1,82 @@
+{
+  "dataset_id": "1230d923",
+  "name": "Tabular-Data-Detection",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Tabular-Data-Detection dataset evaluates object detection models on images of tables, where the goal is to localize various structural elements such as columns, rows, and the table itself. Each sample pairs a table image with a textual prompt and bounding box annotations for multiple predefined categories.",
+  "card_text": "This dataset contains 200 image-text samples for tabular data detection. Each sample includes a table image (screenshot or document scan) and a constant textual prompt instructing detection. The output is a list of bounding boxes, each labeled with a category like 'column', 'table', 'direct_children', 'closure_row', 'bold_parent_row', 'sub_row', or 'bold_row'. The bounding boxes are given as [x, y, width, height] coordinates. The dataset is designed to test a model's ability to recognize and localize tabular structures in visual documents. Assumptions: the images are relatively clean table layouts; the prompt is identical across samples and serves as a task instruction rather than a variable query. The variety of categories reflects hierarchical table components, making it suitable for detection and localization tasks.",
+  "tasks": [
+    "detection",
+    "localization"
+  ],
+  "domain": "document layout analysis",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_file"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "screenshot-UI",
+        "semantics": "The input image contains a table or tabular layout. It is the visual context that the model must analyze to detect structural elements. Images vary in complexity and number of table components.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A constant textual prompt that instructs the model to perform tabular data detection. It does not vary across samples and serves as the task instruction for different models.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "bbox": {
+        "paths": [
+          "output.bbox"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A list of bounding box annotations. Each element is an object with a single key (the structural category, e.g., 'column', 'table', 'direct_children', 'closure_row', 'bold_parent_row', 'sub_row', 'bold_row') mapping to a rectangle [x, y, width, height] that localizes that category in the image.",
+        "path_types": [
+          "list<dict>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input image of a table, a constant textual prompt instructing the model to detect tabular structures, and an output list of bounding boxes. The bounding boxes are labeled with categories such as 'column', 'table', 'direct_children', etc., and provide coordinates for localizing these elements. There is no separate question text, answer text, dialog, options, or explicit table data; the task is purely visual detection and localization."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/tabular-data-detection/json/annotation_v2.json",
+    "existing_tags": {
+      "task": "tabular-detection",
+      "type": "comprehension",
+      "skill": "Object Detection",
+      "domain": "General",
+      "general_capability": [
+        "Content Recognition"
+      ],
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "document_intraop_vitals@1",
+  "task_completion": [
+    {
+      "id": "open_vital_recorder",
+      "description": "Open the Vital Recorder application",
+      "points": 10,
+      "visual_evidence": "Vital Recorder application window is visible on the screen."
+    },
+    {
+      "id": "load_vital_file",
+      "description": "Attempt to load the '0006.vital' file into Vital Recorder",
+      "points": 15,
+      "visual_evidence": "The Vital Recorder interface shows an attempt to open '0006.vital' (e.g., via a file explorer dialog navigating to C:\\Users\\Docker\\Documents\\VitalData\\) or the file is successfully loaded and visible in the title bar/UI."
+    },
+    {
+      "id": "navigate_timeline",
+      "description": "Navigate the timeline to the required 10:00 to 30:00 period",
+      "points": 15,
+      "visual_evidence": "The timeline or playback cursor in Vital Recorder is positioned at or between the 00:10:00 and 00:30:00 marks."
+    },
+    {
+      "id": "create_summary_file",
+      "description": "Create the vitals_summary.txt file",
+      "points": 20,
+      "visual_evidence": "A text editor (e.g., Notepad) is open, and the window title or save dialog indicates the file is named 'vitals_summary.txt' (located in C:\\Users\\Docker\\Documents\\)."
+    },
+    {
+      "id": "write_summary_header",
+      "description": "Write the exact required header in the summary file",
+      "points": 20,
+      "visual_evidence": "The text editor shows the exact lines: 'INTRAOPERATIVE VITAL SIGNS SUMMARY', 'Case: 0006', 'Period: 00:10:00 - 00:30:00', and 'Time,HR,SpO2,SBP'."
+    },
+    {
+      "id": "write_summary_data",
+      "description": "Document the vital signs at the specified 5-minute intervals",
+      "points": 20,
+      "visual_evidence": "The text editor shows 5 rows of data starting with times 00:10:00, 00:15:00, 00:20:00, 00:25:00, and 00:30:00, followed by comma-separated values or 'N/A'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent interacted with the Vital Recorder GUI rather than using terminal scripts to extract data.",
+      "visual_evidence": "Screenshots show the Vital Recorder application open and being interacted with (e.g., file open dialogs, timeline navigation) rather than just command prompt windows running extraction scripts."
+    },
+    {
+      "id": "manual_file_creation",
+      "description": "The agent manually created and edited the summary text file.",
+      "visual_evidence": "A text editor like Notepad is visible with the agent typing or pasting the required format, rather than the file being generated silently via a script."
+    },
+    {
+      "id": "no_hallucination",
+      "description": "The agent did not hallucinate data if the source file was missing.",
+      "visual_evidence": "If '0006.vital' could not be opened (due to known environment defects), the text file should contain 'N/A' for the values or remain incomplete, rather than containing fabricated integer values for the vitals."
+    }
+  ],
+  "privileged_info_for_vlm": "Target output path: C:\\Users\\Docker\\Documents\\vitals_summary.txt. Tolerances for scoring (if data exists): HR \u00b13, SpO2 \u00b12, SBP \u00b15. CRITICAL NOTE: The task environment is known to be defective (missing setup scripts), meaning the target file '0006.vital' may not exist. If the agent cannot open the file, it must not fabricate vital sign numbers. Any populated numerical data when the source file is missing indicates hallucination."
+}

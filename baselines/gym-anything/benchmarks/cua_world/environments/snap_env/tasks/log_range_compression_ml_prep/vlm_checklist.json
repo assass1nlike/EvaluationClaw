@@ -1,0 +1,59 @@
+{
+  "task_id": "log_range_compression_ml_prep@1",
+  "task_completion": [
+    {
+      "id": "open_source_image",
+      "description": "Open the source Landsat multispectral GeoTIFF in the GIS software (e.g., SNAP).",
+      "points": 10,
+      "visual_evidence": "The file 'landsat_multispectral.tif' is visible in the Product Explorer or layer manager of the software."
+    },
+    {
+      "id": "create_first_log_band",
+      "description": "Create the first log-transformed virtual band.",
+      "points": 20,
+      "visual_evidence": "A Band Math or Virtual Band dialog showing a logarithmic expression (e.g., using 'log()' or 'log10()') applied to one of the image bands, and a new band appearing in the product tree."
+    },
+    {
+      "id": "create_second_log_band",
+      "description": "Create a second log-transformed virtual band.",
+      "points": 20,
+      "visual_evidence": "A Band Math or Virtual Band dialog showing a logarithmic expression applied to a different image band, resulting in a second new band in the product tree."
+    },
+    {
+      "id": "create_rescaled_byte_band",
+      "description": "Create a rescaled band that maps the log-transformed values to a 0-255 byte range.",
+      "points": 20,
+      "visual_evidence": "A Band Math dialog showing an expression that scales a log band (e.g., multiplying/adding to fit 0-255) with the target data type set to uint8/byte, or a new band explicitly created for this 8-bit rescaling."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Save the enhanced product in BEAM-DIMAP format to the specified path.",
+      "points": 15,
+      "visual_evidence": "A 'Save Product' dialog showing the path '/home/ga/snap_exports/ml_normalized.dim' or a file manager/terminal showing this .dim file and its associated .data folder created."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the final product as a GeoTIFF to the specified path.",
+      "points": 15,
+      "visual_evidence": "An 'Export' dialog showing the path '/home/ga/snap_exports/ml_normalized_output.tif' with GeoTIFF format selected, or a file manager/terminal showing this .tif file created."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the software GUI (like SNAP Desktop) to perform the band math and exports.",
+      "visual_evidence": "Screenshots show interaction with the GIS software interface (Product Explorer, Band Math dialogs, Export menus) rather than just running a pre-written script in a terminal."
+    },
+    {
+      "id": "genuine_band_math",
+      "description": "The agent actually inputted mathematical expressions for log transformation and rescaling.",
+      "visual_evidence": "The Band Math expression editor contains actual math functions (e.g., log, log10, scaling arithmetic) rather than just renaming bands or copying data directly without transformation."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The agent actually saved and exported the files to the correct directories.",
+      "visual_evidence": "Save/Export dialogs confirming the action, or terminal/file manager windows showing the newly created files in '/home/ga/snap_exports/'."
+    }
+  ],
+  "privileged_info_for_vlm": "The source file '/home/ga/snap_data/landsat_multispectral.tif' is actually an 8-bit image with bands named B1, B2, B3, B4. Do not penalize the agent if it uses these band names instead of SWIR1, NIR, Red, Green as claimed in the prompt. The expected output files are exactly '/home/ga/snap_exports/ml_normalized.dim' (BEAM-DIMAP) and '/home/ga/snap_exports/ml_normalized_output.tif' (GeoTIFF)."
+}

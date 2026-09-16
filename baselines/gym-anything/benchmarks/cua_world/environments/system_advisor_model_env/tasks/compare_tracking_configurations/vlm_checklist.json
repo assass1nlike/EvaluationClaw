@@ -1,0 +1,59 @@
+{
+  "task_id": "compare_tracking_configurations@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_setup",
+      "description": "The agent creates a Python script to initialize the PySAM Pvwattsv8 module with the base configuration.",
+      "points": 10,
+      "visual_evidence": "A text editor or IDE showing Python code that imports PySAM (e.g., 'import PySAM.Pvwattsv8') and sets base parameters like system_capacity=1000, module_type=0, dc_ac_ratio=1.2, losses=14.08, inv_eff=96, and gcr=0.4."
+    },
+    {
+      "id": "configure_fixed_rack",
+      "description": "The agent configures the simulation for a Fixed Open Rack system.",
+      "points": 15,
+      "visual_evidence": "Python code setting the array type to 0 ('array_type = 0') and tilt to 30 ('tilt = 30') for the fixed rack scenario."
+    },
+    {
+      "id": "configure_single_axis",
+      "description": "The agent configures the simulation for a Single-Axis Tracking system.",
+      "points": 15,
+      "visual_evidence": "Python code setting the array type to 2 ('array_type = 2') and tilt to 0 ('tilt = 0') for the single-axis tracking scenario."
+    },
+    {
+      "id": "configure_dual_axis",
+      "description": "The agent configures the simulation for a Dual-Axis Tracking system.",
+      "points": 15,
+      "visual_evidence": "Python code setting the array type to 4 ('array_type = 4') and tilt to 0 ('tilt = 0') for the dual-axis tracking scenario."
+    },
+    {
+      "id": "execute_simulation",
+      "description": "The agent successfully executes the PySAM script to generate the results.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the Python script being executed (e.g., 'python simulate.py') without errors, and/or the creation of the 'tracking_comparison.json' file in the file explorer or terminal."
+    },
+    {
+      "id": "verify_results_json",
+      "description": "The agent saves the correct simulation results and recommendation to tracking_comparison.json.",
+      "points": 25,
+      "visual_evidence": "The contents of 'tracking_comparison.json' displayed on screen showing location 'Phoenix', capacity 1000, fixed energy ~1.77 GWh, single-axis ~2.07 GWh, dual-axis ~2.50 GWh, and the recommendation 'Dual-Axis Tracking'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_sam_gui_usage",
+      "description": "The agent must not use the System Advisor Model (SAM) graphical user interface.",
+      "visual_evidence": "The SAM GUI application should not be visible in any screenshots; all interactions must be through code and terminal."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent must programmatically compute the results using PySAM rather than hardcoding the expected answers.",
+      "visual_evidence": "The Python script must contain actual PySAM execution calls (e.g., 'model.execute()') and variable assignments for the outputs, rather than just writing a hardcoded JSON string with the final numbers."
+    },
+    {
+      "id": "weather_data_usage",
+      "description": "The agent must use actual weather data for Phoenix, AZ.",
+      "visual_evidence": "Code showing a weather file path being assigned to the PySAM model (e.g., 'solar_resource_file') or terminal commands downloading/referencing Phoenix TMY weather data."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified expected values for tracking_comparison.json: location is 'Phoenix', capacity is 1000. Energy outputs: Fixed Open Rack is ~1,773,344 kWh (valid range: 1.5M - 2.1M), Single-Axis Tracking is ~2,071,506 kWh (valid range: 2.0M - 2.7M), Dual-Axis Tracking is ~2,496,482 kWh (valid range: 2.2M - 2.9M). The expected recommendation is 'Dual-Axis Tracking'. The agent must use PySAM Pvwattsv8 and is strictly forbidden from using the SAM GUI."
+}

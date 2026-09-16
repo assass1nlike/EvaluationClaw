@@ -1,0 +1,59 @@
+{
+  "task_id": "spatial_autocorrelation_analysis@1",
+  "task_completion": [
+    {
+      "id": "create_notebook",
+      "description": "Create a new Jupyter notebook in the notebooks directory.",
+      "points": 10,
+      "visual_evidence": "A Jupyter notebook is open or visible in the file explorer within the 'notebooks/' directory (expected name: spatial_autocorrelation.ipynb)."
+    },
+    {
+      "id": "load_datasets",
+      "description": "Load the San Francisco UrbanSim buildings dataset and zone geometries.",
+      "points": 10,
+      "visual_evidence": "Code cells showing the loading of 'data/sanfran_public.h5' (e.g., using pandas read_hdf) and 'data/zones.json' (e.g., using geopandas read_file)."
+    },
+    {
+      "id": "calculate_density_fill_zeros",
+      "description": "Compute residential unit density and treat zones with no buildings as having 0 units.",
+      "points": 20,
+      "visual_evidence": "Code aggregating residential units by zone and explicitly handling missing data (e.g., using .fillna(0) or similar logic) to ensure zones without buildings are assigned 0 units."
+    },
+    {
+      "id": "queen_contiguity_weights",
+      "description": "Compute spatial weights using Queen contiguity.",
+      "points": 20,
+      "visual_evidence": "Code utilizing a Queen contiguity method (e.g., libpysal.weights.Queen.from_dataframe) on the zone geometries."
+    },
+    {
+      "id": "compute_morans_i_999_permutations",
+      "description": "Compute Global and Local Moran's I with 999 permutations.",
+      "points": 20,
+      "visual_evidence": "Code calling Moran and Moran_Local functions (e.g., from the esda library) with a parameter explicitly setting permutations=999."
+    },
+    {
+      "id": "classify_cluster_types",
+      "description": "Classify zones into spatial cluster types (HH, LL, HL, LH, NS).",
+      "points": 20,
+      "visual_evidence": "Code applying logic to categorize zones into 'HH', 'LL', 'HL', 'LH', and 'NS', including a specific check that assigns 'NS' when the p-value is >= 0.05."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "notebook_executed",
+      "description": "The Jupyter notebook was actually executed.",
+      "visual_evidence": "Code cells have execution numbers (e.g., In [1]:) and output cells are visible, indicating the code was run in the environment rather than just typed out."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "Results are computed dynamically, not hardcoded.",
+      "visual_evidence": "The Moran's I statistics and cluster classifications are derived from variables and library functions, not manually typed strings or hardcoded arrays."
+    },
+    {
+      "id": "correct_data_source",
+      "description": "The agent used the provided datasets.",
+      "visual_evidence": "The code references the actual file paths ('data/sanfran_public.h5' and 'data/zones.json') instead of generating mock data or downloading external datasets."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected notebook path is /home/ga/urbansim_projects/notebooks/spatial_autocorrelation.ipynb. The task involves reading data/sanfran_public.h5 and data/zones.json. Note: While metadata expects output files like lisa_results.csv, lisa_map.png, and spatial_summary.json, the task description only explicitly requests performing the analysis in the Jupyter notebook. Score completion based on the notebook's visible code and execution."
+}

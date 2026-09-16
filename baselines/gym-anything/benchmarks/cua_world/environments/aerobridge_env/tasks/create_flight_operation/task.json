@@ -1,0 +1,28 @@
+{
+  "id": "create_flight_operation@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "You are using Aerobridge, an open-source drone/UAV fleet management system. Log in to the admin panel at http://localhost:8000/admin/ using username 'admin' and password 'adminpass123' to create a new flight operation record named 'Rajasthan Corridor Inspection'. The record must include an assigned drone, flight plan, operator, purpose, pilot, and valid start and end datetimes. Save the flight operation record and do not log out.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_flight_operation/setup_task.sh",
+    "post_task": "/workspace/tasks/create_flight_operation/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Rajasthan Corridor Inspection",
+    "admin_username": "admin",
+    "admin_password": "adminpass123",
+    "admin_url": "http://localhost:8000/admin/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_flight_operation"
+    }
+  }
+}

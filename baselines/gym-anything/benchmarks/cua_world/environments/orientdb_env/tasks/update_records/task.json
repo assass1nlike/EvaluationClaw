@@ -1,0 +1,54 @@
+{
+  "id": "update_records@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Connect to the 'demodb' database via OrientDB Studio (http://localhost:2480/studio/index.html) using the credentials admin/admin. Update the 'Hotel Artemide' record in the Hotels class to have 5 Stars, change the Phone field for 'The Savoy' to '+44-20-7836-5555', and update the Type for 'Copacabana Palace' to 'Palace'. In the Profiles class, change the Surname for 'luca.rossi@example.com' to 'De Rossi'. Ensure all updates are persisted in the database.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/update_records/setup_task.sh",
+    "post_task": "/workspace/tasks/update_records/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "class": "Hotels",
+        "where_field": "Name",
+        "where_value": "Hotel Artemide",
+        "target_field": "Stars",
+        "target_value": 5
+      },
+      {
+        "class": "Hotels",
+        "where_field": "Name",
+        "where_value": "The Savoy",
+        "target_field": "Phone",
+        "target_value": "+44-20-7836-5555"
+      },
+      {
+        "class": "Hotels",
+        "where_field": "Name",
+        "where_value": "Copacabana Palace",
+        "target_field": "Type",
+        "target_value": "Palace"
+      },
+      {
+        "class": "Profiles",
+        "where_field": "Email",
+        "where_value": "luca.rossi@example.com",
+        "target_field": "Surname",
+        "target_value": "De Rossi"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_update_records"
+    }
+  }
+}

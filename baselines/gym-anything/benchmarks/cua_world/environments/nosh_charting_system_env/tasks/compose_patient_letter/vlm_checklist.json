@@ -1,0 +1,53 @@
+{
+  "task_id": "compose_patient_letter@1",
+  "task_completion": [
+    {
+      "id": "patient_chart_opened",
+      "description": "Verify that the agent has opened the chart for patient Walter Bishop.",
+      "points": 20,
+      "visual_evidence": "The patient header or active context in the NOSH ChartingSystem shows 'Walter Bishop', '01/20/1948', or PID '9999'."
+    },
+    {
+      "id": "letter_creation_interface",
+      "description": "Verify that the agent has navigated to the letter creation section or opened a new letter form.",
+      "points": 10,
+      "visual_evidence": "A form, modal, or page for creating a new letter or communication is visible within the patient's chart."
+    },
+    {
+      "id": "letter_subject_entered",
+      "description": "Verify that the correct subject is entered for the letter.",
+      "points": 20,
+      "visual_evidence": "The exact text 'Insurance Claim Denial - Action Required' is visible in the subject or title input field of the letter form."
+    },
+    {
+      "id": "letter_content_entered",
+      "description": "Verify that the correct content is entered in the letter body.",
+      "points": 20,
+      "visual_evidence": "The text containing 'missing coordination of benefits' is visible in the main text area or body of the letter form."
+    },
+    {
+      "id": "letter_saved",
+      "description": "Verify that the letter has been saved or added to the patient's chart.",
+      "points": 30,
+      "visual_evidence": "A success notification (e.g., 'Letter saved'), the letter appearing in a list of patient documents/communications, or a view of the finalized letter."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_interface",
+      "description": "Verify the agent used the web browser to interact with the NOSH ChartingSystem.",
+      "visual_evidence": "The NOSH ChartingSystem is visible in a web browser, and actions are performed through its UI."
+    },
+    {
+      "id": "no_terminal_db_commands",
+      "description": "Verify the agent did not use terminal commands or database scripts to bypass the UI.",
+      "visual_evidence": "Terminal windows should not show SQL commands or scripts being executed to insert the letter directly into the database."
+    },
+    {
+      "id": "no_text_editor_shortcut",
+      "description": "Verify the agent did not just type the letter in a text editor.",
+      "visual_evidence": "The letter content and subject must be entered into the NOSH web application's specific fields, not a generic text editor like gedit or nano."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Patient: Walter Bishop (PID: 9999). Expected Subject: 'Insurance Claim Denial - Action Required'. Expected Content must include the fragment 'missing coordination of benefits'."
+}

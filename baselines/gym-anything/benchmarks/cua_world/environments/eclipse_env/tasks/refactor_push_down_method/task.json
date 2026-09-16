@@ -1,0 +1,30 @@
+{
+  "id": "refactor_push_down_method@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Refactor the 'LogisticsSystem' project in Eclipse to improve the class hierarchy. The 'Transport' superclass currently contains tire-related logic that only belongs to the 'Truck' subclass, as Ships and Drones do not have tires. Relocate the 'checkTirePressure()' method and the 'MAX_TIRE_PSI' constant from 'Transport' to the 'Truck' subclass. Use automated refactoring to ensure all references and imports are updated and the project builds successfully.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/refactor_push_down_method/setup_task.sh",
+    "post_task": "/workspace/tasks/refactor_push_down_method/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/eclipse-workspace/LogisticsSystem",
+    "superclass_path": "src/main/java/com/logistics/domain/Transport.java",
+    "subclass_target_path": "src/main/java/com/logistics/domain/Truck.java",
+    "subclass_sibling_path": "src/main/java/com/logistics/domain/Ship.java",
+    "method_signature": "checkTirePressure",
+    "field_name": "MAX_TIRE_PSI"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_refactor_push_down_method"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "transformer_turns_ratio@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "Use the Electrical Engineering Calculations app to calculate the secondary turns and turns ratio for a step-down transformer with a Primary Voltage (V1) of 480 V, Secondary Voltage (V2) of 120 V, and Primary Turns (N1) of 600. Save the results to /sdcard/transformer_result.txt using the format:\nsecondary_turns=[value]\nturns_ratio=[value]",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/transformer_turns_ratio/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/transformer_turns_ratio/export_result.sh"
+  },
+  "metadata": {
+    "expected_file": "/sdcard/transformer_result.txt",
+    "primary_voltage": 480,
+    "secondary_voltage": 120,
+    "primary_turns": 600,
+    "expected_secondary_turns": 150,
+    "expected_ratio": 4,
+    "tolerance": 0.1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_transformer_turns_ratio"
+    }
+  }
+}

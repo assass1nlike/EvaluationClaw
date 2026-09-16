@@ -1,0 +1,28 @@
+{
+  "id": "mailing_list_triage@1",
+  "version": "1.0",
+  "env_id": "bluemail_env@0.1",
+  "description": "Your inbox has accumulated weeks of mailing list traffic from multiple technical communities. Organize your inbox by identifying distinct mailing lists from email subjects, senders, and headers. Create a dedicated IMAP folder for each identified mailing list (e.g., 'SAdev', 'ILUG', 'zzzzteana') and move all corresponding emails into their respective folders. Draft an email to devops-team@techcorp.org with the subject 'Inbox Triage Complete' summarizing the mailing lists found, the email count for each, and any time-sensitive threads. Login: username ga, password password123.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "metadata": {
+    "summary_recipient": "devops-team@techcorp.org",
+    "initial_inbox_count": 50,
+    "min_folders_required": 2,
+    "min_emails_moved": 15
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mailing_list_triage/setup_task.sh",
+    "post_task": "/workspace/tasks/mailing_list_triage/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mailing_list_triage"
+    }
+  }
+}

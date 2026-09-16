@@ -1,0 +1,53 @@
+{
+  "task_id": "compose_scaling_loadbalancer@1",
+  "task_completion": [
+    {
+      "id": "docker_compose_configured",
+      "description": "Configure docker-compose.yml to support scaling the Flask service without conflicts.",
+      "points": 20,
+      "visual_evidence": "A text editor showing 'docker-compose.yml' where the 'flask' service has no static 'container_name', no static host port mapping (e.g., '80:80'), and includes a configuration for 3 replicas (e.g., 'deploy: replicas: 3')."
+    },
+    {
+      "id": "nginx_configured",
+      "description": "Configure Nginx to load balance traffic across the Flask replicas.",
+      "points": 20,
+      "visual_evidence": "A text editor showing 'nginx.conf' with an upstream block or proxy_pass directive configured to route traffic to the 'flask' service hostname, enabling load balancing."
+    },
+    {
+      "id": "containers_running",
+      "description": "Verify that exactly 3 replicas of the Flask API and the Nginx load balancer are running.",
+      "points": 20,
+      "visual_evidence": "Terminal output of 'docker ps' or 'docker compose ps' showing exactly 3 instances of the flask container and 1 instance of the nginx container in an 'Up' state."
+    },
+    {
+      "id": "curl_requests_executed",
+      "description": "Execute 10 sequential curl requests to the load balancer and record the output.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a bash loop (e.g., 'for i in {1..10}; do curl http://localhost:8080 >> verification.txt; done') or 10 individual curl commands being executed and redirected to 'verification.txt'."
+    },
+    {
+      "id": "verification_file_content",
+      "description": "Verify the contents of verification.txt show distributed load balancing.",
+      "points": 20,
+      "visual_evidence": "Terminal showing the contents of 'verification.txt' (e.g., via 'cat') containing 10 responses, with visible differences in the output (like different container IDs or hostnames) indicating that requests were served by different replicas."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_commands",
+      "description": "Check that the agent actually executed Docker commands to start the services.",
+      "visual_evidence": "Terminal shows genuine execution of 'docker compose up' or similar commands, rather than just echoing text or faking the output."
+    },
+    {
+      "id": "actual_curl_execution",
+      "description": "Check that the agent actually performed the curl requests against the running service.",
+      "visual_evidence": "Terminal shows the actual execution of 'curl' commands against 'localhost:8080', rather than manually writing fake responses into the text file."
+    },
+    {
+      "id": "genuine_load_balancing_output",
+      "description": "Check that the verification file contains realistic load balancing output.",
+      "visual_evidence": "The contents of 'verification.txt' should show realistic, system-generated container IDs or hostnames, not manually typed placeholder text."
+    }
+  ],
+  "privileged_info_for_vlm": "Project directory: /home/ga/scaling-app. Expected replicas: exactly 3 running containers for the 'flask' service. Load balancer port: 8080. Verification file: /home/ga/scaling-app/verification.txt."
+}

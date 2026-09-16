@@ -1,0 +1,53 @@
+{
+  "task_id": "evaluate_wake_interaction_two_turbines@1",
+  "task_completion": [
+    {
+      "id": "turbine_positioning",
+      "description": "Configure two turbines at positions (0, 0, 0) and (50, 0, 0)",
+      "points": 20,
+      "visual_evidence": "QBlade multi-turbine setup or LLT simulation configuration window showing two turbines with coordinates X=0, Y=0, Z=0 and X=50, Y=0, Z=0."
+    },
+    {
+      "id": "simulation_parameters",
+      "description": "Set simulation parameters: 12 m/s wind speed, 0.1 s timestep, 200 timesteps",
+      "points": 20,
+      "visual_evidence": "QBlade LLT simulation setup panel showing 'Wind Speed' = 12, 'Timestep' = 0.1, and 'Number of Timesteps' (or similar) = 200."
+    },
+    {
+      "id": "simulation_execution",
+      "description": "Execute the LLT simulation to analyze wake shadowing",
+      "points": 20,
+      "visual_evidence": "QBlade 3D view showing vortex wake lines behind the turbines, or a results graph/table displaying power outputs for both turbines."
+    },
+    {
+      "id": "project_saved",
+      "description": "Save the project as wake_study.wpa",
+      "points": 15,
+      "visual_evidence": "QBlade window title showing 'wake_study.wpa', or a file manager/terminal showing the file 'wake_study.wpa' in /home/ga/Documents/projects/."
+    },
+    {
+      "id": "report_created",
+      "description": "Create the wake loss report with the correct format",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal showing the contents of /home/ga/Documents/wake_loss_report.txt with exactly three lines: 'Upstream Power: [Value] kW', 'Downstream Power: [Value] kW', and 'Wake Loss: [Value] %'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the QBlade GUI to configure and run the simulation",
+      "visual_evidence": "Screenshots show the QBlade application open and being interacted with, rather than just terminal commands writing a fake .wpa file."
+    },
+    {
+      "id": "genuine_results",
+      "description": "Report values are derived from actual simulation results",
+      "visual_evidence": "The power values in the text report match or closely correspond to the power output graphs or tables visible in the QBlade simulation results."
+    },
+    {
+      "id": "realistic_physics",
+      "description": "Wake loss is physically realistic and not arbitrarily fabricated",
+      "visual_evidence": "The downstream power is strictly less than the upstream power, and the calculated wake loss percentage is mathematically correct based on the two power values (expected to be >= 10%)."
+    }
+  ],
+  "privileged_info_for_vlm": "QBlade v0.96.2 uses Lifting Line Theory (LLT) with a Free Vortex Wake model. The task requires setting up two turbines at (0,0,0) and (50,0,0), with 12 m/s wind speed, 0.1s timestep, and 200 timesteps (20 seconds total). A physically realistic wake loss for this configuration is between 10% and 30%. The downstream turbine must show lower power output than the upstream turbine. The project must be saved to /home/ga/Documents/projects/wake_study.wpa and the report to /home/ga/Documents/wake_loss_report.txt with the exact format specified."
+}

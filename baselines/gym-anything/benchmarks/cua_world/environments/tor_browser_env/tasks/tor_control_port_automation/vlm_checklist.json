@@ -1,0 +1,59 @@
+{
+  "task_id": "tor_control_port_automation@1",
+  "task_completion": [
+    {
+      "id": "record_ip_before",
+      "description": "Verify the initial Tor exit IP address is recorded.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output (e.g., using 'cat') showing the contents of /home/ga/Documents/ip_before.txt containing a valid public IP address, or a command (like curl https://check.torproject.org/) redirecting output to this file."
+    },
+    {
+      "id": "write_control_script",
+      "description": "Verify the Python script is created at the correct path and connects to the correct port with cookie authentication.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output showing the contents of /home/ga/Documents/tor_control.py. The code must include a connection to 127.0.0.1 on port 9151 and logic to authenticate using the Tor session's authentication cookie."
+    },
+    {
+      "id": "script_extracts_version",
+      "description": "Verify the script contains logic to extract the Tor daemon version and save it.",
+      "points": 15,
+      "visual_evidence": "Look at the code in /home/ga/Documents/tor_control.py. It must contain commands to request the Tor version (e.g., 'GETINFO version') and write the response to /home/ga/Documents/tor_version.txt."
+    },
+    {
+      "id": "script_triggers_newnym",
+      "description": "Verify the script contains logic to trigger a new routing identity.",
+      "points": 15,
+      "visual_evidence": "Look at the code in /home/ga/Documents/tor_control.py. It must contain a command to send the 'SIGNAL NEWNYM' signal to the Tor control port."
+    },
+    {
+      "id": "verify_version_output",
+      "description": "Verify the Tor version was successfully extracted and saved.",
+      "points": 10,
+      "visual_evidence": "Look for terminal output showing the contents of /home/ga/Documents/tor_version.txt. It should contain a valid Tor version string (e.g., 'Tor 0.4.x.x')."
+    },
+    {
+      "id": "record_ip_after",
+      "description": "Verify the post-rotation Tor exit IP address is recorded and differs from the initial IP.",
+      "points": 25,
+      "visual_evidence": "Look for terminal output showing the contents of /home/ga/Documents/ip_after.txt containing a valid public IP address. This IP address must be visibly different from the IP address recorded in ip_before.txt."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_script_execution",
+      "description": "Ensure the Python script was actually executed to generate the outputs.",
+      "visual_evidence": "Look for terminal history showing 'python3 /home/ga/Documents/tor_control.py' (or similar execution command) rather than the user manually creating tor_version.txt using 'echo' or a text editor."
+    },
+    {
+      "id": "genuine_ip_fetch",
+      "description": "Ensure the IP addresses were genuinely fetched from the specified URL.",
+      "visual_evidence": "Look for evidence of 'curl' or 'wget' commands targeting 'https://check.torproject.org/' (or a script doing the same) in the terminal history, ensuring the IPs weren't just randomly typed."
+    },
+    {
+      "id": "no_hardcoded_outputs",
+      "description": "Ensure the script does not contain hardcoded outputs for the version or IPs.",
+      "visual_evidence": "Check the script source code to ensure it dynamically fetches the version from the control port and doesn't just write a hardcoded string to tor_version.txt."
+    }
+  ],
+  "privileged_info_for_vlm": "The Python script must be located at /home/ga/Documents/tor_control.py and connect to the Tor Browser Control Port on 9151. The extracted Tor version must be saved to /home/ga/Documents/tor_version.txt. The initial IP address must be saved to /home/ga/Documents/ip_before.txt, and the IP address after the NEWNYM signal must be saved to /home/ga/Documents/ip_after.txt."
+}

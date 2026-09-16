@@ -1,0 +1,34 @@
+{
+  "id": "implement_inventory_tracking@1",
+  "version": "1.0",
+  "env_id": "drupal_commerce_env@0.1",
+  "description": "Implement a basic inventory tracking system for Urban Electronics. Add an Integer field labeled 'Stock Level' (machine name: 'field_stock_level') with a minimum value of 0 to the 'Default' product variation type. Update the stock levels for the Sony WH-1000XM5 to 3 units, Logitech MX Master 3S to 25 units, and Bose QuietComfort 45 to 0 units. Create a View named 'Low Stock Report' with a Page display at path '/admin/reports/low-stock' that shows the Variation Title, SKU, and Stock Level. Configure the view to filter for items where the Stock Level is less than 10 and restrict access to the 'Administer commerce_product' permission.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/implement_inventory_tracking/setup_task.sh",
+    "post_task": "/workspace/tasks/implement_inventory_tracking/export_result.sh"
+  },
+  "metadata": {
+    "expected_field_name": "field_stock_level",
+    "expected_view_id": "low_stock_report",
+    "expected_path": "/admin/reports/low-stock",
+    "stock_values": {
+      "SONY-WH1000XM5": 3,
+      "LOGI-MXM3S": 25,
+      "BOSE-QC45": 0
+    },
+    "view_filter_operator": "<",
+    "view_filter_value": "10"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_inventory_tracking"
+    }
+  }
+}

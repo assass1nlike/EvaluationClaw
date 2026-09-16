@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_markdown_docs_builder@1",
+  "task_completion": [
+    {
+      "id": "fix_file_dropping",
+      "description": "Fix the bug causing random file dropping in the documentation builder.",
+      "points": 15,
+      "visual_evidence": "Code editor showing modifications to the file traversal, reading, or filtering logic within the Node.js scripts at /home/ga/workspace/docs_builder/ to ensure all markdown files are processed."
+    },
+    {
+      "id": "fix_horizontal_rule_truncation",
+      "description": "Fix the bug causing content loss after horizontal rules.",
+      "points": 15,
+      "visual_evidence": "Code editor showing modifications to the markdown parsing logic (e.g., regex handling '---' or '***' or split functions) to prevent the parser from truncating or ignoring content after a horizontal rule."
+    },
+    {
+      "id": "fix_multiple_wiki_links",
+      "description": "Fix the incorrect parsing of multiple wiki-links on a single line.",
+      "points": 15,
+      "visual_evidence": "Code editor showing updates to the wiki-link parsing regex (e.g., adding a global '/g' flag or fixing greedy matching) for links formatted like '[[link]]'."
+    },
+    {
+      "id": "fix_dead_link_spaces",
+      "description": "Fix false dead link reports for files with spaces.",
+      "points": 15,
+      "visual_evidence": "Code editor showing the addition of URL decoding (e.g., decodeURI, decodeURIComponent) or proper string escaping in the link validation logic."
+    },
+    {
+      "id": "fix_nested_assets_paths",
+      "description": "Fix broken relative paths for nested assets.",
+      "points": 15,
+      "visual_evidence": "Code editor showing corrections to path resolution logic (e.g., using path.relative, path.join, or adjusting directory traversal levels) for images or other assets."
+    },
+    {
+      "id": "execute_npm_run_build",
+      "description": "Successfully execute 'npm run build' to generate the HTML corpus.",
+      "points": 25,
+      "visual_evidence": "Terminal window showing the command 'npm run build' being executed in /home/ga/workspace/docs_builder/ and completing successfully without errors, specifically showing no dropped files or false dead link reports."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "edited_builder_not_html",
+      "description": "The agent modified the Node.js builder scripts rather than manually editing the generated HTML files.",
+      "visual_evidence": "Screenshots should show the agent editing .js files in the workspace. There should be no evidence of the agent manually typing out HTML content to bypass the builder."
+    },
+    {
+      "id": "genuine_build_execution",
+      "description": "The agent genuinely ran the build command to test and generate the output.",
+      "visual_evidence": "Terminal history shows 'npm run build' or 'node <script>' actually running and producing standard output, rather than the agent just echoing a fake success message."
+    },
+    {
+      "id": "no_mock_script_replacement",
+      "description": "The agent fixed the existing builder rather than replacing it with a trivial mock script.",
+      "visual_evidence": "The code editor should show the original complex builder script with specific targeted bug fixes, not a completely rewritten script that just prints 'Build successful'."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires fixing 5 specific bugs in a Node.js documentation builder located at /home/ga/workspace/docs_builder/. The pass threshold is 60 points. The VLM should look for code edits addressing: file dropping (likely an async/await or globbing issue), horizontal rule truncation (likely a bad regex or string split), wiki-link regex (likely missing a global 'g' flag), URL encoding/decoding for spaces in dead link checks, and relative path resolution for nested assets. Finally, it must verify 'npm run build' executes successfully without the aforementioned errors."
+}

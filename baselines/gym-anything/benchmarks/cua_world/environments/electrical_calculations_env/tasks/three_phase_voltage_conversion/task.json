@@ -1,0 +1,28 @@
+{
+  "id": "three_phase_voltage_conversion@1",
+  "version": "1.0",
+  "env_id": "example.electrical_calculations_env@0.1",
+  "description": "Calculate the Phase Voltage (V_ph) for a system with a Line Voltage (V_LL) of 480 Volts using the Electrical Engineering Calculations app. Save a screenshot of the result to /sdcard/tasks/three_phase_voltage_conversion_result.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/three_phase_voltage_conversion/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/three_phase_voltage_conversion/export_result.sh"
+  },
+  "metadata": {
+    "input_voltage": 480,
+    "expected_voltage": 277.1,
+    "tolerance": 1.0,
+    "expected_screenshot_path": "/sdcard/tasks/three_phase_voltage_conversion_result.png"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_three_phase_voltage"
+    }
+  }
+}

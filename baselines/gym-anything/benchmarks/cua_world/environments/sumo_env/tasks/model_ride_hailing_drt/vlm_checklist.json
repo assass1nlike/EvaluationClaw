@@ -1,0 +1,53 @@
+{
+  "task_id": "model_ride_hailing_drt@1",
+  "task_completion": [
+    {
+      "id": "demand_generation",
+      "description": "Generate ride-hailing demand with 20 taxis and 50 passenger requests departing between time 0 and 1000.",
+      "points": 20,
+      "visual_evidence": "Terminal commands, script output, or file contents showing the creation of /home/ga/SUMO_Output/drt_demand.rou.xml. Evidence should indicate exactly 20 taxis and 50 persons were generated (e.g., via a Python script, SUMO tools, or explicit XML tags)."
+    },
+    {
+      "id": "config_creation",
+      "description": "Create the SUMO configuration file with the required DRT parameters.",
+      "points": 20,
+      "visual_evidence": "Contents of /home/ga/SUMO_Output/ride_hailing.sumocfg (viewed via cat, nano, or similar) showing references to the correct network and demand files, an end time of 3600, a 'greedy' dispatch algorithm, and a 'randomCircling' idle algorithm."
+    },
+    {
+      "id": "sumo_simulation_execution",
+      "description": "Run the SUMO simulation using the generated configuration.",
+      "points": 30,
+      "visual_evidence": "Terminal output showing the execution of the 'sumo' command with the configuration file, followed by simulation logs indicating successful completion (e.g., 'Simulation ended at time: 3600.00')."
+    },
+    {
+      "id": "wait_time_calculation",
+      "description": "Calculate the average passenger waiting time from the simulation data.",
+      "points": 15,
+      "visual_evidence": "A script or command (e.g., a Python script parsing tripinfo.xml) that extracts passenger waiting times from the simulation output and calculates the mathematical average."
+    },
+    {
+      "id": "final_output_saved",
+      "description": "Save the calculated average waiting time to the specified text file.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing the creation or contents of /home/ga/SUMO_Output/avg_wait_time.txt (e.g., using 'cat') containing a single numeric float value."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation",
+      "description": "Ensure the agent actually ran the SUMO simulation instead of mocking the output files.",
+      "visual_evidence": "Look for authentic SUMO terminal output with step logs, warnings, or summary statistics. The agent should not just 'echo' or create dummy XML files."
+    },
+    {
+      "id": "authentic_calculation",
+      "description": "Ensure the agent calculated the wait time using actual simulation data.",
+      "visual_evidence": "Look for a script or command that reads the simulation output (like tripinfo.xml) and computes the average. The agent must not hardcode a random float directly into avg_wait_time.txt without prior calculation."
+    },
+    {
+      "id": "correct_network_used",
+      "description": "Ensure the agent used the specified Bologna Pasubio network file.",
+      "visual_evidence": "The configuration file or command line must explicitly reference /home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_buslanes.net.xml, rather than a different, simplified, or newly generated network."
+    }
+  ],
+  "privileged_info_for_vlm": "Network file: /home/ga/SUMO_Scenarios/bologna_pasubio/pasubio_buslanes.net.xml. Demand file: /home/ga/SUMO_Output/drt_demand.rou.xml (must contain exactly 20 taxis and 50 persons). Config file: /home/ga/SUMO_Output/ride_hailing.sumocfg. Tripinfo file: /home/ga/SUMO_Output/tripinfo.xml. Analysis file: /home/ga/SUMO_Output/avg_wait_time.txt. There is no single 'correct' expected wait time; it depends entirely on the agent's random route generation within the scenario. Any valid float calculated accurately from the generated simulation data is acceptable."
+}

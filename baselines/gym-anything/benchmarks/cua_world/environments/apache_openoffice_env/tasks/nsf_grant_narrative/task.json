@@ -1,0 +1,41 @@
+{
+  "id": "nsf_grant_narrative@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are Dr. Elena Vasquez-Reyes, a Sociology professor preparing a grant proposal for the National Science Foundation (NSF). Create a complete, formatted grant narrative in Apache OpenOffice Writer using the source data and formatting rules provided in '/home/ga/Documents/project_data.json'. The document must feature 1-inch margins, serif font (11pt or 12pt), Heading 1 and 2 structure, an auto-generated Table of Contents, and page numbers in the footer. Include a Budget Justification section with a table summarizing the budget categories and amounts from the JSON, and ensure all sections contain substantive content derived from the source file. Save the final professional document as '/home/ga/Documents/NSF_SES2415837_ProjectDescription.odt'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nsf_grant_narrative/setup_task.sh",
+    "post_task": "/workspace/tasks/nsf_grant_narrative/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/project_data.json",
+    "output_file": "/home/ga/Documents/NSF_SES2415837_ProjectDescription.odt",
+    "expected_margins_cm": 2.54,
+    "margin_tolerance_cm": 0.2,
+    "min_h1_count": 6,
+    "min_h2_count": 4,
+    "min_table_count": 1,
+    "required_terms": [
+      "Vasquez",
+      "Permian",
+      "environmental justice"
+    ],
+    "budget_figures": [
+      "349,875",
+      "349875",
+      "85,500"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nsf_grant_narrative"
+    }
+  }
+}

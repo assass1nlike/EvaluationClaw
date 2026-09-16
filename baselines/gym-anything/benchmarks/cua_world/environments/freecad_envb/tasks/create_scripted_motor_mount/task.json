@@ -1,0 +1,34 @@
+{
+  "id": "create_scripted_motor_mount@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Programmatically create a motor mounting plate using the FreeCAD Python Console. Use Python commands (e.g., Part.makeBox, Part.makeCylinder, Boolean operations) to generate a single solid object. The base plate is 120mm (x) × 80mm (y) × 5mm (z). Include four M4 clearance holes (4.2mm diameter) centered at (8, 8), (8, 72), (112, 8), and (112, 72), and one M8 center hole (8.4mm diameter) at (60, 40). All holes must pass through the full thickness. Save the result to /home/ga/Documents/FreeCAD/motor_mount_plate.FCStd.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_scripted_motor_mount/setup_task.sh",
+    "post_task": "/workspace/tasks/create_scripted_motor_mount/export_result.sh"
+  },
+  "metadata": {
+    "expected_path": "/home/ga/Documents/FreeCAD/motor_mount_plate.FCStd",
+    "target_volume": 47445.8,
+    "volume_tolerance_percent": 5.0,
+    "bbox": [
+      120.0,
+      80.0,
+      5.0
+    ],
+    "bbox_tolerance": 1.0,
+    "min_cylindrical_faces": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_scripted_motor_mount"
+    }
+  }
+}

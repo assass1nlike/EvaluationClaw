@@ -1,0 +1,32 @@
+{
+  "id": "reply_to_conversation@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "You are a Computer User Support Specialist starting your shift. Respond to the ticket from Rachel Morrison with the subject 'VPN Connection Dropping Intermittently' in the 'IT Support' mailbox at http://localhost:8080 (Credentials: admin@helpdesk.local / Admin123!). Send the reply text provided below and update the conversation status to 'Pending'.\n\nHi Rachel,\n\nThank you for reporting this issue. Please try these troubleshooting steps:\n\n1. Disconnect from the VPN and restart your network adapter.\n2. Clear the VPN client cache under Settings > Advanced > Clear Cache.\n3. Reconnect using the fallback server vpn2.acmecorp.com.\n\nLet us know if the issue persists.\n\nBest regards,\nIT Support",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/reply_to_conversation/setup_task.sh",
+    "post_task": "/workspace/tasks/reply_to_conversation/export_result.sh"
+  },
+  "metadata": {
+    "target_subject": "VPN Connection Dropping Intermittently",
+    "target_customer_email": "rachel.morrison@acmecorp.com",
+    "expected_status_id": 2,
+    "required_phrases": [
+      "restart your network adapter",
+      "vpn2.acmecorp.com",
+      "Clear Cache"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_reply_to_conversation"
+    }
+  }
+}

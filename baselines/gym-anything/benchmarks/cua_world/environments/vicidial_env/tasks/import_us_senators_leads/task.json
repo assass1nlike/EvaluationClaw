@@ -1,0 +1,21 @@
+{
+  "id": "import_us_senators_leads@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "In the Vicidial Admin web UI, import the provided lead list of U.S. Senate office phone numbers from /home/ga/Documents/VicidialData/us_senators_vicidial_standard_format_list9001_2026-02-14.csv into a new list. The new list must have List ID 9001, List Name 'US Senators (2026)', and Description 'U.S. Senate office phone leads (public contact info)'. Use the following credentials for both the HTTP Basic Auth prompt and the Vicidial Admin login: Username 6666, Password andromeda.",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/import_us_senators_leads/setup_task.sh",
+    "pre_task_timeout": 600
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_import_us_senators_leads"
+    }
+  }
+}

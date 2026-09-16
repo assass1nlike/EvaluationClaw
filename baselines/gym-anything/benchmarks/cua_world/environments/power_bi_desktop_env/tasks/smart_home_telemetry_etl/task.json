@@ -1,0 +1,32 @@
+{
+  "id": "smart_home_telemetry_etl@1",
+  "version": "1.0",
+  "env_id": "power_bi_desktop_env@0.1",
+  "description": "You are an energy engineer analyzing smart home sensor data. Using the nested JSON log file at C:\\Users\\Docker\\Desktop\\PowerBITasks\\device_logs.json, create a Power BI report that flattens the data to include device_id, timestamp (Date/Time), and temperature (Decimal Number). The report must feature a line chart displaying the average temperature by timestamp, categorized by device ID. Save the final report to C:\\Users\\Docker\\Desktop\\Smart_Home_Report.pbix.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\smart_home_telemetry_etl\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\smart_home_telemetry_etl\\export_result.ps1"
+  },
+  "metadata": {
+    "expected_filename": "Smart_Home_Report.pbix",
+    "required_columns": [
+      "device_id",
+      "timestamp",
+      "temperature"
+    ],
+    "required_visual": "lineChart",
+    "data_path": "C:\\Users\\Docker\\Desktop\\PowerBITasks\\device_logs.json"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_smart_home_telemetry_etl"
+    }
+  }
+}

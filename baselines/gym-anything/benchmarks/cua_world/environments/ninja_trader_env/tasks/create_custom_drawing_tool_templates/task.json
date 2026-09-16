@@ -1,0 +1,39 @@
+{
+  "id": "create_custom_drawing_tool_templates@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "NinjaTrader 8 is open. Your goal is to create and save three specific custom drawing tool templates on an AAPL chart to speed up chart markup. Create a 'SupplyZone' Rectangle template with a red outline, red area brush, and approximately 20% area opacity. Create a 'DemandZone' Rectangle template with a green outline, green area brush, and approximately 20% area opacity. Create a 'BigNote' Text template with a blue color, font size 20, and bold formatting. Ensure all templates are saved under their respective names to persist in the application.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_custom_drawing_tool_templates\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\create_custom_drawing_tool_templates\\export_result.ps1"
+  },
+  "metadata": {
+    "template_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\templates\\DrawingTools",
+    "expected_templates": [
+      "Rectangle\\SupplyZone.xml",
+      "Rectangle\\DemandZone.xml",
+      "Text\\BigNote.xml"
+    ],
+    "supply_color_hex": "#FFFF0000",
+    "supply_color_name": "Red",
+    "demand_color_hex": "#FF008000",
+    "demand_color_name": "Green",
+    "note_color_hex": "#FF0000FF",
+    "note_color_name": "Blue",
+    "opacity_target": 20,
+    "opacity_tolerance": 5,
+    "font_size": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_custom_drawing_tool_templates"
+    }
+  }
+}

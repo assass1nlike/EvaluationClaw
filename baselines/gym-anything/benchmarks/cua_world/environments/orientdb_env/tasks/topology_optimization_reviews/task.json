@@ -1,0 +1,34 @@
+{
+  "id": "topology_optimization_reviews@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "You are the Database Administrator for a travel platform refactoring a data model to resolve a performance bottleneck. In the 'demodb' database (Credentials: root / GymAnything123!), replace the intermediate 'Reviews' vertex with a direct edge class named 'PostedReview' connecting 'Profiles' to 'Hotels'. The 'PostedReview' edge must store migrated data: 'Rating' (Integer) mapped from 'Reviews.Stars', 'Comment' (String) from 'Reviews.Text', and 'ReviewDate' (Date) from 'Reviews.Date'. Migrate all existing reviews from the current Profile-MadeReview-Review-HasReview-Hotel structure to the new direct relationship. Once the migration is complete, delete the legacy 'Reviews' vertex class and the 'MadeReview' and 'HasReview' edge classes.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/topology_optimization_reviews/setup_task.sh",
+    "post_task": "/workspace/tasks/topology_optimization_reviews/export_result.sh"
+  },
+  "metadata": {
+    "db_name": "demodb",
+    "target_edge": "PostedReview",
+    "required_properties": [
+      "Rating",
+      "Comment",
+      "ReviewDate"
+    ],
+    "spot_check_user": "John Smith",
+    "spot_check_hotel": "Hotel Artemide",
+    "spot_check_rating": 4
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_topology_optimization"
+    }
+  }
+}

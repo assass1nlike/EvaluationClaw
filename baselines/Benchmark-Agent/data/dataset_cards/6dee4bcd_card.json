@@ -1,0 +1,80 @@
+{
+  "dataset_id": "6dee4bcd",
+  "name": "Multi-Page Letter Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 156,
+  "description": "This dataset evaluates visual question answering over multi-page letter and memorandum documents. Given one or more scanned document page images and a natural-language question, a model must locate and extract the requested information, such as dates, counts, or follow-up details.",
+  "card_text": "The dataset consists of 156 image-text examples focused on multi-page letter and memorandum documents. Each sample provides a natural-language question and a list of scanned JPG page images that contain the relevant document content. The model must read the document images and produce a short free-text answer, often a date, number, or brief phrase. Questions target specific factual details and may require cross-page reasoning because the source documents can span multiple images. The data tests document understanding, OCR-based information extraction, and visual question answering over correspondence-style scanned pages.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "document VQA (letters and memoranda)",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A variable-length list of scanned JPG page images containing a letter or memorandum. These images are the main document context from which answers must be extracted; the number of pages ranges from one to several.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A short natural-language question asking for specific factual information from the document pages, such as a date, a count of days, or another detail contained in the correspondence.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "A short free-text answer extracted or inferred from the document images. It is typically a date, number, or brief phrase that directly responds to the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with a prompt question and a list of image_files representing scanned document pages, plus an output object with a list of short text answers. The question is asked about the multi-page letter or memorandum shown in the images, and the answer is the corresponding short factual text. No dialog, options, bounding boxes, masks, or tables are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageLetterDocumentVisualQuestionAnswering/multi-page_letter_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page Letter Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "load_csv_as_event_layer@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Load the earthquake data from /home/ga/gvsig_data/earthquakes/usgs_earthquakes_2024jan.csv into the 'countries_base' project in gvSIG Desktop. Create a spatial point layer from this table using the 'longitude' and 'latitude' fields with the EPSG:4326 coordinate system. Export the resulting layer as a shapefile to /home/ga/gvsig_data/exports/earthquakes.shp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/load_csv_as_event_layer/setup_task.sh",
+    "post_task": "/workspace/tasks/load_csv_as_event_layer/export_result.sh"
+  },
+  "metadata": {
+    "csv_path": "/home/ga/gvsig_data/earthquakes/usgs_earthquakes_2024jan.csv",
+    "expected_output_path": "/home/ga/gvsig_data/exports/earthquakes.shp",
+    "expected_feature_count": 42,
+    "feature_count_tolerance": 5,
+    "x_field": "longitude",
+    "y_field": "latitude"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_load_csv_as_event_layer"
+    }
+  }
+}

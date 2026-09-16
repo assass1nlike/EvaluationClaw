@@ -1,0 +1,65 @@
+{
+  "task_id": "ingest_conference_schedule@1",
+  "task_completion": [
+    {
+      "id": "schema_vertex_classes_created",
+      "description": "Verify that the Vertex classes 'Conferences' and 'Sessions' were created with their required properties.",
+      "points": 20,
+      "visual_evidence": "Look for the OrientDB Studio Schema tab or console output showing 'Conferences' (with 'Name' property) and 'Sessions' (with 'Title' and 'Duration' properties) listed as Vertex classes."
+    },
+    {
+      "id": "schema_edge_classes_created",
+      "description": "Verify that the Edge classes 'HostedAt', 'HasSession', and 'PresentedBy' were created.",
+      "points": 20,
+      "visual_evidence": "Look for the OrientDB Studio Schema tab or console output showing 'HostedAt', 'HasSession', and 'PresentedBy' listed as Edge classes."
+    },
+    {
+      "id": "conferences_ingested",
+      "description": "Verify that the Conference data was successfully ingested into the database.",
+      "points": 15,
+      "visual_evidence": "Look for a query result (e.g., 'SELECT * FROM Conferences') showing exactly 2 records: 'Global Graph Summit 2026' and 'Travel Tech World'."
+    },
+    {
+      "id": "sessions_ingested",
+      "description": "Verify that the Session data was successfully ingested into the database.",
+      "points": 15,
+      "visual_evidence": "Look for a query result (e.g., 'SELECT * FROM Sessions') showing exactly 4 session records (e.g., 'Scaling OrientDB Clusters', 'Graph Algorithms in Practice', etc.)."
+    },
+    {
+      "id": "edges_hosted_at_created",
+      "description": "Verify that 'HostedAt' edges link Conferences to Hotels.",
+      "points": 10,
+      "visual_evidence": "Look for a graph visualization or query output showing 'HostedAt' edges originating from Conference vertices and pointing to Hotel vertices (e.g., 'Global Graph Summit 2026' -> 'Hotel Artemide')."
+    },
+    {
+      "id": "edges_has_session_created",
+      "description": "Verify that 'HasSession' edges link Conferences to Sessions.",
+      "points": 10,
+      "visual_evidence": "Look for a graph visualization or query output showing 'HasSession' edges originating from Conference vertices and pointing to Session vertices."
+    },
+    {
+      "id": "edges_presented_by_created",
+      "description": "Verify that 'PresentedBy' edges link Sessions to Profiles.",
+      "points": 10,
+      "visual_evidence": "Look for a graph visualization or query output showing 'PresentedBy' edges originating from Session vertices and pointing to Profile vertices (e.g., linked to 'luca.rossi@example.com')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_database_interaction",
+      "description": "Ensure the agent interacted with the actual OrientDB database (via Studio web interface or console) rather than just editing text files.",
+      "visual_evidence": "Look for the OrientDB Studio UI, OrientDB console prompts, or executed scripts interacting with the DB, not just a text editor showing JSON or SQL commands without execution."
+    },
+    {
+      "id": "no_hardcoded_mock_data",
+      "description": "Ensure the agent did not just manually type out a mock success message or hardcode the final output.",
+      "visual_evidence": "Look for actual query execution results, record IDs (RIDs like #12:0), or graph visualizations that indicate real database records were created."
+    },
+    {
+      "id": "data_matches_source",
+      "description": "Ensure the ingested data matches the provided JSON file and wasn't hallucinated.",
+      "visual_evidence": "The conference names, session titles, and presenter emails in the database queries/graph must match the specific synthetic data provided in the privileged info."
+    }
+  ],
+  "privileged_info_for_vlm": "The source data is located at '/home/ga/conference_data.json'. The schema must include 5 specific classes: Vertices 'Conferences' and 'Sessions', and Edges 'HostedAt', 'HasSession', and 'PresentedBy'. The database should contain exactly 2 Conferences ('Global Graph Summit 2026' and 'Travel Tech World') and 4 Sessions. 'Global Graph Summit 2026' is hosted at 'Hotel Artemide' and has 2 sessions ('Scaling OrientDB Clusters' [45m], 'Graph Algorithms in Practice' [60m]). 'Travel Tech World' is hosted at 'The Savoy' and has 2 sessions ('Recommender Systems 101' [30m], 'The Future of Booking' [50m]). Presenters include luca.rossi@example.com, sophie.martin@example.com, and david.jones@example.com."
+}

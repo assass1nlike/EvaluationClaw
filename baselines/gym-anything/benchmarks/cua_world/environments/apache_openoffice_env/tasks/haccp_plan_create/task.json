@@ -1,0 +1,39 @@
+{
+  "id": "haccp_plan_create@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "As Food Safety Director Elena Marchetti for Harborview Culinary Group, LLC, create a comprehensive HACCP (Hazard Analysis and Critical Control Points) plan for their 6,800 sq ft central production kitchen in Baltimore, MD. Using the facility and food safety data provided in /home/ga/Documents/facility_haccp_data.json, produce a professionally formatted document in Apache OpenOffice Writer that meets regulatory standards. The plan must include at least 7 major sections using Heading 1 paragraph style (such as Facility Description, HACCP Team, Process Flow, Hazard Analysis, Critical Control Points, Monitoring Procedures, Verification, and Record-Keeping), at least 8 subsections using Heading 2 style, and at least 3 formatted tables (e.g., HACCP team roster, hazard analysis table, and CCP summary table). The document must also feature an auto-generated Table of Contents at the beginning, page numbers in the footer, and incorporate the 5 CCP definitions, critical limits, and monitoring procedures from the source data. The final document should be substantial (at least 30 paragraphs) and saved to /home/ga/Documents/Harborview_HACCP_Plan_2024.odt.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/haccp_plan_create/setup_task.sh",
+    "post_task": "/workspace/tasks/haccp_plan_create/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/facility_haccp_data.json",
+    "output_file": "/home/ga/Documents/Harborview_HACCP_Plan_2024.odt",
+    "company_name": "Harborview Culinary Group",
+    "min_h1_count": 7,
+    "min_h2_count": 8,
+    "min_table_count": 3,
+    "min_paragraph_count": 30,
+    "required_content": [
+      "HACCP",
+      "CCP",
+      "165",
+      "135",
+      "41"
+    ],
+    "min_file_size_bytes": 6000
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_haccp_plan"
+    }
+  }
+}

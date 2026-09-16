@@ -1,0 +1,29 @@
+{
+  "id": "gitflow_hotfix_propagation@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "You are the Release Manager. A critical security fix has been pushed to the branch 'hotfix/login-security-patch' in the 'TailwindTraders-Auth' repository. Propagate this fix to both the production branch ('main') and the development branch ('develop') using Pull Requests. Create and complete a Pull Request merging 'hotfix/login-security-patch' into 'main' titled 'Fix critical login vulnerability', ensuring the source branch is not deleted. Create and complete a second Pull Request merging 'hotfix/login-security-patch' into 'develop' titled 'Sync hotfix to develop'. Delete the 'hotfix/login-security-patch' branch once both merges are successfully completed and verify the fix exists in both destination branches. Credentials: Docker / GymAnything123!",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\gitflow_hotfix_propagation\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\gitflow_hotfix_propagation\\export_result.ps1"
+  },
+  "metadata": {
+    "repo_name": "TailwindTraders-Auth",
+    "hotfix_branch": "hotfix/login-security-patch",
+    "target_file": "src/auth.js",
+    "fix_marker": "CVE-2026-9999",
+    "api_base": "http://localhost/DefaultCollection/TailwindTraders/_apis"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_gitflow_hotfix_propagation"
+    }
+  }
+}

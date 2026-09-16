@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Optional
 
-from .benchmark import build_benchmark_suite_with_qc_loop
+from .benchmark import _unbuilt_task_counts, build_benchmark_suite_with_qc_loop
 from .diagnostics import (
     _io_path,
     error_record,
@@ -194,14 +194,29 @@ def _load_construction_resume(
     return plan, suite if isinstance(suite, TaskSuite) else None, qc_report if isinstance(qc_report, QcReport) else None, last_round
 
 
-def _load_eval_run(path: Path, suite: TaskSuite, qc_report: QcReport) -> EvalRun | None:
+def _load_eval_run(
+    path: Path, suite: TaskSuite, qc_report: QcReport, config: BenchmarkConfig,
+) -> EvalRun | None:
     payload = _read_json(path)
     if not isinstance(payload, dict):
         return None
     try:
-        return EvalRun.model_validate({**payload, "suite": suite, "qc_report": qc_report})
+        run = EvalRun.model_validate({**payload, "suite": suite, "qc_report": qc_report})
     except (TypeError, ValueError):
         return None
+    expected = {
+        (target.id, item_id)
+        for target in config.targets
+        for item_id in build_execution_plan(suite, qc_report).accepted_item_ids
+    } if config.run_targets else set()
+    observed = {(result.target_id, result.item_id) for result in run.results}
+    if (
+        observed != expected
+        or len(run.results) != len(expected)
+        or any(result.error for result in run.results)
+    ):
+        return None
+    return run
 
 
 def _redact_secrets(text: str) -> str:
@@ -445,6 +460,8 @@ def _run_pipeline(
             _write_run_state(debug_run_dir, status, stage=stage)
 
     original_goal = goal
+    from .runners.harness import preflight_model_gateways
+
     saved_input = _read_json(debug_run_dir / "input.json") if resuming and debug_run_dir else None
     resumed_goal_loaded = False
     if resuming and isinstance(saved_input, dict):
@@ -459,6 +476,8 @@ def _run_pipeline(
             debug_run_dir / "input.json",
             {"original_goal": original_goal, "normalized_goal": None},
         )
+    mark_stage("model_gateway_preflight")
+    preflight_model_gateways(config)
     if not resumed_goal_loaded:
         goal = translate_goal_to_english(goal, config)
     if debug_run_dir is not None:
@@ -603,9 +622,12 @@ def _run_pipeline(
         if answer not in {"y", "yes"}:
             config = config.model_copy(update={"run_targets": False})
 
-    if (not qc_report.is_acceptable or qc_report.rejected_item_ids) and not config.allow_incomplete_benchmark:
+    if (
+        _unbuilt_task_counts(suite) or not qc_report.is_acceptable or qc_report.rejected_item_ids
+    ) and not config.allow_incomplete_benchmark:
         raise RuntimeError(
-            "Benchmark is not runner-ready after QC. Set allow_incomplete_benchmark=true "
+            "Strict benchmark mode requires every planned task to be built and pass QC. "
+            "Set allow_incomplete_benchmark=true "
             "to continue with QC-filtered items."
         )
 
@@ -670,7 +692,7 @@ def _run_pipeline(
     mark_stage("environment", "done")
     mark_stage("runner")
     run = (
-        _load_eval_run(debug_run_dir / "run.json", suite, qc_report)
+        _load_eval_run(debug_run_dir / "run.json", suite, run_qc_report, direct_config)
         if resuming and debug_run_dir is not None
         else None
     )

@@ -1,0 +1,53 @@
+{
+  "task_id": "discounting_k_estimation@1",
+  "task_completion": [
+    {
+      "id": "access_csv_data",
+      "description": "Agent accesses or reads the discounting_choices.csv file.",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the CSV file opened in a viewer, or a script containing code to read '~/pebl/data/discounting_choices.csv'."
+    },
+    {
+      "id": "implement_k_math",
+      "description": "Agent implements the specific math for k_indiff, bounds, and geometric mean.",
+      "points": 20,
+      "visual_evidence": "Screenshots of code (e.g., Python/R) showing the formulas: k_indiff = (delayed/immediate - 1)/delay, finding min/max bounds based on choices, and k = sqrt(lower * upper)."
+    },
+    {
+      "id": "exclude_degenerate_data",
+      "description": "Agent identifies and excludes the corrupted participant (sub-99999).",
+      "points": 20,
+      "visual_evidence": "Code logic filtering out RT <= 300ms or 100% same choices, or terminal output/JSON showing 'sub-99999' is excluded with a reason."
+    },
+    {
+      "id": "compute_group_statistics",
+      "description": "Agent calculates the group median k and median ln_k for valid participants.",
+      "points": 20,
+      "visual_evidence": "Code showing median calculations for 'k' and 'ln_k' across the valid participants, or terminal output displaying these median values."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Agent creates the final JSON report with the required structure.",
+      "points": 30,
+      "visual_evidence": "Screenshots showing the creation or content of '~/pebl/analysis/discounting_report.json' containing keys like 'participants', 'group_median_k', 'group_median_ln_k', and 'n_valid'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_ground_truth_access",
+      "description": "Agent did not access the hidden ground truth file.",
+      "visual_evidence": "No terminal commands or script code attempting to read '/tmp/.discounting_gt.json'."
+    },
+    {
+      "id": "genuine_computation",
+      "description": "Agent computed the results rather than hardcoding them.",
+      "visual_evidence": "The script contains actual mathematical operations and data aggregation logic, not just print statements with hardcoded JSON strings."
+    },
+    {
+      "id": "real_data_processing",
+      "description": "Agent processed the actual input file.",
+      "visual_evidence": "The script explicitly loads 'discounting_choices.csv' rather than generating a mock dataset internally."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 16 participants. 15 are valid (sub-01 to sub-15). 1 is contaminated (sub-99999) and must be excluded due to 100% immediate choices and impossibly fast reaction times (10-30 ms). The final JSON report must be saved at /home/ga/pebl/analysis/discounting_report.json, showing n_valid as 15, with sub-99999 explicitly marked as excluded."
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "evaluate_network_capacity_mfd@1",
+  "task_completion": [
+    {
+      "id": "sumo_execution",
+      "description": "Verify the agent executed the SUMO simulation for the required demand scales.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output showing the execution of 'sumo' or a Python script running the simulation with scales 0.5, 1.0, 1.5, 2.0, and 3.0."
+    },
+    {
+      "id": "xml_files_generated",
+      "description": "Verify the summary XML files were generated for each scale.",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands like 'ls' or a file explorer showing files named 'summary_0.5.xml', 'summary_1.0.xml', 'summary_1.5.xml', 'summary_2.0.xml', and 'summary_3.0.xml' in the /home/ga/SUMO_Output directory."
+    },
+    {
+      "id": "csv_file_created",
+      "description": "Verify the agent created the mfd_data.csv file in the correct directory.",
+      "points": 10,
+      "visual_evidence": "Look for the file 'mfd_data.csv' in /home/ga/SUMO_Output, either via an 'ls' command, a file explorer, or a script writing to this path."
+    },
+    {
+      "id": "csv_header_correct",
+      "description": "Verify the CSV file contains the exact required header.",
+      "points": 10,
+      "visual_evidence": "Look at the contents of mfd_data.csv (e.g., via 'cat', 'head', or a text editor) and ensure the first line is exactly 'scale,max_running,avg_speed'."
+    },
+    {
+      "id": "csv_data_part1",
+      "description": "Verify the CSV contains the correct calculated metrics for scales 0.5 and 1.0.",
+      "points": 25,
+      "visual_evidence": "Look at the contents of mfd_data.csv and verify the presence of the lines '0.5,253,7.84' and '1.0,953,4.40' (allow minor formatting differences like spacing, but values must match)."
+    },
+    {
+      "id": "csv_data_part2",
+      "description": "Verify the CSV contains the correct calculated metrics for scales 1.5, 2.0, and 3.0.",
+      "points": 25,
+      "visual_evidence": "Look at the contents of mfd_data.csv and verify the presence of the lines '1.5,1485,2.67', '2.0,1501,2.46', and '3.0,1549,2.15'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_results",
+      "description": "Ensure the agent calculated the results by parsing the XML files rather than hardcoding the expected answers.",
+      "visual_evidence": "Look for a Python script, shell script, or command sequence that actually reads the XML files, extracts 'running' and 'meanSpeed', and computes the max/avg. The agent should not just use 'echo' to write the final known values directly into the CSV."
+    },
+    {
+      "id": "actual_sumo_execution",
+      "description": "Ensure the agent actually ran the SUMO simulation to generate the XML files.",
+      "visual_evidence": "Look for evidence of SUMO running (e.g., SUMO logging output in the terminal, or a script invoking the 'sumo' command). The agent should not create fake XML files."
+    },
+    {
+      "id": "correct_directory_usage",
+      "description": "Ensure the agent operated in the correct directories as specified by the task.",
+      "visual_evidence": "Check terminal prompts or script paths to confirm the scenario was run from /home/ga/SUMO_Scenarios/bologna_pasubio/ and outputs were saved to /home/ga/SUMO_Output/."
+    }
+  ],
+  "privileged_info_for_vlm": "The correct NMFD metrics for the CSV are: Scale 0.5 (max_running: 253, avg_speed: 7.84), Scale 1.0 (max_running: 953, avg_speed: 4.40), Scale 1.5 (max_running: 1485, avg_speed: 2.67), Scale 2.0 (max_running: 1501, avg_speed: 2.46), and Scale 3.0 (max_running: 1549, avg_speed: 2.15). The output directory must be /home/ga/SUMO_Output and the file must be named mfd_data.csv with the header 'scale,max_running,avg_speed'."
+}

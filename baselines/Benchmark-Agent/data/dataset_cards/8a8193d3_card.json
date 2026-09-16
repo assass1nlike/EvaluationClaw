@@ -1,0 +1,74 @@
+{
+  "dataset_id": "8a8193d3",
+  "name": "Text-To-Sql",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 240,
+  "description": "The dataset contains 240 examples for text-to-SQL generation. Each example provides a database schema as a SQL CREATE TABLE statement and a natural language question, and the model must produce a SQL query that answers the question. It evaluates semantic parsing of natural language into SQL over relational schemas.",
+  "card_text": "This dataset is a text-only collection of text-to-SQL examples. Each sample consists of a database schema given as a SQL CREATE TABLE statement (context), a natural language question about the data (question), and the corresponding SQL query (answer). The schemas are small relational tables with columns and types, and questions are simple factoid queries such as selecting, filtering, or counting records. The SQL queries use standard SELECT statements with WHERE, COUNT, and other clauses. The dataset assumes that the schema alone is sufficient to answer the question; no actual table data is provided. It is designed to evaluate a model's ability to translate natural language into executable SQL over structured schemas.",
+  "tasks": [
+    "table_question_answering"
+  ],
+  "domain": "relational databases / SQL",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.context"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The context field contains SQL CREATE TABLE statements that define the database schema, including table names, column names, and data types. It is the structured input that the model must use to generate a SQL query.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.question"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "The question field contains a natural language question asking for specific information from the database, such as retrieving a value, filtering rows, or counting records. It serves as the instruction for the text-to-SQL task.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.sql"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The answer field contains the target SQL query that answers the question using the provided schema. It is the expected output and may include SELECT, WHERE, COUNT, and other SQL clauses.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with two text fields: context (a SQL CREATE TABLE statement defining the database schema) and question (a natural language question about the data). The output object contains a single text field, sql, which is the SQL query that answers the question. The context defines the tables and columns that the SQL must reference; the question specifies the retrieval goal; and the answer is the target SQL query. No multiple-choice options, dialog, or other annotations are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Text-To-Sql/annotation.json",
+    "existing_tags": {
+      "task": "Text to SQL",
+      "type": "Text to SQL",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

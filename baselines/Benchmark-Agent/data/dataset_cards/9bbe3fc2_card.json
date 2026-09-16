@@ -1,0 +1,86 @@
+{
+  "dataset_id": "9bbe3fc2",
+  "name": "Dialogue-Relation-Extraction",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "This dataset evaluates relation extraction from multi-turn dialogues. Given a dialogue transcript and a list of possible relation types, the model must extract all entity relations expressed in the conversation. The output is a string of formatted relation tuples.",
+  "card_text": "The dataset contains 200 samples of multi-turn dialogues, primarily from TV shows and everyday conversations. Each sample includes a raw dialogue transcript with speaker labels (e.g., Speaker 1, Speaker 2), an instruction prompt that lists eleven possible interpersonal relation types (e.g., per:friends, per:spouse, per:positive_impression), and a target answer string of extracted relation tuples. The dialogue serves as the context, the prompt acts as the question, and the answer is a structured concatenation of relations in the format (entity1 (type1) => relation => entity2 (type2)). The dataset evaluates the model's ability to identify and extract fine-grained interpersonal relations from conversational text, where entities can be speakers or mentioned individuals. The text is informal, narrative-driven, and requires understanding of context across multiple turns.",
+  "tasks": [
+    "relation_extraction"
+  ],
+  "domain": "TV show dialogue",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "dialog",
+        "semantics": "The dialogue transcript that provides the main input context. It contains multiple speaker turns with labels like 'Speaker 1:' and includes the conversational content from which relations must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "dialog": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "dialog",
+        "semantics": "A multi-turn conversation with alternating speaker utterances. This field is the same as the context but is explicitly identified as a dialogue structure, with speaker labels and sequential turns, used to identify interpersonal relations between speakers and mentioned entities.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "An instruction prompt that contains the raw_text placeholder and asks the model to extract all relations between entities from the dialogue. It lists the closed set of possible relation types (e.g., per:title, per:friends) and specifies the output format for each relation.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "structured",
+        "semantics": "A concatenated string of extracted relation tuples, each formatted as (entity1 (type1) => relation => entity2 (type2)). It represents the target output listing all relations found in the dialogue, including speaker and non-speaker entities with their types.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a dialogue transcript (input.raw_text) with speaker turns, an instruction prompt (input.prompt) that lists target relation types and asks to extract all relations, and an answer string (output.text) that concatenates extracted relation tuples in the form (entity1 (type1) => relation => entity2 (type2)). The dialogue provides the context; the prompt acts as a question/instruction; the answer is the extracted structured relations. No separate entity, span, or options fields are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Dialogue-Relation-Extraction/annotation.json",
+    "existing_tags": {
+      "task": "dialogue_relation_extraction",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

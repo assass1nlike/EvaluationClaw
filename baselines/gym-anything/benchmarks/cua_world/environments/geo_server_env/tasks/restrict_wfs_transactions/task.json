@@ -1,0 +1,29 @@
+{
+  "id": "restrict_wfs_transactions@1",
+  "version": "1.0.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Configure GeoServer Service Security at http://localhost:8080/geoserver/web/ (Username: 'admin', Password: 'Admin123!') to restrict data modification capabilities. Lock down the WFS 'Transaction' operation so only the 'ADMIN' role can use it, while keeping WFS 'GetFeature' (read access) open to the 'Anonymous' role.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/restrict_wfs_transactions/setup_task.sh",
+    "post_task": "/workspace/tasks/restrict_wfs_transactions/export_result.sh"
+  },
+  "metadata": {
+    "target_service": "wfs",
+    "target_method_write": "Transaction",
+    "target_method_read": "GetFeature",
+    "target_role": "ADMIN",
+    "test_layer": "ne:ne_countries"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_restrict_wfs_transactions"
+    }
+  }
+}

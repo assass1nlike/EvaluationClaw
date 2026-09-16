@@ -1,0 +1,59 @@
+{
+  "task_id": "pm_cost_accuracy_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Access the prospective memory dataset",
+      "points": 10,
+      "visual_evidence": "A script (e.g., Python/pandas), terminal command, or spreadsheet application opening or reading '~/pebl/data/prospective_memory_data.csv'."
+    },
+    {
+      "id": "identify_excluded_participant",
+      "description": "Identify the participant with impossible physiological reaction times",
+      "points": 20,
+      "visual_evidence": "Code logic filtering out participants with abnormally low RTs (e.g., < 50ms or 20-30ms), or terminal/notebook output explicitly identifying 'sub-99' as having impossible reaction times."
+    },
+    {
+      "id": "calculate_participant_metrics",
+      "description": "Calculate Baseline Ongoing RT, PM Block Ongoing RT, PM Cost, and PM Hit Rate for valid participants",
+      "points": 20,
+      "visual_evidence": "Code or formulas calculating means for correct ongoing trials in baseline and pm_block, computing the difference (PM Cost), and calculating the proportion of correct responses on pm_cue trials."
+    },
+    {
+      "id": "calculate_group_means",
+      "description": "Calculate the group mean PM cost and group mean PM hit rate",
+      "points": 10,
+      "visual_evidence": "Code or calculations computing the overall average of the individual PM costs and PM hit rates across all valid participants."
+    },
+    {
+      "id": "format_json_participants",
+      "description": "Format the participants list with valid and excluded entries",
+      "points": 20,
+      "visual_evidence": "The constructed JSON structure in a script or the final file showing a 'participants' list. Valid entries must have 'id', 'baseline_ongoing_rt_ms', 'pm_block_ongoing_rt_ms', 'pm_cost_ms', and 'pm_hit_rate'. The excluded entry must have 'id' (sub-99), 'excluded': true, and a 'reason'."
+    },
+    {
+      "id": "save_final_json",
+      "description": "Save the final JSON report with root group means to the correct path",
+      "points": 20,
+      "visual_evidence": "The file being saved to '~/pebl/analysis/pm_report.json' (or /home/ga/pebl/analysis/pm_report.json) with the root keys 'group_mean_pm_cost_ms' and 'group_mean_pm_hit_rate' visible in the output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_or_tool_used",
+      "description": "Agent used a script or data analysis tool to compute the results",
+      "visual_evidence": "Presence of Python code, pandas operations, or spreadsheet formulas rather than manually typing a JSON file with guessed or hallucinated numbers."
+    },
+    {
+      "id": "dynamic_exclusion",
+      "description": "Agent filtered the excluded participant based on data inspection, not prior knowledge",
+      "visual_evidence": "The agent should filter the excluded participant based on RT values (e.g., checking min/max RTs or filtering RT < 100), rather than hardcoding 'sub-99' without first exploring the dataset."
+    },
+    {
+      "id": "genuine_file_creation",
+      "description": "Agent actually saved the file to the specified directory",
+      "visual_evidence": "A file save operation or a terminal command confirming the creation of 'pm_report.json' in the '~/pebl/analysis/' directory, rather than just printing the JSON text to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "The input dataset contains 20 valid participants and 1 contaminated participant ('sub-99'). The contaminated participant ('sub-99') has impossible uniform reaction times between 20.0 and 30.0 ms. The final output must be saved to /home/ga/pebl/analysis/pm_report.json. Verify that 'sub-99' is the participant marked as excluded in the JSON report, and that the exclusion reason mentions the impossible/low reaction times."
+}

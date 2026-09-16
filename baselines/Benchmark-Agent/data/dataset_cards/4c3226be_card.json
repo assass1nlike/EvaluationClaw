@@ -1,0 +1,74 @@
+{
+  "dataset_id": "4c3226be",
+  "name": "Constituency-Parsing",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The Constituency-Parsing dataset evaluates a model's ability to perform syntactic constituent parsing via multiple-choice questions. Given a sentence with annotation markers, the model must choose the correct constituent label from four options.",
+  "card_text": "The Constituency-Parsing dataset is a text-only benchmark of 200 samples designed to assess syntactic parsing capabilities. Each sample contains a single sentence with syntactic annotation markers (e.g., gaps or traces) and a multiple-choice question asking which constituent parsing option is correct for a specific part of the sentence. The options are provided as labeled choices (A-D) within the prompt. The correct answer is a single letter. The dataset covers English sentences from news or general text, and the task requires understanding of phrase structure grammar and syntactic categories. It is suitable for evaluating models on classification or multiple-choice QA framed as a linguistic parsing challenge.",
+  "tasks": [
+    "multiple_choice_qa"
+  ],
+  "domain": "linguistics",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A single sentence containing syntactic annotation markers (e.g., 0, *T*-1, *U*) that indicate gaps or traces for constituent parsing. It serves as the main input for the parsing question.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "A multiple-choice question asking to select the correct constituent parsing label for a specific syntactic constituent in the given sentence. It includes four options labeled A-D.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct option letter (A, B, C, or D) indicating the chosen constituent parsing label.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a raw sentence (input.raw_text) that contains syntactic annotation markers, a multiple-choice question (input.prompt) that embeds the raw sentence and presents four constituent parsing options (A-D), and a single-letter answer (output.text) indicating the correct option. The question asks the model to identify the correct syntactic category for a specific constituent in the sentence."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Constituency-Parsing/annotation.json",
+    "existing_tags": {
+      "task": "con_parsing",
+      "type": "multiple choice",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

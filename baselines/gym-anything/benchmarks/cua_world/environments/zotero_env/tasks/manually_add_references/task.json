@@ -1,0 +1,52 @@
+{
+  "id": "manually_add_references@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Create three new bibliographic items in Zotero (one Book, one Journal Article, and one Conference Paper) with the following metadata:\n\nBook:\nTitle: The Structure of Scientific Revolutions\nAuthor: Thomas S. Kuhn\nDate: 1962\nPublisher: University of Chicago Press\nPlace: Chicago\n\nJournal Article:\nTitle: The Strength of Weak Ties\nAuthor: Mark S. Granovetter\nDate: 1973\nPublication: American Journal of Sociology\nVolume: 78\nIssue: 6\nPages: 1360-1380\n\nConference Paper:\nTitle: The Anatomy of a Large-Scale Hypertextual Web Search Engine\nAuthors: Sergey Brin and Lawrence Page\nDate: 1998\nProceedings Title: Proceedings of the 7th International World Wide Web Conference\nPages: 107-117",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/manually_add_references/setup_task.sh",
+    "post_task": "/workspace/tasks/manually_add_references/export_result.sh"
+  },
+  "metadata": {
+    "book": {
+      "type": "book",
+      "title": "Structure of Scientific Revolutions",
+      "author_last": "Kuhn",
+      "date": "1962",
+      "publisher": "University of Chicago Press"
+    },
+    "article": {
+      "type": "journalArticle",
+      "title": "Strength of Weak Ties",
+      "author_last": "Granovetter",
+      "date": "1973",
+      "publication": "American Journal of Sociology",
+      "volume": "78",
+      "issue": "6",
+      "pages": "1360"
+    },
+    "conference": {
+      "type": "conferencePaper",
+      "title": "Anatomy of a Large-Scale",
+      "author_lasts": [
+        "Brin",
+        "Page"
+      ],
+      "date": "1998",
+      "proceedings": "World Wide Web",
+      "pages": "107"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manually_add_references"
+    }
+  }
+}

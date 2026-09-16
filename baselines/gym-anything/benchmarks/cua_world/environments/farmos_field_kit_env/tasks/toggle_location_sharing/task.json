@@ -1,0 +1,25 @@
+{
+  "id": "toggle_location_sharing@1",
+  "env_id": "example.farmos_field_kit_env@0.1",
+  "difficulty": "medium",
+  "description": "The farmOS Field Kit app is open on the Tasks screen. Disable the 'Share My Location' setting.",
+  "init": {
+    "timeout_sec": 120,
+    "max_steps": 15,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/toggle_location_sharing/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/toggle_location_sharing/export_result.sh"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::check_location_sharing"
+    }
+  },
+  "metadata": {
+    "setting": "Share My Location",
+    "expected_state": "off"
+  }
+}

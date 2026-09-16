@@ -1,0 +1,53 @@
+{
+  "task_id": "configure_apache_media_alias@1",
+  "task_completion": [
+    {
+      "id": "apache_config_opened",
+      "description": "Agent opens an Apache configuration file to edit.",
+      "points": 10,
+      "visual_evidence": "A text editor (like nano, vim, or gedit) is open showing an Apache configuration file (e.g., inside /etc/apache2/)."
+    },
+    {
+      "id": "alias_directive_added",
+      "description": "Agent adds the Alias directive to map the URL path to the directory.",
+      "points": 25,
+      "visual_evidence": "The text 'Alias /stock-media /var/lib/agency_stock_media' (or similar valid Apache alias syntax) is visible in the configuration file."
+    },
+    {
+      "id": "directory_permissions_added",
+      "description": "Agent adds a Directory block to grant access to the target directory.",
+      "points": 25,
+      "visual_evidence": "A '<Directory /var/lib/agency_stock_media>' block containing 'Require all granted' (or equivalent access rules) is visible in the configuration file."
+    },
+    {
+      "id": "apache_service_restarted",
+      "description": "Agent restarts or reloads the Apache service to apply changes.",
+      "points": 10,
+      "visual_evidence": "A terminal shows a command like 'systemctl restart apache2', 'systemctl reload apache2', or 'service apache2 restart' being executed."
+    },
+    {
+      "id": "image_accessibility_verified",
+      "description": "Agent verifies that the image is accessible at the required URL.",
+      "points": 30,
+      "visual_evidence": "A web browser displays the monarch butterfly image with the address bar showing 'http://localhost/stock-media/monarch.jpg', or a terminal shows a successful 'curl' request to that URL."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_files_copied_or_symlinked",
+      "description": "Agent did not copy, move, or symlink the image files into the application's document root.",
+      "visual_evidence": "No terminal commands like 'cp', 'mv', or 'ln -s' are used to place files into '/opt/socioboard/socioboard-web-php/public/' or '/opt/socioboard/socioboard-web-php/public/stock-media'."
+    },
+    {
+      "id": "genuine_apache_configuration",
+      "description": "Agent used Apache configuration to map the directory, rather than a workaround.",
+      "visual_evidence": "The configuration changes are made in actual Apache configuration files (e.g., '/etc/apache2/sites-available/000-default.conf' or 'apache2.conf'), not in PHP scripts or other unrelated files."
+    },
+    {
+      "id": "genuine_url_verification",
+      "description": "Agent verified the URL over HTTP, not via local file access.",
+      "visual_evidence": "The browser address bar shows 'http://localhost/...' and not 'file:///...' when displaying the image."
+    }
+  ],
+  "privileged_info_for_vlm": "Expected URL: http://localhost/stock-media/monarch.jpg. Target directory: /var/lib/agency_stock_media. Alias path: /stock-media. Cheat directory (must remain empty/non-existent): /opt/socioboard/socioboard-web-php/public/stock-media."
+}

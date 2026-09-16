@@ -1,0 +1,35 @@
+{
+  "id": "edit_attribute_values@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Update the population estimates for five specific countries in the 'ne_110m_admin_0_countries' layer to their 2024 values. In the 'POP_EST' field, enter the following values:\n- United States of America: 334233854\n- Brazil: 216422446\n- Japan: 123294513\n- Germany: 84482267\n- Australia: 26638544\nEnsure the changes are saved and the editing session is finalized.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/edit_attribute_values/setup_task.sh",
+    "post_task": "/workspace/tasks/edit_attribute_values/export_result.sh"
+  },
+  "metadata": {
+    "target_file": "/home/ga/gvsig_data/countries/ne_110m_admin_0_countries.dbf",
+    "targets": {
+      "United States of America": 334233854,
+      "Brazil": 216422446,
+      "Japan": 123294513,
+      "Germany": 84482267,
+      "Australia": 26638544
+    },
+    "tolerance": 1,
+    "key_field": "NAME",
+    "value_field": "POP_EST"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_edit_attribute_values"
+    }
+  }
+}

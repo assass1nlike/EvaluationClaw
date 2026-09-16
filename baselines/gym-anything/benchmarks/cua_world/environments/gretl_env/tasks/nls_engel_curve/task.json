@@ -1,0 +1,34 @@
+{
+  "id": "nls_engel_curve@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Estimate a nonlinear Engel curve (food_exp = alpha + beta * income^gamma) using the 'food.gdt' dataset. Initialize the parameters with alpha=50, beta=10, and gamma=0.5. Save the estimation script to /home/ga/Documents/gretl_output/nls_engel.inp and the resulting estimation output to /home/ga/Documents/gretl_output/nls_engel_output.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/nls_engel_curve/setup_task.sh",
+    "post_task": "/workspace/tasks/nls_engel_curve/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "script_path": "/home/ga/Documents/gretl_output/nls_engel.inp",
+    "output_path": "/home/ga/Documents/gretl_output/nls_engel_output.txt",
+    "expected_params": [
+      "alpha",
+      "beta",
+      "gamma"
+    ],
+    "gamma_min": 0.3,
+    "gamma_max": 2.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_nls_engel_curve"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "residential_space_efficiency_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_and_data_loading",
+      "description": "Create the Jupyter notebook and load the UrbanSim H5 data.",
+      "points": 10,
+      "visual_evidence": "A Jupyter Notebook named 'space_efficiency_analysis.ipynb' is open. Code cells should show the loading of the data file from '/home/ga/urbansim_projects/data/sanfran_public.h5' (e.g., using pandas HDFStore or read_hdf)."
+    },
+    {
+      "id": "data_aggregation_and_metrics",
+      "description": "Filter data, aggregate by zone, and calculate space efficiency metrics.",
+      "points": 30,
+      "visual_evidence": "Code cells showing data manipulation: filtering for residential buildings (e.g., 'residential_units > 0'), filling missing residential square footage with zero, aggregating data (households, buildings, parcels) by zone, and calculating 'sqft_per_capita' as total_residential_sqft / total_persons."
+    },
+    {
+      "id": "csv_export",
+      "description": "Export the zone-level summary to a CSV file.",
+      "points": 20,
+      "visual_evidence": "A code cell showing the dataframe being exported to '/home/ga/urbansim_projects/output/zone_space_efficiency.csv'. The code should indicate the inclusion of columns: zone_id, total_buildings, total_residential_sqft, total_persons, and sqft_per_capita."
+    },
+    {
+      "id": "scatter_plot_generation",
+      "description": "Generate and save a scatter plot of total_persons vs. total_residential_sqft.",
+      "points": 20,
+      "visual_evidence": "A code cell generating a scatter plot with total_persons and total_residential_sqft, saving it to '/home/ga/urbansim_projects/output/efficiency_scatter.png'. The executed cell must show the scatter plot visibly rendered in the notebook output."
+    },
+    {
+      "id": "bar_chart_generation",
+      "description": "Generate and save a bar chart of the top 10 least efficient zones.",
+      "points": 20,
+      "visual_evidence": "A code cell filtering zones for at least 50 persons, selecting the top 10 with the highest sqft_per_capita, and plotting a bar chart. The code must save the plot to '/home/ga/urbansim_projects/output/least_efficient_zones.png', and the bar chart must be visibly rendered in the notebook output."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "jupyter_execution",
+      "description": "Verify that the notebook cells were actually executed.",
+      "visual_evidence": "Code cells should have execution numbers (e.g., In [1], In [2]) next to them, and the required plots must be visible as cell outputs, proving the code was run in the environment."
+    },
+    {
+      "id": "genuine_data_usage",
+      "description": "Verify that the agent processed the actual dataset rather than hardcoding answers.",
+      "visual_evidence": "The code should reference dataframe variables derived from the .h5 file for plotting and CSV generation, without any hardcoded arrays or mock data for the final outputs."
+    },
+    {
+      "id": "no_terminal_mocking",
+      "description": "Verify that outputs were generated via Python code, not terminal commands.",
+      "visual_evidence": "There should be no terminal commands (like 'touch' or 'echo') used to artificially create the expected output files (.csv and .png) bypassing the Jupyter notebook."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected file paths are strictly defined: Notebook at '/home/ga/urbansim_projects/notebooks/space_efficiency_analysis.ipynb', Data at '/home/ga/urbansim_projects/data/sanfran_public.h5', CSV output at '/home/ga/urbansim_projects/output/zone_space_efficiency.csv', Scatter plot at '/home/ga/urbansim_projects/output/efficiency_scatter.png', and Bar chart at '/home/ga/urbansim_projects/output/least_efficient_zones.png'."
+}

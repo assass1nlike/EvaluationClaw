@@ -1,0 +1,33 @@
+{
+  "id": "hexagon_strawberry_search@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "Locate the hidden strawberry in the GCompris 'Hexagon' activity. Save a screenshot of the success state to /home/ga/strawberry_found.png.",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/hexagon_strawberry_search/setup_task.sh",
+    "post_task": "/workspace/tasks/hexagon_strawberry_search/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/strawberry_found.png",
+    "activity_name": "Hexagon",
+    "category_name": "Puzzles",
+    "visual_cues": [
+      "hexagonal grid",
+      "strawberry",
+      "red cell",
+      "yellow cell",
+      "black cell"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_hexagon_strawberry_search"
+    }
+  }
+}

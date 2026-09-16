@@ -1,0 +1,31 @@
+{
+  "id": "add_pilot@1",
+  "version": "1.0",
+  "env_id": "aerobridge_env@0.1",
+  "description": "You are using Aerobridge, an open-source drone/UAV fleet management system. Add a new pilot to the personnel registry at http://localhost:8000/admin/registry/pilot/add/ (log in as 'admin' / 'adminpass123' if needed). The pilot must be linked to a new Person record for Aditya Kumar (Email: 'aditya.kumar@droneops.in', Phone: '+919876543210') with 'Default Aerobridge Document' selected. Complete the pilot registration using any available Operator and Address, ensuring 'Default Aerobridge Document' is also selected for the pilot record. Do not log out after saving.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_pilot/setup_task.sh",
+    "post_task": "/workspace/tasks/add_pilot/export_result.sh"
+  },
+  "metadata": {
+    "expected_first_name": "Aditya",
+    "expected_last_name": "Kumar",
+    "expected_email": "aditya.kumar@droneops.in",
+    "admin_username": "admin",
+    "admin_password": "adminpass123",
+    "admin_url": "http://localhost:8000/admin/",
+    "model_admin_url": "http://localhost:8000/admin/registry/pilot/add/"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_pilot"
+    }
+  }
+}

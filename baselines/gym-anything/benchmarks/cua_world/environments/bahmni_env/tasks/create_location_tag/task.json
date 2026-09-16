@@ -1,0 +1,29 @@
+{
+  "id": "create_location_tag@1",
+  "version": "1.0",
+  "env_id": "bahmni_env@0.1",
+  "description": "Log in to the OpenMRS Administration interface (Username: superman, Password: Admin123). Create a new Location Tag named 'Telehealth Endpoint' with the description 'Locations equipped for remote video consultations' and assign it to the existing location 'Registration Desk'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_location_tag/setup_task.sh",
+    "post_task": "/workspace/tasks/create_location_tag/export_result.sh",
+    "pre_task_timeout": 600
+  },
+  "metadata": {
+    "tag_name": "Telehealth Endpoint",
+    "tag_description": "Locations equipped for remote video consultations",
+    "target_location": "Registration Desk",
+    "admin_url": "https://localhost/openmrs/admin"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_location_tag"
+    }
+  }
+}

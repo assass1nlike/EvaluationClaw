@@ -1,0 +1,39 @@
+{
+  "id": "intensity_preserving_masking@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Intensity-Preserving Background Masking",
+  "description": "Perform a logical masking operation on the 'Blobs (25K)' sample image to isolate the blobs while preserving their original grayscale intensity values. The background must be completely black (pixel value 0). Save the resulting 8-bit TIFF image to ~/ImageJ_Data/results/masked_blobs.tif.",
+  "difficulty": "medium",
+  "tags": [
+    "image-processing",
+    "logic-operations",
+    "masking",
+    "grayscale",
+    "image-calculator"
+  ],
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/intensity_preserving_masking/setup_task.sh",
+    "post_task": "/workspace/tasks/intensity_preserving_masking/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/ImageJ_Data/results/masked_blobs.tif",
+    "min_unique_values": 10,
+    "expected_background_value": 0,
+    "forbidden_values": [
+      255
+    ],
+    "image_source": "Blobs (25K)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_masking"
+    }
+  }
+}

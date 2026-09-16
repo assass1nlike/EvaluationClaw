@@ -1,0 +1,59 @@
+{
+  "task_id": "manufacturing_multi_level_bom_costing@1",
+  "task_completion": [
+    {
+      "id": "create_premium_rotor_item",
+      "description": "Create the 'Premium Rotor' item with correct settings",
+      "points": 15,
+      "visual_evidence": "An Item record for 'Premium Rotor' in ERPNext showing Item Group set to 'Sub Assemblies' and the 'Maintain Stock' checkbox checked."
+    },
+    {
+      "id": "create_premium_wind_turbine_item",
+      "description": "Create the 'Premium Wind Turbine' item with correct settings",
+      "points": 15,
+      "visual_evidence": "An Item record for 'Premium Wind Turbine' in ERPNext showing Item Group set to 'Products' and the 'Maintain Stock' checkbox checked."
+    },
+    {
+      "id": "create_premium_rotor_bom",
+      "description": "Create the BOM for 'Premium Rotor' with correct raw materials",
+      "points": 20,
+      "visual_evidence": "A BOM form for 'Premium Rotor' (Qty: 1) showing the items table containing 'Wing Sheet' (Qty: 3) and 'Shaft' (Qty: 1)."
+    },
+    {
+      "id": "submit_premium_rotor_bom",
+      "description": "Submit the 'Premium Rotor' BOM and verify the $70.00 cost",
+      "points": 15,
+      "visual_evidence": "The BOM for 'Premium Rotor' shows a 'Submitted' status badge and the estimated/raw material cost is displayed as $70.00."
+    },
+    {
+      "id": "create_premium_wind_turbine_bom",
+      "description": "Create the BOM for 'Premium Wind Turbine' with correct components",
+      "points": 20,
+      "visual_evidence": "A BOM form for 'Premium Wind Turbine' (Qty: 1) showing the items table containing 'Premium Rotor' (Qty: 1), 'Upper Bearing Plate' (Qty: 1), and 'Base Plate' (Qty: 1)."
+    },
+    {
+      "id": "submit_premium_wind_turbine_bom",
+      "description": "Submit the 'Premium Wind Turbine' BOM and verify the $170.00 rolled-up cost",
+      "points": 15,
+      "visual_evidence": "The BOM for 'Premium Wind Turbine' shows a 'Submitted' status badge and the total raw material cost is displayed as $170.00."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the ERPNext web interface to complete the task",
+      "visual_evidence": "Screenshots show the ERPNext web UI in a browser window, not terminal commands or API scripts."
+    },
+    {
+      "id": "genuine_progression",
+      "description": "Agent actually filled out the forms and submitted them",
+      "visual_evidence": "Screenshots show intermediate steps like filling out item tables, clicking 'Save', and clicking 'Submit', rather than just a final success message."
+    },
+    {
+      "id": "no_inspect_element_tampering",
+      "description": "Agent did not use browser developer tools to fake the cost numbers",
+      "visual_evidence": "No browser developer tools (Inspect Element) are open in the screenshots, and the cost numbers naturally align with the ERPNext UI layout."
+    }
+  ],
+  "privileged_info_for_vlm": "The parent item is 'Premium Wind Turbine' and the sub-assembly item is 'Premium Rotor'. The expected parent cost must be exactly $170.00 (calculated from Wing Sheet $15x3 + Shaft $25 + Upper Bearing Plate $60 + Base Plate $40). The sub-assembly cost must be exactly $70.00."
+}

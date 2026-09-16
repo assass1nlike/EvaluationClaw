@@ -1,0 +1,53 @@
+{
+  "task_id": "refactor_introduce_parameter_object@1",
+  "task_completion": [
+    {
+      "id": "create_transaction_request_class",
+      "description": "Create the new TransactionRequest class with the required fields.",
+      "points": 20,
+      "visual_evidence": "A file named 'TransactionRequest.java' is visible in the editor or file explorer. The class should contain fields for merchantId, amount, currency, cardNum, cvv, expiry, and note."
+    },
+    {
+      "id": "update_payment_processor_signature",
+      "description": "Update PaymentProcessor.processTransaction to accept a single TransactionRequest parameter.",
+      "points": 20,
+      "visual_evidence": "In 'PaymentProcessor.java', the 'processTransaction' method signature is updated to take a single argument of type 'TransactionRequest' instead of the 7 individual parameters."
+    },
+    {
+      "id": "update_app_java_callers",
+      "description": "Refactor callers in App.java to use the new TransactionRequest object.",
+      "points": 20,
+      "visual_evidence": "In 'App.java', calls to 'processTransaction' are updated to instantiate and pass a 'TransactionRequest' object (e.g., 'new TransactionRequest(...)') rather than passing 7 separate arguments."
+    },
+    {
+      "id": "update_test_callers",
+      "description": "Refactor callers in PaymentServiceTest.java to use the new TransactionRequest object.",
+      "points": 20,
+      "visual_evidence": "In 'PaymentServiceTest.java', calls to 'processTransaction' are updated to instantiate and pass a 'TransactionRequest' object."
+    },
+    {
+      "id": "tests_pass",
+      "description": "Ensure the project compiles and all tests pass.",
+      "points": 20,
+      "visual_evidence": "A test runner panel (like IntelliJ's JUnit/TestNG tool window) or terminal output showing successful compilation and all tests passing (e.g., green checkmarks or 'BUILD SUCCESS')."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_editor_usage",
+      "description": "The agent used a genuine code editor or IDE to perform the refactoring.",
+      "visual_evidence": "The screenshots show an IDE (like IntelliJ IDEA) or a text editor (like VS Code, Vim, Nano) being used to edit the Java files, rather than just echoing text into files via terminal."
+    },
+    {
+      "id": "tests_not_commented_out",
+      "description": "The agent did not comment out, delete, or skip tests to force a passing result.",
+      "visual_evidence": "The test file 'PaymentServiceTest.java' still contains actual assertions and test logic, and the test runner shows tests were actually executed (count > 0)."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "The test execution output is genuine and not mocked.",
+      "visual_evidence": "The test results appear in a standard IDE test runner UI or standard build tool (Maven/Gradle) terminal output, without signs of simply printing 'Tests passed' to the console."
+    }
+  ],
+  "privileged_info_for_vlm": "Project is located at /home/ga/IdeaProjects/legacy-payment-module. The new class must be named 'TransactionRequest' and encapsulate exactly these 7 fields: merchantId, amount, currency, cardNum, cvv, expiry, note. The target method is 'processTransaction' in 'src/main/java/com/example/payments/PaymentProcessor.java'. Callers to be updated are located in 'App.java' and 'PaymentServiceTest.java'."
+}

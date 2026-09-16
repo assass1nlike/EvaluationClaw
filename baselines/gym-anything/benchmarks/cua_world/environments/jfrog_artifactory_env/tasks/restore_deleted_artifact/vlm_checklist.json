@@ -1,0 +1,59 @@
+{
+  "task_id": "restore_deleted_artifact@1",
+  "task_completion": [
+    {
+      "id": "access_artifactory",
+      "description": "Navigate to the local Artifactory instance",
+      "points": 10,
+      "visual_evidence": "A web browser open to http://localhost:8082 showing the JFrog Artifactory login screen or dashboard."
+    },
+    {
+      "id": "login_admin",
+      "description": "Log in using the provided admin credentials",
+      "points": 10,
+      "visual_evidence": "The Artifactory interface showing the user is authenticated as 'admin' (e.g., user profile icon or name in the top right corner)."
+    },
+    {
+      "id": "navigate_trash_can",
+      "description": "Navigate to the Artifactory Trash Can",
+      "points": 20,
+      "visual_evidence": "The Artifactory UI displaying the 'Trash Can' page or view, typically found in the Artifacts or Administration menu."
+    },
+    {
+      "id": "locate_artifact_in_trash",
+      "description": "Locate the deleted artifact in the Trash Can",
+      "points": 20,
+      "visual_evidence": "The file 'commons-lang3-3.14.0.jar' visible in the list of items within the Trash Can."
+    },
+    {
+      "id": "restore_action",
+      "description": "Initiate the restore action for the artifact",
+      "points": 20,
+      "visual_evidence": "A context menu, button, or confirmation dialog showing the 'Restore' action being selected or executed for 'commons-lang3-3.14.0.jar'."
+    },
+    {
+      "id": "verify_restored_artifact",
+      "description": "Verify the artifact is restored to the correct repository",
+      "points": 20,
+      "visual_evidence": "The Artifacts Tree or repository browser showing 'commons-lang3-3.14.0.jar' successfully located inside 'example-repo-local' (specifically under the path org/apache/commons/commons-lang3/3.14.0/)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Agent used the web browser GUI to perform the task",
+      "visual_evidence": "Screenshots show interaction with the JFrog Artifactory web interface rather than using terminal curl commands or API scripts to restore the artifact."
+    },
+    {
+      "id": "genuine_artifactory_ui",
+      "description": "Agent interacted with the actual JFrog Artifactory application",
+      "visual_evidence": "The visual elements match a genuine JFrog Artifactory web interface, not a text editor or mocked HTML page."
+    },
+    {
+      "id": "restored_from_trash",
+      "description": "Agent actually restored the file from the Trash Can rather than uploading a new copy",
+      "visual_evidence": "The agent is seen navigating the Trash Can interface and using the built-in restore functionality, rather than downloading the JAR from the internet and using the 'Deploy' button."
+    }
+  ],
+  "privileged_info_for_vlm": "The target artifact is 'commons-lang3-3.14.0.jar'. It must be restored to the repository 'example-repo-local'. The exact path in the repository after restoration should be 'org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar'. The Artifactory instance is hosted at http://localhost:8082 and accessed with user 'admin'."
+}

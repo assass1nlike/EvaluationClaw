@@ -1,0 +1,59 @@
+{
+  "task_id": "configure_scan_grace_period@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_appdata",
+      "description": "Navigate to the bcWebCam local application data folder.",
+      "points": 10,
+      "visual_evidence": "File Explorer or a terminal showing the path %LOCALAPPDATA%\\bcWebCam (or C:\\Users\\<Username>\\AppData\\Local\\bcWebCam)."
+    },
+    {
+      "id": "app_closed_during_edit",
+      "description": "Ensure the bcWebCam application is closed before or during the editing of the configuration file.",
+      "points": 20,
+      "visual_evidence": "The bcWebCam application window is not visible on the screen and its icon does not indicate it is running in the taskbar while the text editor is open."
+    },
+    {
+      "id": "open_ini_file",
+      "description": "Open the bcWebCam.ini file in a text editor.",
+      "points": 10,
+      "visual_evidence": "A text editor (like Notepad) is open, and the window title or content indicates that bcWebCam.ini is the file being edited."
+    },
+    {
+      "id": "modify_grace_period",
+      "description": "Add or update the BcGracePeriod setting to 1500 under the [General] section.",
+      "points": 30,
+      "visual_evidence": "The text 'BcGracePeriod=1500' (or similar spacing) is visible under the '[General]' section in the text editor."
+    },
+    {
+      "id": "save_ini_file",
+      "description": "Save the changes made to the bcWebCam.ini file.",
+      "points": 10,
+      "visual_evidence": "The text editor shows no unsaved changes indicator (e.g., no asterisk next to the filename in Notepad), or the file menu is used to save the file, or the editor is closed after editing."
+    },
+    {
+      "id": "app_running_at_end",
+      "description": "Start the bcWebCam application again and leave it running and visible.",
+      "points": 20,
+      "visual_evidence": "The bcWebCam application window is open and visible on the screen in the final screenshots."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_edit",
+      "description": "The agent edited the actual bcWebCam.ini file.",
+      "visual_evidence": "The text editor window title shows bcWebCam.ini or terminal commands explicitly target the correct file path."
+    },
+    {
+      "id": "no_unrelated_modifications",
+      "description": "The agent only modified the required setting and did not delete other contents of the file.",
+      "visual_evidence": "Other sections and keys in the bcWebCam.ini file are still present and unmodified in the text editor."
+    },
+    {
+      "id": "genuine_app_launch",
+      "description": "The bcWebCam application is genuinely running at the end.",
+      "visual_evidence": "The bcWebCam application window is fully rendered and visible on the desktop, with its icon present in the taskbar."
+    }
+  ],
+  "privileged_info_for_vlm": "The target file is %LOCALAPPDATA%\\bcWebCam\\bcWebCam.ini. The expected section is [General], the expected key is BcGracePeriod, and the expected value is 1500 (which corresponds to the 1.5-second delay). The application must be closed before editing and restarted afterward."
+}

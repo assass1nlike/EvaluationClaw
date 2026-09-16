@@ -1,0 +1,53 @@
+{
+  "task_id": "entrypoint_debugging@1",
+  "task_completion": [
+    {
+      "id": "code_modified",
+      "description": "Modify Dockerfiles or entrypoint scripts to fix the startup issues.",
+      "points": 10,
+      "visual_evidence": "Look for an open text editor (like VS Code, nano, or vim) or terminal output (like `cat` or `git diff`) showing edits to Dockerfiles or entrypoint scripts within the `/home/ga/entrypoint-debug/` directory."
+    },
+    {
+      "id": "services_running",
+      "description": "All three Docker Compose services (Gateway, API, Worker) are running without crashing.",
+      "points": 15,
+      "visual_evidence": "Look for terminal output of a command like `docker compose ps` or `docker ps` showing the Gateway, API, and Worker containers in an 'Up' or running state."
+    },
+    {
+      "id": "gateway_responding",
+      "description": "The Gateway service responds successfully at http://localhost:8080.",
+      "points": 25,
+      "visual_evidence": "Look for terminal output of `curl http://localhost:8080` (or `curl -I http://localhost:8080`) showing a successful HTTP response, or a web browser open to `http://localhost:8080` displaying the Gateway."
+    },
+    {
+      "id": "api_responding",
+      "description": "The API service responds successfully at http://localhost:5000/health.",
+      "points": 25,
+      "visual_evidence": "Look for terminal output of `curl http://localhost:5000/health` showing a successful response (e.g., JSON indicating health) or a web browser open to that URL."
+    },
+    {
+      "id": "worker_interval",
+      "description": "The Worker container processes jobs with the configured 5-second interval.",
+      "points": 25,
+      "visual_evidence": "Look for terminal output of the Worker container logs (e.g., `docker compose logs worker`) showing repeated log entries indicating job processing, with timestamps approximately 5 seconds apart."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "integrity_docker_execution",
+      "description": "The agent genuinely interacted with Docker to run the stack.",
+      "visual_evidence": "Check that the terminal shows actual Docker commands being executed (e.g., `docker compose up`, `docker compose build`) and standard Docker daemon build/run output, rather than just `echo` commands printing fake statuses."
+    },
+    {
+      "id": "integrity_curl_execution",
+      "description": "The agent genuinely tested the endpoints using curl or a browser.",
+      "visual_evidence": "Check that the terminal shows actual `curl` commands being executed with real HTTP response headers/bodies, or a real browser window is used, not just text files being printed to the console."
+    },
+    {
+      "id": "integrity_file_location",
+      "description": "The agent modified the correct files in the specified directory.",
+      "visual_evidence": "Verify that the files being edited are explicitly located in `/home/ga/entrypoint-debug/` (visible in the terminal prompt, editor title bar, or file tree), rather than mock files created elsewhere."
+    }
+  ],
+  "privileged_info_for_vlm": "No privileged information available."
+}

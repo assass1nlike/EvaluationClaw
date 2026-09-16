@@ -1,0 +1,51 @@
+{
+  "id": "process_qa_feedback_blitz@1",
+  "version": "1.0",
+  "env_id": "azure_devops_server_env@0.1",
+  "description": "You are a Team Lead managing the 'TailwindTraders' project in Azure DevOps. Following a 'QA Blitz' testing session, review the latest 'QA Note' in the Discussion section for five specific User Stories and update their State and Tags according to the following criteria:\n\n- If the comment indicates success (e.g., 'Verified', 'Passed', 'Looks good'), set State to 'Closed'.\n- If the comment indicates failure (e.g., 'Found a bug', 'Failed validation'), set State to 'Active' and add the tag 'QA-Fail'.\n- If the comment indicates a blocker (e.g., 'Cannot test', 'Blocked'), set State to 'Active' and add the tag 'Blocked'.\n\nThe User Stories to process are:\n- 'Update customer profile photo'\n- 'Export order history to CSV'\n- 'Mobile push notifications for delivery'\n- 'Dark mode toggle on settings'\n- 'Guest checkout flow'",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\process_qa_feedback_blitz\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\process_qa_feedback_blitz\\export_result.ps1"
+  },
+  "metadata": {
+    "items": {
+      "Update customer profile photo": {
+        "expected_state": "Active",
+        "expected_tag": "QA-Fail",
+        "qa_comment": "QA Note: Failed validation. Image doesn't crop correctly on upload."
+      },
+      "Export order history to CSV": {
+        "expected_state": "Closed",
+        "expected_tag": null,
+        "qa_comment": "QA Note: Verified successfully. The CSV downloads with all correct columns."
+      },
+      "Mobile push notifications for delivery": {
+        "expected_state": "Active",
+        "expected_tag": "Blocked",
+        "qa_comment": "QA Note: Blocked. The notification server is unreachable from the test environment."
+      },
+      "Dark mode toggle on settings": {
+        "expected_state": "Closed",
+        "expected_tag": null,
+        "qa_comment": "QA Note: Looks good. Colors match the design specs."
+      },
+      "Guest checkout flow": {
+        "expected_state": "Active",
+        "expected_tag": "QA-Fail",
+        "qa_comment": "QA Note: Found a bug. Validation error appears even when email format is correct."
+      }
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_process_qa_feedback_blitz"
+    }
+  }
+}

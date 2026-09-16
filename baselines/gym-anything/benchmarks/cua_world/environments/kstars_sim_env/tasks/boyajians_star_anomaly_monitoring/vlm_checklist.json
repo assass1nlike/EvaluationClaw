@@ -1,0 +1,53 @@
+{
+  "task_id": "boyajians_star_anomaly_monitoring@1",
+  "task_completion": [
+    {
+      "id": "target_selection",
+      "description": "Verify that KIC 8462852 is selected or centered in the KStars sky map.",
+      "points": 10,
+      "visual_evidence": "The KStars application is open, and the Find Object dialog or the sky map shows 'KIC 8462852' as the active target."
+    },
+    {
+      "id": "ekos_sequence_setup",
+      "description": "Verify that the Ekos Capture module is configured to take 10 frames of 60 seconds for the B, V, and R filters.",
+      "points": 30,
+      "visual_evidence": "The Ekos Capture tab shows a Sequence Queue with entries for B, V, and R filters. Each entry should display an exposure time of 60 (or 60s) and a count of 10."
+    },
+    {
+      "id": "image_capture_progress",
+      "description": "Verify that the image capture process is executed and files are saved to the correct directories.",
+      "points": 20,
+      "visual_evidence": "The Ekos Capture module shows active progress bars for the sequence, or a file manager/terminal window shows FITS files located in ~/Images/kic8462852/B/, ~/Images/kic8462852/V/, and ~/Images/kic8462852/R/."
+    },
+    {
+      "id": "finding_chart_generation",
+      "description": "Verify that the finding chart is generated using the provided script with the correct parameters.",
+      "points": 20,
+      "visual_evidence": "A terminal window shows the execution of '~/capture_sky_view.sh' with arguments specifying a 0.5 field of view and a vibrant palette, or an image viewer displays the resulting finding_chart.png."
+    },
+    {
+      "id": "summary_report_creation",
+      "description": "Verify that the summary report is created with the required information.",
+      "points": 20,
+      "visual_evidence": "A text editor displays 'tabbys_star_report.txt' containing the star's name (KIC 8462852), its coordinates (RA ~20h 06m, Dec ~+44d 27m), and the number of frames captured (10) for each of the B, V, and R bands."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_kstars_usage",
+      "description": "Ensure the agent used KStars/Ekos to capture the images rather than mocking the files.",
+      "visual_evidence": "Screenshots should show the Ekos GUI being interacted with (e.g., sequence queue, camera settings, progress bars), not just terminal commands creating empty FITS files."
+    },
+    {
+      "id": "script_execution_verification",
+      "description": "Ensure the finding chart was generated using the provided script.",
+      "visual_evidence": "The terminal should show the actual command invoking '~/capture_sky_view.sh' rather than the agent downloading an image from a web browser or copying an existing file."
+    },
+    {
+      "id": "authentic_report_content",
+      "description": "Ensure the report contains actual observation data.",
+      "visual_evidence": "The text editor showing the report should contain coordinates that match the target (RA: 20.10427h, Dec: 44.4566d), indicating the agent retrieved them from the alert or KStars, rather than placeholder text."
+    }
+  ],
+  "privileged_info_for_vlm": "Target: KIC 8462852. Coordinates: RA 20.10427 hours (20h 06m 15.4s), Dec 44.4566 degrees (+44d 27m 24s). Required filters: B (Slot 3), V (Slot 2), R (Slot 4). Frame requirements: 10 frames per filter, 60 seconds each. Output directories: ~/Images/kic8462852/B/, ~/Images/kic8462852/V/, ~/Images/kic8462852/R/. Finding chart path: ~/Images/kic8462852/finding_chart.png. Report path: ~/Documents/tabbys_star_report.txt."
+}

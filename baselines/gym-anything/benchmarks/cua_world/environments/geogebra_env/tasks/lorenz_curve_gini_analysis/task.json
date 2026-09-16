@@ -1,0 +1,54 @@
+{
+  "id": "lorenz_curve_gini_analysis@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create a Lorenz Curve visualization in GeoGebra using 2020 US Census data. Use the following income shares by quintile: Lowest Fifth (3.0%), Second Fifth (8.1%), Third Fifth (14.0%), Fourth Fifth (22.6%), and Highest Fifth (52.3%). The visualization must include the Lorenz Curve fitted to the cumulative income shares, the Line of Perfect Equality (y = x), and a text annotation showing the calculated Gini Coefficient. Save the project as 'lorenz_inequality.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 70,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/lorenz_curve_gini_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/lorenz_curve_gini_analysis/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "lorenz_inequality.ggb",
+    "expected_gini_min": 0.43,
+    "expected_gini_max": 0.49,
+    "points": [
+      {
+        "x": 0.0,
+        "y": 0.0
+      },
+      {
+        "x": 0.2,
+        "y": 0.03
+      },
+      {
+        "x": 0.4,
+        "y": 0.111
+      },
+      {
+        "x": 0.6,
+        "y": 0.251
+      },
+      {
+        "x": 0.8,
+        "y": 0.477
+      },
+      {
+        "x": 1.0,
+        "y": 1.0
+      }
+    ],
+    "tolerance": 0.02
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lorenz_gini"
+    }
+  }
+}

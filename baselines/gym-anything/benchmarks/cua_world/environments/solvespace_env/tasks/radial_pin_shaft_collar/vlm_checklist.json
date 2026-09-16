@@ -1,0 +1,53 @@
+{
+  "task_id": "radial_pin_shaft_collar@1",
+  "task_completion": [
+    {
+      "id": "base_profile_sketch",
+      "description": "Create a 2D sketch for the base cylinder with an outer diameter of 30mm and an inner diameter of 15mm.",
+      "points": 15,
+      "visual_evidence": "Look for a 2D sketch in SolveSpace showing two concentric circles. There should be dimension constraints visible indicating a diameter of 30 (or radius 15) for the outer circle and a diameter of 15 (or radius 7.5) for the inner circle."
+    },
+    {
+      "id": "cylinder_extrusion",
+      "description": "Extrude the base sketch to a height of 12mm to form the shaft collar.",
+      "points": 15,
+      "visual_evidence": "Look for a 3D hollow cylinder in the viewport. The property browser or constraint view should show an extrusion depth or distance constraint of 12mm."
+    },
+    {
+      "id": "radial_hole_sketch",
+      "description": "Sketch an 8mm diameter circle for the radial hole, centered 6mm from the base.",
+      "points": 20,
+      "visual_evidence": "Look for a 2D circle sketch on a plane perpendicular to the cylinder's base. It should have a diameter constraint of 8 (or radius 4) and a distance constraint of 6 from the bottom edge/base plane."
+    },
+    {
+      "id": "single_sided_hole_cut",
+      "description": "Perform a boolean difference (cut) to create a through-hole on exactly one side of the cylinder wall.",
+      "points": 30,
+      "visual_evidence": "Look at the final 3D model in the viewport. There must be a circular hole passing through ONE side of the cylindrical wall. The opposite side of the wall must remain solid (no hole). A hole passing completely through both sides is incorrect."
+    },
+    {
+      "id": "save_and_export",
+      "description": "Save the parametric file as radial_collar.slvs and export the mesh as radial_collar.stl in the specified directory.",
+      "points": 20,
+      "visual_evidence": "Look for SolveSpace 'Save As' or 'Export' dialog boxes, terminal commands, or a file manager window showing 'radial_collar.slvs' and 'radial_collar.stl' successfully created in '/home/ga/Documents/SolveSpace/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "solvespace_gui_used",
+      "description": "The agent used the SolveSpace GUI to model the part.",
+      "visual_evidence": "Screenshots should show the SolveSpace application interface being actively used with sketches and 3D views, rather than just a terminal window running a script."
+    },
+    {
+      "id": "genuine_feature_tree",
+      "description": "The model was built from scratch using sketches and extrusions/booleans.",
+      "visual_evidence": "The SolveSpace property browser (usually on the left) should show a history of groups (e.g., Sketch in 3d, Extrude, Sketch in 3d, Difference) rather than a single imported mesh."
+    },
+    {
+      "id": "correct_file_extensions",
+      "description": "The agent actually exported an STL and saved an SLVS, rather than just renaming a text file.",
+      "visual_evidence": "Look for the standard SolveSpace export dialogs for triangle meshes (.stl) and saving the workspace (.slvs), ensuring the software's native export functions were used."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output files are /home/ga/Documents/SolveSpace/radial_collar.slvs and /home/ga/Documents/SolveSpace/radial_collar.stl. The correct 3D model must have a single-sided radial hole. A correct single-sided cut results in a volume of ~5985 mm^3. If the agent mistakenly cuts through both sides of the cylinder (double cut), the volume drops to ~5607 mm^3. If no cut is made, the volume is ~6361 mm^3. Visually verify that the hole exists on exactly one side of the collar wall."
+}

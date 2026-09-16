@@ -1,0 +1,33 @@
+{
+  "id": "critical_issue_triage_and_escalation@1",
+  "version": "1.0",
+  "env_id": "bluemail_env@0.1",
+  "description": "You are an L2 Support Engineer managing technical mailing list traffic. Identify at least three emails reporting critical system failures (containing keywords like 'panic', 'fatal', 'fail', or 'error') and move them into a new folder named 'Triage-Critical'. For one of these emails, reply to the sender with 'Issue acknowledged. Escalating to engineering.' and forward it to 'escalation@techcorp.com' with the text 'Urgent issue requiring investigation.'",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/critical_issue_triage_and_escalation/setup_task.sh",
+    "post_task": "/workspace/tasks/critical_issue_triage_and_escalation/export_result.sh"
+  },
+  "metadata": {
+    "triage_folder": "Triage-Critical",
+    "escalation_recipient": "escalation@techcorp.com",
+    "critical_keywords": [
+      "panic",
+      "fatal",
+      "fail",
+      "error"
+    ],
+    "min_critical_count": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_critical_triage"
+    }
+  }
+}

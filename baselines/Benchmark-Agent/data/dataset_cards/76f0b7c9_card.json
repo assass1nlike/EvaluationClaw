@@ -1,0 +1,76 @@
+{
+  "dataset_id": "76f0b7c9",
+  "name": "Pathology-Ner",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Pathology-Ner is a biomedical entity-extraction dataset built from pathology and clinical-study text. Each sample provides a short clinical passage together with an instruction listing 21 entity types, and the model must extract every entity mention and assign it the correct type, formatted as 'entity => type' pairs.",
+  "card_text": "Pathology-Ner is a text-only, open-set information-extraction dataset of 200 samples drawn from pathology and clinical-trial literature. Each item contains a raw clinical passage (typically one or two sentences describing study design, interventions, measurements, or patient groups), a long extraction instruction that enumerates the allowed entity types (e.g., Disease/Condition of Interest, Dosage, Drug Intervention, Follow-up period, Group Characteristic, Outcome (Study Endpoint), Quantitative Measurement, Sample Size, Side Effects, Units, and others), and a target output string listing every extracted mention paired with its type via '=>', separated by commas. The dataset therefore evaluates fine-grained biomedical named-entity recognition and typed span extraction over dense, jargon-heavy scientific prose where numeric values, statistics, and clinical concepts co-occur. Entities are output alphabetically and include both textual mentions and numeric quantities, making robust boundary detection and type disambiguation the central challenge.",
+  "tasks": [
+    "entity_recognition",
+    "span_extraction",
+    "attribute_extraction"
+  ],
+  "domain": "biomedical / pathology clinical-trial text",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A short excerpt of pathology or clinical-trial prose (usually one or two sentences) that mentions study interventions, outcomes, measurements, sample sizes, or patient groups. This passage is the source text from which all entities must be extracted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "An explicit extraction instruction containing a '<<<raw_text>>>' placeholder followed by the full list of 21 allowed entity types and the required output format ('entity => type', comma-separated). It defines the labeling schema that the answer must follow and conditions on the passage in the context field.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The gold annotation: a comma-separated list of every entity mention found in the raw_text, each paired with its type via '=>'. Mentions are listed alphabetically and cover both textual concepts (e.g., 'response rate') and numeric quantities (e.g., '75%', '64').",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample has three text components: a raw clinical passage (input.raw_text) serving as the context to be annotated, an instruction prompt (input.prompt) that embeds the passage placeholder, enumerates the allowed entity types, and specifies the 'entity => type' output format, and a target annotation string (output.text) listing all extracted entity mentions with their assigned types. The prompt defines the schema, the raw_text supplies the evidence, and the output is a structured, comma-separated enumeration of typed mentions derived from that same passage."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Pathology-NER/annotation.json",
+    "existing_tags": {
+      "task": "pathology_ner",
+      "type": "extraction",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

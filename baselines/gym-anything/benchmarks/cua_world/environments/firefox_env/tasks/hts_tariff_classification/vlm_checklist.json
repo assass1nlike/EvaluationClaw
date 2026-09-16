@@ -1,0 +1,53 @@
+{
+  "task_id": "hts_tariff_classification@1",
+  "task_completion": [
+    {
+      "id": "access_hts_database",
+      "description": "Access the official USITC HTS database website",
+      "points": 10,
+      "visual_evidence": "A web browser is open and navigated to https://hts.usitc.gov/."
+    },
+    {
+      "id": "research_products",
+      "description": "Search for the specified products in the HTS database",
+      "points": 20,
+      "visual_evidence": "Screenshots showing search queries (e.g., 'lithium-ion', 'green tea', 'hex bolts') or viewing the relevant chapter pages (e.g., Chapter 85, Chapter 09) within the USITC HTS website."
+    },
+    {
+      "id": "create_json_file",
+      "description": "Create the tariff_classification.json file in the Documents directory",
+      "points": 20,
+      "visual_evidence": "A text editor (like VS Code, gedit, nano) or terminal showing a file named 'tariff_classification.json' being created or edited in the '~/Documents/' directory."
+    },
+    {
+      "id": "verify_json_schema",
+      "description": "Format the JSON report with the required fields",
+      "points": 20,
+      "visual_evidence": "The JSON file content shows an array of objects `[...]`. Each object contains the exact keys: 'description', 'hts_code', 'general_duty_rate', and 'hts_chapter'. The 'hts_chapter' value should be an integer (e.g., 85) and 'hts_code' should follow the XXXX.XX.XX format."
+    },
+    {
+      "id": "verify_json_data",
+      "description": "Populate the JSON report with accurate HTS codes and chapters",
+      "points": 30,
+      "visual_evidence": "The JSON file contains the correct data for the products based on the privileged info: Batteries (Chapter 85, Code 8507.60), Tea (Chapter 9, Code 0902.10), Bolts (Chapter 73, Code 7318.15), Mugs (Chapter 69, Code 6911 or 6912), and T-shirts (Chapter 61, Code 6109.10)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "browser_interaction",
+      "description": "Agent used a real web browser to access the USITC database",
+      "visual_evidence": "The agent navigated the website using a GUI browser (like Firefox or Chrome) rather than just fetching data via terminal commands or hallucinating the data."
+    },
+    {
+      "id": "manual_data_entry",
+      "description": "Agent manually compiled the JSON file",
+      "visual_evidence": "The agent used a text editor to construct the JSON file or wrote a script to compile the researched data, rather than instantly echoing a pre-computed string from a hidden file."
+    },
+    {
+      "id": "valid_json_format",
+      "description": "The output is genuinely formatted as JSON",
+      "visual_evidence": "The file content is syntactically valid JSON (proper use of quotes, commas, brackets, and braces) and not just plain text masquerading as JSON."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified HTS Data: 1. Lithium-ion batteries: Chapter 85, Code 8507.60, Duty 3.4%. 2. Organic green tea: Chapter 09, Code 0902.10, Duty Free. 3. Stainless steel hex bolts: Chapter 73, Code 7318.15, Duty Free to 8.5%. 4. Ceramic coffee mugs: Chapter 69, Code 6911 or 6912, Duty 8% to 9.8%. 5. Men's cotton t-shirts: Chapter 61, Code 6109.10, Duty 7% to 16.5%. The output file must be located at ~/Documents/tariff_classification.json."
+}

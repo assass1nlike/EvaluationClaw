@@ -1,0 +1,37 @@
+{
+  "id": "fulltext_search_setup@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "Connect to the 'demodb' database (user: admin, pass: admin) and configure Lucene FULLTEXT indexes on the 'Name' property for both the 'Hotels' and 'Restaurants' classes. Perform search queries for hotels containing 'Palace' OR 'Plaza' (labeled 'palace_plaza_hotels'), restaurants containing 'Trattoria' (labeled 'trattoria_restaurants'), and hotels containing 'Hyatt' OR 'Four Seasons' (labeled 'luxury_chain_hotels'). Export the results as a JSON file to /home/ga/Documents/fulltext_search_results.json, where each key contains an array of the matching records.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/fulltext_search_setup/setup_task.sh",
+    "post_task": "/workspace/tasks/fulltext_search_setup/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/fulltext_search_results.json",
+    "required_keys": [
+      "palace_plaza_hotels",
+      "trattoria_restaurants",
+      "luxury_chain_hotels"
+    ],
+    "target_classes": [
+      "Hotels",
+      "Restaurants"
+    ],
+    "target_property": "Name",
+    "index_engine": "LUCENE",
+    "index_type": "FULLTEXT"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_fulltext_search_setup"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "add_gradle_build_info_task@1",
+  "version": "1.0",
+  "env_id": "android_studio_env@0.1",
+  "description": "Add a custom Gradle task named 'generateBuildInfo' to the app module's build file (app/build.gradle.kts). The task must generate a JSON file at 'app/src/main/assets/build-info.json' containing the 'versionName', 'versionCode', 'minSdk', and 'targetSdk' values from the defaultConfig, along with a 'buildTimestamp' (ISO 8601) and the 'gitCommitHash' (short hash of HEAD). Wire this task to execute automatically before the 'preBuild' task.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_gradle_build_info_task/setup_task.sh",
+    "post_task": "/workspace/tasks/add_gradle_build_info_task/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/AndroidStudioProjects/SunflowerApp",
+    "build_file": "app/build.gradle.kts",
+    "assets_file": "app/src/main/assets/build-info.json",
+    "expected_version_name": "1.0.0",
+    "expected_version_code": 1,
+    "expected_min_sdk": 24,
+    "expected_target_sdk": 34,
+    "data_source": "https://github.com/android/sunflower"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_gradle_build_info_task"
+    }
+  }
+}

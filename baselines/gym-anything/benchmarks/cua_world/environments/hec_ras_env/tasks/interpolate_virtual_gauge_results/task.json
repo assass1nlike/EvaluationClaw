@@ -1,0 +1,31 @@
+{
+  "id": "interpolate_virtual_gauge_results@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Calculate the Water Surface Elevation (WSE) time series at a virtual river station located at the midpoint between the 2nd and 3rd most upstream cross-sections of the Muncie model using the HEC-RAS results in 'Muncie.p04.tmp.hdf'. Linearly interpolate the WSE time series for this location. Save the analysis script to '~/Documents/hec_ras_results/virtual_gauge_analysis.py'. Create '~/Documents/hec_ras_results/virtual_gauge_info.txt' containing the 'Upstream Station: X', 'Downstream Station: Y', and 'Target Station: Z' on separate lines. Export the interpolated results to '~/Documents/hec_ras_results/virtual_gauge_wse.csv' with columns 'Time_Index' and 'Interpolated_WSE_ft'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/interpolate_virtual_gauge_results/setup_task.sh",
+    "post_task": "/workspace/tasks/interpolate_virtual_gauge_results/export_result.sh"
+  },
+  "metadata": {
+    "expected_files": [
+      "virtual_gauge_analysis.py",
+      "virtual_gauge_info.txt",
+      "virtual_gauge_wse.csv"
+    ],
+    "output_dir": "/home/ga/Documents/hec_ras_results",
+    "result_hdf": "Muncie.p04.hdf"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_interpolate_virtual_gauge_results"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "task_id": "evaluate_av_idm_impact@1",
+  "task_completion": [
+    {
+      "id": "baseline_simulation_run",
+      "description": "Verify that the baseline simulation was executed and the baseline tripinfos XML was generated.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing a SUMO command running the baseline scenario and outputting to `/home/ga/SUMO_Output/tripinfos_baseline.xml`, or an `ls` command showing this file exists."
+    },
+    {
+      "id": "av_scenario_configuration",
+      "description": "Verify that the AV scenario was configured with the IDM car-following model and a tau value of 0.8.",
+      "points": 25,
+      "visual_evidence": "A text editor or terminal output showing an XML file (such as a route, vehicle type, or additional file) being edited to include `carFollowModel=\"IDM\"` and `tau=\"0.8\"` for passenger vehicles."
+    },
+    {
+      "id": "av_simulation_run",
+      "description": "Verify that the AV simulation was executed and the AV tripinfos XML was generated.",
+      "points": 15,
+      "visual_evidence": "Terminal output showing a SUMO command running the AV scenario and outputting to `/home/ga/SUMO_Output/tripinfos_av.xml`, or an `ls` command showing this file exists."
+    },
+    {
+      "id": "av_comparison_file_exists",
+      "description": "Verify the creation of the av_comparison.txt report file.",
+      "points": 15,
+      "visual_evidence": "Terminal command (like `cat`, `nano`, or `echo`) or a text editor showing the file `/home/ga/SUMO_Output/av_comparison.txt`."
+    },
+    {
+      "id": "av_comparison_content",
+      "description": "Verify the content of the av_comparison.txt report matches the required format and approximate values.",
+      "points": 30,
+      "visual_evidence": "The contents of `av_comparison.txt` must show exactly three lines: 'Baseline Avg Duration: <value>', 'AV Avg Duration: <value>', and 'Difference (Baseline - AV): <value>'. The values should be approximately 276.18, 252.92, and 23.26 respectively."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_sumo_execution",
+      "description": "Check that SUMO was actually executed to generate the XML files.",
+      "visual_evidence": "Terminal logs showing SUMO running (e.g., 'Loading configuration...', 'Simulation started', 'Simulation ended') rather than the agent just creating mock XML files."
+    },
+    {
+      "id": "actual_calculation_performed",
+      "description": "Check that the agent calculated the mean durations from the XML files rather than guessing.",
+      "visual_evidence": "A script (e.g., Python) or command-line tool (e.g., `awk`, `grep`) being written or executed to parse the `duration` attributes from the tripinfos XML files and compute the average."
+    }
+  ],
+  "privileged_info_for_vlm": "The baseline output should be at /home/ga/SUMO_Output/tripinfos_baseline.xml and the AV output at /home/ga/SUMO_Output/tripinfos_av.xml. The AV configuration must use carFollowModel='IDM' and tau='0.8'. The expected baseline average duration is approximately 276.18, the AV average duration is approximately 252.92, and the difference is approximately 23.26."
+}

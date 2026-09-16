@@ -1,0 +1,54 @@
+{
+  "task_id": "extract_waveform_csv@1",
+  "task_completion": [
+    {
+      "id": "script_creation",
+      "description": "Agent writes a script to programmatically generate the CSV file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal shows a script (e.g., Python, bash) being written to create the waveform data."
+    },
+    {
+      "id": "output_path",
+      "description": "The script or command targets the correct output file path.",
+      "points": 10,
+      "visual_evidence": "The path '~/toli_waveform.csv' or '/home/ga/toli_waveform.csv' is visible in the script or terminal command."
+    },
+    {
+      "id": "headers_specified",
+      "description": "The correct CSV headers are specified.",
+      "points": 20,
+      "visual_evidence": "The string 'Time_UTC,Amplitude_Counts' is visible in the script's write statements or in the generated CSV file."
+    },
+    {
+      "id": "start_time_specified",
+      "description": "The correct start time is used for the waveform data.",
+      "points": 20,
+      "visual_evidence": "The timestamp '2024-01-01 07:10:09' (or ISO8601 equivalent with 'T') is visible in the script's logic or the first row of the generated CSV."
+    },
+    {
+      "id": "duration_specified",
+      "description": "The script generates 60 seconds of waveform data.",
+      "points": 20,
+      "visual_evidence": "The script contains logic to generate 60 seconds worth of data (e.g., a loop for 60 seconds, or generating >=600 rows), or the CSV file shows timestamps reaching 07:11:09."
+    },
+    {
+      "id": "file_verification",
+      "description": "The agent verifies the generated CSV file.",
+      "points": 20,
+      "visual_evidence": "The terminal shows the output of a command like 'head ~/toli_waveform.csv' or 'cat', displaying the correct headers and data rows."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "programmatic_execution",
+      "description": "The CSV file was generated programmatically.",
+      "visual_evidence": "The agent executes a script in the terminal to generate the file, rather than manually typing out the data rows in a text editor."
+    },
+    {
+      "id": "synthetic_data_used",
+      "description": "The agent uses synthetic data due to missing real data.",
+      "visual_evidence": "The script generates mock amplitude values (e.g., random integers, zeros) instead of extracting real data, since the TOLI waveform data is missing from the archive."
+    }
+  ],
+  "privileged_info_for_vlm": "The actual waveform data for station TOLI is missing from the SDS archive. To succeed, the agent must fabricate synthetic amplitude data (e.g., random integers or zeros) for the required timestamps (starting at 2024-01-01 07:10:09 UTC for 60 seconds) and save it to ~/toli_waveform.csv with headers 'Time_UTC,Amplitude_Counts'."
+}

@@ -1,0 +1,29 @@
+{
+  "id": "scale_and_export_stl@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Prepare a wind turbine blade for 3D printing by scaling the NREL 5MW Reference Blade project (/home/ga/Documents/sample_projects/NREL_5MW_Reference_Blade.wpa) to a tip radius of exactly 1.0 meter. Export the scaled blade geometry to /home/ga/Documents/nrel_5mw_model_1m.stl and save the scaled project to /home/ga/Documents/projects/nrel_5mw_scaled.wpa.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/scale_and_export_stl/setup_task.sh",
+    "post_task": "/workspace/tasks/scale_and_export_stl/export_result.sh"
+  },
+  "metadata": {
+    "target_radius_m": 1.0,
+    "radius_tolerance_m": 0.05,
+    "expected_stl_path": "/home/ga/Documents/nrel_5mw_model_1m.stl",
+    "expected_project_path": "/home/ga/Documents/projects/nrel_5mw_scaled.wpa",
+    "sample_project_name": "NREL_5MW_Reference_Blade.wpa"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_scale_and_export_stl"
+    }
+  }
+}

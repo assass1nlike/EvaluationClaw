@@ -1,0 +1,59 @@
+{
+  "task_id": "forensic_evidence_extraction@1",
+  "task_completion": [
+    {
+      "id": "volume_mounted",
+      "description": "Verify the encrypted volume is mounted to the correct mount point.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing a successful mount command (e.g., veracrypt, cryptsetup, or mount) linking /home/ga/Volumes/data_volume.hc to /home/ga/MountPoints/slot1, or a GUI showing the active mount."
+    },
+    {
+      "id": "files_extracted",
+      "description": "Verify the expected files are copied to the evidence directory.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'ls /home/ga/Evidence/extracted/' or a file manager window displaying the three expected files: SF312_Nondisclosure_Agreement.txt, FY2024_Revenue_Budget.csv, and backup_authorized_keys."
+    },
+    {
+      "id": "checksums_computed",
+      "description": "Verify SHA-256 checksums were computed for the extracted files.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'sha256sum' commands being executed on the files in the /home/ga/Evidence/extracted/ directory."
+    },
+    {
+      "id": "manifest_created",
+      "description": "Verify the manifest file exists and contains the correct format.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'cat /home/ga/Evidence/manifest.sha256' or a text editor displaying the file contents, which must include the SHA-256 hashes followed by the filenames of the three extracted files."
+    },
+    {
+      "id": "report_created",
+      "description": "Verify the extraction report contains the required metadata.",
+      "points": 20,
+      "visual_evidence": "Terminal showing 'cat /home/ga/Evidence/extraction_report.txt' or a text editor displaying the report contents, specifically including the Date, Source volume path (/home/ga/Volumes/data_volume.hc), number of files (3), and total size."
+    },
+    {
+      "id": "volume_dismounted",
+      "description": "Verify the volume was securely dismounted.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a successful dismount command (e.g., veracrypt -d, umount /home/ga/MountPoints/slot1) or a GUI confirming the volume is no longer mounted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_checksum_computation",
+      "description": "Ensure the agent actually computed the checksums using a hashing utility rather than hallucinating or fabricating hashes.",
+      "visual_evidence": "Look for the actual execution of 'sha256sum' or a script in the terminal history. The hashes in the manifest should match the output of these commands."
+    },
+    {
+      "id": "genuine_file_copying",
+      "description": "Ensure the files were actually copied from the mounted volume and not just created as empty dummy files.",
+      "visual_evidence": "Look for 'cp' commands from /home/ga/MountPoints/slot1 to /home/ga/Evidence/extracted/ in the terminal, or file sizes in the report/ls output that indicate non-empty files."
+    },
+    {
+      "id": "authentic_report_generation",
+      "description": "Ensure the report details (like total size and date) are derived from actual system commands rather than hardcoded guesses.",
+      "visual_evidence": "Look for commands like 'du -sh', 'date', 'ls -l', or 'wc' being run in the terminal before the report is written."
+    }
+  ],
+  "privileged_info_for_vlm": "The encrypted volume is located at /home/ga/Volumes/data_volume.hc and must be mounted to /home/ga/MountPoints/slot1. The volume contains exactly three files: SF312_Nondisclosure_Agreement.txt, FY2024_Revenue_Budget.csv, and backup_authorized_keys. The extracted files must be placed in /home/ga/Evidence/extracted/. The manifest must be at /home/ga/Evidence/manifest.sha256 and the report at /home/ga/Evidence/extraction_report.txt. The report must state that exactly 3 files were extracted."
+}

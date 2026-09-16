@@ -1,0 +1,36 @@
+{
+  "id": "z_axis_nuclear_depth@1",
+  "version": "1.0",
+  "env_id": "imagej_env@0.1",
+  "name": "Z-Axis Nuclear Depth Measurement",
+  "description": "You are a cell biologist investigating nuclear morphology. Determine the Z-axis thickness (depth) of a nucleus from the HeLa cell Z-stack located at ~/ImageJ_Data/raw/HeLa_stack/. Generate a resliced cross-section of a nucleus to measure its vertical height. Save the measurement to ~/ImageJ_Data/results/nucleus_depth.csv and the resliced image to ~/ImageJ_Data/results/nucleus_reslice.tif. Ensure the recorded measurement represents the Z-depth (vertical axis) of the nucleus.",
+  "difficulty": "medium",
+  "tags": [
+    "microscopy",
+    "3d-analysis",
+    "reslice",
+    "morphometry",
+    "z-stack"
+  ],
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/z_axis_nuclear_depth/setup_task.sh",
+    "post_task": "/workspace/tasks/z_axis_nuclear_depth/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_csv": "/home/ga/ImageJ_Data/results/nucleus_depth.csv",
+    "expected_output_img": "/home/ga/ImageJ_Data/results/nucleus_reslice.tif",
+    "min_reasonable_depth_px": 5,
+    "max_reasonable_depth_px": 60
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_z_axis_nuclear_depth"
+    }
+  }
+}

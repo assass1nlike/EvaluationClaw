@@ -1,0 +1,59 @@
+{
+  "task_id": "remote_observatory_fault_recovery@1",
+  "task_completion": [
+    {
+      "id": "read_fault_log",
+      "description": "Read the fault log to identify the cascading failures.",
+      "points": 10,
+      "visual_evidence": "A text editor (like gedit, nano) or terminal window displaying the contents of '~/Documents/fault_log.txt'."
+    },
+    {
+      "id": "resolve_subsystem_faults",
+      "description": "Diagnose and resolve the subsystem faults in the observatory control software.",
+      "points": 20,
+      "visual_evidence": "The KStars/Ekos INDI Control Panel or device configuration windows showing interaction with telescope, CCD, filter, or focuser settings to clear errors, reconnect devices, or adjust faulted parameters."
+    },
+    {
+      "id": "target_vega",
+      "description": "Point the telescope at the target Vega.",
+      "points": 15,
+      "visual_evidence": "The KStars sky map centered on Vega, or the Ekos Mount module showing the telescope slewing to or tracking Vega (RA ~18h 36m / 18.6h, Dec ~+38\u00b0 47' / 38.8\u00b0)."
+    },
+    {
+      "id": "configure_and_capture_observation",
+      "description": "Take a 10-second V-band test observation.",
+      "points": 25,
+      "visual_evidence": "The Ekos Capture module showing a sequence configured with an exposure time of 10 seconds and the 'V' (V-band) filter selected, with evidence of the capture running or completed (e.g., progress bar, captured image preview)."
+    },
+    {
+      "id": "verify_saved_image",
+      "description": "Save the test observation to the verification directory.",
+      "points": 15,
+      "visual_evidence": "The Ekos Capture module showing the target directory set to '/home/ga/Images/verification', or a file manager/terminal showing a newly created FITS file in '~/Images/verification/'."
+    },
+    {
+      "id": "write_resolution_report",
+      "description": "File a detailed fault resolution report.",
+      "points": 15,
+      "visual_evidence": "A text editor open with the file '~/Documents/fault_resolution.txt' containing written details about the diagnosed faults and the steps taken to resolve them."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_observatory_software",
+      "description": "The agent used the actual observatory control software (KStars/Ekos/INDI) to resolve faults and capture the image.",
+      "visual_evidence": "Screenshots must show the KStars/Ekos GUI being actively used for hardware control and image capture, rather than terminal scripts bypassing the simulation or mocking FITS files."
+    },
+    {
+      "id": "actual_capture_process",
+      "description": "The agent genuinely captured the image using the simulated hardware.",
+      "visual_evidence": "The Ekos capture sequence should show active progress or completion of the 10-second exposure. The agent should not simply download an image of Vega from the internet or move a pre-existing file."
+    },
+    {
+      "id": "meaningful_report",
+      "description": "The fault resolution report contains actual diagnostic details.",
+      "visual_evidence": "The text in 'fault_resolution.txt' must describe specific subsystems (e.g., CCD, Mount, Focuser) and the fixes applied, not just a copy-paste of the task description prompt."
+    }
+  ],
+  "privileged_info_for_vlm": "Target is Vega (RA ~18.6156h / 18h 36m 56s, Dec ~38.7837\u00b0 / +38\u00b0 47' 01\"). The observation must be exactly 10 seconds using a V-band filter. The image must be saved to /home/ga/Images/verification. The fault log is at /home/ga/Documents/fault_log.txt and the resolution report must be saved to /home/ga/Documents/fault_resolution.txt. The environment uses KStars/Ekos/INDI for observatory control."
+}

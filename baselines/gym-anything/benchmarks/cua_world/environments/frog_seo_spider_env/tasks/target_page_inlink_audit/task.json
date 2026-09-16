@@ -1,0 +1,33 @@
+{
+  "id": "target_page_inlink_audit@1",
+  "version": "1.0",
+  "env_id": "frog_seo_spider_env@0.1",
+  "description": "Perform an internal link audit for the product page 'A Light in the Attic' (https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html) by crawling https://books.toscrape.com/ with Screaming Frog SEO Spider. Export the list of inlinks pointing to this specific page, including 'From', 'To', and 'Anchor Text' columns, to ~/Documents/SEO/exports/attic_inlinks.csv.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/target_page_inlink_audit/setup_task.sh",
+    "post_task": "/workspace/tasks/target_page_inlink_audit/export_result.sh"
+  },
+  "metadata": {
+    "target_domain": "books.toscrape.com",
+    "target_url_fragment": "a-light-in-the-attic_1000",
+    "expected_filename": "attic_inlinks.csv",
+    "expected_columns": [
+      "From",
+      "To",
+      "Anchor Text"
+    ],
+    "export_dir": "/home/ga/Documents/SEO/exports"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_target_page_inlink_audit"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "sakila_visual_model_evolution@1",
+  "task_completion": [
+    {
+      "id": "create_table",
+      "description": "Create the new customer_tier_history table in the EER model",
+      "points": 10,
+      "visual_evidence": "Look for a new table named 'customer_tier_history' appearing in the MySQL Workbench EER diagram canvas or the schema tree."
+    },
+    {
+      "id": "configure_columns",
+      "description": "Add the required columns with correct data types and constraints",
+      "points": 25,
+      "visual_evidence": "Look for the table editor pane showing the columns: 'history_id' (INT, PK, NN, AI checked), 'customer_id' (SMALLINT, NN checked), 'old_tier' (VARCHAR), 'new_tier' (VARCHAR), and 'change_date' (DATETIME)."
+    },
+    {
+      "id": "create_relationship",
+      "description": "Establish a 1:n non-identifying relationship from customer to customer_tier_history",
+      "points": 25,
+      "visual_evidence": "Look for a dashed relationship line connecting the 'customer' table to the 'customer_tier_history' table in the EER diagram, or the Foreign Keys tab in the table editor showing 'customer_id' referencing the 'customer' table."
+    },
+    {
+      "id": "save_eer_model",
+      "description": "Save the EER model to the specified file path",
+      "points": 15,
+      "visual_evidence": "Look for a 'Save Model As' dialog targeting '/home/ga/Documents/sakila_loyalty_model.mwb' or the Workbench application tab/window title displaying 'sakila_loyalty_model.mwb'."
+    },
+    {
+      "id": "forward_engineer_database",
+      "description": "Apply the model changes to the live sakila database",
+      "points": 25,
+      "visual_evidence": "Look for the 'Forward Engineer to Database' or 'Synchronize Model' wizard in MySQL Workbench, specifically showing the execution of the SQL script and a success message indicating the live database was updated."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_workbench_gui",
+      "description": "Agent used MySQL Workbench visual modeling tools",
+      "visual_evidence": "Verify that the agent interacted with the EER Diagram canvas and table editor GUI in MySQL Workbench, rather than just typing a CREATE TABLE SQL script in a terminal or basic text editor."
+    },
+    {
+      "id": "genuine_forward_engineering",
+      "description": "Agent used the built-in forward engineering/synchronization workflow",
+      "visual_evidence": "Verify that the database update was performed through the MySQL Workbench 'Database -> Forward Engineer' or 'Database -> Synchronize Model' menu options, rather than manually copying and pasting SQL into a separate client."
+    },
+    {
+      "id": "correct_db_connection",
+      "description": "Agent connected to the correct live database",
+      "visual_evidence": "Look for connection details in the Forward Engineer/Synchronize wizard showing host 'localhost' and user 'ga'."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected table name is 'customer_tier_history'. The expected columns are 'history_id' (INT, PK, AI, NN), 'customer_id' (SMALLINT(5), NN), 'old_tier' (VARCHAR(20)), 'new_tier' (VARCHAR(20)), and 'change_date' (DATETIME). The table must have a 1:n non-identifying foreign key relationship referencing the 'customer' table via the 'customer_id' column. The model must be saved exactly as '/home/ga/Documents/sakila_loyalty_model.mwb'."
+}

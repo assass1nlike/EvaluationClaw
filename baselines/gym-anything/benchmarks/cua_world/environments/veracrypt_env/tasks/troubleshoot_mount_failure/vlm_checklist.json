@@ -1,0 +1,59 @@
+{
+  "task_id": "troubleshoot_mount_failure@1",
+  "task_completion": [
+    {
+      "id": "locate_keyfile",
+      "description": "Agent locates the missing keyfile on the system.",
+      "points": 10,
+      "visual_evidence": "Terminal output of a search command (e.g., find, grep, locate) or a file manager window showing the keyfile found at '/opt/backups/old_keys/project.key'."
+    },
+    {
+      "id": "mount_volume",
+      "description": "Agent successfully mounts the VeraCrypt volume.",
+      "points": 30,
+      "visual_evidence": "VeraCrypt GUI showing the volume '/home/ga/Volumes/project_vault.hc' mounted at '/home/ga/MountPoints/slot2', or a successful terminal command executing the mount with the correct password and keyfile."
+    },
+    {
+      "id": "verify_contents",
+      "description": "Agent verifies the contents of the mounted volume.",
+      "points": 15,
+      "visual_evidence": "Terminal output (e.g., 'ls /home/ga/MountPoints/slot2') or a file manager window displaying the files inside the mounted volume."
+    },
+    {
+      "id": "report_created",
+      "description": "Agent creates the troubleshooting report file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal command (e.g., nano, echo, cat) showing a file being created or edited at '/home/ga/Documents/troubleshoot_report.txt'."
+    },
+    {
+      "id": "report_keyfile_location",
+      "description": "The report contains the correct location of the recovered keyfile.",
+      "points": 15,
+      "visual_evidence": "The contents of 'troubleshoot_report.txt' explicitly mention the path '/opt/backups/old_keys/project.key'."
+    },
+    {
+      "id": "report_file_list",
+      "description": "The report contains the list of files found inside the mounted volume.",
+      "points": 20,
+      "visual_evidence": "The contents of 'troubleshoot_report.txt' list the expected files: 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'project_plan.txt'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "veracrypt_used",
+      "description": "Verify that VeraCrypt was actually used to mount the volume.",
+      "visual_evidence": "Screenshots should show interaction with the VeraCrypt GUI or the 'veracrypt' CLI tool, rather than the agent simply creating a directory and faking the mount."
+    },
+    {
+      "id": "authentic_discovery",
+      "description": "Verify that the agent actively searched for the keyfile.",
+      "visual_evidence": "Screenshots should show the agent using search commands, checking logs, or browsing directories to find the keyfile, rather than magically navigating directly to '/opt/backups/old_keys/project.key' without prior investigation."
+    },
+    {
+      "id": "authentic_report",
+      "description": "Verify the report was genuinely written by the agent.",
+      "visual_evidence": "Screenshots should show the agent typing or echoing the contents into the text file, rather than copying a pre-existing solution."
+    }
+  ],
+  "privileged_info_for_vlm": "The VeraCrypt volume is located at '/home/ga/Volumes/project_vault.hc'. The missing keyfile is located at '/opt/backups/old_keys/project.key'. The volume must be mounted to '/home/ga/MountPoints/slot2' using the password 'ProjectVault2024' and the recovered keyfile. The expected files inside the mounted volume are 'SF312_Nondisclosure_Agreement.txt', 'FY2024_Revenue_Budget.csv', and 'project_plan.txt'. The final report must be saved to '/home/ga/Documents/troubleshoot_report.txt'."
+}

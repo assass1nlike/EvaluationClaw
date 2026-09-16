@@ -1,0 +1,30 @@
+{
+  "id": "generate_city_blocks_from_roads@1",
+  "version": "1.0",
+  "env_id": "qgis_env@0.1",
+  "description": "Convert the road network from /home/ga/GIS_Data/urban_roads.geojson into city block polygons. Calculate the area of each block in hectares and store the values in a new decimal field named 'area_ha'. Export the resulting polygon layer to /home/ga/GIS_Data/exports/city_blocks.geojson.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_city_blocks_from_roads/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_city_blocks_from_roads/export_result.sh"
+  },
+  "metadata": {
+    "source_file": "/home/ga/GIS_Data/urban_roads.geojson",
+    "expected_output": "/home/ga/GIS_Data/exports/city_blocks.geojson",
+    "expected_feature_count": 2,
+    "expected_field": "area_ha",
+    "min_area_ha": 3.0,
+    "max_area_ha": 5.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_city_blocks_from_roads"
+    }
+  }
+}

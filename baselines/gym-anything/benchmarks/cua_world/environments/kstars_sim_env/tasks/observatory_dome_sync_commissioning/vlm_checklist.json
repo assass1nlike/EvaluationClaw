@@ -1,0 +1,53 @@
+{
+  "task_id": "observatory_dome_sync_commissioning@1",
+  "task_completion": [
+    {
+      "id": "location_configured",
+      "description": "Verify the observatory location is set to Siding Spring (-31.2722, 149.0661).",
+      "points": 15,
+      "visual_evidence": "KStars geographic location dialog or settings showing 'Siding Spring' or the specific coordinates: Latitude -31.2722 (or approx -31.27) and Longitude 149.0661 (or approx 149.06)."
+    },
+    {
+      "id": "indi_driver_active",
+      "description": "Verify the 'indi_simulator_dome' driver is active.",
+      "points": 15,
+      "visual_evidence": "Ekos profile editor or INDI Control Panel showing 'indi_simulator_dome' as an active, running, or connected device."
+    },
+    {
+      "id": "dome_slaving_enabled",
+      "description": "Verify dome slaving is enabled.",
+      "points": 20,
+      "visual_evidence": "Ekos Dome module or INDI Control Panel showing the 'Slaving', 'Autosync', or 'Slave to Telescope' checkbox or toggle actively checked/enabled."
+    },
+    {
+      "id": "telemetry_recorded",
+      "description": "Verify synchronized azimuth telemetry for Sirius, Canopus, and Alpha Centauri is recorded in dome_sync_report.csv.",
+      "points": 30,
+      "visual_evidence": "A text editor or spreadsheet showing 'dome_sync_report.csv' open, containing the names 'Sirius', 'Canopus', and 'Alpha Centauri' along with numerical azimuth values."
+    },
+    {
+      "id": "evidence_screenshot_saved",
+      "description": "Verify a screenshot of the slaving mechanism is saved to dome_slaved_evidence.png.",
+      "points": 20,
+      "visual_evidence": "A file manager showing 'dome_slaved_evidence.png' in the Documents folder, a screenshot tool saving the file to this path, or an image viewer displaying the captured screenshot of the Ekos dome slaving interface."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_kstars",
+      "description": "Ensure the agent interacted with the KStars/Ekos GUI to configure the dome and slew to targets.",
+      "visual_evidence": "Screenshots should show the KStars application open, with the agent clicking through menus, Ekos modules, or the sky map, rather than just writing a script to bypass the UI."
+    },
+    {
+      "id": "genuine_telemetry_data",
+      "description": "Ensure the telemetry data was actually obtained from the simulation.",
+      "visual_evidence": "The agent should be seen slewing the telescope to the targets in KStars and reading the azimuth values from the interface, not just inventing numbers in the CSV."
+    },
+    {
+      "id": "genuine_screenshot_capture",
+      "description": "Ensure the evidence screenshot is a genuine capture of the slaving mechanism.",
+      "visual_evidence": "The agent should be seen using a screenshot tool to capture the Ekos dome slaving interface, rather than downloading an image or renaming a random text file to .png."
+    }
+  ],
+  "privileged_info_for_vlm": "The observatory location must be set to Latitude -31.2722 and Longitude 149.0661. The target stars for telemetry are exactly: Sirius, Canopus, and Alpha Centauri. The output files must be located at /home/ga/Documents/dome_sync_report.csv and /home/ga/Documents/dome_slaved_evidence.png."
+}

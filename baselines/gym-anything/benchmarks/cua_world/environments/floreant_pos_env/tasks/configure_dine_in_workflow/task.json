@@ -1,0 +1,28 @@
+{
+  "id": "configure_dine_in_workflow@1",
+  "version": "1.0",
+  "env_id": "floreant_pos_env@0.1",
+  "description": "Configure the 'DINE IN' order workflow in the Back Office (PIN: 1111) to disable the mandatory guest count prompt. Ensure that starting a new 'DINE IN' order bypasses the guest count selection and proceeds directly to the order or table selection screen.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_dine_in_workflow/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_dine_in_workflow/export_result.sh"
+  },
+  "metadata": {
+    "target_order_type": "DINE IN",
+    "target_column": "SHOW_GUEST_SELECTION",
+    "expected_value": "0",
+    "admin_pin": "1111"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_dine_in_workflow"
+    }
+  }
+}

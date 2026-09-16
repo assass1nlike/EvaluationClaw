@@ -1,0 +1,59 @@
+{
+  "task_id": "chinook_payroll_etl@1",
+  "task_completion": [
+    {
+      "id": "script_created",
+      "description": "The agent created the required SQL script file at the specified path.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal output showing the creation or editing of the file '/home/ga/Documents/scripts/calculate_commissions.sql'."
+    },
+    {
+      "id": "sql_logic_joins_and_filters",
+      "description": "The SQL script correctly joins the necessary tables and filters for the year 2011.",
+      "points": 20,
+      "visual_evidence": "The SQL script contains JOIN clauses connecting the Employee, Customer, Invoice, InvoiceLine, Track, and Genre tables, and a WHERE clause filtering the InvoiceDate for the year 2011 (e.g., LIKE '2011%' or strftime('%Y', InvoiceDate) = '2011')."
+    },
+    {
+      "id": "sql_logic_commission_rates",
+      "description": "The SQL script calculates the commission using the correct formula and genre-based rates.",
+      "points": 20,
+      "visual_evidence": "The SQL script contains a SUM function multiplying Quantity, UnitPrice, and a CASE statement (or equivalent logic) that assigns 0.15 for 'Rock', 0.10 for 'Latin', and 0.05 for all other genres."
+    },
+    {
+      "id": "sql_logic_formatting",
+      "description": "The SQL script formats the output columns according to the task requirements.",
+      "points": 20,
+      "visual_evidence": "The SQL script selects EmployeeId, concatenates FirstName and LastName into a 'FullName' column, and uses the ROUND(..., 2) function for the 'TotalCommission' column."
+    },
+    {
+      "id": "payroll_db_table_created",
+      "description": "The commissions_2011 table is created in the target payroll database.",
+      "points": 15,
+      "visual_evidence": "Terminal or database viewer showing interaction with '/home/ga/Documents/databases/payroll.db' and the successful creation of the 'commissions_2011' table with the required schema."
+    },
+    {
+      "id": "payroll_db_data_inserted",
+      "description": "The calculated commission data is successfully inserted into the target table.",
+      "points": 15,
+      "visual_evidence": "A SELECT query or table view of 'commissions_2011' in 'payroll.db' showing the inserted rows. Expected values if 2011 data is present: Jane Peacock (17.14), Margaret Park (12.53), Steve Johnson (13.47). Note: If the source DB lacked 2011 data, an empty table resulting from a correct query is acceptable."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_insert",
+      "description": "The agent did not hardcode the expected commission values into an INSERT statement.",
+      "visual_evidence": "The SQL script or execution history shows a dynamic calculation (e.g., INSERT INTO ... SELECT ...) rather than static INSERT INTO ... VALUES (3, 'Jane Peacock', 17.14), etc."
+    },
+    {
+      "id": "actual_db_execution",
+      "description": "The agent executed the SQL commands against the actual SQLite databases.",
+      "visual_evidence": "Terminal screenshots showing the use of the 'sqlite3' command-line tool, a Python script executing sqlite3 commands, or a database GUI interacting with the .db files."
+    },
+    {
+      "id": "cross_db_transfer",
+      "description": "The agent properly transferred data between the two distinct databases.",
+      "visual_evidence": "Evidence of cross-database operations, such as using the ATTACH DATABASE command in SQLite to link chinook.db and payroll.db, or using a script (like Python/pandas) to read from one and write to the other."
+    }
+  ],
+  "privileged_info_for_vlm": "The Chinook database schema requires joining Employee -> Customer -> Invoice -> InvoiceLine -> Track -> Genre to calculate commissions. The correct SQL logic uses a CASE statement for genre rates (Rock: 0.15, Latin: 0.10, ELSE: 0.05) and the formula ROUND(SUM(Quantity * UnitPrice * Rate), 2). If the provided database contains 2011 data, the expected commissions are Jane Peacock: $17.14, Margaret Park: $12.53, Steve Johnson: $13.47. If the database only contains 2021-2025 data, a correct query for 2011 will return empty results."
+}

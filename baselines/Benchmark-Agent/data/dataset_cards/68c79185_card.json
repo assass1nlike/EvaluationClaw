@@ -1,0 +1,75 @@
+{
+  "dataset_id": "68c79185",
+  "name": "End-To-End-Absa",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset evaluates end-to-end aspect-based sentiment analysis on customer reviews. Given a review sentence and an extraction instruction, a model must identify all aspect terms and their sentiment polarities, outputting them as 'aspect => sentiment' pairs.",
+  "card_text": "This dataset contains 200 text samples for end-to-end aspect-based sentiment analysis. Each sample includes a raw review sentence, an instruction prompt asking to extract all aspect-sentiment pairs, and the target output listing those pairs in a structured 'aspect => sentiment' format. Reviews are short, informal customer opinions about restaurants or services, and sentiments are restricted to positive, negative, or neutral. The task combines aspect term extraction with sentiment classification: the model must both locate aspect mentions (e.g., 'waitress', 'place') and assign the correct polarity. The prompt uses a placeholder for the review text, and the answer is a comma-separated list of pairs. The dataset assumes that every review contains at least one aspect and that aspects and sentiments are explicitly expressed in the text.",
+  "tasks": [
+    "attribute_extraction",
+    "classification_multilabel"
+  ],
+  "domain": "restaurant reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "The raw review text from which aspect-sentiment pairs must be extracted. It is a short customer review sentence expressing opinions about entities such as service, food, or place.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction template that asks the model to extract all aspect-sentiment pairs from the raw review text, specifying the output format 'aspect => sentiment' and the allowed sentiment values. It contains a placeholder <<<raw_text>>> where the review text is inserted.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The target output listing extracted aspect-sentiment pairs, each formatted as 'aspect => sentiment' and separated by commas. It represents the aspects mentioned in the review and their associated sentiment polarity (positive, negative, or neutral).",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of an input object with raw_text (the review text) and prompt (an extraction instruction template), and an output object with text (the extracted aspect-sentiment pairs). The prompt directs the model to extract pairs from raw_text, and the answer provides those pairs in a structured 'aspect => sentiment' format. No dialog, options, or visual fields are present."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/End-To-End-ABSA/annotation.json",
+    "existing_tags": {
+      "task": "end_to_end_absa",
+      "type": "multi label classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

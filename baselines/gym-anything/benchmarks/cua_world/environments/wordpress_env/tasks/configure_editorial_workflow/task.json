@@ -1,0 +1,48 @@
+{
+  "id": "configure_editorial_workflow@1",
+  "version": "1.0",
+  "env_id": "wordpress_env@0.1",
+  "description": "As the managing editor, set up the content pipeline by creating three posts for the upcoming weeks. Create a post titled 'Q1 2026 Revenue Analysis' assigned to user 'editor' in the News category, scheduled for March 15, 2026 at 9:00 AM, containing at least 50 words about quarterly revenue. Create a post titled 'Spring Product Launch Preview' assigned to user 'author' in the Technology category, scheduled for March 20, 2026 at 10:00 AM, containing at least 50 words about product launches. Create a post titled 'Annual Team Building Event Recap' assigned to user 'contributor' in the Lifestyle category with a status of Pending Review, containing at least 50 words about a team event. Users 'editor', 'author', and 'contributor' already exist in the system.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 880,
+    "max_steps": 110,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_editorial_workflow/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_editorial_workflow/export_result.sh"
+  },
+  "metadata": {
+    "expected_posts": [
+      {
+        "title": "Q1 2026 Revenue Analysis",
+        "author": "editor",
+        "category": "News",
+        "status": "future",
+        "scheduled_date": "2026-03-15",
+        "scheduled_time": "09:00"
+      },
+      {
+        "title": "Spring Product Launch Preview",
+        "author": "author",
+        "category": "Technology",
+        "status": "future",
+        "scheduled_date": "2026-03-20",
+        "scheduled_time": "10:00"
+      },
+      {
+        "title": "Annual Team Building Event Recap",
+        "author": "contributor",
+        "category": "Lifestyle",
+        "status": "pending"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_editorial_workflow"
+    }
+  }
+}

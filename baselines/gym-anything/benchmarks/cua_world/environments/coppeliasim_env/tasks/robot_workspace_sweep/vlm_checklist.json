@@ -1,0 +1,59 @@
+{
+  "task_id": "robot_workspace_sweep@1",
+  "task_completion": [
+    {
+      "id": "coppeliasim_running",
+      "description": "CoppeliaSim application is open and running.",
+      "points": 10,
+      "visual_evidence": "The CoppeliaSim GUI is visible on the screen."
+    },
+    {
+      "id": "robot_arm_visible",
+      "description": "A robot arm simulation scene is loaded.",
+      "points": 10,
+      "visual_evidence": "A robot arm is visible in the 3D viewport of CoppeliaSim (specifically the movementViaRemoteApi.ttt scene)."
+    },
+    {
+      "id": "workspace_sweep_execution",
+      "description": "A script or program is executed to systematically move the robot arm and sample its workspace.",
+      "points": 20,
+      "visual_evidence": "A terminal or IDE shows a script running that interacts with the CoppeliaSim API, and/or the CoppeliaSim viewport shows the robot arm moving through various configurations."
+    },
+    {
+      "id": "csv_file_generated",
+      "description": "The workspace_samples.csv file is created with joint configurations and end-effector positions.",
+      "points": 20,
+      "visual_evidence": "A file manager, terminal, or text editor shows the file '/home/ga/Documents/CoppeliaSim/exports/workspace_samples.csv' containing columns for joint angles and XYZ positions."
+    },
+    {
+      "id": "csv_minimum_samples",
+      "description": "The CSV file contains at least 50 distinct sample records.",
+      "points": 20,
+      "visual_evidence": "The open CSV file or a terminal line count (e.g., using 'wc -l') shows at least 50 rows of data (excluding headers)."
+    },
+    {
+      "id": "json_report_generated",
+      "description": "The workspace_report.json file is created with aggregate statistics and a total sample count of at least 50.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal shows the contents of '/home/ga/Documents/CoppeliaSim/exports/workspace_report.json', including aggregate statistics and a field like 'total_samples' with a value of 50 or greater."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_simulation_interaction",
+      "description": "The agent actually interacted with the CoppeliaSim API rather than hallucinating or mocking the data.",
+      "visual_evidence": "The script used to generate the data contains actual CoppeliaSim API calls (e.g., simxSetJointTargetPosition, simxGetObjectPosition, or ZeroMQ equivalents) rather than random number generators."
+    },
+    {
+      "id": "correct_output_directories",
+      "description": "The output files are saved in the exact requested directory.",
+      "visual_evidence": "File paths visible in the terminal, script, or file manager strictly match '/home/ga/Documents/CoppeliaSim/exports/'."
+    },
+    {
+      "id": "dynamic_data_generation",
+      "description": "The data in the CSV and JSON files appears to be dynamically generated from the simulation.",
+      "visual_evidence": "The joint configurations and end-effector positions in the CSV look like realistic floating-point kinematics data, not simple hardcoded integers or repeated identical rows."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output paths are exactly '/home/ga/Documents/CoppeliaSim/exports/workspace_samples.csv' and '/home/ga/Documents/CoppeliaSim/exports/workspace_report.json'. The CSV must contain at least 50 valid data rows of joint configurations and end-effector positions. The JSON report must contain aggregate statistics and explicitly include a 'total_samples' parameter that is >= 50. The agent should use a script to programmatically interact with the CoppeliaSim scene 'movementViaRemoteApi.ttt'."
+}

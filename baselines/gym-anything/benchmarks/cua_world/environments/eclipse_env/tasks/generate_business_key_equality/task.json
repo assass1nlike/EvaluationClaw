@@ -1,0 +1,34 @@
+{
+  "id": "generate_business_key_equality@1",
+  "version": "1.0",
+  "env_id": "eclipse_env@0.1",
+  "description": "Generate hashCode() and equals() methods for the Product class (com.store.model.Product) in the InventorySystem project. The class represents an inventory item with fields: id, sku (Business Key), name, price, and stockQuantity. Ensure two Products are considered equal if and only if they have the same sku. The implementation must use java.util.Objects.hash and java.util.Objects.equals and must not reference any field other than sku in the equality logic.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_business_key_equality/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_business_key_equality/export_result.sh"
+  },
+  "metadata": {
+    "project_path": "/home/ga/eclipse-workspace/InventorySystem",
+    "source_file": "src/main/java/com/store/model/Product.java",
+    "required_field": "sku",
+    "forbidden_fields": [
+      "id",
+      "name",
+      "price",
+      "stockQuantity"
+    ],
+    "required_style": "java.util.Objects"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_business_key_equality"
+    }
+  }
+}

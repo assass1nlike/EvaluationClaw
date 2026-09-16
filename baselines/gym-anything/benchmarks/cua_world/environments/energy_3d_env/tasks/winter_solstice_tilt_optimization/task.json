@@ -1,0 +1,31 @@
+{
+  "id": "winter_solstice_tilt_optimization@1",
+  "version": "1.0",
+  "env_id": "energy_3d_env@0.1",
+  "description": "You are a Solar Energy Systems Engineer redesigning a remote cabin's solar array. The original array was tilted for maximum annual energy, but the cabin experiences power shortages in the winter. Load the project at `~/Documents/Energy3D/solar-panel-tilt-angle.ng3`. First, change the simulation date in Energy3D to December 21 (the Winter Solstice). Then, determine the optimal tilt angle for the solar panels to maximize the daily yield for this specific date (you can manually test steep angles or use Energy3D's optimization tools). Apply this optimal, steep winter tilt angle to the solar array. Save the optimized project as `~/Documents/Energy3D/winter_optimized.ng3`. Finally, create a text report at `~/Documents/Energy3D/winter_report.txt` containing exactly two lines: Line 1 should be the optimal tilt angle (in degrees, just the number), and Line 2 should be the maximum daily yield at this angle (in kWh, just the number).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/winter_solstice_tilt_optimization/setup_task.sh",
+    "post_task": "/workspace/tasks/winter_solstice_tilt_optimization/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Solar Energy Systems Engineer",
+    "industry": "Off-grid Renewable Energy",
+    "starter_file": "solar-panel-tilt-angle.ng3",
+    "expected_optimized_file": "/home/ga/Documents/Energy3D/winter_optimized.ng3",
+    "expected_report_file": "/home/ga/Documents/Energy3D/winter_report.txt",
+    "min_winter_angle": 50,
+    "max_winter_angle": 80
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_winter_tilt_optimization"
+    }
+  }
+}

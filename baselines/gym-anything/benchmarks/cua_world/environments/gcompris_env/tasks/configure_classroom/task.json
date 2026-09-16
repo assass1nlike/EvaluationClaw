@@ -1,0 +1,33 @@
+{
+  "id": "configure_classroom@1",
+  "version": "1.0",
+  "env_id": "gcompris_env@0.1",
+  "description": "You are a childcare worker setting up GCompris for a classroom of 3-4 year old preschoolers. Configure the application settings to enable audio feedback, restrict the difficulty filter to levels 1-2, and enable the virtual keyboard. Ensure the changes are applied and the application is at the main menu.",
+  "difficulty": "medium",
+  "category": "configuration",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_classroom/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_classroom/export_result.sh"
+  },
+  "metadata": {
+    "expected_audio": true,
+    "expected_filter_min": 1,
+    "expected_filter_max": 2,
+    "expected_virtual_keyboard": true,
+    "config_paths": [
+      "/home/ga/.config/gcompris-qt/gcompris-qt.conf",
+      "/home/ga/.config/KDE/gcompris-qt.conf"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_classroom"
+    }
+  }
+}

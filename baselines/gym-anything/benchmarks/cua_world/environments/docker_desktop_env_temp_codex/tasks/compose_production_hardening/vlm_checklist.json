@@ -1,0 +1,53 @@
+{
+  "task_id": "compose_production_hardening@1",
+  "task_completion": [
+    {
+      "id": "health_checks_implemented",
+      "description": "Verify that health checks are defined for the services in the docker-compose.yml file.",
+      "points": 20,
+      "visual_evidence": "Look for a text editor or terminal output (e.g., cat) displaying the contents of /home/ga/webapp/docker-compose.yml with 'healthcheck:' blocks added to the services."
+    },
+    {
+      "id": "resource_limits_implemented",
+      "description": "Verify that CPU and memory limits are defined for the services.",
+      "points": 20,
+      "visual_evidence": "Look for 'deploy:' followed by 'resources:' and 'limits:' (or legacy 'cpus:' and 'mem_limit:') added to the services in the docker-compose.yml file."
+    },
+    {
+      "id": "restart_policies_implemented",
+      "description": "Verify that appropriate restart policies are defined for all services.",
+      "points": 15,
+      "visual_evidence": "Look for 'restart: always', 'restart: unless-stopped', or 'restart: on-failure' added to the services in the docker-compose.yml file."
+    },
+    {
+      "id": "network_isolation_implemented",
+      "description": "Verify that frontend and backend networks are defined and assigned to services for network isolation.",
+      "points": 20,
+      "visual_evidence": "Look for a top-level 'networks:' block defining 'frontend' and 'backend', and service-level 'networks:' assignments in the docker-compose.yml file."
+    },
+    {
+      "id": "app_functional",
+      "description": "Verify the application is running and accessible at http://localhost:9080 after hardening.",
+      "points": 25,
+      "visual_evidence": "Look for a web browser navigated to http://localhost:9080 showing the running application, or a terminal showing a successful 'curl http://localhost:9080' command."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Verify the docker-compose.yml file was actually modified rather than just printing the expected output.",
+      "visual_evidence": "Look for a text editor (nano, vim, VS Code) or valid shell commands modifying /home/ga/webapp/docker-compose.yml."
+    },
+    {
+      "id": "actual_docker_deployment",
+      "description": "Verify the hardened docker-compose stack was actually deployed.",
+      "visual_evidence": "Look for terminal output showing 'docker compose up' or 'docker-compose up' being executed to apply the changes and start the containers."
+    },
+    {
+      "id": "no_fake_endpoints",
+      "description": "Verify the agent didn't bypass the docker stack by running a simple standalone web server directly on port 9080.",
+      "visual_evidence": "Ensure there are no commands starting a fake standalone server (e.g., 'python3 -m http.server 9080' or 'nc -l 9080') in the terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "The application directory is /home/ga/webapp. The required services in the docker-compose.yml are 'nginx', 'app', and 'redis'. The required networks for isolation are 'frontend' and 'backend'. The application must be accessible on host port 9080."
+}

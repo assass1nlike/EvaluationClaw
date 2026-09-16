@@ -1,0 +1,58 @@
+{
+  "id": "chart_audit_corrections@1",
+  "version": "1.0",
+  "env_id": "freemed_env@0.1",
+  "description": "You are a Quality Improvement Coordinator performing corrections flagged in a monthly chart audit in FreeMED (http://localhost/freemed/, login: admin / admin). Correct the documentation errors for three patient records. Update Malka Hartmann's (ID 12, DOB 1994-11-26) home phone number from '555-0-ERROR' to 413-555-2847. Add a Penicillin allergy to Myrtis Armstrong's (ID 16, DOB 1985-04-08) electronic chart with reaction 'anaphylaxis' and severity 'severe'. Add ICD code 250.00 (Type 2 Diabetes Mellitus) with an onset date of 2019-03-15 to Arlie McClure's (ID 17, DOB 1971-03-06) active problem list.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chart_audit_corrections/setup_task.sh",
+    "post_task": "/workspace/tasks/chart_audit_corrections/export_result.sh"
+  },
+  "metadata": {
+    "corrections": [
+      {
+        "patient_id": 12,
+        "patient_fname": "Malka",
+        "patient_lname": "Hartmann",
+        "patient_dob": "1994-11-26",
+        "type": "demographics",
+        "field": "phone",
+        "corrupt_value": "555-0-ERROR",
+        "correct_value": "413-555-2847"
+      },
+      {
+        "patient_id": 16,
+        "patient_fname": "Myrtis",
+        "patient_lname": "Armstrong",
+        "patient_dob": "1985-04-08",
+        "type": "allergy",
+        "allergen": "Penicillin",
+        "reaction": "anaphylaxis",
+        "severity": "severe"
+      },
+      {
+        "patient_id": 17,
+        "patient_fname": "Arlie",
+        "patient_lname": "McClure",
+        "patient_dob": "1971-03-06",
+        "type": "diagnosis",
+        "icd": "250.00",
+        "name": "Type 2 Diabetes Mellitus",
+        "onset": "2019-03-15"
+      }
+    ],
+    "occupation": "Quality Improvement Coordinator",
+    "data_source": "Synthea synthetic patient generator"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chart_audit_corrections"
+    }
+  }
+}

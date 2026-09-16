@@ -1,0 +1,59 @@
+{
+  "task_id": "fixed_asset_depreciation_schedule@1",
+  "task_completion": [
+    {
+      "id": "import_asset_data",
+      "description": "Import or open the fixed asset register containing the 28 assets.",
+      "points": 10,
+      "visual_evidence": "Look for a spreadsheet application displaying the initial asset data (e.g., asset names, cost basis, salvage value) from 'pmg_fixed_assets.csv'."
+    },
+    {
+      "id": "macrs_depreciation_columns",
+      "description": "Calculate 2023 MACRS depreciation and Accumulated MACRS depreciation.",
+      "points": 20,
+      "visual_evidence": "Look for new columns in the spreadsheet explicitly labeled for '2023 MACRS Depreciation' and 'Accumulated MACRS Depreciation' with calculated numerical values for the assets."
+    },
+    {
+      "id": "straight_line_columns",
+      "description": "Calculate 2023 straight-line book depreciation and Accumulated book depreciation.",
+      "points": 20,
+      "visual_evidence": "Look for columns labeled for '2023 Straight-Line Depreciation' (or 'Book Depreciation') and 'Accumulated Book Depreciation' with calculated values that account for salvage value."
+    },
+    {
+      "id": "net_book_value_columns",
+      "description": "Calculate Net Book Value under both MACRS and Straight-Line methods.",
+      "points": 15,
+      "visual_evidence": "Look for columns displaying the 'Net Book Value' (NBV) for both the tax (MACRS) and book (Straight-Line) methods."
+    },
+    {
+      "id": "summary_totals_calculated",
+      "description": "Create a summary showing totals for 2023 MACRS, 2023 Straight-Line, and Book-Tax difference.",
+      "points": 20,
+      "visual_evidence": "Look for a distinct summary section or a totals row at the bottom of the sheet that explicitly shows the sum of 2023 MACRS depreciation, the sum of 2023 Straight-Line depreciation, and the calculated Book-Tax difference."
+    },
+    {
+      "id": "save_completed_workbook",
+      "description": "Save the completed workbook as 'depreciation_schedule_2023.xlsx'.",
+      "points": 15,
+      "visual_evidence": "Look for the file name 'depreciation_schedule_2023.xlsx' in the spreadsheet application's title bar, a 'Save As' dialog box, or a file explorer window showing the saved file in the Documents/Spreadsheets directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_spreadsheet_used",
+      "description": "Verify the agent used a GUI spreadsheet application to complete the task.",
+      "visual_evidence": "Look for screenshots showing an active spreadsheet application (like LibreOffice Calc) being used to format and calculate the data, rather than the agent exclusively using terminal commands or a Python script to generate the output file blindly."
+    },
+    {
+      "id": "genuine_summary_totals",
+      "description": "Verify that the summary totals are genuine calculations and not raw data pasted to trick verifiers.",
+      "visual_evidence": "Ensure the summary values for MACRS, SL, and Book-Tax difference are actual aggregated totals (e.g., MACRS total around $431k) and not just raw individual asset cost values (like 250,000 or 85,000) pasted into the summary area."
+    },
+    {
+      "id": "macrs_tables_referenced",
+      "description": "Verify the agent referenced the provided MACRS tables.",
+      "visual_evidence": "Look for a text editor or viewer open with 'macrs_tables.txt' visible, indicating the agent actually looked up the correct IRS depreciation rates instead of hallucinating them."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires processing exactly 28 fixed assets. The expected total 2023 MACRS depreciation is approximately $431,563 (acceptable range: 340,000 to 440,000). The total 2023 Straight-Line depreciation should be between 195,000 and 275,000. The total Book-Tax difference should be between 80,000 and 180,000. Ensure the agent actually calculates these totals in a summary section. A known flaw in the automated verifier allows it to pass if ANY number in the spreadsheet falls within these ranges (e.g., an asset's initial cost basis); you must visually verify that the numbers in the expected ranges are actually the calculated summary totals, not just raw asset data."
+}

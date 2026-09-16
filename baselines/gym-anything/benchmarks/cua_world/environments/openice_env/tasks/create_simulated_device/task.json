@@ -1,0 +1,27 @@
+{
+  "id": "create_simulated_device@1",
+  "version": "1.0",
+  "env_id": "openice_env@0.1",
+  "description": "Create a simulated Multiparameter Monitor medical device adapter in the OpenICE Supervisor application. The adapter should simulate a patient monitor displaying real-time vital signs such as heart rate, blood pressure, and SpO2.",
+  "difficulty": "easy",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_simulated_device/setup_task.sh",
+    "post_task": "/workspace/tasks/create_simulated_device/export_result.sh"
+  },
+  "metadata": {
+    "expected_device_category": "Simulated",
+    "expected_device_type": "Multiparameter Monitor",
+    "min_device_count": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_simulated_device"
+    }
+  }
+}

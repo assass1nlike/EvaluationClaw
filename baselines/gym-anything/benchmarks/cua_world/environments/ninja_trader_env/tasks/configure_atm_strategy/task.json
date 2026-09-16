@@ -1,0 +1,38 @@
+{
+  "id": "configure_atm_strategy@1",
+  "version": "1.0",
+  "env_id": "ninja_trader_env@0.1",
+  "description": "Create an ATM (Advanced Trade Management) strategy template in NinjaTrader 8 named 'SPY_Scalp'. Configure the strategy with a 3-point Stop Loss, a 2-point Profit Target for 50% of the position, and a 5-point Profit Target for the remaining 50%. NinjaTrader 8 is open with the Sim101 account available.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_atm_strategy\\setup_task.ps1",
+    "post_task": "powershell -ExecutionPolicy Bypass -File C:\\workspace\\tasks\\configure_atm_strategy\\export_result.ps1"
+  },
+  "metadata": {
+    "template_name": "SPY_Scalp",
+    "stop_loss_points": 3,
+    "targets": [
+      {
+        "points": 2,
+        "qty_percent": 50
+      },
+      {
+        "points": 5,
+        "qty_percent": 50
+      }
+    ],
+    "result_path": "C:\\Users\\Docker\\Desktop\\NinjaTraderTasks\\configure_atm_strategy_result.json",
+    "template_dir": "C:\\Users\\Docker\\Documents\\NinjaTrader 8\\templates\\AtmStrategy"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_atm_strategy"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "migrate_misplaced_dois@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Fix bibliographic metadata for three specific papers where the DOI (Digital Object Identifier) was incorrectly imported into the 'Extra' field: 'Attention Is All You Need' (Vaswani et al.), 'Deep Learning' (LeCun et al.), and 'ImageNet Classification with Deep Convolutional Neural Networks' (Krizhevsky et al.). For each paper, move the DOI string from the 'Extra' field to the 'DOI' field and ensure the 'Extra' field is left empty.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/migrate_misplaced_dois/setup_task.sh",
+    "post_task": "/workspace/tasks/migrate_misplaced_dois/export_result.sh"
+  },
+  "metadata": {
+    "targets": [
+      {
+        "title": "Attention Is All You Need",
+        "expected_doi": "10.5555/3295222.3295349"
+      },
+      {
+        "title": "Deep Learning",
+        "expected_doi": "10.1038/nature14539"
+      },
+      {
+        "title": "ImageNet Classification with Deep Convolutional Neural Networks",
+        "expected_doi": "10.5555/2999134.2999257"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_migrate_misplaced_dois"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "task_id": "stale_pipeline_and_ticket_cleanup@1",
+  "task_completion": [
+    {
+      "id": "login_vtiger",
+      "description": "Log into the vtiger CRM application",
+      "points": 10,
+      "visual_evidence": "Screenshots show the vtiger CRM interface loaded in a web browser, indicating successful login."
+    },
+    {
+      "id": "stale_deals_updated",
+      "description": "Update stale deals to 'Closed Lost' with 0% probability",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Deals/Opportunities list or detail views showing deals with past closing dates updated to a Sales Stage of 'Closed Lost' and a Probability of '0'."
+    },
+    {
+      "id": "tickets_reclassified",
+      "description": "Change status of Closed Critical/Urgent tickets to Resolved",
+      "points": 20,
+      "visual_evidence": "Screenshots of the Support Tickets list or detail views showing tickets with 'Critical' severity or 'Urgent' priority having their Status updated to 'Resolved'."
+    },
+    {
+      "id": "tickets_description_updated",
+      "description": "Prepend SLA-AUDIT string to ticket descriptions",
+      "points": 20,
+      "visual_evidence": "Screenshots of the ticket detail or edit views showing the description field starting exactly with '[SLA-AUDIT] Reclassified from Closed to Resolved per Q1 hygiene protocol. '"
+    },
+    {
+      "id": "account_industry_updated",
+      "description": "Set 'Blackstone Industrial' account industry",
+      "points": 15,
+      "visual_evidence": "Screenshots of the Accounts list or detail view showing an account named 'Blackstone Industrial' with the Industry field set to 'Industrial Machinery & Equipment'."
+    },
+    {
+      "id": "account_description_updated",
+      "description": "Set 'Blackstone Industrial' account description",
+      "points": 15,
+      "visual_evidence": "Screenshots of the 'Blackstone Industrial' account detail or edit view showing the Description field containing 'Enterprise client specializing in industrial automation and factory systems integration.'"
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_web_browser",
+      "description": "Agent used the web GUI to interact with the CRM",
+      "visual_evidence": "Screenshots show the agent navigating and clicking through a web browser (e.g., Chromium) rather than using terminal commands (like curl or mysql) to modify the database directly."
+    },
+    {
+      "id": "actual_crm_interaction",
+      "description": "Agent entered data into the actual CRM application",
+      "visual_evidence": "Text entry for descriptions and fields occurs within the vtiger CRM web interface input fields, not in an external text editor or script."
+    },
+    {
+      "id": "no_inspect_element_spoofing",
+      "description": "Agent did not use browser developer tools to fake the UI",
+      "visual_evidence": "The screenshots show genuine page loads, form submissions, and save confirmations without the browser developer tools (Inspect Element) open to superficially alter the DOM."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected industry for the account is 'Industrial Machinery & Equipment'. The expected account description is 'Enterprise client specializing in industrial automation and factory systems integration.'. The expected ticket SLA marker in the description is '[SLA-AUDIT]'. Note: The target account 'Blackstone Industrial' does not exist in the initial seed data, so the agent must create it from scratch to fulfill the account update requirement."
+}

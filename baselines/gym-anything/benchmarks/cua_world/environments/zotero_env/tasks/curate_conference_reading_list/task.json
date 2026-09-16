@@ -1,0 +1,34 @@
+{
+  "id": "curate_conference_reading_list@1",
+  "version": "1.0",
+  "env_id": "zotero_env@0.1",
+  "description": "Curate a NeurIPS-focused reading list from your Zotero library. Create a top-level collection named 'NeurIPS Preparation' containing all papers from your library published in 'Advances in Neural Information Processing Systems'. Tag each of these papers with 'neurips-reading'. Within the 'NeurIPS Preparation' collection, create a standalone note titled 'Presentation Outline' with a brief outline (minimum 150 characters) referencing the titles of at least two of the papers in the collection.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/curate_conference_reading_list/setup_task.sh",
+    "post_task": "/workspace/tasks/curate_conference_reading_list/export_result.sh"
+  },
+  "metadata": {
+    "collection_name": "NeurIPS Preparation",
+    "tag_name": "neurips-reading",
+    "target_venue": "Advances in Neural Information Processing Systems",
+    "target_papers": [
+      "Attention Is All You Need",
+      "Language Models are Few-Shot Learners",
+      "ImageNet Classification with Deep Convolutional Neural Networks",
+      "Generative Adversarial Nets"
+    ],
+    "min_note_length": 150
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_curate_conference_reading_list"
+    }
+  }
+}

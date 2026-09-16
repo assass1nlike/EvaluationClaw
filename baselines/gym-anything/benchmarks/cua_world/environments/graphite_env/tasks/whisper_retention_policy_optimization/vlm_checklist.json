@@ -1,0 +1,59 @@
+{
+  "task_id": "whisper_retention_policy_optimization@1",
+  "task_completion": [
+    {
+      "id": "access_container_and_config",
+      "description": "Access the graphite Docker container and open the storage-schemas.conf file.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a 'docker exec' command into the 'graphite' container and opening/viewing '/opt/graphite/conf/storage-schemas.conf' using a text editor (like nano or vim) or commands like 'cat'/'sed'."
+    },
+    {
+      "id": "add_web_traffic_pattern",
+      "description": "Add the [web_traffic] section with the correct pattern.",
+      "points": 15,
+      "visual_evidence": "Text editor or terminal output showing a new section '[web_traffic]' with the line 'pattern = ^servers\\.web_traffic\\..*' in the configuration file."
+    },
+    {
+      "id": "add_web_traffic_retentions",
+      "description": "Add the correct retentions to the [web_traffic] section.",
+      "points": 15,
+      "visual_evidence": "Text editor or terminal output showing the line 'retentions = 1m:7d, 10m:30d' directly under the '[web_traffic]' section."
+    },
+    {
+      "id": "correct_section_placement",
+      "description": "Ensure the [web_traffic] section is placed before the [default] block.",
+      "points": 10,
+      "visual_evidence": "The configuration file contents visible in the terminal must show the '[web_traffic]' block appearing above the '[default]' block, as Graphite processes schemas top-down."
+    },
+    {
+      "id": "resize_speed_sensor_1",
+      "description": "Resize the speed_sensor_1.wsp database while preserving data.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the execution of 'whisper-resize.py /opt/graphite/storage/whisper/servers/web_traffic/speed_sensor_1.wsp 1m:7d 10m:30d' and the resulting output indicating data migration."
+    },
+    {
+      "id": "resize_speed_sensor_2",
+      "description": "Resize the speed_sensor_2.wsp database while preserving data.",
+      "points": 25,
+      "visual_evidence": "Terminal showing the execution of 'whisper-resize.py /opt/graphite/storage/whisper/servers/web_traffic/speed_sensor_2.wsp 1m:7d 10m:30d' and the resulting output indicating data migration."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_docker_execution",
+      "description": "Verify the agent executed commands inside the actual Docker container.",
+      "visual_evidence": "The terminal prompt should show the agent is inside the container (e.g., root@<container_id>) or commands should be prefixed with 'docker exec -it graphite'."
+    },
+    {
+      "id": "used_whisper_resize_script",
+      "description": "Verify the agent used whisper-resize.py to preserve data rather than deleting and recreating the files.",
+      "visual_evidence": "Look for the specific 'whisper-resize.py' command and its standard output (e.g., 'Retrieving all data from the archives', 'Creating new whisper database', 'Migrating data'). The agent must not use 'rm' followed by 'whisper-create.py'."
+    },
+    {
+      "id": "genuine_command_output",
+      "description": "Verify the agent did not fake the resize output.",
+      "visual_evidence": "The output of the resize commands should look like genuine script execution logs, not manually typed 'echo' statements or text editor mockups."
+    }
+  ],
+  "privileged_info_for_vlm": "The target pattern must be exactly '^servers\\.web_traffic\\..*'. The retention settings in the config file must be '1m:7d, 10m:30d'. The '[web_traffic]' block must be placed BEFORE the '[default]' block in storage-schemas.conf. The agent must use 'whisper-resize.py' with arguments '1m:7d 10m:30d' on both 'speed_sensor_1.wsp' and 'speed_sensor_2.wsp' to properly preserve historical data."
+}

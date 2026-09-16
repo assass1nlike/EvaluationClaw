@@ -1,0 +1,34 @@
+{
+  "id": "davidson_mackinnon_j_test_manual@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform a manual Davidson-MacKinnon J-test to compare two non-nested regression models using the 'food.gdt' dataset: Model A (food_exp = b0 + b1*income + u) and Model B (food_exp = a0 + a1*log(income) + v). Save the full output of the auxiliary regression used to test Model A (regressing food_exp on income and the fitted values from Model B) to /home/ga/Documents/gretl_output/aux_linear.txt. Save the full output of the auxiliary regression used to test Model B (regressing food_exp on log(income) and the fitted values from Model A) to /home/ga/Documents/gretl_output/aux_log.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/davidson_mackinnon_j_test_manual/setup_task.sh",
+    "post_task": "/workspace/tasks/davidson_mackinnon_j_test_manual/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "dataset": "food.gdt",
+    "output_linear": "/home/ga/Documents/gretl_output/aux_linear.txt",
+    "output_log": "/home/ga/Documents/gretl_output/aux_log.txt",
+    "expected_coeff_aux_linear_fitted": 0.3,
+    "expected_t_aux_linear_fitted": 1.5,
+    "expected_coeff_aux_log_fitted": 0.72,
+    "expected_t_aux_log_fitted": 3.6,
+    "tolerance_coeff": 0.15,
+    "tolerance_t": 0.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_davidson_mackinnon_j_test_manual"
+    }
+  }
+}

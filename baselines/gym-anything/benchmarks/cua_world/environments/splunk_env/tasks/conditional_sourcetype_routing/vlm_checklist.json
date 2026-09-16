@@ -1,0 +1,53 @@
+{
+  "task_id": "conditional_sourcetype_routing@1",
+  "task_completion": [
+    {
+      "id": "index_creation",
+      "description": "Create the 'system_logs' index",
+      "points": 10,
+      "visual_evidence": "Screenshots showing the creation of the 'system_logs' index, either via the Splunk Web UI (Settings > Indexes) or by editing indexes.conf in the terminal."
+    },
+    {
+      "id": "inputs_conf_setup",
+      "description": "Configure inputs.conf for UDP port 5140",
+      "points": 20,
+      "visual_evidence": "Terminal showing the editing or content of /opt/splunk/etc/system/local/inputs.conf with a stanza for '[udp://5140]', containing 'index = system_logs' and 'sourcetype = legacy_app'."
+    },
+    {
+      "id": "props_conf_setup",
+      "description": "Configure props.conf for index-time routing",
+      "points": 25,
+      "visual_evidence": "Terminal showing the editing or content of /opt/splunk/etc/system/local/props.conf with a stanza for '[legacy_app]' that includes 'TRANSFORMS' directives pointing to the critical and warn routing rules."
+    },
+    {
+      "id": "transforms_conf_setup",
+      "description": "Configure transforms.conf with regex and sourcetype overrides",
+      "points": 35,
+      "visual_evidence": "Terminal showing the editing or content of /opt/splunk/etc/system/local/transforms.conf containing stanzas with 'REGEX' matching '\\[CRITICAL\\]' and '\\[WARN\\]', 'DEST_KEY = MetaData:Sourcetype', and 'FORMAT' setting the sourcetypes to 'legacy_app_critical' and 'legacy_app_warn'."
+    },
+    {
+      "id": "splunk_service_restart",
+      "description": "Restart Splunk to apply configuration changes",
+      "points": 10,
+      "visual_evidence": "Terminal showing the execution of the command '/opt/splunk/bin/splunk restart' or a restart being triggered and completing via the Splunk Web UI."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_file_modification",
+      "description": "Verify the agent genuinely edited the configuration files using a terminal text editor or valid shell commands.",
+      "visual_evidence": "Screenshots should show the use of editors like nano, vim, or shell redirection (echo/cat) modifying the actual files, rather than typing the answers into an unrelated text document."
+    },
+    {
+      "id": "correct_path_usage",
+      "description": "Verify the agent modified the files in the explicitly requested directory.",
+      "visual_evidence": "The file paths visible in the terminal prompt, editor header, or commands must explicitly point to '/opt/splunk/etc/system/local/'."
+    },
+    {
+      "id": "no_fake_success_messages",
+      "description": "Verify the agent did not fake the final results by echoing expected outputs.",
+      "visual_evidence": "The terminal should not contain commands that simply 'echo' fake Splunk search results or mock the Splunk UI to make it appear as though the routing succeeded."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Port: 5140. Target Index: 'system_logs'. Base Sourcetype: 'legacy_app'. Critical Sourcetype: 'legacy_app_critical'. Warn Sourcetype: 'legacy_app_warn'. The configuration must be placed in /opt/splunk/etc/system/local/ using inputs.conf, props.conf, and transforms.conf."
+}

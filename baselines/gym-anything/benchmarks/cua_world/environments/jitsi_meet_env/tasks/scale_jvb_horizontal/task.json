@@ -1,0 +1,30 @@
+{
+  "id": "scale_jvb_horizontal@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Scale the Jitsi Meet deployment horizontally by adding a second Video Bridge instance (`jvb2`) to the configuration at `/home/ga/jitsi/docker-compose.yml`. The new instance must be configured with the container name `jitsi-jvb2`, UDP port mapping `10001:10001/udp`, and environment variables `JVB_PORT=10001`, `COLIBRI_REST_ENABLED=true`, and `JVB_OSERVER_WS_SERVER_ID=jvb2`. Ensure it depends on `prosody` and connects to the `meet.jitsi` network. Once the second bridge is running, create a report at `/home/ga/jvb_scale_report.txt` containing the total number of running JVB containers, the names of both JVB containers, and their respective UDP ports.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/scale_jvb_horizontal/setup_task.sh",
+    "post_task": "/workspace/tasks/scale_jvb_horizontal/export_result.sh"
+  },
+  "metadata": {
+    "compose_file": "/home/ga/jitsi/docker-compose.yml",
+    "report_file": "/home/ga/jvb_scale_report.txt",
+    "expected_service_name": "jvb2",
+    "expected_container_name": "jitsi-jvb2",
+    "expected_port": 10001,
+    "expected_ws_id": "jvb2"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_scale_jvb_horizontal"
+    }
+  }
+}

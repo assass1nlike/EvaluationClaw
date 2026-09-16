@@ -1,0 +1,35 @@
+{
+  "id": "timeuse_diary_matrix_survey@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "As part of the Student Life Study 2024, create and activate a LimeSurvey titled 'Weekly Time Allocation Diary - Student Life Study 2024'. The survey must use 'Group-by-group' presentation and include three question groups: 'Daily Activities', 'Sleep and Self-Care', and 'Demographics'. The 'Daily Activities' group requires an 'Array (Numbers)' question to capture hours spent (validated between 0 and 24) on eight activities (Attending classes or lectures, Studying or doing homework, Paid employment or work, Volunteering or community service, Physical exercise or sports, Socializing and social events, Screen-based entertainment, and Commuting or travel) for each day of the week from Monday through Sunday. Log in with admin/Admin1",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/timeuse_diary_matrix_survey/setup_task.sh",
+    "post_task": "/workspace/tasks/timeuse_diary_matrix_survey/export_result.sh"
+  },
+  "metadata": {
+    "expected_title_keywords": [
+      "time",
+      "allocation",
+      "diary"
+    ],
+    "expected_groups_count": 3,
+    "expected_question_type": ":",
+    "expected_yaxis_count_min": 8,
+    "expected_xaxis_count": 7,
+    "expected_min_val": 0,
+    "expected_max_val": 24
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_timeuse_diary_matrix_survey"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "id": "financial_consolidation_analysis@1",
+  "version": "1.0",
+  "env_id": "wps_spreadsheet_env@0.1",
+  "description": "Meridian Holdings requires a consolidated financial statement workbook based on the financial statements of its subsidiaries (Alpha Inc, Beta Corp, and Gamma LLC), intercompany transactions, and prior year figures. Create a workbook at /home/ga/Documents/consolidated_financials.xlsx that includes a 'Consolidated' sheet using cell references for eliminations, a 'Financial_Ratios' sheet (Current Ratio, Quick Ratio, Debt-to-Equity Ratio, Gross Margin %, Operating Margin %, Net Margin %, ROE, and ROA), a 'Variance_Analysis' sheet with dollar and percentage comparisons to the prior year, and a 'Dashboard' sheet featuring a grouped bar chart comparing current and prior year Revenue, Gross Profit, Operating Income, and Net Income. The variance analysis must include conditional formatting to highlight favorable",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 640,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/financial_consolidation_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/financial_consolidation_analysis/export_result.sh"
+  },
+  "metadata": {
+    "occupation": "Accountants and Auditors",
+    "industry": "Professional, Scientific, and Technical Services",
+    "data_source": "Financial statement data based on real SEC EDGAR filing patterns for mid-cap holding companies",
+    "expected_new_sheets": [
+      "Consolidated",
+      "Financial_Ratios",
+      "Variance_Analysis",
+      "Dashboard"
+    ],
+    "required_features": [
+      "multi-sheet cross-references",
+      "intercompany elimination formulas",
+      "financial ratio formulas",
+      "conditional formatting",
+      "grouped bar chart"
+    ],
+    "ground_truth": {
+      "consolidated_revenue": 96500000,
+      "consolidated_net_income": 8493000,
+      "consolidated_total_assets": 96950000,
+      "ic_total_revenue_elimination": 5500000,
+      "current_ratio": 2.92,
+      "gross_margin_pct": 41.2,
+      "prior_year_revenue": 91800000
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_financial_consolidation"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "generate_iec_turbulence@1",
+  "version": "1.0",
+  "env_id": "example.qblade_env@0.1",
+  "description": "Generate a stochastic turbulent wind field using QBlade's Turbulent Windfield Generator. Configure the wind field with a 60-second duration, 0.05s time step, 32x32 grid points, and 120mx120m size. Set the flow parameters to a Mean Velocity of 18 m/s, Turbulence Intensity of 14%, and Hub Height of 90m. Use the IEC Kaimal Model with a Random Seed of 9999. Save the resulting binary wind field file to /home/ga/Documents/windfields/kaimal_18ms_turb.bin.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/generate_iec_turbulence/setup_task.sh",
+    "post_task": "/workspace/tasks/generate_iec_turbulence/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "kaimal_18ms_turb.bin",
+    "expected_path": "/home/ga/Documents/windfields/kaimal_18ms_turb.bin",
+    "min_size_bytes": 10000000,
+    "target_velocity": 18,
+    "target_ti": 14,
+    "target_seed": 9999
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_generate_iec_turbulence"
+    }
+  }
+}

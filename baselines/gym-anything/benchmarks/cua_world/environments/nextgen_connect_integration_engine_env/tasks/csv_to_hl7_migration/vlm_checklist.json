@@ -1,0 +1,65 @@
+{
+  "task_id": "csv_to_hl7_migration@1",
+  "task_completion": [
+    {
+      "id": "channel_created",
+      "description": "A NextGen Connect channel named 'Legacy_CSV_Import' is created.",
+      "points": 10,
+      "visual_evidence": "Look for a channel named 'Legacy_CSV_Import' in the NextGen Connect (Mirth Connect) Administrator dashboard, or an API payload/script creating a channel with this name."
+    },
+    {
+      "id": "source_configured",
+      "description": "The channel source is configured to read the specified CSV file.",
+      "points": 15,
+      "visual_evidence": "Look for the Source connector settings showing a File Reader pointing to the directory '/home/ga/legacy_data/' and file 'patient_roster.csv', or equivalent API configuration."
+    },
+    {
+      "id": "destination_configured",
+      "description": "The channel destination is configured to write to the specified output directory with unique filenames.",
+      "points": 15,
+      "visual_evidence": "Look for the Destination connector settings showing a File Writer pointing to '/home/ga/hl7_import/' with a unique filename pattern (e.g., using a UUID or message ID variable like ${message.messageId}.hl7)."
+    },
+    {
+      "id": "message_type_adt_a28",
+      "description": "The output message type is configured as HL7 v2.x ADT^A28.",
+      "points": 15,
+      "visual_evidence": "Look for outbound message templates, transformer steps, or script logic explicitly setting the message type to 'ADT' and trigger event to 'A28' (typically in the MSH-9 segment)."
+    },
+    {
+      "id": "field_mapping_pid",
+      "description": "PatientID, Name, and Address are mapped to the correct PID segments.",
+      "points": 15,
+      "visual_evidence": "Look for transformer mapping steps or JavaScript code assigning the CSV input values to PID.3 (PatientID), PID.5 (Name), and PID.11 (Address)."
+    },
+    {
+      "id": "data_transformation_rules",
+      "description": "DOB is converted to YYYYMMDD and Gender is converted to M/F.",
+      "points": 15,
+      "visual_evidence": "Look for transformer steps, regex replacements, or JavaScript logic converting the date format (MM/DD/YYYY to YYYYMMDD for PID.7) and mapping 'Male'/'Female' to 'M'/'F' (for PID.8)."
+    },
+    {
+      "id": "channel_deployed_and_processed",
+      "description": "The channel is deployed and successfully processes the patient records.",
+      "points": 15,
+      "visual_evidence": "Look for the NextGen Connect dashboard showing the 'Legacy_CSV_Import' channel as deployed with messages in the 'Received' and 'Sent' columns (ideally 20), or terminal output showing the generated HL7 files in '/home/ga/hl7_import/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_engine_usage",
+      "description": "The agent used NextGen Connect (Mirth Connect) to perform the migration rather than bypassing it entirely.",
+      "visual_evidence": "Look for interaction with the NextGen Connect Administrator UI (via browser/VNC) or REST API calls to localhost:8443. The agent should not just write a standalone Python script that reads the CSV and writes HL7 files directly to the output directory without creating a channel."
+    },
+    {
+      "id": "no_hardcoded_outputs",
+      "description": "The agent did not manually create the output HL7 files using a text editor or echo commands.",
+      "visual_evidence": "Ensure there are no terminal commands manually writing HL7 segments (e.g., echo 'MSH|^~\\&|...' > file.hl7) for all 20 patients."
+    },
+    {
+      "id": "dynamic_transformation_logic",
+      "description": "The transformation of DOB and Gender was implemented as logic within the channel, not by manually editing the source CSV.",
+      "visual_evidence": "Check that the original CSV file at '/home/ga/legacy_data/patient_roster.csv' was not manually modified using a text editor or sed/awk before being ingested by the channel."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a NextGen Connect channel named 'Legacy_CSV_Import'. Input is a 20-record CSV at '/home/ga/legacy_data/patient_roster.csv'. Output must be written to '/home/ga/hl7_import/'. The HL7 message type must be ADT^A28. Required mappings: PatientID -> PID.3, Name -> PID.5, DOB -> PID.7 (must be transformed from MM/DD/YYYY to YYYYMMDD), Gender -> PID.8 (must be transformed from Male/Female to M/F), Address -> PID.11. Exactly 20 unique HL7 files should be generated."
+}

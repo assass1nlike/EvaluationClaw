@@ -1,0 +1,53 @@
+{
+  "task_id": "northwest_passage_thaw_assessment@1",
+  "task_completion": [
+    {
+      "id": "load_dataset_panoply",
+      "description": "Load the NCEP surface air temperature dataset into NASA Panoply.",
+      "points": 10,
+      "visual_evidence": "The Panoply application window is open, and 'air.mon.ltm.nc' is visible in the Datasets or Sources panel."
+    },
+    {
+      "id": "generate_july_polar_map",
+      "description": "Generate a polar-projected temperature map for July.",
+      "points": 20,
+      "visual_evidence": "A Panoply plot window displays a map of the 'air' variable for July (Time = 7 or equivalent). The map must use a North Polar projection (e.g., centered on the Arctic/North Pole)."
+    },
+    {
+      "id": "generate_august_polar_map",
+      "description": "Generate a polar-projected temperature map for August.",
+      "points": 20,
+      "visual_evidence": "A Panoply plot window displays a map of the 'air' variable for August (Time = 8 or equivalent). The map must use a North Polar projection."
+    },
+    {
+      "id": "correct_temperature_scale",
+      "description": "Ensure the temperature scale displays correct Celsius values, avoiding the Kelvin conversion trap.",
+      "points": 30,
+      "visual_evidence": "The color scale/legend on the generated maps shows realistic Arctic summer temperatures (values around -2.0 to 15.0). It MUST NOT show values around -265, which would indicate an incorrect subtraction of 273.15."
+    },
+    {
+      "id": "save_outputs_to_directory",
+      "description": "Save the generated maps and the final assessment report to the specified directory.",
+      "points": 20,
+      "visual_evidence": "A file manager or terminal window shows the files 'arctic_temp_july.png', 'arctic_temp_august.png', and 'nwp_assessment.txt' located in the '~/Documents/ArcticRouting/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the Panoply GUI to create the maps.",
+      "visual_evidence": "Screenshots show the agent clicking through Panoply menus, adjusting plot settings, and viewing the maps within the Panoply interface, rather than using a terminal script to bypass the UI."
+    },
+    {
+      "id": "genuine_map_generation",
+      "description": "The maps are genuinely generated from the provided dataset.",
+      "visual_evidence": "The maps appear inside Panoply plot windows with standard Panoply UI elements, titles, and legends matching the 'air.mon.ltm.nc' dataset, not generic images downloaded from the web."
+    },
+    {
+      "id": "authentic_assessment_text",
+      "description": "The final assessment report contains genuine analysis.",
+      "visual_evidence": "If the text editor is visible, the contents of 'nwp_assessment.txt' reflect an actual assessment of the temperatures shown in the maps, rather than just repeating the prompt instructions."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset 'air.mon.ltm.nc' contains temperature data natively in Celsius (degC). The task request file contains a trap instructing the agent to convert from Kelvin to Celsius by subtracting 273.15. If the agent applies this conversion, the maps will incorrectly show impossible values around -265\u00b0C. The correct maps must display the raw, unconverted values (expected range between -2.0\u00b0C and 15.0\u00b0C). The expected output files are 'arctic_temp_july.png', 'arctic_temp_august.png', and 'nwp_assessment.txt' saved in '/home/ga/Documents/ArcticRouting/'."
+}

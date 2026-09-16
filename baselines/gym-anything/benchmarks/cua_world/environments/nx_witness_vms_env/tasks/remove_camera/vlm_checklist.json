@@ -1,0 +1,53 @@
+{
+  "task_id": "remove_camera@1",
+  "task_completion": [
+    {
+      "id": "access_vms_interface",
+      "description": "Access the Nx Witness VMS web administration interface.",
+      "points": 10,
+      "visual_evidence": "A web browser is open and navigated to the Nx Witness VMS interface at https://localhost:7001 (specifically the settings/cameras page)."
+    },
+    {
+      "id": "locate_target_camera",
+      "description": "Locate the 'Server Room Camera' and its Device ID (UUID).",
+      "points": 20,
+      "visual_evidence": "The 'Server Room Camera' is visible or selected in the VMS camera list, and its details panel is open showing its Device ID (UUID)."
+    },
+    {
+      "id": "document_audit_log",
+      "description": "Document the camera's Name and Device ID in the audit log.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal window shows the file /home/ga/audit/camera_removal.txt being edited or viewed, containing the text 'Server Room Camera' and its corresponding UUID."
+    },
+    {
+      "id": "initiate_camera_deletion",
+      "description": "Initiate the deletion of the 'Server Room Camera'.",
+      "points": 20,
+      "visual_evidence": "The agent is interacting with a 'Delete', 'Remove', or 'Decommission' button/context menu for the 'Server Room Camera', or a deletion confirmation dialog is visible on screen."
+    },
+    {
+      "id": "verify_camera_removed",
+      "description": "Verify the camera has been permanently deleted from the system.",
+      "points": 20,
+      "visual_evidence": "The VMS camera list is visible and the 'Server Room Camera' is no longer present in the list."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_vms_interaction",
+      "description": "The agent interacted with the VMS via the web GUI rather than relying solely on terminal API commands.",
+      "visual_evidence": "Screenshots show the web browser interface for Nx Witness VMS being actively used to view and delete the camera, rather than just terminal windows executing curl commands."
+    },
+    {
+      "id": "authentic_uuid_retrieval",
+      "description": "The agent retrieved the actual UUID from the VMS interface.",
+      "visual_evidence": "The UUID entered into the audit log matches the UUID visually displayed in the VMS camera details panel in earlier screenshots."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "The agent actually created and saved the audit log file at the correct path.",
+      "visual_evidence": "The text editor or terminal clearly shows the file path /home/ga/audit/camera_removal.txt being saved, rather than just a temporary buffer or an incorrect directory."
+    }
+  ],
+  "privileged_info_for_vlm": "Target Camera Name: 'Server Room Camera'. Audit File Path: '/home/ga/audit/camera_removal.txt'. Admin URL: 'https://localhost:7001/static/index.html#/settings/cameras'."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "reconcile_daily_payments@1",
+  "task_completion": [
+    {
+      "id": "read_payer_info",
+      "description": "Read the patient details from the input text file.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of ~/Desktop/payer_info.txt to identify the patient."
+    },
+    {
+      "id": "access_patient_record",
+      "description": "Log in to LibreHealth EHR and locate the patient.",
+      "points": 20,
+      "visual_evidence": "The LibreHealth EHR web interface is open, logged in, and displaying the dashboard or medical record for the specific patient identified in the text file."
+    },
+    {
+      "id": "record_cash_payment",
+      "description": "Record a $40.00 cash payment for the patient.",
+      "points": 30,
+      "visual_evidence": "The payment, checkout, or fees screen in LibreHealth EHR showing a payment entry of '$40.00' with the method 'Cash' and type 'Copay' or 'Unapplied/On-Account'."
+    },
+    {
+      "id": "generate_daily_report",
+      "description": "Generate the Daily Report for today's date.",
+      "points": 20,
+      "visual_evidence": "The Reports section of LibreHealth EHR showing the Daily Report (or Day Sheet) being generated or previewed for today's date."
+    },
+    {
+      "id": "save_day_sheet_pdf",
+      "description": "Save the generated report as day_sheet.pdf on the Desktop.",
+      "points": 20,
+      "visual_evidence": "A save dialog pointing to ~/Desktop/day_sheet.pdf, a file manager showing day_sheet.pdf on the Desktop, or a PDF viewer displaying the saved report reflecting the $40.00 transaction."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_ehr",
+      "description": "The agent interacted with the LibreHealth EHR via a web browser.",
+      "visual_evidence": "Look for a web browser (e.g., Firefox, Chrome) navigating the LibreHealth EHR interface. The agent should not be using terminal commands (like mysql or curl) to insert the payment directly into the database."
+    },
+    {
+      "id": "gui_used_for_pdf",
+      "description": "The PDF was generated from the EHR system natively.",
+      "visual_evidence": "Look for the browser's print-to-PDF or export feature being used on the LibreHealth report page. The agent should not be manually typing the report into a word processor or text editor."
+    },
+    {
+      "id": "correct_patient_context",
+      "description": "The payment was applied to the correct patient.",
+      "visual_evidence": "Verify that the name on the LibreHealth payment screen matches the patient details seen when payer_info.txt was opened, rather than a random or dummy patient."
+    }
+  ],
+  "privileged_info_for_vlm": "Input file: /home/ga/Desktop/payer_info.txt. Payment Amount: 40.00. Payment Method: Cash. Output file: /home/ga/Desktop/day_sheet.pdf. The VLM should verify that a $40.00 Cash payment is recorded in LibreHealth EHR and that the resulting daily report PDF is saved to the specified Desktop path."
+}

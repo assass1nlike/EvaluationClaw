@@ -1,0 +1,28 @@
+{
+  "id": "mark_conversation_spam@1",
+  "version": "1.0",
+  "env_id": "free_scout_env@0.1",
+  "description": "A suspicious conversation has been identified in the 'IT Support' mailbox that appears to be a phishing attempt. Log in to FreeScout at http://localhost:8080 (admin@helpdesk.local / Admin123!) and mark the conversation with the subject \"URGENT: Your IT credentials expire today - immediate action required\" as Spam to remove it from the active ticket queue.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 180,
+    "max_steps": 25,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/mark_conversation_spam/setup_task.sh",
+    "post_task": "/workspace/tasks/mark_conversation_spam/export_result.sh"
+  },
+  "metadata": {
+    "mailbox_name": "IT Support",
+    "target_subject": "URGENT: Your IT credentials expire today - immediate action required",
+    "expected_status_code": 4,
+    "expected_folder_type": 5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_mark_conversation_spam"
+    }
+  }
+}

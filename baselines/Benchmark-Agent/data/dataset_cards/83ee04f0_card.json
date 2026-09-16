@@ -1,0 +1,74 @@
+{
+  "dataset_id": "83ee04f0",
+  "name": "Code-Repair",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 240,
+  "description": "Code-Repair is a dataset for evaluating the ability of models to automatically correct bugs in Java code. Each sample provides a buggy code snippet and a prompt instructing the model to refine it, with the expected output being the repaired code.",
+  "card_text": "The Code-Repair dataset consists of 240 text samples focused on code refinement. Each sample includes a prompt that describes the task of correcting bugs in Java code, a source code snippet containing one or more bugs, and the corresponding repaired code. The bugs are typically small semantic errors, such as using integer literals instead of variables or missing negations. The dataset is designed to evaluate a model's capability to understand code semantics and produce correct fixes. The code snippets are method-level, often involving API calls and variable usage. The task is open-ended generation, requiring the model to output the entire corrected code snippet. The data is in English, with code in Java.",
+  "tasks": [
+    "open_ended_qa"
+  ],
+  "domain": "programming",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.sourceCode"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The buggy Java code snippet that needs to be repaired. It typically consists of a method or a few lines of code containing semantic or syntactic errors.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language instruction that sets up the code repair task, asking the model to identify and correct bugs in the provided code.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.repairCode"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "structured",
+        "semantics": "The corrected version of the input code snippet, with all bugs fixed. It is the target output that the model should generate.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of three main components: a context (input.sourceCode) containing a buggy Java code snippet, a question (input.prompt) providing an instruction to repair the code, and an answer (output.repairCode) containing the corrected code. The context and answer are both structured code snippets, while the question is a short instruction in natural language. The answer is derived by fixing the bugs in the context according to the instruction."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Code-Repair/annotation.json",
+    "existing_tags": {
+      "task": "Code Repair",
+      "type": "Code Repair",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

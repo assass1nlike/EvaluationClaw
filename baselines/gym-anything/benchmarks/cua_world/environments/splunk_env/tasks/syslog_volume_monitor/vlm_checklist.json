@@ -1,0 +1,53 @@
+{
+  "task_id": "syslog_volume_monitor@1",
+  "task_completion": [
+    {
+      "id": "report_references_system_logs",
+      "description": "Verify the agent queries the correct target index.",
+      "points": 20,
+      "visual_evidence": "Look for a Splunk search bar or report configuration containing 'index=\"system_logs\"' or 'index=system_logs'."
+    },
+    {
+      "id": "report_uses_time_analysis",
+      "description": "Verify the search analyzes log volume over time.",
+      "points": 20,
+      "visual_evidence": "Look for time-series commands in the search string (e.g., 'timechart count', 'stats count by _time') or a visual time-series graph (line/bar chart over time) in the search results."
+    },
+    {
+      "id": "new_scheduled_report_created",
+      "description": "Verify a new report has been saved.",
+      "points": 20,
+      "visual_evidence": "Look for a newly created report in the Splunk 'Reports' tab, or a 'Save As Report' confirmation dialog."
+    },
+    {
+      "id": "report_is_scheduled",
+      "description": "Verify the saved report is configured to run on a schedule.",
+      "points": 20,
+      "visual_evidence": "Look for the 'Schedule' column in the Reports list showing an active schedule (e.g., a cron expression or schedule description), or the 'Edit Schedule' dialog with the 'Schedule Report' checkbox enabled and saved."
+    },
+    {
+      "id": "dashboard_with_panels_created",
+      "description": "Verify an operational dashboard was created with panels showing log volume trends.",
+      "points": 20,
+      "visual_evidence": "Look for the Splunk 'Dashboards' view showing a custom dashboard that contains at least one panel displaying a chart or graph of log volume over time."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "Verify the agent used the Splunk Web UI to create the reports and dashboards.",
+      "visual_evidence": "Screenshots should show the Splunk web interface in a browser (http://localhost:8000), rather than terminal windows modifying Splunk .conf files directly."
+    },
+    {
+      "id": "genuine_data_used",
+      "description": "Verify the agent interacted with actual log data.",
+      "visual_evidence": "The search results, report previews, or dashboard panels should display actual data points, events, or graphs, not just empty mockups or static HTML edits."
+    },
+    {
+      "id": "no_direct_api_scripting",
+      "description": "Verify the agent did not bypass the UI using automated scripts.",
+      "visual_evidence": "Absence of terminal windows running curl commands to the Splunk REST API or python scripts designed to generate the dashboard/report automatically."
+    }
+  ],
+  "privileged_info_for_vlm": "The target Splunk index must be exactly 'system_logs'. The scoring breakdown requires 5 specific criteria worth 20 points each: 1) a new report is created, 2) the report references 'system_logs', 3) the report uses time analysis (e.g., timechart), 4) the report is scheduled, and 5) a dashboard with panels is created."
+}

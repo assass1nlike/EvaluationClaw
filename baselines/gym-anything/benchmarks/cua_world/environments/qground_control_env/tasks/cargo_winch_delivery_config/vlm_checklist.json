@@ -1,0 +1,59 @@
+{
+  "task_id": "cargo_winch_delivery_config@1",
+  "task_completion": [
+    {
+      "id": "read_ops_brief",
+      "description": "Read the operations brief to determine the required configuration.",
+      "points": 10,
+      "visual_evidence": "A text editor or terminal window displaying the contents of /home/ga/Documents/QGC/winch_ops_brief.txt."
+    },
+    {
+      "id": "set_winch_parameters",
+      "description": "Set the three required winch parameters in QGroundControl.",
+      "points": 30,
+      "visual_evidence": "QGroundControl's Vehicle Setup -> Parameters screen showing the agent searching for and setting WINCH_RATE_MAX to 2.5, SERVO9_FUNCTION to 46, and/or RC8_OPTION to 45."
+    },
+    {
+      "id": "mission_takeoff_transit",
+      "description": "Add Takeoff and Transit (Waypoint) items to the mission plan.",
+      "points": 10,
+      "visual_evidence": "QGroundControl's Plan view showing a 'Takeoff' command and at least one 'Waypoint' command in the mission item list on the right side of the screen."
+    },
+    {
+      "id": "mission_winch_deployment_delay",
+      "description": "Add Winch Deployment and Delay commands to the mission plan.",
+      "points": 20,
+      "visual_evidence": "QGroundControl's Plan view showing a 'Winch' or 'DO_WINCH' (command 42600) item followed by a 'Delay' or 'NAV_DELAY' item in the mission list."
+    },
+    {
+      "id": "mission_winch_retract_rtl",
+      "description": "Add Winch Retraction and Return to Launch (RTL) commands to the mission plan.",
+      "points": 10,
+      "visual_evidence": "QGroundControl's Plan view showing a second 'Winch' or 'DO_WINCH' command (for retraction) followed by a 'Return To Launch' or 'RTL' command at the end of the mission list."
+    },
+    {
+      "id": "export_mission_plan",
+      "description": "Export the completed mission plan to the specified file path.",
+      "points": 20,
+      "visual_evidence": "A file save dialog in QGroundControl or a file manager window showing the mission plan being saved as 'winch_delivery.plan' in the /home/ga/Documents/QGC/ directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_parameter_configuration",
+      "description": "The agent used the QGroundControl GUI to configure parameters.",
+      "visual_evidence": "Screenshots should show interaction with the QGroundControl Parameters menu, rather than the agent manually editing parameter files in a text editor or using a python script to bypass the UI."
+    },
+    {
+      "id": "gui_mission_planning",
+      "description": "The agent used the QGroundControl GUI to create the mission plan.",
+      "visual_evidence": "Screenshots should show the QGroundControl map and mission item list being actively edited, rather than the agent writing a .plan JSON file manually in a text editor."
+    },
+    {
+      "id": "genuine_file_export",
+      "description": "The agent exported the plan using QGroundControl's built-in save/sync functionality.",
+      "visual_evidence": "The QGroundControl 'File Save' dialog or 'Sync' menu should be visible when saving the .plan file."
+    }
+  ],
+  "privileged_info_for_vlm": "The operations brief is located at /home/ga/Documents/QGC/winch_ops_brief.txt. The required vehicle parameters to be set in QGroundControl are WINCH_RATE_MAX: 2.5, SERVO9_FUNCTION: 46, and RC8_OPTION: 45. The final mission plan must be exported to /home/ga/Documents/QGC/winch_delivery.plan and must contain Takeoff, Waypoint, DO_WINCH (deployment), NAV_DELAY, DO_WINCH (retraction), and RTL commands."
+}

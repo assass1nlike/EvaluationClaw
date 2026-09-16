@@ -1,0 +1,74 @@
+{
+  "dataset_id": "9ab9b963",
+  "name": "Aspect-Category-Detection",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "Aspect-Category-Detection is a restaurant review dataset where the model must identify which predefined aspect categories (AMBIENCE, DRINKS, FOOD, LOCATION, RESTAURANT, SERVICE) are discussed in a given review text.",
+  "card_text": "This dataset contains 200 text samples of restaurant reviews paired with instructions to detect aspect categories. Each sample provides a raw review text as context and a prompt asking which categories from a fixed list (AMBIENCE, DRINKS, FOOD, LOCATION, RESTAURANT, SERVICE) are discussed. The target output is one or more category labels, making it a multi-label classification task. Reviews vary in length from very short phrases to a few sentences and reflect subjective dining experiences. The dataset evaluates a model's ability to infer fine-grained aspects beyond overall sentiment, relying on a closed category set defined by the prompt.",
+  "tasks": [
+    "classification_multilabel"
+  ],
+  "domain": "restaurant reviews",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "narrative",
+        "semantics": "The raw text of a restaurant review, providing the main content to be analyzed for aspect categories. It typically contains the reviewer's personal experience, opinions, or brief comments about a dining establishment.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "An instruction prompt that asks the model to identify which aspect categories are discussed in the review and lists the allowed categories (AMBIENCE, DRINKS, FOOD, LOCATION, RESTAURANT, SERVICE).",
+        "path_types": [
+          "str"
+        ]
+      },
+      "category": {
+        "paths": [
+          "output.category"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The target aspect category label or labels assigned to the review, chosen from the predefined set. Multiple labels may be present as a comma-separated string when several aspects apply.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a raw restaurant review context, an instruction-style question asking which aspect categories are discussed, and an output category field containing the applicable aspect label(s) from a fixed set. The context supplies the text to analyze, the question defines the classification task and allowed categories, and the category field gives the target answer."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Aspect-Category-Detection/annotation.json",
+    "existing_tags": {
+      "task": "aspect_category_detection",
+      "type": "multi label classification",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

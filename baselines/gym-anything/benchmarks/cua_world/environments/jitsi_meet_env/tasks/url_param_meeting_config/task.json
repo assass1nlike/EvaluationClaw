@@ -1,0 +1,37 @@
+{
+  "id": "url_param_meeting_config@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Construct and join a Jitsi Meet room named 'VirtualBootcamp2024' using configuration overrides to ensure the meeting starts with audio muted, video muted, and the subject 'Morning Bootcamp - Advanced Level'. Use the hash parameters config.startWithAudioMuted=true, config.startWithVideoMuted=true, and config.subject=\"Morning Bootcamp - Advanced Level\". Save the full constructed URL to /home/ga/meeting_url.txt, create a configuration report at /home/ga/meeting_config_report.txt confirming the parameter effects, and save a screenshot of the joined meeting to /home/ga/meeting_configured.png.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/url_param_meeting_config/setup_task.sh",
+    "post_task": "/workspace/tasks/url_param_meeting_config/export_result.sh",
+    "pre_task_timeout": 120
+  },
+  "metadata": {
+    "required_room": "VirtualBootcamp2024",
+    "required_params": [
+      "config.startWithAudioMuted=true",
+      "config.startWithVideoMuted=true",
+      "config.subject"
+    ],
+    "subject_text": "Morning Bootcamp",
+    "output_files": [
+      "/home/ga/meeting_url.txt",
+      "/home/ga/meeting_config_report.txt",
+      "/home/ga/meeting_configured.png"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_url_param_meeting_config"
+    }
+  }
+}

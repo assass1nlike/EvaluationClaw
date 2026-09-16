@@ -1,0 +1,59 @@
+{
+  "task_id": "fix_corrupted_artifact@1",
+  "task_completion": [
+    {
+      "id": "navigate_to_repo",
+      "description": "Navigate to the target local repository",
+      "points": 10,
+      "visual_evidence": "The repository manager UI (e.g., JFrog Artifactory, Nexus) is open and the 'example-repo-local' repository is selected or visible in the repository browser."
+    },
+    {
+      "id": "navigate_to_artifact_path",
+      "description": "Navigate to the specific artifact directory",
+      "points": 10,
+      "visual_evidence": "The UI shows navigation through the directory tree or breadcrumbs to 'org/apache/commons/commons-lang3/3.14.0/'."
+    },
+    {
+      "id": "initiate_upload_deploy",
+      "description": "Open the upload or deploy artifact dialog",
+      "points": 20,
+      "visual_evidence": "An 'Upload', 'Deploy', or 'Add Artifact' dialog/screen is open within the repository manager interface."
+    },
+    {
+      "id": "select_valid_local_file",
+      "description": "Select the valid replacement file from the local filesystem",
+      "points": 30,
+      "visual_evidence": "The file selection dialog or the upload form explicitly shows the file '/home/ga/Desktop/commons-lang3-3.14.0.jar' selected as the source file to be uploaded."
+    },
+    {
+      "id": "verify_target_path",
+      "description": "Ensure the target path for the upload is correct",
+      "points": 10,
+      "visual_evidence": "The upload/deploy form shows the Target Path correctly set to 'org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar' (or the equivalent directory path if the filename is appended automatically)."
+    },
+    {
+      "id": "confirm_successful_replacement",
+      "description": "Verify the artifact was successfully uploaded/replaced",
+      "points": 20,
+      "visual_evidence": "A success notification, message, or the updated repository view showing the 'commons-lang3-3.14.0.jar' file present at the correct path, indicating the upload completed."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the graphical user interface to perform the task",
+      "visual_evidence": "Screenshots show interaction with a web browser and the repository manager's web UI, rather than just executing API/curl commands in a terminal."
+    },
+    {
+      "id": "genuine_file_selection",
+      "description": "The agent selected the actual file from the desktop",
+      "visual_evidence": "A system file picker dialog or browser upload mechanism is visible showing the selection of the file from the Desktop directory, not a mocked text editor screen."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "The agent did not bypass the UI using terminal shortcuts",
+      "visual_evidence": "The terminal is not used to run commands like 'curl -T' or 'cp' to directly manipulate the repository backend files or bypass the web interface upload process."
+    }
+  ],
+  "privileged_info_for_vlm": "The target repository is 'example-repo-local'. The exact artifact path within the repository is 'org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar'. The valid replacement file that must be selected for upload is located at '/home/ga/Desktop/commons-lang3-3.14.0.jar'."
+}

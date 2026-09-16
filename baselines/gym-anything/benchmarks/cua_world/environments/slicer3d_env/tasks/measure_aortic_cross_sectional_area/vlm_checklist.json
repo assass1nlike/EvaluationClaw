@@ -1,0 +1,59 @@
+{
+  "task_id": "measure_aortic_cross_sectional_area@1",
+  "task_completion": [
+    {
+      "id": "volume_loaded",
+      "description": "The abdominal CT volume is loaded into the application.",
+      "points": 5,
+      "visual_evidence": "The 3D Slicer interface is visible, displaying axial, sagittal, and coronal views of the loaded CT scan."
+    },
+    {
+      "id": "correct_axial_slice",
+      "description": "The axial view is navigated to the correct slice index for the maximum aortic diameter.",
+      "points": 25,
+      "visual_evidence": "The axial slice viewer shows the aorta at its largest cross-section. The slice offset or index indicator in the viewer or Data Probe should indicate a slice index at or very near 45."
+    },
+    {
+      "id": "curve_on_aorta",
+      "description": "A closed curve markup is accurately placed around the aorta.",
+      "points": 15,
+      "visual_evidence": "A closed curve markup (typically a colored outline) is drawn around the aorta, which is the large, circular blood vessel located immediately anterior to the spine in the axial view."
+    },
+    {
+      "id": "sufficient_control_points",
+      "description": "The closed curve markup uses a sufficient number of control points.",
+      "points": 10,
+      "visual_evidence": "The closed curve drawn on the aorta has at least 6 distinct control points (dots or nodes) visible along its path."
+    },
+    {
+      "id": "area_measurement_correct",
+      "description": "The cross-sectional area of the aorta is measured and is within the expected tolerance.",
+      "points": 30,
+      "visual_evidence": "The Markups module in 3D Slicer, or the final JSON output, displays a cross-sectional area measurement of approximately 855 mm\u00b2."
+    },
+    {
+      "id": "json_file_saved",
+      "description": "The measurement results are saved to the specified JSON file.",
+      "points": 15,
+      "visual_evidence": "A terminal, file explorer, or text editor shows the creation or contents of 'aortic_area_measurement.json' in the '~/Documents/SlicerData/Exports/' directory, containing fields like patient_id, measurement_type, slice_index, cross_sectional_area_mm2, num_control_points, and curve_name."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_slicer_interaction",
+      "description": "The agent interacted with the 3D Slicer GUI to perform the measurement.",
+      "visual_evidence": "Screenshots show the 3D Slicer interface with the Markups module open and active interaction with the image viewers, rather than just terminal commands or text editors."
+    },
+    {
+      "id": "actual_curve_drawn",
+      "description": "The closed curve was physically drawn on the image.",
+      "visual_evidence": "The closed curve is clearly visible overlaying the anatomical structure in the slice viewers, confirming it wasn't just generated programmatically without visual placement."
+    },
+    {
+      "id": "no_hardcoded_json",
+      "description": "The JSON file was not manually typed with hardcoded expected values.",
+      "visual_evidence": "The values in the JSON file match the actual measurements shown in the Slicer GUI. There should be no evidence of the agent simply typing '855' and '45' into a text editor without deriving them from the Slicer measurement."
+    }
+  ],
+  "privileged_info_for_vlm": "The maximum aortic diameter occurs at axial slice index 45. The expected aortic diameter is 33 mm, resulting in a cross-sectional area of approximately 855 mm\u00b2. The measurement must use at least 6 control points."
+}

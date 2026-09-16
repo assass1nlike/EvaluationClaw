@@ -1,0 +1,59 @@
+{
+  "task_id": "optimize_sky_annulus@1",
+  "task_completion": [
+    {
+      "id": "open_fits_image",
+      "description": "Open the m12_Vcomb.fits image in an astronomical image viewer or photometry tool.",
+      "points": 10,
+      "visual_evidence": "A GUI application (e.g., SAOImage DS9, AstroImageJ) is open displaying a star field image, with 'm12_Vcomb.fits' visible in the window title, file menu, or image information panel."
+    },
+    {
+      "id": "locate_target_star",
+      "description": "Locate the target star using the provided coordinates.",
+      "points": 10,
+      "visual_evidence": "A specific star in the image is centered, marked with a crosshair, or surrounded by an aperture circle, with coordinate readouts matching the target star's location."
+    },
+    {
+      "id": "configure_aperture_settings",
+      "description": "Configure the aperture photometry settings for the three required configurations.",
+      "points": 20,
+      "visual_evidence": "A settings dialog or tool panel is visible showing the Source Aperture Radius set to 6.0, and Sky Annulus (Inner/Outer) set to 10/15, 10/25, or 10/40 at various points in the trajectory."
+    },
+    {
+      "id": "perform_measurements",
+      "description": "Perform the photometry measurements for the target star.",
+      "points": 20,
+      "visual_evidence": "A results table, measurement log, or output window is visible displaying calculated photometry values (such as sky background and net flux) for the target star."
+    },
+    {
+      "id": "save_csv_results",
+      "description": "Save the measurement results to annulus_test.csv.",
+      "points": 20,
+      "visual_evidence": "A text editor, spreadsheet, or terminal output showing the contents of 'annulus_test.csv' located in '~/AstroImages/measurements/', containing columns for Config, Sky_Per_Pixel, and Net_Source_Flux with three rows of data."
+    },
+    {
+      "id": "write_conclusion",
+      "description": "Provide a written conclusion in conclusion.txt identifying the optimal configuration and the one with the most contamination.",
+      "points": 20,
+      "visual_evidence": "A text editor showing a file named 'conclusion.txt' in '~/AstroImages/measurements/' containing a written assessment of which configuration suffers most from neighbor star contamination and which is optimal."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_software_interaction",
+      "description": "The agent used actual astronomical GUI software to perform the measurements.",
+      "visual_evidence": "Screenshots show interaction with a real image viewer/photometry GUI (like DS9 or AstroImageJ) rather than just writing a script to bypass visual inspection or hallucinating the numbers."
+    },
+    {
+      "id": "genuine_measurement_data",
+      "description": "The CSV file contains genuine numerical outputs.",
+      "visual_evidence": "The values in 'annulus_test.csv' are actual decimal numbers representing flux and sky values, not placeholder text like 'value1' or 'flux_result'."
+    },
+    {
+      "id": "analytical_conclusion",
+      "description": "The conclusion text reflects actual analysis rather than a copy-paste of the prompt.",
+      "visual_evidence": "The text in 'conclusion.txt' explicitly names specific configurations (e.g., Config C) when discussing contamination and optimality, showing it synthesized the results."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output paths are exactly /home/ga/AstroImages/measurements/annulus_test.csv and /home/ga/AstroImages/measurements/conclusion.txt. The CSV must contain the headers Config, Sky_Per_Pixel, and Net_Source_Flux. The conclusion must explicitly identify which of the three configurations (A, B, or C) suffers most from neighbor star contamination and which is optimal for the crowded field."
+}

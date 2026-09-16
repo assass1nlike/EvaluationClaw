@@ -1,0 +1,54 @@
+{
+  "id": "board_meeting_minutes@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are the Recording Secretary for the Riverbend Community Hospital District board. Using the raw notes in /home/ga/Documents/raw_meeting_notes.txt, create the official Board Meeting Minutes in Apache OpenOffice Writer. The document must include a formal header block (Organization, Date, Attendees), an automatic Table of Contents, and page numbers in the footer. Use 'Heading 1' paragraph style for major sections and 'Heading 2' for individual agenda items. Include a 'Motions Summary' table listing all formal motions, movers, seconders, and vote results, as well as an 'Action Items' table for tasks and due dates. Ensure all names, financial figures, and vote tallies from the notes are accurately recorded. Save the final document as /home/ga/Documents/RCHD_Board_Minutes_2024-11-14.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/board_meeting_minutes/setup_task.sh",
+    "post_task": "/workspace/tasks/board_meeting_minutes/export_result.sh"
+  },
+  "metadata": {
+    "raw_notes_path": "/home/ga/Documents/raw_meeting_notes.txt",
+    "output_path": "/home/ga/Documents/RCHD_Board_Minutes_2024-11-14.odt",
+    "min_file_size_bytes": 5000,
+    "required_elements": {
+      "heading1_min": 6,
+      "heading2_min": 5,
+      "tables_min": 2,
+      "paragraphs_min": 25
+    },
+    "content_checks": {
+      "financials": [
+        "47.2",
+        "44.8",
+        "198.4",
+        "890"
+      ],
+      "names": [
+        "Hollingsworth",
+        "Dietrich",
+        "Chen",
+        "Okafor",
+        "Fredricksen",
+        "Zhao-Espinoza"
+      ],
+      "vote_terms": [
+        "unanimous",
+        "6-0",
+        "5-1"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_board_meeting_minutes"
+    }
+  }
+}

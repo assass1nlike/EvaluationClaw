@@ -1,0 +1,35 @@
+{
+  "id": "influence_leverage_analysis@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform a regression influence analysis on the 'food.gdt' dataset. Write and execute a hansl script that runs an OLS regression of 'food_exp' on 'income', calculates leverage (hat values) and DFFITS statistics, and prints per-observation results. Save the script to /home/ga/Documents/gretl_output/influence_analysis.inp and the output report identifying high leverage observations to /home/ga/Documents/gretl_output/influence_report.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/influence_leverage_analysis/setup_task.sh",
+    "post_task": "/workspace/tasks/influence_leverage_analysis/export_result.sh"
+  },
+  "metadata": {
+    "script_path": "/home/ga/Documents/gretl_output/influence_analysis.inp",
+    "report_path": "/home/ga/Documents/gretl_output/influence_report.txt",
+    "dataset": "food.gdt",
+    "expected_slope": 10.2,
+    "slope_tolerance": 0.5,
+    "required_keywords": [
+      "leverage",
+      "dffits",
+      "hat"
+    ],
+    "min_report_size_bytes": 500
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_influence_leverage_analysis"
+    }
+  }
+}

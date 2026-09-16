@@ -1,0 +1,53 @@
+{
+  "task_id": "autocrop@1",
+  "task_completion": [
+    {
+      "id": "image_loaded_in_gimp",
+      "description": "Verify that the target image with white borders is loaded into GIMP.",
+      "points": 15,
+      "visual_evidence": "The image is displayed in the GIMP workspace, and a distinct, uniform white border is visible around the main photo content."
+    },
+    {
+      "id": "image_menu_opened",
+      "description": "Verify that the 'Image' menu is accessed.",
+      "points": 15,
+      "visual_evidence": "The 'Image' menu is dropped down from the top menu bar in the GIMP application."
+    },
+    {
+      "id": "autocrop_selected",
+      "description": "Verify that the autocrop feature is selected.",
+      "points": 20,
+      "visual_evidence": "The 'Autocrop Image' (in GIMP 2.8) or 'Crop to Content' (in GIMP 2.10+) option is visible and highlighted or clicked in the Image menu."
+    },
+    {
+      "id": "borders_removed_in_workspace",
+      "description": "Verify that the white borders are removed from the image.",
+      "points": 25,
+      "visual_evidence": "The image in the GIMP workspace no longer has white borders, and the canvas boundaries tightly wrap the main photo content."
+    },
+    {
+      "id": "image_saved_or_exported",
+      "description": "Verify that the modified image is saved or exported.",
+      "points": 25,
+      "visual_evidence": "A save/export dialog is open, the 'File' menu shows 'Overwrite [filename]' or 'Export As...' being selected, or there is evidence of the file being saved before closing."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_cropping",
+      "description": "Verify that the agent used the GIMP GUI to crop the image.",
+      "visual_evidence": "The agent interacts with the GIMP interface rather than typing terminal commands like ImageMagick's 'convert' or 'mogrify' to crop the image."
+    },
+    {
+      "id": "autocrop_feature_used",
+      "description": "Verify that the agent used the automatic crop feature.",
+      "visual_evidence": "The agent selects 'Autocrop Image' or 'Crop to Content' from the menu, rather than manually drawing a rectangle with the Crop tool from the toolbox."
+    },
+    {
+      "id": "actual_image_modified",
+      "description": "Verify that the agent modified the provided image.",
+      "visual_evidence": "The image being edited has the 50-pixel white border initially, rather than the agent downloading or opening a pre-cropped version of the image."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires removing a 50-pixel white border from an image using GIMP. The agent must use GIMP's autocrop feature, accessed via 'Image -> Autocrop Image' (GIMP 2.8) or 'Image -> Crop to Content' (GIMP 2.10+). The original image has dimensions of 700x500 or 700x438 (including the white border). After autocropping, the white border should be completely removed, resulting in an area reduction of approximately 31-34%, leaving only the main photo content. The agent must save or overwrite the file for the verifier to detect the changes."
+}

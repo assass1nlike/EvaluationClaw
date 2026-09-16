@@ -1,0 +1,53 @@
+{
+  "task_id": "payload_com_identification@1",
+  "task_completion": [
+    {
+      "id": "zmq_script_created",
+      "description": "A script is created to interact with CoppeliaSim via the ZMQ Remote API.",
+      "points": 15,
+      "visual_evidence": "A code editor showing a script (likely Python) that imports or uses the CoppeliaSim ZMQ Remote API (e.g., `from coppeliasim_zmqremoteapi_client import RemoteAPIClient`)."
+    },
+    {
+      "id": "coppeliasim_rig_visible",
+      "description": "The simulation rig is constructed in CoppeliaSim.",
+      "points": 15,
+      "visual_evidence": "The CoppeliaSim application window is visible, showing a scene hierarchy or 3D view containing a base, a force/torque sensor, and a payload object."
+    },
+    {
+      "id": "orientations_logged",
+      "description": "The script executes and records data across at least 3 distinct orientations.",
+      "points": 20,
+      "visual_evidence": "Terminal output showing the script running and logging at least 3 different poses/orientations, or the script code clearly looping through at least 3 distinct orthogonal orientations."
+    },
+    {
+      "id": "csv_file_generated",
+      "description": "The ft_measurements.csv file is saved with the correct columns.",
+      "points": 20,
+      "visual_evidence": "A file named `ft_measurements.csv` in `/home/ga/Documents/CoppeliaSim/exports/` is visible (e.g., via `cat` or a text editor) containing the columns: pose_id, roll_deg, pitch_deg, yaw_deg, fx_n, fy_n, fz_n, tx_nm, ty_nm, tz_nm."
+    },
+    {
+      "id": "json_file_generated",
+      "description": "The payload_identification.json file is saved with the correct fields.",
+      "points": 30,
+      "visual_evidence": "A file named `payload_identification.json` in `/home/ga/Documents/CoppeliaSim/exports/` is visible containing the fields: total_orientations, true_mass_kg, true_com_x_m, true_com_y_m, true_com_z_m, estimated_mass_kg, estimated_com_x_m, estimated_com_y_m, estimated_com_z_m."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_driven_execution",
+      "description": "The CSV and JSON files were generated programmatically by a script, not manually typed.",
+      "visual_evidence": "The presence of a script that contains file writing logic (`open('...csv', 'w')`, `json.dump(...)`) corresponding to the output files, rather than the agent just typing the JSON/CSV contents directly into an editor."
+    },
+    {
+      "id": "genuine_coppeliasim_interaction",
+      "description": "The agent actually interacted with CoppeliaSim to get the data.",
+      "visual_evidence": "The script contains actual API calls to read force/torque sensors (e.g., `sim.readForceSensor`) and step the simulation, rather than hardcoding fake force/torque values."
+    },
+    {
+      "id": "calculated_results",
+      "description": "The estimated mass and CoM values appear to be genuinely calculated.",
+      "visual_evidence": "The values in the `payload_identification.json` for estimated mass and CoM are realistic floating-point numbers with precision, not simple placeholder integers (like 0 or 1) manually inserted."
+    }
+  ],
+  "privileged_info_for_vlm": "Minimum required orientations: 3. Output CSV path must be exactly: /home/ga/Documents/CoppeliaSim/exports/ft_measurements.csv. Output JSON path must be exactly: /home/ga/Documents/CoppeliaSim/exports/payload_identification.json."
+}

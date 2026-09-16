@@ -1,0 +1,65 @@
+{
+  "task_id": "model_wind_turbine_aep@1",
+  "task_completion": [
+    {
+      "id": "pysam_script_configuration",
+      "description": "Agent writes a Python script configuring the PySAM Windpower module with the correct turbine parameters.",
+      "points": 15,
+      "visual_evidence": "A Python script (e.g., in VS Code or terminal) containing PySAM setup code with turbine capacity set to 1500, hub height to 80, and rotor diameter to 77."
+    },
+    {
+      "id": "power_curve_setup",
+      "description": "Agent includes the exact power curve provided in the task description.",
+      "points": 15,
+      "visual_evidence": "The Python script contains the specific wind speed array (0 to 30) and power output array (0 to 1500) provided in the prompt."
+    },
+    {
+      "id": "wind_resource_file_selection",
+      "description": "Agent selects a valid .srw wind resource file from the specified directory.",
+      "points": 10,
+      "visual_evidence": "The Python script references a file path starting with '/opt/SAM/' and ending with '.srw'."
+    },
+    {
+      "id": "simulation_execution",
+      "description": "Agent successfully executes the PySAM simulation script.",
+      "points": 20,
+      "visual_evidence": "Terminal or IDE console output showing the Python script running without errors, or evidence of the script successfully completing its execution."
+    },
+    {
+      "id": "json_file_creation",
+      "description": "Agent saves the output to the correct JSON file path.",
+      "points": 10,
+      "visual_evidence": "A file explorer or terminal window showing 'wind_analysis_results.json' located in '/home/ga/Documents/SAM_Projects/'."
+    },
+    {
+      "id": "json_metadata_correctness",
+      "description": "The JSON file contains the correct static metadata keys and values.",
+      "points": 15,
+      "visual_evidence": "The contents of the JSON file show 'turbine_capacity_kw': 1500, 'hub_height_m': 80, 'rotor_diameter_m': 77, and 'wind_resource_file' with the .srw path."
+    },
+    {
+      "id": "json_results_validity",
+      "description": "The JSON file contains valid simulation results within the expected bounds.",
+      "points": 15,
+      "visual_evidence": "The contents of the JSON file show 'annual_energy_kwh' between 1,500,000 and 7,000,000, 'capacity_factor_percent' between 10 and 55, and 'monthly_energy_kwh' as an array of 12 numbers."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "programmatic_execution",
+      "description": "Agent used Python and PySAM to compute the results programmatically.",
+      "visual_evidence": "Look for a Python script being executed in the terminal or IDE. The agent should not be manually typing fabricated numbers directly into a JSON file."
+    },
+    {
+      "id": "authentic_power_curve",
+      "description": "Agent used the exact power curve provided without unauthorized modifications.",
+      "visual_evidence": "Check the script to ensure the wind speed and power output arrays match the prompt exactly and were not altered to manipulate the AEP results."
+    },
+    {
+      "id": "genuine_srw_file",
+      "description": "Agent used a genuine .srw file from the SAM installation.",
+      "visual_evidence": "Verify that the script points to an existing .srw file in /opt/SAM/ rather than a dummy file created by the agent."
+    }
+  ],
+  "privileged_info_for_vlm": "The output JSON file must be named 'wind_analysis_results.json'. The JSON must contain: turbine_capacity_kw = 1500, hub_height_m = 80, rotor_diameter_m = 77. The annual_energy_kwh must be between 1,500,000 and 7,000,000. The capacity_factor_percent must be between 10 and 55."
+}

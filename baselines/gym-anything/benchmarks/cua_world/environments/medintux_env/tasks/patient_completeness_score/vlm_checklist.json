@@ -1,0 +1,59 @@
+{
+  "task_id": "patient_completeness_score@1",
+  "task_completion": [
+    {
+      "id": "database_accessed",
+      "description": "Agent connects to the DrTuxTest database.",
+      "points": 10,
+      "visual_evidence": "Terminal showing a MySQL connection command (e.g., `mysql -u root DrTuxTest`), a Python script importing a database connector, or a database GUI opened to DrTuxTest."
+    },
+    {
+      "id": "query_or_script_created",
+      "description": "Agent writes a query or script to join the required tables and select the 9 fields.",
+      "points": 20,
+      "visual_evidence": "Code or SQL query visible on screen referencing `fchpat` joined with `IndexNomPrenom` and the 9 specific fields (FchPat_NomFille, FchPat_Nee, FchPat_Sexe, FchPat_Titre, FchPat_Adresse, FchPat_CP, FchPat_Ville, FchPat_Tel1, FchPat_NumSS)."
+    },
+    {
+      "id": "completeness_logic_implemented",
+      "description": "Agent implements logic to calculate the completeness score and identify missing fields.",
+      "points": 20,
+      "visual_evidence": "Code or SQL query showing a calculation dividing the count of present fields by 9, multiplying by 100, rounding to 1 decimal place, and logic to collect names of empty/NULL fields joined by a pipe (|) character."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Agent exports the results to the specified CSV file path.",
+      "points": 20,
+      "visual_evidence": "Terminal command, script execution, or GUI action saving the output to `~/patient_completeness_report.csv` or `/home/ga/patient_completeness_report.csv`."
+    },
+    {
+      "id": "csv_columns_correct",
+      "description": "The exported CSV contains the required columns.",
+      "points": 15,
+      "visual_evidence": "The CSV file content, a script's CSV writer configuration, or a SQL SELECT statement showing the exact columns: guid, nom, prenom, fields_populated, completeness_pct, missing_fields."
+    },
+    {
+      "id": "csv_sorted_ascending",
+      "description": "The results are sorted by completeness percentage in ascending order.",
+      "points": 15,
+      "visual_evidence": "SQL query containing `ORDER BY completeness_pct ASC`, Python code sorting the data frame/list, or the displayed CSV content showing scores increasing from top to bottom."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_queried",
+      "description": "The agent actually queried the database to get the data.",
+      "visual_evidence": "Presence of a real database connection and execution of a query, rather than generating a mock CSV file without reading the database."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not hardcode the expected output.",
+      "visual_evidence": "The script or query dynamically calculates the completeness and missing fields based on the database content, rather than printing a hardcoded string."
+    },
+    {
+      "id": "automated_csv_generation",
+      "description": "The agent generated the CSV automatically via script or query export.",
+      "visual_evidence": "The CSV was created by a script output or database export tool, not by the agent manually typing the rows into a text editor."
+    }
+  ],
+  "privileged_info_for_vlm": "Database: DrTuxTest (MySQL, user: root, no password). Tables: fchpat joined with IndexNomPrenom. 9 fields to check: FchPat_NomFille, FchPat_Nee, FchPat_Sexe, FchPat_Titre, FchPat_Adresse, FchPat_CP, FchPat_Ville, FchPat_Tel1, FchPat_NumSS. Score formula: (count_present / 9.0) * 100, rounded to 1 decimal place. Output path: /home/ga/patient_completeness_report.csv. Required columns: guid, nom, prenom, fields_populated, completeness_pct, missing_fields. Sorting: ASCENDING order by completeness_pct (least complete first). The database contains 5 synthetic test patients."
+}

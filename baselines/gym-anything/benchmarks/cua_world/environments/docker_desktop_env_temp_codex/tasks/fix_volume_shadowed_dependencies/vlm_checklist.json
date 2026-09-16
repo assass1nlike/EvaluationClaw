@@ -1,0 +1,41 @@
+{
+  "task_id": "fix_volume_shadowed_dependencies@1",
+  "task_completion": [
+    {
+      "id": "docker_compose_modified",
+      "description": "The docker-compose.yml file is modified to preserve the container's node_modules while keeping the bind mount.",
+      "points": 40,
+      "visual_evidence": "A text editor shows docker-compose.yml open. Under the 'volumes' section for the service, there should be an entry for the bind mount (e.g., '.:/app') AND a new anonymous volume entry specifically for node_modules (e.g., '/app/node_modules' or 'app-node-modules:/app/node_modules')."
+    },
+    {
+      "id": "container_started",
+      "description": "The Docker container is started successfully without the missing module error.",
+      "points": 30,
+      "visual_evidence": "The terminal shows a command like 'docker compose up' or 'docker-compose up' being executed. The output logs should indicate the server started successfully (e.g., listening on port 3000) and must NOT show the 'Error: Cannot find module express' crash."
+    },
+    {
+      "id": "app_responds",
+      "description": "The application responds successfully at http://localhost:3000.",
+      "points": 30,
+      "visual_evidence": "A web browser navigated to http://localhost:3000 displaying 'Hello from Docker!', or a terminal showing the output of 'curl http://localhost:3000' returning 'Hello from Docker!'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_local_npm_install",
+      "description": "The agent did not run npm install on the host machine.",
+      "visual_evidence": "The terminal does not show 'npm install' being executed in the host's /home/ga/projects/shadow-bug directory. If a file explorer or terminal 'ls' is visible, there should be no 'node_modules' folder in the host project directory."
+    },
+    {
+      "id": "actual_docker_run",
+      "description": "The agent actually ran the docker container rather than mocking the output.",
+      "visual_evidence": "The terminal shows genuine Docker engine output, build steps, or compose logs for the 'shadow-app' container."
+    },
+    {
+      "id": "genuine_response",
+      "description": "The response from the server is genuine and not hardcoded by the agent.",
+      "visual_evidence": "The 'Hello from Docker!' text is seen as a response to a genuine network request (via a web browser or curl command), not just printed via an 'echo' command or written into a text file."
+    }
+  ],
+  "privileged_info_for_vlm": "The project is located at /home/ga/projects/shadow-bug. The container name is 'shadow-app'. The expected port is 3000. The expected response from GET / is 'Hello from Docker!'."
+}

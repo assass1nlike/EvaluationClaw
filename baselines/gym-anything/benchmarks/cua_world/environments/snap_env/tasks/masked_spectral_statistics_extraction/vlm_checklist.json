@@ -1,0 +1,59 @@
+{
+  "task_id": "masked_spectral_statistics_extraction@1",
+  "task_completion": [
+    {
+      "id": "open_input_file",
+      "description": "Open the Landsat multi-spectral image in ESA SNAP Desktop",
+      "points": 10,
+      "visual_evidence": "The file 'landsat_multispectral.tif' is visible in the Product Explorer panel within the ESA SNAP Desktop interface."
+    },
+    {
+      "id": "create_veg_mask",
+      "description": "Create a logical mask named 'veg_mask'",
+      "points": 20,
+      "visual_evidence": "The Mask Manager or a mask creation dialog is open, showing a new mask explicitly named 'veg_mask'."
+    },
+    {
+      "id": "apply_mask_expression",
+      "description": "Set the mask expression to 'band_2 > band_3'",
+      "points": 20,
+      "visual_evidence": "The expression editor or mask definition field shows the exact logical expression 'band_2 > band_3' for the 'veg_mask'."
+    },
+    {
+      "id": "compute_statistics_with_mask",
+      "description": "Compute statistics for all four bands using the mask as an ROI constraint",
+      "points": 20,
+      "visual_evidence": "The Statistics tool window is open with all four spectral bands selected, and 'veg_mask' is checked or selected in the ROI/Mask constraint section."
+    },
+    {
+      "id": "export_statistics_report",
+      "description": "Export the computed statistics to a text file",
+      "points": 15,
+      "visual_evidence": "A save dialog or export window is visible, saving the statistics report to the path '/home/ga/snap_exports/veg_statistics.txt'."
+    },
+    {
+      "id": "save_dimap_product",
+      "description": "Save the modified product in BEAM-DIMAP format",
+      "points": 15,
+      "visual_evidence": "A 'Save Product As' dialog or similar export window shows the product being saved to '/home/ga/snap_exports/masked_landsat.dim' with the BEAM-DIMAP format selected."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_snap",
+      "description": "Agent used the ESA SNAP Desktop GUI for the workflow",
+      "visual_evidence": "Screenshots show interaction with the SNAP graphical interface (menus, dialogs, Mask Manager, Statistics tool) rather than terminal commands or Python scripts."
+    },
+    {
+      "id": "genuine_statistics_computation",
+      "description": "Statistics were genuinely computed by the software",
+      "visual_evidence": "The SNAP Statistics window displays actual computed values, histograms, or progress bars, proving the tool was run, rather than the agent manually creating a text file."
+    },
+    {
+      "id": "genuine_file_saving",
+      "description": "Agent used the application's save dialogs to export files",
+      "visual_evidence": "File paths for the exports are entered into SNAP's native save/export dialog boxes, not created via terminal echo or text editors."
+    }
+  ],
+  "privileged_info_for_vlm": "The input file is located at /home/ga/snap_data/landsat_multispectral.tif. The mask must be named 'veg_mask' with the exact expression 'band_2 > band_3'. The statistics report must be exported to /home/ga/snap_exports/veg_statistics.txt. The final product must be saved as a BEAM-DIMAP file to /home/ga/snap_exports/masked_landsat.dim."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "chinook_composer_normalization@1",
+  "version": "1.0",
+  "env_id": "dbeaver_env@0.1",
+  "description": "You are a Data Engineer tasked with normalizing the Chinook database (/home/ga/Documents/databases/chinook_normalize.db). The 'Composer' column in the 'tracks' table contains comma-separated values which violates 1NF. Normalize this into a relational schema by creating a 'composers' table (ComposerId PK AutoIncrement, Name Text Unique) and a 'track_composers' bridge table (TrackId, ComposerId) with composite PK and Foreign Keys. Populate these tables by parsing the 'tracks.Composer' data, splitting on commas, trimming whitespace, and ignoring NULL values. Create a view named 'v_track_composers' that joins tracks, track_composers, and composers to display TrackId, TrackName, and ComposerName. Export the Top 20 composers by track count to /home/ga/Documents/exports/top_composers.csv with columns ComposerName and TrackCount. Save the complete SQL script to /home/ga/Documents/scripts/normalize_composers.sql. Use 'ChinookNormalize' as the connection name.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 900,
+    "max_steps": 80,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/chinook_composer_normalization/setup_task.sh",
+    "post_task": "/workspace/tasks/chinook_composer_normalization/export_result.sh"
+  },
+  "metadata": {
+    "db_path": "/home/ga/Documents/databases/chinook_normalize.db",
+    "connection_name": "ChinookNormalize",
+    "export_path": "/home/ga/Documents/exports/top_composers.csv",
+    "script_path": "/home/ga/Documents/scripts/normalize_composers.sql",
+    "required_tables": [
+      "composers",
+      "track_composers"
+    ],
+    "required_view": "v_track_composers"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_chinook_composer_normalization"
+    }
+  }
+}

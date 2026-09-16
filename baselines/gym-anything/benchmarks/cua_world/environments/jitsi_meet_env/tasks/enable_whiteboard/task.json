@@ -1,0 +1,30 @@
+{
+  "id": "enable_whiteboard@1",
+  "version": "1.0",
+  "env_id": "jitsi_meet_env@0.1",
+  "description": "Enable the Excalidraw-based collaborative whiteboard feature in the Jitsi Meet Docker deployment by configuring /home/ga/jitsi/.env with WHITEBOARD_ENABLED=true and WHITEBOARD_COLLAB_SERVER_PUBLIC_URL=https://wbd.meet.jitsi. After applying the configuration, join the meeting room \"WhiteboardGlossarySession\" and write \"Glossary Terms\" on the whiteboard. Create a file at /tmp/whiteboard_enabled.txt containing the word \"done\" when finished.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/enable_whiteboard/setup_task.sh",
+    "post_task": "/workspace/tasks/enable_whiteboard/export_result.sh"
+  },
+  "metadata": {
+    "config_path": "/home/ga/jitsi/.env",
+    "required_config_keys": {
+      "WHITEBOARD_ENABLED": "true",
+      "WHITEBOARD_COLLAB_SERVER_PUBLIC_URL": "ANY_VALUE"
+    },
+    "meeting_url": "http://localhost:8080/WhiteboardGlossarySession"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_enable_whiteboard"
+    }
+  }
+}

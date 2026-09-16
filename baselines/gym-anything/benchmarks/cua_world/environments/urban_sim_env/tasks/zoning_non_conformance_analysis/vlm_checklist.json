@@ -1,0 +1,65 @@
+{
+  "task_id": "zoning_non_conformance_analysis@1",
+  "task_completion": [
+    {
+      "id": "open_jupyter_notebook",
+      "description": "Open or create the specified Jupyter notebook.",
+      "points": 10,
+      "visual_evidence": "A Jupyter Notebook interface (in a browser or IDE) is open with the file path or name indicating '/home/ga/urbansim_projects/notebooks/zoning_non_conformance.ipynb'."
+    },
+    {
+      "id": "load_hdf5_data",
+      "description": "Load the required tables from the HDF5 dataset.",
+      "points": 10,
+      "visual_evidence": "Code cells showing pandas or similar library reading 'buildings', 'parcels', and 'zoning' from '/home/ga/urbansim_projects/data/sanfran_public.h5'."
+    },
+    {
+      "id": "calculate_far_and_excess",
+      "description": "Calculate built FAR, filter for regulated parcels, and identify non-conformance.",
+      "points": 20,
+      "visual_evidence": "Code cells performing calculations for built_far (total building sqft / parcel sqft), filtering for max_far > 0, and calculating excess_sqft for parcels where built_far > max_far."
+    },
+    {
+      "id": "export_non_conforming_csv",
+      "description": "Export the detailed list of non-conforming parcels to CSV.",
+      "points": 20,
+      "visual_evidence": "A code cell calling `.to_csv()` to save '/home/ga/urbansim_projects/output/non_conforming_parcels.csv'. The code should show the dataframe being restricted to the required columns (parcel_id, zone_id, total_building_sqft, parcel_sqft, built_far, max_far, excess_sqft) and sorted by excess_sqft descending."
+    },
+    {
+      "id": "export_zone_counts_csv",
+      "description": "Export the summary of grandfathered parcels per zone to CSV.",
+      "points": 15,
+      "visual_evidence": "A code cell grouping by zone_id, counting the non-conforming parcels, sorting descending, and saving to '/home/ga/urbansim_projects/output/zone_non_conformance_counts.csv'."
+    },
+    {
+      "id": "generate_and_save_plot",
+      "description": "Produce and save the FAR compliance scatter plot.",
+      "points": 15,
+      "visual_evidence": "A code cell using matplotlib/seaborn to create a scatter plot of built_far vs max_far, including a y=x reference line, and saving it to '/home/ga/urbansim_projects/output/far_compliance_scatter.png'. The plot itself may be visible in the notebook output."
+    },
+    {
+      "id": "execute_all_cells",
+      "description": "Ensure all cells in the notebook are executed.",
+      "points": 10,
+      "visual_evidence": "All visible code cells in the notebook have execution numbers in their brackets (e.g., `[1]`, `[5]`), indicating they have been run, with no empty `[ ]` brackets."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_jupyter_usage",
+      "description": "The agent used a Jupyter Notebook environment as instructed, rather than just writing a standard Python script.",
+      "visual_evidence": "The screenshots show a Jupyter Notebook UI (either JupyterLab, classic Jupyter, or VS Code Notebook editor) being actively used, not just a plain text editor."
+    },
+    {
+      "id": "actual_data_processing",
+      "description": "The agent wrote code to process the data rather than hardcoding outputs.",
+      "visual_evidence": "The code cells contain genuine pandas dataframe manipulations (merges, math operations, filtering) rather than manually constructing a mock dataframe to save."
+    },
+    {
+      "id": "handling_missing_column",
+      "description": "The agent logically handled the missing 'parcel_acres' column without magically succeeding on a non-existent column.",
+      "visual_evidence": "The code should show the agent either using 'shape_area' or another method to determine parcel square footage, or handling a KeyError. It should NOT show `df['parcel_acres'] * 43560` executing successfully without errors, as that column does not exist in the raw data."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset at /home/ga/urbansim_projects/data/sanfran_public.h5 lacks a 'parcel_acres' column in the 'parcels' table, containing only 'shape_area'. An agent strictly following the prompt's instruction to use 'parcel_acres * 43560' will encounter a KeyError and must adapt. The expected output files are: 1) /home/ga/urbansim_projects/output/non_conforming_parcels.csv (must contain parcel_id, zone_id, total_building_sqft, parcel_sqft, built_far, max_far, excess_sqft), 2) /home/ga/urbansim_projects/output/zone_non_conformance_counts.csv, and 3) /home/ga/urbansim_projects/output/far_compliance_scatter.png."
+}

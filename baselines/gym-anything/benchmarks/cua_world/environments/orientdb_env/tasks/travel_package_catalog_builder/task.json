@@ -1,0 +1,43 @@
+{
+  "id": "travel_package_catalog_builder@1",
+  "version": "1.0",
+  "env_id": "orientdb_env@0.1",
+  "description": "The travel agency is launching a 'City Weekend Bundles' product line. Update the OrientDB 'demodb' database to support this by adding a 'Price' property (Type: DOUBLE) to the 'Hotels', 'Restaurants', and 'Attractions' classes. Assign prices to existing entities: Hotel Artemide (250.00), Hotel de Crillon (800.00), Park Hyatt Tokyo (600.00), Roma Sparita (60.00), Le Jules Verne (200.00), and Sushi Saito (300.00). Create new 'Attractions' vertices for 'Colosseum' (City: 'Rome', Price: 25.00), 'Eiffel Tower' (City: 'Paris', Price: 30.00), and 'Tokyo Tower' (City: 'Tokyo', Price: 20.00). Implement a 'Packages' vertex class (properties: Name STRING, TotalPrice DOUBLE) and an 'IncludesItem' edge class. Create and link three packages to their components using 'IncludesItem' edges: 'Roman Holiday' (Artemide, Roma Sparita, Colosseum), 'Parisian Romance' (Crillon, Jules Verne, Eiffel Tower), and 'Tokyo Tech' (Park Hyatt, Sushi Saito, Tokyo Tower). For each package, calculate the 'TotalPrice' as the sum of its components' prices multiplied by 0.9 (applying a 10% discount) and update the vertices accordingly. Credentials: root / GymAnything123! (Server), admin / admin (Database).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/travel_package_catalog_builder/setup_task.sh",
+    "post_task": "/workspace/tasks/travel_package_catalog_builder/export_result.sh"
+  },
+  "metadata": {
+    "expected_schema": {
+      "classes": [
+        "Packages",
+        "IncludesItem",
+        "Attractions",
+        "Hotels",
+        "Restaurants"
+      ],
+      "properties": [
+        "Price",
+        "TotalPrice"
+      ]
+    },
+    "expected_packages": {
+      "Roman Holiday": 301.5,
+      "Parisian Romance": 927.0,
+      "Tokyo Tech": 828.0
+    },
+    "tolerance": 0.5
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_travel_package_catalog_builder"
+    }
+  }
+}

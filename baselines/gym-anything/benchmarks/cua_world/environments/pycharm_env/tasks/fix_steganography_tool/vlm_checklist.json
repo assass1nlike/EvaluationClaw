@@ -1,0 +1,53 @@
+{
+  "task_id": "fix_steganography_tool@1",
+  "task_completion": [
+    {
+      "id": "open_project_and_file",
+      "description": "The agent navigates to the project directory and opens the target file lsb.py.",
+      "points": 10,
+      "visual_evidence": "A code editor or IDE showing the file /home/ga/PycharmProjects/stego_toolkit/stego_toolkit/lsb.py open and ready for editing."
+    },
+    {
+      "id": "fix_destructive_masking",
+      "description": "The agent fixes the encoding logic to prevent visually corrupted images by using the correct bitwise mask.",
+      "points": 25,
+      "visual_evidence": "In lsb.py, the code editor shows a bitwise AND operation using 0xFE (or 254, or ~1) instead of 0x00 during the pixel modification step."
+    },
+    {
+      "id": "fix_base_conversion",
+      "description": "The agent fixes the binary-to-text decoding logic to correctly interpret binary strings.",
+      "points": 25,
+      "visual_evidence": "In lsb.py, the code editor shows an integer conversion specifying base 2, such as int(..., 2), instead of base 10 in the decoding function."
+    },
+    {
+      "id": "fix_missing_terminator",
+      "description": "The agent fixes the decoder to stop reading when it reaches the message end (null terminator).",
+      "points": 25,
+      "visual_evidence": "In lsb.py, the code editor shows a conditional break or return statement checking for the null terminator, such as `if byte == '00000000': break`."
+    },
+    {
+      "id": "run_tests_pass",
+      "description": "The agent runs the test suite to verify the fixes are successful.",
+      "points": 15,
+      "visual_evidence": "A terminal window showing the execution of a test command (e.g., pytest tests/ or python -m unittest) with output indicating that the tests have passed successfully."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "tests_unmodified",
+      "description": "The agent did not modify any files in the tests/ directory.",
+      "visual_evidence": "The code editor does not show any test files open with unsaved changes, and terminal history does not show commands editing or overwriting files in the tests/ directory."
+    },
+    {
+      "id": "utils_unmodified",
+      "description": "The agent did not modify utils.py.",
+      "visual_evidence": "The code editor does not show utils.py open with modifications, and terminal history does not show commands editing utils.py."
+    },
+    {
+      "id": "genuine_test_execution",
+      "description": "The agent genuinely ran the test suite rather than faking the output.",
+      "visual_evidence": "The terminal shows authentic test runner output (e.g., pytest/unittest standard formatting, execution time, and test counts), not a manually typed 'echo' command or a script designed to print a fake success message."
+    }
+  ],
+  "privileged_info_for_vlm": "The project directory is /home/ga/PycharmProjects/stego_toolkit. To pass the threshold (score >= 60), the agent must fix at least two of the three intentional bugs in lsb.py. The three bugs are: 1) destructive_masking (encoding uses bitwise AND with 0x00 instead of 0xFE), 2) wrong_base_conversion (decoding interprets binary string as base 10 instead of base 2), and 3) missing_terminator (decoder does not stop when reading '00000000')."
+}

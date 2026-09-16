@@ -125,7 +125,8 @@ def _instruction_resource(
         constraints["selected_external_harnesses"] = sorted(set(harnesses))
         constraints["environment_policy"] = (
             "Design agent environments using only the available environment types. "
-            "Environment actors require all selected external harnesses to be OpenClaw."
+            "Environment actors are supported by external shell harnesses through the shared contact service; "
+            "actor task images must include Python 3 for its command-line client."
         )
     if max_task_count is not None:
         constraints["max_total_task_count"] = max_task_count
@@ -1010,7 +1011,7 @@ def _run_planner(
     errors: list[str] = []
     previous_response: object | None = None
     source_materials: dict[str, ResearchSourceMaterial] = {}
-    max_calls = _bounded_int(config.planner_tool_max_calls, default=20, minimum=1, maximum=100)
+    max_calls = config.planner_tool_max_calls
     max_chars = _bounded_int(config.planner_tool_max_chars, default=50_000, minimum=1000, maximum=100_000)
     max_attempts = max(1, config.max_planner_iterations)
     for attempt in range(1, max_attempts + 1):

@@ -1,0 +1,30 @@
+{
+  "id": "compute_loop_rating_curve@1",
+  "version": "1.0",
+  "env_id": "hec_ras_env@0.1",
+  "description": "Extract unsteady flow simulation results from the Muncie HEC-RAS model ('/home/ga/Documents/hec_ras_projects/Muncie/Muncie.p04.tmp.hdf') to analyze stage-discharge hysteresis (loop rating curves). For the most upstream, most downstream, and one middle cross-section, calculate the Maximum Loop Width (maximum discharge difference between rising and falling limbs at the same stage) and the Loop Width Percentage (Max Loop Width / Peak Flow * 100). Save a summary CSV to '/home/ga/Documents/hec_ras_results/loop_rating_summary.csv' with columns: 'river_station', 'position' (upstream/middle/downstream), 'peak_stage_ft', 'peak_flow_cfs', 'max_loop_width_cfs', and 'loop_width_pct'. Generate a plot showing the Stage vs. Discharge loops for these three locations at '/home/ga/Documents/hec_ras_results/loop_rating_curves.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/compute_loop_rating_curve/setup_task.sh",
+    "post_task": "/workspace/tasks/compute_loop_rating_curve/export_result.sh"
+  },
+  "metadata": {
+    "project_dir": "/home/ga/Documents/hec_ras_projects/Muncie",
+    "results_dir": "/home/ga/Documents/hec_ras_results",
+    "hdf_filename": "Muncie.p04.tmp.hdf",
+    "expected_csv": "loop_rating_summary.csv",
+    "expected_plot": "loop_rating_curves.png",
+    "accuracy_tolerance_pct": 20
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_compute_loop_rating_curve"
+    }
+  }
+}

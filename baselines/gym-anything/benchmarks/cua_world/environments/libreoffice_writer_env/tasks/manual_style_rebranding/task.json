@@ -1,0 +1,31 @@
+{
+  "id": "manual_style_rebranding@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Update the visual styles of the technical manual '/home/ga/Documents/omnibase_manual.docx' to match new branding guidelines. Modify the 'Normal' paragraph style to Liberation Serif, 11pt, Black/Auto and the 'Heading 1' style to Liberation Sans, 16pt, Dark Blue (#000080). Create a new paragraph style named 'WarningText' based on Normal with Italic and Red font, and apply it to the three paragraphs starting with 'WARNING:'. Clear all direct formatting from the document to ensure styles are applied correctly and save the result to '/home/ga/Documents/omnibase_rebranded.docx'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/manual_style_rebranding/setup_task.sh",
+    "post_task": "/workspace/tasks/manual_style_rebranding/export_result.sh"
+  },
+  "metadata": {
+    "source_path": "/home/ga/Documents/omnibase_manual.docx",
+    "output_path": "/home/ga/Documents/omnibase_rebranded.docx",
+    "target_normal_font": "Liberation Serif",
+    "target_heading_font": "Liberation Sans",
+    "target_heading_color_hex": "000080",
+    "warning_style_name": "WarningText",
+    "warning_prefix": "WARNING:"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_manual_style_rebranding"
+    }
+  }
+}

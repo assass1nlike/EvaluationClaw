@@ -1,0 +1,33 @@
+{
+  "id": "scatterplot_marginal_histograms_loess@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "Create an exploratory scatterplot using the 'ExamAnxiety.csv' dataset. The plot must feature 'Anxiety' on the X-axis and 'Exam' on the Y-axis, including a smooth (Loess) regression line and marginal histograms. Save the resulting analysis to /home/ga/Documents/JASP/ExploratoryPlot.jasp.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/scatterplot_marginal_histograms_loess/setup_task.sh",
+    "post_task": "/workspace/tasks/scatterplot_marginal_histograms_loess/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/ExploratoryPlot.jasp",
+    "dataset_name": "ExamAnxiety.csv",
+    "required_analysis": "Descriptives",
+    "required_settings": {
+      "x_axis": "Anxiety",
+      "y_axis": "Exam",
+      "regression_line": "smooth",
+      "marginal_plots": "histogram"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_scatterplot_loess"
+    }
+  }
+}

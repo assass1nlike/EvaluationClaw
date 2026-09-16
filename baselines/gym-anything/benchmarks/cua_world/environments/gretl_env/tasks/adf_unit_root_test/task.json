@@ -1,0 +1,47 @@
+{
+  "id": "adf_unit_root_test@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Perform Augmented Dickey-Fuller (ADF) unit root tests on the 'usa.gdt' dataset. Conduct an ADF test on 'gdp' in levels using 4 lags with a Constant and Trend. Conduct an ADF test on the first difference of 'gdp' using 4 lags with a Constant only. Conduct an ADF test on 'inf' in levels using 4 lags with a Constant only. Save the results of all three tests to /home/ga/Documents/gretl_output/adf_results.txt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/adf_unit_root_test/setup_task.sh",
+    "post_task": "/workspace/tasks/adf_unit_root_test/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "usa.gdt",
+    "output_path": "/home/ga/Documents/gretl_output/adf_results.txt",
+    "required_tests": [
+      {
+        "variable": "gdp",
+        "lags": 4,
+        "specification": "constant_trend",
+        "target": "level"
+      },
+      {
+        "variable": "gdp",
+        "lags": 4,
+        "specification": "constant",
+        "target": "difference"
+      },
+      {
+        "variable": "inf",
+        "lags": 4,
+        "specification": "constant",
+        "target": "level"
+      }
+    ],
+    "data_source": "Federal Reserve Bank of St. Louis FRED database (via Principles of Econometrics 5th Ed)"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_adf_unit_root_test"
+    }
+  }
+}

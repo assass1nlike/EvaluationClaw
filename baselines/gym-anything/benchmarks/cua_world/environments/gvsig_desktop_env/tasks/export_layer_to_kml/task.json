@@ -1,0 +1,28 @@
+{
+  "id": "export_layer_to_kml@1",
+  "version": "1.0",
+  "env_id": "gvsig_desktop_env@0.1",
+  "description": "Export the 'ne_110m_admin_0_countries' layer to a KML file. Save the output to /home/ga/gvsig_data/exports/world_countries.kml, ensuring all features from the layer are included.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/export_layer_to_kml/setup_task.sh",
+    "post_task": "/workspace/tasks/export_layer_to_kml/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/gvsig_data/exports/world_countries.kml",
+    "min_features": 50,
+    "min_file_size_kb": 100,
+    "layer_name": "ne_110m_admin_0_countries"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_export_layer_to_kml"
+    }
+  }
+}

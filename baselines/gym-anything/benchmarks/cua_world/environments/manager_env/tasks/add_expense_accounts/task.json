@@ -1,0 +1,43 @@
+{
+  "id": "add_expense_accounts@1",
+  "version": "1.0",
+  "env_id": "manager_env@0.1",
+  "description": "In Manager.io (Northwind Traders business), add three new expense accounts to the Chart of Accounts to better track operational costs. Create the following accounts under the 'Expenses' group: 'Freight and Delivery' (Code: 5100), 'Vehicle Maintenance' (Code: 5200), and 'Professional Services' (Code: 5300).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/add_expense_accounts/setup_task.sh",
+    "post_task": "/workspace/tasks/add_expense_accounts/export_result.sh"
+  },
+  "metadata": {
+    "accounts": [
+      {
+        "name": "Freight and Delivery",
+        "code": "5100",
+        "group": "Expenses"
+      },
+      {
+        "name": "Vehicle Maintenance",
+        "code": "5200",
+        "group": "Expenses"
+      },
+      {
+        "name": "Professional Services",
+        "code": "5300",
+        "group": "Expenses"
+      }
+    ],
+    "manager_module": "settings",
+    "manager_submodule": "chart_of_accounts"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_add_expense_accounts"
+    }
+  }
+}

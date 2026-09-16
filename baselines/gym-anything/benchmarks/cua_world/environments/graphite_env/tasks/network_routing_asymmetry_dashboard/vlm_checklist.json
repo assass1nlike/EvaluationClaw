@@ -1,0 +1,59 @@
+{
+  "task_id": "network_routing_asymmetry_dashboard@1",
+  "task_completion": [
+    {
+      "id": "dashboard_name",
+      "description": "Verify the dashboard is named 'Network Routing Asymmetry'",
+      "points": 10,
+      "visual_evidence": "The dashboard title at the top of the Graphite web interface reads exactly 'Network Routing Asymmetry'."
+    },
+    {
+      "id": "graph_1_title",
+      "description": "Verify the first graph is titled 'Raw Path Speeds'",
+      "points": 10,
+      "visual_evidence": "A graph panel is visible with the title 'Raw Path Speeds' displayed above or within it."
+    },
+    {
+      "id": "graph_1_metrics_aliases",
+      "description": "Verify Graph 1 shows the two speed sensors with correct aliases",
+      "points": 20,
+      "visual_evidence": "The legend for the 'Raw Path Speeds' graph displays the labels 'Path A' and 'Path B' corresponding to the two plotted metric lines."
+    },
+    {
+      "id": "graph_2_title",
+      "description": "Verify the second graph is titled 'Smoothed Asymmetry Alert'",
+      "points": 10,
+      "visual_evidence": "A second graph panel is visible with the title 'Smoothed Asymmetry Alert'."
+    },
+    {
+      "id": "graph_2_smoothed_delta",
+      "description": "Verify Graph 2 displays the smoothed absolute difference labeled 'Smoothed Delta'",
+      "points": 25,
+      "visual_evidence": "The legend for the 'Smoothed Asymmetry Alert' graph shows the label 'Smoothed Delta'. In intermediate screenshots, the graph composer should show functions like movingAverage(..., 5) and absolute(diffSeries(...)) applied to the metrics."
+    },
+    {
+      "id": "graph_2_threshold_line",
+      "description": "Verify Graph 2 includes a red threshold line at 20 labeled 'Critical Limit'",
+      "points": 25,
+      "visual_evidence": "A horizontal red line is visible on the 'Smoothed Asymmetry Alert' graph at the y-axis value of 20, and the legend explicitly shows the label 'Critical Limit'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_graphite_gui",
+      "description": "Verify the agent used the Graphite web interface to create the dashboard",
+      "visual_evidence": "Screenshots show interaction with the Graphite browser UI (e.g., navigating the metric tree, using the graph composer, clicking dashboard save buttons) rather than terminal commands."
+    },
+    {
+      "id": "no_json_injection",
+      "description": "Verify the agent did not bypass the UI by directly writing JSON files",
+      "visual_evidence": "The agent is not seen opening a text editor (like nano or vim) or using echo/cat commands in the terminal to directly write the dashboard JSON structure."
+    },
+    {
+      "id": "genuine_function_application",
+      "description": "Verify the agent actually applied the required Graphite functions",
+      "visual_evidence": "Intermediate screenshots show the agent selecting functions like 'movingAverage', 'absolute', 'diffSeries', 'alias', and 'color' from the Graphite UI menus."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected dashboard name is exactly 'Network Routing Asymmetry'. The task requires two specific graphs: 'Raw Path Speeds' (with aliases 'Path A' and 'Path B') and 'Smoothed Asymmetry Alert' (with alias 'Smoothed Delta' for the 5-point moving average of the absolute difference). The second graph must also contain a red horizontal line at the value 20, aliased as 'Critical Limit'."
+}

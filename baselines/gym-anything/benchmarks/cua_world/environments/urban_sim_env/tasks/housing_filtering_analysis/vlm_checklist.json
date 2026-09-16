@@ -1,0 +1,59 @@
+{
+  "task_id": "housing_filtering_analysis@1",
+  "task_completion": [
+    {
+      "id": "notebook_created",
+      "description": "Jupyter notebook is created with the correct name and kernel",
+      "points": 10,
+      "visual_evidence": "Look for a Jupyter Notebook interface with the title 'filtering_analysis.ipynb'. The kernel indicator (usually in the top right corner) should show 'urbansim'."
+    },
+    {
+      "id": "data_loaded_and_joined",
+      "description": "Data from the HDF5 file is loaded and joined",
+      "points": 15,
+      "visual_evidence": "Look for pandas code in the notebook reading 'sanfran_public.h5' and merging/joining the 'buildings', 'households', and 'parcels' dataframes."
+    },
+    {
+      "id": "correlation_calculated",
+      "description": "Pearson correlation is calculated for valid buildings",
+      "points": 15,
+      "visual_evidence": "Look for code calculating the Pearson correlation (e.g., using `.corr()` or `scipy.stats.pearsonr`) between 'year_built' and 'income', including a filter for 'year_built > 0'."
+    },
+    {
+      "id": "csv_exported",
+      "description": "Zone-level data is exported to CSV with required columns",
+      "points": 20,
+      "visual_evidence": "Look for code saving a dataframe to 'filtering_by_zone.csv' (e.g., using `.to_csv()`). The dataframe should contain the columns 'zone_id', 'median_income_old', 'median_income_new', 'filtering_index', and 'num_households'."
+    },
+    {
+      "id": "chart_generated",
+      "description": "Multi-panel visualization is created and saved",
+      "points": 20,
+      "visual_evidence": "Look for plotting code (matplotlib/seaborn) creating subplots (a multi-panel chart) showing median income by decade and a histogram of filtering indices, and saving it to 'filtering_chart.png'."
+    },
+    {
+      "id": "report_created",
+      "description": "Summary report is generated with required statistics",
+      "points": 20,
+      "visual_evidence": "Look for code writing to 'filtering_report.txt' or the file open in a text editor/terminal. It must contain the Pearson correlation (~0.013), the count of zones (183-184), the median filtering index (~0.96), and a one-sentence conclusion."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_analysis",
+      "description": "The agent performed actual data analysis rather than hardcoding answers",
+      "visual_evidence": "Check that the notebook contains functional pandas/numpy code to group, filter, and calculate the metrics, rather than just printing or writing the known final numbers."
+    },
+    {
+      "id": "real_data_used",
+      "description": "The agent used the provided dataset",
+      "visual_evidence": "Ensure the code explicitly reads from 'data/sanfran_public.h5' and does not use a mocked or synthetic dataset."
+    },
+    {
+      "id": "actual_file_creation",
+      "description": "Output files were generated programmatically",
+      "visual_evidence": "Look for Python code executing the file saves (`to_csv`, `savefig`, file write operations) rather than the agent manually creating the files and typing in fake data."
+    }
+  ],
+  "privileged_info_for_vlm": "The Pearson correlation between 'year_built' and household 'income' should be approximately 0.013 to 0.014. The analysis should yield 183 to 184 eligible zones. The median filtering index should be approximately 0.96. The exported CSV must contain exactly these columns: zone_id, median_income_old, median_income_new, filtering_index, num_households."
+}

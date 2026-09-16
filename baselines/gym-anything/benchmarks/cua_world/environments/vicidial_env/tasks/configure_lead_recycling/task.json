@@ -1,0 +1,45 @@
+{
+  "id": "configure_lead_recycling@1",
+  "version": "1.0",
+  "env_id": "vicidial_env@0.1",
+  "description": "Configure lead recycling rules for the 'Sales Outreach Campaign' (ID: SALESCAMP) using credentials (User: 6666, Pass: andromeda). Set Status NA (No Answer) to 3600 seconds delay and 3 max attempts, Status B (Busy) to 1800 seconds delay and 5 max attempts, and Status AM (Answering Machine) to 7200 seconds delay and 2 max attempts. All rules must be active and saved.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_lead_recycling/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_lead_recycling/export_result.sh"
+  },
+  "metadata": {
+    "campaign_id": "SALESCAMP",
+    "expected_rules": [
+      {
+        "status": "NA",
+        "delay": 3600,
+        "max_attempts": 3,
+        "active": "Y"
+      },
+      {
+        "status": "B",
+        "delay": 1800,
+        "max_attempts": 5,
+        "active": "Y"
+      },
+      {
+        "status": "AM",
+        "delay": 7200,
+        "max_attempts": 2,
+        "active": "Y"
+      }
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_lead_recycling"
+    }
+  }
+}

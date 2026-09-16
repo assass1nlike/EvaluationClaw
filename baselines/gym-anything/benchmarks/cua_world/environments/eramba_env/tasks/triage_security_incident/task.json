@@ -1,0 +1,28 @@
+{
+  "id": "triage_security_incident@1",
+  "version": "1.0",
+  "env_id": "eramba_env@0.1",
+  "description": "Perform triage on the security incident titled 'SIEM Alert: High Volume Traffic', which represents a potential DoS attack. Update the incident record to reflect a 'Denial of Service' classification with 'High' urgency/severity, and assign 'admin' as the accountable owner.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/triage_security_incident/setup_task.sh",
+    "post_task": "/workspace/tasks/triage_security_incident/export_result.sh"
+  },
+  "metadata": {
+    "target_incident_title": "SIEM Alert: High Volume Traffic",
+    "target_classification": "Denial of Service",
+    "target_owner": "admin",
+    "target_severity": "High"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_triage_security_incident"
+    }
+  }
+}

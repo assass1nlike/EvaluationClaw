@@ -1,0 +1,30 @@
+{
+  "id": "sun_path_3d_architecture_tool@1",
+  "version": "1.0",
+  "env_id": "geogebra_env@0.1",
+  "description": "Create a 3D Sun Path Diagram (Heliodon) for Seattle, WA (47.6° N) in GeoGebra. Construct a 3D geometric model showing the sun's path for the Summer Solstice (offset by +23.44°), Equinox (centered at the origin), and Winter Solstice (offset by -23.44°). The system must be oriented for Seattle's latitude with the axis of rotation angled at 47.6° from the North Horizon. Include a visual representation of the Horizon (such as the xy-plane). Save the file as 'seattle_sun_path.ggb' in ~/Documents/GeoGebra/projects/.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sun_path_3d_architecture_tool/setup_task.sh",
+    "post_task": "/workspace/tasks/sun_path_3d_architecture_tool/export_result.sh"
+  },
+  "metadata": {
+    "expected_filename": "seattle_sun_path.ggb",
+    "latitude": 47.6,
+    "obliquity": 23.44,
+    "co_latitude": 42.4,
+    "tolerance_degrees": 1.0,
+    "min_3d_objects": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sun_path_3d_architecture_tool"
+    }
+  }
+}

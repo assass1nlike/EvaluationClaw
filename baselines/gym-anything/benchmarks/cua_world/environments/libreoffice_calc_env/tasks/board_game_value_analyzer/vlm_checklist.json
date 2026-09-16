@@ -1,0 +1,65 @@
+{
+  "task_id": "board_game_value_analyzer@1",
+  "task_completion": [
+    {
+      "id": "cost_per_play_column_present",
+      "description": "A column for Cost-per-play is created in the spreadsheet.",
+      "points": 10,
+      "visual_evidence": "Look for a new column header like 'Cost per Play', 'Cost/Play', or similar in the spreadsheet."
+    },
+    {
+      "id": "cost_per_play_accurate",
+      "description": "The Cost-per-play values are calculated correctly, including handling 0 plays.",
+      "points": 15,
+      "visual_evidence": "Check the values in the Cost-per-play column. Wingspan should be ~3.33, Catan ~2.00, and Gloomhaven should be 140 (handling 0 plays by returning the original cost)."
+    },
+    {
+      "id": "normalized_rating_column_present",
+      "description": "A column for Normalized Rating is created in the spreadsheet.",
+      "points": 10,
+      "visual_evidence": "Look for a new column header like 'Normalized Rating', 'Norm Rating', or similar."
+    },
+    {
+      "id": "normalized_rating_accurate",
+      "description": "The Normalized Rating values are calculated correctly, accounting for different scales and blank values.",
+      "points": 25,
+      "visual_evidence": "Check the values in the Normalized Rating column. Wingspan should be ~0.89 (1-10 scale), Catan 0.75 (1-5 scale), Ticket to Ride ~0.78, and Gloomhaven 0.00 (handling blank rating)."
+    },
+    {
+      "id": "value_score_column_present",
+      "description": "A column for Value Score is created in the spreadsheet.",
+      "points": 10,
+      "visual_evidence": "Look for a new column header like 'Value Score', 'Value', or similar."
+    },
+    {
+      "id": "value_score_accurate",
+      "description": "The Value Score values are calculated correctly based on normalized rating and cost per play.",
+      "points": 20,
+      "visual_evidence": "Check the values in the Value Score column. Wingspan should be ~26.7, Catan ~37.5, Ticket to Ride ~53.4, and Gloomhaven 0."
+    },
+    {
+      "id": "keep_sell_identification",
+      "description": "Games are identified as worth keeping versus selling based on their value scores.",
+      "points": 10,
+      "visual_evidence": "Look for visual evidence of categorization, such as a 'Status' or 'Action' column with 'Keep'/'Sell' labels, conditional formatting (e.g., green for keep, red for sell), or explicit sorting by Value Score to separate the two groups."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "spreadsheet_app_used",
+      "description": "The agent used a spreadsheet application to perform the analysis.",
+      "visual_evidence": "The screenshots should show a spreadsheet GUI (like LibreOffice Calc) being used, rather than a terminal, python script, or plain text editor."
+    },
+    {
+      "id": "formula_usage_visible",
+      "description": "The agent used spreadsheet formulas for calculations.",
+      "visual_evidence": "In at least one screenshot, the formula bar should display a spreadsheet formula (e.g., starting with '=') rather than just hardcoded numbers."
+    },
+    {
+      "id": "no_hardcoded_results",
+      "description": "The agent did not simply type or copy-paste the final expected values.",
+      "visual_evidence": "The progression of screenshots should show the agent actively creating columns and entering formulas, rather than the final numbers instantly appearing all at once."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 10 board games. Expected Cost-per-play: Wingspan ~$3.33, Catan ~$2.00, Gloomhaven $140 (handles 0 plays by returning original cost), Ticket to Ride ~$1.46. Expected Normalized Rating (0-1 range): Wingspan ~0.89 (1-10 scale), Catan 0.75 (1-5 scale), Ticket to Ride ~0.78 (1-10 scale), Gloomhaven 0.00 (handles blank rating). Expected Value Score: Wingspan ~26.7, Catan ~37.5, Ticket to Ride ~53.4, Gloomhaven 0."
+}

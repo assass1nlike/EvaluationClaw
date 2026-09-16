@@ -1,0 +1,74 @@
+{
+  "dataset_id": "c973459c",
+  "name": "Semantic-Role-Labeling",
+  "modalities": [
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 200,
+  "description": "The dataset evaluates the ability to identify correct semantic role labeling (SRL) relations in sentences. Each sample presents a sentence and a multiple-choice question about which predicate-argument relation is correct, requiring the model to select the correct option.",
+  "card_text": "This dataset is a text-only multiple-choice benchmark focused on semantic role labeling. Each item consists of a raw sentence (context) that may contain special tokens, and a prompt that includes the sentence and a question: 'Which of the following semantic role labeling relations is correct for this sentence?' followed by four options in the format 'predicate -> argument (role_type)'. The model must choose the correct option (A, B, C, or D). The data covers various linguistic phenomena and sentences of varying lengths, testing understanding of predicate-argument structures and role labels such as ARG0, ARG1, ARGM-LOC, etc.",
+  "tasks": [
+    "multiple_choice_qa"
+  ],
+  "domain": "linguistics",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.raw_text"
+        ],
+        "modality": "text",
+        "content_extent": "mixed",
+        "style": "factual",
+        "semantics": "The raw sentence for which semantic role labeling relations are to be evaluated. It is a single declarative sentence, sometimes containing special tokens like *T*-2, and serves as the main input text.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "medium",
+        "style": "instruction",
+        "semantics": "A prompt that embeds the raw text and asks to identify the correct semantic role labeling relation. It includes four multiple-choice options (A-D) specifying different predicate-argument pairs and role types, and instructs the model to choose one.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "other",
+        "semantics": "The correct answer letter (A, B, C, or D) indicating which of the four semantic role labeling relations is correct for the given sentence.",
+        "path_types": [
+          "str"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample consists of a raw text sentence (input.raw_text) that serves as context, a prompt (input.prompt) that includes the raw text, a question asking for the correct semantic role labeling relation, and four multiple-choice options embedded in the prompt, and an output answer (output.text) that is a single letter indicating the correct option."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/nlp/Semantic-Role-Labeling/annotation.json",
+    "existing_tags": {
+      "task": "semantic_role_labeling_mcq",
+      "type": "multiple choice",
+      "set_type": "openset"
+    },
+    "original_raw_domain": null
+  }
+}

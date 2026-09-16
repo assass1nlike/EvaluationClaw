@@ -1,0 +1,40 @@
+{
+  "id": "office_evacuation_plan@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "As the Office Manager, create a Fire Evacuation Plan for the 'Annex Suite' office in draw.io Desktop to comply with fire regulations. Use the layout specifications provided in '~/Desktop/annex_layout_specs.txt' to draw the structural layout including the Reception, Workspace, Conference Room, Kitchen, and Server Closet. Incorporate standard safety symbols: red Fire Extinguishers in the Kitchen and Workspace, a red Fire Alarm Pull Station near the Main Entrance, green Exit Signs at the Main Entrance and Emergency Exit, a 'You Are Here' marker in the Reception, and an Assembly Point labeled 'Parking Lot A' outside the building. Document egress paths using solid green arrows for the primary route (Workspace to Main Entrance) and dashed green arrows for the secondary route (Workspace to Emergency Exit). Include a legend explaining all symbols used. Save the editable file to '~/Desktop/evacuation_plan.drawio' and export a PNG image to '~/Desktop/evacuation_plan.png'. Login: username=ga, password=password123.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 420,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/office_evacuation_plan/setup_task.sh",
+    "post_task": "/workspace/tasks/office_evacuation_plan/export_result.sh"
+  },
+  "metadata": {
+    "layout_file": "/home/ga/Desktop/annex_layout_specs.txt",
+    "output_drawio": "/home/ga/Desktop/evacuation_plan.drawio",
+    "output_png": "/home/ga/Desktop/evacuation_plan.png",
+    "required_rooms": [
+      "Reception",
+      "Workspace",
+      "Conference",
+      "Kitchen",
+      "Server"
+    ],
+    "required_symbols": [
+      "extinguisher",
+      "alarm",
+      "exit"
+    ],
+    "min_green_edges": 2
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_office_evacuation_plan"
+    }
+  }
+}

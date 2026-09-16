@@ -1,0 +1,46 @@
+{
+  "id": "agile_user_story_map@1",
+  "version": "1.0",
+  "env_id": "draw_desktop_env@0.1",
+  "description": "You are a Product Owner creating a User Story Map for a new app called 'FoodRescue' (an app connecting restaurants with excess food to local shelters). Using the product backlog provided at '~/Desktop/foodrescue_backlog.txt', visualize the backlog in draw.io. The map must feature a horizontal backbone of the 5 User Activities colored blue, with their corresponding User Stories arranged in vertical columns below them colored yellow. Include a horizontal separator labeled 'MVP Line' to spatially organize the stories, placing [MVP] stories above the line and [V2] stories below it. Save the diagram as '~/Desktop/foodrescue_storymap.drawio' and export it as a PNG to '~/Desktop/foodrescue_storymap.png'.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 75,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/agile_user_story_map/setup_task.sh",
+    "post_task": "/workspace/tasks/agile_user_story_map/export_result.sh"
+  },
+  "metadata": {
+    "backlog_file": "/home/ga/Desktop/foodrescue_backlog.txt",
+    "output_drawio": "/home/ga/Desktop/foodrescue_storymap.drawio",
+    "output_png": "/home/ga/Desktop/foodrescue_storymap.png",
+    "activities": [
+      "Registration",
+      "Donation Posting",
+      "Inventory Browse",
+      "Claim Process",
+      "Impact Tracking"
+    ],
+    "colors": {
+      "backbone": [
+        "blue",
+        "#dae8fc",
+        "#6c8ebf"
+      ],
+      "story": [
+        "yellow",
+        "#fff2cc",
+        "#d6b656"
+      ]
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_agile_user_story_map"
+    }
+  }
+}

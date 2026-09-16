@@ -1,0 +1,26 @@
+{
+  "id": "grid_tied_cost_monitoring@1",
+  "version": "1.0",
+  "env_id": "emoncms_env@0.1",
+  "description": "You are a building energy manager commissioning a net metering monitoring system at http://localhost (admin/admin). Configure the 'smartmeter' node inputs to create a monitoring pipeline. Apply a 1.15 calibration multiplier to 'import_w' and log the result to a 'Grid Import Power' feed and a 'Grid Import Energy kWh' accumulation feed. Log 'export_w' to a 'Grid Export Power' feed and a 'Grid Export Energy kWh' accumulation feed. Create a dashboard named 'Grid Energy Monitor' with at least four widgets displaying import power, export power, import energy, and export energy.",
+  "difficulty": "very_hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 80
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/grid_tied_cost_monitoring/setup_task.sh",
+    "post_task": "/workspace/tasks/grid_tied_cost_monitoring/export_result.sh"
+  },
+  "metadata": {
+    "node": "smartmeter",
+    "calibration_factor": 1.15,
+    "dashboard_name": "Grid Energy Monitor"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_grid_tied_cost_monitoring"
+    }
+  }
+}

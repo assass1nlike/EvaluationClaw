@@ -1,0 +1,28 @@
+{
+  "id": "configure_wfs_limits_precision@1",
+  "version": "1.0",
+  "env_id": "geo_server_env@0.1",
+  "description": "Configure GeoServer WFS settings to optimize performance. Set a layer-specific maximum feature limit of 50 for the 'ne:ne_populated_places' layer and update the global WFS service settings to limit coordinate decimal precision to 3 places. The GeoServer web admin is available at http://localhost:8080/geoserver/web/ (User: admin, Password: Admin123!).",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_wfs_limits_precision/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_wfs_limits_precision/export_result.sh"
+  },
+  "metadata": {
+    "target_layer": "ne:ne_populated_places",
+    "control_layer": "ne:ne_countries",
+    "expected_feature_limit": 50,
+    "expected_precision": 3
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_wfs_limits_precision"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "configure_custom_broker@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Create a custom broker profile named 'NeoTrade' with a 0.15% fee rate, a $5.00 minimum fee, and a $100.00 maximum fee. Record a buy transaction for 10 shares of Microsoft (MSFT) at $250.00 per share dated today using the 'NeoTrade' broker profile.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_custom_broker/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_custom_broker/export_result.sh"
+  },
+  "metadata": {
+    "broker_name": "NeoTrade",
+    "expected_rate": 0.0015,
+    "expected_min": 5.0,
+    "stock_symbol": "MSFT",
+    "stock_price": 250.0,
+    "stock_units": 10,
+    "expected_fee": 5.0
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_custom_broker"
+    }
+  }
+}

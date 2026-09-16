@@ -1,0 +1,31 @@
+{
+  "id": "create_virtual_server@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "In the Virtualmin control panel (https://localhost:10000, login: root / GymAnything123!), create a new virtual server for the domain 'newclient.test'. Enable web hosting (Apache), email (Postfix/Dovecot), DNS (BIND), and MySQL database features. Set the administration password to 'NewClient456!' and use default settings for all other options.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_virtual_server/setup_task.sh"
+  },
+  "metadata": {
+    "target_domain": "newclient.test",
+    "target_password": "NewClient456!",
+    "required_features": [
+      "web",
+      "dns",
+      "mail",
+      "mysql"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_virtual_server"
+    }
+  }
+}

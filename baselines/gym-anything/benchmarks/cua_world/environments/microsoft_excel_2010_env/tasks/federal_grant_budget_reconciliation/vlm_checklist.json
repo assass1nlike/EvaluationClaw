@@ -1,0 +1,59 @@
+{
+  "task_id": "federal_grant_budget_reconciliation@1",
+  "task_completion": [
+    {
+      "id": "open_workbook",
+      "description": "Open the correct Excel workbook",
+      "points": 10,
+      "visual_evidence": "A spreadsheet application (e.g., LibreOffice Calc) is open displaying the 'nsf_grant_ledger.xlsx' file, with visible tabs for 'General_Ledger', 'Object_Codes', and 'Financial_Report'."
+    },
+    {
+      "id": "calculate_direct_costs",
+      "description": "Calculate Direct Costs Expended for each budget category",
+      "points": 20,
+      "visual_evidence": "The 'Financial_Report' sheet shows populated values in the 'Direct Costs Expended' column. The total of this column should be exactly or approximately $556,198.31."
+    },
+    {
+      "id": "calculate_fa_costs",
+      "description": "Calculate F&A Costs Expended at 53% for MTDC-eligible items",
+      "points": 30,
+      "visual_evidence": "The 'Financial_Report' sheet shows populated values in the 'F&A Costs Expended' column. Categories excluded from MTDC (Equipment, Tuition, Participant Support) must show $0 for F&A. The total F&A costs should be exactly or approximately $157,175.52."
+    },
+    {
+      "id": "calculate_total_costs",
+      "description": "Calculate Total Costs Expended for each category",
+      "points": 15,
+      "visual_evidence": "The 'Financial_Report' sheet shows populated values in the 'Total Costs Expended' column, which should visually be the sum of the 'Direct Costs Expended' and 'F&A Costs Expended' columns for each row."
+    },
+    {
+      "id": "calculate_remaining_balance",
+      "description": "Calculate the Remaining Balance for each category",
+      "points": 15,
+      "visual_evidence": "The 'Financial_Report' sheet shows populated values in the 'Remaining Balance' column, representing the original budget minus the 'Total Costs Expended'."
+    },
+    {
+      "id": "save_workbook",
+      "description": "Save the updated workbook",
+      "points": 10,
+      "visual_evidence": "A save action is performed (e.g., clicking the save icon, File > Save, or a terminal command confirming the file was modified/saved). The spreadsheet should not show an 'unsaved changes' indicator (like an asterisk next to the filename)."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_spreadsheet_gui",
+      "description": "The agent interacted with a graphical spreadsheet application rather than using terminal commands to bypass the GUI.",
+      "visual_evidence": "Screenshots show the agent actively clicking, typing, or navigating within a spreadsheet GUI (like LibreOffice Calc) rather than just running a Python/Bash script in the terminal to modify the file."
+    },
+    {
+      "id": "used_formulas",
+      "description": "The agent used spreadsheet formulas or pivot tables rather than hardcoding the final answers.",
+      "visual_evidence": "When a cell in the 'Financial_Report' is selected, the formula bar shows a formula (e.g., SUMIFS, VLOOKUP, or basic arithmetic like =B2*0.53) rather than a static typed number."
+    },
+    {
+      "id": "no_copy_paste_cheating",
+      "description": "The agent did not simply copy-paste the expected totals from an external source or prompt.",
+      "visual_evidence": "The agent is seen constructing the logic, referencing the 'General_Ledger' and 'Object_Codes' sheets, or building formulas, rather than instantly pasting the final totals ($556,198.31 and $157,175.52) into the sheet."
+    }
+  ],
+  "privileged_info_for_vlm": "The F&A rate is 53% (0.53) and is applied ONLY to MTDC-eligible costs. Equipment, Tuition Remission, and Participant Support are excluded from MTDC, meaning their F&A Costs Expended must be $0. The correct ground truth totals for the Financial_Report are: Total Direct Costs = $556,198.31, Total F&A Costs = $157,175.52."
+}

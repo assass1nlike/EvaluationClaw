@@ -1,0 +1,31 @@
+{
+  "id": "sem_supply_demand_3sls@1",
+  "version": "1.0",
+  "env_id": "gretl_env@0.1",
+  "description": "Estimate a simultaneous equations model (SEM) for the truffle market using Three-Stage Least Squares (3SLS) on the `truffles.gdt` dataset. The model consists of a Demand equation where quantity `q` depends on `const`, price `p`, price of substitute `ps`, and disposable income `di`, and a Supply equation where `q` depends on `const`, `p`, and price of factor of production `pf`. Save the full estimation output to `/home/ga/Documents/gretl_output/truffles_3sls_results.txt`.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/sem_supply_demand_3sls/setup_task.sh",
+    "post_task": "/workspace/tasks/sem_supply_demand_3sls/export_result.sh"
+  },
+  "metadata": {
+    "dataset": "truffles.gdt",
+    "expected_output_path": "/home/ga/Documents/gretl_output/truffles_3sls_results.txt",
+    "method": "3SLS",
+    "ground_truth_signs": {
+      "demand_p": "negative",
+      "supply_p": "positive"
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_sem_supply_demand_3sls"
+    }
+  }
+}

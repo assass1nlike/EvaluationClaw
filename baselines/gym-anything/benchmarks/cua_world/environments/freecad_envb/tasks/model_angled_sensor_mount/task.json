@@ -1,0 +1,31 @@
+{
+  "id": "model_angled_sensor_mount@1",
+  "version": "1.0",
+  "env_id": "freecad_envb@0.1",
+  "description": "Create a 3D model of an angled sensor mount in FreeCAD's Part Design workbench. The model consists of a 60mm x 40mm x 5mm rectangular base plate on the XY plane and a cylindrical mounting boss. The boss must be 20mm in diameter, padded 15mm from a plane angled 45 degrees around the Y-axis relative to the top of the base. Ensure a 10mm diameter through-hole extends through both the boss and the base. Save the project as /home/ga/Documents/FreeCAD/sensor_mount.FCStd and export the final body as an STL file to /home/ga/Documents/FreeCAD/sensor_mount.stl.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/model_angled_sensor_mount/setup_task.sh",
+    "post_task": "/workspace/tasks/model_angled_sensor_mount/export_result.sh"
+  },
+  "metadata": {
+    "expected_fcstd": "/home/ga/Documents/FreeCAD/sensor_mount.FCStd",
+    "expected_stl": "/home/ga/Documents/FreeCAD/sensor_mount.stl",
+    "min_features": {
+      "PartDesign::Pad": 2,
+      "PartDesign::Plane": 1,
+      "PartDesign::Pocket_or_Hole": 1
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_model_angled_sensor_mount"
+    }
+  }
+}

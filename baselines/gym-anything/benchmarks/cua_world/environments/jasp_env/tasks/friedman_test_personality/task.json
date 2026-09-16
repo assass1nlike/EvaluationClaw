@@ -1,0 +1,39 @@
+{
+  "id": "friedman_test_personality@1",
+  "version": "1.0",
+  "env_id": "jasp_env@0.1",
+  "description": "The dataset '/home/ga/Documents/JASP/BigFivePersonalityTraits.csv' is loaded in JASP. This dataset contains Likert-scale scores for the Big Five personality traits. Your goal is to compare the scores of 'Neuroticism', 'Extraversion', and 'Openness' within the same subjects using a Friedman non-parametric test. Include Kendall's W as the effect size and save the analysis results to '/home/ga/Documents/JASP/Friedman_Analysis.jasp'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 50,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/friedman_test_personality/setup_task.sh",
+    "post_task": "/workspace/tasks/friedman_test_personality/export_result.sh"
+  },
+  "metadata": {
+    "expected_output_path": "/home/ga/Documents/JASP/Friedman_Analysis.jasp",
+    "required_analysis_type": "anovaRepeatedMeasures",
+    "required_variables": [
+      "Neuroticism",
+      "Extraversion",
+      "Openness"
+    ],
+    "forbidden_variables": [
+      "Agreeableness",
+      "Conscientiousness"
+    ],
+    "required_options": {
+      "friedman": true,
+      "kendallsW": true
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_friedman_test"
+    }
+  }
+}

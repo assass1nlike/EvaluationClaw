@@ -1,0 +1,53 @@
+{
+  "task_id": "resolve_volume_lock@1",
+  "task_completion": [
+    {
+      "id": "identify_locking_process",
+      "description": "Identify the process holding the volume open.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command like 'lsof /home/ga/MountPoints/secure_logs' or 'fuser -m /home/ga/MountPoints/secure_logs' being executed, with output revealing the PID and the command name 'tail'."
+    },
+    {
+      "id": "create_incident_report",
+      "description": "Create the incident report file at the specified path.",
+      "points": 15,
+      "visual_evidence": "A text editor or terminal command (like echo, cat, or nano) creating or opening '/home/ga/Documents/lock_incident.txt'."
+    },
+    {
+      "id": "report_contains_correct_info",
+      "description": "The incident report contains the identified PID and Command Name.",
+      "points": 25,
+      "visual_evidence": "The contents of '/home/ga/Documents/lock_incident.txt' are visible (e.g., in a text editor or via 'cat') and explicitly include the PID found in the earlier step and the command name 'tail'."
+    },
+    {
+      "id": "resolve_lock",
+      "description": "Terminate the locking process or prepare a force dismount.",
+      "points": 15,
+      "visual_evidence": "Terminal showing a 'kill <PID>' or 'killall tail' command targeting the identified process, or a dismount command using a force flag (e.g., 'umount -f' or 'veracrypt -d -f')."
+    },
+    {
+      "id": "dismount_volume",
+      "description": "Successfully dismount the encrypted volume.",
+      "points": 25,
+      "visual_evidence": "Terminal showing a successful dismount command (e.g., 'veracrypt -d /home/ga/Volumes/log_storage.hc' or 'umount /home/ga/MountPoints/secure_logs') executing without 'target is busy' errors, or the VeraCrypt GUI showing the volume is no longer mounted."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_process_identification",
+      "description": "The agent genuinely identified the PID rather than hallucinating it.",
+      "visual_evidence": "The PID written in the report must match the PID shown in the output of the diagnostic command (e.g., lsof or fuser) executed by the agent."
+    },
+    {
+      "id": "report_file_saved",
+      "description": "The incident report was actually saved to the disk.",
+      "visual_evidence": "The text editor shows the file is saved (no unsaved indicator), or a terminal command like 'cat' or 'ls' confirms the file exists at '/home/ga/Documents/lock_incident.txt' with the correct contents."
+    },
+    {
+      "id": "actual_dismount_execution",
+      "description": "The dismount action was actually executed.",
+      "visual_evidence": "The dismount command was submitted in the terminal (showing a new prompt line after execution) or the GUI dismount button was clicked and processed, not just typed out without execution."
+    }
+  ],
+  "privileged_info_for_vlm": "The volume is located at '/home/ga/Volumes/log_storage.hc' and mounted at '/home/ga/MountPoints/secure_logs'. The locking process is spawned using 'tail' (specifically 'tail -f' on a file in the mount point). The incident report must be located at '/home/ga/Documents/lock_incident.txt' and must contain the correct PID (which the agent must discover dynamically) and the command name 'tail'."
+}

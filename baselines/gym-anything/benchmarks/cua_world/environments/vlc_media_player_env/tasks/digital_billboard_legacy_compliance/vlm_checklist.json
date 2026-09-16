@@ -1,0 +1,53 @@
+{
+  "task_id": "digital_billboard_legacy_compliance@1",
+  "task_completion": [
+    {
+      "id": "highway_board_video",
+      "description": "Verify the creation of highway_board.avi with correct specifications.",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands (e.g., ffmpeg) or file properties showing the creation of 'highway_board.avi' in '/home/ga/Videos/dooh_delivery/' with MPEG-4 codec, 800x400 resolution, 15 fps, and audio stripped (-an or similar flag)."
+    },
+    {
+      "id": "subway_screen_video",
+      "description": "Verify the creation of subway_screen.mpg with correct specifications.",
+      "points": 15,
+      "visual_evidence": "Look for terminal commands or file properties showing the creation of 'subway_screen.mpg' in '/home/ga/Videos/dooh_delivery/' with MPEG-2 codec, 1024x768 resolution, and audio stripped."
+    },
+    {
+      "id": "stadium_ribbon_video",
+      "description": "Verify the creation of stadium_ribbon.mp4 with correct specifications including center-crop.",
+      "points": 20,
+      "visual_evidence": "Look for terminal commands or file properties showing the creation of 'stadium_ribbon.mp4' in '/home/ga/Videos/dooh_delivery/' with H.264 codec, 30 fps, audio stripped, and a crop filter applied to achieve 1920x200 (e.g., -vf 'crop=1920:200')."
+    },
+    {
+      "id": "proof_snapshots",
+      "description": "Verify the extraction of frame snapshots at exactly the 00:00:05 mark.",
+      "points": 25,
+      "visual_evidence": "Look for terminal commands (e.g., ffmpeg -ss 00:00:05) extracting frames to 'highway_proof.png', 'subway_proof.png', and 'stadium_proof.png' in '/home/ga/Videos/dooh_delivery/proofs/', or a file explorer showing these three image files."
+    },
+    {
+      "id": "manifest_json",
+      "description": "Verify the generation of the dooh_manifest.json file with the required data.",
+      "points": 25,
+      "visual_evidence": "Look for a text editor, cat command, or script output showing the contents of '/home/ga/Documents/dooh_manifest.json'. It must include 'campaign': 'DOOH-Q3-PROMO', 'source_file': 'client_master_promo.mp4', and a 'deliverables' array specifying target, filename, codec, resolution, and 'has_audio': false for each video."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_video_processing",
+      "description": "Ensure the agent actually processed the videos using a media tool and did not create fake files.",
+      "visual_evidence": "Check that the agent used a real video processing tool like ffmpeg or a GUI video editor. The agent should not use 'touch' or simple echo commands to create files with .avi, .mpg, or .mp4 extensions."
+    },
+    {
+      "id": "genuine_frame_extraction",
+      "description": "Ensure the agent actually extracted image frames from the video.",
+      "visual_evidence": "Check that the agent used a media tool to extract the .png files. The agent should not just rename text files to .png or download unrelated images from the web."
+    },
+    {
+      "id": "genuine_manifest_creation",
+      "description": "Ensure the JSON manifest was properly formatted and saved to the correct location.",
+      "visual_evidence": "Check that the agent used a text editor (like nano, vim) or a script (like Python) to write the JSON file, rather than just printing the expected JSON to the terminal without saving it to '/home/ga/Documents/dooh_manifest.json'."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified constraints: highway_board.avi (mpeg4, 800x400, 15fps), subway_screen.mpg (mpeg2video, 1024x768, 60fps natively inherited from source), and stadium_ribbon.mp4 (h264, 1920x200, 30fps). All outputs must have no audio. Proof snapshots must be extracted at exactly 00:00:05. Manifest must contain campaign 'DOOH-Q3-PROMO', source_file 'client_master_promo.mp4', and deliverables array with target, filename, codec, resolution, and 'has_audio': false."
+}

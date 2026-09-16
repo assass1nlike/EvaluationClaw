@@ -1,0 +1,53 @@
+{
+  "task_id": "reify_stay_relationship@1",
+  "task_completion": [
+    {
+      "id": "access_demodb",
+      "description": "Access the 'demodb' database in OrientDB Studio or Console.",
+      "points": 10,
+      "visual_evidence": "Look for the OrientDB Studio interface in a web browser with 'demodb' selected as the active database, or a terminal window showing the OrientDB console successfully connected to 'demodb'."
+    },
+    {
+      "id": "create_vertex_class",
+      "description": "Create the new 'StaySession' vertex class.",
+      "points": 15,
+      "visual_evidence": "Look for a successful execution of 'CREATE CLASS StaySession EXTENDS V' in the query/console output, or the Schema manager in OrientDB Studio listing 'StaySession' under Vertex classes."
+    },
+    {
+      "id": "create_edge_classes",
+      "description": "Create the new 'HasSession' and 'SessionAt' edge classes.",
+      "points": 15,
+      "visual_evidence": "Look for successful executions of 'CREATE CLASS HasSession EXTENDS E' and 'CREATE CLASS SessionAt EXTENDS E', or the Schema manager listing both 'HasSession' and 'SessionAt' under Edge classes."
+    },
+    {
+      "id": "migrate_data_to_new_schema",
+      "description": "Migrate existing 'HasStayed' relationships to the new schema (Profile -> HasSession -> StaySession -> SessionAt -> Hotel).",
+      "points": 40,
+      "visual_evidence": "Look for the successful execution of an OrientDB SQL batch/script that creates StaySession vertices and the corresponding HasSession/SessionAt edges. Alternatively, look for a Graph visualization or Query result showing the new relationship path: a Profile vertex connected to a StaySession vertex via a HasSession edge, and that StaySession vertex connected to a Hotel vertex via a SessionAt edge."
+    },
+    {
+      "id": "delete_deprecated_edges",
+      "description": "Delete the original 'HasStayed' edges.",
+      "points": 20,
+      "visual_evidence": "Look for a successful command execution like 'DELETE EDGE HasStayed' or 'DROP CLASS HasStayed', or a query like 'SELECT count(*) FROM HasStayed' returning 0."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_database_interaction",
+      "description": "Verify the agent interacted with the actual OrientDB software.",
+      "visual_evidence": "The screenshots must show the OrientDB Studio web interface (http://localhost:2480) or the OrientDB Console in a terminal, not just a text editor with SQL commands."
+    },
+    {
+      "id": "execution_results_shown",
+      "description": "Verify that commands were actually executed.",
+      "visual_evidence": "Look for execution confirmations, success messages, or result tables in the OrientDB interface, rather than just commands typed into an input box but not yet run."
+    },
+    {
+      "id": "no_mocked_responses",
+      "description": "Verify the agent did not fake the completion.",
+      "visual_evidence": "Ensure the agent did not just create a text or markdown file claiming the migration is complete. The evidence of completion must come from the database interface itself."
+    }
+  ],
+  "privileged_info_for_vlm": "The database is 'demodb' running on OrientDB 3.2.36. Credentials are root / GymAnything123!. The task requires creating 1 new Vertex class ('StaySession') and 2 new Edge classes ('HasSession', 'SessionAt'). The original schema has at least 50 'HasStayed' edges connecting 'Profile' vertices to 'Hotel' vertices. The agent must migrate these to the new schema (Profile -> HasSession -> StaySession -> SessionAt -> Hotel) and then delete the original 'HasStayed' edges."
+}

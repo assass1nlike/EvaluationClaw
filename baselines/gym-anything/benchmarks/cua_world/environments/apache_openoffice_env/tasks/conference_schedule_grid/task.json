@@ -1,0 +1,38 @@
+{
+  "id": "conference_schedule_grid@1",
+  "version": "1.0",
+  "env_id": "apache_openoffice_env@0.1",
+  "description": "You are the Program Coordinator for the Midwest Digital Health Summit. Create a one-page 'Program at a Glance' schedule grid in Apache OpenOffice Writer using the data from /home/ga/Documents/schedule_data.json. The document must be in landscape orientation and feature a table with a header row and four columns: Time, Track A (Clinical), Track B (IT & Data), and Track C (Policy). Populate the table with the schedule items from the JSON file, ensuring that plenary sessions (Registration, Keynote, Lunch, and Closing Panel) span across the three track columns with merged, centered cells. Concurrent sessions should be placed in their respective columns. Save the completed schedule as /home/ga/Documents/Summit_Schedule_2025.odt.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 600,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/conference_schedule_grid/setup_task.sh",
+    "post_task": "/workspace/tasks/conference_schedule_grid/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/schedule_data.json",
+    "output_file": "/home/ga/Documents/Summit_Schedule_2025.odt",
+    "conference_name": "Midwest Digital Health Summit",
+    "expected_orientation": "landscape",
+    "required_merged_strings": [
+      "Opening Keynote",
+      "Networking Lunch",
+      "Closing Panel"
+    ],
+    "required_track_strings": [
+      "AI in Radiology",
+      "FHIR Standards",
+      "HIPAA Compliance"
+    ]
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_conference_schedule_grid"
+    }
+  }
+}

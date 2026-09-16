@@ -1,0 +1,32 @@
+{
+  "id": "configure_dns_zone_params@1",
+  "version": "1.0",
+  "env_id": "virtualmin_env@0.1",
+  "description": "AcmeCorp's IT team is experiencing slow DNS propagation after making DNS changes. Modify the DNS zone parameters for the 'acmecorp.test' domain in Virtualmin to speed up propagation. Update the zone settings with the following values in seconds: Default TTL (300), SOA Refresh (3600), SOA Retry (600), SOA Expiry (604800), and SOA Minimum TTL (300). Apply the configuration changes once updated.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 30,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/configure_dns_zone_params/setup_task.sh",
+    "post_task": "/workspace/tasks/configure_dns_zone_params/export_result.sh"
+  },
+  "metadata": {
+    "target_domain": "acmecorp.test",
+    "expected_values": {
+      "ttl": 300,
+      "refresh": 3600,
+      "retry": 600,
+      "expiry": 604800,
+      "minimum": 300
+    }
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_configure_dns_zone_params"
+    }
+  }
+}

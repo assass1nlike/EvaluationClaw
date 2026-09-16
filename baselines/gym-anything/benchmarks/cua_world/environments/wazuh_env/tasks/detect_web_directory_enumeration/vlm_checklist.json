@@ -1,0 +1,59 @@
+{
+  "task_id": "detect_web_directory_enumeration@1",
+  "task_completion": [
+    {
+      "id": "nginx_installed",
+      "description": "Verify Nginx is installed on the system.",
+      "points": 10,
+      "visual_evidence": "Terminal output showing successful installation of Nginx (e.g., 'apt install nginx') or its active status ('systemctl status nginx')."
+    },
+    {
+      "id": "wazuh_ossec_conf_updated",
+      "description": "Verify Wazuh is configured to monitor the Nginx access log.",
+      "points": 20,
+      "visual_evidence": "A text editor or terminal showing the ossec.conf file with a <localfile> block containing <location>/var/log/nginx/access.log</location> and <log_format>nginx-access</log_format>."
+    },
+    {
+      "id": "custom_rule_attributes",
+      "description": "Verify the custom rule has the correct ID, level, parent SID, frequency, and timeframe.",
+      "points": 30,
+      "visual_evidence": "A text editor or terminal showing local_rules.xml with <rule id=\"100500\" level=\"10\" frequency=\"15\" timeframe=\"60\"> and <if_sid>31101</if_sid>."
+    },
+    {
+      "id": "custom_rule_same_source_ip",
+      "description": "Verify the custom rule triggers based on the same source IP.",
+      "points": 10,
+      "visual_evidence": "The custom rule block in local_rules.xml contains the <same_source_ip /> tag."
+    },
+    {
+      "id": "custom_rule_description",
+      "description": "Verify the custom rule has the correct description.",
+      "points": 10,
+      "visual_evidence": "The custom rule block contains exactly <description>High frequency of 404 errors - Possible Directory Enumeration</description>."
+    },
+    {
+      "id": "wazuh_manager_restarted",
+      "description": "Verify the Wazuh manager was restarted to apply the changes.",
+      "points": 20,
+      "visual_evidence": "Terminal showing a command like 'systemctl restart wazuh-manager' being executed successfully."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_configuration_files",
+      "description": "Check that the agent edited the actual Wazuh configuration files.",
+      "visual_evidence": "The file paths shown in the editor or terminal should be the real Wazuh paths (e.g., /var/ossec/etc/ossec.conf and /var/ossec/etc/rules/local_rules.xml), not temporary or mock files."
+    },
+    {
+      "id": "valid_xml_format",
+      "description": "Check that the rule and configuration additions are properly formatted XML.",
+      "visual_evidence": "The additions to ossec.conf and local_rules.xml should have properly opened and closed XML tags."
+    },
+    {
+      "id": "genuine_command_execution",
+      "description": "Check that commands to install Nginx and restart Wazuh were genuinely executed.",
+      "visual_evidence": "Terminal prompts and outputs should look like genuine shell interactions, not just echoed text or scripts printing expected output."
+    }
+  ],
+  "privileged_info_for_vlm": "The custom rule must have ID 100500, parent SID 31101, frequency 15, timeframe 60, and monitor the Nginx log file at /var/log/nginx/access.log."
+}

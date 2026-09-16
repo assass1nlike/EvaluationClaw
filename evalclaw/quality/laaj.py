@@ -4,6 +4,7 @@ from __future__ import annotations
 import base64
 import json
 import mimetypes
+from contextlib import closing
 from pathlib import Path
 from typing import Any, Callable
 
@@ -40,6 +41,7 @@ from .analysis_tools import (
     read_item_evidence,
     read_run_artifact,
 )
+from .laaj_exploration import LAAJ_EXPLORE_TOOL, LaajExploration
 from .laaj_tools import (
     LAAJ_INSPECT_AGENT_TOOL,
     LAAJ_READ_TASK_FILE_TOOL,
@@ -74,6 +76,20 @@ evaluator-only evidence, not as information available to the target. Use saved e
 to distinguish a defective benchmark or harness from genuine target-model failure. Do not assume
 that a declared environment works merely because its JSON looks plausible.
 
+For clarity, correctness, faithfulness, and diversity, use explore_agent_environment
+when understanding the actual environment or checking a concrete doubt requires
+execution. It creates a private task copy using the configured runtime. Explore
+files, services, databases, and contacts; construct trial submissions and run the
+original evaluator. Compare independent trials using reset. Target-perspective
+actions use target permissions; privileged reviewer access cannot establish that
+the target could perform an action or obtain hidden information. Never repair a
+fixture in your experiment and then describe the original fixture as correct.
+Experiment results are new judge observations, not evidence that the evaluated
+model performed those actions in its original run. Separate inspected findings,
+executed checks, and remaining uncertainty in your reasoning. Do not infer that
+an uninspected environment is valid. Use the available tools as extensively as
+needed to support your ratings across the sampled tasks.
+
 Return pure JSON only. Always return clarity, correctness, faithfulness, and diversity. Return
 systematicness and credibility only when analyser output is present:
 {
@@ -87,7 +103,7 @@ systematicness and credibility only when analyser output is present:
 """
 
 LAAJ_MAX_ATTEMPTS = 3
-LAAJ_MAX_TOOL_CALLS = 24
+LAAJ_MAX_TOOL_CALLS = 500
 
 
 def _asset_manifest(item: Any) -> list[dict[str, Any]]:
@@ -434,8 +450,13 @@ def evaluate_with_laaj(
         request["analyser_output"] = _analysis_payload(analysis, run, qc_report)
 
     agent_items = [item for item in sampled_items if item.task_type == TaskType.agent]
+    probe_agent_count = sum(
+        item.task_type == TaskType.agent
+        for iteration in (analysis.iterations if analysis else [])
+        for item in (iteration.suite.tasks if iteration.suite else [])
+    )
     tool_suite = suite.model_copy(update={"tasks": sampled_items})
-    use_tools = bool(agent_items) or (analysis is not None and artifact_dir is not None)
+    use_tools = bool(agent_items or probe_agent_count) or (analysis is not None and artifact_dir is not None)
     if use_tools:
         request["available_evidence"] = {
             "agent_item_ids": [item.id for item in agent_items],
@@ -443,21 +464,28 @@ def evaluate_with_laaj(
             "declared_files": "read_task_file",
             "images": "view_benchmark_image",
             "saved_run_artifacts": artifact_dir is not None,
+            "isolated_experiments": LAAJ_EXPLORE_TOOL.name,
+            "configured_targets": [{"id": target.id, "harness": target.harness} for target in config.targets],
         }
 
     last_error: Exception | None = None
     for attempt in range(1, LAAJ_MAX_ATTEMPTS + 1):
         try:
             if use_tools:
-                raw = _run_laaj_tool_loop(
-                    request,
-                    tool_suite,
-                    config,
-                    trace_dir=trace_dir,
-                    artifact_dir=artifact_dir,
-                    trace_name=f"laaj-attempt-{attempt:02d}",
-                    include_agent_tools=bool(agent_items),
-                )
+                with closing(LaajExploration(
+                    tool_suite, analysis, config,
+                    trace_dir / "exploration" / f"attempt-{attempt:02d}" if trace_dir else None,
+                )) as exploration:
+                    raw = _run_laaj_tool_loop(
+                        request, tool_suite, config, trace_dir=trace_dir,
+                        artifact_dir=artifact_dir, trace_name=f"laaj-attempt-{attempt:02d}",
+                        include_agent_tools=bool(agent_items),
+                        additional_tools=[LAAJ_EXPLORE_TOOL] if agent_items or probe_agent_count else [],
+                        tool_handlers={LAAJ_EXPLORE_TOOL.name: exploration.handle},
+                        max_tool_calls=max(LAAJ_MAX_TOOL_CALLS, config.laaj_tool_calls_per_item * (
+                            len(sampled_items) + probe_agent_count
+                        )),
+                    )
             else:
                 raw = call_llm(
                     [Message(role="user", content=json.dumps(request, ensure_ascii=False, indent=2))],

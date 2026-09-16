@@ -1,0 +1,59 @@
+{
+  "task_id": "nback_dprime_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent reads the N-back task data from the specified CSV file.",
+      "points": 10,
+      "visual_evidence": "A script or terminal command is visible showing the agent loading or reading '~/pebl/data/nback_data.csv'."
+    },
+    {
+      "id": "apply_log_linear_correction",
+      "description": "Agent applies the log-linear rule for extreme value corrections to Hit Rates and False Alarm Rates.",
+      "points": 20,
+      "visual_evidence": "Code is visible containing the specific correction boundaries mentioned in the prompt, such as adjusting Hit Rates to a range of 0.5/20 to 19.5/20 and False Alarm Rates to 0.5/40 to 39.5/40."
+    },
+    {
+      "id": "calculate_dprime",
+      "description": "Agent calculates d-prime using the inverse cumulative normal distribution.",
+      "points": 20,
+      "visual_evidence": "Code is visible calculating Z(Hit Rate) - Z(False Alarm Rate), typically using a function like `scipy.stats.norm.ppf` or an equivalent inverse normal CDF function."
+    },
+    {
+      "id": "exclude_button_masher",
+      "description": "Agent identifies and excludes participants with an overall False Alarm Rate greater than 0.80.",
+      "points": 20,
+      "visual_evidence": "Code is visible calculating the overall False Alarm Rate across all 180 trials and filtering out participants where FAR > 0.80, or terminal output shows participant 's99' being excluded."
+    },
+    {
+      "id": "format_json_structure",
+      "description": "Agent formats the output data with the required JSON structure.",
+      "points": 15,
+      "visual_evidence": "Code is visible constructing a dictionary or JSON object that explicitly includes the keys 'participants' (a list) and 'group_mean_dprime' (an object)."
+    },
+    {
+      "id": "save_output_file",
+      "description": "Agent saves the final JSON report to the correct path.",
+      "points": 15,
+      "visual_evidence": "Code writing to '~/pebl/analysis/nback_report.json' or a terminal command (like `ls ~/pebl/analysis/` or `cat`) confirming the file was created at the exact required path."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_hardcoded_exclusion",
+      "description": "Agent dynamically calculates the False Alarm Rate to exclude the button masher rather than hardcoding the participant ID.",
+      "visual_evidence": "The script should use a condition like `FAR > 0.80` for exclusion. It should NOT simply contain `if subject_id == 's99': exclude()` without calculating the FAR."
+    },
+    {
+      "id": "script_execution_evidence",
+      "description": "Agent actually executes a script to process the data rather than manually mocking the JSON output.",
+      "visual_evidence": "The terminal should show the execution of a Python, R, or similar script (e.g., `python analyze.py`) that performs the calculations, rather than just a text editor manually typing out the JSON."
+    },
+    {
+      "id": "genuine_statistical_computation",
+      "description": "Agent uses a genuine statistical library or mathematical formula for the inverse normal CDF.",
+      "visual_evidence": "Look for imports like `from scipy.stats import norm` or equivalent statistical packages in the code, indicating real computation rather than placeholder values."
+    }
+  ],
+  "privileged_info_for_vlm": "The dataset contains 24 valid participants (s01-s24) and 1 contaminated participant (s99). Participant s99 is a 'button masher' with a 100% Match response rate, resulting in a False Alarm Rate (FAR) of 1.0, which exceeds the 0.80 threshold. The agent must successfully identify and exclude s99 based on this FAR threshold. The final output must be saved exactly to /home/ga/pebl/analysis/nback_report.json."
+}

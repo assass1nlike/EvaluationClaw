@@ -1,0 +1,59 @@
+{
+  "task_id": "semantic_fluency_depletion_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent reads the raw semantic fluency CSV data.",
+      "points": 10,
+      "visual_evidence": "Code in an editor or terminal showing the loading of '~/pebl/data/semantic_fluency_data.csv' (e.g., using pandas read_csv)."
+    },
+    {
+      "id": "clean_data",
+      "description": "Agent implements data cleaning steps for the words.",
+      "points": 20,
+      "visual_evidence": "Code showing string manipulation to lowercase text, strip whitespace, remove empty strings, and drop duplicate words per participant (keeping the first instance)."
+    },
+    {
+      "id": "bin_quartiles",
+      "description": "Agent bins valid words into 15-second quartiles based on reaction time.",
+      "points": 20,
+      "visual_evidence": "Code showing logic to categorize 'rt_ms' into Q1 (0-15000), Q2 (15001-30000), Q3 (30001-45000), and Q4 (45001-60000)."
+    },
+    {
+      "id": "exclude_participant",
+      "description": "Agent excludes participant sub-99 due to robotic timing.",
+      "points": 15,
+      "visual_evidence": "Code explicitly identifying and excluding 'sub-99' (or checking for exactly 3000ms intervals) and formatting their JSON entry with 'excluded': true and a 'reason'."
+    },
+    {
+      "id": "calculate_group_means",
+      "description": "Agent calculates the group means for valid participants.",
+      "points": 15,
+      "visual_evidence": "Code computing the average of 'total_valid_words', 'Q1', 'Q2', 'Q3', and 'Q4' across all participants who were not excluded."
+    },
+    {
+      "id": "export_json_report",
+      "description": "Agent exports the final JSON report to the correct directory.",
+      "points": 20,
+      "visual_evidence": "Code writing the final structured data to '~/pebl/analysis/fluency_report.json', or terminal output showing the file was successfully created in that location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "script_execution",
+      "description": "Agent actually executed the analysis script.",
+      "visual_evidence": "Terminal output showing the agent running the Python/analysis script (e.g., 'python script.py') without fatal errors, rather than just writing the code and stopping."
+    },
+    {
+      "id": "dynamic_calculation",
+      "description": "Agent dynamically computed the results instead of hardcoding them.",
+      "visual_evidence": "The script contains actual logic for grouping, filtering, and averaging, rather than a hardcoded JSON string with the final expected answers."
+    },
+    {
+      "id": "no_mocked_data",
+      "description": "Agent used the real dataset provided in the environment.",
+      "visual_evidence": "The script reads from the specified CSV file path and does not contain a small, manually typed mock dataset inline."
+    }
+  ],
+  "privileged_info_for_vlm": "The contaminated participant to be excluded is 'sub-99' due to 'zero_variance_timing' (exactly 3000ms intervals). The final output must be saved exactly at '/home/ga/pebl/analysis/fluency_report.json'."
+}

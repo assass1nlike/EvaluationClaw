@@ -1,0 +1,59 @@
+{
+  "task_id": "custom_ack_z_segment_echo@1",
+  "task_completion": [
+    {
+      "id": "nextgen_connect_access",
+      "description": "Access the NextGen Connect Administrator or REST API",
+      "points": 10,
+      "visual_evidence": "Screenshots should show the NextGen Connect Web Administrator UI (Mirth Connect) or a REST API client (like Postman or curl in terminal) authenticating to https://localhost:8443/api."
+    },
+    {
+      "id": "channel_created",
+      "description": "Create a channel named 'Analyzer_Gateway'",
+      "points": 10,
+      "visual_evidence": "The Channels list in the NextGen Connect Administrator UI or API response should display a channel specifically named 'Analyzer_Gateway'."
+    },
+    {
+      "id": "source_tcp_configured",
+      "description": "Configure the source to listen on TCP port 6661",
+      "points": 20,
+      "visual_evidence": "The Source tab for 'Analyzer_Gateway' should show the Connector Type set to 'TCP Listener' and the Local Port set to '6661'."
+    },
+    {
+      "id": "destination_file_configured",
+      "description": "Configure the destination to write to the specified directory",
+      "points": 20,
+      "visual_evidence": "The Destinations tab should show a destination with Connector Type 'File Writer' and the Directory set to '/home/ga/received_results/' (or '/home/ga/received_results')."
+    },
+    {
+      "id": "custom_ack_script",
+      "description": "Implement custom ACK logic to echo the ZID segment as a ZAK segment",
+      "points": 30,
+      "visual_evidence": "The Scripts tab (e.g., Postprocessor or ACK script) or Source Response settings should show JavaScript or configuration logic that extracts the transaction ID from the incoming 'ZID' segment and constructs a custom ACK containing a 'ZAK' segment with that same ID."
+    },
+    {
+      "id": "channel_deployed",
+      "description": "Deploy the channel to start listening",
+      "points": 10,
+      "visual_evidence": "The Dashboard in NextGen Connect should show the 'Analyzer_Gateway' channel with a status of 'Started' or 'Deployed', indicating it is actively running."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "genuine_nextgen_connect",
+      "description": "Agent used the actual NextGen Connect application or API",
+      "visual_evidence": "Look for genuine interaction with the Mirth Connect/NextGen Connect Java Web Start UI or legitimate REST API calls. The agent should not be mocking the UI in a drawing tool or just writing text notes."
+    },
+    {
+      "id": "dynamic_ack_logic",
+      "description": "Agent implemented dynamic echoing rather than hardcoding the example",
+      "visual_evidence": "Check the custom ACK script/configuration. The agent must use variables or message segment references (e.g., msg['ZID']['ZID.2'].toString()) to build the ZAK segment. It should NOT hardcode the example 'tx-123' from the prompt."
+    },
+    {
+      "id": "no_alternative_listener",
+      "description": "Agent did not bypass NextGen Connect with a standalone script",
+      "visual_evidence": "Ensure the agent did not just write a Python, Node.js, or Bash script (e.g., using netcat or sockets) to listen on port 6661 and write files. The configuration must be done within NextGen Connect."
+    }
+  ],
+  "privileged_info_for_vlm": "Verified requirements: Channel Name must be exactly 'Analyzer_Gateway'. The listening port must be 6661. The output directory must be '/home/ga/received_results'. The custom ACK must dynamically echo the transaction ID from the incoming ZID segment into a ZAK segment; hardcoding the example 'tx-123' is a failure of the dynamic requirement."
+}

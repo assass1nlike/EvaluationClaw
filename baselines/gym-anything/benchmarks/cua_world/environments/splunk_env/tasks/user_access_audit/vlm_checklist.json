@@ -1,0 +1,53 @@
+{
+  "task_id": "user_access_audit@1",
+  "task_completion": [
+    {
+      "id": "lookup_file_created",
+      "description": "Verify that a lookup table file has been created in Splunk.",
+      "points": 20,
+      "visual_evidence": "Look for a new CSV file listed in the Splunk 'Settings' -> 'Lookups' -> 'Lookup table files' page, or a search query successfully executing the 'outputlookup' command."
+    },
+    {
+      "id": "lookup_has_enough_rows",
+      "description": "Verify the lookup table contains statistics for at least the top 5 most active users.",
+      "points": 20,
+      "visual_evidence": "Look for a Splunk search or table view showing the contents of the lookup file (e.g., using '| inputlookup <filename>'), displaying at least 5 rows of user statistics."
+    },
+    {
+      "id": "lookup_definition_configured",
+      "description": "Verify that a lookup definition has been configured for the created lookup table.",
+      "points": 20,
+      "visual_evidence": "Look for a new entry in the Splunk 'Settings' -> 'Lookups' -> 'Lookup definitions' page, linked to the created lookup file."
+    },
+    {
+      "id": "report_created",
+      "description": "Verify that a saved report has been created for the user authentication activity.",
+      "points": 20,
+      "visual_evidence": "Look for a newly saved report listed in the 'Reports' tab of the Splunk Search & Reporting app."
+    },
+    {
+      "id": "report_uses_lookup",
+      "description": "Verify that the saved report uses the lookup to produce a structured view.",
+      "points": 20,
+      "visual_evidence": "Look at the search string of the saved report (either in the report execution view or edit view) and ensure it contains the 'lookup' or 'inputlookup' command."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_splunk_gui",
+      "description": "Verify the agent interacted with the Splunk Web UI to complete the task.",
+      "visual_evidence": "Screenshots should show the Splunk Web interface (http://localhost:8000) being navigated, rather than terminal windows using curl or API scripts."
+    },
+    {
+      "id": "genuine_data_query",
+      "description": "Verify the agent queried the actual security_logs index to generate the lookup data.",
+      "visual_evidence": "Look for a search query in the Splunk search bar containing 'index=security_logs' (e.g., 'index=security_logs | top 5 user | outputlookup...')."
+    },
+    {
+      "id": "no_hardcoded_mock_data",
+      "description": "Verify the lookup wasn't manually populated with fake data via a text editor.",
+      "visual_evidence": "The lookup creation should stem from a Splunk search ('outputlookup') or Splunk GUI upload, not a manual terminal file creation (e.g., using 'echo' or 'nano' to create a CSV)."
+    }
+  ],
+  "privileged_info_for_vlm": "Target index: 'security_logs'. Minimum lookup rows required: 5. Splunk credentials: 'admin' / 'SplunkAdmin1!'. The scoring requires 5 specific elements: lookup file created, lookup file has at least 5 rows, lookup definition configured, report created, and the report uses the lookup."
+}

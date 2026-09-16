@@ -1,0 +1,53 @@
+{
+  "task_id": "export_network_statistics@1",
+  "task_completion": [
+    {
+      "id": "sumo_gui_open",
+      "description": "Verify that the sumo-gui application is open.",
+      "points": 10,
+      "visual_evidence": "The sumo-gui window is visible on the screen."
+    },
+    {
+      "id": "view_settings_opened",
+      "description": "Verify that the visualization settings dialog is accessed.",
+      "points": 10,
+      "visual_evidence": "A dialog box for 'View Settings' or 'Edit Visualisation' is open over the sumo-gui main window."
+    },
+    {
+      "id": "coloring_scheme_selected",
+      "description": "Verify the street coloring scheme is changed to the required occupancy setting.",
+      "points": 30,
+      "visual_evidence": "In the View Settings dialog, under the Streets/Edges tab, the 'Color by' dropdown or setting is explicitly set to 'by current occupancy (lanewise, brutto)'."
+    },
+    {
+      "id": "simulation_started",
+      "description": "Verify that the simulation has been started and the coloring is applied.",
+      "points": 20,
+      "visual_evidence": "The simulation time (usually at the top toolbar) is greater than 0, the play button is toggled, and the streets in the network display varying colors representing traffic density/occupancy."
+    },
+    {
+      "id": "screenshot_saved",
+      "description": "Verify that the screenshot of the visualization is saved to the correct path.",
+      "points": 30,
+      "visual_evidence": "A terminal window shows a screenshot command (like 'scrot /home/ga/SUMO_Output/occupancy_coloring.png') executing successfully, or a file manager/image viewer shows the 'occupancy_coloring.png' file existing in the '/home/ga/SUMO_Output/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_gui_interaction",
+      "description": "Ensure the agent interacted with the sumo-gui application to change settings.",
+      "visual_evidence": "Screenshots should show the sumo-gui interface and its settings dialogs being manipulated, rather than just text editors modifying configuration files to bypass GUI interaction."
+    },
+    {
+      "id": "genuine_screenshot_file",
+      "description": "Ensure the output file is a genuine screenshot of the simulation.",
+      "visual_evidence": "If the final image is opened or previewed, it should clearly show the sumo-gui interface with the colored road network, not a blank image, text file, or unrelated picture."
+    },
+    {
+      "id": "correct_scenario_loaded",
+      "description": "Ensure the Bologna Pasubio scenario is actually loaded in sumo-gui.",
+      "visual_evidence": "The sumo-gui window should display a complex, real-world road network (Bologna Pasubio) rather than an empty grid or a default blank project."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires interacting with the 'bologna_pasubio' scenario in sumo-gui. The agent must save the final screenshot exactly to the path '/home/ga/SUMO_Output/occupancy_coloring.png'."
+}

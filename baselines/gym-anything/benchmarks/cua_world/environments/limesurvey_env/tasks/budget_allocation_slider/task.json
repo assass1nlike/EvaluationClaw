@@ -1,0 +1,37 @@
+{
+  "id": "budget_allocation_slider@1",
+  "version": "1.0",
+  "env_id": "limesurvey_env@0.1",
+  "description": "Create and activate a 'Participatory Budgeting' survey for the 'Springfield 2026 Budget Consultation'. The survey must include a 'Budget Allocation' question group containing a 'Multiple Numerical Input' question (Code: BUDGET) asking 'Please allocate 100% of the discretionary budget across these sectors:'. This question should use a slider layout, include sub-questions for Public Safety (SAFE), Infrastructure (INFRA), Parks & Recreation (PARK), Health Services (HLTH), and General Government (GOV), and enforce a validation rule where the total sum must equal 100. Additionally, include a 'Long free text' question (Code: REASON) asking 'Please explain your focus on Infrastructure.' that is conditionally visible only when the Infrastructure (INFRA) allocation is greater than 40.",
+  "difficulty": "hard",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/budget_allocation_slider/setup_task.sh",
+    "post_task": "/workspace/tasks/budget_allocation_slider/export_result.sh"
+  },
+  "metadata": {
+    "expected_title": "Springfield 2026 Budget Consultation",
+    "expected_group": "Budget Allocation",
+    "main_q_code": "BUDGET",
+    "reason_q_code": "REASON",
+    "sub_codes": [
+      "SAFE",
+      "INFRA",
+      "PARK",
+      "HLTH",
+      "GOV"
+    ],
+    "slider_sum_val": "100",
+    "relevance_threshold": 40
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_budget_allocation_slider"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "dataset_id": "fae8bd7c",
+  "name": "Multi-Page Meeting Document Visual Question Answering",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "io_schemas": [
+    {
+      "in_": [
+        "image",
+        "text"
+      ],
+      "out": [
+        "text"
+      ]
+    }
+  ],
+  "size_samples": 91,
+  "description": "Dataset for multi-page meeting document visual question answering, where models answer natural language questions based on images of meeting documents.",
+  "card_text": "This dataset evaluates document visual question answering over multi-page meeting documents. Inputs consist of one or more document page images and a natural language question about the document content (e.g., counting barcodes, extracting specific attributes). The expected output is a short free-text answer. The dataset contains 91 samples, with document images provided as file references and questions/answers in text. Models must read and reason over the visual document pages without any pre-extracted text, testing content recognition and question answering capabilities in a business meeting document domain.",
+  "tasks": [
+    "visual_question_answering",
+    "open_ended_qa"
+  ],
+  "domain": "meeting documents",
+  "meta": {
+    "fields": {
+      "context": {
+        "paths": [
+          "input.image_files"
+        ],
+        "modality": "image",
+        "content_extent": "mixed",
+        "style": "other",
+        "semantics": "A list of image file references representing the pages of a multi-page meeting document. These images form the visual context that the model must read and interpret to answer the question.",
+        "path_types": [
+          "list<str>"
+        ]
+      },
+      "question": {
+        "paths": [
+          "input.prompt"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "instruction",
+        "semantics": "A natural language question about the content of the meeting document, such as counting objects or extracting specific factual information.",
+        "path_types": [
+          "str"
+        ]
+      },
+      "answer": {
+        "paths": [
+          "output.text"
+        ],
+        "modality": "text",
+        "content_extent": "short",
+        "style": "factual",
+        "semantics": "A list containing the short free-text answer(s) to the question, derived from the meeting document images.",
+        "path_types": [
+          "list<str>"
+        ]
+      }
+    },
+    "meta_structure_description": "Each sample contains an input object with a textual question (input.prompt) and a list of image files (input.image_files) that serve as the multi-page meeting document context. The output object holds a list of answer strings (output.text). The model must read the document images to answer the question with a short factual response."
+  },
+  "raw_meta": {
+    "source_json": "/data1/sharehub/datasets/General-Level--General-Bench-Openset/image/comprehension/Multi-PageMeetingDocumentVisualQuestionAnswering/multi-page_meeting_document_visual_question_answering.json",
+    "existing_tags": {
+      "task": "Multi-Page Meeting Document Visual Question Answering",
+      "type": "image comprehension",
+      "skill": "Document Visual Question Answering",
+      "domain": "General",
+      "general_capability": "Content Recognition",
+      "set_type": "openset"
+    },
+    "original_raw_domain": "General"
+  }
+}

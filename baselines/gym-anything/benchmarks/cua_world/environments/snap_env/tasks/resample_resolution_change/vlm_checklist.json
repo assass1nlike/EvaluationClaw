@@ -1,0 +1,59 @@
+{
+  "task_id": "resample_resolution_change@1",
+  "task_completion": [
+    {
+      "id": "open_image",
+      "description": "Open the Landsat 7 RGB image in the image processing software.",
+      "points": 10,
+      "visual_evidence": "Look for 'landsat7_rgb.tif' loaded in the Product Explorer or main window of the application (e.g., SNAP)."
+    },
+    {
+      "id": "open_resample_dialog",
+      "description": "Open the Resampling tool or dialog.",
+      "points": 10,
+      "visual_evidence": "Look for a 'Resampling' window or dialog box open on the screen."
+    },
+    {
+      "id": "set_target_width",
+      "description": "Set the target width to 400 pixels.",
+      "points": 20,
+      "visual_evidence": "In the Resampling dialog, look for the 'Target Width' field explicitly set to '400'."
+    },
+    {
+      "id": "set_sampling_methods",
+      "description": "Set the upsampling and downsampling methods.",
+      "points": 20,
+      "visual_evidence": "In the Resampling dialog, look for the 'Upsampling method' set to 'Bilinear' and 'Downsampling method' set to 'Mean'."
+    },
+    {
+      "id": "save_beam_dimap",
+      "description": "Save the resampled product in BEAM-DIMAP format.",
+      "points": 20,
+      "visual_evidence": "Look for a save dialog showing the file being saved as 'landsat7_resampled' with BEAM-DIMAP format, or a file manager/terminal showing 'landsat7_resampled.dim' in '/home/ga/snap_exports/'."
+    },
+    {
+      "id": "export_geotiff",
+      "description": "Export the resampled product as a GeoTIFF.",
+      "points": 20,
+      "visual_evidence": "Look for an export dialog showing the file being saved as 'landsat7_resampled.tif' with GeoTIFF format, or a file manager/terminal showing the '.tif' file in '/home/ga/snap_exports/'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used the graphical user interface of the application to perform the tasks.",
+      "visual_evidence": "Look for interaction with the application's menus, dialogs, and buttons rather than terminal commands like 'gdalwarp' or Python scripts."
+    },
+    {
+      "id": "genuine_parameters",
+      "description": "The resampling parameters were entered into the actual software.",
+      "visual_evidence": "The parameters (400 width, Bilinear, Mean) must be visible in the application's Resampling dialog, not just typed into a text editor or terminal."
+    },
+    {
+      "id": "no_fake_files",
+      "description": "The output files were generated through the software's save/export functionality.",
+      "visual_evidence": "Look for the software's progress bars or success messages during saving/exporting, ensuring the agent didn't just copy and rename the original file using a file manager or terminal."
+    }
+  ],
+  "privileged_info_for_vlm": "Source file: /home/ga/snap_data/landsat7_rgb.tif (contains exactly 3 bands). Target width: exactly 400 pixels. Expected BEAM-DIMAP export path: /home/ga/snap_exports/landsat7_resampled.dim. Expected GeoTIFF export path: /home/ga/snap_exports/landsat7_resampled.tif."
+}

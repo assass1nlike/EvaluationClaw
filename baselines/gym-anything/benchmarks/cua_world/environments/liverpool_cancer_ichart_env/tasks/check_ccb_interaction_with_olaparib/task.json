@@ -1,0 +1,43 @@
+{
+  "id": "check_ccb_interaction_with_olaparib@1",
+  "version": "1.0",
+  "env_id": "example.liverpool_cancer_ichart_env@0.1",
+  "description": "Evaluate the drug-drug interaction between the cancer drug 'Olaparib' and the co-medication 'Diltiazem' using the Liverpool Cancer iChart Archive app. Create a result file at /sdcard/tasks/interaction_result.txt containing the interaction banner color on the first line and a one-sentence summary of the clinical recommendation on the second line.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "sh /sdcard/tasks/check_ccb_interaction_with_olaparib/setup_task.sh",
+    "post_task": "sh /sdcard/tasks/check_ccb_interaction_with_olaparib/export_result.sh"
+  },
+  "metadata": {
+    "cancer_drug": "Olaparib",
+    "co_medication": "Diltiazem",
+    "expected_colors": [
+      "Orange",
+      "Red",
+      "Amber"
+    ],
+    "required_keywords": [
+      "dose",
+      "reduce",
+      "adjust",
+      "monitor",
+      "avoid",
+      "caution",
+      "increase",
+      "concentration",
+      "cyp3a"
+    ],
+    "result_file_path": "/sdcard/tasks/interaction_result.txt"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_ccb_interaction"
+    }
+  }
+}

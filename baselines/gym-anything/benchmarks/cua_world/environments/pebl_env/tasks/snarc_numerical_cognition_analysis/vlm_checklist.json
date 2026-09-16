@@ -1,0 +1,59 @@
+{
+  "task_id": "snarc_numerical_cognition_analysis@1",
+  "task_completion": [
+    {
+      "id": "read_input_data",
+      "description": "Agent opens or reads the input CSV data file.",
+      "points": 10,
+      "visual_evidence": "Screenshots show a script (e.g., Python, R) or data analysis tool loading '~/pebl/data/snarc_data.csv'."
+    },
+    {
+      "id": "data_filtering_logic",
+      "description": "Agent implements the required data filtering for RT calculations.",
+      "points": 20,
+      "visual_evidence": "Screenshots of code show filtering operations: excluding block 1 (e.g., block > 1), keeping correct == 1, and restricting rt_ms between 200 and 1500."
+    },
+    {
+      "id": "accuracy_calculation_logic",
+      "description": "Agent calculates overall accuracy correctly before RT filtering.",
+      "points": 15,
+      "visual_evidence": "Screenshots of code show accuracy being calculated using all block 2 and 3 trials *prior* to the application of the 200 <= rt_ms <= 1500 filter."
+    },
+    {
+      "id": "snarc_slope_logic",
+      "description": "Agent computes the SNARC regression slope correctly.",
+      "points": 25,
+      "visual_evidence": "Screenshots of code show the calculation of mean RT for Right and Left hands, computing dRT (Right - Left), and performing a linear regression (e.g., using scipy.stats.linregress, statsmodels, or sklearn) with number magnitude (1-9) as the independent variable."
+    },
+    {
+      "id": "participant_exclusion",
+      "description": "Agent excludes participant sub-99 and provides a reason.",
+      "points": 10,
+      "visual_evidence": "Screenshots of code or the final JSON output show 'sub-99' being explicitly excluded with an 'excluded': true flag and a 'reason' string."
+    },
+    {
+      "id": "generate_json_report",
+      "description": "Agent generates the final JSON report with the required structure.",
+      "points": 20,
+      "visual_evidence": "Screenshots show the creation and saving of 'snarc_report.json' in '~/pebl/analysis/' containing a 'participants' list, 'group_mean_snarc_slope', and 'group_mean_accuracy'."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "actual_computation",
+      "description": "Agent performs actual mathematical computation rather than hardcoding results.",
+      "visual_evidence": "The agent uses a script or data analysis tool to compute the regression and means, rather than writing a hardcoded JSON file with hallucinated numbers."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "Agent saves the output file to the filesystem.",
+      "visual_evidence": "The output JSON is saved to the correct path (/home/ga/pebl/analysis/snarc_report.json) using file I/O operations, rather than just printing the JSON structure to the terminal."
+    },
+    {
+      "id": "genuine_data_source",
+      "description": "Agent uses the provided dataset.",
+      "visual_evidence": "The agent reads the actual CSV file provided in the task and does not create a mock dataset or bypass the actual data file."
+    }
+  ],
+  "privileged_info_for_vlm": "The input dataset contains the following columns: participant_id, block, trial, number, parity, response_hand, correct, rt_ms. Participant 'sub-99' is contaminated with a constant RT of 600.0 ms (zero_rt_variance) and must be excluded. The final report must be located exactly at /home/ga/pebl/analysis/snarc_report.json."
+}

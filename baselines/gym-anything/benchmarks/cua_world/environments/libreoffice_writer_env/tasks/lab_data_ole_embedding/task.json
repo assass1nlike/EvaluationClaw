@@ -1,0 +1,46 @@
+{
+  "id": "lab_data_ole_embedding@1",
+  "version": "1.0",
+  "env_id": "libreoffice_writer_env@0.1",
+  "description": "Update /home/ga/Documents/batch_synthesis_report.odt by replacing the '[INSERT YIELD DATA HERE]' placeholder in Section 3.0 with an embedded spreadsheet object. The spreadsheet must contain a table with headers 'Batch ID', 'Input Mass (kg)', 'Output Mass (kg)', and 'Yield %' for the following batches: Batch A (50.0kg input, 42.5kg output), Batch B (48.5kg input, 39.2kg output), and Batch C (52.0kg input, 49.8kg output). Calculate the 'Yield %' for each batch using a formula and format the results to one decimal place. Save the final document to /home/ga/Documents/batch_synthesis_report_complete.odt.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 480,
+    "max_steps": 60,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/lab_data_ole_embedding/setup_task.sh",
+    "post_task": "/workspace/tasks/lab_data_ole_embedding/export_result.sh"
+  },
+  "metadata": {
+    "input_file": "/home/ga/Documents/batch_synthesis_report.odt",
+    "output_file": "/home/ga/Documents/batch_synthesis_report_complete.odt",
+    "required_data": [
+      {
+        "batch": "A",
+        "input": 50.0,
+        "output": 42.5
+      },
+      {
+        "batch": "B",
+        "input": 48.5,
+        "output": 39.2
+      },
+      {
+        "batch": "C",
+        "input": 52.0,
+        "output": 49.8
+      }
+    ],
+    "check_ole_object": true,
+    "check_formulas": true,
+    "check_decimal_places": 1
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_lab_data_ole_embedding"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "create_rsi_scanner_strategy@1",
+  "version": "1.0",
+  "env_id": "jstock_env@0.1",
+  "description": "Create and save a technical analysis strategy in the Stock Indicator Scanner to identify oversold stocks. Configure the strategy with a rule to trigger when the Relative Strength Index (14) is less than 30. Save the strategy with the exact name: 'Oversold RSI'.",
+  "difficulty": "medium",
+  "init": {
+    "timeout_sec": 300,
+    "max_steps": 40,
+    "reward_type": "sparse"
+  },
+  "hooks": {
+    "pre_task": "/workspace/tasks/create_rsi_scanner_strategy/setup_task.sh",
+    "post_task": "/workspace/tasks/create_rsi_scanner_strategy/export_result.sh"
+  },
+  "metadata": {
+    "expected_name": "Oversold RSI",
+    "expected_indicator": "RSI",
+    "expected_operator": "<",
+    "expected_value": "30",
+    "config_dir": "/home/ga/.jstock"
+  },
+  "success": {
+    "mode": "program",
+    "spec": {
+      "program": "verifier.py::verify_create_rsi_scanner_strategy"
+    }
+  }
+}
